@@ -161,7 +161,7 @@ public class ModifyObjectClassTask extends Task
         }
       }
       return new ObjectClass("",
-          ocToDelete.getPrimaryName(),
+          ocToDelete.getNameOrOID(),
           allNames,
           ocToDelete.getOID(),
           ocToDelete.getDescription(),

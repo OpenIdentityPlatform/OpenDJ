@@ -194,7 +194,7 @@ public final class InternalClientConnection
 
   private void put(Map<ObjectClass, String> objectClasses, ObjectClass oc)
   {
-    objectClasses.put(oc, oc.getPrimaryName());
+    objectClasses.put(oc, oc.getNameOrOID());
   }
 
   private void put(Map<AttributeType, List<Attribute>> Attrs, String attrName, String value)

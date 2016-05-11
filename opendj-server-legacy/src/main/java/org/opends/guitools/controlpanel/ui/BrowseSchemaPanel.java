@@ -657,7 +657,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
       if (mustAdd(oc))
       {
         SomeSchemaElement element = new SomeSchemaElement(oc);
-        String name = oc.getPrimaryName();
+        String name = oc.getNameOrOID();
         if (Utilities.isStandard(element))
         {
           standardOcNames.add(name);

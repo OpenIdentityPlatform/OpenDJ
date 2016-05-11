@@ -277,7 +277,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       return;
     }
     hmAttrs.clear();
-    String n = oc.getPrimaryName();
+    String n = oc.getNameOrOID();
     if (n == null)
     {
       n = NOT_APPLICABLE.toString();
@@ -295,7 +295,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     description.setText(n);
     ArrayList<String> otherNames = new ArrayList<>();
     Iterable<String> ocNames = oc.getNormalizedNames();
-    String primaryName = oc.getPrimaryName();
+    String primaryName = oc.getNameOrOID();
     if (primaryName == null)
     {
       primaryName = "";
@@ -420,14 +420,14 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       }
       else if (superiors.size() == 1)
       {
-        n = superiors.iterator().next().getPrimaryName();
+        n = superiors.iterator().next().getNameOrOID();
       }
       else
       {
         SortedSet<String> names = new TreeSet<>();
         for (ObjectClass superior : superiors)
         {
-          names.add(superior.getPrimaryName());
+          names.add(superior.getNameOrOID());
         }
         n = Utilities.getStringFromCollection(names, ", ");
       }

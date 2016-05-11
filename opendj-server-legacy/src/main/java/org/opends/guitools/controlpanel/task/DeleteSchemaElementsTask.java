@@ -529,7 +529,7 @@ public class DeleteSchemaElementsTask extends Task
         optional = ocToDelete.getDeclaredOptionalAttributes();
       }
       return new ObjectClass("",
-          ocToDelete.getPrimaryName(),
+          ocToDelete.getNameOrOID(),
           new ArrayList<>(ocToDelete.getNormalizedNames()),
           ocToDelete.getOID(),
           ocToDelete.getDescription(),

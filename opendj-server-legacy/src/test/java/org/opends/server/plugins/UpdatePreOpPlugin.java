@@ -141,7 +141,7 @@ public class UpdatePreOpPlugin
 
     for (ObjectClass oc : addObjectClasses)
     {
-      addOperation.addObjectClass(oc, oc.getPrimaryName());
+      addOperation.addObjectClass(oc, oc.getNameOrOID());
     }
 
     return PluginResult.PreOperation.continueOperationProcessing();

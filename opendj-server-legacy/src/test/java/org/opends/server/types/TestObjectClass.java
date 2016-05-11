@@ -371,7 +371,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass type = new ObjectClass(definition, null, null, "1.2.3", null,
         null, null, null, null, false, null);
 
-    Assert.assertNull(type.getPrimaryName());
+    Assert.assertNull(type.getNameOrOID());
   }
 
 

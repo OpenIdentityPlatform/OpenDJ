@@ -199,16 +199,6 @@ public abstract class CommonSchemaElements implements SchemaElement {
   }
 
   /**
-   * Retrieves the primary name for this schema definition.
-   *
-   * @return The primary name for this schema definition, or
-   *         <code>null</code> if there is no primary name.
-   */
-  public final String getPrimaryName() {
-    return primaryName;
-  }
-
-  /**
    * Retrieves an iterable over the set of normalized names that may
    * be used to reference this schema definition. The normalized form
    * of an attribute name is defined as the user-defined name

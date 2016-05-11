@@ -724,7 +724,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
       final MonitorProvider<?> monitorProvider)
   {
     final ObjectClass monitorOC = monitorProvider.getMonitorObjectClass();
-    final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, monitorOC.getPrimaryName());
+    final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, monitorOC.getNameOrOID());
 
     final MonitorData monitorAttrs = monitorProvider.getMonitorData();
     final Map<AttributeType, List<Attribute>> attrMap = asMap(monitorAttrs);

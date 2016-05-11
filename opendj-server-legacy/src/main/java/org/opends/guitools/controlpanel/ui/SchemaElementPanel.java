@@ -141,7 +141,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
    */
   protected Set<String> getAliases(ObjectClass oc)
   {
-    return getAliases(oc.getNormalizedNames(), oc.getPrimaryName());
+    return getAliases(oc.getNormalizedNames(), oc.getNameOrOID());
   }
 
   private Set<String> getAliases(Iterable<String> names, String primaryName)

@@ -442,7 +442,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       // Ignore: this is called to get an initial panel size.
       return;
     }
-    String n = oc.getPrimaryName();
+    String n = oc.getNameOrOID();
     if (n == null)
     {
       n = NOT_APPLICABLE.toString();

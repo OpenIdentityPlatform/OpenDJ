@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -671,7 +671,7 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
   public final void testGetPrimaryNameDefault() throws Exception {
     SchemaDefinitionBuilder builder = getBuilder(null, "1.2.3");
     CommonSchemaElements d = builder.getInstance();
-    Assert.assertNull(d.getPrimaryName());
+    Assert.assertNull(d.getNameOrOID());
   }
 
 
@@ -687,7 +687,7 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
   public final void testGetPrimaryName() throws Exception {
     SchemaDefinitionBuilder builder = getBuilder("testType", "1.2.3");
     CommonSchemaElements d = builder.getInstance();
-    Assert.assertEquals(d.getPrimaryName(), "testType");
+    Assert.assertEquals(d.getNameOrOID(), "testType");
   }
 
 

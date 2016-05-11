@@ -179,7 +179,7 @@ public class ModifyAttributeTask extends Task
         optional.add(newAttribute);
       }
       return new ObjectClass("",
-          ocToDelete.getPrimaryName(),
+          ocToDelete.getNameOrOID(),
           allNames,
           ocToDelete.getOID(),
           ocToDelete.getDescription(),
