@@ -1340,14 +1340,15 @@ public final class SchemaBuilder {
                 addObjectClass(newExtensibleObjectObjectClass(
                     ocBuilder.getDescription(), ocBuilder.getExtraProperties(), this), overwrite);
                 return this;
-            } else {
-                if (ocType == STRUCTURAL && superiorClasses.isEmpty()) {
-                    superiorClasses = singleton(TOP_OBJECTCLASS_NAME);
-                }
-                ocBuilder.superiorObjectClasses(superiorClasses)
-                         .type(ocType);
-                return ocBuilder.addToSchema(overwrite);
             }
+
+            ocType = ocType != null ? ocType : STRUCTURAL;
+            if (ocType == STRUCTURAL && superiorClasses.isEmpty()) {
+                superiorClasses = singleton(TOP_OBJECTCLASS_NAME);
+            }
+            ocBuilder.superiorObjectClasses(superiorClasses)
+                     .type(ocType);
+            return ocBuilder.addToSchema(overwrite);
         } catch (final DecodeException e) {
             throw new LocalizedIllegalArgumentException(
                 ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1.get(definition, e.getMessageObject()), e.getCause());
