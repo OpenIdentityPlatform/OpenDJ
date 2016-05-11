@@ -926,12 +926,12 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
                 normalizedDN = ByteString.empty();
             } else {
                 final ByteStringBuilder builder = new ByteStringBuilder(size * 8);
-                if (parent.normalizedDN == null) {
+                if (parent.normalizedDN != null) {
+                    builder.appendBytes(parent.normalizedDN);
+                } else {
                     for (int i = size() - 1; i > 0; i--) {
                         parent(i).rdn().toNormalizedByteString(builder);
                     }
-                } else {
-                    builder.appendBytes(parent.normalizedDN);
                 }
                 rdn.toNormalizedByteString(builder);
                 normalizedDN = builder.toByteString();

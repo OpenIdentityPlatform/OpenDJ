@@ -452,10 +452,10 @@ public class TextErrorLogPublisher
   {
     if (isEnabledFor(category, severity))
     {
-      StringBuilder sb = new StringBuilder();
-      sb.append("[");
-      sb.append(TimeThread.getLocalTime());
-      sb.append("] category=")
+      StringBuilder sb = new StringBuilder()
+          .append("[")
+          .append(TimeThread.getLocalTime())
+          .append("] category=")
           .append(category)
           .append(" severity=")
           .append(severity)
