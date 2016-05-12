@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.maven.doc;
 
@@ -57,7 +57,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
      */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final Locale currentLocale = getLocaleFromTag(locale);
+        final Locale currentLocale = Locale.forLanguageTag(locale);
         final String localeReference = getLocalesAndSubTypesDocumentation(currentLocale);
         final File localeReferenceFile = new File(outputDirectory, "sec-locales-subtypes.xml");
         try {
@@ -75,7 +75,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
     private String getLocalesAndSubTypesDocumentation(final Locale currentLocale) {
         final Map<String, Object> map = new HashMap<>();
         map.put("year", new SimpleDateFormat("yyyy").format(new Date()));
-        map.put("lang", getTagFromLocale(currentLocale));
+        map.put("lang", currentLocale.toLanguageTag());
         map.put("title", DOC_LOCALE_SECTION_TITLE.get());
         map.put("info", DOC_LOCALE_SECTION_INFO.get());
         map.put("locales", getLocalesDocMap(currentLocale));
@@ -101,8 +101,8 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
     private Map<String, LocaleDoc> getLanguagesToLocalesMap(final Locale currentLocale) {
         Map<String, LocaleDoc> locales = new TreeMap<>();
         for (String tag : localeTagsToOids.keySet()) {
-            final Locale locale = getLocaleFromTag(tag);
-            if (locale == null) {
+            final Locale locale = Locale.forLanguageTag(tag);
+            if (isNullOrEmpty(locale)) {
                 continue;
             }
             final LocaleDoc localeDoc = new LocaleDoc();
@@ -158,8 +158,8 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
             final Map<String, Object> map = new HashMap<>();
             int idx = tag.indexOf('-');
             if (idx == -1) {
-                final Locale locale = getLocaleFromTag(tag);
-                if (locale == null) {
+                final Locale locale = Locale.forLanguageTag(tag);
+                if (isNullOrEmpty(locale)) {
                     continue;
                 }
                 final String language = locale.getDisplayName(currentLocale);
@@ -179,74 +179,7 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
         return result;
     }
 
-    /**
-     * Returns the Locale based on the tag, or null if the tag is null.
-     * <br>
-     * Java 6 is missing {@code Locale.forLanguageTag()}.
-     * @param tag   The tag for the locale, such as {@code en_US}.
-     * @return The Locale based on the tag, or null if the tag is null.
-     */
-    private Locale getLocaleFromTag(final String tag) {
-        if (tag == null) {
-            return null;
-        }
-
-        // Apparently Locale tags can include not only languages and countries,
-        // but also variants, e.g. es_ES_Traditional_WIN.
-        // Pull these apart to be able to construct the locale.
-        //
-        // OpenDJ does not seem to have any locales with variants, but just in case...
-        // The separator in OpenDJ seems to be '-'.
-        // @see CoreSchemaSupportedLocales#LOCALE_NAMES_TO_OIDS
-        final char sep = '-';
-        int langIdx = tag.indexOf(sep);
-        final String lang;
-        if (langIdx == -1) {
-            // No country or variant
-            return new Locale(tag);
-        } else {
-            lang = tag.substring(0, langIdx);
-        }
-
-        int countryIdx = tag.indexOf(sep, langIdx + 1);
-        final String country;
-        if (countryIdx == -1) {
-            // No variant
-            country = tag.substring(langIdx + 1);
-            return new Locale(lang, country);
-        } else {
-            country = tag.substring(langIdx + 1, countryIdx);
-            final String variant = tag.substring(countryIdx + 1);
-            return new Locale(lang, country, variant);
-        }
-    }
-
-    /**
-     * Returns the tag based on the Locale, or null if the Locale is null.
-     * <br>
-     * Java 6 is missing {@code Locale.toLanguageTag()}.
-     * @param locale        The Locale for which to return the tag.
-     * @return The tag based on the Locale, or null if the Locale is null.
-     */
-    private String getTagFromLocale(final Locale locale) {
-        if (locale == null) {
-            return null;
-        }
-
-        final String  lang    = locale.getLanguage();
-        final String  country = locale.getCountry();
-        final String  variant = locale.getVariant();
-        final char    sep     = '-';
-        StringBuilder tag     = new StringBuilder();
-        if (lang != null) {
-            tag.append(lang);
-        }
-        if (country != null && !country.isEmpty()) {
-            tag.append(sep).append(country);
-        }
-        if (variant != null && !variant.isEmpty()) {
-            tag.append(sep).append(variant);
-        }
-        return tag.toString();
+    private boolean isNullOrEmpty(final Locale locale) {
+        return locale == null || locale.getLanguage().equals("");
     }
 }
