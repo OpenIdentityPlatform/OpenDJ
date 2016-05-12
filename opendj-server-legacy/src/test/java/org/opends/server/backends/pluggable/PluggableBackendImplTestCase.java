@@ -167,6 +167,10 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       when(indexCfg.getIndexEntryLimit()).thenReturn(4000);
       when(indexCfg.getSubstringLength()).thenReturn(6);
       when(backendCfg.getBackendIndex(index.getKey())).thenReturn(indexCfg);
+      if (backendCfg.isConfidentialityEnabled())
+      {
+        when(indexCfg.isConfidentialityEnabled()).thenReturn(true);
+      }
     }
 
     BackendVLVIndexCfg vlvIndexCfg = mock(BackendVLVIndexCfg.class);
