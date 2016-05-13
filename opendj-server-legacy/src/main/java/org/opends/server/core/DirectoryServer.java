@@ -6416,15 +6416,14 @@ public final class DirectoryServer
     {
       logger.traceException(ie);
 
-      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(ie.getMessage());
+      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(stackTraceToSingleLineString(ie));
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
     catch (ConfigException ce)
     {
       logger.traceException(ce);
 
-      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(ce.getMessage() +
-      (ce.getCause() != null ? " " + ce.getCause().getLocalizedMessage() : ""));
+      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(stackTraceToSingleLineString(ce));
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
     catch (Exception e)

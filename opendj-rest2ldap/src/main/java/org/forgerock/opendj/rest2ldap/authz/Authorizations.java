@@ -21,7 +21,6 @@ import static org.forgerock.util.promise.Promises.newResultPromise;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -64,11 +63,11 @@ public final class Authorizations {
      * filter in the list will be applied allowing it to formulate a valid, implementation specific, error response.
      *
      * @param filters
-     *            List of authorization {@link ConditionalFilters} to try. If empty, the returned filter will always
-     *            respond with 403 Forbidden.
+     *            {@link Iterable} of authorization {@link ConditionalFilters} to try. If empty, the returned filter
+     *            will always respond with 403 Forbidden.
      * @return A new authorization {@link Filter}
      */
-    public static Filter newAuthorizationFilter(List<ConditionalFilter> filters) {
+    public static Filter newAuthorizationFilter(Iterable<? extends ConditionalFilter> filters) {
         return new AuthorizationFilter(filters);
     }
 

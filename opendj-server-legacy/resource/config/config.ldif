@@ -386,8 +386,103 @@ objectClass: ds-cfg-rest2ldap-endpoint
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.protocols.http.rest2ldap.Rest2LdapEndpoint
 ds-cfg-base-path: /api
-ds-cfg-authentication-required: true
 ds-cfg-config-url: config/http-config.json
+ds-cfg-http-authorization-mechanism: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config
+
+dn: cn=HTTP Authorization Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: HTTP Authorizations
+
+dn: cn=HTTP Anonymous,cn=HTTP Authorization Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-http-authorization-mechanism
+objectClass: ds-cfg-http-anonymous-authorization-mechanism
+cn: HTTP Anonymous
+ds-cfg-enabled: true
+ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpAnonymousAuthorizationMechanism
+
+dn: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-http-authorization-mechanism
+objectClass: ds-cfg-http-basic-authorization-mechanism
+cn: HTTP Basic
+ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpBasicAuthorizationMechanism
+ds-cfg-enabled: true
+ds-cfg-http-basic-alt-authentication-enabled: true
+ds-cfg-http-basic-alt-username-header: X-OpenIDM-Username
+ds-cfg-http-basic-alt-password-header: X-OpenIDM-Password
+ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config
+
+dn: cn=HTTP OAuth2 CTS,cn=HTTP Authorization Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-http-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-cts-authorization-mechanism
+cn: HTTP OAuth2 CTS
+ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2CtsAuthorizationMechanism
+ds-cfg-enabled: false
+ds-cfg-cts-base-dn: ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com
+ds-cfg-oauth2-authzid-json-pointer: userName/0
+ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config
+ds-cfg-oauth2-required-scope: read
+ds-cfg-oauth2-required-scope: write
+ds-cfg-oauth2-required-scope: uid
+ds-cfg-oauth2-access-token-cache-enabled: false
+ds-cfg-oauth2-access-token-cache-expiration: 300s
+
+dn: cn=HTTP OAuth2 OpenAM,cn=HTTP Authorization Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-http-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-openam-authorization-mechanism
+cn: HTTP OAuth2 OpenAM
+ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2OpenAmAuthorizationMechanism
+ds-cfg-enabled: false
+ds-cfg-openam-token-info-url: http://openam.example.com:8080/openam/oauth2/tokeninfo
+ds-cfg-oauth2-authzid-json-pointer: uid
+ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config
+ds-cfg-oauth2-required-scope: read
+ds-cfg-oauth2-required-scope: write
+ds-cfg-oauth2-required-scope: uid
+ds-cfg-oauth2-access-token-cache-enabled: false
+ds-cfg-oauth2-access-token-cache-expiration: 300s
+
+dn: cn=HTTP OAuth2 Token Introspection (RFC7662),cn=HTTP Authorization Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-http-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-token-introspection-authorization-mechanism
+cn: HTTP OAuth2 Token Introspection (RFC7662)
+ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2TokenIntrospectionAuthorizationMechanism
+ds-cfg-enabled: false
+ds-cfg-oauth2-token-introspection-url: http://openam.example.com:8080/oauth2/myrealm/introspect
+ds-cfg-oauth2-token-introspection-client-id: directoryserver 
+ds-cfg-oauth2-token-introspection-client-secret: secret
+ds-cfg-oauth2-authzid-json-pointer: sub
+ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config
+ds-cfg-oauth2-required-scope: read
+ds-cfg-oauth2-required-scope: write
+ds-cfg-oauth2-required-scope: uid
+ds-cfg-oauth2-access-token-cache-enabled: false
+ds-cfg-oauth2-access-token-cache-expiration: 300s
+
+dn: cn=HTTP OAuth2 File,cn=HTTP Authorization Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-http-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-authorization-mechanism
+objectClass: ds-cfg-http-oauth2-file-authorization-mechanism
+cn: HTTP OAuth2 File
+ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2FileAuthorizationMechanism
+ds-cfg-enabled: false
+ds-cfg-oauth2-access-token-directory: oauth2-demo/
+ds-cfg-oauth2-authzid-json-pointer: uid
+ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config
+ds-cfg-oauth2-required-scope: read
+ds-cfg-oauth2-required-scope: write
+ds-cfg-oauth2-required-scope: uid
+ds-cfg-oauth2-access-token-cache-enabled: false
+ds-cfg-oauth2-access-token-cache-expiration: 300s
 
 dn: cn=LDIF Connection Handler,cn=Connection Handlers,cn=config
 objectClass: top

@@ -141,7 +141,14 @@ public final class Adapters {
         };
     }
 
-    private static Connection newConnection(final InternalClientConnection icc) {
+    /**
+     * Returns a new connection.
+     *
+     * @param icc
+     *            The internal client connection from server side.
+     * @return A new SDK connection.
+     */
+    public static Connection newConnection(final InternalClientConnection icc) {
       return new AbstractSynchronousConnection() {
 
           @Override

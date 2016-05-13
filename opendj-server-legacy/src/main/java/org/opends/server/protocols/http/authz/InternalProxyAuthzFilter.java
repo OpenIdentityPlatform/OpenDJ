@@ -13,7 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-package org.opends.server.protocols.http.rest2ldap;
+package org.opends.server.protocols.http.authz;
 
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;

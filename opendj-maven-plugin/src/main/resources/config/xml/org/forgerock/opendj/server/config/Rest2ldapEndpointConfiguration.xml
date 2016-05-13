@@ -58,32 +58,4 @@
 			</ldap:attribute>
 		</adm:profile>
 	</adm:property>
-	<adm:property name="authentication-required" mandatory="true">
-    <adm:synopsis>
-      Specifies whether only authenticated requests can be processed by the
-      <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:description>
-      If true, only authenticated requests will be processed by the
-      <adm:user-friendly-name />. If false, both authenticated requests and 
-      unauthenticated requests will be processed. All requests are subject
-      to ACI limitations and unauthenticated requests are subject to server
-      limits like maximum number of entries returned. Note that setting
-      ds-cfg-reject-unauthenticated-requests to true will override the current
-      setting.
-    </adm:description>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>true</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:boolean />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-authentication-required</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
 </adm:managed-object>

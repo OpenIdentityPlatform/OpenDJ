@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="http-oauth2-cts-authorization-mechanism" plural-name="http-oauth2-cts-authorization-mechanisms"
+  extends="http-oauth2-authorization-mechanism" package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to define OAuth2 authorization through a direct access to the CTS (Core Token Service).
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-http-oauth2-cts-authorization-mechanism</ldap:name>
+      <ldap:superior>ds-cfg-http_oauth2-authorization-mechanism</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.protocols.http.authz.HttpOAuth2CtsAuthorizationMechanism
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property-override name="authzid-json-pointer">
+    <adm:synopsis>
+      Specifies the JSON pointer to the value to use as Authorization ID. The JSON pointer
+      is applied to the resolved access token JSON document. (example: userName/0)
+    </adm:synopsis>
+  </adm:property-override>
+
+  <adm:property name="base-dn" mandatory="true" read-only="false">
+    <adm:synopsis>
+      The base DN of the Core Token Service where access token are stored.
+      (example: ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com)
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cts-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

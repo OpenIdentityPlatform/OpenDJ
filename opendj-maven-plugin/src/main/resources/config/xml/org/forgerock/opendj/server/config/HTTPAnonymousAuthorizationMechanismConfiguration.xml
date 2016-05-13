@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="http-anonymous-authorization-mechanism" plural-name="http-anonymous-authorization-mechanisms"
+  extends="http-authorization-mechanism" package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to define static authorization.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-http-anonymous-authorization-mechanism</ldap:name>
+      <ldap:superior>ds-cfg-http-authorization-mechanism</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.protocols.http.authz.HttpAnonymousAuthorizationMechanism
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property name="user-dn" mandatory="false">
+    <adm:synopsis>
+      The authorization DN which will be used for performing anonymous operations.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          By default, operations will be performed using an anonymously bound connection.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-bind-user-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

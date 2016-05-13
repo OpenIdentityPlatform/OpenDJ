@@ -3854,6 +3854,94 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.161
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.162
+  NAME 'ds-cfg-http-authorization-mechanism'
+  EQUALITY distinguishedNameMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.163
+  NAME 'ds-cfg-http-basic-alt-authentication-enabled'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.164
+  NAME 'ds-cfg-http-basic-alt-username-header'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.165
+  NAME 'ds-cfg-http-basic-alt-password-header'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.166
+  NAME 'ds-cfg-bind-user-dn'
+  EQUALITY distinguishedNameMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.167
+  NAME 'ds-cfg-oauth2-authzid-json-pointer'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.168
+  NAME 'ds-cfg-oauth2-required-scope'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.169
+  NAME 'ds-cfg-oauth2-access-token-cache-enabled'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.170
+  NAME 'ds-cfg-oauth2-access-token-cache-expiration'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.171
+  NAME 'ds-cfg-openam-token-info-url'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.172
+  NAME 'ds-cfg-oauth2-token-introspection-url'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.173
+  NAME 'ds-cfg-oauth2-token-introspection-client-id'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.174
+  NAME 'ds-cfg-oauth2-token-introspection-client-secret'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.175
+  NAME 'ds-cfg-cts-base-dn'
+  EQUALITY distinguishedNameMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.176
+  NAME 'ds-cfg-oauth2-access-token-directory'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -5898,12 +5986,75 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.33
   STRUCTURAL
   MUST ( ds-cfg-base-path $
          ds-cfg-enabled $
+         ds-cfg-http-authorization-mechanism $
          ds-cfg-java-class )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.34
   NAME 'ds-cfg-rest2ldap-endpoint'
   SUP ds-cfg-http-endpoint
   STRUCTURAL
-  MUST ( ds-cfg-authentication-required $
-         ds-cfg-config-url )
+  MUST ( ds-cfg-config-url )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.35
+  NAME 'ds-cfg-http-authorization-mechanism'
+  SUP top
+  STRUCTURAL
+  MUST ( cn $ 
+         ds-cfg-java-class $ 
+         ds-cfg-enabled )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.36
+  NAME 'ds-cfg-http-anonymous-authorization-mechanism'
+  SUP ds-cfg-http-authorization-mechanism
+  STRUCTURAL
+  MAY ( ds-cfg-bind-user-dn )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.37
+  NAME 'ds-cfg-http-basic-authorization-mechanism'
+  SUP ds-cfg-http-authorization-mechanism
+  STRUCTURAL
+  MUST ( ds-cfg-http-basic-alt-authentication-enabled $
+         ds-cfg-identity-mapper )
+  MAY  ( ds-cfg-http-basic-alt-username-header $
+         ds-cfg-http-basic-alt-password-header )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.38
+  NAME 'ds-cfg-http-oauth2-authorization-mechanism'
+  SUP ds-cfg-http-authorization-mechanism
+  STRUCTURAL
+  MUST ( ds-cfg-oauth2-authzid-json-pointer $
+         ds-cfg-identity-mapper $
+         ds-cfg-oauth2-required-scope $
+         ds-cfg-oauth2-access-token-cache-enabled )
+  MAY  ( ds-cfg-oauth2-access-token-cache-expiration )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.39
+  NAME 'ds-cfg-http-oauth2-openam-authorization-mechanism'
+  SUP ds-cfg-http-oauth2-authorization-mechanism
+  STRUCTURAL
+  MUST ( ds-cfg-openam-token-info-url )
+  MAY ( ds-cfg-trust-manager-provider $
+        ds-cfg-key-manager-provider )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.40
+  NAME 'ds-cfg-http-oauth2-token-introspection-authorization-mechanism'
+  SUP ds-cfg-http-oauth2-authorization-mechanism
+  STRUCTURAL
+  MUST ( ds-cfg-oauth2-token-introspection-url $
+         ds-cfg-oauth2-token-introspection-client-id $ 
+         ds-cfg-oauth2-token-introspection-client-secret )
+  MAY ( ds-cfg-trust-manager-provider $
+        ds-cfg-key-manager-provider )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.41
+  NAME 'ds-cfg-http-oauth2-cts-authorization-mechanism'
+  SUP ds-cfg-http-oauth2-authorization-mechanism
+  STRUCTURAL
+  MUST ( ds-cfg-cts-base-dn )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.42
+  NAME 'ds-cfg-http-oauth2-file-authorization-mechanism'
+  SUP ds-cfg-http-oauth2-authorization-mechanism
+  STRUCTURAL
+  MUST ( ds-cfg-oauth2-access-token-directory )
   X-ORIGIN 'OpenDJ Directory Server' )

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="http-oauth2-file-authorization-mechanism" plural-name="http-oauth2-file-authorization-mechanisms"
+  extends="http-oauth2-authorization-mechanism" package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to define OAuth2 authorization through a file based access-token resolution.
+    For test purpose only, this mechanism is looking up for JSON access-token files under the specified path.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-http-oauth2-file-authorization-mechanism</ldap:name>
+      <ldap:superior>ds-cfg-http-oauth2-authorization-mechanism</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.protocols.http.authz.HttpOAuth2FileAuthorizationMechanism
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:property name="access-token-directory" mandatory="true" read-only="false">
+    <adm:synopsis>
+      Directory containing token files. File names must be equal to the token strings.
+      The file content must a JSON object with the following attributes:
+      'scope', 'expireTime' and all the field(s) needed to resolve the authzIdTemplate.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>oauth2-demo/</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-oauth2-access-token-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

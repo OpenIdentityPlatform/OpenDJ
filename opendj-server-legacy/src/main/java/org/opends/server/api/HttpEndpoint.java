@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
+import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.server.config.server.HTTPEndpointCfg;
 import org.opends.server.core.ServerContext;
@@ -76,6 +77,11 @@ public abstract class HttpEndpoint<C extends HTTPEndpointCfg>
     }
     catch (HttpApplicationException e)
     {
+      if (e instanceof LocalizableException)
+      {
+        unacceptableReasons.add(((LocalizableException) e).getMessageObject());
+        return false;
+      }
       unacceptableReasons.add(ERR_CONFIG_HTTPENDPOINT_INVALID_CONFIGURATION
           .get(configuration.dn(), stackTraceToSingleLineString(e)));
       return false;

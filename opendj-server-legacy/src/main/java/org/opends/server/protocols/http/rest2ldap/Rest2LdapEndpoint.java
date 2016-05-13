@@ -15,28 +15,32 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
-import static org.opends.messages.ConfigMessages.ERR_CONFIG_REST2LDAP_MALFORMED_URL;
+import static org.forgerock.http.util.Json.readJsonLenient;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.forgerock.http.Filter;
+import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
-import org.forgerock.opendj.adapter.server3x.Adapters;
-import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.rest2ldap.Rest2LDAPHttpApplication;
-import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;
+import org.forgerock.http.HttpApplicationException;
+import org.forgerock.http.io.Buffer;
+import org.forgerock.json.JsonValue;
+import org.forgerock.json.JsonValueException;
+import org.forgerock.json.resource.Router;
+import org.forgerock.json.resource.http.CrestHttp;
+import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.server.config.server.Rest2ldapEndpointCfg;
+import org.forgerock.util.Factory;
 import org.opends.server.api.HttpEndpoint;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.protocols.http.LocalizedHttpApplicationException;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -62,51 +66,88 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
   @Override
   public HttpApplication newHttpApplication() throws InitializationException
   {
-    try
-    {
-      final URI configURI = new URI(configuration.getConfigUrl());
-      final URL absoluteConfigUrl =
-          configURI.isAbsolute() ? configURI.toURL() : getFileForPath(configuration.getConfigUrl()).toURI().toURL();
-      return new InternalRest2LDAPHttpApplication(absoluteConfigUrl, serverContext.getSchemaNG());
-    }
-    catch (MalformedURLException | URISyntaxException e)
-    {
-      throw new InitializationException(ERR_CONFIG_REST2LDAP_MALFORMED_URL
-          .get(configuration.dn(), stackTraceToSingleLineString(e)));
-    }
+    return new InternalRest2LDAPHttpApplication();
   }
 
   /**
    * Specialized {@link Rest2LDAPHttpApplication} using internal connections to
    * this local LDAP server.
    */
-  private final class InternalRest2LDAPHttpApplication extends Rest2LDAPHttpApplication
+  private final class InternalRest2LDAPHttpApplication implements HttpApplication
   {
-    private final ConnectionFactory rootInternalConnectionFactory = Adapters.newRootConnectionFactory();
-    private final ConnectionFactory anonymousInternalConnectionFactory =
-        Adapters.newConnectionFactory(new InternalClientConnection((AuthenticationInfo) null));
+    private final URL configURL;
 
-    InternalRest2LDAPHttpApplication(final URL configURL, final Schema schema)
+    InternalRest2LDAPHttpApplication() throws InitializationException
     {
-      super(configURL, schema);
+      try
+      {
+        final URI configURI = new URI(configuration.getConfigUrl());
+        configURL = configURI.isAbsolute()
+            ? configURI.toURL()
+            : getFileForPath(configuration.getConfigUrl()).toURI().toURL();
+      }
+      catch (MalformedURLException | URISyntaxException e)
+      {
+        throw new InitializationException(
+            ERR_CONFIG_REST2LDAP_MALFORMED_URL.get(configuration.dn(), stackTraceToSingleLineString(e)));
+      }
     }
 
     @Override
-    protected ConditionalFilter newAnonymousFilter(final ConnectionFactory connectionFactory)
+    public Handler start() throws HttpApplicationException
     {
-      return super.newAnonymousFilter(anonymousInternalConnectionFactory);
+      JsonValue mappingConfiguration;
+      try
+      {
+        mappingConfiguration = readJson(configURL);
+      }
+      catch (IOException e)
+      {
+        throw new LocalizedHttpApplicationException(
+            ERR_CONFIG_REST2LDAP_UNABLE_READ.get(configURL, configuration.dn(), stackTraceToSingleLineString(e)), e);
+      }
+      final JsonValue mappings = mappingConfiguration.get("mappings").required();
+      final Router router = new Router();
+      try
+      {
+        for (final String mappingUrl : mappings.keys())
+        {
+          final JsonValue mapping = mappings.get(mappingUrl);
+          router.addRoute(Router.uriTemplate(mappingUrl), Rest2LDAP.builder().configureMapping(mapping).build());
+        }
+      }
+      catch (JsonValueException e)
+      {
+        throw new LocalizedHttpApplicationException(
+            ERR_CONFIG_REST2LDAP_UNEXPECTED_JSON.get(e.getJsonValue().getPointer(), configURL, configuration.dn(),
+                                                     stackTraceToSingleLineString(e)), e);
+      }
+      catch (IllegalArgumentException e)
+      {
+        throw new LocalizedHttpApplicationException(
+            ERR_CONFIG_REST2LDAP_INVALID.get(configURL, configuration.dn(), stackTraceToSingleLineString(e)), e);
+      }
+      return CrestHttp.newHttpHandler(router);
+    }
+
+    private JsonValue readJson(final URL resource) throws IOException
+    {
+      try (InputStream in = resource.openStream())
+      {
+        return new JsonValue(readJsonLenient(in));
+      }
     }
 
     @Override
-    protected Filter newProxyAuthzFilter(final ConnectionFactory connectionFactory)
+    public void stop()
     {
-      return new InternalProxyAuthzFilter(DirectoryServer.getProxiedAuthorizationIdentityMapper(), schema);
+      // Nothing to do
     }
 
     @Override
-    protected ConnectionFactory getConnectionFactory(final String name)
+    public Factory<Buffer> getBufferFactory()
     {
-      return rootInternalConnectionFactory;
+      return null;
     }
   }
 }

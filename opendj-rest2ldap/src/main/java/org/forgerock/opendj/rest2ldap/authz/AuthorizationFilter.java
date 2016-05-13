@@ -17,8 +17,6 @@ package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.forgerock.util.Reject.checkNotNull;
 
-import java.util.List;
-
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
@@ -42,10 +40,9 @@ final class AuthorizationFilter implements Filter {
             return Response.newResponsePromise(new Response(Status.FORBIDDEN));
         }
     };
+    private final Iterable<? extends ConditionalFilter> filters;
 
-    private final List<ConditionalFilter> filters;
-
-    AuthorizationFilter(List<ConditionalFilter> filters) {
+    AuthorizationFilter(Iterable<? extends ConditionalFilter> filters) {
         this.filters = checkNotNull(filters, "filters cannot be null");
     }
 
