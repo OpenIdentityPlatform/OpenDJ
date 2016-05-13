@@ -278,4 +278,28 @@ public final class BuildVersion implements Comparable<BuildVersion>
     }
     return Utils.joinAsString(".", major, minor, point);
   }
+
+  /**
+   * Returns {@code true} if the version is newer than the provided version.
+   *
+   * @param version
+   *          The version to be compared
+   * @return {@code true} if the version is newer than the provided version.
+   */
+  public boolean isNewerThan(final BuildVersion version)
+  {
+    return this.compareTo(version) >= 0;
+  }
+
+  /**
+   * Returns {@code true} if the version is older than the provided version.
+   *
+   * @param version
+   *          The version to be compared
+   * @return {@code true} if the version is older than the provided version.
+   */
+  public boolean isOlderThan(final BuildVersion version)
+  {
+    return this.compareTo(version) <= 0;
+  }
 }

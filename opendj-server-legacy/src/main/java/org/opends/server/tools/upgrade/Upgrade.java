@@ -43,6 +43,7 @@ import static org.opends.server.tools.upgrade.LicenseFile.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
 import static org.opends.server.tools.upgrade.UpgradeUtils.batDirectory;
 import static org.opends.server.tools.upgrade.UpgradeUtils.binDirectory;
+import static org.opends.server.tools.upgrade.UpgradeUtils.instanceContainsJeBackends;
 import static org.opends.server.tools.upgrade.UpgradeUtils.libDirectory;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -62,6 +63,9 @@ public final class Upgrade
   static final int EXIT_CODE_SUCCESS = 0;
   /** The error exit code value. */
   static final int EXIT_CODE_ERROR = 1;
+
+  private static final String LOCAL_DB_BACKEND_OBJECT_CLASS = "ds-cfg-local-db-backend";
+  private static final String JE_BACKEND_OBJECT_CLASS = "ds-cfg-je-backend";
 
   /** If the upgrade contains some post upgrade tasks to do. */
   private static boolean hasPostUpgradeTask;
@@ -467,64 +471,9 @@ public final class Upgrade
           }
         },
         deleteFile(new File(libDirectory, "je.jar")),
-        requireConfirmation(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_1_SUMMARY.get(), NO,
-                renameLocalDBBackendDirectories(),
-                // Convert JE backends to PDB backends.
-                modifyConfigEntry(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_2_SUMMARY.get(),
-                        "(objectclass=ds-cfg-local-db-backend)",
-                        "delete: objectclass",
-                        "objectclass: ds-cfg-local-db-backend",
-                        "-",
-                        "add: objectclass",
-                        "objectclass: ds-cfg-pluggable-backend",
-                        "objectclass: ds-cfg-pdb-backend",
-                        "-",
-                        "replace: ds-cfg-java-class",
-                        "ds-cfg-java-class: org.opends.server.backends.pdb.PDBBackend",
-                        "-",
-                        "delete: ds-cfg-preload-time-limit",
-                        "-",
-                        "delete: ds-cfg-import-thread-count",
-                        "-",
-                        "delete: ds-cfg-import-queue-size",
-                        "-",
-                        "delete: ds-cfg-db-txn-write-no-sync",
-                        "-",
-                        "delete: ds-cfg-db-run-cleaner",
-                        "-",
-                        "delete: ds-cfg-db-cleaner-min-utilization",
-                        "-",
-                        "delete: ds-cfg-db-evictor-lru-only",
-                        "-",
-                        "delete: ds-cfg-db-evictor-core-threads",
-                        "-",
-                        "delete: ds-cfg-db-evictor-max-threads",
-                        "-",
-                        "delete: ds-cfg-db-evictor-keep-alive",
-                        "-",
-                        "delete: ds-cfg-db-evictor-nodes-per-scan",
-                        "-",
-                        "delete: ds-cfg-db-log-file-max",
-                        "-",
-                        "delete: ds-cfg-db-log-filecache-size",
-                        "-",
-                        "delete: ds-cfg-db-logging-file-handler-on",
-                        "-",
-                        "delete: ds-cfg-db-logging-level",
-                        "-",
-                        "delete: ds-cfg-db-checkpointer-bytes-interval",
-                        "-",
-                        "delete: ds-cfg-db-checkpointer-wakeup-interval",
-                        "-",
-                        "delete: ds-cfg-db-num-lock-tables",
-                        "-",
-                        "delete: ds-cfg-db-num-cleaner-threads",
-                        "-",
-                        "delete: ds-cfg-je-property",
-                        "-",
-                        "delete: ds-cfg-subordinate-indexes-enabled",
-                        "-"
-                ),
+        requireConfirmation(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_1_SUMMARY.get("3.0.0"), NO,
+                renameLocalDBBackendDirectories(LOCAL_DB_BACKEND_OBJECT_CLASS),
+                convertJEBackendsToPDBBackends(LOCAL_DB_BACKEND_OBJECT_CLASS),
                 // Convert JE backend indexes to PDB backend indexes.
                 modifyConfigEntry(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_3_SUMMARY.get(),
                         "(objectclass=ds-cfg-local-db-index)",
@@ -639,15 +588,107 @@ public final class Upgrade
         deleteConfigEntry(INFO_UPGRADE_TASK_CONFIGURATION_BACKEND_NOT_CONFIGURABLE.get(),
             "dn: ds-cfg-backend-id=config,cn=Backends,cn=config"));
 
-    /**
-     * All upgrades will refresh the server configuration schema and generate a new upgrade folder.
-     */
+    /** All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(
+        performOEMMigrationIfNeeded(),
         copySchemaFile("02-config.ldif"),
         updateConfigUpgradeFolder(),
         postUpgradeRebuildIndexes());
 
     // @formatter:on
+  }
+
+  /** If the upgraded version is OEM, migrates local-db backends to PDB, see OPENDJ-3002 **/
+  private static UpgradeTask performOEMMigrationIfNeeded() {
+    return conditionalUpgradeTasks(
+        isOemVersionAndNewerThan3dot0(),
+        deleteFile(new File(libDirectory, "je.jar")),
+        deleteFile(new File(libDirectory, "opendj-je-backend.jar")),
+        conditionalUpgradeTasks(
+            new UpgradeCondition() {
+                @Override
+                public boolean shouldPerformUpgradeTasks(final UpgradeContext context) throws ClientException {
+                    return instanceContainsJeBackends();
+                }
+            },
+            requireConfirmation(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_1_SUMMARY.get("4.0.0"), NO,
+                    renameLocalDBBackendDirectories(JE_BACKEND_OBJECT_CLASS),
+                    convertJEBackendsToPDBBackends(JE_BACKEND_OBJECT_CLASS))
+        )
+    );
+  }
+
+  private static UpgradeCondition isOemVersionAndNewerThan3dot0() {
+    return new UpgradeCondition() {
+        @Override
+        public boolean shouldPerformUpgradeTasks(UpgradeContext context) throws ClientException {
+            return isOEMVersion()
+                && context.getFromVersion().isNewerThan(BuildVersion.valueOf("3.0.0"));
+        }
+
+        @Override
+        public String toString() {
+            return "is OEM version and from version >= 3.0.0";
+        }
+    };
+  }
+
+    private static UpgradeTask convertJEBackendsToPDBBackends(final String objectClass) {
+    return modifyConfigEntry(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_2_SUMMARY.get(),
+        "(objectclass=" + objectClass + ")",
+        "delete: objectclass",
+        "objectclass: " + objectClass,
+        "-",
+        "add: objectclass",
+        "objectclass: ds-cfg-pluggable-backend",
+        "objectclass: ds-cfg-pdb-backend",
+        "-",
+        "replace: ds-cfg-java-class",
+        "ds-cfg-java-class: org.opends.server.backends.pdb.PDBBackend",
+        "-",
+        "delete: ds-cfg-preload-time-limit",
+        "-",
+        "delete: ds-cfg-import-thread-count",
+        "-",
+        "delete: ds-cfg-import-queue-size",
+        "-",
+        "delete: ds-cfg-db-txn-write-no-sync",
+        "-",
+        "delete: ds-cfg-db-run-cleaner",
+        "-",
+        "delete: ds-cfg-db-cleaner-min-utilization",
+        "-",
+        "delete: ds-cfg-db-evictor-lru-only",
+        "-",
+        "delete: ds-cfg-db-evictor-core-threads",
+        "-",
+        "delete: ds-cfg-db-evictor-max-threads",
+        "-",
+        "delete: ds-cfg-db-evictor-keep-alive",
+        "-",
+        "delete: ds-cfg-db-evictor-nodes-per-scan",
+        "-",
+        "delete: ds-cfg-db-log-file-max",
+        "-",
+        "delete: ds-cfg-db-log-filecache-size",
+        "-",
+        "delete: ds-cfg-db-logging-file-handler-on",
+        "-",
+        "delete: ds-cfg-db-logging-level",
+        "-",
+        "delete: ds-cfg-db-checkpointer-bytes-interval",
+        "-",
+        "delete: ds-cfg-db-checkpointer-wakeup-interval",
+        "-",
+        "delete: ds-cfg-db-num-lock-tables",
+        "-",
+        "delete: ds-cfg-db-num-cleaner-threads",
+        "-",
+        "delete: ds-cfg-je-property",
+        "-",
+        "delete: ds-cfg-subordinate-indexes-enabled",
+        "-"
+    );
   }
 
   /**

@@ -1033,8 +1033,11 @@ public final class UpgradeTasks
   /**
    * Creates backups of the local DB backends directories by renaming adding them a ".bak" suffix.
    *  e.g "userRoot" would become "userRoot.bak"
+   *
+   *  @param backendObjectClass
+   *          The backend object class name.
    */
-  static UpgradeTask renameLocalDBBackendDirectories()
+  static UpgradeTask renameLocalDBBackendDirectories(final String backendObjectClass)
   {
     return new AbstractUpgradeTask()
     {
@@ -1045,7 +1048,7 @@ public final class UpgradeTasks
       {
         try
         {
-          Filter filter = Filter.equality("objectclass", "ds-cfg-local-db-backend");
+          Filter filter = Filter.equality("objectclass", backendObjectClass);
           SearchRequest findLocalDBBackends = Requests.newSearchRequest(DN.rootDN(), SearchScope.WHOLE_SUBTREE, filter);
           try (final EntryReader jeBackends = searchConfigFile(findLocalDBBackends))
           {

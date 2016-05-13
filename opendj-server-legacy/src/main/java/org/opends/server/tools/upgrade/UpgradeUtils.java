@@ -766,6 +766,22 @@ final class UpgradeUtils
     return indexesToRebuild;
   }
 
+  /** Returns {@code true} if the installed instance contains at least one JE backend. */
+  static boolean instanceContainsJeBackends()
+  {
+    final SearchRequest sr = Requests.newSearchRequest(
+            "", SearchScope.WHOLE_SUBTREE, "(objectclass=ds-cfg-je-backend)", "dn");
+    try (final EntryReader entryReader = searchConfigFile(sr))
+    {
+      return entryReader.hasNext();
+    }
+    catch (final IOException unlikely)
+    {
+      logger.error(ERR_UPGRADE_READING_CONF_FILE.get(unlikely.getMessage()));
+      return true;
+    }
+  }
+
   /** Prevent instantiation. */
   private UpgradeUtils()
   {
