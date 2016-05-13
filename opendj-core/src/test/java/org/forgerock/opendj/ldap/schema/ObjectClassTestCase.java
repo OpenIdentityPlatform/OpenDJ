@@ -23,14 +23,28 @@ import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class ObjectClassTestCase extends AbstractSchemaTestCase {
+
     @Test
-    public void extensibleObjectAcceptsAllAttributes() {
+    public void extensibleObjectShouldNotAcceptPlaceholderAttribute() {
         Schema schema = getCoreSchema();
         ObjectClass extensibleObject = schema.getObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
+
         AttributeType attributeType = schema.getAttributeType("dummy");
         assertThat(attributeType.isPlaceHolder()).isTrue();
-        assertThat(extensibleObject.isRequired(attributeType)).isTrue();
-        assertThat(extensibleObject.isOptional(attributeType)).isTrue();
-        assertThat(extensibleObject.isRequiredOrOptional(attributeType)).isTrue();
+        assertThat(extensibleObject.isRequired(attributeType)).isFalse();
+        assertThat(extensibleObject.isOptional(attributeType)).isFalse();
+        assertThat(extensibleObject.isRequiredOrOptional(attributeType)).isFalse();
+    }
+
+    @Test
+    public void extensibleObjectShouldAcceptAnyValidAttribute() {
+        Schema schema = getCoreSchema();
+        ObjectClass extensibleObject = schema.getObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
+
+        AttributeType cn = schema.getAttributeType("cn");
+        assertThat(cn.isPlaceHolder()).isFalse();
+        assertThat(extensibleObject.isRequired(cn)).isFalse();
+        assertThat(extensibleObject.isOptional(cn)).isTrue();
+        assertThat(extensibleObject.isRequiredOrOptional(cn)).isTrue();
     }
 }

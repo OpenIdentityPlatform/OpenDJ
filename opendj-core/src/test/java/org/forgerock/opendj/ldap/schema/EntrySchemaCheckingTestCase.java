@@ -38,6 +38,7 @@ import org.testng.annotations.Test;
  * Test schema validation using {@link Schema#validateEntry}.
  */
 @Test
+@SuppressWarnings("javadoc")
 public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
 
     /**
@@ -957,7 +958,18 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testExtensibleObjectAcceptsAnyAttribute() throws Exception {
+    public void testExtensibleObjectAcceptsAnyAttributeButNotPlaceholderAttribute() throws Exception {
+        // @formatter:off
+        final Entry e2 = newEntry(
+                "dn: dc=example,dc=com",
+                "objectClass: top",
+                "objectClass: organization",
+                "objectClass: extensibleObject",
+                "o: example",
+                "telephonenumber: 123456");
+        // @formatter:on
+        assertConformsToSchema(e2, defaultPolicy());
+
         // @formatter:off
         final Entry e = newEntry(
             "dn: dc=example,dc=com",
@@ -965,10 +977,9 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
             "objectClass: organization",
             "objectClass: extensibleObject",
             "o: example",
-            "dummy: it works too!!");
+            "dummy: unknown attribute!!");
         // @formatter:on
-
-        assertConformsToSchema(e, defaultPolicy());
+        assertDoesNotConformToSchema(e, defaultPolicy());
     }
 
     /**

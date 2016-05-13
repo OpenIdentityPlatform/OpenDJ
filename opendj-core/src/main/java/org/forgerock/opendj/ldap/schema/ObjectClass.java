@@ -67,7 +67,12 @@ public final class ObjectClass extends AbstractSchemaElement {
             this.type = oc.objectClassType;
             this.superiorClasses.addAll(oc.superiorClassOIDs);
             this.requiredAttributes.addAll(oc.requiredAttributeOIDs);
-            this.optionalAttributes.addAll(oc.optionalAttributeOIDs);
+            // Don't copy optional attributes for extensibleObject because they will
+            // prevent attribute types from being removed from the schema.
+            // The optional attributes will be refreshed during validation.
+            if (!oc.isExtensible()) {
+                this.optionalAttributes.addAll(oc.optionalAttributeOIDs);
+            }
         }
 
         Builder(final String oid, final SchemaBuilder builder) {
@@ -392,10 +397,11 @@ public final class ObjectClass extends AbstractSchemaElement {
     /** Indicates whether or not validation has been performed. */
     private boolean needsValidating = true;
 
-    /** The indicates whether or not validation failed. */
+    /** Indicates whether or not validation failed. */
     private boolean isValid;
-    /** Whether this is the extensible object class, which allows any attribute types. */
-    private boolean isExtensibleObject;
+
+    /** Indicates whether this object class is the extensibleObject class. */
+    private final boolean isExtensibleObject;
 
     /**
      * Construct a extensibleObject object class where the set of allowed
@@ -432,11 +438,7 @@ public final class ObjectClass extends AbstractSchemaElement {
         this.objectClassType = builder.type;
         this.requiredAttributeOIDs = unmodifiableCopyOfSet(builder.requiredAttributes);
         this.optionalAttributeOIDs = unmodifiableCopyOfSet(builder.optionalAttributes);
-        this.isExtensibleObject = isExtensible();
-    }
-
-    private boolean isExtensible() {
-        return hasName(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME) || hasNameOrOID(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
+        this.isExtensibleObject = oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
     }
 
     /**
@@ -619,6 +621,20 @@ public final class ObjectClass extends AbstractSchemaElement {
     }
 
     /**
+     * Indicates whether this object class is extensibleObject class.
+     * <p>
+     * An extensible object class has an optional attributes list corresponding
+     * to all the attributes types defined in the schema. It means any attribute
+     * type can be used with this object class.
+     *
+     * @return {@code true} if this object class is extensible.
+     */
+    public boolean isExtensible() {
+        return isExtensibleObject;
+    }
+
+
+    /**
      * Indicates whether this schema definition is declared "obsolete".
      *
      * @return <code>true</code> if this schema definition is declared
@@ -639,7 +655,7 @@ public final class ObjectClass extends AbstractSchemaElement {
      *         <code>false</code> if not.
      */
     public boolean isOptional(final AttributeType attributeType) {
-        return isExtensibleObject || optionalAttributes.contains(attributeType);
+        return optionalAttributes.contains(attributeType);
     }
 
     /**
@@ -653,7 +669,7 @@ public final class ObjectClass extends AbstractSchemaElement {
      *         <code>false</code> if not.
      */
     public boolean isRequired(final AttributeType attributeType) {
-        return isExtensibleObject || requiredAttributes.contains(attributeType);
+        return requiredAttributes.contains(attributeType);
     }
 
     /**
@@ -747,7 +763,7 @@ public final class ObjectClass extends AbstractSchemaElement {
             }
         }
 
-        if (!optionalAttributeOIDs.isEmpty()) {
+        if (!isExtensible() && !optionalAttributeOIDs.isEmpty()) {
             final Iterator<String> iterator = optionalAttributeOIDs.iterator();
 
             final String firstName = iterator.next();
@@ -893,14 +909,14 @@ public final class ObjectClass extends AbstractSchemaElement {
             return false;
         }
 
-        if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID)) {
+        if (isExtensible()) {
             declaredOptionalAttributes = new HashSet<>(requiredAttributeOIDs.size());
             for (final AttributeType attributeType : schema.getAttributeTypes()) {
                 if (attributeType.getUsage() == AttributeUsage.USER_APPLICATIONS) {
                     declaredOptionalAttributes.add(attributeType);
                 }
             }
-            optionalAttributes = declaredRequiredAttributes;
+            optionalAttributes = declaredOptionalAttributes;
         } else {
             if (!requiredAttributeOIDs.isEmpty()) {
                 declaredRequiredAttributes = new HashSet<>(requiredAttributeOIDs.size());
