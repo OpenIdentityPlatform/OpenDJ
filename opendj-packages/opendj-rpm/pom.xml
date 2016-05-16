@@ -148,10 +148,6 @@
                             ${rpm.product.summary}
                         </description>
 
-                        <requires>
-                            <require>jre &gt;= 1.7</require>
-                        </requires>
-
                         <defineStatements>
                             <defineStatement>arch noarch</defineStatement>
                             <defineStatement>_prefix ${rpm.prefix}</defineStatement>
