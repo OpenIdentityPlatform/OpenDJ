@@ -853,7 +853,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 }
 
                 cp = ASCIICharProp.valueOf(c);
-                if (!cp.isKeyChar(allowMalformedNamesAndOptions)) {
+                if (cp == null || !cp.isKeyChar(allowMalformedNamesAndOptions)) {
                     final LocalizableMessage message =
                             ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription,
                                     c, i);
@@ -873,7 +873,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 }
 
                 cp = ASCIICharProp.valueOf(c);
-                if (c != '.' && !cp.isDigit()) {
+                if (cp == null || c != '.' && !cp.isDigit()) {
                     final LocalizableMessage message =
                             ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription,
                                     c, i);
@@ -934,7 +934,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             }
 
             cp = ASCIICharProp.valueOf(c);
-            if (!cp.isKeyChar(allowMalformedNamesAndOptions)) {
+            if (cp == null || !cp.isKeyChar(allowMalformedNamesAndOptions)) {
                 final LocalizableMessage message =
                         ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription, c, i);
                 throw new LocalizedIllegalArgumentException(message);
@@ -999,7 +999,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 }
 
                 cp = ASCIICharProp.valueOf(c);
-                if (!cp.isKeyChar(allowMalformedNamesAndOptions)) {
+                if (cp == null || !cp.isKeyChar(allowMalformedNamesAndOptions)) {
                     final LocalizableMessage message =
                             ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription,
                                     c, i);
@@ -1037,13 +1037,17 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 i = skipTrailingWhiteSpace(attributeDescription, i + 1, length);
             }
 
-            options.add(option);
-            normalizedOptions.add(normalizedOption);
+            if (normalizedOptions.add(normalizedOption)) {
+                options.add(option);
+            }
         }
 
         return new AttributeDescription(attributeDescription, oid, attributeType,
-                new MultiOptionImpl(options.toArray(new String[options.size()]),
-                                    normalizedOptions.toArray(new String[normalizedOptions.size()])));
+                normalizedOptions.size() > 1
+                    ? new MultiOptionImpl(options.toArray(new String[options.size()]),
+                            normalizedOptions.toArray(new String[normalizedOptions.size()]))
+                    : new SingleOptionImpl(options.get(0), normalizedOptions.first())
+        );
     }
 
     private final String attributeDescription;

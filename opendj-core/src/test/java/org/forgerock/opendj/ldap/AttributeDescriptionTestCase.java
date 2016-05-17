@@ -82,6 +82,8 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
             { "cn;xxx;yyy", "cn;xxx", 1, true, false },
             { "cn;xxx;yyy", "cn;xxx;yyy", 0, true, true },
             { "cn;xxx;yyy", "cn;yyy;xxx", 0, true, true },
+            { "cn;a;a;a;a", "cn;a", 0, false, false},
+            { "cn;a;b;a", "cn;a;b", 0, false, false},
 
             { "cn", "cn;xxx;yyy", -1, false, true },
             { "cn;yyy", "cn;xxx;yyy", -1, false, true },
@@ -167,6 +169,8 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
             { "cn;xxx;yyy;zzz", "cn", new String[] { "xxx", "yyy", "zzz" }, false },
             { "cn;zzz;YYY;xxx", "cn", new String[] { "zzz", "YYY", "xxx" }, false },
             { "CN;zzz;YYY;xxx", "CN", new String[] { "zzz", "YYY", "xxx" }, false },
+            { "cn;a;a;b", "cn", new String[] { "a", "b" }, false},
+            { "cn;a;a;a;a", "cn", new String[] { "a" }, false},
         };
         // @formatter:on
     }
