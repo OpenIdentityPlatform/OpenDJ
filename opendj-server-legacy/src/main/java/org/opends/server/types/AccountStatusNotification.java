@@ -249,7 +249,7 @@ public final class AccountStatusNotification
       String string = secondsToTimeString(timeToExpiration).toString();
       props.put(TIME_UNTIL_EXPIRATION, newArrayList(string));
 
-      long expTime = System.currentTimeMillis() + (1000 * timeToExpiration);
+      long expTime = System.currentTimeMillis() + (1000L * timeToExpiration);
       props.put(PASSWORD_EXPIRATION_TIME, newArrayList(new Date(expTime).toString()));
     }
 
