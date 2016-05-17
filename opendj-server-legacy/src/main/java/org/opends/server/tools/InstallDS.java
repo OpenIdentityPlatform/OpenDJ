@@ -251,9 +251,13 @@ public class InstallDS extends ConsoleApplication
    *          the temporary log file where messages will be logged.
    * @return The error code.
    */
-  private static int mainCLI(
+  public static int mainCLI(
       String[] args, OutputStream outStream, OutputStream errStream, TempLogFile tempLogFile)
   {
+    //
+    // *NOTE* this method has been kept public because it is used by OpenAM.
+    //
+
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
