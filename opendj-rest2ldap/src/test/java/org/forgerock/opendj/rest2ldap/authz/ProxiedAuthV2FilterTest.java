@@ -160,19 +160,19 @@ public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
         @Override
         public Result search(SearchRequest request, SearchResultHandler handler) throws LdapException {
             verifyRequest(request);
-            return null;
+            return Responses.newResult(ResultCode.SUCCESS);
         }
 
         @Override
         public Result modify(ModifyRequest request) throws LdapException {
             verifyRequest(request);
-            return null;
+            return Responses.newResult(ResultCode.SUCCESS);
         }
 
         @Override
         public Result modifyDN(ModifyDNRequest request) throws LdapException {
             verifyRequest(request);
-            return null;
+            return Responses.newResult(ResultCode.SUCCESS);
         }
 
         @Override
