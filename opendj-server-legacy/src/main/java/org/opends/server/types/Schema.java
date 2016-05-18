@@ -16,8 +16,6 @@
  */
 package org.opends.server.types;
 
-import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -42,7 +40,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -507,19 +505,28 @@ public final class Schema
     }
   }
 
-  private String parseObjectClassOID(String definition) throws DirectoryException
+  /**
+   * Retrieves the OID of the provided object class definition.
+   *
+   * @param definition
+   *            Definition of an object class.
+   * @return the OID of the object class
+   * @throws DirectoryException
+   *            If the definition couldn't be parsed.
+   */
+  public String parseObjectClassOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE);
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_OBJECTCLASS_OID);
   }
 
   private String parseAttributeTypeOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE);
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_ATTRIBUTE_TYPE_OID);
   }
 
   private String parseMatchingRuleUseOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE);
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_MATCHING_RULE_USE_OID);
   }
 
   /**
@@ -536,7 +543,7 @@ public final class Schema
    * @throws DirectoryException
    *           If a problem occurs while parsing the definition
    */
-  public static String parseOID(String definition, ResultCode parsingErrorResultCode, Arg0 parsingErrorMsg)
+  public static String parseOID(String definition, ResultCode parsingErrorResultCode, Arg1<Object> parsingErrorMsg)
       throws DirectoryException
   {
     try
@@ -565,7 +572,7 @@ public final class Schema
     }
     catch (IndexOutOfBoundsException e)
     {
-      throw new DirectoryException(parsingErrorResultCode, parsingErrorMsg.get(), e);
+      throw new DirectoryException(parsingErrorResultCode, parsingErrorMsg.get(definition), e);
     }
   }
 

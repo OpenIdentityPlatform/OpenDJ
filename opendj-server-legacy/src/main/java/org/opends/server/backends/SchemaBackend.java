@@ -1587,22 +1587,18 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
       for (ByteString v : a)
       {
-        ObjectClass oc;
+        String oid;
         try
         {
-          oc = schema.parseObjectClass(v.toString());
+          oid = schema.parseOID(v.toString(), ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_OBJECTCLASS_OID);
         }
         catch (DirectoryException de)
         {
           logger.traceException(de);
-
-          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
-              v, de.getMessageObject());
-          throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
+          throw de;
         }
 
-        if (objectClass.getOID().equals(oc.getOID()))
+        if (objectClass.getOID().equals(oid))
         {
           // We found a match where the objectClass is added back later, so we
           // don't need to do anything else here.
@@ -2492,7 +2488,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     // Check if there is an existing syntax with this oid.
     String oid =
-        Schema.parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_LDAPSYNTAX_EMPTY_VALUE);
+        Schema.parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_LDAP_SYNTAX_OID);
 
     // We allow only unimplemented syntaxes to be substituted.
     if (schema.hasSyntax(oid))
@@ -2547,7 +2543,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * hence never deleted.
      */
     String oid =
-        Schema.parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_LDAPSYNTAX_EMPTY_VALUE);
+        Schema.parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_LDAP_SYNTAX_OID);
 
     LDAPSyntaxDescription removeLSD = schema.getLdapSyntaxDescription(oid);
     if (removeLSD == null)
