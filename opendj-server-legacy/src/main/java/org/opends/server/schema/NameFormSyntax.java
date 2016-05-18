@@ -370,7 +370,7 @@ public class NameFormSyntax
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
         structuralClass = schema.getObjectClass(woidBuffer.toString());
-        if (!structuralClass.isPlaceHolder())
+        if (structuralClass.isPlaceHolder())
         {
           // This is bad because we don't know what the structural objectclass is.
           if (!allowUnknownElements)
