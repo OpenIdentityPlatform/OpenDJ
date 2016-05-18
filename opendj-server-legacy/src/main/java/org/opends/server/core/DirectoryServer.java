@@ -1588,6 +1588,11 @@ public final class DirectoryServer
 
       pluginConfigManager.initializeUserPlugins(null);
 
+      // Synchronization of ADS with the crypto manager.
+      // Need access to ADS keys before synchronization starts to be able to decode encrypted data in the backend
+      // by reading them from the trust store.
+      new CryptoManagerSync();
+
       if (!environmentConfig.disableSynchronization())
       {
         synchronizationProviderConfigManager = new SynchronizationProviderConfigManager(serverContext);
@@ -1620,9 +1625,6 @@ public final class DirectoryServer
         startConnectionHandlers();
         new IdleTimeLimitThread().start();
       }
-
-      // Synchronization of ADS with the crypto manager.
-      new CryptoManagerSync();
 
       // Write a copy of the config if needed.
       if (saveConfigOnSuccessfulStartup)
