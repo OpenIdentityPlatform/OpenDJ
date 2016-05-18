@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -84,15 +84,19 @@ public class SchemaUtilsTest extends AbstractSchemaTestCase {
     @DataProvider
     public Object[][] nonAsciiStringProvider() throws Exception {
         final String nonAsciiChars = "ëéèêœ";
+        final String singleNonAsciiChar = "ë";
         final String nonAsciiCharsReplacement = new String(
                 new byte[] { b(0x65), b(0xcc), b(0x88), b(0x65), b(0xcc),
                     b(0x81), b(0x65), b(0xcc), b(0x80), b(0x65), b(0xcc),
                     b(0x82), b(0xc5), b(0x93), }, "UTF8");
+        final String singleNonAsciiCharReplacement = new String(
+            new byte[] { b(0x65), b(0xcc), b(0x88) }, "UTF8");
         return new Object[][] {
             { nonAsciiChars, false, false, nonAsciiCharsReplacement },
             { nonAsciiChars, false, true,  nonAsciiCharsReplacement },
             { nonAsciiChars, true,  false, nonAsciiCharsReplacement },
             { nonAsciiChars, true,  true,  nonAsciiCharsReplacement },
+            { singleNonAsciiChar, true,  true,  singleNonAsciiCharReplacement }
         };
     }
 
