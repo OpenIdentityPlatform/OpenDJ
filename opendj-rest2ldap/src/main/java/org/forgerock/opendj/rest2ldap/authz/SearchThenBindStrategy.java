@@ -35,7 +35,7 @@ import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.Promise;
 
 /** Bind using the result of a search request computed from the current request/context. */
-public final class SearchThenBindStrategy implements AuthenticationStrategy {
+final class SearchThenBindStrategy implements AuthenticationStrategy {
     private final ConnectionFactory searchConnectionFactory;
     private final ConnectionFactory bindConnectionFactory;
 
@@ -70,7 +70,7 @@ public final class SearchThenBindStrategy implements AuthenticationStrategy {
 
     @Override
     public Promise<SecurityContext, LdapException> authenticate(final String username, final String password,
-            final Context parentContext, final AtomicReference<Connection> authenticatedConnectionHolder) {
+            final Context parentContext) {
         final AtomicReference<Connection> searchConnectionHolder = new AtomicReference<>();
         return searchConnectionFactory
                 .getConnectionAsync()
@@ -90,11 +90,12 @@ public final class SearchThenBindStrategy implements AuthenticationStrategy {
                     @Override
                     public Promise<SecurityContext, LdapException> apply(final SearchResultEntry searchResult)
                             throws LdapException {
+                        final AtomicReference<Connection> bindConnectionHolder = new AtomicReference<>();
                         return bindConnectionFactory
                                 .getConnectionAsync()
-                                .thenAsync(
-                                        doSimpleBind(authenticatedConnectionHolder, parentContext, username,
-                                                searchResult.getName(), password));
+                                .thenAsync(doSimpleBind(bindConnectionHolder, parentContext, username,
+                                                        searchResult.getName(), password))
+                                .thenFinally(close(bindConnectionHolder));
                     }
                 });
     }

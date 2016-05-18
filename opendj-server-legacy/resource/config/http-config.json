@@ -3,16 +3,8 @@
 		// The authorization policies to use. Supported policies are "anonymous", "basic" and "oauth2".
 		"policies": [ "basic" ],
 		
-		// Perform all operations using a pre-authorization connection. 
-		"anonymous": {
-			// Specify the connection factory to use to perform LDAP operations.
-			// If missing, "root" factory will be used.
-			"ldapConnectionFactory": "root",
-			
-			// Enable proxied authorization using the specified user DN.
-			// If empty, anonymous proxied authorization will be used.
-			// If missing, connection from the ldapConnectionFactory will be used as-is. 
-			"userDN": ""
+		"anonymous": { 
+			// Perform all operations using anonymous user
 		},
 
 	    // Use HTTP Basic authentication's information to bind to the LDAP server.

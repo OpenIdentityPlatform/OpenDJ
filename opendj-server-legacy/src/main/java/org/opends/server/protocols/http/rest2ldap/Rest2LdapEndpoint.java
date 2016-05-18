@@ -15,8 +15,9 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_REST2LDAP_MALFORMED_URL;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -27,15 +28,15 @@ import org.forgerock.http.Filter;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.opendj.adapter.server3x.Adapters;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.Rest2LDAPHttpApplication;
+import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;
 import org.forgerock.opendj.server.config.server.Rest2ldapEndpointCfg;
-import org.forgerock.services.context.SecurityContext;
-import org.forgerock.util.Function;
 import org.opends.server.api.HttpEndpoint;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -82,22 +83,28 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
   private final class InternalRest2LDAPHttpApplication extends Rest2LDAPHttpApplication
   {
     private final ConnectionFactory rootInternalConnectionFactory = Adapters.newRootConnectionFactory();
+    private final ConnectionFactory anonymousInternalConnectionFactory =
+        Adapters.newConnectionFactory(new InternalClientConnection((AuthenticationInfo) null));
 
-    InternalRest2LDAPHttpApplication(URL configURL, Schema schema)
+    InternalRest2LDAPHttpApplication(final URL configURL, final Schema schema)
     {
       super(configURL, schema);
     }
 
     @Override
-    protected Filter newProxyAuthzFilter(final ConnectionFactory connectionFactory,
-        final Function<SecurityContext, String, LdapException> authzIdProvider)
+    protected ConditionalFilter newAnonymousFilter(final ConnectionFactory connectionFactory)
     {
-      return new InternalProxyAuthzFilter(DirectoryServer.getProxiedAuthorizationIdentityMapper(), schema,
-          authzIdProvider);
+      return super.newAnonymousFilter(anonymousInternalConnectionFactory);
     }
 
     @Override
-    protected ConnectionFactory getConnectionFactory(String name)
+    protected Filter newProxyAuthzFilter(final ConnectionFactory connectionFactory)
+    {
+      return new InternalProxyAuthzFilter(DirectoryServer.getProxiedAuthorizationIdentityMapper(), schema);
+    }
+
+    @Override
+    protected ConnectionFactory getConnectionFactory(final String name)
     {
       return rootInternalConnectionFactory;
     }

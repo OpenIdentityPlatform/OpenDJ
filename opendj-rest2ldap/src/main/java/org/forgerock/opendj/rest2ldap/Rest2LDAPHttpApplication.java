@@ -17,18 +17,22 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.http.util.Json.readJsonLenient;
+import static org.forgerock.json.JsonValueFunctions.enumConstant;
+import static org.forgerock.json.JsonValueFunctions.setOf;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.configureConnectionFactory;
+import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.*;
+import static org.forgerock.opendj.rest2ldap.authz.Authorizations.*;
+import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.*;
+import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.*;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
 
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
@@ -40,6 +44,7 @@ import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Headers;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
+import org.forgerock.http.protocol.Status;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Router;
@@ -47,21 +52,10 @@ import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategy;
-import org.forgerock.opendj.rest2ldap.authz.DirectConnectionFilter;
-import org.forgerock.opendj.rest2ldap.authz.HttpBasicAuthenticationFilter;
-import org.forgerock.opendj.rest2ldap.authz.HttpBasicAuthenticationFilter.CustomHeaderExtractor;
-import org.forgerock.opendj.rest2ldap.authz.HttpBasicAuthenticationFilter.HttpBasicExtractor;
-import org.forgerock.opendj.rest2ldap.authz.OptionalFilter;
-import org.forgerock.opendj.rest2ldap.authz.OptionalFilter.ConditionalFilter;
-import org.forgerock.opendj.rest2ldap.authz.ProxiedAuthV2Filter;
-import org.forgerock.opendj.rest2ldap.authz.ProxiedAuthV2Filter.IntrospectionAuthzProvider;
-import org.forgerock.opendj.rest2ldap.authz.SASLPlainStrategy;
-import org.forgerock.opendj.rest2ldap.authz.SearchThenBindStrategy;
-import org.forgerock.opendj.rest2ldap.authz.SimpleBindStrategy;
+import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.Factory;
@@ -87,21 +81,9 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
 
     private final Map<String, ConnectionFactory> connectionFactories = new HashMap<>();
 
-    private enum Policy {
-        oauth2    (0),
-        basic     (50),
-        anonymous (100);
+    private enum Policy { BASIC, ANONYMOUS }
 
-        private final int priority;
-
-        Policy(int priority) {
-            this.priority = priority;
-        }
-    }
-
-    private enum BindStrategy {
-        simple, search, sasl_plain
-    }
+    private enum BindStrategy { SIMPLE, SEARCH, SASL_PLAIN }
 
     /**
      * Default constructor called by the HTTP Framework which will use the default configuration file location.
@@ -179,102 +161,57 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
     }
 
     private Filter newAuthorizationFilter(final JsonValue config) {
-        final List<Policy> configuredPolicies = new ArrayList<>();
-        for (String policy : config.get("policies").required().asList(String.class)) {
-            configuredPolicies.add(Policy.valueOf(policy.toLowerCase()));
-        }
-        final TreeMap<Integer, Filter> policyFilters = new TreeMap<>();
-        final int lastIndex = configuredPolicies.size() - 1;
-        for (int i = 0; i < configuredPolicies.size(); i++) {
-            final Policy policy = configuredPolicies.get(i);
-            policyFilters.put(policy.priority,
-                    buildAuthzPolicyFilter(policy, config.get(policy.toString()), i != lastIndex));
-        }
-        return Filters.chainOf(new ArrayList<>(policyFilters.values()));
-    }
-
-    private Filter buildAuthzPolicyFilter(final Policy policy, final JsonValue config, boolean optional) {
-        switch (policy) {
-        case anonymous:
-            return buildAnonymousFilter(config);
-        case basic:
-            final ConditionalFilter basicFilter = buildBasicFilter(config.required());
-            final Filter basicFilterChain =
-                    config.get("reuseAuthenticatedConnection").defaultTo(Boolean.FALSE).asBoolean()
-                        ? basicFilter
-                        : Filters.chainOf(basicFilter, newProxyAuthzFilter(getConnectionFactory(DEFAULT_ROOT_FACTORY),
-                                                                           IntrospectionAuthzProvider.INSTANCE));
-            return optional ? new OptionalFilter(basicFilterChain, basicFilter) : basicFilterChain;
-        default:
-            throw new IllegalArgumentException("Unsupported policy '" + policy + "'");
-        }
-    }
-
-    /**
-     * Create a new {@link Filter} in charge of injecting {@link AuthenticatedConnectionContext}.
-     *
-     * @param connectionFactory
-     *            The {@link ConnectionFactory} providing the {@link Connection} injected as
-     *            {@link AuthenticatedConnectionContext}
-     * @param authzIdProvider
-     *            Function computing the authzId to use for the LDAP's ProxiedAuth control.
-     * @return a newly created {@link Filter}
-     */
-    protected Filter newProxyAuthzFilter(final ConnectionFactory connectionFactory,
-            final Function<SecurityContext, String, LdapException> authzIdProvider) {
-        return new ProxiedAuthV2Filter(connectionFactory, authzIdProvider);
-    }
-
-    private Filter buildAnonymousFilter(final JsonValue config) {
-        if (config.contains("userDN")) {
-            final DN userDN = DN.valueOf(config.get("userDN").asString(), schema);
-            final Map<String, Object> authz = new HashMap<>(1);
-            authz.put(SecurityContext.AUTHZID_DN, userDN.toString());
-            return Filters.chainOf(
-                    newStaticSecurityContextFilter(null, authz),
-                    newProxyAuthzFilter(
-                            getConnectionFactory(config.get("ldapConnectionFactory")
-                                    .defaultTo(DEFAULT_ROOT_FACTORY)
-                                    .asString()),
-                            IntrospectionAuthzProvider.INSTANCE));
-        }
-        return newDirectConnectionFilter(getConnectionFactory(config.get("ldapConnectionFactory")
-                                                             .defaultTo(DEFAULT_ROOT_FACTORY).asString()));
-    }
-
-    /**
-     * Create a new {@link Filter} injecting a predefined {@link SecurityContext}.
-     *
-     * @param authenticationId
-     *            AuthenticationID of the {@link SecurityContext}.
-     * @param authorization
-     *            Authorization of the {@link SecurityContext}
-     * @return a newly created {@link Filter}
-     */
-    protected Filter newStaticSecurityContextFilter(final String authenticationId,
-            final Map<String, Object> authorization) {
+        final Set<Policy> policies = config.get("policies").as(setOf(enumConstant(Policy.class)));
+        final ConditionalFilter anonymous =
+                policies.contains(Policy.ANONYMOUS) ? buildAnonymousFilter(config.get("anonymous")) : NEVER_APPLICABLE;
+        final ConditionalFilter basic =
+                policies.contains(Policy.BASIC) ? buildBasicFilter(config.get("basic")) : NEVER_APPLICABLE;
         return new Filter() {
             @Override
             public Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next) {
-                return next.handle(new SecurityContext(context, authenticationId, authorization), request);
+                if (basic.getCondition().canApplyFilter(context, request)) {
+                    return basic.getFilter().filter(context, request, next);
+                }
+                if (anonymous.getCondition().canApplyFilter(context, request)) {
+                    return anonymous.getFilter().filter(context, request, next);
+                }
+                return Response.newResponsePromise(new Response(Status.FORBIDDEN));
             }
         };
     }
 
     /**
-     * Create a new {@link Filter} in charge of injecting {@link AuthenticatedConnectionContext} directly from a
+     * Creates a new {@link Filter} in charge of injecting {@link AuthenticatedConnectionContext}.
+     *
+     * @param connectionFactory
+     *            The {@link ConnectionFactory} providing the {@link Connection} injected as
+     *            {@link AuthenticatedConnectionContext}
+     * @return a newly created {@link Filter}
+     */
+    protected Filter newProxyAuthzFilter(final ConnectionFactory connectionFactory) {
+        return newProxyAuthorizationFilter(connectionFactory);
+    }
+
+    private ConditionalFilter buildAnonymousFilter(final JsonValue config) {
+        return newAnonymousFilter(getConnectionFactory(config.get("ldapConnectionFactory")
+                                                             .defaultTo(DEFAULT_ROOT_FACTORY)
+                                                             .asString()));
+    }
+
+    /**
+     * Creates a new {@link Filter} in charge of injecting {@link AuthenticatedConnectionContext} directly from a
      * {@link ConnectionFactory}.
      *
      * @param connectionFactory
      *            The {@link ConnectionFactory} used to get the {@link Connection}
      * @return a newly created {@link Filter}
      */
-    protected Filter newDirectConnectionFilter(ConnectionFactory connectionFactory) {
-        return new DirectConnectionFilter(connectionFactory);
+    protected ConditionalFilter newAnonymousFilter(ConnectionFactory connectionFactory) {
+        return newConditionalDirectConnectionFilter(connectionFactory);
     }
 
     /**
-     * Get a {@link ConnectionFactory} from its name.
+     * Gets a {@link ConnectionFactory} from its name.
      *
      * @param name
      *            Name of the {@link ConnectionFactory} as specified in the configuration
@@ -286,42 +223,41 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
 
     private ConditionalFilter buildBasicFilter(final JsonValue config) {
         final String bind = config.get("bind").required().asString();
-        final BindStrategy strategy = BindStrategy.valueOf(bind.toLowerCase().replace('-', '_'));
+        final BindStrategy strategy = BindStrategy.valueOf(bind.toUpperCase().replace('-', '_'));
         return newBasicAuthenticationFilter(buildBindStrategy(strategy, config.get(bind).required()),
                 config.get("supportAltAuthentication").defaultTo(Boolean.FALSE).asBoolean()
-                        ? new CustomHeaderExtractor(
+                        ? newCustomHeaderExtractor(
                                 config.get("altAuthenticationUsernameHeader").required().asString(),
                                 config.get("altAuthenticationPasswordHeader").required().asString())
-                        : HttpBasicExtractor.INSTANCE,
-                config.get("reuseAuthenticatedConnection").defaultTo(Boolean.FALSE).asBoolean());
+                        : httpBasicExtractor());
     }
 
     /**
-     * Get a {@link Filter} in charge of performing the HTTP-Basic Authentication. This filter create a
+     * Gets a {@link Filter} in charge of performing the HTTP-Basic Authentication. This filter create a
      * {@link SecurityContext} reflecting the authenticated users.
      *
      * @param authenticationStrategy
      *            The {@link AuthenticationStrategy} to use to authenticate the user.
      * @param credentialsExtractor
      *            Extract the user's credentials from the {@link Headers}.
-     * @param reuseAuthenticatedConnection
-     *            Let the bound connection open so that it can be reused to perform the LDAP operations.
      * @return A new {@link Filter}
      */
     protected ConditionalFilter newBasicAuthenticationFilter(AuthenticationStrategy authenticationStrategy,
-            Function<Headers, Pair<String, String>, NeverThrowsException> credentialsExtractor,
-            boolean reuseAuthenticatedConnection) {
-        return new HttpBasicAuthenticationFilter(authenticationStrategy, credentialsExtractor,
-                reuseAuthenticatedConnection);
+            Function<Headers, Pair<String, String>, NeverThrowsException> credentialsExtractor) {
+        final ConditionalFilter httpBasicFilter =
+                newConditionalHttpBasicAuthenticationFilter(authenticationStrategy, credentialsExtractor);
+        return newConditionalFilter(Filters.chainOf(httpBasicFilter.getFilter(),
+                                                    newProxyAuthzFilter(getConnectionFactory(DEFAULT_ROOT_FACTORY))),
+                                    httpBasicFilter.getCondition());
     }
 
     private AuthenticationStrategy buildBindStrategy(final BindStrategy strategy, final JsonValue config) {
         switch (strategy) {
-        case simple:
+        case SIMPLE:
             return buildSimpleBindStrategy(config);
-        case search:
+        case SEARCH:
             return buildSearchThenBindStrategy(config);
-        case sasl_plain:
+        case SASL_PLAIN:
             return buildSASLBindStrategy(config);
         default:
             throw new IllegalArgumentException("Unsupported strategy '" + strategy + "'");
@@ -335,41 +271,10 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
                                      schema);
     }
 
-    /**
-     * {@link AuthenticationStrategy} performing an LDAP Bind request with a computed DN.
-     *
-     * @param connectionFactory
-     *            The {@link ConnectionFactory} to use to perform the bind operation
-     * @param schema
-     *            {@link Schema} used to perform the DN validation.
-     * @param bindDNTemplate
-     *            DN template containing a single %s which will be replaced by the authenticating user's name. (i.e:
-     *            uid=%s,ou=people,dc=example,dc=com)
-     * @return A new {@link AuthenticationStrategy}
-     */
-    protected AuthenticationStrategy newSimpleBindStrategy(ConnectionFactory connectionFactory, String bindDNTemplate,
-            Schema schema) {
-        return new SimpleBindStrategy(connectionFactory, bindDNTemplate, schema);
-    }
-
     private AuthenticationStrategy buildSASLBindStrategy(JsonValue config) {
-        return newSASLBindStrategy(getConnectionFactory(config.get("ldapConnectionFactory")
-                                                              .defaultTo(DEFAULT_BIND_FACTORY).asString()),
-                                   config.get("authcIdTemplate").defaultTo("u:%s").asString());
-    }
-
-    /**
-     * {@link AuthenticationStrategy} performing an LDAP SASL-Plain Bind.
-     *
-     * @param connectionFactory
-     *            The {@link ConnectionFactory} to use to perform the bind operation
-     * @param authcIdTemplate
-     *            Authentication identity template containing a single %s which will be replaced by the authenticating
-     *            user's name. (i.e: (u:%s)
-     * @return A new {@link AuthenticationStrategy}
-     */
-    protected AuthenticationStrategy newSASLBindStrategy(ConnectionFactory connectionFactory, String authcIdTemplate) {
-        return new SASLPlainStrategy(connectionFactory, schema, authcIdTemplate);
+        return newSASLPlainStrategy(
+                getConnectionFactory(config.get("ldapConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
+                schema, config.get("authcIdTemplate").defaultTo("u:%s").asString());
     }
 
     private AuthenticationStrategy buildSearchThenBindStrategy(JsonValue config) {
@@ -381,27 +286,5 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
                 DN.valueOf(config.get("baseDN").required().asString(), schema),
                 SearchScope.valueOf(config.get("scope").required().asString().toLowerCase()),
                 config.get("filterTemplate").required().asString());
-    }
-
-    /**
-     * {@link AuthenticationStrategy} performing an LDAP Search to get a DN to bind with.
-     *
-     * @param searchConnectionFactory
-     *            The {@link ConnectionFactory} to sue to perform the search operation.
-     * @param bindConnectionFactory
-     *            The {@link ConnectionFactory} to use to perform the bind operation
-     * @param baseDN
-     *            The base DN of the search request
-     * @param scope
-     *            {@link SearchScope} of the search request
-     * @param filterTemplate
-     *            filter template containing a single %s which will be replaced by the authenticating user's name. (i.e:
-     *            (&(uid=%s)(objectClass=inetOrgPerson))
-     * @return A new {@link AuthenticationStrategy}
-     */
-    protected AuthenticationStrategy newSearchThenBindStrategy(ConnectionFactory searchConnectionFactory,
-            ConnectionFactory bindConnectionFactory, DN baseDN, SearchScope scope, String filterTemplate) {
-        return new SearchThenBindStrategy(
-                searchConnectionFactory, bindConnectionFactory, baseDN, scope, filterTemplate);
     }
 }

@@ -47,7 +47,6 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.SecurityContext;
@@ -60,10 +59,9 @@ import org.forgerock.util.promise.Promise;
  * Inject an {@link AuthenticatedConnectionContext} following the information provided in the {@link SecurityContext}.
  * This connection will add a {@link ProxiedAuthV2RequestControl} to each LDAP requests.
  */
-public final class ProxiedAuthV2Filter implements Filter {
+final class ProxiedAuthV2Filter implements Filter {
 
     private final ConnectionFactory connectionFactory;
-    private final Function<SecurityContext, String, LdapException> authzProvider;
 
     /**
      * Create a new ProxyAuthzFilter. The {@link Connection} contained in the injected
@@ -78,10 +76,8 @@ public final class ProxiedAuthV2Filter implements Filter {
      * @throws NullPointerException
      *             If a parameter is null
      */
-    public ProxiedAuthV2Filter(final ConnectionFactory connectionFactory,
-            final Function<SecurityContext, String, LdapException> authzIdProvider) {
+    public ProxiedAuthV2Filter(final ConnectionFactory connectionFactory) {
         this.connectionFactory = checkNotNull(connectionFactory, "connectionFactory cannot be null");
-        this.authzProvider = checkNotNull(authzIdProvider, "authzIdProvider cannot be null");
     }
 
     @Override
@@ -95,7 +91,7 @@ public final class ProxiedAuthV2Filter implements Filter {
                     public Connection apply(Connection connection) throws LdapException {
                         connectionHolder.set(connection);
                         final Connection proxiedConnection = newProxiedConnection(
-                                connection, authzProvider.apply(context.asContext(SecurityContext.class)));
+                                connection, resolveAuthorizationId(context.asContext(SecurityContext.class)));
                         connectionHolder.set(proxiedConnection);
                         return proxiedConnection;
                     }
@@ -114,57 +110,22 @@ public final class ProxiedAuthV2Filter implements Filter {
                 .thenFinally(close(connectionHolder));
     }
 
+    private String resolveAuthorizationId(SecurityContext securityContext) throws LdapException {
+        Object candidate;
+        candidate = securityContext.getAuthorization().get(AUTHZID_DN);
+        if (candidate != null) {
+            return "dn:" + candidate;
+        }
+        candidate = securityContext.getAuthorization().get(AUTHZID_ID);
+        if (candidate != null) {
+            return "u:" + candidate;
+        }
+        throw LdapException.newLdapException(ResultCode.AUTH_METHOD_NOT_SUPPORTED);
+    }
+
     private Connection newProxiedConnection(Connection baseConnection, String authzId) {
         return new CachedReadConnectionDecorator(
                 new ProxiedAuthConnectionDecorator(baseConnection, newControl(authzId)));
-    }
-
-    /**
-     * Introspect the content of the {@link SecurityContext} and return the contained DN, or the user's ID if DN is not
-     * present.
-     */
-    public static final class IntrospectionAuthzProvider implements Function<SecurityContext, String, LdapException> {
-
-        /** Singleton instance. */
-        public static final Function<SecurityContext, String, LdapException> INSTANCE =
-                new IntrospectionAuthzProvider();
-
-        private IntrospectionAuthzProvider() {
-        }
-
-        @Override
-        public String apply(SecurityContext securityContext) throws LdapException {
-            Object candidate;
-            candidate = securityContext.getAuthorization().get(AUTHZID_DN);
-            if (candidate != null) {
-                return "dn:" + candidate;
-            }
-            candidate = securityContext.getAuthorization().get(AUTHZID_ID);
-            if (candidate != null) {
-                return "u:" + candidate;
-            }
-            throw LdapException.newLdapException(ResultCode.AUTH_METHOD_NOT_SUPPORTED);
-        }
-    }
-
-    /** Use a {@link AuthzIdTemplate} to compute the authzId from the provided {@link SecurityContext}. */
-    public static final class TemplateAuthzProvider implements Function<SecurityContext, String, LdapException> {
-        private final AuthzIdTemplate template;
-        private final Schema schema;
-
-        TemplateAuthzProvider(AuthzIdTemplate template, Schema schema) {
-            this.template = checkNotNull(template, "template cannot be null");
-            this.schema = checkNotNull(schema, "schema cannot be null");
-        }
-
-        @Override
-        public String apply(SecurityContext securityContext) throws LdapException {
-            try {
-                return template.formatAsAuthzId(securityContext.getAuthorization(), schema);
-            } catch (IllegalArgumentException e) {
-                throw LdapException.newLdapException(ResultCode.OPERATIONS_ERROR);
-            }
-        }
     }
 
     private static final class ProxiedAuthConnectionDecorator extends AbstractAsynchronousConnectionDecorator {

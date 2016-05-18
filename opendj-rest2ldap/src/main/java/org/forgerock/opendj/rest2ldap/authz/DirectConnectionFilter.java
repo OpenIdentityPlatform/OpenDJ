@@ -36,7 +36,7 @@ import org.forgerock.util.promise.Promise;
 /**
  * Inject {@link Connection} into a {@link AuthenticatedConnectionContext}.
  */
-public final class DirectConnectionFilter implements Filter {
+final class DirectConnectionFilter implements Filter {
 
     private final ConnectionFactory connectionFactory;
 

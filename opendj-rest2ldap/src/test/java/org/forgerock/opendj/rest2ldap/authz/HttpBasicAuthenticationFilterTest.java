@@ -15,13 +15,17 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
-import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.rest2ldap.authz.HttpBasicAuthenticationFilter.HttpBasicExtractor.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newConditionalHttpBasicAuthenticationFilter;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Collections;
+import java.util.concurrent.ExecutionException;
 
 import org.assertj.core.api.SoftAssertions;
 import org.forgerock.http.Handler;
@@ -29,65 +33,67 @@ import org.forgerock.http.protocol.Headers;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.rest2ldap.authz.HttpBasicAuthenticationFilter.CustomHeaderExtractor;
-import org.forgerock.opendj.rest2ldap.authz.HttpBasicAuthenticationFilter.HttpBasicExtractor;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;
 import org.forgerock.services.context.Context;
+import org.forgerock.services.context.RootContext;
 import org.forgerock.services.context.SecurityContext;
 import org.forgerock.testng.ForgeRockTestCase;
+import org.forgerock.util.Function;
 import org.forgerock.util.Pair;
-import org.forgerock.util.encode.Base64;
+import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promises;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @Test
 public class HttpBasicAuthenticationFilterTest extends ForgeRockTestCase {
 
-    private static final String USERNAME = "Aladdin";
-    private static final String PASSWORD = "open sesame";
-    private static final String BASE64_USERPASS = Base64.encode((USERNAME + ":" + PASSWORD).getBytes());
-
-    @DataProvider(name = "Invalid HTTP basic auth strings")
-    public Object[][] getInvalidHttpBasicAuthStrings() {
-        return new Object[][] { { null }, { "bla" }, { "basic " + Base64.encode("la:bli:blu".getBytes()) } };
-    }
-
-    @Test(dataProvider = "Invalid HTTP basic auth strings")
-    public void parseUsernamePasswordFromInvalidAuthZHeader(String authZHeader) throws Exception {
-        final AuthenticationStrategy strategy = mock(AuthenticationStrategy.class);
-        final HttpBasicAuthenticationFilter filter =
-                new HttpBasicAuthenticationFilter(strategy, HttpBasicExtractor.INSTANCE, false);
-
-        final Request req = new Request();
-        req.getHeaders().put(HTTP_BASIC_AUTH_HEADER, authZHeader);
-
-        assertThat(filter.canApplyFilter(null, req)).isFalse();
-    }
-
-    @DataProvider(name = "Valid HTTP basic auth strings")
-    public Object[][] getValidHttpBasicAuthStrings() {
-        return new Object[][] { { "basic " + BASE64_USERPASS }, { "Basic " + BASE64_USERPASS } };
-    }
-
-    @Test(dataProvider = "Valid HTTP basic auth strings")
-    public void parseUsernamePasswordFromValidAuthZHeader(String authZHeader) throws Exception {
-        final Headers headers = new Headers();
-        headers.put(HTTP_BASIC_AUTH_HEADER, authZHeader);
-        assertThat(HttpBasicExtractor.INSTANCE.apply(headers)).isEqualTo(Pair.of(USERNAME, PASSWORD));
-    }
-
+    @SuppressWarnings("unchecked")
     @Test
-    public void sendUnauthorizedResponseWithHttpBasicAuthWillChallengeUserAgent() throws Exception {
-        final AuthenticationStrategy failureStrategy = mock(AuthenticationStrategy.class);
-        when(failureStrategy
-                .authenticate(any(String.class), any(String.class), any(Context.class), any(AtomicReference.class)))
-                .thenReturn(Promises.<SecurityContext, LdapException>newResultPromise(null));
+    public void testRespondUnauthorizedIfCredentialMissing()
+            throws InterruptedException, ExecutionException, IOException {
+        final ConditionalFilter filter = newConditionalHttpBasicAuthenticationFilter(mock(AuthenticationStrategy.class),
+                mock(Function.class));
 
-        final HttpBasicAuthenticationFilter filter =
-                new HttpBasicAuthenticationFilter(failureStrategy, HttpBasicExtractor.INSTANCE, false);
+        assertThat(filter.getCondition().canApplyFilter(new RootContext(), new Request())).isFalse();
+        verifyUnauthorizedOutputMessage(
+                filter.getFilter().filter(mock(Context.class), new Request(), mock(Handler.class)).get());
+    }
 
-        final Response response = filter.filter(null, new Request(), mock(Handler.class)).get();
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testRespondUnauthorizedIfCredentialWrong()
+            throws InterruptedException, ExecutionException, IOException {
+        final Function<Headers, Pair<String, String>, NeverThrowsException> credentials = mock(Function.class);
+        when(credentials.apply(any(Headers.class))).thenReturn(Pair.of("user", "password"));
+
+        final AuthenticationStrategy authStrategy = mock(AuthenticationStrategy.class);
+        when(authStrategy.authenticate(eq("user"), eq("password"), any(Context.class)))
+                .thenReturn(Promises.<SecurityContext, LdapException> newExceptionPromise(
+                        LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS)));
+
+        final Response response = new HttpBasicAuthenticationFilter(authStrategy, credentials)
+                .filter(mock(Context.class), new Request(), mock(Handler.class)).get();
+
         verifyUnauthorizedOutputMessage(response);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testContinueProcessOnSuccessfullAuthentication() {
+        final Function<Headers, Pair<String, String>, NeverThrowsException> credentials = mock(Function.class);
+        when(credentials.apply(any(Headers.class))).thenReturn(Pair.of("user", "password"));
+
+        final AuthenticationStrategy authStrategy = mock(AuthenticationStrategy.class);
+        when(authStrategy.authenticate(eq("user"), eq("password"), any(Context.class)))
+                .thenReturn(Promises.<SecurityContext, LdapException> newResultPromise(
+                        new SecurityContext(new RootContext(), "user", Collections.<String, Object> emptyMap())));
+
+        final Handler handler = mock(Handler.class);
+        new HttpBasicAuthenticationFilter(authStrategy, credentials)
+            .filter(mock(Context.class), new Request(), handler);
+
+        verify(handler).handle(any(SecurityContext.class), any(Request.class));
     }
 
     private void verifyUnauthorizedOutputMessage(Response response) throws IOException {
@@ -98,24 +104,4 @@ public class HttpBasicAuthenticationFilterTest extends ForgeRockTestCase {
                 .isEqualTo("{code=401, reason=Unauthorized, message=Invalid Credentials}");
         softly.assertAll();
     }
-
-    @Test
-    public void extractUsernamePasswordHttpBasicAuthWillAcceptUserAgent() throws Exception {
-        final Headers headers = new Headers();
-        headers.add(HTTP_BASIC_AUTH_HEADER, "Basic " + BASE64_USERPASS);
-        assertThat(HttpBasicExtractor.INSTANCE.apply(headers)).isEqualTo(Pair.of(USERNAME, PASSWORD));
-    }
-
-    @Test
-    public void extractUsernamePasswordCustomHeaders() throws Exception {
-        final String customHeaderUsername = "X-OpenIDM-Username";
-        final String customHeaderPassword = "X-OpenIDM-Password";
-        CustomHeaderExtractor cha = new CustomHeaderExtractor(customHeaderUsername, customHeaderPassword);
-        Headers headers = new Headers();
-        headers.add(customHeaderUsername, USERNAME);
-        headers.add(customHeaderPassword, PASSWORD);
-
-        assertThat(cha.apply(headers)).isEqualTo(Pair.of(USERNAME, PASSWORD));
-    }
-
 }

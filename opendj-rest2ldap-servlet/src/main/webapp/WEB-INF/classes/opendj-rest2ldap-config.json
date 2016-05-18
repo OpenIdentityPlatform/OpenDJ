@@ -78,12 +78,7 @@
         "anonymous": {
             // Specify the connection factory to use to perform LDAP operations.
             // If missing, "root" factory will be used.
-            "ldapConnectionFactory": "root",
-			
-            // Enable proxied authorization using the specified user DN.
-            // If empty, anonymous proxied authorization will be used.
-            // If missing, connection from the ldapConnectionFactory will be used as-is. 
-            "userDN": ""
+            "ldapConnectionFactory": "root"
         },
 
 		// Use HTTP Basic authentication's information to bind to the LDAP server.
@@ -94,12 +89,6 @@
 			"supportAltAuthentication"        : true,
 			"altAuthenticationUsernameHeader" : "X-OpenIDM-Username",
 			"altAuthenticationPasswordHeader" : "X-OpenIDM-Password",
-
-			// For server which are not supporting proxied-authorization control, you can
-			// set this flag to true. Subsequent LDAP operations will then be performed
-			// by re-using the authenticated connection.
-			// If missing, proxied-authorization control will be used. 
-			"reuseAuthenticatedConnection": false,
 
 			// Define which LDAP bind mechanism to use
 			// Supported mechanisms are "simple", "sasl-plain", "search"

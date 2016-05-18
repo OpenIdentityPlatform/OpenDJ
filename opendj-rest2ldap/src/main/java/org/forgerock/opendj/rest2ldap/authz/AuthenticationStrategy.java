@@ -15,9 +15,6 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.SecurityContext;
@@ -34,11 +31,7 @@ public interface AuthenticationStrategy {
      *            Password used to perform the authentication.
      * @param parentContext
      *            Context to use as parent for the created {@link SecurityContext}
-     * @param authenticatedConnectionHolder
-     *            Output parameter. If supported, the implementations will set the reference to a ready to be used LDAP
-     *            connection bound to the given credentials.
      * @return A {@link Context} if the authentication succeed or an {@link LdapException} otherwise.
      */
-    Promise<SecurityContext, LdapException> authenticate(String username, String password, Context parentContext,
-            AtomicReference<Connection> authenticatedConnectionHolder);
+    Promise<SecurityContext, LdapException> authenticate(String username, String password, Context parentContext);
 }

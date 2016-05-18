@@ -95,7 +95,7 @@ public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
                                 .isEqualTo(ByteString.valueOfUtf8("dn:uid=whatever,ou=people,dc=com"));
                     }
                 }));
-        filter = new ProxiedAuthV2Filter(connectionFactory, ProxiedAuthV2Filter.IntrospectionAuthzProvider.INSTANCE);
+        filter = new ProxiedAuthV2Filter(connectionFactory);
 
         final Map<String, Object> authz = new HashMap<>();
         authz.put(SecurityContext.AUTHZID_DN, "uid=whatever,ou=people,dc=com");

@@ -16,8 +16,12 @@
 package org.opends.server.protocols.http.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
+import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
+
+import java.util.Map;
 
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
@@ -34,7 +38,6 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.SecurityContext;
-import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
@@ -53,14 +56,11 @@ final class InternalProxyAuthzFilter implements Filter
 {
   private final IdentityMapper<?> identityMapper;
   private final Schema schema;
-  private final Function<SecurityContext, String, LdapException> authzIdProvider;
 
-  InternalProxyAuthzFilter(IdentityMapper<?> identityMapper, Schema schema,
-      Function<SecurityContext, String, LdapException> authzIdProvider)
+  InternalProxyAuthzFilter(IdentityMapper<?> identityMapper, Schema schema)
   {
     this.identityMapper = checkNotNull(identityMapper, "identityMapper cannot be null");
     this.schema = checkNotNull(schema, "schema cannot be null");
-    this.authzIdProvider = checkNotNull(authzIdProvider, "authzIdProvider cannot be null");
   }
 
   @Override
@@ -92,26 +92,26 @@ final class InternalProxyAuthzFilter implements Filter
 
   private DN getUserDN(final SecurityContext securityContext) throws LdapException, DirectoryException
   {
-    final String authzId = authzIdProvider.apply(securityContext);
-    if (authzId.startsWith("u:"))
-    {
-      final Entry entry = identityMapper.getEntryForID(authzId);
-      if (entry == null)
-      {
-        throw LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS);
-      }
-      return entry.getName();
-    }
-    else if (authzId.startsWith("dn:"))
+    final Map<String, Object> authz = securityContext.getAuthorization();
+    if (authz.containsKey(AUTHZID_DN))
     {
       try
       {
-        return DN.valueOf(authzId.substring(3), schema);
+        return DN.valueOf(authz.get(AUTHZID_DN).toString(), schema);
       }
       catch (LocalizedIllegalArgumentException e)
       {
         throw LdapException.newLdapException(ResultCode.INVALID_DN_SYNTAX, e);
       }
+    }
+    if (authz.containsKey(AUTHZID_ID))
+    {
+      final Entry entry = identityMapper.getEntryForID(authz.get(AUTHZID_ID).toString());
+      if (entry == null)
+      {
+        throw LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS);
+      }
+      return entry.getName();
     }
     throw LdapException.newLdapException(ResultCode.AUTHORIZATION_DENIED);
   }

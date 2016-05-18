@@ -19,6 +19,7 @@ import static org.forgerock.opendj.ldap.requests.Requests.newPlainSASLBindReques
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.util.Reject.checkNotNull;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.close;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -42,9 +43,8 @@ import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 
-
 /** Bind using a computed DN from a template and the current request/context. */
-public final class SASLPlainStrategy implements AuthenticationStrategy {
+final class SASLPlainStrategy implements AuthenticationStrategy {
 
     private final ConnectionFactory connectionFactory;
     private final Function<String, String, LdapException> formatter;
@@ -90,21 +90,22 @@ public final class SASLPlainStrategy implements AuthenticationStrategy {
 
     @Override
     public Promise<SecurityContext, LdapException> authenticate(final String username, final String password,
-            final Context parentContext, final AtomicReference<Connection> authenticateConnectionHolder) {
+            final Context parentContext) {
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
         return connectionFactory
                 .getConnectionAsync()
                 .thenAsync(new AsyncFunction<Connection, SecurityContext, LdapException>() {
                     @Override
                     public Promise<SecurityContext, LdapException> apply(Connection connection) throws LdapException {
-                        authenticateConnectionHolder.set(connection);
-                        final String authcId = formatter.apply(username);
-                        return doSASLPlainBind(connection, parentContext, username, authcId, password);
+                        connectionHolder.set(connection);
+                        return doSASLPlainBind(connection, parentContext, username, password);
                     }
-                });
+                }).thenFinally(close(connectionHolder));
     }
 
     private Promise<SecurityContext, LdapException> doSASLPlainBind(final Connection connection,
-            final Context parentContext, final String authzId, final String authcId, final String password) {
+            final Context parentContext, final String authzId, final String password) throws LdapException {
+        final String authcId = formatter.apply(authzId);
         return connection
                 .bindAsync(newPlainSASLBindRequest(authcId, password.toCharArray())
                             .addControl(AuthorizationIdentityRequestControl.newControl(true)))

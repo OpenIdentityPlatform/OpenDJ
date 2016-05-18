@@ -16,6 +16,7 @@
 package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.close;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.util.Reject.checkNotNull;
@@ -37,7 +38,7 @@ import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 
 /** Bind using a computed DN from a template and the current request/context. */
-public final class SimpleBindStrategy implements AuthenticationStrategy {
+final class SimpleBindStrategy implements AuthenticationStrategy {
 
     private final ConnectionFactory connectionFactory;
     private final Schema schema;
@@ -64,11 +65,13 @@ public final class SimpleBindStrategy implements AuthenticationStrategy {
 
     @Override
     public Promise<SecurityContext, LdapException> authenticate(final String username, final String password,
-            final Context parentContext, final AtomicReference<Connection> authenticatedConnectionHolder) {
+            final Context parentContext) {
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         return connectionFactory
                 .getConnectionAsync()
-                .thenAsync(doSimpleBind(authenticatedConnectionHolder, parentContext, username,
-                           DN.format(bindDNTemplate, schema, username), password));
+                .thenAsync(doSimpleBind(connectionHolder, parentContext, username,
+                           DN.format(bindDNTemplate, schema, username), password))
+                .thenFinally(close(connectionHolder));
     }
 
     static AsyncFunction<Connection, SecurityContext, LdapException> doSimpleBind(
