@@ -212,9 +212,9 @@ public final class Adapters {
               final Result result = getResponseResult(extendedOperation);
               final GenericExtendedResult genericExtendedResult =
                       Responses.newGenericExtendedResult(result.getResultCode())
-                              .setDiagnosticMessage(result.getDiagnosticMessage()).setMatchedDN(
-                                      result.getMatchedDN()).setValue(
-                                      extendedOperation.getResponseValue().toByteString());
+                               .setDiagnosticMessage(result.getDiagnosticMessage())
+                               .setMatchedDN(result.getMatchedDN())
+                               .setValue(extendedOperation.getResponseValue());
               try {
                   R extendedResult =
                           request.getResultDecoder().decodeExtendedResult(genericExtendedResult,
