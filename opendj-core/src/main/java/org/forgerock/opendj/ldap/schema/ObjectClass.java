@@ -16,6 +16,8 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.TOP_OBJECTCLASS_OID;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,11 +34,9 @@ import com.forgerock.opendj.util.StaticUtils;
 
 import static java.util.Arrays.*;
 import static java.util.Collections.*;
-
 import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
@@ -939,10 +939,15 @@ public final class ObjectClass extends AbstractSchemaElement {
 
                 superiorClasses.add(superiorClass);
             }
+        } else if (superiorClasses.isEmpty() && getObjectClassType() == ObjectClassType.STRUCTURAL) {
+            // default superior to top
+            superiorClasses = new HashSet<>(1);
+            superiorClasses.add(schema.getObjectClass(TOP_OBJECTCLASS_OID));
+            derivesTop = true;
         }
 
         if (!derivesTop) {
-            derivesTop = isDescendantOf(schema.getObjectClass("2.5.6.0"));
+            derivesTop = isDescendantOf(schema.getObjectClass(TOP_OBJECTCLASS_OID));
         }
 
         // Structural classes must have the "top" objectclass somewhere
