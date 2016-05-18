@@ -269,7 +269,7 @@ public final class TextHTTPAccessLogPublisher extends
   /**
    * Returns a new Collection containing a - b.
    *
-   * @param <T>
+   * @param <T> The type of collection elements.
    * @param a
    *          the collection to subtract from, must not be null
    * @param b

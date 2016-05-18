@@ -103,7 +103,7 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
     final Operation operation;
     final LdapPromiseImpl<Result> promise;
 
-    public OperationWithPromise(Operation operation, LdapPromiseImpl<Result> promise)
+    private OperationWithPromise(Operation operation, LdapPromiseImpl<Result> promise)
     {
       this.operation = operation;
       this.promise = promise;
@@ -122,7 +122,7 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
 
     final SearchResultHandler entryHandler;
 
-    public SearchOperationWithPromise(
+    private SearchOperationWithPromise(
         Operation operation, LdapPromiseImpl<Result> promise, SearchResultHandler entryHandler)
     {
       super(operation, promise);
@@ -210,9 +210,6 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
   /** The client (remote) address. */
   private final String clientAddress;
 
-  /** The client (remote) host name. */
-  private String clientHost;
-
   /** The client (remote) port. */
   private final int clientPort;
 
@@ -221,9 +218,6 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
 
   /** The server (local) address. */
   private final String serverAddress;
-
-  /** The server (local) host name. */
-  private String serverHost;
 
   /** The server (local) port. */
   private final int serverPort;
@@ -339,7 +333,7 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
   @Override
   public String getClientHost()
   {
-    return clientHost;
+    return clientAddress; // Avoid reverse lookups.
   }
 
   @Override
@@ -357,7 +351,7 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
   @Override
   public String getServerHost()
   {
-    return serverHost;
+    return serverAddress; // Avoid reverse lookups.
   }
 
   @Override
@@ -819,16 +813,6 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
     buffer.append(getClientAddress()).append(":").append(getClientPort());
     buffer.append(" to ");
     buffer.append(getServerAddress()).append(":").append(getServerPort());
-  }
-
-  /**
-   * Returns the statTracker for this connection handler.
-   *
-   * @return the statTracker for this connection handler
-   */
-  public HTTPStatistics getStatTracker()
-  {
-    return statTracker;
   }
 
   @Override
