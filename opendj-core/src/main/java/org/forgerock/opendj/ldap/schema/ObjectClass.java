@@ -929,12 +929,12 @@ public final class ObjectClass extends AbstractSchemaElement {
                 }
 
                 // Inherit all optional attributes from superior class.
-                i = superiorClass.getRequiredAttributes().iterator();
-                if (i.hasNext() && requiredAttributes == Collections.EMPTY_SET) {
-                    requiredAttributes = new HashSet<>();
+                i = superiorClass.getOptionalAttributes().iterator();
+                if (i.hasNext() && optionalAttributes == Collections.EMPTY_SET) {
+                    optionalAttributes = new HashSet<>();
                 }
                 while (i.hasNext()) {
-                    requiredAttributes.add(i.next());
+                    optionalAttributes.add(i.next());
                 }
 
                 superiorClasses.add(superiorClass);
