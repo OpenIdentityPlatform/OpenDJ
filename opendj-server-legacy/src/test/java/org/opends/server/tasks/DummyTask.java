@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -30,6 +30,9 @@ import org.opends.server.types.Entry;
  */
 public class DummyTask extends Task
 {
+  /** Re-using an existing attribute to handle sleep time attribute. */
+  public final static String TASK_SLEEP_TIME_ATTRIBUTE = "ds-cfg-time-limit";
+
   /** The length of time that the task should sleep before completing. */
   private long sleepTime;
 
@@ -53,7 +56,7 @@ public class DummyTask extends Task
     Entry taskEntry = getTaskEntry();
     if (taskEntry != null)
     {
-      for (Attribute a : taskEntry.getAttribute("ds-task-dummy-sleep-time"))
+      for (Attribute a : taskEntry.getAttribute(TASK_SLEEP_TIME_ATTRIBUTE))
       {
         for (ByteString v : a)
         {

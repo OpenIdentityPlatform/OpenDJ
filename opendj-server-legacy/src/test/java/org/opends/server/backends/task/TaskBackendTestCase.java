@@ -26,6 +26,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.BackendTestCase;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.tasks.DummyTask;
 import org.opends.server.tasks.TasksTestCase;
 import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.AfterClass;
@@ -104,7 +105,7 @@ public class TaskBackendTestCase
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-scheduled-start-time: " + startTimeStr,
-      "ds-task-dummy-sleep-time: 30000");
+      DummyTask.TASK_SLEEP_TIME_ATTRIBUTE + ": 30000");
 
     Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isPending(task.getTaskState()));
@@ -140,7 +141,7 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
-      "ds-task-dummy-sleep-time: 300000");
+      DummyTask.TASK_SLEEP_TIME_ATTRIBUTE + ": 300000");
 
 
     // Wait until we're sure that the task has started running.
@@ -231,7 +232,7 @@ public class TaskBackendTestCase
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-scheduled-start-time: " + startTimeStr,
-      "ds-task-dummy-sleep-time: 30000");
+      DummyTask.TASK_SLEEP_TIME_ATTRIBUTE + ": 30000");
 
     Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isPending(task.getTaskState()));
@@ -283,7 +284,7 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
-      "ds-task-dummy-sleep-time: 300000");
+      DummyTask.TASK_SLEEP_TIME_ATTRIBUTE + ": 300000");
 
     // Wait until we're sure that the task has started running.
     long startTime = System.currentTimeMillis();
@@ -580,7 +581,7 @@ public class TaskBackendTestCase
       "ds-recurring-task-schedule: " + taskSchedule,
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
-      "ds-task-dummy-sleep-time: 0");
+      DummyTask.TASK_SLEEP_TIME_ATTRIBUTE + ": 0");
 
     return rc == ResultCode.SUCCESS
         && DirectoryServer.entryExists(DN.valueOf(taskDN));
