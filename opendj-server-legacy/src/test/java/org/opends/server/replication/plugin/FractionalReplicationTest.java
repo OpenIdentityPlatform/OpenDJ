@@ -1205,7 +1205,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     {
       createReplicationServer(testcase);
       createFractionalDomain(true, EXCLUDE_FRAC_MODE, "inetOrgPerson",
-          "displayName", "description");
+          "displayName", "givenName");
 
       // create fake domain to send operations
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
@@ -1246,7 +1246,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       // Perform add operation with forbidden attribute in RDN
       // @formatter:off
       entry = TestCaseUtils.makeEntry(
-          "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," + TEST_ROOT_DN_STRING,
+          "dn: displayName=ValueToBeKept+givenName=ValueToBeKeptToo," + TEST_ROOT_DN_STRING,
           "objectClass: top",
           "objectClass: person",
           "objectClass: organizationalPerson",
@@ -1256,8 +1256,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           "cn: cnValue",
           "displayName: ValueToBeKept",
           "displayName: displayNameValue",
-          "description: descriptionValue",
-          "description: ValueToBeKeptToo");
+          "givenName: descriptionValue",
+          "givenName: ValueToBeKeptToo");
       // @formatter:on
 
       // Create an update message to add an entry.
@@ -1273,7 +1273,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
-      checkEntryAttributeValue(newEntry, "description", "ValueToBeKeptToo");
+      checkEntryAttributeValue(newEntry, "givenName", "ValueToBeKeptToo");
     }
     finally
     {
@@ -1390,13 +1390,13 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     {
       createReplicationServer(testcase);
       createFractionalDomain(true, EXCLUDE_FRAC_MODE, "inetOrgPerson",
-          "displayName", "description");
+          "displayName", "givenName");
 
       // create fake domain to send operations
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
       // Perform add operation with forbidden attribute in RDN
-      String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
+      String entryName = "displayName=ValueToBeKept+givenName=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
       // @formatter:off
       Entry entry = TestCaseUtils.makeEntry(
           "dn: " + entryName,
@@ -1408,7 +1408,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           "cn: cnValue",
           "entryUUID: " + ENTRY_UUID,
           "displayName: ValueToBeKept",
-          "description: ValueToBeRemoved");
+          "givenName: ValueToBeRemoved");
       // @formatter:on
 
       // Create an update message to add an entry.
@@ -1421,7 +1421,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
-      checkEntryAttributeValue(newEntry, "description", "ValueToBeRemoved");
+      checkEntryAttributeValue(newEntry, "givenName", "ValueToBeRemoved");
 
       /*
        * Perform modify dn operation by renaming the entry keeping only one of
@@ -1444,7 +1444,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
-      assertThat(newEntry.getAttribute("description")).isEmpty();
+      assertThat(newEntry.getAttribute("givenName")).isEmpty();
     }
     finally
     {
