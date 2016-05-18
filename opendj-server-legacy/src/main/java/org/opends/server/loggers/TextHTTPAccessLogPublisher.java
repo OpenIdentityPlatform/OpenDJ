@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.http.MutableUri;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -58,6 +59,8 @@ public final class TextHTTPAccessLogPublisher extends
   private static final String ELF_C_PORT = "c-port";
   private static final String ELF_CS_HOST = "cs-host";
   private static final String ELF_CS_METHOD = "cs-method";
+  private static final String ELF_CS_URI = "cs-uri";
+  private static final String ELF_CS_URI_STEM = "cs-uri-stem";
   private static final String ELF_CS_URI_QUERY = "cs-uri-query";
   private static final String ELF_CS_USER_AGENT = "cs(User-Agent)";
   private static final String ELF_CS_USERNAME = "cs-username";
@@ -74,9 +77,10 @@ public final class TextHTTPAccessLogPublisher extends
 
   private static final Set<String> ALL_SUPPORTED_FIELDS = new HashSet<>(
       Arrays.asList(ELF_C_IP, ELF_C_PORT, ELF_CS_HOST, ELF_CS_METHOD,
-          ELF_CS_URI_QUERY, ELF_CS_USER_AGENT, ELF_CS_USERNAME, ELF_CS_VERSION,
-          ELF_S_COMPUTERNAME, ELF_S_IP, ELF_S_PORT, ELF_SC_STATUS,
-          X_CONNECTION_ID, X_DATETIME, X_ETIME, X_TRANSACTION_ID));
+          ELF_CS_URI, ELF_CS_URI_STEM, ELF_CS_URI_QUERY, ELF_CS_USER_AGENT,
+          ELF_CS_USERNAME, ELF_CS_VERSION, ELF_S_COMPUTERNAME, ELF_S_IP,
+          ELF_S_PORT, ELF_SC_STATUS, X_CONNECTION_ID, X_DATETIME, X_ETIME,
+          X_TRANSACTION_ID));
 
   /**
    * Returns an instance of the text HTTP access log publisher that will print
@@ -420,7 +424,12 @@ public final class TextHTTPAccessLogPublisher extends
     fields.put(ELF_C_PORT, ri.getClientPort());
     fields.put(ELF_CS_HOST, ri.getClientHost());
     fields.put(ELF_CS_METHOD, ri.getMethod());
-    fields.put(ELF_CS_URI_QUERY, ri.getQuery());
+
+    final MutableUri uri = ri.getUri();
+    fields.put(ELF_CS_URI, uri.toString());
+    fields.put(ELF_CS_URI_STEM, uri.getRawPath());
+    fields.put(ELF_CS_URI_QUERY, uri.getRawQuery());
+
     fields.put(ELF_CS_USER_AGENT, ri.getUserAgent());
     fields.put(ELF_CS_USERNAME, ri.getAuthUser());
     fields.put(ELF_CS_VERSION, ri.getProtocol());

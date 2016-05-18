@@ -23,6 +23,7 @@ import static org.opends.server.loggers.CommonAudit.DEFAULT_TRANSACTION_ID;
 import static org.opends.server.loggers.AccessLogger.logDisconnect;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -194,8 +195,8 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
 
   /** The HTTP method/verb used for this request. */
   private final String method;
-  /** The query issued by the client. */
-  private final String query;
+  /** The URI issued by the client. */
+  private final MutableUri uri;
   /** The user agent used by the client. */
   private final String userAgent;
 
@@ -254,14 +255,13 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
     this.clientPort = clientCtx.getRemotePort();
     this.isSecure = clientCtx.isSecure();
 
-    final MutableUri uri = request.getUri();
+    this.uri = request.getUri();
     this.serverAddress = uri.getHost();
     this.localAddress = toInetAddress(serverAddress);
     this.serverPort = uri.getPort();
     this.securityStrengthFactor = calcSSF(
             context.asContext(AttributesContext.class).getAttributes().get(SERVLET_SSF_CONSTANT));
     this.method = request.getMethod();
-    this.query = uri.getQuery();
     this.protocol = request.getVersion();
     this.userAgent = clientCtx.getUserAgent();
 
@@ -578,9 +578,9 @@ final class HTTPClientConnection extends ClientConnection implements HTTPRequest
   }
 
   @Override
-  public String getQuery()
+  public URI getUri()
   {
-    return this.query;
+    return this.uri.asURI();
   }
 
   @Override

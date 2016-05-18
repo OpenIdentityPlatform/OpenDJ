@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2013-2015 ForgeRock AS.
+  Copyright 2013-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="file-based-http-access-log-publisher"
   plural-name="file-based-http-access-log-publishers"
@@ -133,7 +133,7 @@
   </adm:property>
   <adm:property name="time-interval" advanced="true">
     <adm:synopsis>
-      Specifies the interval at which to check whether the log files 
+      Specifies the interval at which to check whether the log files
       need to be rotated.
     </adm:synopsis>
     <adm:default-behavior>
@@ -267,7 +267,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>cs-host c-ip cs-username x-datetime cs-method cs-uri-query 
+        <adm:value>cs-host c-ip cs-username x-datetime cs-method cs-uri-stem cs-uri-query
         cs-version sc-status cs(User-Agent) x-connection-id x-etime x-transaction-id</adm:value>
       </adm:defined>
     </adm:default-behavior>
@@ -284,10 +284,10 @@
             http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true
 
             OpenDJ supports the following standard fields: "c-ip", "c-port",
-            "cs-host", "cs-method", "cs-uri-query", "cs(User-Agent)",
+            "cs-host", "cs-method", "cs-uri", "cs-uri-stem", "cs-uri-query", "cs(User-Agent)",
             "cs-username", "cs-version", "s-computername", "s-ip", "s-port",
             "sc-status".
-            
+
             OpenDJ supports the following application specific field extensions:
             "x-connection-id"  displays the internal connection ID assigned to
             the HTTP client connection, "x-datetime"  displays the completion
@@ -322,7 +322,7 @@
         <adm:regex>.*</adm:regex>
         <adm:usage>STRING</adm:usage>
           <adm:synopsis>
-            Any valid format string that can be used with the 
+            Any valid format string that can be used with the
             java.text.SimpleDateFormat class.
           </adm:synopsis>
         </adm:pattern>

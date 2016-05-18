@@ -11,9 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
+
+import java.net.URI;
 
 /**
  * Contains the information required for logging the HTTP request.
@@ -78,11 +80,11 @@ public interface HTTPRequestInfo
   String getMethod();
 
   /**
-   * Returns the query issued by the client.
+   * Returns the URI issued by the client.
    *
-   * @return the query
+   * @return the URI
    */
-  String getQuery();
+  URI getUri();
 
   /**
    * Returns the user agent used by the client.
