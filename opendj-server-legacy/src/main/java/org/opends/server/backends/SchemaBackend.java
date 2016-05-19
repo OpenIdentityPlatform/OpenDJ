@@ -93,7 +93,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
@@ -660,9 +659,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       /* Add the file name to the description of the element if this was requested by the caller. */
       String value;
-      if (includeSchemaFile && element instanceof CommonSchemaElements)
+      if (includeSchemaFile && element instanceof SchemaElement)
       {
-        value = getDefinitionWithFileName((CommonSchemaElements) element);
+        value = getDefinitionWithFileName((SchemaElement) element);
       }
       else
       {
