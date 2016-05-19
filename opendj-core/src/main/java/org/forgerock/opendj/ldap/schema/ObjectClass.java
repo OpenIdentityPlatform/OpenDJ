@@ -14,7 +14,6 @@
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2015-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.Collection;
@@ -28,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 import static java.util.Arrays.*;
 import static java.util.Collections.*;
@@ -400,6 +401,8 @@ public final class ObjectClass extends AbstractSchemaElement {
     /** Indicates whether validation failed. */
     private boolean isValid;
 
+    private boolean isPlaceHolder;
+
     /** Indicates whether this object class is the extensibleObject class. */
     private final boolean isExtensibleObject;
 
@@ -439,6 +442,34 @@ public final class ObjectClass extends AbstractSchemaElement {
         this.requiredAttributeOIDs = unmodifiableCopyOfSet(builder.requiredAttributes);
         this.optionalAttributeOIDs = unmodifiableCopyOfSet(builder.optionalAttributes);
         this.isExtensibleObject = oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
+        this.isPlaceHolder = false;
+    }
+
+    /**
+     * Creates a new place-holder object class having the specified name.
+     * The OID of the place-holder object class will be the normalized object class name
+     * followed by the suffix "-oid".
+     *
+     * @param name
+     *            The name of the place-holder object class.
+     */
+    ObjectClass(final String name) {
+        this.oid = toOID(name);
+        this.names = Collections.singletonList(name);
+        this.isObsolete = false;
+        this.superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
+        this.objectClassType = ObjectClassType.ABSTRACT;
+        this.requiredAttributeOIDs = Collections.emptySet();
+        this.optionalAttributeOIDs = Collections.emptySet();
+        this.isExtensibleObject = oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
+        this.isPlaceHolder = true;
+    }
+
+    private static String toOID(final String name) {
+        final StringBuilder builder = new StringBuilder(name.length() + 4);
+        StaticUtils.toLowerCase(name, builder);
+        builder.append("-oid");
+        return builder.toString();
     }
 
     /**
@@ -642,6 +673,20 @@ public final class ObjectClass extends AbstractSchemaElement {
      */
     public boolean isObsolete() {
         return isObsolete;
+    }
+
+    /**
+     * Returns whether this object class is a placeholder,
+     * i.e. a dummy object class that does not exist in the schema.
+     *
+     * @return {@code true} if this object class is a placeholder,
+     *         {@code false} otherwise
+     * @deprecated This method may be removed at any time
+     * @since OPENDJ-2987 Migrate ObjectClass
+     */
+    @Deprecated
+    public boolean isPlaceHolder() {
+        return isPlaceHolder;
     }
 
     /**

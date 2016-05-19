@@ -316,7 +316,8 @@ public final class Schema {
 
         @Override
         public ObjectClass getObjectClass(final String nameOrOid) {
-            return strictImpl.getObjectClass(nameOrOid);
+            ObjectClass result = strictImpl.getObjectClass0(nameOrOid);
+            return result != null ? result : new ObjectClass(nameOrOid);
         }
 
         @Override
@@ -736,6 +737,14 @@ public final class Schema {
 
         @Override
         public ObjectClass getObjectClass(final String nameOrOid) {
+            ObjectClass result = getObjectClass0(nameOrOid);
+            if (result != null) {
+                return result;
+            }
+            throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN.get(nameOrOid));
+        }
+
+        private ObjectClass getObjectClass0(final String nameOrOid) {
             final ObjectClass oc = numericOID2ObjectClasses.get(nameOrOid);
             if (oc != null) {
                 return oc;
@@ -747,7 +756,7 @@ public final class Schema {
                 }
                 throw new UnknownSchemaElementException(WARN_OBJECTCLASS_AMBIGUOUS.get(nameOrOid));
             }
-            throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN.get(nameOrOid));
+            return null;
         }
 
         @Override
@@ -1456,6 +1465,11 @@ public final class Schema {
 
     /**
      * Returns the object class with the specified name or numeric OID.
+     * <p>
+     * If the requested object class is not registered in this schema and this
+     * schema is non-strict then a temporary "place-holder" object class will
+     * be created and returned. Place holder object classes have an OID which
+     * is the normalized name with the string {@code -oid} appended.
      *
      * @param nameOrOid
      *            The name or OID of the object class to retrieve.
@@ -1463,6 +1477,7 @@ public final class Schema {
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested object class was
      *             not found or if the provided name is ambiguous.
+     * @see ObjectClass#isPlaceHolder()
      */
     public ObjectClass getObjectClass(final String nameOrOid) {
         return impl.getObjectClass(nameOrOid);
