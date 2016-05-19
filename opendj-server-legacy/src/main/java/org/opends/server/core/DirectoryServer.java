@@ -2486,21 +2486,7 @@ public final class DirectoryServer
    */
   public static ObjectClass getDefaultObjectClass(String name)
   {
-    String lowerName = toLowerCase(name);
-    ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
-    if (objectClass == null)
-    {
-      String oid        = lowerName + "-oid";
-      String definition = "( " + oid + " NAME '" + name + "' ABSTRACT )";
-
-      // Temporary object classes are immediately dirty.
-      objectClass = new ObjectClass(definition, name,
-          Collections.singleton(name), oid, null,
-          Collections.singleton(getTopObjectClass()), null, null,
-          ObjectClassType.ABSTRACT, false, null).setDirty();
-    }
-
-    return objectClass;
+    return directoryServer.schema.getSchemaNG().getObjectClass(name);
   }
 
   /**
