@@ -29,14 +29,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.datamodel.SortableListModel;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.Schema;
 
 /**
@@ -160,7 +160,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
     {
       final SortedSet<String> auxiliaryOcs = new TreeSet<>();
       final SortedSet<String> structuralOcs = new TreeSet<>();
-      for (ObjectClass oc : schema.getObjectClasses().values())
+      for (ObjectClass oc : schema.getObjectClasses())
       {
         if (oc.getObjectClassType() == ObjectClassType.AUXILIARY)
         {

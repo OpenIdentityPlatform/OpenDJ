@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
@@ -573,16 +572,15 @@ public class ServerDescriptor
 
   private static boolean areObjectClassesEqual(Schema schema1, Schema schema2)
   {
-    final Map<String, ObjectClass> ocs1 = schema1.getObjectClasses();
-    final Map<String, ObjectClass> ocs2 = schema2.getObjectClasses();
+    final Collection<ObjectClass> ocs1 = schema1.getObjectClasses();
+    final Collection<ObjectClass> ocs2 = schema2.getObjectClasses();
     if (ocs1.size() != ocs2.size())
     {
       return false;
     }
-    for (String name : ocs1.keySet())
+    for (ObjectClass oc1 : ocs1)
     {
-      ObjectClass oc1 = ocs1.get(name);
-      ObjectClass oc2 = ocs2.get(name);
+      ObjectClass oc2 = schema2.getObjectClass(oc1.getNameOrOID());
       if (oc2 == null || !areObjectClassesEqual(oc1, oc2))
       {
         return false;

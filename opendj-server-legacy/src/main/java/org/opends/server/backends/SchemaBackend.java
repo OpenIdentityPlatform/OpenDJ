@@ -46,7 +46,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -566,7 +565,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         operationalAttrs, attributeTypesType, includeSchemaFile,
         AttributeTypeSyntax.isStripSyntaxMinimumUpperBound(),
         ignoreShowAllOption);
-    buildSchemaAttribute(schema.getObjectClasses().values(), userAttrs,
+    buildSchemaAttribute(schema.getObjectClasses(), userAttrs,
         operationalAttrs, objectClassesType, includeSchemaFile, false,
         ignoreShowAllOption);
     buildSchemaAttribute(schema.getMatchingRules(), userAttrs,
@@ -1379,7 +1378,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Make sure that the attribute type isn't used as a required or optional
     // attribute type in any objectclass.
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       if (oc.getDeclaredRequiredAttributes().contains(removeType) ||
           oc.getDeclaredOptionalAttributes().contains(removeType))
@@ -1643,7 +1642,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Make sure that the objectclass isn't used as the superior class for any
     // other objectclass.
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       for(ObjectClass superiorClass : oc.getSuperiorClasses())
       {
@@ -2693,7 +2692,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // same file are written before the subordinate classes.
     Set<ObjectClass> addedClasses = new HashSet<>();
     values = new LinkedHashSet<>();
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       if (schemaFile.equals(getSchemaFile(oc)))
       {
@@ -3489,9 +3488,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // loop on all the object classes in the current schema and delete
     // them from the new schema if they are not in the imported schema entry.
-    ConcurrentHashMap<String, ObjectClass> currentObjectClasses = newSchema.getObjectClasses();
-
-    for (ObjectClass removeClass : currentObjectClasses.values())
+    for (ObjectClass removeClass : newSchema.getObjectClasses())
     {
       String schemaFile = getSchemaFile(removeClass);
       if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))

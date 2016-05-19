@@ -638,7 +638,7 @@ public class DeleteSchemaElementsTask extends Task
     ArrayList<ObjectClass> dependentClasses = new ArrayList<>();
     for (AttributeType attr : attrsToDelete)
     {
-      for (ObjectClass oc : schema.getObjectClasses().values())
+      for (ObjectClass oc : schema.getObjectClasses())
       {
         if (oc.getRequiredAttributes().contains(attr)
             || oc.getOptionalAttributes().contains(attr))
@@ -691,7 +691,7 @@ public class DeleteSchemaElementsTask extends Task
       ObjectClass objectClass, Schema schema)
   {
     LinkedHashSet<ObjectClass> children = new LinkedHashSet<>();
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       if (oc.getSuperiorClasses().contains(objectClass))
       {

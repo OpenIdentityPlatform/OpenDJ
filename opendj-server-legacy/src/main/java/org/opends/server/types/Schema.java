@@ -115,12 +115,6 @@ public final class Schema
   private Map<AttributeType, List<AttributeType>> subordinateTypes;
 
   /**
-   * The set of objectclass definitions for this schema, mapped between the
-   * lowercase names and OID for the definition and the objectclass itself.
-   */
-  private ConcurrentHashMap<String,ObjectClass> objectClasses;
-
-  /**
    * The set of DIT content rules for this schema, mapped between the structural
    * objectclass for the definition and the DIT content rule itself.
    */
@@ -199,7 +193,6 @@ public final class Schema
   {
     switchSchema(schemaNG);
 
-    objectClasses = new ConcurrentHashMap<String,ObjectClass>();
     ditContentRules = new ConcurrentHashMap<ObjectClass,DITContentRule>();
     ditStructureRulesByID = new ConcurrentHashMap<Integer,DITStructureRule>();
     ditStructureRulesByNameForm = new ConcurrentHashMap<NameForm,DITStructureRule>();
@@ -660,9 +653,9 @@ public final class Schema
    *
    * @return  The objectclass definitions for this schema.
    */
-  public ConcurrentHashMap<String,ObjectClass> getObjectClasses()
+  public Collection<ObjectClass> getObjectClasses()
   {
-    return objectClasses;
+    return schemaNG.getObjectClasses();
   }
 
 
@@ -680,7 +673,7 @@ public final class Schema
    */
   public boolean hasObjectClass(String lowerName)
   {
-    return objectClasses.containsKey(lowerName);
+    return getSchemaNG().hasObjectClass(lowerName);
   }
 
 
@@ -698,7 +691,7 @@ public final class Schema
    */
   public ObjectClass getObjectClass(String lowerName)
   {
-    return objectClasses.get(lowerName);
+    return getSchemaNG().getObjectClass(lowerName);
   }
 
 
@@ -724,48 +717,22 @@ public final class Schema
     exclusiveLock.lock();
     try
     {
-      if (! overwriteExisting)
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      ObjectClass.Builder b = builder.buildObjectClass(objectClass);
+      String schemaFile = getSchemaFileName(objectClass);
+      if (schemaFile != null)
       {
-        String oid = toLowerCase(objectClass.getOID());
-        if (objectClasses.containsKey(oid))
-        {
-          ObjectClass conflictingClass = objectClasses.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID.
-              get(objectClass.getNameOrOID(), oid,
-                  conflictingClass.getNameOrOID());
-          throw new DirectoryException(
-                       ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        for (String name : objectClass.getNormalizedNames())
-        {
-          if (objectClasses.containsKey(name))
-          {
-            ObjectClass conflictingClass = objectClasses.get(name);
-
-            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_NAME.
-                get(objectClass.getNameOrOID(), name,
-                    conflictingClass.getNameOrOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-          }
-        }
+        b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
       }
-
-      ObjectClass old = objectClasses.put(toLowerCase(objectClass.getOID()),
-          objectClass);
-      if (old != null && old != objectClass)
+      if (overwriteExisting)
       {
-        // Mark the old object class as stale so that caches (such as compressed
-        // schema) can detect changes.
-        old.setDirty();
+        b.addToSchemaOverwrite();
       }
-
-      for (String name : objectClass.getNormalizedNames())
+      else
       {
-        objectClasses.put(name, objectClass);
+        b.addToSchema();
       }
+      switchSchema(builder.toSchema());
     }
     finally
     {
@@ -773,29 +740,27 @@ public final class Schema
     }
   }
 
-
-
   /**
    * Deregisters the provided objectclass definition with this schema.
    *
-   * @param  objectClass  The objectclass to deregister with this
-   *                      schema.
+   * @param  objectClass  The objectclass to deregister with this schema.
+   * @throws DirectoryException
+   *           If the object class is referenced by another schema element.
    */
-  public void deregisterObjectClass(ObjectClass objectClass)
+  public void deregisterObjectClass(ObjectClass objectClass) throws DirectoryException
   {
-    synchronized (objectClasses)
+    exclusiveLock.lock();
+    try
     {
-      if (objectClasses.remove(toLowerCase(objectClass.getOID()), objectClass))
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      if (builder.removeObjectClass(objectClass.getNameOrOID()))
       {
-        // Mark the old object class as stale so that caches (such as
-        // compressed schema) can detect changes.
-        objectClass.setDirty();
+        switchSchema(builder.toSchema());
       }
-
-      for (String name : objectClass.getNormalizedNames())
-      {
-        objectClasses.remove(name, objectClass);
-      }
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
@@ -1926,7 +1891,7 @@ public final class Schema
 
     for (AttributeType at : schemaNG.getAttributeTypes())
     {
-      if ((at.getSuperiorType() != null) && at.getSuperiorType().equals(type))
+      if (type.equals(at.getSuperiorType()))
       {
         deregisterAttributeType(at);
         registerAttributeType(at.toString(), getSchemaFileName(at), true);
@@ -1934,7 +1899,7 @@ public final class Schema
       }
     }
 
-    for (ObjectClass oc : objectClasses.values())
+    for (ObjectClass oc : schemaNG.getObjectClasses())
     {
       if (oc.getDeclaredRequiredAttributes().contains(type) || oc.getDeclaredOptionalAttributes().contains(type))
       {
@@ -1983,7 +1948,7 @@ public final class Schema
   private void rebuildDependentElements(ObjectClass c, int depth) throws DirectoryException
   {
     circularityCheck(depth, c);
-    for (ObjectClass oc : objectClasses.values())
+    for (ObjectClass oc : getObjectClasses())
     {
       if (oc.getSuperiorClasses().contains(c))
       {
@@ -2112,7 +2077,6 @@ public final class Schema
     }
 
     dupSchema.subordinateTypes.putAll(subordinateTypes);
-    dupSchema.objectClasses.putAll(objectClasses);
     dupSchema.ditContentRules.putAll(ditContentRules);
     dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
     dupSchema.ditStructureRulesByNameForm.putAll(ditStructureRulesByNameForm);
@@ -2574,12 +2538,6 @@ public final class Schema
     {
       nameFormsByOC.clear();
       nameFormsByOC = null;
-    }
-
-    if (objectClasses != null)
-    {
-      objectClasses.clear();
-      objectClasses = null;
     }
 
     if (subordinateTypes != null)

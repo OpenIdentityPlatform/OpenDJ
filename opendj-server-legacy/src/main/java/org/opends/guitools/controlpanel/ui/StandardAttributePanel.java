@@ -39,12 +39,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SomeSchemaElement;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /** The panel that displays a standard attribute definition. */
@@ -278,7 +278,7 @@ class StandardAttributePanel extends SchemaElementPanel
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
     SortedSet<String> requiredByOcs = new TreeSet<>(lowerCaseComparator);
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       if (oc.getRequiredAttributes().contains(attr))
       {
@@ -294,7 +294,7 @@ class StandardAttributePanel extends SchemaElementPanel
     }
 
     SortedSet<String> optionalByOcs = new TreeSet<>(lowerCaseComparator);
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       if (oc.getOptionalAttributes().contains(attr))
       {

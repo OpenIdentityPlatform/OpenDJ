@@ -67,6 +67,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -83,7 +84,6 @@ import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRen
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SomeSchemaElement;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -560,7 +560,7 @@ class CustomAttributePanel extends SchemaElementPanel
 
     Comparator<String> lowerCaseComparator = new LowerCaseComparator();
     SortedSet<String> requiredByOcs = new TreeSet<>(lowerCaseComparator);
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       if (oc.getRequiredAttributes().contains(attr))
       {
@@ -576,7 +576,7 @@ class CustomAttributePanel extends SchemaElementPanel
     }
 
     SortedSet<String> optionalByOcs = new TreeSet<>(lowerCaseComparator);
-    for (ObjectClass oc : schema.getObjectClasses().values())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
       if (oc.getOptionalAttributes().contains(attr))
       {
@@ -735,7 +735,7 @@ class CustomAttributePanel extends SchemaElementPanel
         }
       }
 
-      for (ObjectClass o : schema.getObjectClasses().values())
+      for (ObjectClass o : schema.getObjectClasses())
       {
         if (o.getRequiredAttributes().contains(attribute))
         {

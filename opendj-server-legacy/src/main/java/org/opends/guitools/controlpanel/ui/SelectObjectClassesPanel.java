@@ -28,13 +28,13 @@ import java.util.Set;
 
 import javax.swing.JEditorPane;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.ui.renderer.
  SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /**
@@ -219,9 +219,8 @@ public class SelectObjectClassesPanel extends StatusGenericPanel
   private void updateWithSchema(Schema schema)
   {
     ArrayList<ObjectClass> allOcs = new ArrayList<>();
-    for (String key : schema.getObjectClasses().keySet())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
-      ObjectClass oc = schema.getObjectClass(key);
       if (!toExclude.contains(oc))
       {
         allOcs.add(oc);

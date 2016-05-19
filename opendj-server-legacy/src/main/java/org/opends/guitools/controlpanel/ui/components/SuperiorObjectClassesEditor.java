@@ -40,6 +40,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
 import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedListener;
 import org.opends.guitools.controlpanel.ui.GenericDialog;
@@ -47,7 +48,6 @@ import org.opends.guitools.controlpanel.ui.SelectObjectClassesPanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /** A panel that can be used to select one (or several) object classes. */
@@ -257,9 +257,8 @@ public class SuperiorObjectClassesEditor extends JPanel
   private void updateWithSchema(Schema schema)
   {
     HashMap<String, ObjectClass> objectClassNameMap = new HashMap<>();
-    for (String key : schema.getObjectClasses().keySet())
+    for (ObjectClass oc : schema.getObjectClasses())
     {
-      ObjectClass oc = schema.getObjectClass(key);
       if (!toExclude.contains(oc))
       {
         objectClassNameMap.put(oc.getNameOrOID(), oc);

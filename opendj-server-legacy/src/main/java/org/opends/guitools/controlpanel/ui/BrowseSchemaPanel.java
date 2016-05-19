@@ -665,7 +665,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
     Map<String, ConfigurationObjectClassTreeNode> hmConfigurationOcs = new HashMap<>();
     Set<String> customOcNames = new TreeSet<>(lowerCaseComparator);
     Map<String, CustomObjectClassTreeNode> hmCustomOcs = new HashMap<>();
-    for (ObjectClass oc : lastSchema.getObjectClasses().values())
+    for (ObjectClass oc : lastSchema.getObjectClasses())
     {
       if (mustAdd(oc))
       {
@@ -1279,7 +1279,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
   private boolean mustAddAnyObjectClassName(ObjectClass oc, String f)
   {
-    for (ObjectClass o : lastSchema.getObjectClasses().values())
+    for (ObjectClass o : lastSchema.getObjectClasses())
     {
       if (isDescendant(oc, o) && mustAddObjectClassName(o, f))
       {
@@ -1584,7 +1584,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
     // Analyze objectClasses
     for (ObjectClass objectClass : ocsToDelete)
     {
-      for (ObjectClass o : schema.getObjectClasses().values())
+      for (ObjectClass o : schema.getObjectClasses())
       {
         if (o.getSuperiorClasses().contains(objectClass))
         {
@@ -1608,7 +1608,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
       }
       childAttributes.removeAll(attrsToDelete);
 
-      for (ObjectClass o : schema.getObjectClasses().values())
+      for (ObjectClass o : schema.getObjectClasses())
       {
         if (o.getRequiredAttributes().contains(attribute))
         {

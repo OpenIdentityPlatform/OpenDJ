@@ -641,7 +641,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     ArrayList<String> childClasses = new ArrayList<>();
     if (schema != null)
     {
-      for (ObjectClass o : schema.getObjectClasses().values())
+      for (ObjectClass o : schema.getObjectClasses())
       {
         for (ObjectClass superior : o.getSuperiorClasses())
         {
