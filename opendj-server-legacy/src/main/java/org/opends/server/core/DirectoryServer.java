@@ -2417,19 +2417,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Deregisters the provided objectclass with the Directory Server.
-   *
-   * @param objectClass
-   *          The objectclass instance to deregister with the server.
-   * @throws DirectoryException
-   *           If a conflict is encountered
-   */
-  public static void deregisterObjectClass(ObjectClass objectClass) throws DirectoryException
-  {
-    directoryServer.schema.deregisterObjectClass(objectClass);
-  }
-
-  /**
    * Retrieves the "top" objectClass, which should be the topmost objectclass in
    * the inheritance chain for most other objectclasses.  If no such objectclass
    * could be found, then one will be constructed.
