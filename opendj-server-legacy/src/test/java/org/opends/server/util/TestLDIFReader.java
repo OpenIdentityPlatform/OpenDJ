@@ -172,7 +172,7 @@ public final class TestLDIFReader extends UtilTestCase {
     TestCaseUtils.startServer();
 
     // Initialize schema bits.
-    OC_TOP = DirectoryServer.getObjectClass("top");
+    OC_TOP = DirectoryServer.getTopObjectClass();
     OC_PERSON = DirectoryServer.getObjectClass("person");
 
     AT_OC = DirectoryServer.getObjectClassAttributeType();

@@ -74,6 +74,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
@@ -161,7 +162,6 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
@@ -2453,23 +2453,7 @@ public final class DirectoryServer
    */
   public static ObjectClass getTopObjectClass()
   {
-    ObjectClass objectClass =
-         directoryServer.schema.getObjectClass(TOP_OBJECTCLASS_NAME);
-    if (objectClass == null)
-    {
-      String definition =
-           "( 2.5.6.0 NAME 'top' ABSTRACT MUST objectClass " +
-           "X-ORIGIN 'RFC 2256' )";
-
-      objectClass = new ObjectClass(definition, TOP_OBJECTCLASS_NAME,
-                                    Collections.singleton(TOP_OBJECTCLASS_NAME),
-                                    TOP_OBJECTCLASS_OID,
-                                    TOP_OBJECTCLASS_DESCRIPTION, null, null,
-                                    null, ObjectClassType.ABSTRACT, false,
-                                    null);
-    }
-
-    return objectClass;
+    return directoryServer.schema.getObjectClass(TOP_OBJECTCLASS_NAME);
   }
 
   /**
