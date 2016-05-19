@@ -19,6 +19,7 @@ package org.opends.guitools.controlpanel.ui;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.SchemaUtils.*;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -60,7 +61,9 @@ import javax.swing.event.ListDataListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.SortableListModel;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -78,7 +81,6 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SomeSchemaElement;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -962,17 +964,18 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private ObjectClass getNewObjectClass()
   {
-    return new ObjectClass("",
-        getObjectClassName(),
-        getAllNames(),
-        getOID(),
-        getDescription(),
-        getObjectClassSuperiors(),
-        getRequiredAttributes(),
-        getOptionalAttributes(),
-        getObjectClassType(),
-        obsolete.isSelected(),
-        getExtraProperties());
+    return new SchemaBuilder(schema.getSchemaNG()).buildObjectClass(getOID())
+        .names(getAllNames())
+        .description(getDescription())
+        .superiorObjectClasses(getNameOrOIDsForOCs(getObjectClassSuperiors()))
+        .requiredAttributes(getNameOrOIDsForATs(getRequiredAttributes()))
+        .optionalAttributes(getNameOrOIDsForATs(getOptionalAttributes()))
+        .type(getObjectClassType())
+        .obsolete(obsolete.isSelected())
+        .extraProperties(getExtraProperties())
+        .addToSchema()
+        .toSchema()
+        .getObjectClass(getOID());
   }
 
   private void updateAttributes()

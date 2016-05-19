@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.SchemaUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 
@@ -145,7 +147,6 @@ public class ModifyObjectClassTask extends Task
     }
     else if (currentSups.contains(oldObjectClass))
     {
-      ArrayList<String> allNames = new ArrayList<>(ocToDelete.getNormalizedNames());
       Map<String, List<String>> extraProperties =
         DeleteSchemaElementsTask.cloneExtraProperties(ocToDelete);
       Set<ObjectClass> newSups = new LinkedHashSet<>();
@@ -160,17 +161,20 @@ public class ModifyObjectClassTask extends Task
           newSups.add(oc);
         }
       }
-      return new ObjectClass("",
-          ocToDelete.getNameOrOID(),
-          allNames,
-          ocToDelete.getOID(),
-          ocToDelete.getDescription(),
-          newSups,
-          ocToDelete.getDeclaredRequiredAttributes(),
-          ocToDelete.getDeclaredOptionalAttributes(),
-          ocToDelete.getObjectClassType(),
-          ocToDelete.isObsolete(),
-          extraProperties);
+      final String oid = ocToDelete.getOID();
+      final Schema schema = getInfo().getServerDescriptor().getSchema();
+      return new SchemaBuilder(schema.getSchemaNG()).buildObjectClass(oid)
+          .names(ocToDelete.getNames())
+          .description(ocToDelete.getDescription())
+          .superiorObjectClasses(getNameOrOIDsForOCs(newSups))
+          .requiredAttributes(getNameOrOIDsForATs(ocToDelete.getDeclaredRequiredAttributes()))
+          .optionalAttributes(getNameOrOIDsForATs(ocToDelete.getDeclaredOptionalAttributes()))
+          .type(ocToDelete.getObjectClassType())
+          .obsolete(ocToDelete.isObsolete())
+          .extraProperties(extraProperties)
+          .addToSchema()
+          .toSchema()
+          .getObjectClass(oid);
     }
     else
     {
