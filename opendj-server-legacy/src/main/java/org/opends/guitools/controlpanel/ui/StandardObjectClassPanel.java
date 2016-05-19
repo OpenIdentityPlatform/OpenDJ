@@ -18,6 +18,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -42,12 +43,12 @@ import javax.swing.JList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SomeSchemaElement;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /** The panel that displays a standard object class definition. */
@@ -294,7 +295,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     }
     description.setText(n);
     ArrayList<String> otherNames = new ArrayList<>();
-    Iterable<String> ocNames = oc.getNormalizedNames();
+    Iterable<String> ocNames = oc.getNames();
     String primaryName = oc.getNameOrOID();
     if (primaryName == null)
     {
@@ -304,7 +305,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     {
       if (!name.equalsIgnoreCase(primaryName))
       {
-        otherNames.add(name);
+        otherNames.add(toLowerCase(name));
       }
     }
     if (!otherNames.isEmpty())

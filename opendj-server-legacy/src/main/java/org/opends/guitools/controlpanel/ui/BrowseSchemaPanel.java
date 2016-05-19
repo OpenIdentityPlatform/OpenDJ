@@ -68,24 +68,37 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
-import org.opends.guitools.controlpanel.event.*;
+import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedEvent;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.event.SchemaElementSelectionEvent;
+import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
 import org.opends.guitools.controlpanel.task.DeleteSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.CustomTree;
 import org.opends.guitools.controlpanel.ui.components.FilterTextField;
 import org.opends.guitools.controlpanel.ui.components.TreePanel;
-import org.opends.guitools.controlpanel.ui.nodes.*;
+import org.opends.guitools.controlpanel.ui.nodes.AttributeSyntaxTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.CategoryTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.ConfigurationAttributeTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.ConfigurationObjectClassTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.CustomAttributeTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.CustomObjectClassTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.MatchingRuleTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.SchemaElementTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.StandardAttributeTreeNode;
+import org.opends.guitools.controlpanel.ui.nodes.StandardObjectClassTreeNode;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
 import org.opends.server.schema.SomeSchemaElement;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /** The pane that is displayed when the user clicks on 'Browse Schema'. */
@@ -1154,11 +1167,11 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
   private boolean mustAddObjectClassName(ObjectClass oc, String ocName)
   {
-    return mustAdd(ocName, oc.getOID(), oc.getNameOrOID(), oc.getNormalizedNames());
+    return mustAdd(ocName, oc.getOID(), oc.getNameOrOID(), oc.getNames());
   }
 
   /** Provided names may not be normalized. */
-  private boolean mustAdd(String name, String oid, String primaryNameOrOID, Set<String> names)
+  private boolean mustAdd(String name, String oid, String primaryNameOrOID, Collection<String> names)
   {
     List<String> values = new ArrayList<>(names.size() + 2);
     values.add(oid);

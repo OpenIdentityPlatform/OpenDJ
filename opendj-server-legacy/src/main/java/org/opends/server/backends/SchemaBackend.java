@@ -65,6 +65,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
@@ -107,7 +108,6 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.Schema;
@@ -1465,13 +1465,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     // First, see if the specified objectclass already exists.  We'll check the
     // OID and all of the names, which means that it's possible there could be
-    // more than one match (although if there is, then we'll refuse the
-    // operation).
-    ObjectClass existingClass =
-         schema.getObjectClass(objectClass.getOID());
-    for (String name : objectClass.getNormalizedNames())
+    // more than one match (although if there is, then we'll refuse the operation).
+    ObjectClass existingClass = schema.getObjectClass(objectClass.getOID());
+    for (String name : objectClass.getNames())
     {
-      ObjectClass oc = schema.getObjectClass(name);
+      ObjectClass oc = schema.getObjectClass(toLowerCase(name));
       if (oc == null)
       {
         continue;

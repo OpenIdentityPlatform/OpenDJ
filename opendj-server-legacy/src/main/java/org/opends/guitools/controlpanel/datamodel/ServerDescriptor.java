@@ -27,13 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.quicksetup.UserData;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;
@@ -643,8 +643,7 @@ public class ServerDescriptor
         && areEqual(oc1.getDeclaredRequiredAttributes(), oc2.getDeclaredRequiredAttributes())
         && areEqual(oc1.getSuperiorClasses(), oc2.getSuperiorClasses())
         && areEqual(oc1.getExtraProperties().keySet(), oc2.getExtraProperties().keySet())
-        && areEqual(toSet(oc1.getNormalizedNames()), toSet(oc2.getNormalizedNames()))
-        && areEqual(toSet(oc1.getUserDefinedNames()), toSet(oc2.getUserDefinedNames()));
+        && areEqual(toSet(oc1.getNames()), toSet(oc2.getNames()));
   }
 
   private static Set<Object> toSet(Iterable<?> iterable)
