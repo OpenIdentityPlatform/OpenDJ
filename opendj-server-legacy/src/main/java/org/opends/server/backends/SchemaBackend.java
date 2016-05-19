@@ -16,6 +16,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -48,6 +49,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -85,7 +87,6 @@ import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.NameFormSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.Attribute;
@@ -762,22 +763,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              ObjectClass oc;
-              try
-              {
-                oc = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
-              addObjectClass(oc, newSchema, modifiedSchemaFiles);
+              ObjectClass objectClass = newSchema.parseObjectClass(v.toString());
+              addObjectClass(objectClass, newSchema, modifiedSchemaFiles);
             }
           }
           else if (at.equals(nameFormsType))
@@ -900,21 +887,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              ObjectClass oc;
-              try
-              {
-                oc = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              ObjectClass oc = newSchema.parseObjectClass(v.toString());
               removeObjectClass(oc, newSchema, mods, pos, modifiedSchemaFiles);
             }
           }
@@ -1194,7 +1167,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       String schemaFile = replaceExistingSchemaElement(
           modifiedSchemaFiles, new SomeSchemaElement(attributeType), new SomeSchemaElement(existingType));
       schema.registerAttributeType(attributeType, schemaFile, false);
-      schema.rebuildDependentElements(new SomeSchemaElement(existingType));
+      schema.rebuildDependentElements(existingType);
     }
   }
 
@@ -1545,15 +1518,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingClass.isPlaceHolder())
     {
-      schema.registerObjectClass(objectClass, false);
-      addNewSchemaElement(modifiedSchemaFiles, objectClass);
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new SomeSchemaElement(objectClass));
+      schema.registerObjectClass(objectClass, schemaFile, false);
     }
     else
     {
-      schema.deregisterObjectClass(existingClass);
-      schema.registerObjectClass(objectClass, false);
-      schema.rebuildDependentElements(existingClass);
-      replaceExistingSchemaElement(modifiedSchemaFiles, objectClass, existingClass);
+      final String schemaFile = replaceExistingSchemaElement(
+          modifiedSchemaFiles, new SomeSchemaElement(objectClass), new SomeSchemaElement(existingClass));
+      schema.replaceObjectClass(objectClass, existingClass, schemaFile);
     }
   }
 
@@ -1618,7 +1590,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         ObjectClass oc;
         try
         {
-          oc = ObjectClassSyntax.decodeObjectClass(v, schema, true);
+          oc = schema.parseObjectClass(v.toString());
         }
         catch (DirectoryException de)
         {
@@ -3448,7 +3420,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       {
         // It IS important here to allow the unknown elements that could
         // appear in the new config schema.
-        ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, true);
+        ObjectClass newObjectClass = newSchema.parseObjectClass(v.toString());
         String schemaFile = getSchemaFile(newObjectClass);
         if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
         {
@@ -3458,10 +3430,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           continue;
         }
 
-        // Now we know we are not in the config schema, let's check
-        // the unknown elements ... sadly but simply by redoing the
-        // whole decoding.
-        newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
+        // Now we know we are not in the config schema, let's check the unknown elements ...
+        validateNoUnknownElements(newObjectClass);
         oidList.add(newObjectClass.getOID());
         try
         {
@@ -3514,6 +3484,35 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       updateSchemaFiles(newSchema, modifiedSchemaFiles);
       DirectoryServer.setSchema(newSchema);
+    }
+  }
+
+  private void validateNoUnknownElements(ObjectClass oc) throws DirectoryException
+  {
+    validateNoUnknownElements(oc.getDeclaredOptionalAttributes(), oc.getOID(),
+        WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR);
+    validateNoUnknownElements(oc.getDeclaredRequiredAttributes(), oc.getOID(),
+        WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR);
+    for (ObjectClass superiorClass : oc.getSuperiorClasses())
+    {
+      if (superiorClass.isPlaceHolder())
+      {
+        LocalizableMessage message =
+            WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.get(oc.getOID(), superiorClass.getOID());
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+      }
+    }
+  }
+
+  private void validateNoUnknownElements(Set<AttributeType> attributeTypes, String oid, Arg2<Object, Object> msg)
+      throws DirectoryException
+  {
+    for (AttributeType attributeType : attributeTypes)
+    {
+      if (attributeType.isPlaceHolder())
+      {
+        throw new DirectoryException(CONSTRAINT_VIOLATION, msg.get(oid, attributeType.getOID()));
+      }
     }
   }
 

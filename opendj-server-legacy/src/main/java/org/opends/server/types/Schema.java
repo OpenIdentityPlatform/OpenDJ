@@ -67,8 +67,6 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.NameFormSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -281,6 +279,37 @@ public final class Schema
   }
 
   /**
+   * Parses an object class from its provided definition.
+   *
+   * @param definition
+   *          The definition of the object class
+   * @return the object class
+   * @throws DirectoryException
+   *           If an error occurs
+   */
+  public ObjectClass parseObjectClass(final String definition) throws DirectoryException
+  {
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.addObjectClass(definition, true);
+      org.forgerock.opendj.ldap.schema.Schema newSchema = builder.toSchema();
+      rejectSchemaWithWarnings(newSchema);
+      return newSchema.getObjectClass(parseObjectClassOID(definition));
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      // this should never happen
+      LocalizableMessage msg = ERR_OBJECT_CLASS_CANNOT_REGISTER.get(definition);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+  }
+
+  /**
    * Parses an attribute type from its provided definition.
    *
    * @param definition
@@ -476,6 +505,11 @@ public final class Schema
     {
       exclusiveLock.unlock();
     }
+  }
+
+  private String parseObjectClassOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE);
   }
 
   private String parseAttributeTypeOID(String definition) throws DirectoryException
@@ -694,45 +728,109 @@ public final class Schema
     return getSchemaNG().getObjectClass(lowerName);
   }
 
-
+  /**
+   * Registers the provided objectclass definition with this schema.
+   *
+   * @param objectClass
+   *          The objectclass to register with this schema.
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another objectclass with the same OID or name).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the {@code overwriteExisting} flag is set to
+   *           {@code false}.
+   */
+  public void registerObjectClass(ObjectClass objectClass, boolean overwriteExisting) throws DirectoryException
+  {
+    String schemaFile = getSchemaFileName(objectClass);
+    registerObjectClass(objectClass, schemaFile, overwriteExisting);
+  }
 
   /**
    * Registers the provided objectclass definition with this schema.
    *
-   * @param  objectClass        The objectclass to register with this
-   *                            schema.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another objectclass
-   *                            with the same OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>.
+   * @param objectClass
+   *          The objectclass to register with this schema.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another objectclass with the same OID or name).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the {@code overwriteExisting} flag is set to
+   *           {@code false}.
    */
-  public void registerObjectClass(ObjectClass objectClass,
-                                  boolean overwriteExisting)
+  public void registerObjectClass(ObjectClass objectClass, String schemaFile, boolean overwriteExisting)
          throws DirectoryException
   {
     exclusiveLock.lock();
     try
     {
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
-      ObjectClass.Builder b = builder.buildObjectClass(objectClass);
-      String schemaFile = getSchemaFileName(objectClass);
-      if (schemaFile != null)
+      registerObjectClass0(builder, objectClass, schemaFile, overwriteExisting);
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  private void registerObjectClass0(SchemaBuilder builder, ObjectClass objectClass, String schemaFile,
+      boolean overwriteExisting)
+  {
+    ObjectClass.Builder b = builder.buildObjectClass(objectClass);
+    if (schemaFile != null)
+    {
+      b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+    }
+    if (overwriteExisting)
+    {
+      b.addToSchemaOverwrite();
+    }
+    else
+    {
+      b.addToSchema();
+    }
+  }
+
+  /**
+   * Registers a list of object classes from their provided definitions.
+   * <p>
+   * This method allows to do only one schema change for multiple definitions,
+   * thus avoiding the cost (and the issue of stale schema references) of rebuilding a new schema for each definition.
+   *
+   * @param definitions
+   *          The definitions of the object classes
+   * @param schemaFile
+   *          The schema file where these definitions belong, can be {@code null}
+   * @param overwrite
+   *          Indicates whether to overwrite the attribute
+   *          type if it already exists based on OID or name
+   * @throws DirectoryException
+   *            If an error occurs
+   */
+  public void registerObjectClasses(final List<String> definitions, final String schemaFile, final boolean overwrite)
+      throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      for (String definition : definitions)
       {
-        b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
-      }
-      if (overwriteExisting)
-      {
-        b.addToSchemaOverwrite();
-      }
-      else
-      {
-        b.addToSchema();
+        String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
+        builder.addObjectClass(defWithFile, overwrite);
       }
       switchSchema(builder.toSchema());
+    }
+    catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
     }
     finally
     {
@@ -1836,13 +1934,9 @@ public final class Schema
       // increase the depth for each level of recursion to protect against errors due to circular references.
       final int depth = 0;
 
-      if (element instanceof SomeSchemaElement)
+      if (element instanceof AttributeType)
       {
-        SomeSchemaElement elt = (SomeSchemaElement) element;
-        if (elt.isAttributeType())
-        {
-          rebuildDependentElements(elt.getAttributeType(), depth);
-        }
+        rebuildDependentElements((AttributeType) element, depth);
       }
       else if (element instanceof ObjectClass)
       {
@@ -1903,9 +1997,8 @@ public final class Schema
     {
       if (oc.getDeclaredRequiredAttributes().contains(type) || oc.getDeclaredOptionalAttributes().contains(type))
       {
-        ObjectClass newOC = recreateFromDefinition(oc);
         deregisterObjectClass(oc);
-        registerObjectClass(newOC, true);
+        registerObjectClass(oc.toString(), getSchemaFile(oc), true);
         rebuildDependentElements(oc, depth + 1);
       }
     }
@@ -1945,19 +2038,28 @@ public final class Schema
     }
   }
 
+  /**
+   * Registers an object class from its provided definition.
+   *
+   * @param definition
+   *          The definition of the object class
+   * @param schemaFile
+   *          The schema file where this definition belongs, may be {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite the object class
+   *          if it already exists based on OID or name
+   * @throws DirectoryException
+   *            If an error occurs
+   */
+  public void registerObjectClass(String definition, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
+  {
+    registerObjectClasses(Collections.singletonList(definition), schemaFile, overwriteExisting);
+  }
+
   private void rebuildDependentElements(ObjectClass c, int depth) throws DirectoryException
   {
     circularityCheck(depth, c);
-    for (ObjectClass oc : getObjectClasses())
-    {
-      if (oc.getSuperiorClasses().contains(c))
-      {
-        ObjectClass newOC = recreateFromDefinition(oc);
-        deregisterObjectClass(oc);
-        registerObjectClass(newOC, true);
-        rebuildDependentElements(oc, depth + 1);
-      }
-    }
 
     List<NameForm> mappedForms = nameFormsByOC.get(c);
     if (mappedForms != null)
@@ -2045,15 +2147,6 @@ public final class Schema
     ByteString value = ByteString.valueOfUtf8(nf.toString());
     NameForm copy = NameFormSyntax.decodeNameForm(value, this, false);
     setSchemaFile(copy, getSchemaFile(nf));
-    return copy;
-  }
-
-  private ObjectClass recreateFromDefinition(ObjectClass oc)
-      throws DirectoryException
-  {
-    ByteString value = ByteString.valueOfUtf8(oc.toString());
-    ObjectClass copy = ObjectClassSyntax.decodeObjectClass(value, this, false);
-    setSchemaFile(copy, getSchemaFile(oc));
     return copy;
   }
 
@@ -2673,5 +2766,35 @@ public final class Schema
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
           ERR_SCHEMA_HAS_WARNINGS.get(warnings.size(), Utils.joinAsString("; ", warnings)));
     }
+  }
+
+  /**
+   * Replaces an existing object class by another object class.
+   *
+   * @param objectClass
+   *          Object class to register to the schema.
+   * @param existingClass
+   *          Object class to remove from the schema.
+   * @param schemaFile
+   *          The schema file which the new object class belongs to.
+   * @throws DirectoryException
+   *            If an errors occurs.
+   */
+  public void replaceObjectClass(ObjectClass objectClass, ObjectClass existingClass, String schemaFile)
+      throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeObjectClass(existingClass.getNameOrOID());
+      registerObjectClass0(builder, objectClass, schemaFile, false);
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+    rebuildDependentElements(existingClass);
   }
 }

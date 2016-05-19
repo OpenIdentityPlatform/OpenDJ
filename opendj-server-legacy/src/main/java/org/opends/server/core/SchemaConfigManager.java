@@ -35,7 +35,6 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.NameFormSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
@@ -45,7 +44,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
@@ -671,61 +669,42 @@ public class SchemaConfigManager
   {
     if (ocList != null)
     {
+      List<String> definitions = new ArrayList<>();
       for (Attribute a : ocList)
       {
         for (ByteString v : a)
         {
-          // Parse the objectclass.
-          ObjectClass oc;
-          try
-          {
-            oc = ObjectClassSyntax.decodeObjectClass(v, schema, false);
-            setExtraProperty(oc, SCHEMA_PROPERTY_FILENAME, null);
-            setSchemaFile(oc, schemaFile);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          definitions.add(v.toString());
+        }
+      }
+      try
+      {
+        schema.registerObjectClasses(definitions, schemaFile, !failOnError);
+      }
+      catch (DirectoryException de)
+      {
+        logger.traceException(de);
 
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
-                    schemaFile,
-                    de.getMessageObject());
-            reportError(failOnError, de, message);
-            continue;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
-                    schemaFile, v + ":  " + getExceptionMessage(e));
-            reportError(failOnError, e, message);
-            continue;
-          }
-
-          // Register it with the schema.  We will allow duplicates, with the
+        if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+        {
+          // Register it with the schema. We will allow duplicates, with the
           // later definition overriding any earlier definition, but we want
           // to trap them and log a warning.
+          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_OC, schemaFile, de.getMessageObject());
           try
           {
-            schema.registerObjectClass(oc, failOnError);
+            schema.registerObjectClasses(definitions, schemaFile, true);
           }
-          catch (DirectoryException de)
+          catch (DirectoryException e)
           {
-            logger.traceException(de);
-
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_OC, schemaFile, de.getMessageObject());
-
-            try
-            {
-              schema.registerObjectClass(oc, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              logger.traceException(e);
-            }
+            // This should never happen
+            logger.traceException(e);
           }
+        }
+        else
+        {
+          LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(schemaFile, de.getMessageObject());
+          reportError(failOnError, de, message);
         }
       }
     }

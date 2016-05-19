@@ -24,6 +24,7 @@ import java.util.TreeSet;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -31,7 +32,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NameForm;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.testng.annotations.BeforeClass;
@@ -40,10 +40,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * This class defines a set of generic tests that may be used to examine the
- * server schema.
- */
+/** This class defines a set of generic tests that may be used to examine the server schema. */
 public class GenericSchemaTestCase
        extends SchemaTestCase
 {
@@ -230,19 +227,18 @@ public class GenericSchemaTestCase
       }
 
       LDIFImportConfig importConfig = new LDIFImportConfig(f.getAbsolutePath());
-      LDIFReader reader = new LDIFReader(importConfig);
-      Entry e = reader.readEntry();
-      reader.close();
-
-      if (e == null)
+      Entry e;
+      try (LDIFReader reader = new LDIFReader(importConfig))
       {
-        // An empty schema file.  This is OK.
-        continue;
+        e = reader.readEntry();
+        if (e == null)
+        {
+          // An empty schema file. This is OK.
+          continue;
+        }
       }
 
-      AttributeType attrType = DirectoryServer.getAttributeType("objectclasses");
-      assertNotNull(attrType);
-      List<Attribute> attrList = e.getAttribute(attrType);
+      List<Attribute> attrList = e.getAttribute("objectclasses");
       if (attrList.isEmpty())
       {
         // No attribute types in the schema file.  This is OK.
@@ -253,8 +249,7 @@ public class GenericSchemaTestCase
       {
         for (ByteString v : a)
         {
-          ObjectClass oc = ObjectClassSyntax.decodeObjectClass(
-              v, DirectoryServer.getSchema(), true);
+          ObjectClass oc = DirectoryServer.getSchema().parseObjectClass(v.toString());
           if (! isNumericOID(oc.getOID()))
           {
             invalidOIDs.add(oc.getNameOrOID());
@@ -265,17 +260,13 @@ public class GenericSchemaTestCase
 
     if (! invalidOIDs.isEmpty())
     {
-      StringBuilder message = new StringBuilder();
-      message.append("All object classes defined in OpenDS must have valid ").append("OIDs assigned.");
-      message.append(EOL);
-      message.append("Object classes without valid OIDs:");
-      message.append(EOL);
+      StringBuilder message = new StringBuilder()
+          .append("All object classes defined in OpenDS must have valid OIDs assigned.").append(EOL)
+          .append("Object classes without valid OIDs:").append(EOL);
       for (String s : invalidOIDs)
       {
-        message.append("- ").append(s);
-        message.append(EOL);
+        message.append("- ").append(s).append(EOL);
       }
-
       throw new AssertionError(message.toString());
     }
   }

@@ -39,7 +39,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
 import org.opends.server.schema.AciSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SubtreeSpecificationSyntax;
 import org.opends.server.types.DirectoryException;
@@ -174,7 +173,7 @@ public class RemoteSchemaLoader extends SchemaLoader
             schema.registerAttributeType(sb.toString(), null, true);
             break;
           case ConfigConstants.ATTR_OBJECTCLASSES_LC:
-            schema.registerObjectClass(ObjectClassSyntax.decodeObjectClass(sb, schema, false), true);
+            schema.registerObjectClass(sb.toString(), null, true);
             break;
           }
           registered.add(definition);
