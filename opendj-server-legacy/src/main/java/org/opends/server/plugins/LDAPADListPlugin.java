@@ -91,7 +91,7 @@ public final class LDAPADListPlugin
         {
           final String lowerName = toLowerCase(attrName.substring(1));
           final ObjectClass oc = getObjectClass(lowerName);
-          if (oc == null)
+          if (oc.isPlaceHolder())
           {
             logger.trace("Cannot replace unknown objectclass %s", lowerName);
           }

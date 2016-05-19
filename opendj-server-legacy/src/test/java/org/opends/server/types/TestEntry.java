@@ -75,13 +75,9 @@ public final class TestEntry extends TypesTestCase {
     DN entryDN = DN.valueOf("dc=example, dc=com");
 
     // Get default object classes.
-    ObjectClass top = DirectoryServer.getObjectClass("top");
-    if (top == null) {
-      throw new RuntimeException("Unable to resolve object class top");
-    }
-
+    ObjectClass top = DirectoryServer.getTopObjectClass();
     ObjectClass extensible = DirectoryServer.getObjectClass("extensibleobject");
-    if (extensible == null) {
+    if (extensible.isPlaceHolder()) {
       throw new RuntimeException(
           "Unable to resolve object class extensibleObject");
     }

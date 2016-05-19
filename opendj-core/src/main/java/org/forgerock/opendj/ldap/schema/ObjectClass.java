@@ -849,7 +849,7 @@ public final class ObjectClass extends AbstractSchemaElement {
             ObjectClass superiorClass;
             for (final String superClassOid : superiorClassOIDs) {
                 try {
-                    superiorClass = schema.getObjectClass(superClassOid);
+                    superiorClass = schema.asStrictSchema().getObjectClass(superClassOid);
                 } catch (final UnknownSchemaElementException e) {
                     final LocalizableMessage message =
                             WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS1.get(

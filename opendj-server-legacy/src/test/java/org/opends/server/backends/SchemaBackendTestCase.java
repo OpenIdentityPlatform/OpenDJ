@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.util.Utils;
@@ -63,7 +64,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ServerConstants;
@@ -2381,7 +2381,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
-    assertNotNull(oc);
+    assertFalse(oc.isPlaceHolder());
 
     DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
@@ -2424,7 +2424,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     runModify(argsPermissive(), ldif, System.err, SUCCESS);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
-    assertNotNull(oc);
+    assertFalse(oc.isPlaceHolder());
 
     DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
@@ -2466,7 +2466,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
-    assertNotNull(oc);
+    assertFalse(oc.isPlaceHolder());
 
     DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
@@ -2516,7 +2516,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
-    assertNotNull(oc);
+    assertFalse(oc.isPlaceHolder());
 
     DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
@@ -3116,7 +3116,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
     ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
-    assertNotNull(oc);
+    assertFalse(oc.isPlaceHolder());
 
     DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
     assertNull(dcr);
@@ -4120,7 +4120,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String objectClassName = "testditcontentrulesmatchingruleoc";
-    assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
+    assertTrue(DirectoryServer.getSchema().getObjectClass(objectClassName).isPlaceHolder());
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4186,7 +4186,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String objectClassName = "testditcontentrulesmatchingruleoc1";
-    assertNull(DirectoryServer.getSchema().getObjectClass(objectClassName));
+    assertTrue(DirectoryServer.getSchema().getObjectClass(objectClassName).isPlaceHolder());
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4363,10 +4363,8 @@ public class SchemaBackendTestCase extends BackendTestCase
       "  MAY ( street $ c) X-ORIGIN 'user defined' )");
     assertEquals(resultCode, 0);
 
-    assertNotNull(DirectoryServer.getObjectClass(
-                       "testaddanddeletedefinitionwithextraspaces"));
-    assertNotNull(DirectoryServer.getObjectClass(
-                       "testaddanddeletedefinitionwithextraspaces-oid"));
+    assertFalse(getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
+    assertFalse(getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
 
     resultCode = TestCaseUtils.applyModifications(false,
       "dn: cn=schema",
@@ -4377,10 +4375,8 @@ public class SchemaBackendTestCase extends BackendTestCase
       "  MAY ( street $ c) X-ORIGIN 'user defined' )");
     assertEquals(resultCode, 0);
 
-    assertNull(DirectoryServer.getObjectClass(
-                    "testaddanddeletedefinitionwithextraspaces"));
-    assertNull(DirectoryServer.getObjectClass(
-                    "testaddanddeletedefinitionwithextraspaces-oid"));
+    assertTrue(getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
+    assertTrue(getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
   }
 
   /**

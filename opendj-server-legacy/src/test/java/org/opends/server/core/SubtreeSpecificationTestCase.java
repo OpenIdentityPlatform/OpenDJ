@@ -71,13 +71,13 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
     objectClasses = new HashSet<>();
 
     ObjectClass oc = DirectoryServer.getObjectClass("top");
-    if (oc == null) {
+    if (oc.isPlaceHolder()) {
       throw new RuntimeException("Unable to resolve object class top");
     }
     objectClasses.add(oc);
 
     oc = DirectoryServer.getObjectClass("person");
-    if (oc == null) {
+    if (oc.isPlaceHolder()) {
       throw new RuntimeException("Unable to resolve object class person");
     }
     objectClasses.add(oc);

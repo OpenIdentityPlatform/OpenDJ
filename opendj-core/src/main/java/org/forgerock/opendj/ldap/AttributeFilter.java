@@ -336,7 +336,7 @@ public final class AttributeFilter {
         } else if (attributeDescription.startsWith("@") && attributeDescription.length() > 1) {
             final String objectClassName = attributeDescription.substring(1);
             final ObjectClass objectClass = schema.getObjectClass(objectClassName);
-            if (objectClass != null) {
+            if (!objectClass.isPlaceHolder()) {
                 allocatedRequestedAttributes();
                 for (final AttributeType at : objectClass.getRequiredAttributes()) {
                     final AttributeDescription ad = AttributeDescription.create(at);

@@ -32,8 +32,10 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn.StateUpdateFailurePolicy;
 import org.forgerock.opendj.server.config.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
@@ -41,11 +43,9 @@ import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SubEntry;
 import org.opends.server.util.SchemaUtils;
@@ -143,7 +143,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     ObjectClass pwdPolicyOC = DirectoryServer.getObjectClass(PWD_OC_POLICY);
     Entry entry = subentry.getEntry();
     Map<ObjectClass, String> objectClasses = entry.getObjectClasses();
-    if (pwdPolicyOC == null)
+    if (pwdPolicyOC.isPlaceHolder())
     {
       // This should not happen -- The server doesn't
       // have a pwdPolicy objectclass defined.
@@ -245,9 +245,8 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
 
     // Now check for the pwdValidatorPolicy OC and its attribute.
     // Determine if this is a password validator policy object class.
-    ObjectClass pwdValidatorPolicyOC =
-        DirectoryServer.getObjectClass(PWD_OC_VALIDATORPOLICY);
-    if (pwdValidatorPolicyOC != null &&
+    ObjectClass pwdValidatorPolicyOC = DirectoryServer.getObjectClass(PWD_OC_VALIDATORPOLICY);
+    if (!pwdValidatorPolicyOC.isPlaceHolder() &&
         objectClasses.containsKey(pwdValidatorPolicyOC))
     {
       AttributeType pwdAttrType =

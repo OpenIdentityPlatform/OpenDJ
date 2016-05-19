@@ -110,16 +110,13 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
   protected void objectClassSelected(JList<?> list)
   {
     String o = (String)list.getSelectedValue();
-    if (o != null)
+    Schema schema = getInfo().getServerDescriptor().getSchema();
+    if (o != null && schema != null)
     {
-      Schema schema = getInfo().getServerDescriptor().getSchema();
-      if (schema != null)
+      ObjectClass oc = schema.getObjectClass(o.toLowerCase());
+      if (!oc.isPlaceHolder())
       {
-        ObjectClass oc = schema.getObjectClass(o.toLowerCase());
-        if (oc != null)
-        {
-          notifySchemaSelectionListeners(oc);
-        }
+        notifySchemaSelectionListeners(oc);
       }
     }
   }

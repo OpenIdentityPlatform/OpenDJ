@@ -1699,7 +1699,7 @@ public class Entry
     // all attributes required by the object classes are present.
     for (ObjectClass o : objectClasses.keySet())
     {
-      if (DirectoryServer.getObjectClass(o.getOID()) == null)
+      if (DirectoryServer.getObjectClass(o.getOID()).isPlaceHolder())
       {
         LocalizableMessage message = ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(dn, o.getNameOrOID());
         invalidReason.append(message);
@@ -2463,16 +2463,11 @@ public class Entry
       String attrTypeName)
   {
     ObjectClass oc = DirectoryServer.getObjectClass(objectClassName);
-    if (oc == null)
+    if (oc.isPlaceHolder())
     {
       // This should not happen
       // The server doesn't have this objectclass defined.
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(
-            "No %s objectclass is defined in the server schema.",
-            objectClassName);
-      }
+      logger.trace("No %s objectclass is defined in the server schema.", objectClassName);
       return containsObjectClassByName(objectClassName);
     }
     if (!objectClasses.containsKey(oc))
@@ -2486,10 +2481,7 @@ public class Entry
     {
       // This should not happen
       // The server doesn't have this attribute type defined.
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("No %s attribute type is defined in the server schema.", attrTypeName);
-      }
+      logger.trace("No %s attribute type is defined in the server schema.", attrTypeName);
       return false;
     }
     return userAttributes.containsKey(attrType)
@@ -2647,16 +2639,11 @@ public class Entry
   private boolean hasObjectClass(String objectClassLowerCase)
   {
     ObjectClass oc = DirectoryServer.getObjectClass(objectClassLowerCase);
-    if (oc == null)
+    if (oc.isPlaceHolder())
     {
       // This should not happen
       // The server doesn't have this object class defined.
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(
-            "No %s objectclass is defined in the server schema.",
-            objectClassLowerCase);
-      }
+      logger.trace("No %s objectclass is defined in the server schema.", objectClassLowerCase);
       return containsObjectClassByName(objectClassLowerCase);
     }
 

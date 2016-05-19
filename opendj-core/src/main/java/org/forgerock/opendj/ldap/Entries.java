@@ -697,7 +697,7 @@ public final class Entries {
                 final String objectClassName = v.toString();
                 final ObjectClass objectClass;
                 try {
-                    objectClass = schema.getObjectClass(objectClassName);
+                    objectClass = schema.asStrictSchema().getObjectClass(objectClassName);
                     objectClasses.add(objectClass);
                 } catch (final UnknownSchemaElementException e) {
                     // Ignore.
@@ -812,7 +812,7 @@ public final class Entries {
             final String objectClassName = v.toString();
             final ObjectClass objectClass;
             try {
-                objectClass = schema.getObjectClass(objectClassName);
+                objectClass = schema.asStrictSchema().getObjectClass(objectClassName);
             } catch (final UnknownSchemaElementException e) {
                 // Ignore.
                 continue;

@@ -272,7 +272,7 @@ public final class SubtreeSpecification
     public boolean matches(final Entry entry)
     {
       final ObjectClass oc = DirectoryServer.getObjectClass(normalizedObjectClass);
-      return oc != null && entry.hasObjectClass(oc);
+      return !oc.isPlaceHolder() && entry.hasObjectClass(oc);
     }
 
     @Override

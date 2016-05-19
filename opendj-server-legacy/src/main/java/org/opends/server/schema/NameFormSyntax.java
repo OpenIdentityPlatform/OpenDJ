@@ -30,6 +30,7 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
@@ -37,7 +38,6 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.NameForm;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /**
@@ -370,16 +370,10 @@ public class NameFormSyntax
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
         structuralClass = schema.getObjectClass(woidBuffer.toString());
-        if (structuralClass == null)
+        if (!structuralClass.isPlaceHolder())
         {
-          // This is bad because we don't know what the structural objectclass
-          // is.
-          if (allowUnknownElements)
-          {
-            structuralClass = DirectoryServer.getDefaultObjectClass(
-                                                   woidBuffer.toString());
-          }
-          else
+          // This is bad because we don't know what the structural objectclass is.
+          if (!allowUnknownElements)
           {
             LocalizableMessage message =
                 ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.get(oid, woidBuffer);

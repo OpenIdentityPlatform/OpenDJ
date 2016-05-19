@@ -1257,7 +1257,7 @@ public class LocalBackendModifyOperation
       }
 
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
-      if (oc == null)
+      if (oc.isPlaceHolder())
       {
         throw newDirectoryException(currentEntry,
             ResultCode.OBJECTCLASS_VIOLATION,

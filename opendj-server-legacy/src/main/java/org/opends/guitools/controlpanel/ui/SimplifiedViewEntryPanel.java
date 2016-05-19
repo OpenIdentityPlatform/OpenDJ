@@ -76,6 +76,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CheckEntrySyntaxException;
@@ -91,7 +92,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
@@ -720,7 +720,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         {
           String oc = (String)o;
           ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
-          if (objectClass != null)
+          if (!objectClass.isPlaceHolder())
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())
             {
@@ -1153,11 +1153,10 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       if (!attrType.isPlaceHolder())
       {
         List<Object> ocs = sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-        for (Object o : ocs)
+        for (Object oc : ocs)
         {
-          String oc = (String) o;
-          ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
-          if (objectClass != null && objectClass.isRequired(attrType))
+          ObjectClass objectClass = schema.getObjectClass(((String) oc).toLowerCase());
+          if (!objectClass.isPlaceHolder() && objectClass.isRequired(attrType))
           {
             return true;
           }
@@ -1636,7 +1635,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       for (String oc : ocs)
       {
         ObjectClass objectClass = schema.getObjectClass(oc);
-        if (objectClass != null)
+        if (!objectClass.isPlaceHolder())
         {
           for (AttributeType attr : objectClass.getRequiredAttributes())
           {
@@ -1825,7 +1824,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         if (schema != null && structural != null)
         {
           ObjectClass oc = schema.getObjectClass(structural.toLowerCase());
-          if (oc != null)
+          if (!oc.isPlaceHolder())
           {
             values.addAll(getObjectClassSuperiorValues(oc));
           }

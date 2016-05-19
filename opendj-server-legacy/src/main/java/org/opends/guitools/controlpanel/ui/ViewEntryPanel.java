@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -50,7 +51,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
@@ -246,9 +246,8 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     SortedSet<String> auxiliaryClasses = new TreeSet<>();
     for (Object o : ocValues)
     {
-      ObjectClass objectClass =
-        schema.getObjectClass(((String)o).toLowerCase());
-      if (objectClass != null)
+      ObjectClass objectClass = schema.getObjectClass(((String) o).toLowerCase());
+      if (!objectClass.isPlaceHolder())
       {
         if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL)
         {
@@ -361,9 +360,8 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         Schema schema = getInfo().getServerDescriptor().getSchema();
         if (schema != null)
         {
-          ObjectClass oc =
-            schema.getObjectClass(ocValue.getStructural().toLowerCase());
-          if (oc != null)
+          ObjectClass oc = schema.getObjectClass(ocValue.getStructural().toLowerCase());
+          if (!oc.isPlaceHolder())
           {
             Set<String> names = getObjectClassSuperiorValues(oc);
             for (String name : names)

@@ -581,7 +581,7 @@ public class ServerDescriptor
     for (ObjectClass oc1 : ocs1)
     {
       ObjectClass oc2 = schema2.getObjectClass(oc1.getNameOrOID());
-      if (oc2 == null || !areObjectClassesEqual(oc1, oc2))
+      if (oc2.isPlaceHolder() || !areObjectClassesEqual(oc1, oc2))
       {
         return false;
       }
@@ -633,7 +633,6 @@ public class ServerDescriptor
   private static boolean areObjectClassesEqual(ObjectClass oc1, ObjectClass oc2)
   {
     return oc1.getOID().equals(oc2.getOID())
-        && oc1.isExtensibleObject() == oc2.isExtensibleObject()
         && areEqual(getDefinitionWithFileName(oc1), getDefinitionWithFileName(oc2))
         && areEqual(oc1.getDescription(), oc2.getDescription())
         && areEqual(oc1.getObjectClassType(), oc2.getObjectClassType())

@@ -1467,8 +1467,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     ObjectClass existingClass = schema.getObjectClass(objectClass.getOID());
     for (String name : objectClass.getNames())
     {
-      ObjectClass oc = schema.getObjectClass(toLowerCase(name));
-      if (oc == null)
+      ObjectClass oc = schema.getObjectClass(name);
+      if (oc.isPlaceHolder())
       {
         continue;
       }
@@ -1543,7 +1543,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // If there is no existing class, then we're adding a new objectclass.
     // Otherwise, we're replacing an existing one.
-    if (existingClass == null)
+    if (existingClass.isPlaceHolder())
     {
       schema.registerObjectClass(objectClass, false);
       addNewSchemaElement(modifiedSchemaFiles, objectClass);
@@ -1592,7 +1592,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // See if the specified objectclass is actually defined in the server
     // schema.  If not, then fail.
     ObjectClass removeClass = schema.getObjectClass(objectClass.getOID());
-    if (removeClass == null || !removeClass.equals(objectClass))
+    if (removeClass.isPlaceHolder() || !removeClass.equals(objectClass))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(
           objectClass.getNameOrOID());
@@ -3468,7 +3468,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           // Register this ObjectClass in the new schema
           // unless it is already defined with the same syntax.
           ObjectClass oldObjectClass = schema.getObjectClass(newObjectClass.getOID());
-          if (oldObjectClass == null || !oldObjectClass.toString().equals(newObjectClass.toString()))
+          if (oldObjectClass.isPlaceHolder() || !oldObjectClass.toString().equals(newObjectClass.toString()))
           {
             newSchema.registerObjectClass(newObjectClass, true);
 

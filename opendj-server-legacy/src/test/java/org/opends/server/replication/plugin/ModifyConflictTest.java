@@ -27,7 +27,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -40,7 +40,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.Test;
 
@@ -1066,8 +1065,7 @@ public class ModifyConflictTest extends ReplicationTestCase
      */
     DN dn = DN.valueOf(TEST_ROOT_DN_STRING);
     Map<ObjectClass, String> objectClasses = new HashMap<>();
-    ObjectClass org = DirectoryServer.getObjectClass(ORGANIZATION);
-    objectClasses.put(org, ORGANIZATION);
+    objectClasses.put(getObjectClass(ORGANIZATION), ORGANIZATION);
 
     // start with a new entry with an empty attribute
     Entry entry = new Entry(dn, objectClasses, null, null);

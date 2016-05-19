@@ -30,6 +30,7 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
@@ -37,7 +38,6 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 /**
@@ -235,13 +235,9 @@ public class DITContentRuleSyntax
     // Get the objectclass with the specified OID.  If it does not exist or is
     // not structural, then fail.
     ObjectClass structuralClass = schema.getObjectClass(oid);
-    if (structuralClass == null)
+    if (structuralClass.isPlaceHolder())
     {
-      if (allowUnknownElements)
-      {
-        structuralClass = DirectoryServer.getDefaultObjectClass(oid);
-      }
-      else
+      if (!allowUnknownElements)
       {
         LocalizableMessage message =
             ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS.get(valueStr, oid);
@@ -394,15 +390,10 @@ public class DITContentRuleSyntax
             pos = readWOID(lowerStr, woidBuffer, pos);
 
             ObjectClass oc = schema.getObjectClass(woidBuffer.toString());
-            if (oc == null)
+            if (oc.isPlaceHolder())
             {
               // This isn't good because it is an unknown auxiliary class.
-              if (allowUnknownElements)
-              {
-                oc = DirectoryServer.getDefaultAuxiliaryObjectClass(
-                                          woidBuffer.toString());
-              }
-              else
+              if (!allowUnknownElements)
               {
                 throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                     ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
@@ -444,15 +435,10 @@ public class DITContentRuleSyntax
           pos = readWOID(lowerStr, woidBuffer, pos-1);
 
           ObjectClass oc = schema.getObjectClass(woidBuffer.toString());
-          if (oc == null)
+          if (oc.isPlaceHolder())
           {
             // This isn't good because it is an unknown auxiliary class.
-            if (allowUnknownElements)
-            {
-              oc = DirectoryServer.getDefaultAuxiliaryObjectClass(
-                                        woidBuffer.toString());
-            }
-            else
+            if (!allowUnknownElements)
             {
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                   ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(valueStr, woidBuffer));

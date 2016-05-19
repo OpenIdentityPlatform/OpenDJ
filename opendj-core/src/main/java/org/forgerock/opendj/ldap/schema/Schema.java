@@ -1768,7 +1768,7 @@ public final class Schema {
                 final String objectClassName = v.toString();
                 final ObjectClass objectClass;
                 try {
-                    objectClass = getObjectClass(objectClassName);
+                    objectClass = asStrictSchema().getObjectClass(objectClassName);
                     objectClasses.add(objectClass);
                 } catch (final UnknownSchemaElementException e) {
                     if (policy.checkAttributesAndObjectClasses().needsChecking()) {

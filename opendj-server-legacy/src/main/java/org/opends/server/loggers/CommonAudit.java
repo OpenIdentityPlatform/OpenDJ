@@ -62,6 +62,8 @@ import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.CsvFileAccessLogPublisherCfg;
 import org.forgerock.opendj.server.config.server.CsvFileHTTPAccessLogPublisherCfg;
 import org.forgerock.opendj.server.config.server.ExternalAccessLogPublisherCfg;
@@ -75,11 +77,9 @@ import org.forgerock.opendj.server.config.server.LogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.TimeLimitLogRotationPolicyCfg;
-import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.Entry;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -738,7 +738,7 @@ public class CommonAudit
     private boolean hasObjectClass(ServerContext serverContext, Entry entry, String objectClassName)
     {
       ObjectClass objectClass = serverContext.getSchema().getObjectClass(objectClassName);
-      return objectClass != null && entry.hasObjectClass(objectClass);
+      return !objectClass.isPlaceHolder() && entry.hasObjectClass(objectClass);
     }
 
     DN getDn()

@@ -65,6 +65,7 @@ import javax.swing.tree.TreePath;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.browser.NodeRefresher;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -79,7 +80,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 
@@ -458,13 +458,12 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (ocs != null && schema != null)
     {
-      AttributeType attr = schema.getAttributeType(
-          ServerConstants.ATTR_USER_PASSWORD);
+      AttributeType attr = schema.getAttributeType(ServerConstants.ATTR_USER_PASSWORD);
       for (String oc : ocs)
       {
         ObjectClass objectClass = schema.getObjectClass(oc);
-        if (objectClass != null
-            && attr != null
+        if (!attr.isPlaceHolder()
+            && !objectClass.isPlaceHolder()
             && objectClass.isRequiredOrOptional(attr))
         {
           return true;

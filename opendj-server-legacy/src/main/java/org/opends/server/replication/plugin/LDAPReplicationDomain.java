@@ -73,6 +73,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
@@ -138,7 +139,6 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawModification;
@@ -971,9 +971,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     for (String className : newFractionalSpecificClassesAttributes.keySet())
     {
       // Does the class exist ?
-      ObjectClass fractionalClass = schema.getObjectClass(
-        className.toLowerCase());
-      if (fractionalClass == null)
+      ObjectClass fractionalClass = schema.getObjectClass(className.toLowerCase());
+      if (fractionalClass.isPlaceHolder())
       {
         throw new ConfigException(
           NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className));
@@ -4439,9 +4438,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       if (name.startsWith("@"))
       {
         String ocName = name.substring(1);
-        ObjectClass objectClass =
-            DirectoryServer.getObjectClass(toLowerCase(ocName));
-        if (objectClass != null)
+        ObjectClass objectClass = DirectoryServer.getObjectClass(toLowerCase(ocName));
+        if (!objectClass.isPlaceHolder())
         {
           for (AttributeType at : objectClass.getRequiredAttributes())
           {
@@ -4842,7 +4840,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       {
         // Get class from specificClassesAttributes1
         ObjectClass objectClass1 = schema.getObjectClass(className1);
-        if (objectClass1 == null)
+        if (objectClass1.isPlaceHolder())
         {
           throw new ConfigException(
             NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className1));
@@ -4853,7 +4851,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
         for (String className2 : specificClassesAttrs2.keySet())
         {
           ObjectClass objectClass2 = schema.getObjectClass(className2);
-          if (objectClass2 == null)
+          if (objectClass2.isPlaceHolder())
           {
             throw new ConfigException(
               NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className2));

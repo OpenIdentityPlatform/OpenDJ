@@ -143,13 +143,7 @@ public class NullBackend extends Backend<BackendCfg>
     // Initialize null entry object classes.
     objectClasses = new HashMap<>();
 
-    String topOCName = "top";
-    ObjectClass topOC = DirectoryServer.getObjectClass(topOCName);
-    if (topOC == null) {
-      throw new InitializationException(LocalizableMessage.raw("Unable to locate " + topOCName +
-        " objectclass in the current server schema"));
-    }
-    objectClasses.put(topOC, topOCName);
+    objectClasses.put(DirectoryServer.getTopObjectClass(), "top");
 
     String nulOCName = "nullbackendobject";
     ObjectClass nulOC = DirectoryServer.getObjectClass2(nulOCName);
@@ -163,7 +157,7 @@ public class NullBackend extends Backend<BackendCfg>
 
     String extOCName = "extensibleobject";
     ObjectClass extOC = DirectoryServer.getObjectClass(extOCName);
-    if (extOC == null) {
+    if (extOC.isPlaceHolder()) {
       throw new InitializationException(LocalizableMessage.raw("Unable to locate " + extOCName +
         " objectclass in the current server schema"));
     }

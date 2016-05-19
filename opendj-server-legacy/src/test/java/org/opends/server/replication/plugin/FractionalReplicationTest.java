@@ -656,7 +656,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       if (!objectClassStr.equals("*"))
       {
         ObjectClass objectClass = DirectoryServer.getObjectClass(objectClassStr.toLowerCase());
-
         assertTrue(newEntry.hasObjectClass(objectClass));
       }
 
@@ -710,7 +709,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       if (!objectClassStr.equals("*"))
       {
         ObjectClass objectClass = DirectoryServer.getObjectClass(objectClassStr.toLowerCase());
-
         assertTrue(entry.hasObjectClass(objectClass));
       }
 

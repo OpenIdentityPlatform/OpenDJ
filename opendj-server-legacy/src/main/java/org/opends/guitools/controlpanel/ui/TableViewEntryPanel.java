@@ -51,6 +51,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
@@ -61,7 +62,6 @@ import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
@@ -619,7 +619,7 @@ class TableViewEntryPanel extends ViewEntryPanel
         {
           String oc = (String)o;
           ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
-          if (objectClass != null)
+          if (!objectClass.isPlaceHolder())
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())
             {
@@ -747,7 +747,7 @@ class TableViewEntryPanel extends ViewEntryPanel
         for (String oc : ocs)
         {
           ObjectClass objectClass = schema.getObjectClass(oc);
-          if (objectClass != null)
+          if (!objectClass.isPlaceHolder())
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())
             {

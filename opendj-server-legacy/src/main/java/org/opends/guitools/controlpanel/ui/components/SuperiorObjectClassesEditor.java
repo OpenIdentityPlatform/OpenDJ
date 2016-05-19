@@ -233,7 +233,7 @@ public class SuperiorObjectClassesEditor extends JPanel
     }
 
     ObjectClass oc = (ObjectClass)singleSuperior.getSelectedItem();
-    if (oc != null)
+    if (oc != null && !oc.isPlaceHolder())
     {
       return Collections.singleton(oc);
     }

@@ -30,6 +30,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.config.ConfigConstants;
@@ -38,7 +39,6 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;
@@ -70,7 +70,7 @@ public class SchemaLoader
     for (String name : OBJECTCLASS_TO_KEEP)
     {
       ObjectClass oc = sc.getObjectClass(name.toLowerCase());
-      if (oc != null)
+      if (!oc.isPlaceHolder())
       {
         objectclassesToKeep.add(oc);
       }
