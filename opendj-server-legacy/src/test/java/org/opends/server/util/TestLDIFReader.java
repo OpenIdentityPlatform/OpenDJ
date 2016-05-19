@@ -183,14 +183,8 @@ public final class TestLDIFReader extends UtilTestCase {
 
     // Create a temporary file containing an attribute value.
     TEMP_FILE = File.createTempFile("tmp", "txt");
-    OutputStream out = null;
-    try {
-      out = new FileOutputStream(TEMP_FILE);
+    try (OutputStream out = new FileOutputStream(TEMP_FILE)) {
       out.write(TEMP_FILE_STRING.getBytes("UTF-8"));
-    } finally {
-      if (out != null) {
-        out.close();
-      }
     }
   }
 
@@ -215,15 +209,11 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test
   public void testInitialState() throws Exception {
-    LDIFReader reader = createLDIFReader("");
-
-    try {
+    try (LDIFReader reader = createLDIFReader("")) {
       Assert.assertEquals(reader.getEntriesIgnored(), 0);
       Assert.assertEquals(reader.getEntriesRead(), 0);
       Assert.assertEquals(reader.getEntriesRejected(), 0);
       Assert.assertEquals(reader.getLastEntryLineNumber(), -1);
-    } finally {
-      reader.close();
     }
   }
 
@@ -235,19 +225,14 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test
   public void testReadEntryEmptyStream() throws Exception {
-    LDIFReader reader = createLDIFReader("");
-
-    try {
+    try (LDIFReader reader = createLDIFReader("")) {
       Entry entry = reader.readEntry();
-
       Assert.assertNull(entry);
 
       Assert.assertEquals(reader.getEntriesIgnored(), 0);
       Assert.assertEquals(reader.getEntriesRead(), 0);
       Assert.assertEquals(reader.getEntriesRejected(), 0);
       Assert.assertEquals(reader.getLastEntryLineNumber(), -1);
-    } finally {
-      reader.close();
     }
   }
 
@@ -260,19 +245,14 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test(dependsOnMethods = { "testReadEntryEmptyStream" })
   public void testReadEntryEmptyStreamVersion() throws Exception {
-    LDIFReader reader = createLDIFReader("version: 1\n");
-
-    try {
+    try (LDIFReader reader = createLDIFReader("version: 1\n")) {
       Entry entry = reader.readEntry();
-
       Assert.assertNull(entry);
 
       Assert.assertEquals(reader.getEntriesIgnored(), 0);
       Assert.assertEquals(reader.getEntriesRead(), 0);
       Assert.assertEquals(reader.getEntriesRejected(), 0);
       Assert.assertEquals(reader.getLastEntryLineNumber(), 1);
-    } finally {
-      reader.close();
     }
   }
 
@@ -284,18 +264,14 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test
   public void testChangeRecordEmptyStream() throws Exception {
-    LDIFReader reader = createLDIFReader("");
-    try {
+    try (LDIFReader reader = createLDIFReader("")) {
       ChangeRecordEntry change = reader.readChangeRecord(true);
-
       Assert.assertNull(change);
 
       Assert.assertEquals(reader.getEntriesIgnored(), 0);
       Assert.assertEquals(reader.getEntriesRead(), 0);
       Assert.assertEquals(reader.getEntriesRejected(), 0);
       Assert.assertEquals(reader.getLastEntryLineNumber(), -1);
-    } finally {
-      reader.close();
     }
   }
 
@@ -413,9 +389,7 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test(dependsOnMethods = { "testChangeRecordEmptyStream" })
   public void testReadChangeMultiple() throws Exception {
-    LDIFReader reader = createLDIFReader(VALID_LDIF);
-
-    try {
+    try (LDIFReader reader = createLDIFReader(VALID_LDIF)) {
       ChangeRecordEntry change;
       AddChangeRecordEntry add;
       DeleteChangeRecordEntry delete;
@@ -587,8 +561,6 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(reader.getEntriesRead(), 0);
       Assert.assertEquals(reader.getEntriesRejected(), 0);
       Assert.assertEquals(reader.getLastEntryLineNumber(), 72);
-    } finally {
-      reader.close();
     }
   }
 
@@ -600,9 +572,7 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test(dependsOnMethods = { "testReadChangeMultiple" })
   public void testReadChangeMultipleAndReject() throws Exception {
-    LDIFReader reader = createLDIFReader(VALID_LDIF);
-
-    try {
+    try (LDIFReader reader = createLDIFReader(VALID_LDIF)) {
       reader.readChangeRecord(false);
       reader.readChangeRecord(false);
       reader.readChangeRecord(false);
@@ -620,8 +590,6 @@ public final class TestLDIFReader extends UtilTestCase {
       // Check final state.
       Assert.assertNull(reader.readChangeRecord(false));
       Assert.assertEquals(reader.getEntriesRejected(), 2);
-    } finally {
-      reader.close();
     }
   }
 
@@ -636,9 +604,8 @@ public final class TestLDIFReader extends UtilTestCase {
     StringBuilder buffer = new StringBuilder(TEMP_FILE_LDIF);
     buffer.append(TEMP_FILE.getCanonicalPath());
     buffer.append("\n");
-    LDIFReader reader = createLDIFReader(buffer.toString());
 
-    try {
+    try (LDIFReader reader = createLDIFReader(buffer.toString())) {
       ChangeRecordEntry change = reader.readChangeRecord(false);
       Assert.assertTrue(change instanceof AddChangeRecordEntry);
       AddChangeRecordEntry add = (AddChangeRecordEntry) change;
@@ -651,8 +618,6 @@ public final class TestLDIFReader extends UtilTestCase {
 
       // Check final state.
       Assert.assertNull(reader.readChangeRecord(false));
-    } finally {
-      reader.close();
     }
   }
 
@@ -901,13 +866,9 @@ public final class TestLDIFReader extends UtilTestCase {
   @Test(dataProvider = "invalidLDIFChangeRecords",
       expectedExceptions = { LDIFException.class })
   public void testReadChangeInvalidData(String ldifString) throws Exception {
-    LDIFReader reader = createLDIFReader(ldifString);
-    ChangeRecordEntry change = null;
-
-    try {
+    final ChangeRecordEntry change;
+    try (LDIFReader reader = createLDIFReader(ldifString)) {
       change = reader.readChangeRecord(false);
-    } finally {
-      reader.close();
     }
 
     Assert.fail("Expected exception but got result: "
