@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.CommonSchemaElements;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.opends.server.util.ServerConstants;
 
@@ -43,7 +43,7 @@ import org.opends.server.util.ServerConstants;
     + " to manage in the same way SDK and server schema element classes")
 public class SomeSchemaElement implements SchemaElement
 {
-  private final ObjectClass objectClass;
+  private ObjectClass objectClass;
   private AttributeType attributeType;
 
   /**
@@ -100,14 +100,9 @@ public class SomeSchemaElement implements SchemaElement
     return attributeType != null;
   }
 
-  /**
-   * Returns whether the wrapped element is an object class.
-   *
-   * @return {@code true} when the wrapped element is an object class, {@code false} otherwise
-   */
-  public boolean isObjectClass()
+  private SchemaElement asSchemaElement()
   {
-    return objectClass != null;
+    return attributeType != null ? attributeType : objectClass;
   }
 
   /**
@@ -137,19 +132,25 @@ public class SomeSchemaElement implements SchemaElement
    */
   public Iterable<String> getNames()
   {
-    return attributeType != null ? attributeType.getNames() : objectClass.getNormalizedNames();
+    return attributeType != null ? attributeType.getNames() : objectClass.getNames();
+  }
+
+  @Override
+  public String getDescription()
+  {
+    return asSchemaElement().getDescription();
   }
 
   @Override
   public Map<String, List<String>> getExtraProperties()
   {
-    return attributeType != null ? attributeType.getExtraProperties() : objectClass.getExtraProperties();
+    return asSchemaElement().getExtraProperties();
   }
 
   @Override
   public String toString()
   {
-    return attributeType != null ? attributeType.toString() : objectClass.toString();
+    return asSchemaElement().toString();
   }
 
   /**
@@ -205,12 +206,7 @@ public class SomeSchemaElement implements SchemaElement
 
   private String getExtraPropertySingleValue(String schemaPropertyOrigin)
   {
-    if (objectClass != null)
-    {
-      return CommonSchemaElements.getSingleValueProperty(objectClass, schemaPropertyOrigin);
-    }
-    List<String> values = attributeType.getExtraProperties().get(schemaPropertyOrigin);
-    return values != null && !values.isEmpty() ? values.get(0) : null;
+    return CommonSchemaElements.getSingleValueProperty(asSchemaElement(), schemaPropertyOrigin);
   }
 
   /**
@@ -219,7 +215,7 @@ public class SomeSchemaElement implements SchemaElement
    */
   public String getAttributeName()
   {
-    return attributeType!= null ? ConfigConstants.ATTR_ATTRIBUTE_TYPES : ConfigConstants.ATTR_OBJECTCLASSES;
+    return attributeType != null ? ConfigConstants.ATTR_ATTRIBUTE_TYPES : ConfigConstants.ATTR_OBJECTCLASSES;
   }
 
   /**
@@ -234,15 +230,8 @@ public class SomeSchemaElement implements SchemaElement
    */
   public void setExtraPropertySingleValue(ServerContext serverContext, String property, String value)
   {
-    if (attributeType != null)
-    {
-      List<String> values = value != null ?  Arrays.asList(value) : null;
-      setExtraPropertyMultipleValues(serverContext, property, values);
-    }
-    else
-    {
-      CommonSchemaElements.setExtraProperty(objectClass, property, value);
-    }
+    List<String> values = value != null ? Arrays.asList(value) : null;
+    setExtraPropertyMultipleValues(serverContext, property, values);
   }
 
   /**
@@ -257,10 +246,10 @@ public class SomeSchemaElement implements SchemaElement
    */
   public void setExtraPropertyMultipleValues(ServerContext serverContext, String property, List<String> values)
   {
+    Schema schemaNG = serverContext != null ? serverContext.getSchemaNG() : Schema.getDefaultSchema();
+    SchemaBuilder schemaBuilder = new SchemaBuilder(schemaNG);
     if (attributeType != null)
     {
-      SchemaBuilder schemaBuilder = serverContext != null ?
-          new SchemaBuilder(serverContext.getSchemaNG()) : new SchemaBuilder(Schema.getDefaultSchema());
       AttributeType.Builder builder =
           schemaBuilder.buildAttributeType(attributeType).removeExtraProperty(property, (String) null);
       if (values != null  && !values.isEmpty())
@@ -271,7 +260,13 @@ public class SomeSchemaElement implements SchemaElement
     }
     else
     {
-      objectClass.setExtraProperty(property, values);
+      ObjectClass.Builder builder =
+          schemaBuilder.buildObjectClass(objectClass).removeExtraProperty(property, (String) null);
+      if (values != null && !values.isEmpty())
+      {
+        builder.extraProperties(property, values);
+      }
+      objectClass = builder.addToSchemaOverwrite().toSchema().getObjectClass(objectClass.getNameOrOID());
     }
   }
 
@@ -293,11 +288,5 @@ public class SomeSchemaElement implements SchemaElement
       .addToSchemaOverwrite()
       .toSchema();
     return schema.getAttributeType(attributeType.getNameOrOID());
-  }
-
-  @Override
-  public String getDescription()
-  {
-    return attributeType != null ? attributeType.getDescription() : objectClass.getDescription();
   }
 }
