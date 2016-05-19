@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
  * SDK schema is used in place of legacy server schema.
  */
 @Retention(RetentionPolicy.SOURCE)
+@RemoveOnceSDKSchemaIsUsed
 public @interface ActivateOnceSDKSchemaIsUsed
 {
   /** Optional comment on activation. */

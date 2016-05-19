@@ -27,6 +27,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
+import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -58,6 +59,7 @@ import static org.opends.server.util.StaticUtils.*;
  * associated schema file to be edited so that an element created over
  * protocol may be associated with a particular schema file.
  */
+@RemoveOnceSDKSchemaIsUsed
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=false,
