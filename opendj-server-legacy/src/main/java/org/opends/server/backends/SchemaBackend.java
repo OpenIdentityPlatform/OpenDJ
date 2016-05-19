@@ -1353,7 +1353,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     for (ObjectClass oc : schema.getObjectClasses())
     {
       if (oc.getDeclaredRequiredAttributes().contains(removeType) ||
-          oc.getDeclaredOptionalAttributes().contains(removeType))
+          (oc.getDeclaredOptionalAttributes().contains(removeType) && !oc.isExtensible()))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_OC.get(
             removeType.getNameOrOID(), oc.getNameOrOID());
