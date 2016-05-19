@@ -147,7 +147,7 @@ public class DynamicGroup
     ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
-    return entry.hasObjectClass(DirectoryServer.getObjectClass2(OC_GROUP_OF_URLS_LC));
+    return entry.hasObjectClass(DirectoryServer.getObjectClass(OC_GROUP_OF_URLS_LC));
   }
 
   @Override

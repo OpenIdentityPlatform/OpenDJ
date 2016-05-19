@@ -153,8 +153,8 @@ public final class InternalClientConnection
     {
       LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
       put(objectClasses, DirectoryServer.getTopObjectClass());
-      put(objectClasses, DirectoryServer.getObjectClass2(OC_PERSON));
-      put(objectClasses, DirectoryServer.getObjectClass2(OC_ROOT_DN));
+      put(objectClasses, DirectoryServer.getObjectClass(OC_PERSON));
+      put(objectClasses, DirectoryServer.getObjectClass(OC_ROOT_DN));
 
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
       put(userAttrs, ATTR_COMMON_NAME, commonName);
@@ -882,7 +882,7 @@ public final class InternalClientConnection
         for (ByteString v : a)
         {
           String ocName = v.toString();
-          objectClasses.put(DirectoryServer.getObjectClass2(ocName), ocName);
+          objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
         }
       }
       else

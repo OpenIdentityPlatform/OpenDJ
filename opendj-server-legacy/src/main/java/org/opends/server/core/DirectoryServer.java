@@ -75,7 +75,6 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
@@ -2383,33 +2382,17 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the objectclass for the provided lowercase name or OID.
+   * Retrieves the objectclass for the provided name or OID. It can optionally return a generated
+   * "default" version if the requested objectclass is not defined in the schema.
    *
-   * @param  lowerName  The lowercase name or OID for the objectclass to
-   *                    retrieve.
-   *
-   * @return  The requested objectclass, or {@code null} if there is no
-   *          such objectclass defined in the server schema.
+   * @param nameOrOid
+   *          The name or OID for the objectclass to retrieve.
+   * @return The objectclass type, or {@code null} if there is no objectclass with the specified
+   *         name or OID defined in the server schema and a default class should not be returned.
    */
-  public static ObjectClass getObjectClass(String lowerName)
+  public static ObjectClass getObjectClass(String nameOrOid)
   {
-    return directoryServer.schema.getObjectClass(lowerName);
-  }
-
-  /**
-   * Retrieves the objectclass for the provided name or OID.  It can
-   * optionally return a generated "default" version if the requested
-   * objectclass is not defined in the schema.
-   *
-   * @param  nameOrOid      The name or OID for the objectclass to retrieve.
-   * @return  The objectclass type, or {@code null} if there is no
-   *          objectclass with the specified name or OID defined in the server
-   *          schema and a default class should not be returned.
-   */
-  public static ObjectClass getObjectClass2(String nameOrOid)
-  {
-    ObjectClass oc = getObjectClass(toLowerCase(nameOrOid));
-    return oc != null ? oc : getDefaultObjectClass(nameOrOid);
+    return directoryServer.schema.getObjectClass(nameOrOid);
   }
 
   /**
@@ -2436,10 +2419,12 @@ public final class DirectoryServer
   /**
    * Deregisters the provided objectclass with the Directory Server.
    *
-   * @param  objectClass  The objectclass instance to deregister with the
-   *                      server.
+   * @param objectClass
+   *          The objectclass instance to deregister with the server.
+   * @throws DirectoryException
+   *           If a conflict is encountered
    */
-  public static void deregisterObjectClass(ObjectClass objectClass)
+  public static void deregisterObjectClass(ObjectClass objectClass) throws DirectoryException
   {
     directoryServer.schema.deregisterObjectClass(objectClass);
   }
@@ -2471,36 +2456,6 @@ public final class DirectoryServer
   public static ObjectClass getDefaultObjectClass(String name)
   {
     return directoryServer.schema.getSchemaNG().getObjectClass(name);
-  }
-
-  /**
-   * Causes the Directory Server to construct a new auxiliary objectclass
-   * definition with the provided name and with no required or allowed
-   * attributes. This should only be used if there is no objectclass for the
-   * specified name. It will not register the created objectclass with the
-   * Directory Server.
-   *
-   * @param  name  The name to use for the objectclass, as provided by the user.
-   *
-   * @return  The constructed objectclass definition.
-   */
-  public static ObjectClass getDefaultAuxiliaryObjectClass(String name)
-  {
-    String lowerName = toLowerCase(name);
-    ObjectClass objectClass = directoryServer.schema.getObjectClass(lowerName);
-    if (objectClass == null)
-    {
-      String oid        = lowerName + "-oid";
-      String definition = "( " + oid + " NAME '" + name + "' ABSTRACT )";
-
-      objectClass = new ObjectClass(definition, name,
-                                    Collections.singleton(name), oid, null,
-                                    Collections.singleton(getTopObjectClass()),
-                                    null, null,
-                                    ObjectClassType.AUXILIARY, false, null);
-    }
-
-    return objectClass;
   }
 
   /**

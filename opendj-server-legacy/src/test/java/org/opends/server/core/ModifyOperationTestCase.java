@@ -2123,7 +2123,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
-    assertFalse(e.hasObjectClass(DirectoryServer.getObjectClass2("extensibleobject")));
+    assertFalse(e.hasObjectClass(DirectoryServer.getObjectClass("extensibleobject")));
   }
 
 
@@ -2159,11 +2159,11 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass2("extensibleobject")));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass2("inetOrgPerson")));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass2("organizationalPerson")));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass2("person")));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass2("top")));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("extensibleobject")));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("inetOrgPerson")));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("organizationalPerson")));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("person")));
+    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("top")));
     assertEquals(e.getUserAttributes().size(), 8, "Incorrect number of user attributes");
   }
 

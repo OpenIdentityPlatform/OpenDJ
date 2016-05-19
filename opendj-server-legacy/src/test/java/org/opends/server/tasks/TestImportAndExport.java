@@ -357,7 +357,7 @@ public class TestImportAndExport extends TasksTestCase
     int importEndCount   = TestTaskListener.importEndCount.get();
 
     ObjectClass exportClass =
-         DirectoryServer.getObjectClass2("ds-task-export");
+         DirectoryServer.getObjectClass("ds-task-export");
 
     // Use a big timeout since this test is sensitive to host environment (e.g.
     // low memory, etc). See issue OPENDJ-256.

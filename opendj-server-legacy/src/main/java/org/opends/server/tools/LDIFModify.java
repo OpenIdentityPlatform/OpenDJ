@@ -309,7 +309,7 @@ public class LDIFModify
           for (ByteString v : a)
           {
             String stringValue = v.toString();
-            objectClasses.put(DirectoryServer.getObjectClass2(stringValue), stringValue);
+            objectClasses.put(DirectoryServer.getObjectClass(stringValue), stringValue);
           }
         }
         else if (t.isOperational())

@@ -154,9 +154,9 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     {
     }
 
-    ocInstanceKey = DirectoryServer.getObjectClass2(OC_CRYPTO_INSTANCE_KEY);
-    ocCipherKey = DirectoryServer.getObjectClass2(OC_CRYPTO_CIPHER_KEY);
-    ocMacKey = DirectoryServer.getObjectClass2(OC_CRYPTO_MAC_KEY);
+    ocInstanceKey = DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY);
+    ocCipherKey = DirectoryServer.getObjectClass(OC_CRYPTO_CIPHER_KEY);
+    ocMacKey = DirectoryServer.getObjectClass(OC_CRYPTO_MAC_KEY);
 
     attrCert = getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
     attrAlias = getAttributeType(ATTR_CRYPTO_KEY_ID);

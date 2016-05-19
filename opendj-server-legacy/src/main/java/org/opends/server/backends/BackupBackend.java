@@ -212,7 +212,7 @@ public class BackupBackend
     // Construct the backup base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
     objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-    objectClasses.put(DirectoryServer.getObjectClass2(OC_UNTYPED_OBJECT_LC), OC_UNTYPED_OBJECT);
+    objectClasses.put(DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC), OC_UNTYPED_OBJECT);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
@@ -503,7 +503,7 @@ public class BackupBackend
     LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
-    ocMap.put(DirectoryServer.getObjectClass2(OC_BACKUP_DIRECTORY), OC_BACKUP_DIRECTORY);
+    ocMap.put(DirectoryServer.getObjectClass(OC_BACKUP_DIRECTORY), OC_BACKUP_DIRECTORY);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
@@ -579,8 +579,8 @@ public class BackupBackend
     // Construct the backup entry to return.
     LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(3);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-    ocMap.put(DirectoryServer.getObjectClass2(OC_BACKUP_INFO), OC_BACKUP_INFO);
-    ocMap.put(DirectoryServer.getObjectClass2(OC_EXTENSIBLE_OBJECT_LC), OC_EXTENSIBLE_OBJECT);
+    ocMap.put(DirectoryServer.getObjectClass(OC_BACKUP_INFO), OC_BACKUP_INFO);
+    ocMap.put(DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC), OC_EXTENSIBLE_OBJECT);
 
     LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();

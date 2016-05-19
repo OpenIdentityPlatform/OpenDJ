@@ -158,7 +158,7 @@ public class VirtualStaticGroup
     ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
-    return entry.hasObjectClass(DirectoryServer.getObjectClass2(OC_VIRTUAL_STATIC_GROUP));
+    return entry.hasObjectClass(DirectoryServer.getObjectClass(OC_VIRTUAL_STATIC_GROUP));
   }
 
   @Override

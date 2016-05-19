@@ -277,7 +277,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
         for (Object value : getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
-          objectClasses.put(DirectoryServer.getObjectClass2(ocName), ocName);
+          objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
         }
       }
       else

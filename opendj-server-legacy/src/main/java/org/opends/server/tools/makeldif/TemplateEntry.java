@@ -249,7 +249,7 @@ public class TemplateEntry
         for (TemplateValue v : valueList)
         {
           String ocName = toLowerCase(v.getValue().toString());
-          objectClasses.put(DirectoryServer.getObjectClass2(ocName), ocName);
+          objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
         }
       }
       else if (t.isOperational())

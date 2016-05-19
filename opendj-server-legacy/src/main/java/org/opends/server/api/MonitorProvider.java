@@ -157,7 +157,7 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    */
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryServer.getObjectClass2(OC_EXTENSIBLE_OBJECT_LC);
+    return DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC);
   }
 
 

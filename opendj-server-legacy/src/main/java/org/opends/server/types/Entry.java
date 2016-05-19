@@ -1345,7 +1345,7 @@ public class Entry
     for (ByteString v : a)
     {
       String ocName = v.toString();
-      ocs.put(DirectoryServer.getObjectClass2(ocName), ocName);
+      ocs.put(DirectoryServer.getObjectClass(ocName), ocName);
     }
 
     AttributeDescription attrDesc = a.getAttributeDescription();
@@ -3479,7 +3479,7 @@ public class Entry
   {
     entryBuffer.position(startPos);
     final String ocName = entryBuffer.readStringUtf8(endPos - startPos);
-    objectClasses.put(DirectoryServer.getObjectClass2(ocName), ocName);
+    objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
   }
 
   /**
@@ -4214,7 +4214,7 @@ public class Entry
         String lowerName = toLowerName(rule, v);
 
         // Create a default object class if necessary.
-        ObjectClass oc = DirectoryServer.getObjectClass2(lowerName);
+        ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
 
         if (replace)
         {

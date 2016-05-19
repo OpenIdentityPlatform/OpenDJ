@@ -326,7 +326,7 @@ public class AddOperationBasis
             for (ByteString os : a.getValues())
             {
               String ocName = os.toString();
-              objectClasses.put(getObjectClass2(ocName), ocName);
+              objectClasses.put(getObjectClass(ocName), ocName);
             }
           }
           else if (attrType.isOperational())
