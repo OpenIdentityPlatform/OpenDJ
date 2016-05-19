@@ -960,9 +960,11 @@ public final class ObjectClass extends AbstractSchemaElement {
         }
 
         if (isExtensible()) {
-            declaredOptionalAttributes = new HashSet<>(requiredAttributeOIDs.size());
-            for (final AttributeType attributeType : schema.getAttributeTypes()) {
-                if (attributeType.getUsage() == AttributeUsage.USER_APPLICATIONS) {
+            Collection<AttributeType> attributeTypes = schema.getAttributeTypes();
+            declaredOptionalAttributes = new HashSet<>(attributeTypes.size());
+            for (final AttributeType attributeType : attributeTypes) {
+                if (attributeType.getUsage() == AttributeUsage.USER_APPLICATIONS
+                        && !requiredAttributes.contains(attributeType)) {
                     declaredOptionalAttributes.add(attributeType);
                 }
             }
