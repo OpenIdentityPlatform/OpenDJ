@@ -30,30 +30,15 @@ import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 
 /**
- * An abstract base class for LDAP schema definitions which contain an
- * OID, optional names, description, an obsolete flag, and an optional
- * set of extra properties.
+ * Utility class to retrieve information from a SchemaElement and to set extra property
+ * for a SchemaElement.
  * <p>
- * This class defines common properties and behaviour of the various
- * types of schema definitions (e.g. object class definitions, and
- * attribute type definitions).
- * <p>
- * Any methods which accesses the set of names associated with this
- * definition, will retrieve the primary name as the first name,
- * regardless of whether it was contained in the original set
- * of <code>names</code> passed to the constructor.
- * <p>
- * Where ordered sets of names, or extra properties are provided, the
- * ordering will be preserved when the associated fields are accessed
- * via their getters or via the {@link #toString()} methods.
- * <p>
- * Note that these schema elements are not completely immutable, as
- * the set of extra properties for the schema element may be altered
- * after the element is created.  Among other things, this allows the
- * associated schema file to be edited so that an element created over
- * protocol may be associated with a particular schema file.
+ * Note that {@code setSchemaFile()} method works ONLY for non-SDK classes, because SDK schema
+ * elements are immutable, so modifying the map fo extra properties has no effect on the actual
+ * element.
  */
-@RemoveOnceSDKSchemaIsUsed
+@RemoveOnceSDKSchemaIsUsed("All read methods can be provided by ServerSchemaElement class. Write method" +
+ " has to rebuild fully the schema element within the schema, which means specific code for each element")
 public final class CommonSchemaElements
 {
   private CommonSchemaElements()
@@ -147,8 +132,7 @@ public final class CommonSchemaElements
    * @param  value  The value for the "extra" property.  If it is
    *                {@code null}, then any existing definition will be removed.
    */
-  public static void setExtraProperty(SchemaElement elem,
-      String name, String value)
+  private static void setExtraProperty(SchemaElement elem, String name, String value)
   {
     ifNull(name);
 

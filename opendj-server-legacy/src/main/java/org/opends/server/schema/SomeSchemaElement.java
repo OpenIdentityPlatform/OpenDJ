@@ -28,23 +28,20 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.ServerContext;
-import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
-import org.opends.server.util.ServerConstants;
 
 /**
- * Represents a schema element which is either a SDK attribute type or an objectclass from the server.
+ * Represents a schema element which is either an attribute type or an object class.
  * <p>
- * In absence of a common interface, this class allows to process all elements in the same way,
- * and to provide useful server-oriented methods like {@code getSchemaFile()} or
- * {@code getOrigin()}.
+ * Allows to share the methods getOID(), getNameOrOID(), getNames() and a setter on extra properties.
  */
-@RemoveOnceSDKSchemaIsUsed("This class is a temporary mechanism"
-    + " to manage in the same way SDK and server schema element classes")
+@RemoveOnceSDKSchemaIsUsed("Some retrieval methods can be provided by ServerSchemaElement class. Others are only" +
+ "necessary for the control panel code, including the setter methods: specific control panel class could handle it.")
 public class SomeSchemaElement implements SchemaElement
 {
   private ObjectClass objectClass;
   private AttributeType attributeType;
+  private ServerSchemaElement element;
 
   /**
    * Builds SomeSchemaElement.
@@ -100,9 +97,13 @@ public class SomeSchemaElement implements SchemaElement
     return attributeType != null;
   }
 
-  private SchemaElement asSchemaElement()
+  private ServerSchemaElement asSchemaElement()
   {
-    return attributeType != null ? attributeType : objectClass;
+    if (element == null)
+    {
+      element = attributeType != null ? new ServerSchemaElement(attributeType) : new ServerSchemaElement(objectClass);
+    }
+    return element;
   }
 
   /**
@@ -162,14 +163,7 @@ public class SomeSchemaElement implements SchemaElement
    */
   public String getDefinitionWithFileName()
   {
-    final String schemaFile = getSchemaFile();
-    final String definition = toString();
-    if (schemaFile != null)
-    {
-      int pos = definition.lastIndexOf(')');
-      return definition.substring(0, pos).trim() + " " + SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
-    }
-    return definition;
+    return asSchemaElement().getDefinitionWithFileName();
   }
 
   /**
@@ -179,7 +173,7 @@ public class SomeSchemaElement implements SchemaElement
    */
   public String getSchemaFile()
   {
-    return getExtraPropertySingleValue(ServerConstants.SCHEMA_PROPERTY_FILENAME);
+    return asSchemaElement().getSchemaFile();
   }
 
   /**
@@ -201,12 +195,7 @@ public class SomeSchemaElement implements SchemaElement
    */
   public String getOrigin()
   {
-    return getExtraPropertySingleValue(ServerConstants.SCHEMA_PROPERTY_ORIGIN);
-  }
-
-  private String getExtraPropertySingleValue(String schemaPropertyOrigin)
-  {
-    return CommonSchemaElements.getSingleValueProperty(asSchemaElement(), schemaPropertyOrigin);
+    return asSchemaElement().getOrigin();
   }
 
   /**

@@ -15,7 +15,10 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
+
 import java.util.List;
+import java.util.Map;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -30,6 +33,7 @@ import org.opends.server.util.ServerConstants;
 public class ServerSchemaElement
 {
 
+  /** The underlying schema element. */
   private final SchemaElement element;
 
   /**
@@ -44,13 +48,56 @@ public class ServerSchemaElement
   }
 
   /**
-   * Returns the schema file of the provided schema element.
+   * Retrieves the definition string used to create this schema element
+   * and including the X-SCHEMA-FILE extension.
    *
-   * @return the schema file of the provided schema element.
+   * @return The definition string used to create this attribute
+   *         type including the X-SCHEMA-FILE extension.
    */
-  public String getSchemaFile()
+  public String getDefinitionWithFileName()
   {
-    return getExtraPropertySingleValue(ServerConstants.SCHEMA_PROPERTY_FILENAME);
+    final String schemaFile = getSchemaFile();
+    final String definition = element.toString();
+    if (schemaFile != null)
+    {
+      int pos = definition.lastIndexOf(')');
+      return definition.substring(0, pos).trim() + " "
+          + SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
+    }
+    return definition;
+  }
+
+  /**
+   * Returns the description of this schema element.
+   *
+   * @return The description of this schema element, or the empty string if it does not have a description.
+   */
+  public String getDescription()
+  {
+    return element.getDescription();
+  }
+
+  /**
+   * Returns a map of extra properties of this schema element.
+   *
+   * @return An unmodifiable map containing all of the extra properties associated with this schema element.
+   */
+  public Map<String, List<String>> getExtraProperties()
+  {
+    return element.getExtraProperties();
+  }
+
+  /**
+   * Returns the single value of the provided extra property.
+   *
+   * @param property
+   *            The name of property to retrieve.
+   * @return the single value of the property
+   */
+  public String getExtraPropertyAsSingleValue(String property)
+  {
+    List<String> values = element.getExtraProperties().get(property);
+    return values != null && !values.isEmpty() ? values.get(0) : null;
   }
 
   /**
@@ -60,13 +107,17 @@ public class ServerSchemaElement
    */
   public String getOrigin()
   {
-    return getExtraPropertySingleValue(ServerConstants.SCHEMA_PROPERTY_ORIGIN);
+    return getExtraPropertyAsSingleValue(ServerConstants.SCHEMA_PROPERTY_ORIGIN);
   }
 
-  private String getExtraPropertySingleValue(String property)
+  /**
+   * Returns the schema file of the provided schema element.
+   *
+   * @return the schema file of the provided schema element.
+   */
+  public String getSchemaFile()
   {
-    List<String> values = element.getExtraProperties().get(property);
-    return values != null && !values.isEmpty() ? values.get(0) : null;
+    return getExtraPropertyAsSingleValue(ServerConstants.SCHEMA_PROPERTY_FILENAME);
   }
 
   /**
