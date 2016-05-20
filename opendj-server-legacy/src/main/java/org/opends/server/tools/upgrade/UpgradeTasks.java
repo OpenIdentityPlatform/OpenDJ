@@ -19,6 +19,7 @@ import static javax.security.auth.callback.ConfirmationCallback.NO;
 import static javax.security.auth.callback.ConfirmationCallback.YES;
 import static javax.security.auth.callback.TextOutputCallback.*;
 
+import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.copy;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
@@ -48,7 +49,6 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldif.EntryReader;
-import org.forgerock.util.Utils;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.tools.RebuildIndex;
@@ -539,7 +539,7 @@ public final class UpgradeTasks
         final StringBuilder sb = new StringBuilder();
         sb.append(condition).append(" = ").append(shouldPerformUpgradeTasks).append('\n');
         sb.append('[');
-        Utils.joinAsString(sb, "\n", (Object[]) tasks);
+        joinAsString(sb, "\n", (Object[]) tasks);
         sb.append(']');
         return sb.toString();
       }
@@ -640,7 +640,8 @@ public final class UpgradeTasks
       {
         if (!isRebuildAllIndexesIsPresent)
         {
-          context.notify(INFO_UPGRADE_REBUILD_INDEXES_DECLINED.get(indexNames), TextOutputCallback.WARNING);
+          context.notify(INFO_UPGRADE_REBUILD_INDEXES_DECLINED.get(joinAsString(", ", indexNames)),
+              TextOutputCallback.WARNING);
         }
       }
 
