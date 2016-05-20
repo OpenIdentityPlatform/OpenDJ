@@ -18,6 +18,8 @@ package org.forgerock.opendj.rest2ldap.authz;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.asConditionalFilter;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.newConditionalFilter;
 
+import java.util.List;
+
 import org.forgerock.http.Filter;
 import org.forgerock.http.protocol.Headers;
 import org.forgerock.http.protocol.Request;
@@ -39,6 +41,20 @@ import org.forgerock.util.promise.NeverThrowsException;
 public final class Authorizations {
 
     private Authorizations() {
+    }
+
+    /**
+     * Creates a new {@link Filter} in charge of injecting an {@link AuthenticatedConnectionContext}. This
+     * {@link Filter} tries each of the provided filters until one can apply. If no filter can be applied, the last
+     * filter in the list will be applied allowing it to formulate a valid, implementation specific, error response.
+     *
+     * @param filters
+     *            List of authorization {@link ConditionalFilters} to try. If empty, the returned filter will always
+     *            respond with 403 Forbidden.
+     * @return A new authorization {@link Filter}
+     */
+    public static Filter newAuthorizationFilter(List<ConditionalFilter> filters) {
+        return new AuthorizationFilter(filters);
     }
 
     /**

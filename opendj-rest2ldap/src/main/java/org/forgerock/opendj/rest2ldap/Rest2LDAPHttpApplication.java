@@ -30,7 +30,9 @@ import static org.forgerock.util.Utils.closeSilently;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,9 +44,6 @@ import org.forgerock.http.filter.Filters;
 import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Headers;
-import org.forgerock.http.protocol.Request;
-import org.forgerock.http.protocol.Response;
-import org.forgerock.http.protocol.Status;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Router;
@@ -56,13 +55,11 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategy;
 import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;
-import org.forgerock.services.context.Context;
 import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.Factory;
 import org.forgerock.util.Function;
 import org.forgerock.util.Pair;
 import org.forgerock.util.promise.NeverThrowsException;
-import org.forgerock.util.promise.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +110,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
             configureConnectionFactories(configuration.get("ldapConnectionFactories"));
             return Handlers.chainOf(
                     CrestHttp.newHttpHandler(configureRest2Ldap(configuration)),
-                    newAuthorizationFilter(configuration.get("authorization").required()));
+                    buildAuthorizationFilter(configuration.get("authorization").required()));
         } catch (final Exception e) {
             // TODO i18n, once supported in opendj-rest2ldap
             final String errorMsg = "Unable to start Rest2Ldap Http Application";
@@ -160,24 +157,16 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         connectionFactories.clear();
     }
 
-    private Filter newAuthorizationFilter(final JsonValue config) {
+    private Filter buildAuthorizationFilter(final JsonValue config) {
         final Set<Policy> policies = config.get("policies").as(setOf(enumConstant(Policy.class)));
-        final ConditionalFilter anonymous =
-                policies.contains(Policy.ANONYMOUS) ? buildAnonymousFilter(config.get("anonymous")) : NEVER_APPLICABLE;
-        final ConditionalFilter basic =
-                policies.contains(Policy.BASIC) ? buildBasicFilter(config.get("basic")) : NEVER_APPLICABLE;
-        return new Filter() {
-            @Override
-            public Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next) {
-                if (basic.getCondition().canApplyFilter(context, request)) {
-                    return basic.getFilter().filter(context, request, next);
-                }
-                if (anonymous.getCondition().canApplyFilter(context, request)) {
-                    return anonymous.getFilter().filter(context, request, next);
-                }
-                return Response.newResponsePromise(new Response(Status.FORBIDDEN));
-            }
-        };
+        final List<ConditionalFilter> filters = new ArrayList<>(policies.size());
+        if (policies.contains(Policy.BASIC)) {
+            filters.add(buildBasicFilter(config.get("basic")));
+        }
+        if (policies.contains(Policy.ANONYMOUS)) {
+            filters.add(buildAnonymousFilter(config.get("anonymous")));
+        }
+        return newAuthorizationFilter(filters);
     }
 
     /**
