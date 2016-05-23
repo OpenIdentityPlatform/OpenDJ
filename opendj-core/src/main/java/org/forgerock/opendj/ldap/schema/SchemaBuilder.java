@@ -1343,9 +1343,6 @@ public final class SchemaBuilder {
             }
 
             ocType = ocType != null ? ocType : STRUCTURAL;
-            if (ocType == STRUCTURAL && superiorClasses.isEmpty()) {
-                superiorClasses = singleton(TOP_OBJECTCLASS_NAME);
-            }
             ocBuilder.superiorObjectClasses(superiorClasses)
                      .type(ocType);
             return ocBuilder.addToSchema(overwrite);

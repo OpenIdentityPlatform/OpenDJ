@@ -34,7 +34,7 @@ import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
  * for a SchemaElement.
  * <p>
  * Note that {@code setSchemaFile()} method works ONLY for non-SDK classes, because SDK schema
- * elements are immutable, so modifying the map fo extra properties has no effect on the actual
+ * elements are immutable, so modifying the map for extra properties has no effect on the actual
  * element.
  */
 @RemoveOnceSDKSchemaIsUsed("All read methods can be provided by ServerSchemaElement class. Write method" +

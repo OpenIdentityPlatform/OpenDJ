@@ -123,12 +123,13 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testGetOptionalAttributesNoSuperiorEmpty() throws Exception {
+    public void testGetOptionalAttributesNoSuperiorNoAttribute() throws Exception {
         final ObjectClass.Builder ocBuilder = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3")
             .names("testType");
         ObjectClass oc = ocBuilder.addToSchema().toSchema().getObjectClass("1.2.3");
         assertThat(oc.getOptionalAttributes()).isEmpty();
+        assertThat(oc.getDeclaredOptionalAttributes()).isEmpty();
     }
 
     @Test
@@ -140,44 +141,43 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .optionalAttributes("at1", "at2", "at3")
             .addToSchema().toSchema().getObjectClass("1.2.3");
 
-        Set<AttributeType> attributes = oc.getOptionalAttributes();
-        assertThat(attributes).containsOnly(attrs(schema, "at1", "at2", "at3"));
+        assertThat(oc.getOptionalAttributes()).containsOnly(attrs(schema, "at1", "at2", "at3"));
+        assertThat(oc.getDeclaredOptionalAttributes()).containsOnly((attrs(schema, "at1", "at2", "at3")));
+
     }
 
     @Test
-    public void testGetOptionalAttributeOneSuperiorEmpty() throws Exception {
+    public void testGetOptionalAttributeOneSuperiorNoAttribute() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .optionalAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .superiorObjectClasses("parent")
             .addToSchema().toSchema();
         ObjectClass child = schema.getObjectClass("child");
 
-        Set<AttributeType> attributes = child.getOptionalAttributes();
-        assertThat(attributes).containsOnly(attrs(schema, "at1", "at2", "at3"));
+        assertThat(child.getOptionalAttributes()).containsOnly(attrs(schema, "at1", "at2", "at3"));
+        assertThat(child.getDeclaredOptionalAttributes()).isEmpty();
+
     }
 
     @Test
-    public void testGetOptionalAttributeMultipleSuperiorsEmpty() throws Exception {
+    public void testGetOptionalAttributeMultipleSuperiorsNoAttribute() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent1")
             .optionalAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("parent2")
             .optionalAttributes("at4", "at5", "at6")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.3")
             .names("child")
             .superiorObjectClasses("parent1", "parent2")
@@ -194,9 +194,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .optionalAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .optionalAttributes("at4", "at5", "at6")
@@ -204,8 +203,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .addToSchema().toSchema();
         ObjectClass child = schema.getObjectClass("child");
 
-        Set<AttributeType> attributes = child.getOptionalAttributes();
-        assertThat(attributes).containsOnly(attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6"));
+        assertThat(child.getOptionalAttributes()).containsOnly(attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6"));
+        assertThat(child.getDeclaredOptionalAttributes()).containsOnly((attrs(schema, "at4", "at5", "at6")));
     }
 
     @Test
@@ -214,15 +213,13 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .buildObjectClass("1.2.3.1")
             .names("parent1")
             .optionalAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("parent2")
             .optionalAttributes("at4", "at5", "at6")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.3")
             .names("child")
             .optionalAttributes("at7", "at8", "at9")
@@ -230,78 +227,19 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .addToSchema().toSchema();
         ObjectClass child = schema.getObjectClass("child");
 
-        Set<AttributeType> attributes = child.getOptionalAttributes();
-        assertThat(attributes).containsOnly(
+        assertThat(child.getOptionalAttributes()).containsOnly(
                 attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6", "at7", "at8", "at9"));
+        assertThat(child.getDeclaredOptionalAttributes()).containsOnly((attrs(schema, "at7", "at8", "at9")));
     }
 
     @Test
-    public void testGetDeclaredOptionalAttributesNoSuperiorEmpty() throws Exception {
-        final ObjectClass.Builder ocBuilder = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3")
-            .names("testType");
-        ObjectClass oc = ocBuilder.addToSchema().toSchema().getObjectClass("1.2.3");
-        assertThat(oc.getDeclaredOptionalAttributes()).isEmpty();
-    }
-
-    @Test
-    public void testGetDeclaredOptionalAttributesNoSuperior() throws Exception {
-        Schema schema = schema();
-        ObjectClass oc = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3")
-            .names("testType")
-            .optionalAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema().getObjectClass("1.2.3");
-
-        Set<AttributeType> attributes = oc.getDeclaredOptionalAttributes();
-        assertThat(attributes).containsOnly((attrs(schema, "at1", "at2", "at3")));
-    }
-
-    @Test
-    public void testGetDeclaredOptionalAttributeOneSuperiorEmpty() throws Exception {
-        Schema schema = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3.1")
-            .names("parent")
-            .optionalAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
-
-        schema = new SchemaBuilder(schema)
-            .buildObjectClass("1.2.3.2")
-            .names("child")
-            .superiorObjectClasses("parent")
-            .addToSchema().toSchema();
-        ObjectClass child = schema.getObjectClass("child");
-
-        assertThat(child.getDeclaredOptionalAttributes()).isEmpty();
-    }
-
-    @Test
-    public void testGetDeclaredOptionalAttributeOneSuperior() throws Exception {
-        Schema schema = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3.1")
-            .names("parent")
-            .optionalAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
-
-        schema = new SchemaBuilder(schema)
-            .buildObjectClass("1.2.3.2")
-            .names("child")
-            .optionalAttributes("at4", "at5", "at6")
-            .superiorObjectClasses("parent")
-            .addToSchema().toSchema();
-        ObjectClass child = schema.getObjectClass("child");
-
-        Set<AttributeType> attributes = child.getDeclaredOptionalAttributes();
-        assertThat(attributes).containsOnly((attrs(schema, "at4", "at5", "at6")));
-    }
-
-    @Test
-    public void testGetRequiredAttributesNoSuperiorEmpty() throws Exception {
+    public void testGetRequiredAttributesNoSuperiorNoAttribute() throws Exception {
         final ObjectClass.Builder ocBuilder = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3")
             .names("testType");
         ObjectClass oc = ocBuilder.addToSchema().toSchema().getObjectClass("1.2.3");
         assertThat(oc.getRequiredAttributes()).isEmpty();
+        assertThat(oc.getDeclaredRequiredAttributes()).isEmpty();
     }
 
     @Test
@@ -313,52 +251,50 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .requiredAttributes("at1", "at2", "at3")
             .addToSchema().toSchema().getObjectClass("1.2.3");
 
-        Set<AttributeType> attributes = oc.getRequiredAttributes();
-        assertThat(attributes).containsOnly((attrs(schema, "at1", "at2", "at3")));
+        assertThat(oc.getRequiredAttributes()).containsOnly((attrs(schema, "at1", "at2", "at3")));
+        assertThat(oc.getDeclaredRequiredAttributes()).containsOnly((attrs(schema, "at1", "at2", "at3")));
     }
 
     @Test
-    public void testGetRequiredAttributeOneSuperiorEmpty() throws Exception {
+    public void testGetRequiredAttributeOneSuperiorNoAttribute() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .requiredAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .superiorObjectClasses("parent")
             .addToSchema().toSchema();
         ObjectClass child = schema.getObjectClass("child");
 
-        Set<AttributeType> attributes = child.getRequiredAttributes();
-        assertThat(attributes).containsOnly((attrs(schema, "at1", "at2", "at3")));
+        assertThat(child.getRequiredAttributes()).containsOnly((attrs(schema, "at1", "at2", "at3")));
+        assertThat(child.getDeclaredRequiredAttributes()).isEmpty();
     }
 
     @Test
-    public void testGetRequiredAttributeMultipleSuperiorsEmpty() throws Exception {
+    public void testGetRequiredAttributeMultipleSuperiorsNoAttribute() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent1")
             .requiredAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("parent2")
             .requiredAttributes("at4", "at5", "at6")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.3")
             .names("child")
             .superiorObjectClasses("parent1", "parent2")
             .addToSchema().toSchema();
         ObjectClass child = schema.getObjectClass("child");
 
-        Set<AttributeType> attributes = child.getRequiredAttributes();
-        assertThat(attributes).containsOnly((attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6")));
+        assertThat(child.getRequiredAttributes()).containsOnly(
+                (attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6")));
+        assertThat(child.getDeclaredRequiredAttributes()).isEmpty();
     }
 
     @Test
@@ -367,9 +303,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .requiredAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .requiredAttributes("at4", "at5", "at6")
@@ -377,8 +312,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .addToSchema().toSchema();
         ObjectClass child = schema.getObjectClass("child");
 
-        Set<AttributeType> attributes = child.getRequiredAttributes();
-        assertThat(attributes).containsOnly(attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6"));
+        assertThat(child.getRequiredAttributes()).containsOnly(attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6"));
+        assertThat(child.getDeclaredRequiredAttributes()).containsOnly(attrs(schema, "at4", "at5", "at6"));
     }
 
     @Test
@@ -387,15 +322,13 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .buildObjectClass("1.2.3.1")
             .names("parent1")
             .requiredAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("parent2")
             .requiredAttributes("at4", "at5", "at6")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.3")
             .names("child")
             .requiredAttributes("at7", "at8", "at9")
@@ -403,69 +336,9 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .addToSchema().toSchema();
         ObjectClass child = schema.getObjectClass("child");
 
-        Set<AttributeType> attributes = child.getRequiredAttributes();
-        assertThat(attributes).containsOnly(
+        assertThat(child.getRequiredAttributes()).containsOnly(
                 attrs(schema, "at1", "at2", "at3", "at4", "at5", "at6", "at7", "at8", "at9"));
-    }
-
-    @Test
-    public void testGetDeclaredRequiredAttributesNoSuperiorEmpty() throws Exception {
-        final ObjectClass.Builder ocBuilder = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3")
-            .names("testType");
-        ObjectClass oc = ocBuilder.addToSchema().toSchema().getObjectClass("1.2.3");
-        assertThat(oc.getDeclaredRequiredAttributes()).isEmpty();
-    }
-
-    @Test
-    public void testGetDeclaredRequiredAttributesNoSuperior() throws Exception {
-        Schema schema = schema();
-        ObjectClass oc = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3")
-            .names("testType")
-            .requiredAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema().getObjectClass("1.2.3");
-
-        Set<AttributeType> attributes = oc.getDeclaredRequiredAttributes();
-        assertThat(attributes).containsOnly(attrs(schema, "at1", "at2", "at3"));
-    }
-
-    @Test
-    public void testGetDeclaredRequiredAttributeOneSuperiorEmpty() throws Exception {
-        Schema schema = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3.1")
-            .names("parent")
-            .requiredAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
-
-        schema = new SchemaBuilder(schema)
-            .buildObjectClass("1.2.3.2")
-            .names("child")
-            .superiorObjectClasses("parent")
-            .addToSchema().toSchema();
-        ObjectClass child = schema.getObjectClass("child");
-
-        assertThat(child.getDeclaredRequiredAttributes()).isEmpty();
-    }
-
-    @Test
-    public void testGetDeclaredRequiredAttributeOneSuperior() throws Exception {
-        Schema schema = new SchemaBuilder(schema())
-            .buildObjectClass("1.2.3.1")
-            .names("parent")
-            .requiredAttributes("at1", "at2", "at3")
-            .addToSchema().toSchema();
-
-        schema = new SchemaBuilder(schema)
-            .buildObjectClass("1.2.3.2")
-            .names("child")
-            .requiredAttributes("at4", "at5", "at6")
-            .superiorObjectClasses("parent")
-            .addToSchema().toSchema();
-        ObjectClass child = schema.getObjectClass("child");
-
-        Set<AttributeType> attributes = child.getDeclaredRequiredAttributes();
-        assertThat(attributes).containsOnly(attrs(schema, "at4", "at5", "at6"));
+        assertThat(child.getDeclaredRequiredAttributes()).containsOnly(attrs(schema, "at7", "at8", "at9"));
     }
 
     @Test
@@ -476,10 +349,12 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .names("testType")
             .addToSchema().toSchema().getObjectClass("1.2.3");
 
-        // top should be added to superior classes
-        assertThat(oc.getSuperiorClasses()).containsOnly(schema.getObjectClass(TOP_OBJECTCLASS_OID));
-        // toString() should return the initial definition, without top
-        assertThat(oc.toString()).isEqualTo("( 1.2.3 NAME 'testType' )");
+        assertThat(oc.getSuperiorClasses())
+            .as("\"top\" should be added to superior classes for STRUCTURAL object classes")
+            .containsOnly(schema.getObjectClass(TOP_OBJECTCLASS_OID));
+        assertThat(oc.toString())
+            .as("toString() should return the initial definition, without top")
+            .isEqualTo("( 1.2.3 NAME 'testType' )");
     }
 
     @Test
@@ -487,9 +362,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .superiorObjectClasses("parent")
@@ -505,14 +379,12 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent1")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("parent2")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.3")
             .names("child")
             .superiorObjectClasses("parent1", "parent2")
@@ -523,12 +395,12 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testIsDescendantOfNoSuperior() throws Exception {
+    public void testStructuralIsDescendantOfTopDespiteNoSuperiorDeclared() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("testType1")
-            .addToSchema().toSchema();
-        schema = new SchemaBuilder(schema)
+            .addToSchema()
+
             .buildObjectClass("1.2.3.2")
             .names("testType2")
             .addToSchema().toSchema();
@@ -544,13 +416,13 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("grandParent")
-            .addToSchema().toSchema();
-        schema = new SchemaBuilder(schema)
+            .addToSchema()
+
             .buildObjectClass("1.2.3.2")
             .names("parent")
             .superiorObjectClasses("grandParent")
-            .addToSchema().toSchema();
-        schema = new SchemaBuilder(schema)
+            .addToSchema()
+
             .buildObjectClass("1.2.3.3")
             .names("child")
             .superiorObjectClasses("parent")
@@ -573,17 +445,17 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("grandParent")
-            .addToSchema().toSchema();
-        schema = new SchemaBuilder(schema)
+            .addToSchema()
+
             .buildObjectClass("1.2.3.2")
             .names("parent1")
             .superiorObjectClasses("grandParent")
-            .addToSchema().toSchema();
-        schema = new SchemaBuilder(schema)
+            .addToSchema()
+
             .buildObjectClass("1.2.3.3")
             .names("parent2")
-            .addToSchema().toSchema();
-        schema = new SchemaBuilder(schema)
+            .addToSchema()
+
             .buildObjectClass("1.2.3.4")
             .names("child")
             .superiorObjectClasses("parent1", "parent2")
@@ -606,7 +478,7 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testIsOptionalEmpty() throws Exception {
+    public void testIsOptionalNoAttribute() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("testType")
@@ -630,14 +502,13 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testIsOptionalEmptyWithOneSuperior() throws Exception {
+    public void testIsOptionalNoAttributeWithOneSuperior() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .optionalAttributes("at1")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .superiorObjectClasses("parent")
@@ -654,9 +525,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .optionalAttributes("at1")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .optionalAttributes("at2")
@@ -679,7 +549,7 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testIsRequiredEmpty() throws Exception {
+    public void testIsRequiredNoAttribute() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("testType")
@@ -703,14 +573,13 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testIsRequiredEmptyWithOneSuperior() throws Exception {
+    public void testIsRequiredNoAttributeWithOneSuperior() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .requiredAttributes("at1")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .superiorObjectClasses("parent")
@@ -727,9 +596,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .requiredAttributes("at1")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .requiredAttributes("at2")
@@ -743,7 +611,7 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testIsRequiredOrOptionalEmpty() throws Exception {
+    public void testIsRequiredOrOptionalNoAttribute() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("testType")
@@ -769,15 +637,14 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testIsRequiredOrOptionalEmptyWithOneSuperior() throws Exception {
+    public void testIsRequiredOrOptionalNoAttributeWithOneSuperior() throws Exception {
         Schema schema = new SchemaBuilder(schema())
             .buildObjectClass("1.2.3.1")
             .names("parent")
             .requiredAttributes("at1")
             .optionalAttributes("at2")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .superiorObjectClasses("parent")
@@ -796,9 +663,8 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .names("parent")
             .requiredAttributes("at1")
             .optionalAttributes("at2")
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("child")
             .requiredAttributes("at3")
@@ -830,33 +696,28 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
             .buildObjectClass("1.2.3.1")
             .names("parent1")
             .type(ObjectClassType.ABSTRACT)
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.2")
             .names("parent2")
             .type(ObjectClassType.ABSTRACT)
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.3")
             .names("parent3")
             .type(ObjectClassType.STRUCTURAL)
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.4")
             .names("parent4")
             .type(ObjectClassType.STRUCTURAL)
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.5")
             .names("parent5")
             .type(ObjectClassType.AUXILIARY)
-            .addToSchema().toSchema();
+            .addToSchema()
 
-        schema = new SchemaBuilder(schema)
             .buildObjectClass("1.2.3.6")
             .names("parent6")
             .type(ObjectClassType.AUXILIARY)

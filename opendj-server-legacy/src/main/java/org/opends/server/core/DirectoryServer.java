@@ -2429,23 +2429,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Causes the Directory Server to construct a new objectclass
-   * definition with the provided name and with no required or allowed
-   * attributes. This should only be used if there is no objectclass
-   * for the specified name. It will not register the created
-   * objectclass with the Directory Server.
-   *
-   * @param name
-   *          The name to use for the objectclass, as provided by the
-   *          user.
-   * @return The constructed objectclass definition.
-   */
-  public static ObjectClass getDefaultObjectClass(String name)
-  {
-    return directoryServer.schema.getSchemaNG().getObjectClass(name);
-  }
-
-  /**
    * Retrieves the set of attribute type definitions that have been
    * defined in the Directory Server.
    *

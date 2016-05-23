@@ -401,6 +401,16 @@ public final class ObjectClass extends AbstractSchemaElement {
     /** Indicates whether validation failed. */
     private boolean isValid;
 
+    /**
+     * Indicates whether this object class is a placeholder.
+     * <p>
+     * A placeholder objectclass is returned by a non-strict schema when the requested
+     * object class does not exist in the schema. The placeholder is not registered to
+     * the schema.
+     * It is defined as an abstract object class, with no optional or required attribute.
+     * <p>
+     * A strict schema never returns a placeholder: it throws an UnknownSchemaElementException.
+     */
     private boolean isPlaceHolder;
 
     /** Indicates whether this object class is the extensibleObject class. */
@@ -426,6 +436,20 @@ public final class ObjectClass extends AbstractSchemaElement {
                .type(AUXILIARY));
     }
 
+    /**
+     * Creates a new place-holder object class having the specified name.
+     * <p>
+     * A place-holder object class is never registered to a schema.
+     * <p>
+     * The OID of the place-holder object class will be the normalized object
+     * class name followed by the suffix "-oid".
+     *
+     * @param name
+     *            The name of the place-holder object class.
+     */
+    static ObjectClass newPlaceHolder(String name) {
+        return new ObjectClass(name);
+    }
 
     private ObjectClass(final Builder builder) {
         super(builder);
@@ -453,7 +477,7 @@ public final class ObjectClass extends AbstractSchemaElement {
      * @param name
      *            The name of the place-holder object class.
      */
-    ObjectClass(final String name) {
+    private ObjectClass(final String name) {
         this.oid = toOID(name);
         this.names = Collections.singletonList(name);
         this.isObsolete = false;
@@ -849,7 +873,7 @@ public final class ObjectClass extends AbstractSchemaElement {
             ObjectClass superiorClass;
             for (final String superClassOid : superiorClassOIDs) {
                 try {
-                    superiorClass = schema.asStrictSchema().getObjectClass(superClassOid);
+                    superiorClass = schema.getObjectClass(superClassOid);
                 } catch (final UnknownSchemaElementException e) {
                     final LocalizableMessage message =
                             WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS1.get(
@@ -920,21 +944,23 @@ public final class ObjectClass extends AbstractSchemaElement {
                 }
 
                 // Inherit all required attributes from superior class.
-                Iterator<AttributeType> i = superiorClass.getRequiredAttributes().iterator();
-                if (i.hasNext() && requiredAttributes == Collections.EMPTY_SET) {
-                    requiredAttributes = new HashSet<>();
-                }
-                while (i.hasNext()) {
-                    requiredAttributes.add(i.next());
+                final Set<AttributeType> supRequiredAttrs = superiorClass.getRequiredAttributes();
+                if (!supRequiredAttrs.isEmpty()) {
+                    if (requiredAttributes == Collections.EMPTY_SET) {
+                        requiredAttributes = new HashSet<>(supRequiredAttrs);
+                    } else {
+                        requiredAttributes.addAll(supRequiredAttrs);
+                    }
                 }
 
                 // Inherit all optional attributes from superior class.
-                i = superiorClass.getOptionalAttributes().iterator();
-                if (i.hasNext() && optionalAttributes == Collections.EMPTY_SET) {
-                    optionalAttributes = new HashSet<>();
-                }
-                while (i.hasNext()) {
-                    optionalAttributes.add(i.next());
+                final Set<AttributeType> supOptionalAttrs = superiorClass.getOptionalAttributes();
+                if (!supOptionalAttrs.isEmpty()) {
+                    if (optionalAttributes == Collections.EMPTY_SET) {
+                        optionalAttributes = new HashSet<>(supOptionalAttrs);
+                    } else {
+                        optionalAttributes.addAll(supOptionalAttrs);
+                    }
                 }
 
                 superiorClasses.add(superiorClass);

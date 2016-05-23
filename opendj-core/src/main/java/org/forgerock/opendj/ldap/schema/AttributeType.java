@@ -454,7 +454,15 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
      * @param equalityMatchingRule
      *            The equality matching rule of the place-holder attribute type.
      */
-    AttributeType(final String name, final Syntax syntax, final MatchingRule equalityMatchingRule) {
+    static AttributeType newPlaceHolder(final String name, final Syntax syntax,
+            final MatchingRule equalityMatchingRule) {
+        return new AttributeType(name, syntax, equalityMatchingRule);
+    }
+
+    /**
+     * Creates a new place-holder attribute type having the specified name, default syntax, and default matching rule.
+     */
+    private AttributeType(final String name, final Syntax syntax, final MatchingRule equalityMatchingRule) {
         final StringBuilder builder = new StringBuilder(name.length() + 4);
         StaticUtils.toLowerCase(name, builder);
         builder.append("-oid");

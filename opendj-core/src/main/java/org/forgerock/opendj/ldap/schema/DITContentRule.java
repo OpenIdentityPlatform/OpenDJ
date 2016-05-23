@@ -770,7 +770,7 @@ public final class DITContentRule extends AbstractSchemaElement {
         // or is not structural, then fail.
         if (structuralClassOID != null) {
             try {
-                structuralClass = schema.asStrictSchema().getObjectClass(structuralClassOID);
+                structuralClass = schema.getObjectClass(structuralClassOID);
             } catch (final UnknownSchemaElementException e) {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS1.get(getNameOrOID(),
@@ -791,7 +791,7 @@ public final class DITContentRule extends AbstractSchemaElement {
             ObjectClass objectClass;
             for (final String oid : auxiliaryClassOIDs) {
                 try {
-                    objectClass = schema.asStrictSchema().getObjectClass(oid);
+                    objectClass = schema.getObjectClass(oid);
                 } catch (final UnknownSchemaElementException e) {
                     // This isn't good because it is an unknown auxiliary class.
                     final LocalizableMessage message =

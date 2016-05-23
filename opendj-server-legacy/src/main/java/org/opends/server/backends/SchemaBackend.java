@@ -49,7 +49,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -3426,8 +3425,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           continue;
         }
 
-        // Now we know we are not in the config schema, let's check the unknown elements ...
-        validateNoUnknownElements(newObjectClass);
         oidList.add(newObjectClass.getOID());
         try
         {
@@ -3480,35 +3477,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       updateSchemaFiles(newSchema, modifiedSchemaFiles);
       DirectoryServer.setSchema(newSchema);
-    }
-  }
-
-  private void validateNoUnknownElements(ObjectClass oc) throws DirectoryException
-  {
-    validateNoUnknownElements(oc.getDeclaredOptionalAttributes(), oc.getOID(),
-        WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR);
-    validateNoUnknownElements(oc.getDeclaredRequiredAttributes(), oc.getOID(),
-        WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR);
-    for (ObjectClass superiorClass : oc.getSuperiorClasses())
-    {
-      if (superiorClass.isPlaceHolder())
-      {
-        LocalizableMessage message =
-            WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS.get(oc.getOID(), superiorClass.getOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-  }
-
-  private void validateNoUnknownElements(Set<AttributeType> attributeTypes, String oid, Arg2<Object, Object> msg)
-      throws DirectoryException
-  {
-    for (AttributeType attributeType : attributeTypes)
-    {
-      if (attributeType.isPlaceHolder())
-      {
-        throw new DirectoryException(CONSTRAINT_VIOLATION, msg.get(oid, attributeType.getOID()));
-      }
     }
   }
 

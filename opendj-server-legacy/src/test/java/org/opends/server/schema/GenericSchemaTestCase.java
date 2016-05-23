@@ -261,7 +261,7 @@ public class GenericSchemaTestCase
     if (! invalidOIDs.isEmpty())
     {
       StringBuilder message = new StringBuilder()
-          .append("All object classes defined in OpenDS must have valid OIDs assigned.").append(EOL)
+          .append("All object classes defined in OpenDJ must have valid OIDs assigned.").append(EOL)
           .append("Object classes without valid OIDs:").append(EOL);
       for (String s : invalidOIDs)
       {

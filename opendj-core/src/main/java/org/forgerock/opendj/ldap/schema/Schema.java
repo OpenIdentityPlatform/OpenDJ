@@ -206,7 +206,7 @@ public final class Schema {
 
         private AttributeType getAttributeType0(String nameOrOid, Syntax syntax, MatchingRule equalityMatchingRule) {
             final AttributeType type = strictImpl.getAttributeType0(nameOrOid);
-            return type != null ? type : new AttributeType(nameOrOid, syntax, equalityMatchingRule);
+            return type != null ? type : AttributeType.newPlaceHolder(nameOrOid, syntax, equalityMatchingRule);
         }
 
         @Override
@@ -317,7 +317,7 @@ public final class Schema {
         @Override
         public ObjectClass getObjectClass(final String nameOrOid) {
             ObjectClass result = strictImpl.getObjectClass0(nameOrOid);
-            return result != null ? result : new ObjectClass(nameOrOid);
+            return result != null ? result : ObjectClass.newPlaceHolder(nameOrOid);
         }
 
         @Override
@@ -504,27 +504,37 @@ public final class Schema {
 
         @Override
         public String getOIDForName(String lowerCaseName) {
-            final String oid = getOIDForName0(lowerCaseName);
-            return oid != null ? toLowerCase(oid) : null;
-        }
-
-        private String getOIDForName0(String lowerName) {
-            AttributeType attributeType = getAttributeType0(lowerName);
+            AttributeType attributeType = getAttributeType0(lowerCaseName);
             if (attributeType != null) {
                 return attributeType.getOID();
             }
             try {
-                return getObjectClass(lowerName).getOID();
+                return getObjectClass(lowerCaseName).getOID();
             } catch (UnknownSchemaElementException ignore) {
                 // try next schema element
             }
             try {
-                return getMatchingRule(lowerName).getOID();
+                return getSyntax(null, lowerCaseName).getOID();
             } catch (UnknownSchemaElementException ignore) {
                 // try next schema element
             }
             try {
-                return getNameForm(lowerName).getOID();
+                return getMatchingRule(lowerCaseName).getOID();
+            } catch (UnknownSchemaElementException ignore) {
+                // try next schema element
+            }
+            try {
+                return getNameForm(lowerCaseName).getOID();
+            } catch (UnknownSchemaElementException ignore) {
+                // try next schema element
+            }
+            try {
+                return getDITContentRule(lowerCaseName).getStructuralClassOID();
+            } catch (UnknownSchemaElementException ignore) {
+                // try next schema element
+            }
+            try {
+                return getMatchingRuleUse(lowerCaseName).getMatchingRuleOID();
             } catch (UnknownSchemaElementException ignore) {
                 // try next schema element
             }
