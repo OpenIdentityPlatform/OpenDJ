@@ -158,16 +158,16 @@ class StatsThread extends Thread {
         @Override
         MultiColumnPrinter createPrinter() {
             final List<MultiColumnPrinter.Column> columns = new ArrayList<>();
-            columns.add(column(TIME_NOW, "time", 3));
-            columns.add(column(RECENT_THROUGHPUT, "recent throughput", 1));
-            columns.add(column(AVERAGE_THROUGHPUT, "average throughput", 1));
-            columns.add(column(RECENT_RESPONSE_TIME_MS, "recent response time", 3));
-            columns.add(column(AVERAGE_RESPONSE_TIME_MS, "average response time", 3));
+            columns.add(column(TIME_NOW, "Time (seconds)", 3));
+            columns.add(column(RECENT_THROUGHPUT, "Recent throughput (ops/second)", 1));
+            columns.add(column(AVERAGE_THROUGHPUT, "Average throughput (ops/second)", 1));
+            columns.add(column(RECENT_RESPONSE_TIME_MS, "Recent response time (milliseconds)", 3));
+            columns.add(column(AVERAGE_RESPONSE_TIME_MS, "Average response time (milliseconds)", 3));
             for (double percentile : percentiles) {
                 columns.add(column(
-                        PERCENTILES + percentile, percentile + "% response time", 2));
+                        PERCENTILES + percentile, percentile + "% response time (milliseconds)", 2));
             }
-            columns.add(column(ERROR_PER_SECOND, "errors/second", 1));
+            columns.add(column(ERROR_PER_SECOND, "Errors/second", 1));
             columns.addAll(registerAdditionalColumns());
 
 
