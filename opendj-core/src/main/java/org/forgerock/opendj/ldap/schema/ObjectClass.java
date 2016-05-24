@@ -724,7 +724,11 @@ public final class ObjectClass extends AbstractSchemaElement {
      *         <code>false</code> if not.
      */
     public boolean isOptional(final AttributeType attributeType) {
-        return optionalAttributes.contains(attributeType);
+        // In theory, attribute types not defined in the schema (i.e place holder attributes) should
+        // not be considered as optional.
+        // However, in practice, some parts of the server have historically relied on non-defined
+        // attributes to behave properly.
+        return isExtensibleObject || optionalAttributes.contains(attributeType);
     }
 
     /**

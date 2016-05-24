@@ -958,7 +958,7 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
     }
 
     @Test
-    public void testExtensibleObjectAcceptsAnyAttributeButNotPlaceholderAttribute() throws Exception {
+    public void testExtensibleObjectAcceptsAnyAttributeIncludingPlaceholderAttribute() throws Exception {
         // @formatter:off
         final Entry e2 = newEntry(
                 "dn: dc=example,dc=com",
@@ -979,7 +979,7 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
             "o: example",
             "dummy: unknown attribute!!");
         // @formatter:on
-        assertDoesNotConformToSchema(e, defaultPolicy());
+        assertConformsToSchema(e, defaultPolicy());
     }
 
     /**

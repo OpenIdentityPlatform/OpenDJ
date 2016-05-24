@@ -30,19 +30,19 @@ import org.testng.annotations.Test;
 public class ObjectClassTestCase extends AbstractSchemaTestCase {
 
     @Test
-    public void extensibleObjectShouldNotAcceptPlaceholderAttribute() {
+    public void extensibleObjectShouldAcceptPlaceholderAttribute() {
         Schema schema = getCoreSchema();
         ObjectClass extensibleObject = schema.getObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
 
-        AttributeType dummy = schema.getAttributeType("dummy");
-        assertThat(dummy.isPlaceHolder()).isTrue();
-        assertThat(extensibleObject.isRequired(dummy)).isFalse();
-        assertThat(extensibleObject.isOptional(dummy)).isFalse();
-        assertThat(extensibleObject.isRequiredOrOptional(dummy)).isFalse();
+        AttributeType attributeType = schema.getAttributeType("dummy");
+        assertThat(attributeType.isPlaceHolder()).isTrue();
+        assertThat(extensibleObject.isRequired(attributeType)).isFalse();
+        assertThat(extensibleObject.isOptional(attributeType)).isTrue();
+        assertThat(extensibleObject.isRequiredOrOptional(attributeType)).isTrue();
     }
 
     @Test
-    public void extensibleObjectShouldAcceptAnyAttributeInTheSchema() {
+    public void extensibleObjectShouldAcceptAnyAttribute() {
         Schema schema = getCoreSchema();
         ObjectClass extensibleObject = schema.getObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
 
