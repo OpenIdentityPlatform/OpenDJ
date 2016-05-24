@@ -836,9 +836,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         // Validate the first non-whitespace character.
         ASCIICharProp cp = ASCIICharProp.valueOf(c);
         if (cp == null) {
-            final LocalizableMessage message =
-                    ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription, c, i);
-            throw new LocalizedIllegalArgumentException(message);
+            throw illegalCharacter(attributeDescription, i, c);
         }
 
         // Mark the attribute type start position.
@@ -854,10 +852,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
                 cp = ASCIICharProp.valueOf(c);
                 if (cp == null || !cp.isKeyChar(allowMalformedNamesAndOptions)) {
-                    final LocalizableMessage message =
-                            ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription,
-                                    c, i);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw illegalCharacter(attributeDescription, i, c);
                 }
                 i++;
             }
@@ -873,20 +868,15 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                 }
 
                 cp = ASCIICharProp.valueOf(c);
-                if (cp == null || c != '.' && !cp.isDigit()) {
-                    final LocalizableMessage message =
-                            ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription,
-                                    c, i);
-                    throw new LocalizedIllegalArgumentException(message);
+                if (cp == null || (c != '.' && !cp.isDigit())) {
+                    throw illegalCharacter(attributeDescription, i, c);
                 }
                 i++;
             }
 
             // (charAt(i) == ';' || charAt(i) == ' ' || i == length)
         } else {
-            final LocalizableMessage message =
-                    ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription, c, i);
-            throw new LocalizedIllegalArgumentException(message);
+            throw illegalCharacter(attributeDescription, i, c);
         }
 
         // Skip trailing white space.
@@ -935,9 +925,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
             cp = ASCIICharProp.valueOf(c);
             if (cp == null || !cp.isKeyChar(allowMalformedNamesAndOptions)) {
-                final LocalizableMessage message =
-                        ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription, c, i);
-                throw new LocalizedIllegalArgumentException(message);
+                throw illegalCharacter(attributeDescription, i, c);
             }
 
             if (builder == null) {
@@ -1000,10 +988,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
                 cp = ASCIICharProp.valueOf(c);
                 if (cp == null || !cp.isKeyChar(allowMalformedNamesAndOptions)) {
-                    final LocalizableMessage message =
-                            ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription,
-                                    c, i);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw illegalCharacter(attributeDescription, i, c);
                 }
 
                 if (builder == null) {
@@ -1042,12 +1027,20 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             }
         }
 
-        return new AttributeDescription(attributeDescription, oid, attributeType,
-                normalizedOptions.size() > 1
-                    ? new MultiOptionImpl(options.toArray(new String[options.size()]),
-                            normalizedOptions.toArray(new String[normalizedOptions.size()]))
-                    : new SingleOptionImpl(options.get(0), normalizedOptions.first())
-        );
+        final Impl pimpl = normalizedOptions.size() > 1
+            ? new MultiOptionImpl(toArray(options), toArray(normalizedOptions))
+            : new SingleOptionImpl(options.get(0), normalizedOptions.first());
+        return new AttributeDescription(attributeDescription, oid, attributeType, pimpl);
+    }
+
+    private static String[] toArray(final Collection<String> col) {
+        return col.toArray(new String[col.size()]);
+    }
+
+    private static LocalizedIllegalArgumentException illegalCharacter(
+            final String attributeDescription, int i, char c) {
+        return new LocalizedIllegalArgumentException(
+                ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER.get(attributeDescription, c, i));
     }
 
     private final String attributeDescription;
