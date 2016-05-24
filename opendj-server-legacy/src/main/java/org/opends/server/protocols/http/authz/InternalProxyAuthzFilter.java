@@ -43,6 +43,7 @@ import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.http.HttpLogContext;
 import org.opends.server.protocols.http.LDAPContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -68,6 +69,7 @@ final class InternalProxyAuthzFilter implements Filter
   public final Promise<Response, NeverThrowsException> filter(Context context, Request request, Handler next)
   {
     final SecurityContext securityContext = context.asContext(SecurityContext.class);
+    context.asContext(HttpLogContext.class).setAuthUser(securityContext.getAuthenticationId());
     final LDAPContext ldapContext = context.asContext(LDAPContext.class);
     Connection tmp = null;
     try

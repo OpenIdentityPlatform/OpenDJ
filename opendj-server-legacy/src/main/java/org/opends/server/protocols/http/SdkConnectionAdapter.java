@@ -23,7 +23,6 @@ import static org.forgerock.opendj.ldap.spi.LdapPromiseImpl.*;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.forgerock.http.protocol.Status;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ByteString;
@@ -279,11 +278,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     {
       this.clientConnection.disconnect(DisconnectReason.UNBIND, false, null);
     }
-
-    // At this point, we try to log the request with OK status code.
-    // If it was already logged, it will be a no op.
-    this.clientConnection.log(Status.OK.getCode());
-
     isClosed = true;
   }
 

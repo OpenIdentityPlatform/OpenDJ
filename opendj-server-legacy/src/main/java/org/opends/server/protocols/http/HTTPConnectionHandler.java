@@ -909,6 +909,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     {
       return Handlers.chainOf(
           serverContext.getHTTPRouter(),
+          new HttpLogFilter(serverContext),
           new ExecuteInWorkerThreadFilter(),
           new AllowDenyFilter(currentConfig.getDeniedClient(), currentConfig.getAllowedClient()),
           new CommonAuditTransactionIdFilter(serverContext),

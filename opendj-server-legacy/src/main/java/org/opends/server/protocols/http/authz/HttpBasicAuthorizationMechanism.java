@@ -53,6 +53,7 @@ import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.ServerContext;
+import org.opends.server.protocols.http.HttpLogContext;
 import org.opends.server.protocols.http.LDAPContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -123,6 +124,7 @@ final class HttpBasicAuthorizationMechanism extends HttpAuthorizationMechanism<H
     @Override
     public Promise<SecurityContext, LdapException> authenticate(String username, String password, Context parentContext)
     {
+      parentContext.asContext(HttpLogContext.class).setAuthUser(username);
       try
       {
         final Entry userEntry = getMappedIdentity(username);
