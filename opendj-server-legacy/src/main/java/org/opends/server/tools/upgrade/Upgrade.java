@@ -633,7 +633,7 @@ public final class Upgrade
     };
   }
 
-    private static UpgradeTask convertJEBackendsToPDBBackends(final String objectClass) {
+  private static UpgradeTask convertJEBackendsToPDBBackends(final String objectClass) {
     return modifyConfigEntry(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_2_SUMMARY.get(),
         "(objectclass=" + objectClass + ")",
         "delete: objectclass",

@@ -1032,9 +1032,9 @@ public final class UpgradeTasks
 
   /**
    * Creates backups of the local DB backends directories by renaming adding them a ".bak" suffix.
-   *  e.g "userRoot" would become "userRoot.bak"
+   * e.g "userRoot" would become "userRoot.bak"
    *
-   *  @param backendObjectClass
+   * @param backendObjectClass
    *          The backend object class name.
    */
   static UpgradeTask renameLocalDBBackendDirectories(final String backendObjectClass)

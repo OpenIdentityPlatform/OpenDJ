@@ -42,6 +42,7 @@ final class AuthorizationFilter implements Filter {
             return Response.newResponsePromise(new Response(Status.FORBIDDEN));
         }
     };
+
     private final List<ConditionalFilter> filters;
 
     AuthorizationFilter(List<ConditionalFilter> filters) {

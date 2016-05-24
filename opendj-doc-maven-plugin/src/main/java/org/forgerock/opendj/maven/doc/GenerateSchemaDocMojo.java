@@ -180,6 +180,6 @@ public class GenerateSchemaDocMojo extends AbstractMojo {
     }
 
     private boolean isNullOrEmpty(final Locale locale) {
-        return locale == null || locale.getLanguage().equals("");
+        return locale == null || locale.getLanguage().isEmpty();
     }
 }

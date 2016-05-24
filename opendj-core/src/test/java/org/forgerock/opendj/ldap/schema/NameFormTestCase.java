@@ -11,9 +11,8 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.ArrayList;
@@ -742,14 +741,11 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
 
             // RequiredAttributes is accessible only after validate
             for (final AttributeType att : nf.getRequiredAttributes()) {
-                assertThat(
-                        att.getNameOrOID().contains("cn") || att.getNameOrOID().contains("sn")
-                                || att.getNameOrOID().contains("uid")).isTrue();
+                assertThat(att.getNameOrOID()).isIn("cn", "sn", "uid");
             }
             // OptionalAttributes is accessible only after validate
             for (final AttributeType att : nf.getOptionalAttributes()) {
-                assertThat(att.getNameOrOID().contains("owner") || att.getNameOrOID().contains("l"))
-                        .isTrue();
+                assertThat(att.getNameOrOID()).isIn("owner", "l");
             }
         }
     }
