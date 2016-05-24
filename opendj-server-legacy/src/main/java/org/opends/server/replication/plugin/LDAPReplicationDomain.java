@@ -63,6 +63,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -72,7 +73,6 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
@@ -736,7 +736,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
       String errorMsg = search.getResultCode().getName() + " " + search.getErrorMessage();
-      logger.error(ERR_SEARCHING_GENERATION_ID, errorMsg, getBaseDN());
+      logger.error(ERR_SEARCHING_GENERATION_ID, getBaseDN(), errorMsg);
       return false;
     }
 
@@ -3238,7 +3238,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       if (result != ResultCode.SUCCESS)
       {
-        logger.error(ERR_UPDATING_GENERATION_ID, result.getName(), getBaseDN());
+        logger.error(ERR_UPDATING_GENERATION_ID, getBaseDN(), result.getName());
       }
     }
     else
@@ -3282,7 +3282,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
       {
         String errorMsg = search.getResultCode().getName() + " " + search.getErrorMessage();
-        logger.error(ERR_SEARCHING_GENERATION_ID, errorMsg, getBaseDN());
+        logger.error(ERR_SEARCHING_GENERATION_ID, getBaseDN(), errorMsg);
       }
     }
     else
