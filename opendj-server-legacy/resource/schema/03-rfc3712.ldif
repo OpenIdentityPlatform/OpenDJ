@@ -11,6 +11,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2006-2010 Sun Microsystems, Inc.
+# Portions Copyright 2016 ForgeRock AS.
 
 # This file contains schema definitions from RFC 3712, which defines a
 # mechanism for storing printer information in the Directory Server.
@@ -58,7 +59,7 @@ attributeTypes: ( 1.3.18.0.2.4.1133 NAME 'printer-ipp-versions-supported'
   SYNTAX  1.3.6.1.4.1.1466.115.121.1.15{127} X-ORIGIN 'RFC 3712' )
 attributeTypes: ( 1.3.18.0.2.4.1132
   NAME 'printer-multiple-document-jobs-supported'
-  DESC 'Indicates whether or not this printer supports more than one document
+  DESC 'Indicates whether this printer supports more than one document
   per job.' EQUALITY booleanMatch SYNTAX  1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE X-ORIGIN 'RFC 3712' )
 attributeTypes: ( 1.3.18.0.2.4.1109 NAME 'printer-charset-configured'

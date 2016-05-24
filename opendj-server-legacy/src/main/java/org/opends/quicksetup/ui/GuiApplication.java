@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -268,7 +268,7 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Indicates whether or not the user is allowed to return to a previous
+   * Indicates whether the user is allowed to return to a previous
    * step from <code>step</code>.
    * @param step WizardStep for which the the return value indicates whether
    * or not the user can return to a previous step
@@ -280,7 +280,7 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Indicates whether or not the user is allowed to move to a new
+   * Indicates whether the user is allowed to move to a new
    * step from <code>step</code>.
    * @param step WizardStep for which the the return value indicates whether
    * or not the user can move to a new step
@@ -292,7 +292,7 @@ public abstract class GuiApplication extends Application {
   }
 
   /**
-   * Indicates whether or not the user is allowed to finish the wizard from
+   * Indicates whether the user is allowed to finish the wizard from
    * <code>step</code>.
    * @param step WizardStep for which the the return value indicates whether
    * or not the user can finish the wizard

@@ -101,7 +101,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
      * @param properties
      *            The managed object's properties.
      * @param existsOnServer
-     *            Indicates whether or not the managed object already exists.
+     *            Indicates whether the managed object already exists.
      * @param namingPropertyDefinition
      *            The managed object's naming property definition if there is
      *            one.

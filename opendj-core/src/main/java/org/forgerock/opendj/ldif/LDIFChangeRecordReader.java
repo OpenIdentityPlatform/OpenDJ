@@ -222,7 +222,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
     }
 
     /**
-     * Specifies whether or not all operational attributes should be excluded
+     * Specifies whether all operational attributes should be excluded
      * from any change records that are read from LDIF. The default is
      * {@code false}.
      *
@@ -238,7 +238,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
     }
 
     /**
-     * Specifies whether or not all user attributes should be excluded from any
+     * Specifies whether all user attributes should be excluded from any
      * change records that are read from LDIF. The default is {@code false}.
      *
      * @param excludeUserAttributes

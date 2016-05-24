@@ -602,8 +602,7 @@ public final class UpgradeTasks
    *
    * @param summary
    *          A message describing why the index needs to be rebuilt and asking
-   *          them whether or not they wish to perform this task after the
-   *          upgrade.
+   *          them whether they wish to perform this task after the upgrade.
    * @param indexNames
    *          The indexes to rebuild.
    * @return The rebuild index task.

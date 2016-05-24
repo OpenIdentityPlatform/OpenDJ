@@ -540,7 +540,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
 
   /**
-   * Indicates whether or not this application is capable of cancelling
+   * Indicates whether this application is capable of cancelling
    * the operation performed in the run method.  A cancellable operation
    * should leave its environment in the same state as it was prior to
    * running the operation (files deleted, changes backed out etc.).

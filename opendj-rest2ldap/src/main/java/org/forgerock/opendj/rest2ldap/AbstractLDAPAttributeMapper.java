@@ -83,8 +83,8 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
     }
 
     /**
-     * Indicates whether or not the LDAP attribute supports updates. The default
-     * is {@link WritabilityPolicy#READ_WRITE}.
+     * Indicates whether the LDAP attribute supports updates.
+     * The default is {@link WritabilityPolicy#READ_WRITE}.
      *
      * @param policy
      *            The writability policy.

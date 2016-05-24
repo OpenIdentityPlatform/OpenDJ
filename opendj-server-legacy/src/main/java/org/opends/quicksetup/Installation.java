@@ -359,7 +359,7 @@ public final class Installation
   }
 
   /**
-   * Indicates whether or not this installation appears to be an actual OpenDJ
+   * Indicates whether this installation appears to be an actual OpenDJ
    * installation.
    *
    * @param file

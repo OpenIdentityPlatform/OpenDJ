@@ -1772,7 +1772,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @param cfg
    *          The configuration to be tested.
    * @param isValid
-   *          Whether or not the provided configuration is valid.
+   *          Whether the provided configuration is valid.
    * @throws Exception
    *           If an unexpected exception occurred.
    */

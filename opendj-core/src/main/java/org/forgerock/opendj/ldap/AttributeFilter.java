@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -258,7 +258,7 @@ public final class AttributeFilter {
     }
 
     /**
-     * Specifies whether or not all operational attributes should be included in
+     * Specifies whether all operational attributes should be included in
      * filtered entries. By default operational attributes are not included.
      *
      * @param include
@@ -272,7 +272,7 @@ public final class AttributeFilter {
     }
 
     /**
-     * Specifies whether or not all user attributes should be included in
+     * Specifies whether all user attributes should be included in
      * filtered entries. By default user attributes are included.
      *
      * @param include
@@ -384,7 +384,7 @@ public final class AttributeFilter {
     }
 
     /**
-     * Specifies whether or not filtered attributes are to contain both
+     * Specifies whether filtered attributes are to contain both
      * attribute descriptions and values, or just attribute descriptions.
      *
      * @param typesOnly

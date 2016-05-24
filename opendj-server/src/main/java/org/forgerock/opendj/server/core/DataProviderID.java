@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -53,15 +53,10 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         return new DataProviderID(name, false /* user */);
     }
 
-    /**
-     * Flag indicating whether or not this ID represents an internal
-     * data provider.
-     */
+    /** Whether this ID represents an internal data provider. */
     private final boolean isInternal;
-
     /** The data provider name. */
     private final String name;
-
     /** The normalized name. */
     private final String normalizedName;
 
@@ -72,7 +67,6 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         this.isInternal = isInternal;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int compareTo(final DataProviderID o) {
         if (isInternal != o.isInternal) {
@@ -83,7 +77,6 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -106,14 +99,13 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         return name;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return normalizedName.hashCode();
     }
 
     /**
-     * Indicating whether or not this ID represents an internal data provider.
+     * Indicating whether this ID represents an internal data provider.
      *
      * @return <code>true</code> if this ID represents an internal data
      *         provider.
@@ -122,7 +114,6 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         return isInternal;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         if (isInternal) {

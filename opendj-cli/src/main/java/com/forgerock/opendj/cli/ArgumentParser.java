@@ -1280,8 +1280,7 @@ public class ArgumentParser implements ToolRefDocContainer {
     }
 
     /**
-     * Indicates whether or not argument group description headers should be
-     * printed.
+     * Indicates whether argument group description headers should be printed.
      *
      * @return boolean where true means print the descriptions
      */

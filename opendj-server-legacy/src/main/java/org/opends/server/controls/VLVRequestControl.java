@@ -193,7 +193,7 @@ public class VLVRequestControl
   /**
    * Creates a new VLV request control with the provided information.
    *
-   * @param  isCritical    Indicates whether or not the control is critical.
+   * @param  isCritical    Indicates whether the control is critical.
    * @param  beforeCount   The number of entries before the target offset to
    *                       retrieve in the results page.
    * @param  afterCount    The number of entries after the target offset to

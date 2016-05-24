@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -216,7 +216,7 @@ public interface LDAPConnectionImpl extends Closeable {
             ExtendedRequest<R> request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
-     * Indicates whether or not this connection has been explicitly closed by calling {@code close}. This method will
+     * Indicates whether this connection has been explicitly closed by calling {@code close}. This method will
      * not return {@code true} if a fatal error has occurred on the connection unless {@code close} has been called.
      *
      * @return {@code true} if this connection has been explicitly closed by calling {@code close}, or {@code false}

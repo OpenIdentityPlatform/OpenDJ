@@ -77,7 +77,7 @@ import org.forgerock.util.time.Duration;
 
 /** Provides core factory methods and builders for constructing LDAP resource collections. */
 public final class Rest2LDAP {
-    /** Indicates whether or not LDAP client connections should use SSL or StartTLS. */
+    /** Indicates whether LDAP client connections should use SSL or StartTLS. */
     private enum ConnectionSecurity {
         NONE, SSL, STARTTLS
     }

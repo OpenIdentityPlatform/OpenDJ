@@ -458,8 +458,7 @@ public abstract class Task implements Comparable<Task>
   }
 
   /**
-   * Indicates whether or not this task is an iteration of
-   * some recurring task.
+   * Indicates whether this task is an iteration of some recurring task.
    *
    * @return boolean where true indicates that this task is
    *         recurring, false otherwise.
@@ -470,7 +469,7 @@ public abstract class Task implements Comparable<Task>
   }
 
   /**
-   * Indicates whether or not this task has been cancelled.
+   * Indicates whether this task has been cancelled.
    *
    * @return boolean where true indicates that this task was
    *         cancelled either before or during execution
@@ -1071,7 +1070,7 @@ public abstract class Task implements Comparable<Task>
   }
 
   /**
-   * Indicates whether or not this task is interruptible or not.
+   * Indicates whether this task is interruptible or not.
    *
    * @return boolean where true indicates that this task can be interrupted.
    */

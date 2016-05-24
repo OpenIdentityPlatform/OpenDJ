@@ -935,7 +935,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
     }
 
     /**
-     * Determine whether or not this path contains any path elements.
+     * Determine whether this path contains any path elements.
      *
      * @return Returns <code>true</code> if this path does not contain any path
      *         elements.

@@ -151,7 +151,7 @@ public interface TestParentCfg extends Configuration {
     void removeTestChildDeleteListener(ConfigurationDeleteListener<TestChildCfg> listener);
 
     /**
-     * Determines whether or not the Optional Test Child exists.
+     * Determines whether the Optional Test Child exists.
      *
      * @return Returns <true> if the Optional Test Child exists.
      */

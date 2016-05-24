@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -88,7 +88,7 @@ public interface BindResult extends Result {
     boolean isReferral();
 
     /**
-     * Indicates whether or not the server requires the client to send a new
+     * Indicates whether the server requires the client to send a new
      * SASL Bind request with the same SASL mechanism in order to continue the
      * authentication process. This typically occurs during multi-stage
      * (challenge response) authentication.

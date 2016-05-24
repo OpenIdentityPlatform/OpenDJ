@@ -191,7 +191,7 @@ public final class SubentriesRequestControl implements Control {
     }
 
     /**
-     * Returns a boolean indicating whether or not sub-entries should be
+     * Returns a boolean indicating whether sub-entries should be
      * included in the search results.
      *
      * @return {@code true} if sub-entries should be included in the search

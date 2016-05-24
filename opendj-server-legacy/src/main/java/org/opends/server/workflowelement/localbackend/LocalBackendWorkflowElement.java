@@ -620,7 +620,7 @@ public class LocalBackendWorkflowElement
     final Entry fullEntry = entry.duplicate(true);
 
     // Even though the associated update succeeded,
-    // we should still check whether or not we should return the entry.
+    // we should still check whether we should return the entry.
     final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(fullEntry, null);
     if (getAccessControlHandler().maySend(operation, unfilteredSearchEntry))
     {
@@ -654,7 +654,7 @@ public class LocalBackendWorkflowElement
     }
 
     // Even though the associated update succeeded,
-    // we should still check whether or not we should return the entry.
+    // we should still check whether we should return the entry.
     final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(entry, null);
     if (getAccessControlHandler().maySend(operation, unfilteredSearchEntry))
     {

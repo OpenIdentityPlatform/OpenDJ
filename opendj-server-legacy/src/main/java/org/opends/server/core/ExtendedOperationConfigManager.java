@@ -282,7 +282,7 @@ public class ExtendedOperationConfigManager implements
     }
   }
 
-  /** Determines whether or not the new configuration's implementation class is acceptable. */
+  /** Determines whether the new configuration's implementation class is acceptable. */
   private boolean isJavaClassAcceptable(ExtendedOperationHandlerCfg config,
                                         List<LocalizableMessage> unacceptableReasons)
   {

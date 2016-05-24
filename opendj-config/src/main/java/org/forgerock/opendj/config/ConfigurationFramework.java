@@ -367,7 +367,7 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Specifies whether or not the configuration framework is being used within
+     * Specifies whether the configuration framework is being used within
      * a client application. Client applications will perform less property
      * value validation than server applications because they do not have
      * resources available such as the server schema.

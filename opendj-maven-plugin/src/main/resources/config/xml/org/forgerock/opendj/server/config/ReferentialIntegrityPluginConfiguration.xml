@@ -14,6 +14,7 @@
 
   Copyright 2007-2010 Sun Microsystems, Inc.
   Portions copyright 2011 profiq s.r.o.
+  Portions Copyright 2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="referential-integrity-plugin"
   plural-name="referential-integrity-plugins"
@@ -162,8 +163,7 @@
   </adm:property>
   <adm:property name="check-references">
     <adm:synopsis>
-      Specifies whether or not reference attributes must refer to existing
-      entries.
+      Specifies whether reference attributes must refer to existing entries.
     </adm:synopsis>
     <adm:description>
       When this property is set to true, this plugin will ensure that any new
@@ -216,7 +216,7 @@
   </adm:property>
   <adm:property name="check-references-scope-criteria">
     <adm:synopsis>
-      Specifies whether or not referenced entries must reside within the same
+      Specifies whether referenced entries must reside within the same
       naming context as the entry containing the reference.
     </adm:synopsis>
     <adm:description>

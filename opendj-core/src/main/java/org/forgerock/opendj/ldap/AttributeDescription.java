@@ -1089,8 +1089,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
-     * Indicates whether or not this attribute description contains the provided
-     * option.
+     * Indicates whether this attribute description contains the provided option.
      *
      * @param option
      *            The option for which to make the determination.
@@ -1177,7 +1176,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
-     * Indicates whether or not this attribute description has any options.
+     * Indicates whether this attribute description has any options.
      *
      * @return {@code true} if this attribute description has any options, or
      *         {@code false} if not.
@@ -1187,7 +1186,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
-     * Indicates whether or not this attribute description is the
+     * Indicates whether this attribute description is the
      * {@code objectClass} attribute description with no options.
      *
      * @return {@code true} if this attribute description is the
@@ -1219,7 +1218,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
-     * Indicates whether or not this attribute description is a sub-type of the
+     * Indicates whether this attribute description is a sub-type of the
      * provided attribute description as defined in RFC 4512 section 2.5.
      * Specifically, this method will return {@code true} if and only if the
      * following conditions are both {@code true}:
@@ -1246,7 +1245,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
-     * Indicates whether or not this attribute description is a super-type of
+     * Indicates whether this attribute description is a super-type of
      * the provided attribute description as defined in RFC 4512 section 2.5.
      * Specifically, this method will return {@code true} if and only if the
      * following conditions are both {@code true}:

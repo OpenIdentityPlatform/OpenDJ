@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -833,7 +833,7 @@ public interface Connection extends Closeable {
         IntermediateResponseHandler intermediateResponseHandler);
 
     /**
-     * Indicates whether or not this connection has been explicitly closed by
+     * Indicates whether this connection has been explicitly closed by
      * calling {@code close}. This method will not return {@code true} if a
      * fatal error has occurred on the connection unless {@code close} has been
      * called.

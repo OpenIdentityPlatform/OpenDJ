@@ -1542,7 +1542,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains an attribute type with the
+     * Indicates whether this schema contains an attribute type with the
      * specified name or numeric OID.
      *
      * @param nameOrOid
@@ -1555,7 +1555,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains a DIT content rule with the
+     * Indicates whether this schema contains a DIT content rule with the
      * specified name or numeric OID.
      *
      * @param nameOrOid
@@ -1568,7 +1568,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains a DIT structure rule with
+     * Indicates whether this schema contains a DIT structure rule with
      * the specified rule ID.
      *
      * @param ruleID
@@ -1581,7 +1581,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains a matching rule with the
+     * Indicates whether this schema contains a matching rule with the
      * specified name or numeric OID.
      *
      * @param nameOrOid
@@ -1594,7 +1594,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains a matching rule use with
+     * Indicates whether this schema contains a matching rule use with
      * the specified name or numeric OID.
      *
      * @param nameOrOid
@@ -1607,7 +1607,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains a name form with the
+     * Indicates whether this schema contains a name form with the
      * specified name or numeric OID.
      *
      * @param nameOrOid
@@ -1620,7 +1620,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains an object class with the
+     * Indicates whether this schema contains an object class with the
      * specified name or numeric OID.
      *
      * @param nameOrOid
@@ -1633,7 +1633,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema contains a syntax with the specified
+     * Indicates whether this schema contains a syntax with the specified
      * numeric OID.
      *
      * @param numericOID
@@ -1646,7 +1646,7 @@ public final class Schema {
     }
 
     /**
-     * Indicates whether or not this schema is strict.
+     * Indicates whether this schema is strict.
      * <p>
      * Attribute type queries against non-strict schema always succeed: if the
      * requested attribute type is not found then a temporary attribute type is

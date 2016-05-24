@@ -259,7 +259,7 @@ final class PropertyValueEditor {
         }
 
         /**
-         * Determines whether or not the default behavior is alias.
+         * Determines whether the default behavior is alias.
          *
          * @return Returns <code>true</code> if the default behavior is alias.
          */
@@ -268,7 +268,7 @@ final class PropertyValueEditor {
         }
 
         /**
-         * Determines whether or not the default behavior is defined.
+         * Determines whether the default behavior is defined.
          *
          * @return Returns <code>true</code> if the default behavior is defined.
          */
@@ -277,7 +277,7 @@ final class PropertyValueEditor {
         }
 
         /**
-         * Determines whether or not the default behavior is inherited.
+         * Determines whether the default behavior is inherited.
          *
          * @return Returns <code>true</code> if the default behavior is inherited.
          */
@@ -286,7 +286,7 @@ final class PropertyValueEditor {
         }
 
         /**
-         * Determines whether or not the default behavior is undefined.
+         * Determines whether the default behavior is undefined.
          *
          * @return Returns <code>true</code> if the default behavior is undefined.
          */
@@ -921,7 +921,7 @@ final class PropertyValueEditor {
         }
 
         /**
-         * Generate an appropriate menu option for a property which asks the user whether or not they want to keep the
+         * Generate an appropriate menu option for a property which asks the user whether they want to keep the
          * property's current settings.
          */
         private <T> LocalizableMessage getKeepDefaultValuesMenuOption(PropertyDefinition<T> pd,
@@ -1527,7 +1527,7 @@ final class PropertyValueEditor {
         }
 
         /**
-         * Generate an appropriate menu option for a property which asks the user whether or not they want to keep the
+         * Generate an appropriate menu option for a property which asks the user whether they want to keep the
          * property's current settings.
          */
         private <T> LocalizableMessage getKeepDefaultValuesMenuOption(PropertyDefinition<T> pd) {
@@ -1860,7 +1860,7 @@ final class PropertyValueEditor {
      * @param c
      *            The collection of properties which can be edited.
      * @param isCreate
-     *            Flag indicating whether or not the managed object is being created. If it is then read-only properties
+     *            Flag indicating whether the managed object is being created. If it is then read-only properties
      *            will be modifiable.
      * @return Returns {@code MenuResult.success()} if the changes made to the managed object should be applied, or
      *         {@code MenuResult.cancel()} if the user to chose to cancel any changes, or {@code MenuResult.quit()} if

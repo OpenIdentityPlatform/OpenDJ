@@ -404,7 +404,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   }
 
   /**
-   * Determines whether or not the new authentication policy configuration's
+   * Determines whether the new authentication policy configuration's
    * implementation class is acceptable.
    */
   private <T extends AuthenticationPolicyCfg> boolean isAuthenticationPolicyConfigurationAcceptable(

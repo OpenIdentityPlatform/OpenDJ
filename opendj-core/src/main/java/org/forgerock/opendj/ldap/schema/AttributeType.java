@@ -408,10 +408,10 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
     /** The syntax for this attribute type. */
     private Syntax syntax;
 
-    /** Indicates whether or not validation has been performed. */
+    /** Indicates whether validation has been performed. */
     private boolean needsValidating = true;
 
-    /** The indicates whether or not validation failed. */
+    /** The indicates whether validation failed. */
     private boolean isValid;
 
     private AttributeType(Builder builder) {
@@ -710,7 +710,7 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
     }
 
     /**
-     * Indicates whether or not this attribute type is the {@code objectClass}
+     * Indicates whether this attribute type is the {@code objectClass}
      * attribute type having the OID 2.5.4.0.
      *
      * @return {@code true} if this attribute type is the {@code objectClass}
@@ -772,7 +772,7 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
     }
 
     /**
-     * Indicates whether or not this attribute type is a sub-type of the
+     * Indicates whether this attribute type is a sub-type of the
      * provided attribute type.
      *
      * @param type
@@ -794,7 +794,7 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
     }
 
     /**
-     * Indicates whether or not this attribute type is a super-type of the
+     * Indicates whether this attribute type is a super-type of the
      * provided attribute type.
      *
      * @param type

@@ -744,7 +744,7 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
     }
 
     /**
-     * Indicates whether or not TLS is enabled on this connection.
+     * Indicates whether TLS is enabled on this connection.
      *
      * @return {@code true} if TLS is enabled on this connection, otherwise
      *         {@code false}.

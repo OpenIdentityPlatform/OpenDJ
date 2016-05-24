@@ -221,7 +221,7 @@ public final class EntryGenerator implements EntryReader {
      * The default is {@code true}.
      *
      * @param generateBranches
-     *              Indicates whether or not the branches DN entries has to be generated.
+     *              Indicates whether the branches DN entries has to be generated.
      * @return A reference to this {@code EntryGenerator}.
      */
     public EntryGenerator setGenerateBranches(boolean generateBranches) {

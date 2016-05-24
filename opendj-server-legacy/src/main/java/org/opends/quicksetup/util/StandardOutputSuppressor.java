@@ -64,7 +64,7 @@ public class StandardOutputSuppressor {
   }
 
   /**
-   * Checks whether or not this class has suppressed standard out streams.
+   * Checks whether this class has suppressed standard out streams.
    * @return boolean where true indicates output is suppressed
    */
   public static boolean isSuppressed() {

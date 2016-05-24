@@ -19,7 +19,7 @@ package com.forgerock.opendj.util;
 
 /**
  * A {@code ASCIICharProp} provides fast access to ASCII character properties.
- * In particular, the ability to query whether or not a character is a letter, a
+ * In particular, the ability to query whether a character is a letter, a
  * digit, hexadecimal character, as well as various methods for performing
  * character conversions.
  * <p>
@@ -208,7 +208,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
     }
 
     /**
-     * Indicates whether or not the char value associated with this
+     * Indicates whether the char value associated with this
      * {@code ASCIICharProp} is a decimal digit.
      *
      * @return {@code true} if the char value associated with this
@@ -219,7 +219,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
     }
 
     /**
-     * Indicates whether or not the char value associated with this
+     * Indicates whether the char value associated with this
      * {@code ASCIICharProp} is a hexadecimal digit.
      *
      * @return {@code true} if the char value associated with this
@@ -230,7 +230,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
     }
 
     /**
-     * Indicates whether or not the char value associated with this
+     * Indicates whether the char value associated with this
      * {@code ASCIICharProp} is a {@code keychar} as defined in RFC 4512. A
      * {@code keychar} is a letter, a digit, or a hyphen. When
      * {@code allowCompatChars} is {@code true} the following illegal characters
@@ -254,7 +254,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
     }
 
     /**
-     * Indicates whether or not the char value associated with this
+     * Indicates whether the char value associated with this
      * {@code ASCIICharProp} is a letter.
      *
      * @return {@code true} if the char value associated with this
@@ -265,7 +265,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
     }
 
     /**
-     * Indicates whether or not the char value associated with this
+     * Indicates whether the char value associated with this
      * {@code ASCIICharProp} is a lower-case character.
      *
      * @return {@code true} if the char value associated with this
@@ -276,7 +276,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
     }
 
     /**
-     * Indicates whether or not the char value associated with this
+     * Indicates whether the char value associated with this
      * {@code ASCIICharProp} is an upper-case character.
      *
      * @return {@code true} if the char value associated with this

@@ -279,7 +279,7 @@ public final class PasswordPolicyImportPlugin
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
     // Check if this entry is a password policy subentry
-    // and if so evaluate whether or not its acceptable.
+    // and if so evaluate whether it is acceptable.
     if ((entry.isSubentry() || entry.isLDAPSubentry()) &&
             entry.isPasswordPolicySubentry())
     {

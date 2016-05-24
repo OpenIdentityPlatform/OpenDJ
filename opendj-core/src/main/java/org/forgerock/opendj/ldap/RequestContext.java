@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2011-2012 ForgeRock AS.
+ * Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -19,7 +19,7 @@ package org.forgerock.opendj.ldap;
 /**
  * The context associated with a request currently being processed by a request
  * handler. A request context can be used to query state information about the
- * request, such as whether or not it has been cancelled, as well as registering
+ * request, such as whether it has been cancelled, as well as registering
  * to be notified if the request has been cancelled. Implementations may provide
  * additional information, such as the associated schema, time-stamp
  * information, etc.

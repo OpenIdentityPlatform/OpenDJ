@@ -31,8 +31,8 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
  * for any other purpose. In particular, an {@code Entry} may contain attributes
  * which have been decoded using different schemas.
  * <p>
- * When determining whether or not an entry already contains a particular
- * attribute, attribute descriptions will be compared using
+ * When determining whether an entry already contains a particular attribute,
+ * attribute descriptions will be compared using
  * {@link AttributeDescription#matches}.
  * <p>
  * Full LDAP modify semantics are provided via the {@link #addAttribute},

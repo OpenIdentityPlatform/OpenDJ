@@ -581,7 +581,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     }
 
     /**
-     * Determines whether or not the optional managed object associated with the
+     * Determines whether the optional managed object associated with the
      * specified optional relations exists.
      *
      * @param d
@@ -973,7 +973,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     }
 
     /**
-     * Determines whether or not this managed object can be used by the server.
+     * Determines whether this managed object can be used by the server.
      *
      * @throws ConstraintViolationException
      *             If one or more constraints determined that this managed

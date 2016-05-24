@@ -279,9 +279,9 @@ public class BackendStat
   /** The argument which should be used to specify the config file. */
   private StringArgument configFile;
 
-  /** Flag indicating whether or not the sub-commands have already been initialized. */
+  /** Flag indicating whether the sub-commands have already been initialized. */
   private boolean subCommandsInitialized;
-  /** Flag indicating whether or not the global arguments have already been initialized. */
+  /** Flag indicating whether the global arguments have already been initialized. */
   private boolean globalArgumentsInitialized;
 
   /**

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -29,7 +30,7 @@ package com.forgerock.opendj.util;
  */
 public interface Predicate<M, P> {
     /**
-     * Indicates whether or not this predicate matches the provided input value
+     * Indicates whether this predicate matches the provided input value
      * of type {@code M}.
      *
      * @param value

@@ -108,7 +108,7 @@ public final class Platform
     }
 
     /**
-     * Check whether or not, this key type is supported by the current JVM.
+     * Check whether this key type is supported by the current JVM.
      * @return true if this key type is supported, false otherwise.
      */
     public boolean isSupported()

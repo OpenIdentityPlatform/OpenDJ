@@ -1491,7 +1491,7 @@ public final class DirectoryServer
       startUpTime  = System.currentTimeMillis();
       startTimeUTC = TimeThread.getGMTTime();
 
-      // Determine whether or not we should start the connection handlers.
+      // Determine whether we should start the connection handlers.
       boolean startConnectionHandlers = !environmentConfig.disableConnectionHandlers();
 
       diskSpaceMonitor.startDiskSpaceMonitor();

@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2012 ForgeRock AS.
+  Copyright 2012-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="certificate-attribute-syntax"
   plural-name="certificate-attribute-syntaxes"
@@ -40,7 +40,7 @@
   </adm:property-override>
   <adm:property name="strict-format" advanced="true">
     <adm:synopsis>
-      Indicates whether or not X.509 Certificate values are required to
+      Indicates whether X.509 Certificate values are required to
       strictly comply with the standard definition for this syntax.
     </adm:synopsis>
     <adm:description>

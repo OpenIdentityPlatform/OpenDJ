@@ -492,7 +492,7 @@ public class UserData
   }
 
   /**
-   * Sets whether or not this session should print messages to the
+   * Sets whether this session should print messages to the
    * console if in CLI mode.
    * @param quiet where true indicates this session should be quiet
    */
@@ -501,10 +501,10 @@ public class UserData
   }
 
   /**
-   * Indicates whether or not the user has requested quiet mode.
+   * Indicates whether the user has requested quiet mode.
    * <p>
    * Quiet mode in the CLI means that nothing is written to output including
-   * prompts for information and whether or not to continue an operation
+   * prompts for information and whether to continue an operation
    * experiencing errors.
    *
    * @return boolean where true indicates this session should be quiet.
@@ -514,7 +514,7 @@ public class UserData
   }
 
   /**
-   * Sets whether or not this session should be verbose.
+   * Sets whether this session should be verbose.
    * @param verbose where true indicates this session should be verbose
    */
   public void setVerbose(boolean verbose) {
@@ -522,7 +522,7 @@ public class UserData
   }
 
   /**
-   * Indicates whether or not the user has requested verbose mode.
+   * Indicates whether the user has requested verbose mode.
    *
    * @return boolean where true indicates this session should be verbose.
    */
@@ -531,7 +531,7 @@ public class UserData
   }
 
   /**
-   * Sets whether or not we must continue when there is a non critical error.
+   * Sets whether we must continue when there is a non critical error.
    * @param forceOnError where true indicates to continue uninstall if there is
    * a non critical error.
    */
@@ -540,7 +540,7 @@ public class UserData
   }
 
   /**
-   * Indicates whether or not the user has requested to continue when a non
+   * Indicates whether the user has requested to continue when a non
    * critical error occurs.
    *
    * @return boolean where true indicates to continue uninstall if there is a
@@ -551,7 +551,7 @@ public class UserData
   }
 
   /**
-   * Indicates whether or not the user has requested interactive mode.
+   * Indicates whether the user has requested interactive mode.
    * <p>
    * Interactive mode in the CLI means that the CLI will prompt the user
    * for more information if it is required.  Interactivity does NOT

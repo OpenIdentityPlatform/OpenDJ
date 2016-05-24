@@ -122,7 +122,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         private Condition targetIsEnabledCondition = Conditions.TRUE;
 
         /**
-         * The condition which is used to determine whether or not
+         * The condition which is used to determine whether
          * referenced managed objects need to be enabled.
          */
         private Condition targetNeedsEnablingCondition = Conditions.TRUE;
@@ -174,12 +174,12 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         }
 
         /**
-         * Sets the condition which is used to determine whether or not
+         * Sets the condition which is used to determine whether
          * referenced managed objects need to be enabled. By default referenced
          * managed objects must always be enabled.
          *
          * @param condition
-         *            The condition which is used to determine whether or not
+         *            The condition which is used to determine whether
          *            referenced managed objects need to be enabled.
          */
         public final void setTargetNeedsEnablingCondition(Condition condition) {
@@ -694,7 +694,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
     private final Condition targetIsEnabledCondition;
 
     /**
-     * The condition which is used to determine whether or not
+     * The condition which is used to determine whether
      * referenced managed objects need to be enabled.
      */
     private final Condition targetNeedsEnablingCondition;
@@ -858,10 +858,10 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
     }
 
     /**
-     * Gets the condition which is used to determine whether or not referenced
+     * Gets the condition which is used to determine whether referenced
      * managed objects need to be enabled.
      *
-     * @return Returns the condition which is used to determine whether or not
+     * @return Returns the condition which is used to determine whether
      *         referenced managed objects need to be enabled.
      */
     public final Condition getTargetNeedsEnablingCondition() {

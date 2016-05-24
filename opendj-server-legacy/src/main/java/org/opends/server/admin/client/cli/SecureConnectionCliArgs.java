@@ -111,7 +111,7 @@ public final class SecureConnectionCliArgs
   }
 
   /**
-   * Indicates whether or not any of the arguments are present.
+   * Indicates whether any of the arguments are present.
    *
    * @return boolean where true indicates that at least one of the arguments is
    *         present

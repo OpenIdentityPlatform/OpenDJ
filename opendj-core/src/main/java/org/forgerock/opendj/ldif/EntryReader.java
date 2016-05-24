@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.Entry;
  * <p>
  * Implementations must specify the following:
  * <ul>
- * <li>Whether or not it is possible for the implementation to encounter
+ * <li>Whether it is possible for the implementation to encounter
  * malformed change records and, if it is possible, how they are handled.
  * <li>Any synchronization limitations.
  * </ul>

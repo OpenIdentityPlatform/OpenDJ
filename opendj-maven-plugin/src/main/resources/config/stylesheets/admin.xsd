@@ -403,8 +403,8 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not this property is multi-valued. By
-          default, properties are single-valued.
+          Indicates whether this property is multi-valued.
+          By default, properties are single-valued.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
@@ -412,8 +412,8 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not this property is read-only. By
-          default, properties are not read-only. Read-only properties
+          Indicates whether this property is read-only.
+          By default, properties are not read-only. Read-only properties
           can only be initialized during construction of the associated
           managed object and cannot be modified once the managed object
           has been created.
@@ -424,7 +424,7 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not this property is read-only and
+          Indicates whether this property is read-only and
           generated automatically by the server as monitoring
           information. By default, properties are not for monitoring.
           Monitoring properties are always read-only because their
@@ -437,7 +437,7 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not this property is mandatory. Mandatory
+          Indicates whether this property is mandatory. Mandatory
           properties are usually those properties which have no sensible
           default behavior and must, therefore, be specified by
           administrators. If a mandatory property has default values
@@ -450,7 +450,7 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not this property should be hidden from
+          Indicates whether this property should be hidden from
           client applications. Hidden properties should rarely be used
           but are sometimes required in order to provide functionality
           that needs to be exposed in management APIs but not in
@@ -462,7 +462,7 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not this property should be treated as an
+          Indicates whether this property should be treated as an
           advanced property and hidden by default in client
           applications. Advanced properties should either be optional
           (i.e. not mandatory) or be mandatory with default values. This
@@ -584,7 +584,7 @@
       <xsd:annotation>
         <xsd:documentation>
           Optionally override the advanced option defined in the
-          overridden property definition. Indicates whether or not this
+          overridden property definition. Indicates whether this
           property should be treated as an advanced property and hidden
           by default in client applications. Advanced properties should
           either be optional (i.e. not mandatory) or be mandatory with
@@ -797,9 +797,9 @@
               use="optional" default="false">
               <xsd:annotation>
                 <xsd:documentation>
-                  Indicates whether or not this relation contains
-                  unique members. If set to true then each
-                  referenced managed object must have a distinct type.
+                  Indicates whether this relation contains unique members.
+                  If set to true then each referenced managed object must
+                  have a distinct type.
                   In other words, there must not be more than one
                   referenced managed object having the same type. By
                   default, properties are single-valued.
@@ -888,7 +888,7 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not managed objects referenced by this
+          Indicates whether managed objects referenced by this
           relation should be treated as advanced and be hidden by
           default in client applications.
         </xsd:documentation>
@@ -898,7 +898,7 @@
       default="false">
       <xsd:annotation>
         <xsd:documentation>
-          Indicates whether or not this relation should be hidden from
+          Indicates whether this relation should be hidden from
           client applications. Hidden relations should rarely be used
           but are sometimes required in order to provide functionality
           that needs to be exposed in management APIs but not in
@@ -1265,7 +1265,7 @@
                     minOccurs="0">
                     <xsd:annotation>
                       <xsd:documentation>
-                        A condition which indicates whether or not
+                        A condition which indicates whether
                         referenced managed objects must be enabled. The
                         default behavior is that all referenced managed
                         objects must be enabled.
@@ -1281,7 +1281,7 @@
                     minOccurs="0">
                     <xsd:annotation>
                       <xsd:documentation>
-                        A condition which indicates whether or not
+                        A condition which indicates whether
                         referenced managed objects are enabled. Managed
                         objects are assumed to be enabled by default.
                       </xsd:documentation>
@@ -1456,7 +1456,7 @@
             use="optional" default="true">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this property supports a
+                Indicates whether this property supports a
                 special value representing infinity. This is useful
                 where properties are used to constrain some behavior and
                 the administrator wishes to remove the constraint (e.g.
@@ -1519,7 +1519,7 @@
             use="optional" default="false">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this property supports a
+                Indicates whether this property supports a
                 special value representing infinity. This is useful
                 where properties are used to constrain some behavior and
                 the administrator wishes to remove the constraint (e.g.
@@ -1597,7 +1597,7 @@
             use="optional" default="false">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this property supports a
+                Indicates whether this property supports a
                 special value representing infinity. This is useful
                 where properties are used to constrain some behavior and
                 the administrator wishes to remove the constraint (e.g.
@@ -1754,7 +1754,7 @@
             use="optional" default="true">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not values of this property should
+                Indicates whether values of this property should
                 be treated in a case-insensitive manner.
               </xsd:documentation>
             </xsd:annotation>
@@ -2008,10 +2008,9 @@
             use="optional" default="false">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this managed object is
-                abstract. Abstract managed objects cannot be
-                instantiated directly and are intended for use as base
-                definitions for inheritance.
+                Indicates whether this managed object is abstract.
+                Abstract managed objects cannot be instantiated directly
+                and are intended for use as base definitions for inheritance.
               </xsd:documentation>
             </xsd:annotation>
           </xsd:attribute>
@@ -2019,7 +2018,7 @@
             use="optional" default="false">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this managed object should be
+                Indicates whether this managed object should be
                 treated as advanced and therefore should be hidden by
                 default in client applications. This feature is not
                 inherited by child managed objects.
@@ -2030,7 +2029,7 @@
             default="false">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this managed object should be
+                Indicates whether this managed object should be
                 hidden from client applications. Hidden managed objects
                 should rarely be used but are sometimes required in
                 order to provide functionality that needs to be exposed
@@ -2042,7 +2041,7 @@
             use="optional">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this managed object inherits
+                Indicates whether this managed object inherits
                 from a parent managed object and, if so, the name of the
                 parent. If specified, this managed object will inherit
                 all of the properties and relations defined in the

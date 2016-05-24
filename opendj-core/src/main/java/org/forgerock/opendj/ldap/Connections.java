@@ -671,7 +671,7 @@ public final class Connections {
      * <p>
      * When processing requests, {@link RequestHandler} implementations are
      * passed a {@link RequestContext} as the first parameter which may be used
-     * for detecting whether or not the request should be aborted due to
+     * for detecting whether the request should be aborted due to
      * cancellation requests or other events, such as connection failure.
      * <p>
      * The returned factory maintains state information which includes a table
@@ -706,7 +706,7 @@ public final class Connections {
      * <p>
      * When processing requests, {@link RequestHandler} implementations are
      * passed a {@link RequestContext} as the first parameter which may be used
-     * for detecting whether or not the request should be aborted due to
+     * for detecting whether the request should be aborted due to
      * cancellation requests or other events, such as connection failure.
      * <p>
      * The returned factory maintains state information which includes a table

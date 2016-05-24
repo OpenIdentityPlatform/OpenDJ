@@ -4,7 +4,7 @@
     "ldapConnectionFactories" : {
         // Unauthenticated connections used for performing bind requests.
         "bind" : {
-            // Indicates whether or not LDAP connections should be secured using
+            // Indicates whether LDAP connections should be secured using
             // SSL or StartTLS. Acceptable values are:
             //
             // "none"     - use plain LDAP connections (default)

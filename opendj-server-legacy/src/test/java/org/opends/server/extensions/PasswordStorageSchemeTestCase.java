@@ -284,11 +284,11 @@ public abstract class PasswordStorageSchemeTestCase
 
 
   /**
-   * Sets whether or not to allow pre-encoded password values for the
+   * Sets whether to allow pre-encoded password values for the
    * current password storage scheme and returns the previous value so that
    * it can be restored.
    *
-   * @param allowPreencoded whether or not to allow pre-encoded passwords
+   * @param allowPreencoded whether to allow pre-encoded passwords
    * @return the previous value for the allow preencoded passwords
    */
   protected static boolean setAllowPreencodedPasswords(boolean allowPreencoded)

@@ -134,7 +134,7 @@ public class FileManager {
    * Move a file.
    * @param object File to move
    * @param newParent File representing new parent directory
-   * @param filter that will be asked whether or not the operation should be performed
+   * @param filter that will be asked whether the operation should be performed
    * @throws ApplicationException if something goes wrong
    */
   public void move(File object, File newParent, FileFilter filter)
@@ -160,7 +160,7 @@ public class FileManager {
   /**
    * Deletes a single file or directory.
    * @param object File to delete
-   * @param filter that will be asked whether or not the operation should be performed
+   * @param filter that will be asked whether the operation should be performed
    * @throws ApplicationException if something goes wrong
    */
   public void delete(File object, FileFilter filter)
@@ -292,7 +292,7 @@ public class FileManager {
   }
 
  /**
-  * Determines whether or not two files differ in content.
+  * Determines whether two files differ in content.
   *
   * @param f1 file to compare
   * @param f2 file to compare

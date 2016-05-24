@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
  * <ul>
  * <li>The <b>result code</b> can be retrieved using the method
  * {@link #getResultCode}. This indicates the overall outcome of the operation.
- * In particular, whether or not it succeeded which is indicated using a value
+ * In particular, whether it succeeded which is indicated using a value
  * of {@link ResultCode#SUCCESS}.
  * <li>The optional <b>diagnostic message</b> can be retrieved using the method
  * {@link #getDiagnosticMessage}. At the server's discretion, a diagnostic
@@ -114,7 +114,7 @@ public interface Result extends Response {
     ResultCode getResultCode();
 
     /**
-     * Indicates whether or not a referral needs to be chased in order to
+     * Indicates whether a referral needs to be chased in order to
      * complete the operation.
      * <p>
      * Specifically, this method returns {@code true} if the result code is
@@ -126,7 +126,7 @@ public interface Result extends Response {
     boolean isReferral();
 
     /**
-     * Indicates whether or not the request succeeded or not. This method will
+     * Indicates whether the request succeeded or not. This method will
      * return {code true} for all non-error responses.
      *
      * @return {@code true} if the request succeeded, otherwise {@code false}.

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Portions Copyright 2012-2014 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -85,7 +85,7 @@ public class LDAPURLTestCase extends TypesTestCase
    * @param filterString
    *          The filter string.
    * @param fullyDecode
-   *          Whether or not the URL should be fully decoded.
+   *          Whether the URL should be fully decoded.
    * @throws Exception
    *           If an unexpected exception occurred.
    */

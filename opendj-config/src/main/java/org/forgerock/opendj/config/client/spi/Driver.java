@@ -484,7 +484,7 @@ public abstract class Driver {
         LdapException;
 
     /**
-     * Determines whether or not the named managed object exists.
+     * Determines whether the named managed object exists.
      * <p>
      * Implementations should always return <code>true</code> when the provided
      * path is empty.

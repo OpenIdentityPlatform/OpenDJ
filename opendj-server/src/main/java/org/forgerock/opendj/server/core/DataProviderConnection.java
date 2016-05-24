@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2014 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -134,7 +134,7 @@ public interface DataProviderConnection extends RequestHandler<Operation> {
     void registerEventListener(DataProviderEventListener listener);
 
     /**
-     * Indicates whether or not the provided base DN in the underlying data
+     * Indicates whether the provided base DN in the underlying data
      * provider supports change notification.
      *
      * @param baseDN

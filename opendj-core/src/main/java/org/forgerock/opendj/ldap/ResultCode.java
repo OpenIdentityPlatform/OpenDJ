@@ -967,7 +967,7 @@ public final class ResultCode {
     }
 
     /**
-     * Indicates whether or not this result code represents an error result.
+     * Indicates whether this result code represents an error result.
      * <p>
      * The following result codes are NOT interpreted as error results:
      * <ul>

@@ -118,7 +118,7 @@ public final class PersistentSearch
   /** The set of change types to send to the client. */
   private final Set<PersistentSearchChangeType> changeTypes;
 
-  /** Indicates whether or not this persistent search has already been aborted. */
+  /** Indicates whether this persistent search has already been aborted. */
   private boolean isCancelled;
 
   /** Indicates whether entries returned should include the entry change notification control. */

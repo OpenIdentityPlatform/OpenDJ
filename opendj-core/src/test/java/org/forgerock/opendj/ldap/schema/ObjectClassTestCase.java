@@ -29,15 +29,15 @@ public class ObjectClassTestCase extends AbstractSchemaTestCase {
         Schema schema = getCoreSchema();
         ObjectClass extensibleObject = schema.getObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
 
-        AttributeType attributeType = schema.getAttributeType("dummy");
-        assertThat(attributeType.isPlaceHolder()).isTrue();
-        assertThat(extensibleObject.isRequired(attributeType)).isFalse();
-        assertThat(extensibleObject.isOptional(attributeType)).isFalse();
-        assertThat(extensibleObject.isRequiredOrOptional(attributeType)).isFalse();
+        AttributeType dummy = schema.getAttributeType("dummy");
+        assertThat(dummy.isPlaceHolder()).isTrue();
+        assertThat(extensibleObject.isRequired(dummy)).isFalse();
+        assertThat(extensibleObject.isOptional(dummy)).isFalse();
+        assertThat(extensibleObject.isRequiredOrOptional(dummy)).isFalse();
     }
 
     @Test
-    public void extensibleObjectShouldAcceptAnyValidAttribute() {
+    public void extensibleObjectShouldAcceptAnyAttributeInTheSchema() {
         Schema schema = getCoreSchema();
         ObjectClass extensibleObject = schema.getObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID);
 

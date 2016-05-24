@@ -108,7 +108,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         }
 
         /**
-         * Specify whether or not this property definition will allow unlimited
+         * Specify whether this property definition will allow unlimited
          * values (default is false).
          *
          * @param allowUnlimited

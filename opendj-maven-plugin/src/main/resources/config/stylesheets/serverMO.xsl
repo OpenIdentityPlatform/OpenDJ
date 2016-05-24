@@ -12,6 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2008 Sun Microsystems, Inc.
+  Portions Copyright 2016 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
@@ -132,7 +133,7 @@
       <xsl:when test="adm:one-to-zero-or-one">
         <xsl:value-of
           select="concat('  /**&#xa;',
-                       '   * Determines whether or not the ', $ufn,' exists.&#xa;',
+                       '   * Determines whether the ', $ufn,' exists.&#xa;',
                        '   *&#xa;',
                        '   * @return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
                        '   */&#xa;')" />

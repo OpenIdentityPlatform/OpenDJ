@@ -42,7 +42,7 @@ final class PropertyValuePrinter {
         private final SizeUnit sizeUnit;
         /** The requested time unit (null if the property's unit should be used). */
         private final DurationUnit timeUnit;
-        /** Whether or not values should be displayed in a script-friendly manner. */
+        /** Whether values should be displayed in a script-friendly manner. */
         private final boolean isScriptFriendly;
         /** The formatter to use for numeric values. */
         private final NumberFormat numberFormat;

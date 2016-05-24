@@ -273,10 +273,10 @@ public final class DITStructureRule extends AbstractSchemaElement {
     private NameForm nameForm;
     private Set<DITStructureRule> superiorRules = Collections.emptySet();
 
-    /** Indicates whether or not validation has been performed. */
+    /** Indicates whether validation has been performed. */
     private boolean needsValidating = true;
 
-    /** The indicates whether or not validation failed. */
+    /** The indicates whether validation failed. */
     private boolean isValid;
 
     DITStructureRule(final Builder builder) {

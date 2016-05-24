@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -452,7 +452,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest {
     DigestMD5SASLBindRequest setRealm(String realm);
 
     /**
-     * Specifies whether or not the server must authenticate to the client. The
+     * Specifies whether the server must authenticate to the client. The
      * default is {@code false}.
      *
      * @param serverAuth

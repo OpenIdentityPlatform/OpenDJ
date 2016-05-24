@@ -84,7 +84,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
   }
 
   /**
-   * Indicates whether or not the user has indicated that they would like to
+   * Indicates whether the user has indicated that they would like to
    * perform a remote operation based on the arguments.
    *
    * @return true if the user wants to perform a remote operation; false

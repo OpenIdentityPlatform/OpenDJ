@@ -394,10 +394,10 @@ public final class ObjectClass extends AbstractSchemaElement {
     private Set<AttributeType> declaredOptionalAttributes = emptySet();
     private Set<AttributeType> optionalAttributes = emptySet();
 
-    /** Indicates whether or not validation has been performed. */
+    /** Indicates whether validation has been performed. */
     private boolean needsValidating = true;
 
-    /** Indicates whether or not validation failed. */
+    /** Indicates whether validation failed. */
     private boolean isValid;
 
     /** Indicates whether this object class is the extensibleObject class. */

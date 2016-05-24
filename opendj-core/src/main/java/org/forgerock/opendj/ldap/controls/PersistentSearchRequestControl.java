@@ -180,13 +180,13 @@ public final class PersistentSearchRequestControl implements Control {
      *            without applying the semantics of this control, or
      *            {@code false} if it can be ignored
      * @param changesOnly
-     *            Indicates whether or not only updated entries should be
+     *            Indicates whether only updated entries should be
      *            returned (added, modified, deleted, or subject to a modifyDN
      *            operation). If this parameter is {@code false} then the search
      *            will initially return all the existing entries which match the
      *            filter.
      * @param returnECs
-     *            Indicates whether or not the entry change notification control
+     *            Indicates whether the entry change notification control
      *            should be included in updated entries that match the
      *            associated search criteria.
      * @param changeTypes
@@ -216,13 +216,13 @@ public final class PersistentSearchRequestControl implements Control {
      *            without applying the semantics of this control, or
      *            {@code false} if it can be ignored
      * @param changesOnly
-     *            Indicates whether or not only updated entries should be
+     *            Indicates whether only updated entries should be
      *            returned (added, modified, deleted, or subject to a modifyDN
      *            operation). If this parameter is {@code false} then the search
      *            will initially return all the existing entries which match the
      *            filter.
      * @param returnECs
-     *            Indicates whether or not the entry change notification control
+     *            Indicates whether the entry change notification control
      *            should be included in updated entries that match the
      *            associated search criteria.
      * @param changeTypes

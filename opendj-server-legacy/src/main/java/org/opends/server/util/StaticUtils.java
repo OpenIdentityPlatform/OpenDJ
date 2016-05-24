@@ -1257,7 +1257,7 @@ public final class StaticUtils
    *                        the determination.
    * @param  port           TCP port number of the TCP address for which to
    *                        make the determination.
-   * @param  allowReuse     Whether or not TCP address reuse is allowed when
+   * @param  allowReuse     Whether TCP address reuse is allowed when
    *                        making the determination.
    *
    * @return  {@code true} if the provided TCP address is already in
@@ -2162,8 +2162,7 @@ public final class StaticUtils
   }
 
   /**
-   * Indicates whether or not a string represents a syntactically correct
-   * email address.
+   * Indicates whether a string represents a syntactically correct email address.
    *
    * @param addr to validate
    * @return boolean where {@code true} indicates that the string is a

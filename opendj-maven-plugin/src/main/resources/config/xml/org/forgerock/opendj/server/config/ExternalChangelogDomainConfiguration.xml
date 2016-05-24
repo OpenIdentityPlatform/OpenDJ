@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2009 Sun Microsystems, Inc.
-  Portions copyright 2011-2015 ForgeRock AS.
+  Portions copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="external-changelog-domain"
   plural-name="external-changelog-domains"
@@ -50,7 +50,7 @@
   <adm:property name="ecl-include" multi-valued="true" mandatory="false">
     <adm:synopsis>
       Specifies a list of attributes which should be published with every
-      change log entry, regardless of whether or not the attribute itself
+      change log entry, regardless of whether the attribute itself
       has changed.
     </adm:synopsis>
     <adm:description>

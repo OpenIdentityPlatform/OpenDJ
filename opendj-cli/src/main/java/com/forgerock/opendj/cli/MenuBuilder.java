@@ -473,11 +473,11 @@ public final class MenuBuilder<T> {
     }
 
     /**
-     * Sets the flag which indicates whether or not the menu will permit multiple numeric options to be selected at
+     * Sets the flag which indicates whether the menu will permit multiple numeric options to be selected at
      * once. Users specify multiple choices by separating them with a comma. The default is <code>false</code>.
      *
      * @param allowMultiSelect
-     *            Indicates whether or not the menu will permit multiple numeric options to be selected at once.
+     *            Indicates whether the menu will permit multiple numeric options to be selected at once.
      */
     public void setAllowMultiSelect(boolean allowMultiSelect) {
         this.allowMultiSelect = allowMultiSelect;

@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2014 ForgeRock AS.
+  Copyright 2014-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="core-schema" plural-name="core-schemas"
   extends="schema-provider"
@@ -131,7 +131,7 @@
   </adm:property>
   <adm:property name="strict-format-country-string" advanced="true">
     <adm:synopsis>
-      Indicates whether or not country code values are required to
+      Indicates whether country code values are required to
       strictly comply with the standard definition for this syntax.
     </adm:synopsis>
     <adm:description>

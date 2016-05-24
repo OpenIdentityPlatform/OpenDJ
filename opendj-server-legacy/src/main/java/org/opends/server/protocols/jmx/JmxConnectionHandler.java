@@ -97,15 +97,12 @@ public final class JmxConnectionHandler extends
     this.connectionList = new CopyOnWriteArrayList<>();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       JMXConnectionHandlerCfg config) {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    // Determine whether or not the RMI connection needs restarting.
+    // Determine whether the RMI connection needs restarting.
     boolean rmiConnectorRestart = false;
     boolean portChanged = false;
 
@@ -172,7 +169,6 @@ public final class JmxConnectionHandler extends
     return o1 != null && !o1.equals(o2);
   }
 
-  /** {@inheritDoc} */
   @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason) {
     // Make sure that we don't get notified of any more changes.
@@ -265,9 +261,6 @@ public final class JmxConnectionHandler extends
     return rmiConnector;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getShutdownListenerName() {
     return connectionHandlerName;
@@ -286,9 +279,6 @@ public final class JmxConnectionHandler extends
     return currentConfig.getSSLCertNickname();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void initializeConnectionHandler(ServerContext serverContext, JMXConnectionHandlerCfg config)
          throws ConfigException, InitializationException
@@ -327,32 +317,21 @@ public final class JmxConnectionHandler extends
     config.addJMXChangeListener(this);
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getConnectionHandlerName() {
     return connectionHandlerName;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public String getProtocol() {
     return protocol;
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public Collection<HostPort> getListeners() {
     return listeners;
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
@@ -393,16 +372,15 @@ public final class JmxConnectionHandler extends
           new InetSocketAddress(newPort).getAddress(), newPort, true)) {
         throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
       }
+      return true;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONNHANDLER_CANNOT_BIND.get("JMX", configDN,
               WILDCARD_ADDRESS, newPort, getExceptionMessage(e));
       unacceptableReasons.add(message);
       return false;
     }
-    return true;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       JMXConnectionHandlerCfg config,
@@ -414,8 +392,7 @@ public final class JmxConnectionHandler extends
 
 
   /**
-   * Determines whether or not clients are allowed to connect over JMX
-   * using SSL.
+   * Determines whether clients are allowed to connect over JMX using SSL.
    *
    * @return Returns {@code true} if clients are allowed to
    *         connect over JMX using SSL.
@@ -424,9 +401,6 @@ public final class JmxConnectionHandler extends
     return currentConfig.isUseSSL();
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void processServerShutdown(LocalizableMessage reason) {
     // We should also close the RMI registry.
@@ -456,8 +430,6 @@ public final class JmxConnectionHandler extends
     connectionList.remove(connection);
   }
 
-
-  /** {@inheritDoc} */
   @Override
   public void run() {
     try
@@ -470,9 +442,6 @@ public final class JmxConnectionHandler extends
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer) {
     buffer.append(connectionHandlerName);

@@ -414,7 +414,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         /**
-         * Indicates whether or not TLS is enabled this provided connection.
+         * Indicates whether TLS is enabled this provided connection.
          *
          * @return {@code true} if TLS is enabled on this connection, otherwise
          *         {@code false}.

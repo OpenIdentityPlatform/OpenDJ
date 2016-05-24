@@ -181,7 +181,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
     }
 
     /**
-     * Specifies whether or not all operational attributes should be excluded
+     * Specifies whether all operational attributes should be excluded
      * from any entries that are read from LDIF. The default is {@code false}.
      *
      * @param excludeOperationalAttributes
@@ -196,7 +196,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
     }
 
     /**
-     * Specifies whether or not all user attributes should be excluded from any
+     * Specifies whether all user attributes should be excluded from any
      * entries that are read from LDIF. The default is {@code false}.
      *
      * @param excludeUserAttributes

@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.spi;
@@ -27,7 +28,7 @@ import org.forgerock.opendj.config.PropertyDefinition;
  * The property stores the values in a sorted set in which values are compared
  * using the comparator defined by the property definition.
  * <p>
- * The property keeps track of whether or not its pending set of values differs
+ * The property keeps track of whether its pending set of values differs
  * from its active values.
  *
  * @param <T>
@@ -80,7 +81,7 @@ public interface Property<T> {
     PropertyDefinition<T> getPropertyDefinition();
 
     /**
-     * Determines whether or not this property contains any pending values.
+     * Determines whether this property contains any pending values.
      *
      * @return Returns <code>true</code> if this property does not contain any
      *         pending values.
@@ -88,8 +89,8 @@ public interface Property<T> {
     boolean isEmpty();
 
     /**
-     * Determines whether or not this property has been modified since it was
-     * constructed. In other words, whether or not the set of pending values
+     * Determines whether this property has been modified since it was
+     * constructed. In other words, whether the set of pending values
      * differs from the set of active values.
      *
      * @return Returns <code>true</code> if this property has been modified
@@ -98,7 +99,7 @@ public interface Property<T> {
     boolean isModified();
 
     /**
-     * Determines whether or not this property contains any active values.
+     * Determines whether this property contains any active values.
      *
      * @return Returns <code>true</code> if this property does not contain any
      *         active values.

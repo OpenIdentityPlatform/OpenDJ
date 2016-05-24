@@ -73,14 +73,10 @@ public final class UpgradeCli extends ConsoleApplication implements
   private BooleanArgument verbose;
   private BooleanArgument acceptLicense;
 
-
   /** The argument which should be used to request usage information. */
   private BooleanArgument showUsageArgument;
 
-  /**
-   * Flag indicating whether or not the global arguments have
-   * already been initialized.
-   */
+  /** Flag indicating whether the global arguments have already been initialized. */
   private boolean globalArgumentsInitialized;
 
   private UpgradeCli(InputStream in, OutputStream out, OutputStream err)

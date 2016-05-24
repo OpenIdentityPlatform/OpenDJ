@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2007-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client;
@@ -76,7 +76,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
 
     /**
      * Adds this managed object to the server or commits any changes made to it
-     * depending on whether or not the managed object already exists on the
+     * depending on whether the managed object already exists on the
      * server. Pending property values will be committed to the managed object.
      * If successful, the pending values will become active values.
      * <p>
@@ -105,8 +105,8 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
             ConcurrentModificationException, OperationRejectedException, LdapException;
 
     /**
-     * Determines whether or not this managed object has been modified since it
-     * was constructed. In other words, whether or not the set of pending values
+     * Determines whether this managed object has been modified since it
+     * was constructed. In other words, whether the set of pending values
      * differs from the set of active values.
      *
      * @return Returns <code>true</code> if this managed object has been
@@ -442,7 +442,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
     <P> SortedSet<P> getPropertyValues(PropertyDefinition<P> pd);
 
     /**
-     * Determines whether or not the specified property is set. If the property
+     * Determines whether the specified property is set. If the property
      * is unset, then any default behavior associated with the property applies.
      *
      * @param pd
@@ -457,7 +457,7 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
     boolean isPropertyPresent(PropertyDefinition<?> pd);
 
     /**
-     * Determines whether or not the optional managed object associated with the
+     * Determines whether the optional managed object associated with the
      * specified optional relations exists.
      *
      * @param <C>

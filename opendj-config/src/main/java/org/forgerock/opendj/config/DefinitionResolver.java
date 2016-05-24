@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -44,7 +45,7 @@ package org.forgerock.opendj.config;
 public interface DefinitionResolver {
 
     /**
-     * Determines whether or not the provided managed object definition matches
+     * Determines whether the provided managed object definition matches
      * this resolver's criteria.
      *
      * @param d

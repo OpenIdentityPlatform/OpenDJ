@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.responses;
 
@@ -85,7 +85,7 @@ public interface CompareResult extends Result {
     boolean isSuccess();
 
     /**
-     * Indicates whether or not the attribute value assertion in the Compare
+     * Indicates whether the attribute value assertion in the Compare
      * request matched a value of the attribute or sub-type according to the
      * attribute's equality matching rule.
      * <p>

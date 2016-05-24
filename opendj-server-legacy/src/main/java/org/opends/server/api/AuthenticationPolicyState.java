@@ -206,7 +206,7 @@ public abstract class AuthenticationPolicyState
 
 
   /**
-   * A boolean indicating whether or not the account associated with this
+   * A boolean indicating whether the account associated with this
    * authentication state has been administratively disabled.
    */
   protected ConditionResult isDisabled = ConditionResult.UNDEFINED;

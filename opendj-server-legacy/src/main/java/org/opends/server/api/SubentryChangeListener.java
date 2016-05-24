@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -30,7 +30,7 @@ import org.opends.server.types.Entry;
  * <BR><BR>
  * Each change listener will be notified whenever an update is being
  * made to subentry in the server, so the listener should use a very
- * efficient mechanism for determining whether or not any action is
+ * efficient mechanism for determining whether any action is
  * required for the associated operation and quickly return for cases
  * in which the update is not applicable.
  * <BR><BR>

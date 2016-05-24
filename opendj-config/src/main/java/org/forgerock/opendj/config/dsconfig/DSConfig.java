@@ -803,14 +803,14 @@ public final class DSConfig extends ConsoleApplication {
     /** The factory which the application should use to retrieve its management context. */
     private LDAPManagementContextFactory factory;
 
-    /** Flag indicating whether or not the global arguments have already been initialized. */
+    /** Flag indicating whether the global arguments have already been initialized. */
     private boolean globalArgumentsInitialized;
 
     /** The sub-command handler factory. */
     private SubCommandHandlerFactory handlerFactory;
     /** Mapping of sub-commands to their implementations. */
     private final Map<SubCommand, SubCommandHandler> handlers = new HashMap<>();
-    /** Indicates whether or not a sub-command was provided. */
+    /** Indicates whether a sub-command was provided. */
     private boolean hasSubCommand = true;
 
     /** The command-line argument parser. */

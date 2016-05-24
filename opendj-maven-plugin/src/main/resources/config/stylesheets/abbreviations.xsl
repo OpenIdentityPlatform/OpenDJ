@@ -12,7 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2008-2009 Sun Microsystems, Inc.
-  Portions copyright 2011-2015 ForgeRock AS.
+  Portions copyright 2011-2016 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -21,8 +21,7 @@
     be converted to upper-case when used in applications (e.g. as Java names).
   -->
   <!--
-    Determines whether or not the provided word is a known abbreviation or
-    acronym.
+    Determines whether the provided word is a known abbreviation or acronym.
 
     @param value The word.
 

@@ -112,7 +112,7 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested interactive behavior. The default implementation returns
+     * Indicates whether the user has requested interactive behavior. The default implementation returns
      * {@code true}.
      *
      * @return {@code true} if the user has requested interactive behavior.
@@ -122,7 +122,7 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested quiet output. The default implementation returns {@code false}.
+     * Indicates whether the user has requested quiet output. The default implementation returns {@code false}.
      *
      * @return {@code true} if the user has requested quiet output.
      */
@@ -131,7 +131,7 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested script-friendly output. The default implementation returns
+     * Indicates whether the user has requested script-friendly output. The default implementation returns
      * {@code false}.
      *
      * @return {@code true} if the user has requested script-friendly output.
@@ -141,7 +141,7 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested verbose output. The default implementation returns {@code false}.
+     * Indicates whether the user has requested verbose output. The default implementation returns {@code false}.
      *
      * @return {@code true} if the user has requested verbose output.
      */
@@ -150,7 +150,7 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested advanced mode.
+     * Indicates whether the user has requested advanced mode.
      *
      * @return Returns <code>true</code> if the user has requested advanced mode.
      */
@@ -159,8 +159,8 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not this console application is running in its menu-driven mode. This can be used to dictate
-     * whether output should go to the error stream or not. In addition, it may also dictate whether or not sub-menus
+     * Indicates whether this console application is running in its menu-driven mode. This can be used to dictate
+     * whether output should go to the error stream or not. In addition, it may also dictate whether sub-menus
      * should display a cancel option as well as a quit option.
      *
      * @return Returns <code>true</code> if this console application is running in its menu-driven mode.

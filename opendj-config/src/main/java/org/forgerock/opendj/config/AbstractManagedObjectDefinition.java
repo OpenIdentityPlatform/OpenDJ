@@ -617,7 +617,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     }
 
     /**
-     * Determines whether or not this managed object definition has the
+     * Determines whether this managed object definition has the
      * specified option.
      *
      * @param option
@@ -630,7 +630,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     }
 
     /**
-     * Determines whether or not this managed object definition has the
+     * Determines whether this managed object definition has the
      * specified tag.
      *
      * @param t
@@ -643,7 +643,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     }
 
     /**
-     * Determines whether or not this managed object definition is a sub-type of
+     * Determines whether this managed object definition is a sub-type of
      * the provided managed object definition. This managed object definition is
      * a sub-type of the provided managed object definition if they are both the
      * same or if the provided managed object definition can be obtained by
@@ -665,7 +665,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     }
 
     /**
-     * Determines whether or not this managed object definition is a super-type
+     * Determines whether this managed object definition is a super-type
      * of the provided managed object definition. This managed object definition
      * is a super-type of the provided managed object definition if they are
      * both the same or if the provided managed object definition is a member of
@@ -681,8 +681,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     }
 
     /**
-     * Determines whether or not this managed object definition is the
-     * {@link TopCfgDefn}.
+     * Determines whether this managed object definition is the {@link TopCfgDefn}.
      *
      * @return Returns <code>true</code> if this managed object definition is
      *         the {@link TopCfgDefn}.

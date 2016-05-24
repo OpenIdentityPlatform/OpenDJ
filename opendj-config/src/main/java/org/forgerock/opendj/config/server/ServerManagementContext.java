@@ -533,7 +533,7 @@ public final class ServerManagementContext {
     }
 
     /**
-     * Determines whether or not the named managed object exists.
+     * Determines whether the named managed object exists.
      *
      * @param path
      *            The path of the named managed object.

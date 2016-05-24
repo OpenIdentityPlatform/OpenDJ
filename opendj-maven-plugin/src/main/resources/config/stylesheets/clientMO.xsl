@@ -12,7 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2008-2009 Sun Microsystems, Inc.
-  Portions Copyright 2014 ForgeRock AS.
+  Portions Copyright 2014-2016 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
@@ -115,7 +115,7 @@
         <xsl:call-template name="add-java-comment2">
           <xsl:with-param name="indent" select="2" />
           <xsl:with-param name="content"
-            select="concat('Determines whether or not the ', $ufn,' exists.&#xa;',
+            select="concat('Determines whether the ', $ufn,' exists.&#xa;',
                        '&#xa;',
                        '@return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',

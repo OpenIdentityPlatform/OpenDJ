@@ -426,7 +426,7 @@ public class Utils
    *
    * @param f
    *          File for which parentage will be insured
-   * @return boolean indicating whether or not the input <code>f</code> has a
+   * @return boolean indicating whether the input <code>f</code> has a
    *         parent after this method is invoked.
    */
   static boolean ensureParentsExist(File f)

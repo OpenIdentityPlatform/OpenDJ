@@ -141,7 +141,7 @@ public final class NameForm extends AbstractSchemaElement {
         }
 
         /**
-         * Specifies whether or not this schema element is obsolete.
+         * Specifies whether this schema element is obsolete.
          *
          * @param isObsolete
          *            {@code true} if this schema element is obsolete (default

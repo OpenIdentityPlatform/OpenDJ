@@ -93,7 +93,7 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
         }
     }
 
-    /** Indicates whether or not the headings should be output. */
+    /** Indicates whether the headings should be output. */
     private boolean displayHeadings;
 
     /** The output destination. */
@@ -121,7 +121,7 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
     }
 
     /**
-     * Specify whether or not table headings should be displayed.
+     * Specify whether table headings should be displayed.
      *
      * @param displayHeadings
      *            <code>true</code> if table headings should be displayed.

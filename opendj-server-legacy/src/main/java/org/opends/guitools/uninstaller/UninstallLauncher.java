@@ -169,9 +169,8 @@ public class UninstallLauncher extends Launcher {
   }
 
   /**
-   * Indicates whether or not the launcher should print a usage
-   * statement based on the content of the arguments passed into
-   * the constructor.
+   * Indicates whether the launcher should print a usage statement
+   * based on the content of the arguments passed into the constructor.
    * @return boolean where true indicates usage should be printed
    */
   protected boolean isNoPrompt() {

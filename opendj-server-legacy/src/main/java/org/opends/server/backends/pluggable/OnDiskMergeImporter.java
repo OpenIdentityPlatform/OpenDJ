@@ -494,7 +494,7 @@ final class OnDiskMergeImporter
     }
 
     /**
-     * Calculates the amount of available memory which can be used by this import, taking into account whether or not
+     * Calculates the amount of available memory which can be used by this import, taking into account whether
      * the import is running offline or online as a task.
      */
     private long calculateAvailableHeapMemoryForBuffers()

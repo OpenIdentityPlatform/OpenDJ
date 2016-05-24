@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -89,7 +89,7 @@ public class ControlPanelLog
   }
 
   /**
-   * Indicates whether or not the log file has been initialized.
+   * Indicates whether the log file has been initialized.
    * @return true when the log file has been initialized
    */
   public static boolean isInitialized() {

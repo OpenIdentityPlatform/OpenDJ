@@ -43,7 +43,7 @@ public interface ASN1Reader extends Closeable {
     void close() throws IOException;
 
     /**
-     * Indicates whether or not the next element can be read without blocking.
+     * Indicates whether the next element can be read without blocking.
      *
      * @return {@code true} if a complete element is available or {@code false}
      *         otherwise.
@@ -55,7 +55,7 @@ public interface ASN1Reader extends Closeable {
     boolean elementAvailable() throws DecodeException, IOException;
 
     /**
-     * Indicates whether or not the current stream, sequence, or set contains
+     * Indicates whether the current stream, sequence, or set contains
      * another element. Note that this method may return {@code true} even if a
      * previous call to {@link #elementAvailable} returned {@code false},
      * indicating that the current set or sequence contains another element but

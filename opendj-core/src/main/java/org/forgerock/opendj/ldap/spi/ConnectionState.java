@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -286,7 +286,7 @@ public final class ConnectionState {
     }
 
     /**
-     * Indicates whether or not this connection has been explicitly closed by
+     * Indicates whether this connection has been explicitly closed by
      * calling {@code close}. This method will not return {@code true} if a
      * fatal error has occurred on the connection unless {@code close} has been
      * called.

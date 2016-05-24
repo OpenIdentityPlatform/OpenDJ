@@ -99,7 +99,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * Called when this utility should perform its actions locally in this
    * JVM.
    *
-   * @param initializeServer indicates whether or not to initialize the
+   * @param initializeServer indicates whether to initialize the
    *        directory server in the case of a local action
    * @param out stream to write messages; may be null
    * @param err stream to write messages; may be null
@@ -223,7 +223,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * tool using the tasks interface based on user input.
    *
    * @param argParser used to parse user arguments
-   * @param initializeServer indicates whether or not to initialize the
+   * @param initializeServer indicates whether to initialize the
    *        directory server in the case of a local action
    * @param out stream to write messages; may be null
    * @param err stream to write messages; may be null

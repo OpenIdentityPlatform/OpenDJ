@@ -42,7 +42,7 @@ public abstract class ClientConstraintHandler {
     }
 
     /**
-     * Determines whether or not the newly created managed object which is about
+     * Determines whether the newly created managed object which is about
      * to be added to the server configuration satisfies this constraint.
      * <p>
      * If the constraint is not satisfied, the implementation must return
@@ -68,7 +68,7 @@ public abstract class ClientConstraintHandler {
     }
 
     /**
-     * Determines whether or not the changes to an existing managed object which
+     * Determines whether the changes to an existing managed object which
      * are about to be committed to the server configuration satisfies this
      * constraint.
      * <p>
@@ -95,7 +95,7 @@ public abstract class ClientConstraintHandler {
     }
 
     /**
-     * Determines whether or not the existing managed object which is about to
+     * Determines whether the existing managed object which is about to
      * be deleted from the server configuration satisfies this constraint.
      * <p>
      * If the constraint is not satisfied, the implementation must return

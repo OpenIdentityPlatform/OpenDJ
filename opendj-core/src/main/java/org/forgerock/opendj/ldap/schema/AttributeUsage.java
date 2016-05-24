@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -24,22 +25,15 @@ package org.forgerock.opendj.ldap.schema;
  *      Directory Access Protocol (v3): Attribute Syntax Definitions</a>
  */
 public enum AttributeUsage {
-    /**
-     * The attribute usage intended for user-defined attribute types.
-     */
+    /** The attribute usage intended for user-defined attribute types. */
     USER_APPLICATIONS("userApplications", false),
-
-    /**
-     * The attribute usage intended for standard operational attributes.
-     */
+    /** The attribute usage intended for standard operational attributes. */
     DIRECTORY_OPERATION("directoryOperation", true),
-
     /**
      * The attribute usage intended for non-standard operational attributes
      * shared among multiple DSAs.
      */
     DISTRIBUTED_OPERATION("distributedOperation", true),
-
     /**
      * The attribute usage intended for non-standard operational attributes used
      * by a single DSA.
@@ -49,10 +43,7 @@ public enum AttributeUsage {
     /** The string representation of this attribute usage. */
     private final String usageString;
 
-    /**
-     * Flag indicating whether or not the usage should be categorized as
-     * operational.
-     */
+    /** Flag indicating whether the usage should be categorized as operational. */
     private final boolean isOperational;
 
     /**
@@ -70,8 +61,7 @@ public enum AttributeUsage {
     }
 
     /**
-     * Determine whether or not attributes having this attribute usage are
-     * operational.
+     * Determine whether attributes having this attribute usage are operational.
      *
      * @return Returns <code>true</code> if attributes having this attribute
      *         usage are operational, or <code>false</code> otherwise.

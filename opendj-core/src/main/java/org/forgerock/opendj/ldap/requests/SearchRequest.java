@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2013 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -93,7 +93,7 @@ public interface SearchRequest extends Request {
     List<Control> getControls();
 
     /**
-     * Returns an indication as to whether or not alias entries are to be
+     * Returns an indication as to whether alias entries are to be
      * dereferenced during the search.
      *
      * @return The alias dereferencing policy.

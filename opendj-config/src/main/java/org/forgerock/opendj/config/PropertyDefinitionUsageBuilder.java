@@ -251,7 +251,7 @@ public final class PropertyDefinitionUsageBuilder {
      * Creates a new property usage builder.
      *
      * @param isDetailed
-     *            Indicates whether or not the generated usage should contain
+     *            Indicates whether the generated usage should contain
      *            detailed information such as constraints.
      */
     public PropertyDefinitionUsageBuilder(boolean isDetailed) {

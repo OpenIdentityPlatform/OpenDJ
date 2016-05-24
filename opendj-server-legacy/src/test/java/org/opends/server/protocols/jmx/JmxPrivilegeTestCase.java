@@ -311,7 +311,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
    * arguments generated for each method will be:
    * <OL>
    *   <LI>A client connection to use to perform the operation</LI>
-   *   <LI>A flag indicating whether or not the operation should succeed</LI>
+   *   <LI>A flag indicating whether the operation should succeed</LI>
    * </OL>
    *
    * @return  A set of data that can be used for performing the tests.

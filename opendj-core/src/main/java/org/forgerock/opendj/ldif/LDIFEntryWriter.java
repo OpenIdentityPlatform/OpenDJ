@@ -102,7 +102,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     }
 
     /**
-     * Specifies whether or not user-friendly comments should be added whenever
+     * Specifies whether user-friendly comments should be added whenever
      * distinguished names or UTF-8 attribute values are encountered which
      * contained non-ASCII characters. The default is {@code false}.
      *
@@ -117,7 +117,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     }
 
     /**
-     * Specifies whether or not all operational attributes should be excluded
+     * Specifies whether all operational attributes should be excluded
      * from any entries that are written to LDIF. The default is {@code false}.
      *
      * @param excludeOperationalAttributes
@@ -132,7 +132,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
     }
 
     /**
-     * Specifies whether or not all user attributes should be excluded from any
+     * Specifies whether all user attributes should be excluded from any
      * entries that are written to LDIF. The default is {@code false}.
      *
      * @param excludeUserAttributes

@@ -98,7 +98,7 @@ public final class DecodeException extends IOException implements LocalizableExc
     }
 
     /**
-     * Indicates whether or not the error was fatal and the associated input
+     * Indicates whether the error was fatal and the associated input
      * source can no longer be used.
      *
      * @return {@code true} if the error was fatal and the associated input

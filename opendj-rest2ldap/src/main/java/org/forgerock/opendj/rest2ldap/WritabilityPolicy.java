@@ -11,17 +11,13 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 
-/**
- * The writability policy determines whether or not an attribute supports
- * updates.
- */
+/** The writability policy determines whether an attribute supports updates. */
 public enum WritabilityPolicy {
     // @formatter:off
     /**

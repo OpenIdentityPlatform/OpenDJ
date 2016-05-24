@@ -279,10 +279,10 @@ public final class TextTablePrinter extends TablePrinter {
      */
     private String columnSeparator = DEFAULT_COLUMN_SEPARATOR;
 
-    /** Indicates whether or not the headings should be output. */
+    /** Indicates whether the headings should be output. */
     private boolean displayHeadings = true;
 
-    /** Table indicating whether or not a column is fixed width. */
+    /** Table indicating whether a column is fixed width. */
     private final Map<Integer, Integer> fixedColumns = new HashMap<>();
 
     /** The number of characters the table should be indented. */

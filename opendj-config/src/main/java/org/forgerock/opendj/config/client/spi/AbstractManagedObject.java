@@ -183,9 +183,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     private final ManagedObjectDefinition<T, ? extends Configuration> definition;
 
     /**
-     * Indicates whether or not this managed object exists on the server
-     * (false means the managed object is new and has not been
-     * committed).
+     * Indicates whether this managed object exists on the server
+     * (false means the managed object is new and has not been committed).
      */
     private boolean existsOnServer;
 
@@ -208,9 +207,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      * @param properties
      *            The managed object's properties.
      * @param existsOnServer
-     *            Indicates whether or not the managed object exists on the
-     *            server (false means the managed object is new and has not been
-     *            committed).
+     *            Indicates whether the managed object exists on the server
+     *            (false means the managed object is new and has not been committed).
      * @param namingPropertyDefinition
      *            Optional naming property definition.
      */
@@ -670,9 +668,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      * @param properties
      *            The managed object's properties.
      * @param existsOnServer
-     *            Indicates whether or not the managed object exists on the
-     *            server (false means the managed object is new and has not been
-     *            committed).
+     *            Indicates whether the managed object exists on the server
+     *            (false means the managed object is new and has not been committed).
      * @param namingPropertyDefinition
      *            Optional naming property definition.
      * @return Returns the new managed object.

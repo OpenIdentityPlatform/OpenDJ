@@ -22,8 +22,8 @@ import java.util.List;
 
 /**
  * A Search operation alias dereferencing policy as defined in RFC 4511 section
- * 4.5.1.3 is used to indicate whether or not alias entries (as defined in RFC
- * 4512) are to be dereferenced during stages of a Search operation. The act of
+ * 4.5.1.3 is used to indicate whether alias entries (as defined in RFC 4512)
+ * are to be dereferenced during stages of a Search operation. The act of
  * dereferencing an alias includes recursively dereferencing aliases that refer
  * to aliases.
  *

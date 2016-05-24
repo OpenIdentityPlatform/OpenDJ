@@ -365,7 +365,7 @@ public class TaskEntry {
   }
 
   /**
-   * Indicates whether or not this task supports a cancel operation.
+   * Indicates whether this task supports a cancel operation.
    *
    * @return boolean where true means this task supports being canceled.
    */
@@ -406,7 +406,7 @@ public class TaskEntry {
   }
 
   /**
-   * Indicates whether or not this task is done.
+   * Indicates whether this task is done.
    *
    * @return boolean where true means this task is done
    */

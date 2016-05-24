@@ -258,7 +258,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         }
 
         /**
-         * Specify whether or not this property definition will allow unlimited
+         * Specify whether this property definition will allow unlimited
          * values (default is false).
          *
          * @param allowUnlimited

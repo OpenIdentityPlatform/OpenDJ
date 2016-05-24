@@ -20,8 +20,8 @@ package org.opends.server.types;
  * This enumeration defines a policy that indicates how the server
  * should deal with SSL/TLS-based client connections.  It is used to
  * determine whether the server should request that clients provide
- * their own certificates, and whether or not to accept client
- * connections in which the client did not provide a certificate.
+ * their own certificates, and whether to accept client connections
+ * in which the client did not provide a certificate.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,

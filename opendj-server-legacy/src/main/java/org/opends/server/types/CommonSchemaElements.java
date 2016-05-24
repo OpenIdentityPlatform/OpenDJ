@@ -45,7 +45,7 @@ import static org.opends.server.util.StaticUtils.*;
  * <p>
  * Any methods which accesses the set of names associated with this
  * definition, will retrieve the primary name as the first name,
- * regardless of whether or not it was contained in the original set
+ * regardless of whether it was contained in the original set
  * of <code>names</code> passed to the constructor.
  * <p>
  * Where ordered sets of names, or extra properties are provided, the
