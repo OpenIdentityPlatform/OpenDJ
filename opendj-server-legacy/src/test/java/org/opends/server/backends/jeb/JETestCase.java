@@ -22,7 +22,7 @@ import org.forgerock.opendj.server.config.server.JEBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.testng.annotations.Test;
 
-/** JEBackend Tester. */
+/** {@link JEBackend} Tester. */
 @Test
 public class JETestCase extends PluggableBackendImplTestCase<JEBackendCfg>
 {

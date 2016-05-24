@@ -11,38 +11,28 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2016 ForgeRock AS.
  */
-
-package org.opends.server.backends.pluggable.pdb;
-
-import static org.mockito.Mockito.when;
-import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
+package org.opends.server.backends.pdb;
 
 import org.forgerock.opendj.server.config.server.PDBBackendCfg;
-import org.opends.server.backends.pdb.PDBBackend;
-import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.testng.annotations.Test;
 
-/** PDBBackend Tester. */
-@Test
-public class PDBTestCase extends PluggableBackendImplTestCase<PDBBackendCfg>
-{
-  @Override
-  protected PDBBackend createBackend()
-  {
-    return new PDBBackend();
-  }
+import static org.mockito.Mockito.when;
 
+/** Encrypted {@link PDBBackend} Tester. */
+@Test
+public class EncryptedPDBTestCase extends PDBTestCase
+{
   @Override
   protected PDBBackendCfg createBackendCfg()
   {
-    PDBBackendCfg backendCfg = mockCfg(PDBBackendCfg.class);
-    when(backendCfg.getBackendId()).thenReturn("PDBTestCase");
-    when(backendCfg.getDBDirectory()).thenReturn("PDBTestCase");
-    when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
-    when(backendCfg.getDBCacheSize()).thenReturn(0L);
-    when(backendCfg.getDBCachePercent()).thenReturn(20);
+    PDBBackendCfg backendCfg = super.createBackendCfg();
+    when(backendCfg.getBackendId()).thenReturn("EncPDBTestCase");
+    when(backendCfg.getDBDirectory()).thenReturn("EncPDBTestCase");
+    when(backendCfg.isConfidentialityEnabled()).thenReturn(true);
+    when(backendCfg.getCipherKeyLength()).thenReturn(128);
+    when(backendCfg.getCipherTransformation()).thenReturn("AES/CBC/PKCS5Padding");
     return backendCfg;
   }
 }

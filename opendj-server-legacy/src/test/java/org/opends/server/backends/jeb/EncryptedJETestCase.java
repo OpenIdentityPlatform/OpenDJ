@@ -13,7 +13,6 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.server.backends.jeb;
 
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
@@ -21,7 +20,7 @@ import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.when;
 
-/** Encrypted PDBBackend Tester. */
+/** Encrypted {@link JEBackend} Tester. */
 @Test
 public class EncryptedJETestCase extends JETestCase
 {
