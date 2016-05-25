@@ -136,8 +136,7 @@ import static org.opends.server.util.StaticUtils.*;
  @see org.opends.server.crypto.CryptoManagerSync
  @see org.opends.server.crypto.GetSymmetricKeyExtendedOperation
  */
-public class CryptoManagerImpl
-        implements ConfigurationChangeListener<CryptoManagerCfg>, CryptoManager
+public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoManagerCfg>, CryptoManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -1259,13 +1258,9 @@ public class CryptoManagerImpl
       return uuidBytes;
     }
 
-    /**
-     * Returns the {@code String} representation of this
-     * {@code KeyEntryID}.
-     * @return The {@code String} representation of this
-     * {@code KeyEntryID}.
-     */
-    public String getStringValue() {
+
+    @Override
+    public String toString() {
       return fValue.toString();
     }
 
@@ -1550,7 +1545,7 @@ public class CryptoManagerImpl
     {
       // Construct the key entry DN.
       ByteString distinguishedValue =
-           ByteString.valueOfUtf8(keyEntry.getKeyID().getStringValue());
+           ByteString.valueOfUtf8(keyEntry.getKeyID().toString());
       DN entryDN = secretKeysDN.child(
            new RDN(attrKeyID, distinguishedValue));
 
@@ -2020,7 +2015,7 @@ public class CryptoManagerImpl
     {
       // Construct the key entry DN.
       ByteString distinguishedValue =
-           ByteString.valueOfUtf8(keyEntry.getKeyID().getStringValue());
+           ByteString.valueOfUtf8(keyEntry.getKeyID().toString());
       DN entryDN = secretKeysDN.child(
            new RDN(attrKeyID, distinguishedValue));
 
@@ -2400,7 +2395,7 @@ public class CryptoManagerImpl
                                               keyLengthBits);
     }
 
-    return keyEntry.getKeyID().getStringValue();
+    return keyEntry.getKeyID().toString();
   }
 
   @Override

@@ -285,6 +285,7 @@ class ID2Entry extends AbstractTree
       }
       catch (CryptoManagerException cme)
       {
+        logger.traceException(cme);
         throw DecodeException.error(cme.getMessageObject());
       }
     }
