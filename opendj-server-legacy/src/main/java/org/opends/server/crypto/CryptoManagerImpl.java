@@ -1640,7 +1640,12 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       }
       getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
 
-      // Cache new entry.
+      // Cache new entry, make sure it is the only one using the given transformation / key length.
+      CipherKeyEntry oldKeyEntry = getKeyEntry(cryptoManager, transformation, secretKeyLengthBits);
+      if (oldKeyEntry != null)
+      {
+        cryptoManager.cipherKeyEntryCache.remove(oldKeyEntry.getKeyID());
+      }
       cryptoManager.cipherKeyEntryCache.put(keyEntry.getKeyID(), keyEntry);
 
       return keyEntry;
@@ -2097,7 +2102,12 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       // Validate new entry.
       getMacEngine(keyEntry);
 
-      // Cache new entry.
+      // Cache new entry, make sure it is the only one using the given transformation / key length.
+      MacKeyEntry oldKeyEntry = getKeyEntry(cryptoManager, algorithm, secretKeyLengthBits);
+      if (oldKeyEntry != null)
+      {
+        cryptoManager.macKeyEntryCache.remove(oldKeyEntry.getKeyID());
+      }
       cryptoManager.macKeyEntryCache.put(keyEntry.getKeyID(),
               keyEntry);
 
