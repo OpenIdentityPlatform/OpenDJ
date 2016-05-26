@@ -593,7 +593,6 @@ public final class Schema
     {
       exclusiveLock.unlock();
     }
-    rebuildDependentElements(existingAttributeType);
   }
 
   /**
@@ -1988,153 +1987,6 @@ public final class Schema
   }
 
   /**
-   * Recursively rebuilds all schema elements that are dependent upon
-   * the provided element.  This must be invoked whenever an existing
-   * schema element is modified in order to ensure that any elements
-   * that depend on it should also be recreated to reflect the change.
-   * <BR><BR>
-   * The following conditions create dependencies between schema
-   * elements:
-   * <UL>
-   *   <LI>If an attribute type references a superior attribute type,
-   *       then it is dependent upon that superior attribute
-   *       type.</LI>
-   *   <LI>If an objectclass requires or allows an attribute type,
-   *       then it is dependent upon that attribute type.</LI>
-   *   <LI>If a name form requires or allows an attribute type in the
-   *       RDN, then it is dependent upon that attribute type.</LI>
-   *   <LI>If a DIT content rule requires, allows, or forbids the use
-   *       of an attribute type, then it is dependent upon that
-   *       attribute type.</LI>
-   *   <LI>If a matching rule use references an attribute type, then
-   *       it is dependent upon that attribute type.</LI>
-   *   <LI>If an objectclass references a superior objectclass, then
-   *       it is dependent upon that superior objectclass.</LI>
-   *   <LI>If a name form references a structural objectclass, then it
-   *       is dependent upon that objectclass.</LI>
-   *   <LI>If a DIT content rule references a structural or auxiliary
-   *       objectclass, then it is dependent upon that
-   *       objectclass.</LI>
-   *   <LI>If a DIT structure rule references a name form, then it is
-   *       dependent upon that name form.</LI>
-   *   <LI>If a DIT structure rule references a superior DIT structure
-   *       rule, then it is dependent upon that superior DIT structure
-   *       rule.</LI>
-   * </UL>
-   *
-   * @param  element  The element for which to recursively rebuild all
-   *                  dependent elements.
-   *
-   * @throws  DirectoryException  If a problem occurs while rebuilding
-   *                              any of the schema elements.
-   */
-  public void rebuildDependentElements(SchemaElement element) throws DirectoryException
-  {
-    try
-    {
-      // increase the depth for each level of recursion to protect against errors due to circular references.
-      final int depth = 0;
-
-      if (element instanceof AttributeType)
-      {
-        rebuildDependentElements((AttributeType) element, depth);
-      }
-      else if (element instanceof ObjectClass)
-      {
-        rebuildDependentElements((ObjectClass) element, depth);
-      }
-      else if (element instanceof NameForm)
-      {
-        rebuildDependentElements((NameForm) element, depth);
-      }
-      else if (element instanceof DITStructureRule)
-      {
-        rebuildDependentElements((DITStructureRule) element, depth);
-      }
-    }
-    catch (DirectoryException de)
-    {
-      // If we got an error as a result of a circular reference, then
-      // we want to make sure that the schema element we call out is
-      // the one that is at the root of the problem.
-      if (StaticUtils.hasDescriptor(de.getMessageObject(),
-          ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE))
-      {
-        LocalizableMessage message =
-            ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(element);
-        throw new DirectoryException(de.getResultCode(), message, de);
-      }
-
-      // It wasn't a circular reference error, so just re-throw the exception.
-      throw de;
-    }
-  }
-
-  private void circularityCheck(int depth, SchemaElement element) throws DirectoryException
-  {
-    if (depth > 20)
-    {
-      // FIXME use a stack of already traversed elements and verify we're updating them only once instead of depth only
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(element));
-    }
-  }
-
-  private void rebuildDependentElements(AttributeType type, int depth) throws DirectoryException
-  {
-    circularityCheck(depth, null);
-
-    for (AttributeType at : schemaNG.getAttributeTypes())
-    {
-      if (type.equals(at.getSuperiorType()))
-      {
-        deregisterAttributeType(at);
-        registerAttributeType(at.toString(), getSchemaFileName(at), true);
-        rebuildDependentElements(at, depth + 1);
-      }
-    }
-
-    for (ObjectClass oc : schemaNG.getObjectClasses())
-    {
-      if (oc.getDeclaredRequiredAttributes().contains(type) || oc.getDeclaredOptionalAttributes().contains(type))
-      {
-        deregisterObjectClass(oc);
-        registerObjectClass(oc.toString(), getSchemaFile(oc), true);
-        rebuildDependentElements(oc, depth + 1);
-      }
-    }
-
-    for (NameForm nameForm : getNameForms())
-    {
-      if (nameForm.getRequiredAttributes().contains(type) || nameForm.getOptionalAttributes().contains(type))
-      {
-        deregisterNameForm(nameForm);
-        registerNameForm(nameForm.toString(), getSchemaFileName(nameForm), true);
-        rebuildDependentElements(nameForm, depth + 1);
-      }
-    }
-
-    for (DITContentRule dcr : getDITContentRules())
-    {
-      if (dcr.getRequiredAttributes().contains(type) || dcr.getOptionalAttributes().contains(type)
-          || dcr.getProhibitedAttributes().contains(type))
-      {
-        deregisterDITContentRule(dcr);
-        registerDITContentRule(dcr.toString(), getSchemaFileName(dcr), true);
-      }
-    }
-
-    for (MatchingRuleUse mru : schemaNG.getMatchingRuleUses())
-    {
-      if (mru.getAttributes().contains(type))
-      {
-        deregisterMatchingRuleUse(mru);
-        registerMatchingRuleUse(mru.toString(), getSchemaFileName(mru), true);
-      }
-    }
-  }
-
-  /**
    * Registers an object class from its provided definition.
    *
    * @param definition
@@ -2151,62 +2003,6 @@ public final class Schema
       throws DirectoryException
   {
     registerObjectClasses(Collections.singletonList(definition), schemaFile, overwriteExisting);
-  }
-
-  private void rebuildDependentElements(ObjectClass c, int depth) throws DirectoryException
-  {
-    circularityCheck(depth, c);
-
-    Collection<NameForm> mappedForms = getNameForm(c);
-    if (mappedForms != null)
-    {
-      for (NameForm nf : mappedForms)
-      {
-        if (nf != null)
-        {
-          deregisterNameForm(nf);
-          registerNameForm(nf.toString(), getSchemaFileName(nf), true);
-          rebuildDependentElements(nf, depth + 1);
-        }
-      }
-    }
-
-    for (DITContentRule dcr : getDITContentRules())
-    {
-      if (dcr.getStructuralClass().equals(c) || dcr.getAuxiliaryClasses().contains(c))
-      {
-        deregisterDITContentRule(dcr);
-        registerDITContentRule(dcr.toString(), getSchemaFileName(dcr), true);
-      }
-    }
-  }
-
-  private void rebuildDependentElements(NameForm n, int depth) throws DirectoryException
-  {
-    circularityCheck(depth, n);
-    DITStructureRule dsr = ditStructureRulesByNameForm.get(n);
-    if (dsr != null)
-    {
-      DITStructureRule newDSR = recreateFromDefinition(dsr);
-      deregisterDITStructureRule(dsr);
-      registerDITStructureRule(newDSR, true);
-      rebuildDependentElements(dsr, depth + 1);
-    }
-  }
-
-  private void rebuildDependentElements(DITStructureRule d, int depth) throws DirectoryException
-  {
-    circularityCheck(depth, d);
-    for (DITStructureRule dsr : ditStructureRulesByID.values())
-    {
-      if (dsr.getSuperiorRules().contains(d))
-      {
-        DITStructureRule newDSR = recreateFromDefinition(dsr);
-        deregisterDITStructureRule(dsr);
-        registerDITStructureRule(newDSR, true);
-        rebuildDependentElements(dsr, depth + 1);
-      }
-    }
   }
 
   private String getSchemaFileName(SchemaElement element)
@@ -2825,6 +2621,5 @@ public final class Schema
     {
       exclusiveLock.unlock();
     }
-    rebuildDependentElements(existingClass);
   }
 }

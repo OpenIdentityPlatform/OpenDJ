@@ -1528,7 +1528,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       String schemaFile = replaceExistingSchemaElement(
           modifiedSchemaFiles, new ServerSchemaElement(nameForm), new ServerSchemaElement(existingNF));
       schema.registerNameForm(nameForm, schemaFile, false);
-      schema.rebuildDependentElements(existingNF);
     }
   }
 
@@ -1741,7 +1740,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(ditContentRule),
           new ServerSchemaElement(existingDCR));
       schema.registerDITContentRule(ditContentRule, schemaFile, false);
-      schema.rebuildDependentElements(existingDCR);
     }
   }
 
@@ -1892,7 +1890,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       String schemaFile = replaceExistingSchemaElement(
           modifiedSchemaFiles, new ServerSchemaElement(ditStructureRule), new ServerSchemaElement(existingDSR));
       schema.registerDITStructureRule(ditStructureRule, schemaFile, false);
-      schema.rebuildDependentElements(existingDSR);
     }
   }
 
@@ -2167,9 +2164,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       String def = Schema.addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile);
       schema.registerLdapSyntaxDescription(def, false);
 
-      schema.rebuildDependentElements(existingLSD);
       String newSchemaFile = getSchemaFile(schema.getLdapSyntaxDescription(oid));
-
       if (oldSchemaFile != null)
       {
         modifiedSchemaFiles.add(oldSchemaFile);
