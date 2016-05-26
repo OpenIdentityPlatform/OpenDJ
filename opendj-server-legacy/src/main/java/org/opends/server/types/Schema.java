@@ -1211,31 +1211,33 @@ public final class Schema
     return schemaNG.getMatchingRuleUse(matchingRule);
   }
 
-
-
   /**
-   * Registers the provided matching rule use definition with this
-   * schema.
+   * Registers the provided matching rule use definition with this schema.
    *
-   * @param  matchingRuleUse    The matching rule use definition to
-   *                            register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another matching rule
-   *                            use with the same matching rule).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
+   * @param matchingRuleUse
+   *          The matching rule use definition to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another matching rule use with the same matching rule).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the {@code overwriteExisting} flag is set to
+   *           {@code false}
    */
-  public void registerMatchingRuleUse(MatchingRuleUse matchingRuleUse, boolean overwriteExisting)
-         throws DirectoryException
+  public void registerMatchingRuleUse(MatchingRuleUse matchingRuleUse, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
   {
     exclusiveLock.lock();
     try
     {
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
       Builder mruBuilder = builder.buildMatchingRuleUse(matchingRuleUse);
+      if (schemaFile != null)
+      {
+        mruBuilder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                  .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
       if (overwriteExisting)
       {
         mruBuilder.addToSchemaOverwrite();

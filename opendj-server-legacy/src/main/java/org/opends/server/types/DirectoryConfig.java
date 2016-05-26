@@ -349,22 +349,6 @@ public final class DirectoryConfig
   }
 
   /**
-   * Retrieves the matching rule use associated with the provided
-   * matching rule.
-   *
-   * @param  matchingRule  The matching rule for which to retrieve the
-   *                       matching rule use.
-   *
-   * @return  The matching rule use for the provided matching rule, or
-   *          <CODE>null</CODE> if none is defined.
-   */
-  public static MatchingRuleUse
-       getMatchingRuleUse(MatchingRule matchingRule)
-  {
-    return DirectoryServer.getMatchingRuleUse(matchingRule);
-  }
-
-  /**
    * Retrieves the DIT content rule associated with the specified
    * objectclass.
    *

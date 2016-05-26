@@ -2707,41 +2707,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Registers the provided matching rule use with the Directory Server.
-   *
-   * @param  matchingRuleUse    The matching rule use to register with the
-   *                            server.
-   * @param  overwriteExisting  Indicates whether to overwrite an existing
-   *                            mapping if there are any conflicts (i.e.,
-   *                            another matching rule use with the same matching
-   *                            rule).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag is set to
-   *                              <CODE>false</CODE>
-   */
-  public static void registerMatchingRuleUse(MatchingRuleUse matchingRuleUse,
-                                             boolean overwriteExisting)
-         throws DirectoryException
-  {
-    directoryServer.schema.registerMatchingRuleUse(matchingRuleUse,
-                                                   overwriteExisting);
-  }
-
-  /**
-   * Deregisters the provided matching rule use with the Directory Server.
-   *
-   * @param  matchingRuleUse  The matching rule use to deregister with the
-   *                          server.
-   * @throws DirectoryException
-   *            If the resulting schema contains warning.
-   */
-  public static void deregisterMatchingRuleUse(MatchingRuleUse matchingRuleUse) throws DirectoryException
-  {
-    directoryServer.schema.deregisterMatchingRuleUse(matchingRuleUse);
-  }
-
-  /**
    * Retrieves the DIT content rule associated with the specified objectclass.
    *
    * @param  objectClass  The objectclass for which to retrieve the associated

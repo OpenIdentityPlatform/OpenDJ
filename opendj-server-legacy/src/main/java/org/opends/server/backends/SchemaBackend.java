@@ -2441,15 +2441,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing matching rule use.
     if (existingMRU == null)
     {
-      schema.registerMatchingRuleUse(matchingRuleUse, false);
-      addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse));
+      schema.registerMatchingRuleUse(matchingRuleUse, schemaFile, false);
     }
     else
     {
       schema.deregisterMatchingRuleUse(existingMRU);
-      schema.registerMatchingRuleUse(matchingRuleUse, false);
-      replaceExistingSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse),
-          new ServerSchemaElement(existingMRU));
+      String schemaFile = replaceExistingSchemaElement(
+          modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse), new ServerSchemaElement(existingMRU));
+      schema.registerMatchingRuleUse(matchingRuleUse, schemaFile, false);
     }
   }
 
