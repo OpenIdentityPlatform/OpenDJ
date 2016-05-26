@@ -53,7 +53,7 @@
               <goal>generate-messages</goal>
             </goals>
             <configuration>
-              <resourceDirectory>${basedir}/src/main/java</resourceDirectory>
+              <resourceDirectory>${basedir}/src/main/resources</resourceDirectory>
               <messageFiles>
                 <messageFile>com/example/opendj/example_plugin.properties</messageFile>
               </messageFiles>
