@@ -52,7 +52,6 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
-import org.opends.server.types.HostPort;
 import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -372,11 +371,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     DN baseDN = DN.valueOf(firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING);
     replicationDomain = new FakeReplicationDomain(baseDN, DS2_ID, replicationServers, 1000, generationId);
 
-    // Test connection
     assertTrue(replicationDomain.isConnected());
-    // Check connected server port
-    String serverStr = replicationDomain.getReplicationServer();
-    assertEquals(HostPort.valueOf(serverStr).getPort(), replServerPort);
+    assertEquals(replicationDomain.getReplicationServer().getPort(), replServerPort);
   }
 
   private void initTest() throws Exception

@@ -68,7 +68,6 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.HostPort;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -318,11 +317,8 @@ public class AssuredReplicationServerTest
       fakeReplicationDomain.startListenService();
     }
 
-    // Test connection
     assertTrue(fakeReplicationDomain.isConnected());
-    // Check connected server port
-    HostPort rd = HostPort.valueOf(fakeReplicationDomain.getReplicationServer());
-    assertEquals(rd.getPort(), getRsPort(rsId));
+    assertEquals(fakeReplicationDomain.getReplicationServer().getPort(), getRsPort(rsId));
 
     return fakeReplicationDomain;
   }

@@ -31,7 +31,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.HostPort;
 import org.testng.annotations.Test;
 
 /**
@@ -128,7 +127,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
       // DS1 connected to RS1 ?
       // Check which replication server is connected to this LDAP server
-      rsPort = findReplServerConnected(rd1);
+      rsPort = rd1.getReplicationServer().getPort();
 
       if (rsPort == rs1Port)
       {
@@ -331,17 +330,5 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     replicationDomain.start();
 
     return replicationDomain;
-  }
-
-  private int findReplServerConnected(LDAPReplicationDomain rd)
-  {
-    // First check that the Replication domain is connected
-    if (!rd.isConnected())
-    {
-      return -1;
-    }
-
-    String serverStr = rd.getReplicationServer();
-    return HostPort.valueOf(serverStr).getPort();
   }
 }

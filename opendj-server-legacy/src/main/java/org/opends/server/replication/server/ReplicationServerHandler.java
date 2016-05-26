@@ -102,7 +102,7 @@ public class ReplicationServerHandler extends ServerHandler
   {
     final int port = HostPort.valueOf(serverURL).getPort();
     // Ensure correct formatting of IPv6 addresses by using a HostPort instance.
-    return new HostPort(session.getRemoteAddress(), port).toString();
+    return new HostPort(session.getRemoteAddress().getHost(), port).toString();
   }
 
   /**

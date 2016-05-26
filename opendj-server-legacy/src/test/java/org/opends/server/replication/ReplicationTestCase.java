@@ -61,7 +61,6 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
-import org.opends.server.types.HostPort;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.TestTimer;
@@ -550,17 +549,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       @Override
       public Void call() throws Exception
       {
-        assertEquals(DirectoryServer.entryExists(dn), exist);
+        assertEquals(DirectoryServer.entryExists(dn), exist, "Expected entry with dn \"" + dn + "\" would exist");
         return null;
       }
     });
 
     Entry entry = DirectoryServer.getEntry(dn);
-    if (entry != null)
-    {
-      return entry.duplicate(true);
-    }
-    return null;
+    return entry != null ? entry.duplicate(true) : null;
   }
 
   /** Update the monitor count for the specified monitor attribute. */
@@ -923,9 +918,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       boolean rightPort = false;
       if (connected)
       {
-        String rsUrl = rd.getReplicationServer();
         try {
-          rdPort = HostPort.valueOf(rsUrl).getPort();
+          rdPort = rd.getReplicationServer().getPort();
           rightPort = rdPort == rsPort;
         }
         catch (IllegalArgumentException notConnectedYet)

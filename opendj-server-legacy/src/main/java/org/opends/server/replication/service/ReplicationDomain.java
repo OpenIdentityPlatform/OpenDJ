@@ -83,6 +83,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.tasks.InitializeTargetTask;
 import org.opends.server.tasks.InitializeTask;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 
 /**
  * This class should be used as a base for Replication implementations.
@@ -2698,7 +2699,7 @@ public abstract class ReplicationDomain
    * @return the name of the replicationServer to which this domain
    *         is currently connected.
    */
-  public String getReplicationServer()
+  public HostPort getReplicationServer()
   {
     if (broker != null)
     {
@@ -3447,10 +3448,10 @@ public abstract class ReplicationDomain
    *
    * @return The local address.
    */
-  String getLocalUrl()
+  HostPort getLocalUrl()
   {
     final ReplicationBroker tmp = broker;
-    return tmp != null ? tmp.getLocalUrl() : "";
+    return tmp != null ? tmp.getLocalUrl() : ReplicationBroker.NO_CONNECTED_SERVER;
   }
 
   /**

@@ -12,13 +12,18 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
 import static org.opends.server.util.StaticUtils.*;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.CountDownLatch;
@@ -31,8 +36,9 @@ import java.util.zip.DataFormatException;
 
 import javax.net.ssl.SSLSocket;
 
-import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -48,17 +54,12 @@ public final class Session extends DirectoryThread implements Closeable
   private final OutputStream plainOutput;
   private final byte[] rcvLengthBuf = new byte[8];
   private final String readableRemoteAddress;
-  private final String remoteAddress;
-  private final String localUrl;
+  private final HostPort remoteAddress;
+  private final HostPort localUrl;
 
-  /**
-   * The time the last message published to this session.
-   */
+  /** The time the last message published to this session. */
   private volatile long lastPublishTime;
-
-  /**
-   * The time the last message was received on this session.
-   */
+  /** The time the last message was received on this session. */
   private volatile long lastReceiveTime;
 
   /**
@@ -129,11 +130,9 @@ public final class Session extends DirectoryThread implements Closeable
     this.plainOutput = plainSocket.getOutputStream();
     this.input = new BufferedInputStream(secureSocket.getInputStream());
     this.output = new BufferedOutputStream(secureSocket.getOutputStream());
-    this.readableRemoteAddress = plainSocket.getRemoteSocketAddress()
-        .toString();
-    this.remoteAddress = plainSocket.getInetAddress().getHostAddress();
-    this.localUrl = plainSocket.getLocalAddress().getHostName() + ":"
-        + plainSocket.getLocalPort();
+    this.readableRemoteAddress = plainSocket.getRemoteSocketAddress().toString();
+    this.remoteAddress = new HostPort(plainSocket.getInetAddress().getHostAddress(), plainSocket.getPort());
+    this.localUrl = new HostPort(plainSocket.getLocalAddress().getHostName(), plainSocket.getLocalPort());
   }
 
 
@@ -256,7 +255,7 @@ public final class Session extends DirectoryThread implements Closeable
    *
    * @return The local URL.
    */
-  public String getLocalUrl()
+  public HostPort getLocalUrl()
   {
     return localUrl;
   }
@@ -276,11 +275,11 @@ public final class Session extends DirectoryThread implements Closeable
 
 
   /**
-   * Retrieve the IP address of the remote server.
+   * Retrieve the IP address and port of the remote server.
    *
-   * @return The IP address of the remote server.
+   * @return The IP address and port of the remote server.
    */
-  public String getRemoteAddress()
+  public HostPort getRemoteAddress()
   {
     return remoteAddress;
   }
