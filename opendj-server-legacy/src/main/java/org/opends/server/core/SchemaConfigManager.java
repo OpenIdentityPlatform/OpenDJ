@@ -32,9 +32,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -47,8 +45,6 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.types.CommonSchemaElements.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -720,9 +716,10 @@ public class SchemaConfigManager
           // Register it with the schema.  We will allow duplicates, with the
           // later definition overriding any earlier definition, but we want
           // to trap them and log a warning.
+          String definition = v.toString();
           try
           {
-            schema.registerNameForm(v.toString(), schemaFile, failOnError);
+            schema.registerNameForm(definition, schemaFile, failOnError);
           }
           catch (DirectoryException de)
           {
@@ -732,7 +729,7 @@ public class SchemaConfigManager
 
             try
             {
-              schema.registerNameForm(v.toString(), schemaFile, true);
+              schema.registerNameForm(definition, schemaFile, true);
             }
             catch (Exception e)
             {
@@ -803,39 +800,13 @@ public class SchemaConfigManager
       {
         for (ByteString v : a)
         {
-          // Parse the DIT content rule.
-          DITStructureRule dsr;
-          try
-          {
-            dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, schema, false);
-            dsr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            setSchemaFile(dsr, schemaFile);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
-                    schemaFile, de.getMessageObject());
-            reportError(failOnError, de, message);
-            continue;
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
-                    schemaFile, v + ":  " + getExceptionMessage(e));
-            reportError(failOnError, e, message);
-            continue;
-          }
-
           // Register it with the schema.  We will allow duplicates, with the
           // later definition overriding any earlier definition, but we want
           // to trap them and log a warning.
+          String definition = v.toString();
           try
           {
-            schema.registerDITStructureRule(dsr, failOnError);
+            schema.registerDITStructureRule(definition, schemaFile, failOnError);
           }
           catch (DirectoryException de)
           {
@@ -845,7 +816,7 @@ public class SchemaConfigManager
 
             try
             {
-              schema.registerDITStructureRule(dsr, true);
+              schema.registerDITStructureRule(definition, schemaFile, true);
             }
             catch (Exception e)
             {

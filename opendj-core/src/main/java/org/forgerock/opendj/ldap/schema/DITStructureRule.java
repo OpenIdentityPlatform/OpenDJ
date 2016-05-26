@@ -14,7 +14,6 @@
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions copyright 2015-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static java.util.Arrays.*;
@@ -51,7 +50,7 @@ public final class DITStructureRule extends AbstractSchemaElement {
         private final Set<Integer> superiorRuleIDs = new LinkedHashSet<>();
 
         Builder(final DITStructureRule structureRule, final SchemaBuilder builder) {
-            super(builder);
+            super(builder, structureRule);
             this.ruleID = structureRule.ruleID;
             this.names.addAll(structureRule.names);
             this.isObsolete = structureRule.isObsolete;
@@ -252,7 +251,6 @@ public final class DITStructureRule extends AbstractSchemaElement {
             this.superiorRuleIDs.addAll(superiorRuleIDs);
             return this;
         }
-
     }
 
     /** The rule ID for this DIT structure rule. */
@@ -460,9 +458,8 @@ public final class DITStructureRule extends AbstractSchemaElement {
 
     boolean validate(final Schema schema, final List<DITStructureRule> invalidSchemaElements,
             final List<LocalizableMessage> warnings) {
-        // Avoid validating this schema element more than once. This may occur
-        // if
-        // multiple rules specify the same superior.
+        // Avoid validating this schema element more than once.
+        // This may occur if multiple rules specify the same superior.
         if (!needsValidating) {
             return isValid;
         }

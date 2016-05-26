@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse.Builder;
@@ -63,16 +64,13 @@ import org.forgerock.util.Option;
 import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -108,20 +106,6 @@ public final class Schema
    * its descendants.
    */
   private Map<AttributeType, List<AttributeType>> subordinateTypes;
-
-  /**
-   * The set of DIT structure rules for this schema, mapped between the name
-   * form for the definition and the DIT structure rule itself.
-   */
-  private ConcurrentHashMap<Integer,DITStructureRule>
-               ditStructureRulesByID;
-
-  /**
-   * The set of DIT structure rules for this schema, mapped between the name
-   * form for the definition and the DIT structure rule itself.
-   */
-  private ConcurrentHashMap<NameForm,DITStructureRule>
-               ditStructureRulesByNameForm;
 
   /**
    * The set of ldap syntax descriptions for this schema, mapped the OID and the
@@ -168,8 +152,6 @@ public final class Schema
   {
     switchSchema(schemaNG);
 
-    ditStructureRulesByID = new ConcurrentHashMap<Integer,DITStructureRule>();
-    ditStructureRulesByNameForm = new ConcurrentHashMap<NameForm,DITStructureRule>();
     ldapSyntaxDescriptions = new ConcurrentHashMap<String,LDAPSyntaxDescription>();
     subordinateTypes = new ConcurrentHashMap<AttributeType,List<AttributeType>>();
 
@@ -405,6 +387,36 @@ public final class Schema
   }
 
   /**
+   * Parses a DIT structure rule from its provided definition.
+   *
+   * @param definition
+   *          The definition of the DIT structure rule
+   * @return the DIT structure rule
+   * @throws DirectoryException
+   *           If an error occurs
+   */
+  public DITStructureRule parseDITStructureRule(String definition) throws DirectoryException
+  {
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.addDITStructureRule(definition, true);
+      org.forgerock.opendj.ldap.schema.Schema newSchema = builder.toSchema();
+      rejectSchemaWithWarnings(newSchema);
+      return newSchema.getDITStructureRule(parseRuleID(definition));
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      LocalizableMessage msg = ERR_NAME_FORM_CANNOT_REGISTER.get(definition);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+  }
+
+  /**
    * Registers a list of attribute types from their provided definitions.
    * <p>
    * This method allows to do only one schema change for multiple definitions,
@@ -595,27 +607,33 @@ public final class Schema
    */
   public String parseObjectClassOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_OBJECTCLASS_OID);
+    return parseOID(definition, ERR_PARSING_OBJECTCLASS_OID);
   }
 
   private String parseAttributeTypeOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_ATTRIBUTE_TYPE_OID);
+    return parseOID(definition, ERR_PARSING_ATTRIBUTE_TYPE_OID);
   }
 
   private String parseMatchingRuleUseOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_MATCHING_RULE_USE_OID);
+    return parseOID(definition, ERR_PARSING_MATCHING_RULE_USE_OID);
   }
 
   private String parseNameFormOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_NAME_FORM_OID);
+    return parseOID(definition, ERR_PARSING_NAME_FORM_OID);
   }
 
   private String parseDITContentRuleOID(String definition) throws DirectoryException
   {
-    return parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_DIT_CONTENT_RULE_OID);
+    return parseOID(definition, ERR_PARSING_DIT_CONTENT_RULE_OID);
+  }
+
+  private int parseRuleID(String definition) throws DirectoryException
+  {
+    // Reuse code of parseOID, even though this is not an OID
+    return Integer.parseInt(parseOID(definition, ERR_PARSING_DIT_STRUCTURE_RULE_RULEID));
   }
 
   /**
@@ -626,14 +644,12 @@ public final class Schema
    *
    * @param definition
    *          The definition of a schema element, assumed to be valid
-   * @param parsingErrorResultCode the result code to use if a problem occurs while parsing the definition
    * @param parsingErrorMsg the message to use if a problem occurs while parsing the definition
    * @return the OID, which is never {@code null}
    * @throws DirectoryException
    *           If a problem occurs while parsing the definition
    */
-  public static String parseOID(String definition, ResultCode parsingErrorResultCode, Arg1<Object> parsingErrorMsg)
-      throws DirectoryException
+  public static String parseOID(String definition, Arg1<Object> parsingErrorMsg) throws DirectoryException
   {
     try
     {
@@ -661,7 +677,7 @@ public final class Schema
     }
     catch (IndexOutOfBoundsException e)
     {
-      throw new DirectoryException(parsingErrorResultCode, parsingErrorMsg.get(definition), e);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, parsingErrorMsg.get(definition), e);
     }
   }
 
@@ -1608,38 +1624,15 @@ public final class Schema
 
 
   /**
-   * Retrieves the DIT structure rule definitions for this schema, as
-   * a mapping between the rule ID for the rule and the DIT structure
-   * rule itself.  Each DIT structure rule should only be present
-   * once, since its only key is its rule ID.  The contents of the
-   * returned mapping must not be altered.
+   * Retrieves the DIT structure rule definitions for this schema.
+   * The contents of the returned mapping must not be altered.
    *
-   * @return  The DIT structure rule definitions for this schema.
+   * @return The DIT structure rule definitions for this schema.
    */
-  public ConcurrentHashMap<Integer,DITStructureRule>
-              getDITStructureRulesByID()
+  public Collection<DITStructureRule> getDITStructureRules()
   {
-    return ditStructureRulesByID;
+    return schemaNG.getDITStuctureRules();
   }
-
-
-
-  /**
-   * Retrieves the DIT structure rule definitions for this schema, as
-   * a mapping between the name form for the rule and the DIT
-   * structure rule itself.  Each DIT structure rule should only be
-   * present once, since its only key is its name form.  The contents
-   * of the returned mapping must not be altered.
-   *
-   * @return  The DIT structure rule definitions for this schema.
-   */
-  public ConcurrentHashMap<NameForm,DITStructureRule>
-              getDITStructureRulesByNameForm()
-  {
-    return ditStructureRulesByNameForm;
-  }
-
-
 
   /**
    * Retrieves the DIT structure rule definition with the provided
@@ -1654,106 +1647,123 @@ public final class Schema
    */
   public DITStructureRule getDITStructureRule(int ruleID)
   {
-    return ditStructureRulesByID.get(ruleID);
+    return schemaNG.getDITStructureRule(ruleID);
+  }
+
+  /**
+   * Retrieves the DIT structure rule definitions for the provided name form.
+   *
+   * @param nameForm
+   *          The name form for the DIT structure rule to retrieve.
+   * @return The requested DIT structure rules, or {@code null} if no DIT structure rule is
+   *         registered with the provided name form.
+   */
+  public Collection<DITStructureRule> getDITStructureRules(NameForm nameForm)
+  {
+    return schemaNG.getDITStructureRules(nameForm);
   }
 
 
 
   /**
-   * Retrieves the DIT structure rule definition for the provided name
-   * form.
+   * Registers the provided DIT structure rule definition with this schema.
    *
-   * @param  nameForm  The name form for the DIT structure rule to
-   *                   retrieve.
-   *
-   * @return  The requested DIT structure rule, or <CODE>null</CODE>
-   *          if no DIT structure rule is registered with the provided
-   *          name form.
+   * @param ditStructureRule
+   *          The DIT structure rule to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another DIT structure rule with the same name form).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the {@code overwriteExisting} flag is set to
+   *           {@code false}
    */
-  public DITStructureRule getDITStructureRule(NameForm nameForm)
+  public void registerDITStructureRule(DITStructureRule ditStructureRule, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
   {
-    return ditStructureRulesByNameForm.get(nameForm);
-  }
-
-
-
-  /**
-   * Registers the provided DIT structure rule definition with this
-   * schema.
-   *
-   * @param  ditStructureRule   The DIT structure rule to register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another DIT structure
-   *                            rule with the same name form).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
-   */
-  public void registerDITStructureRule(
-                   DITStructureRule ditStructureRule,
-                   boolean overwriteExisting)
-         throws DirectoryException
-  {
-    synchronized (ditStructureRulesByNameForm)
+    exclusiveLock.lock();
+    try
     {
-      NameForm nameForm = ditStructureRule.getNameForm();
-      int      ruleID   = ditStructureRule.getRuleID();
-
-      if (! overwriteExisting)
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      DITStructureRule.Builder dsrBuilder = builder.buildDITStructureRule(ditStructureRule);
+      if (schemaFile != null)
       {
-        if (ditStructureRulesByNameForm.containsKey(nameForm))
-        {
-          DITStructureRule conflictingRule =
-               ditStructureRulesByNameForm.get(nameForm);
-
-          LocalizableMessage message =
-              ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_NAME_FORM.
-                get(ditStructureRule.getNameOrRuleID(),
-                    nameForm.getNameOrOID(),
-                    conflictingRule.getNameOrRuleID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        if (ditStructureRulesByID.containsKey(ruleID))
-        {
-          DITStructureRule conflictingRule =
-               ditStructureRulesByID.get(ruleID);
-
-          LocalizableMessage message =
-              ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID.
-                get(ditStructureRule.getNameOrRuleID(), ruleID,
-                    conflictingRule.getNameOrRuleID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
+        dsrBuilder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                  .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
       }
-
-      ditStructureRulesByNameForm.put(nameForm, ditStructureRule);
-      ditStructureRulesByID.put(ruleID, ditStructureRule);
+      if (overwriteExisting)
+      {
+        dsrBuilder.addToSchemaOverwrite();
+      }
+      else
+      {
+        dsrBuilder.addToSchema();
+      }
+      switchSchema(builder.toSchema());
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
-
+  /**
+   * Registers the provided DIT structure rule definition with this schema.
+   *
+   * @param definition
+   *          The definition of the DIT structure rule to register.
+   * @param schemaFile
+   *          The schema file where this definition belongs, maybe {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts
+   *          (i.e., another DIT structure rule with the same name form).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the {@code overwriteExisting} flag is set to
+   *           {@code false}
+   */
+  public void registerDITStructureRule(String definition, String schemaFile, boolean overwriteExisting)
+      throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
+      switchSchema(new SchemaBuilder(schemaNG)
+          .addDITStructureRule(definitionWithFile, overwriteExisting)
+          .toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
 
   /**
-   * Deregisters the provided DIT structure rule definition with this
-   * schema.
+   * Deregisters the provided DIT structure rule definition with this schema.
    *
-   * @param  ditStructureRule  The DIT structure rule to deregister
-   *                           with this schema.
+   * @param ditStructureRule
+   *          The DIT structure rule to deregister with this schema.
+   * @throws DirectoryException
+   *           If an error occurs.
    */
   public void deregisterDITStructureRule(
-                   DITStructureRule ditStructureRule)
+      DITStructureRule ditStructureRule) throws DirectoryException
   {
-    synchronized (ditStructureRulesByNameForm)
+    exclusiveLock.lock();
+    try
     {
-      ditStructureRulesByNameForm.remove(
-           ditStructureRule.getNameForm(), ditStructureRule);
-      ditStructureRulesByID.remove(ditStructureRule.getRuleID(),
-                                   ditStructureRule);
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeDITStructureRule(ditStructureRule.getRuleID());
+      switchSchema(builder.toSchema());
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
   }
 
@@ -2205,16 +2215,6 @@ public final class Schema
     return values != null && ! values.isEmpty() ? values.get(0) : null;
   }
 
-  private DITStructureRule recreateFromDefinition(DITStructureRule dsr)
-      throws DirectoryException
-  {
-    ByteString value = ByteString.valueOfUtf8(dsr.toString());
-    DITStructureRule copy =
-        DITStructureRuleSyntax.decodeDITStructureRule(value, this, false);
-    setSchemaFile(copy, getSchemaFile(dsr));
-    return copy;
-  }
-
   /**
    * Creates a new {@link Schema} object that is a duplicate of this one. It elements may be added
    * and removed from the duplicate without impacting this version.
@@ -2235,8 +2235,6 @@ public final class Schema
     }
 
     dupSchema.subordinateTypes.putAll(subordinateTypes);
-    dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
-    dupSchema.ditStructureRulesByNameForm.putAll(ditStructureRulesByNameForm);
     dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
     dupSchema.oldestModificationTime   = oldestModificationTime;
     dupSchema.youngestModificationTime = youngestModificationTime;
@@ -2663,18 +2661,6 @@ public final class Schema
     if (schemaNG != null)
     {
       schemaNG = null;
-    }
-
-    if (ditStructureRulesByID != null)
-    {
-      ditStructureRulesByID.clear();
-      ditStructureRulesByID = null;
-    }
-
-    if (ditStructureRulesByNameForm != null)
-    {
-      ditStructureRulesByNameForm.clear();
-      ditStructureRulesByNameForm = null;
     }
 
     if (subordinateTypes != null)

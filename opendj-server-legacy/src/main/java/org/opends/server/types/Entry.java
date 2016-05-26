@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -1652,10 +1653,13 @@ public class Entry
 
         if (validateStructureRules && nameForm != null)
         {
-          ditStructureRule = DirectoryServer.getDITStructureRule(nameForm);
-          if (ditStructureRule != null && ditStructureRule.isObsolete())
+          for (DITStructureRule ditRule : DirectoryServer.getSchema().getDITStructureRules(nameForm))
           {
-            ditStructureRule = null;
+            if (!ditRule.isObsolete())
+            {
+              ditStructureRule = ditRule;
+              break;
+            }
           }
         }
       }
@@ -2002,7 +2006,7 @@ public class Entry
   {
     // If there is a DIT structure rule for this entry, then make sure
     // that the entry is in compliance with it.
-    if (ditStructureRule != null && ditStructureRule.hasSuperiorRules())
+    if (ditStructureRule != null && !ditStructureRule.getSuperiorRules().isEmpty())
     {
       if (parentProvided)
       {
@@ -2166,23 +2170,22 @@ public class Entry
           {
             for(NameForm parentNF : allNFs)
             {
-              if (parentNF != null && !parentNF.isObsolete())
+              if (!parentNF.isObsolete())
               {
-                DITStructureRule parentDSR =
-                     DirectoryServer.getDITStructureRule(parentNF);
-                if (parentDSR != null && !parentDSR.isObsolete())
+                for (DITStructureRule parentDSR : DirectoryServer.getSchema().getDITStructureRules(parentNF))
                 {
-                  LocalizableMessage message =
-                       ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(dn, parentEntry.getName());
-
-                  if (structuralPolicy == AcceptRejectWarn.REJECT)
+                  if (!parentDSR.isObsolete())
                   {
-                    invalidReason.append(message);
-                    return false;
-                  }
-                  else if (structuralPolicy == AcceptRejectWarn.WARN)
-                  {
-                    logger.error(message);
+                    LocalizableMessage message = ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(dn, parentEntry.getName());
+                    if (structuralPolicy == AcceptRejectWarn.REJECT)
+                    {
+                      invalidReason.append(message);
+                      return false;
+                    }
+                    else if (structuralPolicy == AcceptRejectWarn.WARN)
+                    {
+                      logger.error(message);
+                    }
                   }
                 }
               }
@@ -2242,7 +2245,7 @@ public class Entry
     boolean matchFound = false;
     for (DITStructureRule dsr2 : dsr.getSuperiorRules())
     {
-      if (dsr2.getStructuralClass().equals(oc))
+      if (dsr2.getNameForm().getStructuralClass().equals(oc))
       {
         matchFound = true;
       }

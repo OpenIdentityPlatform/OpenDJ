@@ -26,7 +26,9 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.NameForm;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.GoverningStructureRuleVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
@@ -34,9 +36,8 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.opends.server.types.Schema;
 import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -177,7 +178,8 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     if (oc == null) {
       return null;
     }
-    Collection<NameForm> listForms = DirectoryServer.getNameForm(oc);
+    Schema schema = DirectoryServer.getSchema();
+    Collection<NameForm> listForms = schema.getNameForm(oc);
     NameForm nameForm = null;
     DITStructureRule ditRule = null;
     //We iterate over all the nameforms while creating the entry and
@@ -203,7 +205,11 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
       }
       if (nameForm != null && !obsolete)
       {
-        ditRule = DirectoryServer.getDITStructureRule(nameForm);
+        Collection<DITStructureRule> ditRules = schema.getDITStructureRules(nameForm);
+        if (!ditRules.isEmpty())
+        {
+          ditRule = ditRules.iterator().next();
+        }
       }
     }
     return ditRule;

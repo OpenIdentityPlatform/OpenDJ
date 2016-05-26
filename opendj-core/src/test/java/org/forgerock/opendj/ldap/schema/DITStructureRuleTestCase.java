@@ -11,10 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static java.util.Arrays.*;
 import static java.util.Collections.*;
 
 import static org.fest.assertions.Assertions.*;
@@ -75,6 +76,7 @@ public class DITStructureRuleTestCase extends AbstractSchemaTestCase {
                 .names("DIT structure rule test")
                 .nameForm(NAME_FORM_TEST_OID)
                 .description("My DIT structure rule")
+                .extraProperties("X-SCHEMA-FILE", "99-user.ldif")
                 .addToSchema()
                 .toSchema();
 
@@ -93,8 +95,9 @@ public class DITStructureRuleTestCase extends AbstractSchemaTestCase {
         assertThat(srCopy.getRuleID()).isEqualTo(43);
         assertThat(srCopy.getNames()).containsOnly("DIT structure rule test", "DIT structure rule test - copy");
         assertThat(srCopy.getNameForm().getOID()).isEqualTo(NAME_FORM_TEST_OID);
-        assertThat(srCopy.getDescription()).isEmpty();
+        assertThat(srCopy.getDescription()).isEqualTo("My DIT structure rule");
         assertThat(srCopy.isObsolete()).isFalse();
+        assertThat(srCopy.getExtraProperties()).includes(entry("X-SCHEMA-FILE", asList("99-user.ldif")));
     }
 
     @Test(expectedExceptions = ConflictingSchemaElementException.class)

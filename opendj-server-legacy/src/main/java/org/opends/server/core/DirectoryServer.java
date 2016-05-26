@@ -72,6 +72,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
@@ -150,7 +151,6 @@ import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
 import org.opends.server.types.CryptoManager;
-import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -2628,32 +2628,6 @@ public final class DirectoryServer
   public static DITStructureRule getDITStructureRule(int ruleID)
   {
     return directoryServer.schema.getDITStructureRule(ruleID);
-  }
-
-  /**
-   * Retrieves the DIT structure rule associated with the provided name form.
-   *
-   * @param  nameForm  The name form for which to retrieve the associated DIT
-   *                   structure rule.
-   *
-   * @return  The requested DIT structure rule, or {@code null} if no such
-   *          rule is defined.
-   */
-  public static DITStructureRule getDITStructureRule(NameForm nameForm)
-  {
-    return directoryServer.schema.getDITStructureRule(nameForm);
-  }
-
-  /**
-   * Deregisters the provided DIT structure rule with the Directory Server.
-   *
-   * @param  ditStructureRule  The DIT structure rule to deregister with the
-   *                           server.
-   */
-  public static void deregisterDITStructureRule(DITStructureRule
-                                                     ditStructureRule)
-  {
-    directoryServer.schema.deregisterDITStructureRule(ditStructureRule);
   }
 
   /**

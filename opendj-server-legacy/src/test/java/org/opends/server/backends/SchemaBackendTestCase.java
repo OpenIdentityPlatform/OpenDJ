@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.util.Utils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -3181,8 +3182,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddDITStructureRuleSuccessful()
-         throws Exception
+  public void testAddDITStructureRuleSuccessful() throws Exception
   {
     String ldif = toLdif(
          "dn: cn=schema",
@@ -3207,13 +3207,49 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999001;
     assertSchemaHasDITStructureRule(ruleID, false);
 
-    runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertSchemaHasDITStructureRule(ruleID, true);
+    try
+    {
+      runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+      assertSchemaHasDITStructureRule(ruleID, true);
+    }
+    finally
+    {
+      // delete in reverse order
+      String ldif2 = toLdif(
+           "dn: cn=schema",
+           "changetype: modify",
+           "delete: ditStructureRules",
+           "ditStructureRules: ( 999001 " +
+                "NAME 'testAddDITStructureRuleSuccessful' " +
+                "FORM testAddDITStructureRuleSuccessfulNF " +
+                "X-ORIGIN 'SchemaBackendTestCase' )",
+          "-",
+          "delete: nameForms",
+          "nameForms: ( testaddditstructurerulesuccessfulnf-oid " +
+               "NAME 'testAddDITStructureRuleSuccessfulNF' " +
+               "OC testAddDITStructureRuleSuccessfulOC MUST cn " +
+               "X-ORIGIN 'SchemaBackendTestCase' )",
+           "-",
+           "delete: objectClasses",
+           "objectClasses:  ( testaddditstructurerulesuccessfuloc-oid " +
+                "NAME 'testAddDITStructureRuleSuccessfulOC' SUP top " +
+                "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')");
+      runModify(argsNotPermissive(), ldif2, System.err, SUCCESS);
+      assertSchemaHasDITStructureRule(ruleID, false);
+    }
   }
 
   private void assertSchemaHasDITStructureRule(int ruleID, boolean expected)
   {
-    assertEquals(DirectoryServer.getSchema().getDITStructureRulesByID().containsKey(ruleID), expected);
+    try
+    {
+      DirectoryServer.getSchema().getDITStructureRule(ruleID);
+      assertTrue(expected, "Expected to find a DITStructureRule with ruleID " + ruleID);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      assertFalse(expected, e.getMessage());
+    }
   }
 
   /**
@@ -3383,7 +3419,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999004;
     assertSchemaHasDITStructureRule(ruleID, false);
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertSchemaHasDITStructureRule(ruleID, false);
   }
 
@@ -3420,8 +3456,48 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999005;
     assertSchemaHasDITStructureRule(ruleID, false);
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertSchemaHasDITStructureRule(ruleID, false);
+  }
+
+  /**
+   * Tests the addition of a new DITContentRule with a conflicting rule identifier.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testAddDITStructureRuleConflictingRuleID() throws Exception
+  {
+    String ldif = toLdif(
+        "dn: cn=schema",
+        "changetype: modify",
+        "add: nameForms",
+        "nameForms: ( 1.3.6.1.1.10.15.100 NAME 'domainNameForm' OC domain MUST ( dc ) )",
+        "-",
+        "add: dITStructureRules",
+        "dITStructureRules: ( 1 NAME 'dummyStructureRule' FORM domainNameForm )");
+    runModify(argsNotPermissive(), ldif, ATTRIBUTE_OR_VALUE_EXISTS);
+  }
+
+  /**
+   * Tests the addition of a new DITContentRule with a conflicting rule identifier.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test
+  public void testAddDITStructureRuleConflictingRuleIDWithPermissiveControl() throws Exception
+  {
+    String ldif = toLdif(
+        "dn: cn=schema",
+        "changetype: modify",
+        "add: nameForms",
+        "nameForms: ( 1.3.6.1.1.10.15.100 NAME 'domainNameForm' OC domain MUST ( dc ) )",
+        "-",
+        "add: dITStructureRules",
+        "dITStructureRules: ( 1 NAME 'dummyStructureRule' FORM domainNameForm )");
+    runModify(argsPermissive(), ldif, UNWILLING_TO_PERFORM);
   }
 
   /**

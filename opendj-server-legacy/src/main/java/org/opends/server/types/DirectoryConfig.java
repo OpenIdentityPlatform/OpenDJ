@@ -24,6 +24,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
@@ -379,22 +380,6 @@ public final class DirectoryConfig
   public static DITStructureRule getDITStructureRule(int ruleID)
   {
     return DirectoryServer.getDITStructureRule(ruleID);
-  }
-
-  /**
-   * Retrieves the DIT structure rule associated with the provided
-   * name form.
-   *
-   * @param  nameForm  The name form for which to retrieve the
-   *                   associated DIT structure rule.
-   *
-   * @return  The requested DIT structure rule, or <CODE>null</CODE>
-   *          if no such rule is defined.
-   */
-  public static DITStructureRule
-       getDITStructureRule(NameForm nameForm)
-  {
-    return DirectoryServer.getDITStructureRule(nameForm);
   }
 
   /**

@@ -63,6 +63,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
@@ -82,7 +83,6 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.schema.SomeSchemaElement;
@@ -91,7 +91,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
@@ -581,7 +580,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         operationalAttrs, nameFormsType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getDITContentRules(), userAttrs,
         operationalAttrs, ditContentRulesType, includeSchemaFile, false, true);
-    buildSchemaAttribute(schema.getDITStructureRulesByID().values(), userAttrs,
+    buildSchemaAttribute(schema.getDITStructureRules(), userAttrs,
         operationalAttrs, ditStructureRulesType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getMatchingRuleUses(), userAttrs,
         operationalAttrs, matchingRuleUsesType, includeSchemaFile, false, true);
@@ -782,21 +781,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              DITStructureRule dsr;
-              try
-              {
-                dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
+              DITStructureRule dsr = newSchema.parseDITStructureRule(v.toString());
               addDITStructureRule(dsr, newSchema, modifiedSchemaFiles);
             }
           }
@@ -878,23 +863,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           {
             for (ByteString v : a)
             {
-              DITStructureRule dsr;
-              try
-              {
-                dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, newSchema, false);
-              }
-              catch (DirectoryException de)
-              {
-                logger.traceException(de);
-
-                LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v, de.getMessageObject());
-                throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-              }
-
-              removeDITStructureRule(dsr, newSchema, mods, pos,
-                  modifiedSchemaFiles);
+              DITStructureRule dsr = newSchema.parseDITStructureRule(v.toString());
+              removeDITStructureRule(dsr, newSchema, mods, pos, modifiedSchemaFiles);
             }
           }
           else if (at.equals(matchingRuleUsesType))
@@ -1116,17 +1086,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  private void addNewSchemaElement(Set<String> modifiedSchemaFiles, SchemaElement elem)
-  {
-    String schemaFile = getSchemaFile(elem);
-    if (schemaFile == null || schemaFile.length() == 0)
-    {
-      schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-      setSchemaFile(elem, schemaFile);
-    }
-    modifiedSchemaFiles.add(schemaFile);
-  }
-
   /**
    * Update list of modified files and return the schema file to use for the
    * added element (may be null).
@@ -1137,32 +1096,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     String finalFile = schemaFile != null ? schemaFile : FILE_USER_SCHEMA_ELEMENTS;
     modifiedSchemaFiles.add(finalFile);
     return schemaFile == null ? finalFile : null;
-  }
-
-  private <T extends SchemaElement> void replaceExistingSchemaElement(
-      Set<String> modifiedSchemaFiles, T newElem, T existingElem)
-  {
-    String newSchemaFile = getSchemaFile(newElem);
-    String oldSchemaFile = getSchemaFile(existingElem);
-    if (newSchemaFile == null || newSchemaFile.length() == 0)
-    {
-      if (oldSchemaFile == null || oldSchemaFile.length() == 0)
-      {
-        oldSchemaFile = FILE_USER_SCHEMA_ELEMENTS;
-      }
-
-      setSchemaFile(newElem, oldSchemaFile);
-      modifiedSchemaFiles.add(oldSchemaFile);
-    }
-    else if (oldSchemaFile == null || oldSchemaFile.equals(newSchemaFile))
-    {
-      modifiedSchemaFiles.add(newSchemaFile);
-    }
-    else
-    {
-      modifiedSchemaFiles.add(newSchemaFile);
-      modifiedSchemaFiles.add(oldSchemaFile);
-    }
   }
 
   /**
@@ -1459,7 +1392,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         String oid;
         try
         {
-          oid = schema.parseOID(v.toString(), ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_OBJECTCLASS_OID);
+          oid = Schema.parseOID(v.toString(), ERR_PARSING_OBJECTCLASS_OID);
         }
         catch (DirectoryException de)
         {
@@ -1679,15 +1612,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     // Make sure that the name form isn't referenced by any DIT structure rule.
-    DITStructureRule dsr = schema.getDITStructureRule(removeNF);
-    if (dsr != null)
+    Collection<DITStructureRule> ditRules = schema.getDITStructureRules(removeNF);
+    if (!ditRules.isEmpty())
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NF_IN_DSR.get(
-          removeNF.getNameOrOID(), dsr.getNameOrRuleID());
+          removeNF.getNameOrOID(), ditRules.iterator().next().getNameOrRuleID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    // If we've gotten here, then it's OK to remove the name form from the schema.
+    // Now remove the name form from the schema.
     schema.deregisterNameForm(removeNF);
     String schemaFile = getSchemaFile(removeNF);
     if (schemaFile != null)
@@ -1886,13 +1819,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // check the rule ID and all of the names, which means that it's possible
     // there could be more than one match (although if there is, then we'll
     // refuse the operation).
-    DITStructureRule existingDSR =
-         schema.getDITStructureRule(ditStructureRule.getRuleID());
-    //Boolean to check if the new rule is in use or not.
-    boolean inUse = false;
-    for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
+    final org.forgerock.opendj.ldap.schema.Schema schemaNG = schema.getSchemaNG();
+    final Integer ruleID = ditStructureRule.getRuleID();
+    DITStructureRule existingDSR = schemaNG.hasDITStructureRule(ruleID) ? schemaNG.getDITStructureRule(ruleID) : null;
+
+    boolean newRuleIsInUse = false;
+    for (DITStructureRule dsr : schema.getDITStructureRules())
     {
-      for (String name : ditStructureRule.getNames().keySet())
+      for (String name : ditStructureRule.getNames())
       {
         if (dsr.hasName(name))
         {
@@ -1906,12 +1840,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
-          inUse = true;
+          newRuleIsInUse = true;
         }
       }
     }
 
-    if(existingDSR != null && !inUse)
+    if (existingDSR != null && !newRuleIsInUse)
     {
       //We have an existing DSR with the same rule id but we couldn't find
       //any existing rules sharing this name. It means that it is a
@@ -1920,35 +1854,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       LocalizableMessage message = ERR_SCHEMA_MODIFY_RULEID_CONFLICTS_FOR_ADD_DSR.
                 get(ditStructureRule.getNameOrRuleID(),
                     existingDSR.getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
-    }
-
-    // Get the name form for the new DIT structure rule and see if there's
-    // already an existing rule that is associated with that name form.  If
-    // there is, then it will only be acceptable if it's the DIT structure rule
-    // that we are replacing (in which case we really do want to use the "!="
-    // operator).
-    NameForm nameForm = ditStructureRule.getNameForm();
-    DITStructureRule existingRuleForNameForm =
-         schema.getDITStructureRule(nameForm);
-    if (existingRuleForNameForm != null &&
-        existingRuleForNameForm != existingDSR)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR.
-          get(ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID(),
-              existingRuleForNameForm.getNameOrRuleID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     // Make sure that the new DIT structure rule doesn't reference an undefined
     // name form or superior DIT structure rule.
-    if (! schema.hasNameForm(nameForm.getOID()))
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_DSR_UNDEFINED_NAME_FORM.get(
-          ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
+    NameForm nameForm = ditStructureRule.getNameForm();
     if (nameForm.isObsolete())
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM.get(
@@ -1972,16 +1883,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingDSR == null)
     {
-      schema.registerDITStructureRule(ditStructureRule, false);
-      addNewSchemaElement(modifiedSchemaFiles, ditStructureRule);
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(ditStructureRule));
+      schema.registerDITStructureRule(ditStructureRule, schemaFile, false);
     }
     else
     {
       schema.deregisterDITStructureRule(existingDSR);
-      schema.registerDITStructureRule(ditStructureRule, false);
+      String schemaFile = replaceExistingSchemaElement(
+          modifiedSchemaFiles, new ServerSchemaElement(ditStructureRule), new ServerSchemaElement(existingDSR));
+      schema.registerDITStructureRule(ditStructureRule, schemaFile, false);
       schema.rebuildDependentElements(existingDSR);
-      replaceExistingSchemaElement(modifiedSchemaFiles, ditStructureRule,
-          existingDSR);
     }
   }
 
@@ -2045,21 +1956,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
       for (ByteString v : a)
       {
-        DITStructureRule dsr;
-        try
-        {
-          dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, schema, true);
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-              v, de.getMessageObject());
-          throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
-        }
-
+        DITStructureRule dsr = schema.parseDITStructureRule(v.toString());
         if (ditStructureRule.getRuleID() == dsr.getRuleID())
         {
           // We found a match where the DIT structure rule is added back later,
@@ -2071,7 +1968,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Make sure that the DIT structure rule isn't the superior for any other
     // DIT structure rule.
-    for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
+    for (DITStructureRule dsr : schema.getDITStructureRules())
     {
       if (dsr.getSuperiorRules().contains(removeDSR))
       {
@@ -2240,9 +2137,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addLdapSyntaxDescription(final String definition, Schema schema, Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // Check if there is an existing syntax with this oid.
-    String oid =
-        Schema.parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_LDAP_SYNTAX_OID);
+    String oid = Schema.parseOID(definition, ERR_PARSING_LDAP_SYNTAX_OID);
 
     // We allow only unimplemented syntaxes to be substituted.
     if (schema.hasSyntax(oid))
@@ -2296,8 +2191,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * part of the ldapsyntaxes attribute. A virtual value is not searched and
      * hence never deleted.
      */
-    String oid =
-        Schema.parseOID(definition, ResultCode.INVALID_ATTRIBUTE_SYNTAX, ERR_PARSING_LDAP_SYNTAX_OID);
+    String oid = Schema.parseOID(definition, ERR_PARSING_LDAP_SYNTAX_OID);
 
     LDAPSyntaxDescription removeLSD = schema.getLdapSyntaxDescription(oid);
     if (removeLSD == null)
@@ -2472,7 +2366,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // the same file are written before the subordinate rules.
     Set<DITStructureRule> addedDSRs = new HashSet<>();
     values = new LinkedHashSet<>();
-    for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
+    for (DITStructureRule dsr : schema.getDITStructureRules())
     {
       if (schemaFile.equals(getSchemaFile(dsr)))
       {
