@@ -266,12 +266,14 @@ class PersistentServerState
     op.setSynchronizationOperation(true);
     op.setDontSynchronize(true);
     op.run();
-    if (op.getResultCode() != ResultCode.SUCCESS)
+
+    final ResultCode resultCode = op.getResultCode();
+    if (resultCode != ResultCode.SUCCESS
+        && !(resultCode == ResultCode.NO_SUCH_OBJECT && serverStateEntryDN.equals(baseDN)))
     {
-      logger.error(DEBUG_ERROR_UPDATING_RUV,
-          op.getResultCode().getName(), op, op.getErrorMessage(), baseDN);
+      logger.error(DEBUG_ERROR_UPDATING_RUV, resultCode.getName(), op, op.getErrorMessage(), serverStateEntryDN);
     }
-    return op.getResultCode();
+    return resultCode;
   }
 
   /**
