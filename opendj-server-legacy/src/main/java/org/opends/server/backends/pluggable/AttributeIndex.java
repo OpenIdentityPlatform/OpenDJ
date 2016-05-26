@@ -750,8 +750,9 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
     catch (DecodeException e)
     {
+      // See OPENDJ-3034 for further information on why an empty set is returned here
       logger.traceException(e);
-      return newUndefinedSet();
+      return newDefinedSet();
     }
   }
 
