@@ -1161,12 +1161,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
     else
     {
-      schema.deregisterAttributeType(existingType);
-
       String schemaFile = replaceExistingSchemaElement(
           modifiedSchemaFiles, new SomeSchemaElement(attributeType), new SomeSchemaElement(existingType));
-      schema.registerAttributeType(attributeType, schemaFile, false);
-      schema.rebuildDependentElements(existingType);
+      schema.replaceAttributeType(attributeType, existingType, schemaFile);
     }
   }
 

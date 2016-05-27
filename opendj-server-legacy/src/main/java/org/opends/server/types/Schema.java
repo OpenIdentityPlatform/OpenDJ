@@ -478,19 +478,7 @@ public final class Schema
     try
     {
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
-      AttributeType.Builder b = builder.buildAttributeType(attributeType);
-      if (schemaFile != null)
-      {
-        b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
-      }
-      if (overwriteExisting)
-      {
-        b.addToSchemaOverwrite();
-      }
-      else
-      {
-        b.addToSchema();
-      }
+      registerAttributeType0(builder, attributeType, schemaFile, overwriteExisting);
       switchSchema(builder.toSchema());
 
       updateSubordinateTypes(attributeType);
@@ -503,6 +491,61 @@ public final class Schema
     {
       exclusiveLock.unlock();
     }
+  }
+
+  private void registerAttributeType0(SchemaBuilder builder, final AttributeType attributeType,
+      final String schemaFile, final boolean overwriteExisting)
+  {
+    AttributeType.Builder b = builder.buildAttributeType(attributeType);
+    if (schemaFile != null)
+    {
+      b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+    }
+    if (overwriteExisting)
+    {
+      b.addToSchemaOverwrite();
+    }
+    else
+    {
+      b.addToSchema();
+    }
+  }
+
+  /**
+   * Replaces an existing attribute type by the provided new attribute type.
+   *
+   * @param newAttributeType
+   *          Attribute type to register to the schema.
+   * @param existingAttributeType
+   *          Attribute type to remove from the schema.
+   * @param schemaFile
+   *          The schema file which the new object class belongs to.
+   * @throws DirectoryException
+   *            If an errors occurs.
+   */
+  public void replaceAttributeType(AttributeType newAttributeType, AttributeType existingAttributeType,
+      String schemaFile) throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      SchemaBuilder builder = new SchemaBuilder(schemaNG);
+      builder.removeAttributeType(existingAttributeType.getNameOrOID());
+      registerAttributeType0(builder, newAttributeType, schemaFile, false);
+      switchSchema(builder.toSchema());
+
+      AttributeType superiorType = existingAttributeType.getSuperiorType();
+      if (superiorType != null)
+      {
+        deregisterSubordinateType(existingAttributeType, superiorType);
+      }
+      updateSubordinateTypes(newAttributeType);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+    rebuildDependentElements(existingAttributeType);
   }
 
   /**
