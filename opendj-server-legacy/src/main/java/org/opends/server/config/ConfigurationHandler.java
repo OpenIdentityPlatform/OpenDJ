@@ -13,22 +13,13 @@
  *
  * Copyright 2014-2016 ForgeRock AS.
  */
-package org.opends.server.core;
+package org.opends.server.config;
 
-import static org.opends.messages.ConfigMessages.ERR_CONFIG_FILE_ADD_NO_PARENT;
-import static org.opends.messages.ConfigMessages.ERR_CONFIG_FILE_ADD_NO_PARENT_DN;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_CANNOT_WRITE_CONFIGURATION;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_MANUAL_CONFIG_EDIT_HANDLED;
-import static org.opends.server.util.ServerConstants.ALERT_DESCRIPTION_MANUAL_CONFIG_EDIT_LOST;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_MANUAL_CONFIG_EDIT_HANDLED;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_MANUAL_CONFIG_EDIT_LOST;
-import static org.opends.server.util.ServerConstants.ALERT_TYPE_CANNOT_WRITE_CONFIGURATION;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.renameFile;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.extensions.ExtensionsConstants.MESSAGE_DIGEST_ALGORITHM_SHA_1;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,6 +85,9 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.util.Utils;
 import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -174,14 +168,14 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    * Bootstraps the server configuration.
    * <p>
    * The returned ConfigurationHandler is initialized with a partial schema and must be later
-   * re-initialized with the full schema by calling {@code reInitializeWithFullSchema()} method
-   * once the schema has been fully loaded.
+   * re-initialized with the full schema by calling {@link #reinitializeWithFullSchema(Schema)}
+   * method once the schema has been fully loaded.
    *
    * @param serverContext
-   *            The server context.
+   *          The server context.
    * @return the configuration handler
    * @throws InitializationException
-   *            If an error occurs during bootstrapping.
+   *           If an error occurs during bootstrapping.
    */
   public static ConfigurationHandler bootstrapConfiguration(ServerContext serverContext)
       throws InitializationException {
@@ -195,8 +189,8 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     }
     catch (ConfigException e)
     {
-      // TODO : fix the message
-      throw new InitializationException(LocalizableMessage.raw("Cannot initialize configuration framework"), e);
+      LocalizableMessage msg = ERR_CANNOT_INITIALIZE_CONFIGURATION_FRAMEWORK.get(stackTraceToSingleLineString(e));
+      throw new InitializationException(msg, e);
     }
 
     final ConfigurationHandler configHandler = new ConfigurationHandler(serverContext);
@@ -207,10 +201,13 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
   /**
    * Initializes the configuration with an incomplete schema.
    * <p>
-   * As configuration contains schema-related items, the initialization of the configuration
-   * can only be performed with an incomplete schema before a complete schema is available.
-   * Once a complete schema is available, the {@link #reinitializeWithFullSchema(Schema)} method
-   * should be called to have a fully validated configuration.
+   * As configuration contains schema-related items, the initialization of the configuration can
+   * only be performed with an incomplete schema before a complete schema is available. Once a
+   * complete schema is available, the {@link #reinitializeWithFullSchema(Schema)} method should be
+   * called to have a fully validated configuration.
+   *
+   * @throws InitializationException
+   *           If an error occurs.
    */
   @VisibleForTesting
   void initializeWithPartialSchema() throws InitializationException
@@ -319,8 +316,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       }
       return children;
     }
-    // TODO : fix message
-    throw new ConfigException(LocalizableMessage.raw("Unable to retrieve children of configuration entry : %s", dn),
+    throw new ConfigException(ERR_UNABLE_TO_RETRIEVE_CHILDREN_OF_CONFIGURATION_ENTRY.get(dn),
         resultHandler.getResultError());
   }
 
@@ -433,9 +429,8 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     {
       return searchHandler.getEntries().size();
     }
-    // TODO : fix the message
-    throw new ConfigException(LocalizableMessage
-        .raw("Unable to retrieve children of configuration entry : %s", entryDN), resultHandler.getResultError());
+    throw new ConfigException(ERR_UNABLE_TO_RETRIEVE_CHILDREN_OF_CONFIGURATION_ENTRY.get(entryDN),
+        resultHandler.getResultError());
   }
 
   /**
@@ -458,7 +453,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, ERR_CONFIG_FILE_ADD_ALREADY_EXISTS.get(entryDN));
     }
 
-    final DN parentDN = retrieveParentDN(entryDN);
+    final DN parentDN = retrieveParentDNForAdd(entryDN);
 
     // Iterate through add listeners to make sure the new entry is acceptable.
     final List<ConfigAddListener> addListeners = getAddListeners(parentDN);
@@ -478,7 +473,6 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
     if (!resultHandler.hasCompletedSuccessfully())
     {
-      // TODO fix the message : error when adding config entry
       LdapException ex = resultHandler.getResultError();
       throw new DirectoryException(ex.getResult().getResultCode(),
           ERR_CONFIG_FILE_ADD_FAILED.get(entryDN, parentDN, ex.getLocalizedMessage()), ex);
@@ -532,14 +526,11 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     }
     catch (ConfigException e)
     {
-      // TODO : i18n
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          LocalizableMessage.raw("Backend config error when trying to delete an entry: %s",
-              stackTraceToSingleLineString(e)), e);
+          ERR_CONFIG_BACKEND_CANNOT_DELETE_ENTRY.get(stackTraceToSingleLineString(e)), e);
     }
 
-    // TODO : pass in the localizable message (2)
-    final DN parentDN = retrieveParentDN(dn);
+    final DN parentDN = retrieveParentDNForDelete(dn);
 
     // Iterate through delete listeners to make sure the deletion is acceptable.
     final List<ConfigDeleteListener> deleteListeners = getDeleteListeners(parentDN);
@@ -1232,8 +1223,8 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     }
     catch (Exception e)
     {
-      // TODO : fix message
-      throw new InitializationException(LocalizableMessage.raw("Unable to load config-enabled schema"), e);
+      throw new InitializationException(
+          ERR_UNABLE_TO_LOAD_CONFIGURATION_ENABLED_SCHEMA.get(stackTraceToSingleLineString(e)), e);
     }
   }
 
@@ -1609,14 +1600,11 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
     if (!successful)
     {
-      // FIXME -- Log each error message and throw an exception.
       for (LocalizableMessage s : errorList)
       {
         logger.error(ERR_CONFIG_ERROR_APPLYING_STARTUP_CHANGE, s);
       }
-
-      LocalizableMessage message = ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get();
-      throw new LDIFException(message);
+      throw new LDIFException(ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get(Utils.joinAsString("; ", errorList)));
     }
 
     // Move the current config file out of the way and replace it with the updated version.
@@ -1725,7 +1713,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    * @throws DirectoryException
    *           If entry has no parent or parent entry does not exist.
    */
-  private DN retrieveParentDN(final DN entryDN) throws DirectoryException
+  private DN retrieveParentDNForAdd(final DN entryDN) throws DirectoryException
   {
     final DN parentDN = entryDN.parent();
     if (parentDN == null)
@@ -1735,6 +1723,30 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     if (!backend.contains(parentDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_CONFIG_FILE_ADD_NO_PARENT.get(entryDN, parentDN),
+          getMatchedDN(parentDN), null);
+    }
+    return parentDN;
+  }
+
+  /**
+   * Returns the parent DN of the configuration entry corresponding to the provided DN.
+   *
+   * @param entryDN
+   *          DN of entry to retrieve the parent from.
+   * @return the parent DN
+   * @throws DirectoryException
+   *           If entry has no parent or parent entry does not exist.
+   */
+  private DN retrieveParentDNForDelete(final DN entryDN) throws DirectoryException
+  {
+    final DN parentDN = entryDN.parent();
+    if (parentDN == null)
+    {
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_CONFIG_FILE_DELETE_NO_PARENT_DN.get(entryDN));
+    }
+    if (!backend.contains(parentDN))
+    {
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, ERR_CONFIG_FILE_DELETE_NO_PARENT.get(entryDN),
           getMatchedDN(parentDN), null);
     }
     return parentDN;

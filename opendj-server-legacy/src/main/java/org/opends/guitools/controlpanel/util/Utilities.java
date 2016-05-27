@@ -116,7 +116,7 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.core.ConfigurationHandler;
+import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SomeSchemaElement;

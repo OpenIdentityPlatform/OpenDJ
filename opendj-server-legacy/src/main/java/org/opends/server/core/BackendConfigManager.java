@@ -42,6 +42,7 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.backends.ConfigurationBackend;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;

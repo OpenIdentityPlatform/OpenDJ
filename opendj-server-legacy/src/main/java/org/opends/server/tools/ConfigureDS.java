@@ -61,7 +61,7 @@ import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.meta.CryptoManagerCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.quicksetup.installer.Installer;
-import org.opends.server.core.ConfigurationHandler;
+import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;

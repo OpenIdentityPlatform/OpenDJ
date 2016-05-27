@@ -13,7 +13,7 @@
  *
  * Copyright 2014-2016 ForgeRock AS.
  */
-package org.opends.server.core;
+package org.opends.server.backends;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.ATTR_DEFAULT_ROOT_PRIVILEGE_NAME;
@@ -45,7 +45,15 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.core.ConfigurationBackend.ConfigurationBackendCfg;
+import org.opends.server.backends.ConfigurationBackend.ConfigurationBackendCfg;
+import org.opends.server.config.ConfigurationHandler;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;

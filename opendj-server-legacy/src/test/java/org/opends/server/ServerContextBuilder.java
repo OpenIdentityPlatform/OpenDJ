@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
-import org.opends.server.core.ConfigurationHandler;
+import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;

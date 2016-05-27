@@ -35,7 +35,7 @@ import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.tools.BackendToolUtils;
 import org.opends.server.types.Entry;
-import org.opends.server.core.ConfigurationHandler;
+import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.types.Attribute;
