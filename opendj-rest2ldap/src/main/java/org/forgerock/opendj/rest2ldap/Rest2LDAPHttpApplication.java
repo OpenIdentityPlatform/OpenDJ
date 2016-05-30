@@ -25,12 +25,8 @@ import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.*;
 import static org.forgerock.opendj.rest2ldap.authz.Authorizations.*;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.*;
 import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.*;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newCtsAccessTokenResolver;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newFileAccessTokenResolver;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newRfc7662AccessTokenResolver;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newConditionalOAuth2ResourceServerFilter;
 
 import java.io.IOException;
 import java.io.InputStream;

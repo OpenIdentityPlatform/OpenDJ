@@ -18,7 +18,6 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.*;
 

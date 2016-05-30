@@ -16,7 +16,6 @@
  */
 package org.opends.server.backends;
 
-import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
