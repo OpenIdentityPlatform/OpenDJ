@@ -1039,7 +1039,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "uid";
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1342,7 +1342,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testaddobjectclassmultipleconflicts";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -1422,7 +1422,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedSuperior' SUP undefined STRUCTURAL " +
               "MUST cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1524,7 +1524,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedRequired' SUP top STRUCTURAL " +
               "MUST undefined X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1547,7 +1547,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1568,7 +1568,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddOCUndefinedOptional' SUP top STRUCTURAL " +
               "MAY undefined X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1591,7 +1591,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1612,7 +1612,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddAbstractOCWithNonAbstractSuperior' SUP person " +
               "ABSTRACT MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1633,7 +1633,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddAuxiliaryOCWithStructuralSuperior' SUP person " +
               "AUXILIARY MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1654,7 +1654,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'testAddStructuralOCWithAuxiliarySuperior' SUP posixAccount " +
               "STRUCTURAL MAY description X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, INVALID_ATTRIBUTE_SYNTAX);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**
