@@ -15,28 +15,28 @@
  */
 package org.opends.server.loggers;
 
+import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.TimeThread.getUserDefinedTime;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 
-import org.forgerock.http.MutableUri;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.FileBasedHTTPAccessLogPublisherCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
@@ -53,34 +53,64 @@ public final class TextHTTPAccessLogPublisher extends
     HTTPAccessLogPublisher<FileBasedHTTPAccessLogPublisherCfg>
     implements ConfigurationChangeListener<FileBasedHTTPAccessLogPublisherCfg>
 {
+  /** Enumeration of supported HTTP access log fields. */
+  private enum LogField
+  {
+    // @formatter:off
+    // Extended log format standard fields
+    ELF_C_IP("c-ip")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientAddress (); } },
+    ELF_C_PORT("c-port")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientPort(); } },
+    ELF_CS_HOST("cs-host")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getClientHost(); } },
+    ELF_CS_METHOD("cs-method")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getMethod(); } },
+    ELF_CS_URI("cs-uri")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().toString(); } },
+    ELF_CS_URI_STEM("cs-uri-stem")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().getRawPath(); } },
+    ELF_CS_URI_QUERY("cs-uri-query")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUri().getRawQuery(); } },
+    ELF_CS_USER_AGENT("cs(User-Agent)")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getUserAgent(); } },
+    ELF_CS_USERNAME("cs-username")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getAuthUser(); } },
+    ELF_CS_VERSION("cs-version")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getProtocol(); } },
+    ELF_S_COMPUTERNAME("s-computername")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerHost(); } },
+    ELF_S_IP("s-ip")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerAddress(); } },
+    ELF_S_PORT("s-port")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getServerPort(); } },
+    ELF_SC_STATUS("sc-status")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getStatusCode(); } },
 
-  // Extended log format standard fields
-  private static final String ELF_C_IP = "c-ip";
-  private static final String ELF_C_PORT = "c-port";
-  private static final String ELF_CS_HOST = "cs-host";
-  private static final String ELF_CS_METHOD = "cs-method";
-  private static final String ELF_CS_URI = "cs-uri";
-  private static final String ELF_CS_URI_STEM = "cs-uri-stem";
-  private static final String ELF_CS_URI_QUERY = "cs-uri-query";
-  private static final String ELF_CS_USER_AGENT = "cs(User-Agent)";
-  private static final String ELF_CS_USERNAME = "cs-username";
-  private static final String ELF_CS_VERSION = "cs-version";
-  private static final String ELF_S_COMPUTERNAME = "s-computername";
-  private static final String ELF_S_IP = "s-ip";
-  private static final String ELF_S_PORT = "s-port";
-  private static final String ELF_SC_STATUS = "sc-status";
-  // Application specific fields (eXtensions)
-  private static final String X_CONNECTION_ID = "x-connection-id";
-  private static final String X_DATETIME = "x-datetime";
-  private static final String X_ETIME = "x-etime";
-  private static final String X_TRANSACTION_ID = "x-transaction-id";
+    // Application specific fields (eXtensions)
+    X_CONNECTION_ID("x-connection-id")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getConnectionID(); } },
+    X_DATETIME("x-datetime")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return getUserDefinedTime(tsf); } },
+    X_ETIME("x-etime")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getTotalProcessingTime(); } },
+    X_TRANSACTION_ID("x-transaction-id")
+            { Object valueOf(HTTPRequestInfo i, String tsf) { return i.getTransactionId(); } };
+    // @formatter:on
 
-  private static final Set<String> ALL_SUPPORTED_FIELDS = new HashSet<>(
-      Arrays.asList(ELF_C_IP, ELF_C_PORT, ELF_CS_HOST, ELF_CS_METHOD,
-          ELF_CS_URI, ELF_CS_URI_STEM, ELF_CS_URI_QUERY, ELF_CS_USER_AGENT,
-          ELF_CS_USERNAME, ELF_CS_VERSION, ELF_S_COMPUTERNAME, ELF_S_IP,
-          ELF_S_PORT, ELF_SC_STATUS, X_CONNECTION_ID, X_DATETIME, X_ETIME,
-          X_TRANSACTION_ID));
+    private final String name;
+
+    LogField(final String name)
+    {
+      this.name = name;
+    }
+
+    String getName() {
+      return name;
+    }
+
+    abstract Object valueOf(HTTPRequestInfo info, String timeStampFormat);
+  }
 
   /**
    * Returns an instance of the text HTTP access log publisher that will print
@@ -100,9 +130,18 @@ public final class TextHTTPAccessLogPublisher extends
     return startupPublisher;
   }
 
+  private static final Map<String, LogField> FIELD_NAMES_TO_FIELD = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+  static
+  {
+    for (LogField field : LogField.values())
+    {
+      FIELD_NAMES_TO_FIELD.put(field.getName(), field);
+    }
+  }
+
   private TextWriter writer;
   private FileBasedHTTPAccessLogPublisherCfg cfg;
-  private List<String> logFormatFields;
+  private List<LogField> logFormatFields = Collections.emptyList();
   private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
 
   @Override
@@ -171,8 +210,7 @@ public final class TextHTTPAccessLogPublisher extends
         }
 
         cfg = config;
-        logFormatFields = extractFieldsOrder(cfg.getLogFormat());
-        LocalizableMessage errorMessage = validateLogFormat(logFormatFields);
+        LocalizableMessage errorMessage = setLogFormatFields(cfg.getLogFormat());
         if (errorMessage != null)
         {
           ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
@@ -240,57 +278,33 @@ public final class TextHTTPAccessLogPublisher extends
     return new AsynchronousTextWriter(name, config.getQueueSize(), config.isAutoFlush(), mfWriter);
   }
 
-  private List<String> extractFieldsOrder(String logFormat)
+  private LocalizableMessage setLogFormatFields(String logFormat)
   {
-    // there will always be at least one field value due to the regexp
-    // validating the log format
-    return Arrays.asList(logFormat.split(" "));
-  }
+    // there will always be at least one field value due to the regexp validating the log format
+    final List<String> fieldNames = Arrays.asList(logFormat.split(" "));
+    final List<LogField> fields = new ArrayList<>(fieldNames.size());
+    final List<String> unsupportedFields = new LinkedList<>();
 
-  /**
-   * Validates the provided fields for the log format.
-   *
-   * @param fields
-   *          the fields comprising the log format.
-   * @return an error message when validation fails, null otherwise
-   */
-  private LocalizableMessage validateLogFormat(List<String> fields)
-  {
-    final Collection<String> unsupportedFields =
-        subtract(fields, ALL_SUPPORTED_FIELDS);
-    if (!unsupportedFields.isEmpty())
-    { // there are some unsupported fields. List them.
-      return WARN_CONFIG_LOGGING_UNSUPPORTED_FIELDS_IN_LOG_FORMAT.get(
-          cfg.dn(), Utils.joinAsString(", ", unsupportedFields));
-    }
-    if (fields.size() == unsupportedFields.size())
-    { // all fields are unsupported
-      return ERR_CONFIG_LOGGING_EMPTY_LOG_FORMAT.get(cfg.dn());
-    }
-    return null;
-  }
-
-  /**
-   * Returns a new Collection containing a - b.
-   *
-   * @param <T> The type of collection elements.
-   * @param a
-   *          the collection to subtract from, must not be null
-   * @param b
-   *          the collection to subtract, must not be null
-   * @return a new collection with the results
-   */
-  private <T> Collection<T> subtract(Collection<T> a, Collection<T> b)
-  {
-    final Collection<T> result = new ArrayList<>();
-    for (T elem : a)
+    for (String fieldName : fieldNames)
     {
-      if (!b.contains(elem))
+      final LogField field = FIELD_NAMES_TO_FIELD.get(fieldName);
+      if (field != null)
       {
-        result.add(elem);
+        fields.add(field);
+      }
+      else
+      {
+        unsupportedFields.add(fieldName);
       }
     }
-    return result;
+
+    if (!unsupportedFields.isEmpty())
+    {
+      return WARN_CONFIG_LOGGING_UNSUPPORTED_FIELDS_IN_LOG_FORMAT.get(cfg.dn(), joinAsString(", ", unsupportedFields));
+    }
+
+    logFormatFields = fields;
+    return null;
   }
 
   @Override
@@ -343,8 +357,7 @@ public final class TextHTTPAccessLogPublisher extends
     }
 
     this.cfg = cfg;
-    logFormatFields = extractFieldsOrder(cfg.getLogFormat());
-    LocalizableMessage error = validateLogFormat(logFormatFields);
+    LocalizableMessage error = setLogFormatFields(cfg.getLogFormat());
     if (error != null)
     {
       throw new InitializationException(error);
@@ -419,43 +432,10 @@ public final class TextHTTPAccessLogPublisher extends
   @Override
   public void logRequestInfo(HTTPRequestInfo ri)
   {
-    final Map<String, Object> fields = new HashMap<>();
-    fields.put(ELF_C_IP, ri.getClientAddress());
-    fields.put(ELF_C_PORT, ri.getClientPort());
-    fields.put(ELF_CS_HOST, ri.getClientHost());
-    fields.put(ELF_CS_METHOD, ri.getMethod());
-
-    final MutableUri uri = ri.getUri();
-    fields.put(ELF_CS_URI, uri.toString());
-    fields.put(ELF_CS_URI_STEM, uri.getRawPath());
-    fields.put(ELF_CS_URI_QUERY, uri.getRawQuery());
-
-    fields.put(ELF_CS_USER_AGENT, ri.getUserAgent());
-    fields.put(ELF_CS_USERNAME, ri.getAuthUser());
-    fields.put(ELF_CS_VERSION, ri.getProtocol());
-    fields.put(ELF_S_IP, ri.getServerAddress());
-    fields.put(ELF_S_COMPUTERNAME, ri.getServerHost());
-    fields.put(ELF_S_PORT, ri.getServerPort());
-    fields.put(ELF_SC_STATUS, ri.getStatusCode());
-    fields.put(X_CONNECTION_ID, ri.getConnectionID());
-    fields.put(X_DATETIME, TimeThread.getUserDefinedTime(timeStampFormat));
-    fields.put(X_ETIME, ri.getTotalProcessingTime());
-    fields.put(X_TRANSACTION_ID, ri.getTransactionId());
-
-    writeLogRecord(fields, logFormatFields);
-  }
-
-  private void writeLogRecord(Map<String, Object> fields,
-      List<String> fieldnames)
-  {
-    if (fieldnames == null)
-    {
-      return;
-    }
     final StringBuilder sb = new StringBuilder(100);
-    for (String fieldname : fieldnames)
+    for (LogField field : logFormatFields)
     {
-      append(sb, fields.get(fieldname));
+      append(sb, field.valueOf(ri, timeStampFormat));
     }
     writer.writeRecord(sb.toString());
   }
