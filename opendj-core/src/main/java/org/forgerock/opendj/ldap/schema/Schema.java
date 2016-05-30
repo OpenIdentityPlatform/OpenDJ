@@ -75,8 +75,6 @@ public final class Schema {
 
         Syntax getDefaultSyntax();
 
-        String getOIDForName(String lowerCaseName);
-
         AttributeType getAttributeType(Schema schema, String nameOrOid);
 
         AttributeType getAttributeType(String nameOrOid, Syntax syntax);
@@ -186,11 +184,6 @@ public final class Schema {
         @Override
         public MatchingRule getDefaultMatchingRule() {
             return strictImpl.getDefaultMatchingRule();
-        }
-
-        @Override
-        public String getOIDForName(final String lowerCaseName) {
-            return strictImpl.getOIDForName(lowerCaseName);
         }
 
         @Override
@@ -499,45 +492,6 @@ public final class Schema {
         @Override
         public MatchingRule getDefaultMatchingRule() {
             return defaultMatchingRule;
-        }
-
-        @Override
-        public String getOIDForName(String lowerCaseName) {
-            AttributeType attributeType = getAttributeType0(lowerCaseName);
-            if (attributeType != null) {
-                return attributeType.getOID();
-            }
-            try {
-                return getObjectClass(lowerCaseName).getOID();
-            } catch (UnknownSchemaElementException ignore) {
-                // try next schema element
-            }
-            try {
-                return getSyntax(null, lowerCaseName).getOID();
-            } catch (UnknownSchemaElementException ignore) {
-                // try next schema element
-            }
-            try {
-                return getMatchingRule(lowerCaseName).getOID();
-            } catch (UnknownSchemaElementException ignore) {
-                // try next schema element
-            }
-            try {
-                return getNameForm(lowerCaseName).getOID();
-            } catch (UnknownSchemaElementException ignore) {
-                // try next schema element
-            }
-            try {
-                return getDITContentRule(lowerCaseName).getStructuralClassOID();
-            } catch (UnknownSchemaElementException ignore) {
-                // try next schema element
-            }
-            try {
-                return getMatchingRuleUse(lowerCaseName).getMatchingRuleOID();
-            } catch (UnknownSchemaElementException ignore) {
-                // try next schema element
-            }
-            return null;
         }
 
         @Override
@@ -1146,17 +1100,6 @@ public final class Schema {
 
     Syntax getDefaultSyntax() {
         return impl.getDefaultSyntax();
-    }
-
-    /**
-     * Return the numerical OID matching the lowerCaseName.
-     * @param lowerCaseName The lower case name
-     * @return OID matching the name or null if name doesn't match to an OID
-     * @throws UnknownSchemaElementException if multiple OID are matching
-     * lowerCaseName
-     */
-    String getOIDForName(String lowerCaseName) {
-        return impl.getOIDForName(lowerCaseName);
     }
 
     /**

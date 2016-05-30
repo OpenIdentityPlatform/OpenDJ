@@ -12,13 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-
-import static org.forgerock.opendj.ldap.schema.ObjectIdentifierEqualityMatchingRuleImpl.*;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
@@ -33,7 +32,7 @@ import com.forgerock.opendj.util.SubstringReader;
 
 /**
  * This class implements the objectIdentifierFirstComponentMatch matching rule
- * defined in X.520 and referenced in RFC 2252. This rule is intended for use
+ * defined in X.520 and referenced in RFC 4517. This rule is intended for use
  * with attributes whose values contain a set of parentheses enclosing a
  * space-delimited set of names and/or name-value pairs (like attribute type or
  * objectclass descriptions) in which the "first component" is the first item
@@ -47,7 +46,9 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
 
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException {
-        return defaultAssertion(normalizeAttributeValuePrivate(schema, assertionValue));
+        return ObjectIdentifierEqualityMatchingRuleImpl.getAssertion(schema,
+                                                                     EMR_OID_FIRST_COMPONENT_NAME,
+                                                                     assertionValue);
     }
 
     @Override
@@ -77,6 +78,6 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
 
         // The next set of characters must be the OID.
         final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
-        return ByteString.valueOfUtf8(resolveNames(schema, oid));
+        return ByteString.valueOfUtf8(toLowerCase(oid, new StringBuilder(oid.length())).toString().trim());
     }
 }
