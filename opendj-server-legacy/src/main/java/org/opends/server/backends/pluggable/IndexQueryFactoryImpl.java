@@ -22,6 +22,7 @@ import static org.opends.server.backends.pluggable.IndexFilter.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -124,16 +125,18 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage, StringBuilder indexNameOut)
     {
-      final EntryIDSet entryIDs = newDefinedSet();
-      for (IndexQuery query : subIndexQueries)
+      final List<EntryIDSet> candidateSets = new ArrayList<>(subIndexQueries.size());
+      for (final IndexQuery query : subIndexQueries)
       {
-        entryIDs.addAll(query.evaluate(debugMessage, indexNameOut));
-        if (entryIDs.isDefined() && entryIDs.size() >= CURSOR_ENTRY_LIMIT)
+        final EntryIDSet set = query.evaluate(debugMessage, indexNameOut);
+        if (!set.isDefined())
         {
-          break;
+          // There is no point continuing.
+          return set;
         }
+        candidateSets.add(set);
       }
-      return entryIDs;
+      return newSetFromUnion(candidateSets);
     }
 
     @Override
