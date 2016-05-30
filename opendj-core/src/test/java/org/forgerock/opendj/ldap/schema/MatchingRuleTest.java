@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -70,7 +70,7 @@ public abstract class MatchingRuleTest extends AbstractSchemaTestCase {
         final Assertion assertion = rule.getAssertion(ByteString.valueOfUtf8(value2));
 
         final ConditionResult liveResult = assertion.matches(normalizedValue1);
-        assertEquals(result, liveResult);
+        assertEquals(liveResult, result);
     }
 
     /**
