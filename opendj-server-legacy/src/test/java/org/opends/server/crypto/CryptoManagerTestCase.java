@@ -49,7 +49,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -81,8 +80,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     TestCaseUtils.restartServer();
   }
 
-  @Test(expectedExceptions = CryptoManagerException.class)
-  public void testImportKeysReplacesExistingKeys()
+  @Test
+  public void testImportKeysUsesLatestKey()
       throws Exception {
     final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
     final int keyLength = 56;
@@ -93,14 +92,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     Modification mod = new Modification(REPLACE, create("ds-cfg-key-id", UUID.randomUUID().toString()));
     oldKey.applyModification(mod);
     cm.importCipherKeyEntry(oldKey);
-    try
-    {
-      cm.decrypt(cipherText);
-      Assert.fail("Was expecting a CryptoManager exception, the key should be invalid.");
-    }
-    finally
-    {
-    }
+    byte[] newCipherText = cm.encrypt(cipher, keyLength, new byte[56]);
+    assertThat(ByteString.wrap(cipherText, 1, 16).compareTo(newCipherText, 1, 16)).isNotEqualTo(0);
   }
 
   private Entry getKeyForCipher(String cipher, int keyLength) throws DirectoryException

@@ -42,6 +42,8 @@ import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -57,6 +59,8 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+
+import net.jcip.annotations.GuardedBy;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -183,18 +187,44 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
    */
   private static final int CIPHERTEXT_PROLOGUE_VERSION = 1 ;
 
+  private final Lock cipherKeyEntryLock = new ReentrantLock();
   /**
    * The map from encryption key ID to CipherKeyEntry (cache). The cache is
-   * accessed by methods that request, publish, and import keys.
+   * accessed by methods that request by ID, publish, and import keys.
+   * It contains all keys, even compromised, to be able to access old data.
    */
+  @GuardedBy("cipherKeyEntryLock")
   private final Map<KeyEntryID, CipherKeyEntry> cipherKeyEntryCache = new ConcurrentHashMap<>();
+  /**
+   * Keys imported or generated to use for encryption, mapped by transformation/key length.
+   * Only one cipher key per transformation/key length (used as a key for the map, for example
+   * "AES/CBC/PKCS5Padding/128") is recorded, the last in temporal order to be imported or
+   * generated.
+   * Cipher keys belonging to this map also belong in the cache Map, they are used as keys for
+   * encrypting new data.
+   *
+   */
+  @GuardedBy("cipherKeyEntryLock")
+  private final Map<String, CipherKeyEntry> mostRecentCipherKeys = new ConcurrentHashMap<>();
 
+  private final Lock macKeyEntryLock = new ReentrantLock();
   /**
    * The map from encryption key ID to MacKeyEntry (cache). The cache is
-   * accessed by methods that request, publish, and import keys.
+   * accessed by methods that request by ID, publish, and import keys.
+   * It contains all keys, even compromised, to be able to access old data.
    */
+  @GuardedBy("macKeyEntryLock")
   private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache = new ConcurrentHashMap<>();
-
+  /**
+   * Keys imported or generated for MAC operations, mapped by algorithm/key length.
+   * Only one MAC key per algorithm/key length (used as a key for the map, for example
+   * "HmacSHA1/128") is recorded, the last in temporal order to be imported or
+   * generated.
+   * MAC keys belonging to this map also belong in the cache Map, they are
+   * used for computing new MAC digests.
+   */
+  @GuardedBy("macKeyEntryLock")
+  private final Map<String, MacKeyEntry> mostRecentMacKeys = new ConcurrentHashMap<>();
 
   /** The preferred key wrapping transformation. */
   private String preferredKeyWrappingTransformation;
@@ -1497,7 +1527,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
      * instantiating a Cipher object in order to validate the supplied
      * parameters when creating a new entry.
      *
-     * @see MacKeyEntry#getKeyEntry(CryptoManagerImpl, String, int)
+     * @see MacKeyEntry#getMacKeyEntryOrNull(CryptoManagerImpl, String, int)
      */
     public static CipherKeyEntry generateKeyEntry(
             final CryptoManagerImpl cryptoManager,
@@ -1612,7 +1642,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       final KeyEntryID keyID = new KeyEntryID(keyIDString);
 
       // Check map for existing key entry with the supplied keyID.
-      CipherKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
+      CipherKeyEntry keyEntry = getCipherKeyEntryOrNull(cryptoManager, keyID);
       if (null != keyEntry) {
         // Paranoiac check to ensure exact type match.
         if (!keyEntry.getType().equals(transformation)
@@ -1640,13 +1670,18 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       }
       getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
 
-      // Cache new entry, make sure it is the only one using the given transformation / key length.
-      CipherKeyEntry oldKeyEntry = getKeyEntry(cryptoManager, transformation, secretKeyLengthBits);
-      if (oldKeyEntry != null)
+      // Cache new entry
+      cryptoManager.cipherKeyEntryLock.lock();
+      try
       {
-        cryptoManager.cipherKeyEntryCache.remove(oldKeyEntry.getKeyID());
+        cryptoManager.cipherKeyEntryCache.put(keyEntry.getKeyID(), keyEntry);
+        cryptoManager.mostRecentCipherKeys.put(cryptoManager.getKeyFullSpec(transformation, secretKeyLengthBits),
+            keyEntry);
       }
-      cryptoManager.cipherKeyEntryCache.put(keyEntry.getKeyID(), keyEntry);
+      finally
+      {
+        cryptoManager.cipherKeyEntryLock.unlock();
+      }
 
       return keyEntry;
     }
@@ -1667,26 +1702,18 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
      * @param keyLengthBits  The cipher key length in bits.
      *
      * @return  The key entry corresponding to the parameters, or
-     * {@code null} if no such entry exists.
+     * {@code null} if no such entry exists or has been compromised
      */
-    public static CipherKeyEntry getKeyEntry(
-            final CryptoManagerImpl cryptoManager,
-            final String transformation,
-            final int keyLengthBits) {
+    public static CipherKeyEntry getCipherKeyEntryOrNull(
+        final CryptoManagerImpl cryptoManager,
+        final String transformation,
+        final int keyLengthBits) {
       Reject.ifNull(cryptoManager, transformation);
       Reject.ifFalse(0 < keyLengthBits);
 
-      // search for an existing key that satisfies the request
-      for (Map.Entry<KeyEntryID, CipherKeyEntry> i
-              : cryptoManager.cipherKeyEntryCache.entrySet()) {
-        CipherKeyEntry entry = i.getValue();
-        if (! entry.isCompromised()
-                && entry.getType().equals(transformation)
-                && entry.getKeyLengthBits() == keyLengthBits) {
-          return entry;
-        }
-      }
-      return null;
+      CipherKeyEntry key = cryptoManager.mostRecentCipherKeys.get(cryptoManager.getKeyFullSpec(transformation,
+          keyLengthBits));
+      return key != null && !key.isCompromised() ? key : null;
     }
 
 
@@ -1714,11 +1741,9 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
      * {@code null} if no such entry exists.
      *
      * @see CryptoManagerImpl.MacKeyEntry
-     *  #getKeyEntry(CryptoManagerImpl, String, int)
+     *  #getMacKeyEntryOrNull(CryptoManagerImpl, String, int)
      */
-    public static CipherKeyEntry getKeyEntry(
-            CryptoManagerImpl cryptoManager,
-            final KeyEntryID keyID) {
+    public static CipherKeyEntry getCipherKeyEntryOrNull(CryptoManagerImpl cryptoManager, final KeyEntryID keyID) {
       return cryptoManager.cipherKeyEntryCache.get(keyID);
     }
 
@@ -1974,7 +1999,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
      * instantiating a Mac object in order to validate the supplied
      * parameters when creating a new entry.
      *
-     * @see CipherKeyEntry#getKeyEntry(CryptoManagerImpl, String, int)
+     * @see CipherKeyEntry#getCipherKeyEntryOrNull(CryptoManagerImpl, String, int)
      */
     public static MacKeyEntry generateKeyEntry(
             final CryptoManagerImpl cryptoManager,
@@ -2079,7 +2104,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       final KeyEntryID keyID = new KeyEntryID(keyIDString);
 
       // Check map for existing key entry with the supplied keyID.
-      MacKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
+      MacKeyEntry keyEntry = getMacKeyEntryOrNull(cryptoManager, keyID);
       if (null != keyEntry) {
         // Paranoiac check to ensure exact type match.
         if (! (keyEntry.getType().equals(algorithm)
@@ -2102,15 +2127,17 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       // Validate new entry.
       getMacEngine(keyEntry);
 
-      // Cache new entry, make sure it is the only one using the given transformation / key length.
-      MacKeyEntry oldKeyEntry = getKeyEntry(cryptoManager, algorithm, secretKeyLengthBits);
-      if (oldKeyEntry != null)
+      // Cache new entry
+      cryptoManager.macKeyEntryLock.lock();
+      try
       {
-        cryptoManager.macKeyEntryCache.remove(oldKeyEntry.getKeyID());
+        cryptoManager.macKeyEntryCache.put(keyEntry.getKeyID(), keyEntry);
+        cryptoManager.mostRecentMacKeys.put(cryptoManager.getKeyFullSpec(algorithm, secretKeyLengthBits), keyEntry);
       }
-      cryptoManager.macKeyEntryCache.put(keyEntry.getKeyID(),
-              keyEntry);
-
+      finally
+      {
+        cryptoManager.macKeyEntryLock.unlock();
+      }
       return keyEntry;
     }
 
@@ -2129,26 +2156,17 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
      * @param keyLengthBits  The MAC key length in bits.
      *
      * @return  The key entry corresponding to the parameters, or
-     * {@code null} if no such entry exists.
+     * {@code null} if no such entry exists or has been compromised
      */
-    public static MacKeyEntry getKeyEntry(
-            final CryptoManagerImpl cryptoManager,
-            final String algorithm,
-            final int keyLengthBits) {
+    public static MacKeyEntry getMacKeyEntryOrNull(
+        final CryptoManagerImpl cryptoManager,
+        final String algorithm,
+        final int keyLengthBits) {
       Reject.ifNull(cryptoManager, algorithm);
       Reject.ifFalse(0 < keyLengthBits);
 
-      // search for an existing key that satisfies the request
-      for (Map.Entry<KeyEntryID, MacKeyEntry> i
-              : cryptoManager.macKeyEntryCache.entrySet()) {
-        MacKeyEntry entry = i.getValue();
-        if (! entry.isCompromised()
-                && entry.getType().equals(algorithm)
-                && entry.getKeyLengthBits() == keyLengthBits) {
-          return entry;
-        }
-      }
-      return null;
+      MacKeyEntry key =cryptoManager.mostRecentMacKeys.get(cryptoManager.getKeyFullSpec(algorithm, keyLengthBits));
+      return key != null && !key.isCompromised() ? key : null;
     }
 
 
@@ -2176,11 +2194,9 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
      * {@code null} if no such entry exists.
      *
      * @see CryptoManagerImpl.CipherKeyEntry
-     *     #getKeyEntry(CryptoManagerImpl, String, int)
+     *     #getMacKeyEntryOrNull(CryptoManagerImpl, String, int)
      */
-    public static MacKeyEntry getKeyEntry(
-            final CryptoManagerImpl cryptoManager,
-            final KeyEntryID keyID) {
+    public static MacKeyEntry getMacKeyEntryOrNull(final CryptoManagerImpl cryptoManager, final KeyEntryID keyID) {
       return cryptoManager.macKeyEntryCache.get(keyID);
     }
 
@@ -2398,11 +2414,23 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
          throws CryptoManagerException {
     Reject.ifNull(macAlgorithm);
 
-    MacKeyEntry keyEntry = MacKeyEntry.getKeyEntry(this, macAlgorithm,
-                                                   keyLengthBits);
-    if (null == keyEntry) {
-      keyEntry = MacKeyEntry.generateKeyEntry(this, macAlgorithm,
-                                              keyLengthBits);
+    MacKeyEntry keyEntry = MacKeyEntry.getMacKeyEntryOrNull(this, macAlgorithm, keyLengthBits);
+    if (keyEntry == null)
+    {
+      macKeyEntryLock.lock();
+      try
+      {
+        keyEntry = MacKeyEntry.getMacKeyEntryOrNull(this, macAlgorithm, keyLengthBits);
+        if (keyEntry == null)
+        {
+          keyEntry = MacKeyEntry.generateKeyEntry(this, macAlgorithm, keyLengthBits);
+          mostRecentMacKeys.put(getKeyFullSpec(macAlgorithm, keyLengthBits), keyEntry);
+        }
+      }
+      finally
+      {
+        macKeyEntryLock.unlock();
+      }
     }
 
     return keyEntry.getKeyID().toString();
@@ -2412,8 +2440,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   public Mac getMacEngine(String keyEntryID)
           throws CryptoManagerException
   {
-    final MacKeyEntry keyEntry = MacKeyEntry.getKeyEntry(this,
-            new KeyEntryID(keyEntryID));
+    final MacKeyEntry keyEntry = MacKeyEntry.getMacKeyEntryOrNull(this, new KeyEntryID(keyEntryID));
     return keyEntry != null ? getMacEngine(keyEntry) : null;
   }
 
@@ -2433,22 +2460,15 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   {
     Reject.ifNull(cipherTransformation, data);
 
-    CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this,
-            cipherTransformation, keyLengthBits);
-    if (null == keyEntry) {
-      keyEntry = CipherKeyEntry.generateKeyEntry(this, cipherTransformation,
-              keyLengthBits);
-    }
-
+    CipherKeyEntry keyEntry = getCipherKeyEntry(cipherTransformation, keyLengthBits);
     final Cipher cipher = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
-
     final byte[] keyID = keyEntry.getKeyID().getByteValue();
     final byte[] iv = cipher.getIV();
-    final int prologueLength
-            = /* version */ 1 + keyID.length + (iv != null ? iv.length : 0);
+    final int prologueLength = /* version */ 1 + keyID.length + (iv != null ? iv.length : 0);
     final int dataLength = cipher.getOutputSize(data.length);
     final byte[] cipherText = new byte[prologueLength + dataLength];
     int writeIndex = 0;
+
     cipherText[writeIndex++] = CIPHERTEXT_PROLOGUE_VERSION;
     System.arraycopy(keyID, 0, cipherText, writeIndex, keyID.length);
     writeIndex += keyID.length;
@@ -2477,15 +2497,10 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   {
     Reject.ifNull(cipherTransformation, outputStream);
 
-    CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(
-            this, cipherTransformation, keyLengthBits);
-    if (null == keyEntry) {
-      keyEntry = CipherKeyEntry.generateKeyEntry(this, cipherTransformation,
-              keyLengthBits);
-    }
-
+    CipherKeyEntry keyEntry = getCipherKeyEntry(cipherTransformation, keyLengthBits);
     final Cipher cipher = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
     final byte[] keyID = keyEntry.getKeyID().getByteValue();
+
     try {
       outputStream.write((byte)CIPHERTEXT_PROLOGUE_VERSION);
       outputStream.write(keyID);
@@ -2501,6 +2516,33 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     }
 
     return new CipherOutputStream(outputStream, cipher);
+  }
+
+  private CipherKeyEntry getCipherKeyEntry(String cipherTransformation, int keyLengthBits) throws CryptoManagerException
+  {
+    CipherKeyEntry keyEntry = CipherKeyEntry.getCipherKeyEntryOrNull(this, cipherTransformation, keyLengthBits);
+    if (keyEntry == null) {
+      cipherKeyEntryLock.lock();
+      try
+      {
+        keyEntry = CipherKeyEntry.getCipherKeyEntryOrNull(this, cipherTransformation, keyLengthBits);
+        if (keyEntry == null)
+        {
+          keyEntry = CipherKeyEntry.generateKeyEntry(this, cipherTransformation, keyLengthBits);
+          mostRecentCipherKeys.put(getKeyFullSpec(cipherTransformation, keyLengthBits), keyEntry);
+        }
+      }
+      finally
+      {
+        cipherKeyEntryLock.unlock();
+      }
+    }
+    return keyEntry;
+  }
+
+  private String getKeyFullSpec(String transformation, int keyLength)
+  {
+    return transformation + "/" + keyLength;
   }
 
   @Override
@@ -2547,7 +2589,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                    ex.getMessage()), ex);
     }
 
-    CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this, keyID);
+    CipherKeyEntry keyEntry = CipherKeyEntry.getCipherKeyEntryOrNull(this, keyID);
     if (null == keyEntry) {
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_DECRYPT_UNKNOWN_KEY_IDENTIFIER.get());
@@ -2612,7 +2654,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
            ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(
                    "stream underflow"));
       }
-      keyEntry = CipherKeyEntry.getKeyEntry(this, new KeyEntryID(keyID));
+      keyEntry = CipherKeyEntry.getCipherKeyEntryOrNull(this, new KeyEntryID(keyID));
       if (null == keyEntry) {
         throw new CryptoManagerException(
                 ERR_CRYPTOMGR_DECRYPT_UNKNOWN_KEY_IDENTIFIER.get());
