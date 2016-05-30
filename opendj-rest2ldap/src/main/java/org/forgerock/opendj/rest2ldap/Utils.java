@@ -11,10 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static javax.xml.bind.DatatypeConverter.parseDateTime;
 import static javax.xml.bind.DatatypeConverter.printDateTime;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
@@ -32,7 +33,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.JsonValueException;
+import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -152,8 +158,7 @@ final class Utils {
             }
             return a;
         } else {
-            throw new IllegalArgumentException("Unrecognized type of JSON value: "
-                    + value.getClass().getName());
+            throw newLocalizedIllegalArgumentException(ERR_UNRECOGNIZED_JSON_VALUE.get(value.getClass().getName()));
         }
     }
 
@@ -169,8 +174,8 @@ final class Utils {
                         return ByteString.valueOfObject(value);
                     }
                 } else {
-                    throw new IllegalArgumentException("Unrecognized type of JSON value: "
-                            + value.getClass().getName());
+                    throw newLocalizedIllegalArgumentException(
+                            ERR_UNRECOGNIZED_JSON_VALUE.get(value.getClass().getName()));
                 }
             }
         };
@@ -206,6 +211,26 @@ final class Utils {
 
     static String toLowerCase(final String s) {
         return s != null ? s.toLowerCase(Locale.ENGLISH) : null;
+    }
+
+    static NotSupportedException newNotSupportedException(final LocalizableMessage message) {
+        return new NotSupportedException(message.toString());
+    }
+
+    static JsonValueException newJsonValueException(final JsonValue value, final LocalizableMessage message) {
+        return new JsonValueException(value, message.toString());
+    }
+
+    static LocalizedIllegalArgumentException newLocalizedIllegalArgumentException(final LocalizableMessage message) {
+        return new LocalizedIllegalArgumentException(message);
+    }
+
+    static BadRequestException newBadRequestException(final LocalizableMessage message) {
+        return newBadRequestException(message, null);
+    }
+
+    static BadRequestException newBadRequestException(final LocalizableMessage message, final Throwable cause) {
+        return new BadRequestException(message.toString(), cause);
     }
 
     private static <T> List<T> asList(final Collection<T> c) {

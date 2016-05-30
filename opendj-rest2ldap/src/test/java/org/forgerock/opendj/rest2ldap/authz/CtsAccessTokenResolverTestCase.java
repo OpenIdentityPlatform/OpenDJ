@@ -122,7 +122,7 @@ public class CtsAccessTokenResolverTestCase extends ForgeRockTestCase {
     }
 
     @Test(expectedExceptions = ExecutionException.class, expectedExceptionsMessageRegExp =
-                  ".*The token 'test-token' must be an access token, but it is a \"refresh_token\"")
+                  ".*The token 'test-token' must be an access token, but it is a 'refresh_token'")
     public void testInvalidTokenType() throws Exception {
         final SearchResultEntry entry = mock(SearchResultEntry.class);
         final Attribute attribute = mock(Attribute.class);

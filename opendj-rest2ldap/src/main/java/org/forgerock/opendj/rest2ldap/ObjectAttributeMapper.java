@@ -15,10 +15,11 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.json.resource.PatchOperation.operation;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
+import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -31,7 +32,6 @@ import java.util.Set;
 
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
-import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
@@ -196,9 +196,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
                 final String fieldName = field.get(0);
                 final Mapping mapping = getMapping(fieldName);
                 if (mapping == null) {
-                    throw new BadRequestException(i18n(
-                            "The request cannot be processed because it included "
-                                    + "an unrecognized field '%s'", path.child(fieldName)));
+                    throw newBadRequestException(ERR_UNRECOGNIZED_FIELD.get(path.child(fieldName)));
                 }
                 final PatchOperation subOperation =
                         operation(operation.getOperation(), field.relativePointer(), v);
@@ -314,16 +312,11 @@ public final class ObjectAttributeMapper extends AttributeMapper {
             if (v.isMap()) {
                 for (final String attribute : v.asMap().keySet()) {
                     if (missingMappings.remove(toLowerCase(attribute)) == null) {
-                        throw new BadRequestException(i18n(
-                                "The request cannot be processed because it included "
-                                        + "an unrecognized field '%s'", path.child(attribute)));
+                        throw newBadRequestException(ERR_UNRECOGNIZED_FIELD.get(path.child(attribute)));
                     }
                 }
             } else {
-                throw new BadRequestException(i18n(
-                        "The request cannot be processed because it included "
-                                + "the field '%s' whose value is the wrong type: "
-                                + "an object is expected", path));
+                throw newBadRequestException(ERR_FIELD_WRONG_TYPE.get(path));
             }
         }
         return missingMappings;

@@ -16,17 +16,21 @@
 
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.http.util.Json.readJsonLenient;
 import static org.forgerock.json.JsonValueFunctions.duration;
 import static org.forgerock.json.JsonValueFunctions.enumConstant;
 import static org.forgerock.json.JsonValueFunctions.setOf;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.configureConnectionFactory;
+import static org.forgerock.opendj.rest2ldap.Utils.newLocalizedIllegalArgumentException;
+import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
 import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.*;
 import static org.forgerock.opendj.rest2ldap.authz.Authorizations.*;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.*;
 import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.*;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
+import static org.forgerock.util.Utils.joinAsString;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +61,6 @@ import org.forgerock.http.handler.HttpClientHandler;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Headers;
 import org.forgerock.json.JsonValue;
-import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.http.CrestHttp;
@@ -112,16 +115,39 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
 
     /** Define the method which should be used to resolve an OAuth2 access token. */
     private enum OAuth2ResolverType {
-        RFC7662,
-        OPENAM,
-        CTS,
-        FILE
+        RFC7662, OPENAM, CTS, FILE;
+
+        private static String listValues() {
+            final List<String> values = new ArrayList<>();
+            for (final OAuth2ResolverType value : OAuth2ResolverType.values()) {
+                values.add(value.name().toLowerCase());
+            }
+            return joinAsString(",", values);
+        }
     }
 
     @VisibleForTesting
     enum Policy { OAUTH2, BASIC, ANONYMOUS }
 
-    private enum BindStrategy { SIMPLE, SEARCH, SASL_PLAIN }
+    private enum BindStrategy {
+        SIMPLE("simple"),
+        SEARCH("search"),
+        SASL_PLAIN("sasl-plain");
+
+        private final String jsonField;
+
+        BindStrategy(final String jsonField) {
+            this.jsonField = jsonField;
+        }
+
+        private static String listValues() {
+            final List<String> values = new ArrayList<>();
+            for (final BindStrategy mapping : BindStrategy.values()) {
+                values.add(mapping.jsonField);
+            }
+            return joinAsString(",", values);
+        }
+    }
 
     /**
      * Default constructor called by the HTTP Framework which will use the default configuration file location.
@@ -154,8 +180,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
                     CrestHttp.newHttpHandler(configureRest2Ldap(configuration)),
                     buildAuthorizationFilter(configuration.get("authorization").required()));
         } catch (final Exception e) {
-            // TODO i18n, once supported in opendj-rest2ldap
-            final String errorMsg = "Unable to start Rest2Ldap Http Application";
+            final String errorMsg = ERR_FAIL_PARSE_CONFIGURATION.get(e.getLocalizedMessage()).toString();
             LOG.error(errorMsg, e);
             stop();
             throw new HttpApplicationException(errorMsg, e);
@@ -267,7 +292,9 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         case FILE:
             return newFileAccessTokenResolver(configuration.get("file").get("folderPath").required().asString());
         default:
-            throw new JsonValueException(resolver, "is not a supported access token resolver");
+            throw newJsonValueException(resolver,
+                                        ERR_CONFIG_OAUTH2_UNSUPPORTED_ACCESS_TOKEN_RESOLVER.get(
+                                                resolver.getObject(), OAuth2ResolverType.listValues()));
         }
     }
 
@@ -280,8 +307,8 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
                                                  rfc7662.get("clientId").required().asString(),
                                                  rfc7662.get("clientSecret").required().asString());
         } catch (final URISyntaxException e) {
-            throw new IllegalArgumentException("The token introspection endpoint '"
-                    + introspectionEndPointURL + "' URL has an invalid syntax: " + e.getLocalizedMessage(), e);
+            throw new IllegalArgumentException(ERR_CONIFG_OAUTH2_INVALID_INTROSPECT_URL.get(
+                    introspectionEndPointURL, e.getLocalizedMessage()).toString(), e);
         }
     }
 
@@ -289,15 +316,14 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         try {
             final Duration expiration = expirationJson.as(duration());
             if (expiration.isZero() || expiration.isUnlimited()) {
-                throw new JsonValueException(expirationJson, "The cache expiration duration cannot be "
-                        + (expiration.isZero() ? "zero" : "unlimited."));
+                throw newJsonValueException(expirationJson,
+                                            expiration.isZero() ? ERR_CONIFG_OAUTH2_CACHE_ZERO_DURATION.get()
+                                                                : ERR_CONIFG_OAUTH2_CACHE_UNLIMITED_DURATION.get());
             }
             return expiration;
         } catch (final Exception e) {
-            throw new JsonValueException(expirationJson,
-                      "Malformed duration value '" + expirationJson.toString() + "' for cache expiration. "
-                    + "The duration syntax supports all human readable notations from day ('days'', 'day'', 'd'') "
-                    + "to nanosecond ('nanoseconds', 'nanosecond', 'nanosec', 'nanos', 'nano', 'ns')");
+            throw newJsonValueException(expirationJson,
+                                        ERR_CONFIG_OAUTH2_CACHE_INVALID_DURATION.get(expirationJson.toString()));
         }
     }
 
@@ -381,7 +407,8 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         case SASL_PLAIN:
             return buildSASLBindStrategy(config);
         default:
-            throw new IllegalArgumentException("Unsupported strategy '" + strategy + "'");
+            throw newLocalizedIllegalArgumentException(ERR_CONFIG_UNSUPPORTED_BIND_STRATEGY.get(
+                    strategy, BindStrategy.listValues()));
         }
     }
 

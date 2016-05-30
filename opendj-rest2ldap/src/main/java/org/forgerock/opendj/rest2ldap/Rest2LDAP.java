@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.Arrays.asList;
 import static org.forgerock.json.resource.ResourceException.newResourceException;
 import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
@@ -26,6 +27,9 @@ import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
+import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
+import static org.forgerock.opendj.rest2ldap.Utils.newLocalizedIllegalArgumentException;
+import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
 import static org.forgerock.util.time.Duration.*;
 
 import java.io.IOException;
@@ -39,8 +43,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.json.JsonValue;
-import org.forgerock.json.JsonValueException;
-import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.CollectionResourceProvider;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.AssertionFailureException;
@@ -170,7 +172,7 @@ public final class Rest2LDAP {
         public CollectionResourceProvider build() {
             ensureNotNull(baseDN);
             if (rootMapper == null) {
-                throw new IllegalStateException("No mappings provided");
+                throw new IllegalStateException(ERR_CONFIG_NO_MAPPINGS_PROVIDED.get().toString());
             }
             return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy, etagAttribute,
                     new Config(readOnUpdatePolicy, useSubtreeDelete, usePermissiveModify, schema),
@@ -215,8 +217,8 @@ public final class Rest2LDAP {
                     useServerNaming(namingStrategy.get("dnAttribute").required().asString(),
                             namingStrategy.get("idAttribute").required().asString());
                 } else {
-                    throw new IllegalArgumentException(
-                            "Illegal naming strategy. Must be one of: clientDNNaming, clientNaming, or serverNaming");
+                    throw newLocalizedIllegalArgumentException(ERR_CONFIG_UNKNOWN_NAMING_CONFIGURATION.get(
+                            namingStrategy.asString(), "clientDNNaming, clientNaming or serverNaming"));
                 }
             }
 
@@ -586,8 +588,8 @@ public final class Rest2LDAP {
             } else if (mapper.isDefined("object")) {
                 return configureObjectMapper(mapper.get("object"));
             } else {
-                throw new JsonValueException(mapper,
-                        "Illegal mapping: must contain constant, simple, or object");
+                throw newJsonValueException(mapper, ERR_CONFIG_NO_MAPPING_IN_CONFIGURATION.get(
+                        "constant, simple, reference or object"));
             }
         }
 
@@ -613,9 +615,8 @@ public final class Rest2LDAP {
                 } else if (writability.equalsIgnoreCase("readWrite")) {
                     return WritabilityPolicy.READ_WRITE;
                 } else {
-                    throw new JsonValueException(mapper,
-                            "Illegal writability: must be one of readOnly, readOnlyDiscardWrites, "
-                                    + "createOnly, createOnlyDiscardWrites, or readWrite");
+                    throw newJsonValueException(mapper, ERR_CONFIG_UNKNOWN_WRITABILITY.get(writability,
+                                "readOnly, readOnlyDiscardWrites, createOnly, createOnlyDiscardWrites, or readWrite"));
                 }
             } else {
                 return WritabilityPolicy.READ_WRITE;
@@ -632,7 +633,7 @@ public final class Rest2LDAP {
                 final AttributeDescription idAttribute, final boolean isServerProvided) {
             this.dnAttribute = AttributeDescription.create(dnAttribute);
             if (this.dnAttribute.equals(idAttribute)) {
-                throw new IllegalArgumentException("DN and ID attributes must be different");
+                throw newLocalizedIllegalArgumentException(ERR_CONFIG_NAMING_STRATEGY_DN_AND_ID_NOT_DIFFERENT.get());
             }
             this.idAttribute = ensureNotNull(idAttribute);
             this.isServerProvided = isServerProvided;
@@ -659,8 +660,7 @@ public final class Rest2LDAP {
                 final Entry entry) throws ResourceException {
             if (isServerProvided) {
                 if (resourceId != null) {
-                    throw new BadRequestException("Resources cannot be created with a "
-                            + "client provided resource ID");
+                    throw newBadRequestException(ERR_CLIENT_PROVIDER_RESOURCE_ID_MISSING.get());
                 }
             } else {
                 entry.addAttribute(new LinkedAttribute(idAttribute, ByteString.valueOfUtf8(resourceId)));
@@ -703,8 +703,7 @@ public final class Rest2LDAP {
             } else if (entry.getAttribute(attribute) != null) {
                 entry.setName(baseDN.child(rdn(entry.parseAttribute(attribute).asString())));
             } else {
-                throw new BadRequestException("Resources cannot be created without a "
-                        + "client provided resource ID");
+                throw newBadRequestException(ERR_CLIENT_PROVIDER_RESOURCE_ID_MISSING.get());
             }
         }
 
@@ -937,7 +936,7 @@ public final class Rest2LDAP {
                                 simple.get("bindPassword").required().asString().toCharArray());
                 options.set(AUTHN_BIND_REQUEST, bindRequest);
             } else {
-                throw new IllegalArgumentException("Only simple authentication is supported");
+                throw newLocalizedIllegalArgumentException(ERR_CONFIG_INVALID_AUTHENTICATION.get());
             }
         }
 
@@ -995,7 +994,7 @@ public final class Rest2LDAP {
                 secondary = parseLDAPServers(secondaryLDAPServers, connectionPoolSize, options);
             }
         } else if (!secondaryLDAPServers.isNull()) {
-            throw new IllegalArgumentException("Invalid secondaryLDAPServers configuration");
+            throw newLocalizedIllegalArgumentException(ERR_CONFIG_INVALID_SECONDARY_LDAP_SERVER.get());
         }
 
         // Create fail-over.
@@ -1010,10 +1009,7 @@ public final class Rest2LDAP {
             final String name, final int depth) {
         // Protect against infinite recursion in the configuration.
         if (depth > 100) {
-            throw new IllegalArgumentException(
-                    "The LDAP server configuration '"
-                            + name
-                            + "' could not be parsed because of potential circular inheritance dependencies");
+            throw newLocalizedIllegalArgumentException(ERR_CONFIG_SERVER_CIRCULAR_DEPENDENCIES.get(name));
         }
 
         final JsonValue current = configuration.get(name).required();

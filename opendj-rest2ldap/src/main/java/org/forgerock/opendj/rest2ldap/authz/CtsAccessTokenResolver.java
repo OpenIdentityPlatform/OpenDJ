@@ -15,8 +15,10 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSingleEntrySearchRequest;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.close;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.newAccessTokenException;
 import static org.forgerock.util.Reject.checkNotNull;
 
 import java.io.IOException;
@@ -78,8 +80,7 @@ final class CtsAccessTokenResolver implements AccessTokenResolver {
 
                     final String tokenName = getRequiredFirstValue(accessToken.get("tokenName"));
                     if (!tokenName.equals("access_token")) {
-                        throw new AccessTokenException(
-                                "The token '" + token + "' must be an access token, but it is a \"" + tokenName + "\"");
+                        throw newAccessTokenException(ERR_OAUTH2_CTS_INVALID_TOKEN_TYPE.get(token, tokenName));
                     }
 
                     return new AccessTokenInfo(accessToken, token,
@@ -89,14 +90,12 @@ final class CtsAccessTokenResolver implements AccessTokenResolver {
             }, new Function<LdapException, AccessTokenInfo, AccessTokenException>() {
                 @Override
                 public AccessTokenInfo apply(final LdapException e) throws AccessTokenException {
-                    throw new AccessTokenException("Unable to find the token '" + token + "' in the CTS because: "
-                            + e.getMessage(), e);
+                    throw newAccessTokenException(ERR_OAUTH2_CTS_TOKEN_NOT_FOUND.get(token, e.getMessage()), e);
                 }
             }).thenCatchRuntimeException(new Function<RuntimeException, AccessTokenInfo, AccessTokenException>() {
                 @Override
                 public AccessTokenInfo apply(final RuntimeException e) throws AccessTokenException {
-                    throw new AccessTokenException("Unable to resolve access token '" + token
-                            + "' due to the following reason: " + e.getMessage(), e);
+                    throw newAccessTokenException(ERR_OAUTH2_CTS_TOKEN_RESOLUTION.get(token, e.getMessage()), e);
                 }
             }).thenFinally(close(connectionHolder));
     }
@@ -109,7 +108,7 @@ final class CtsAccessTokenResolver implements AccessTokenResolver {
         try {
             return new JsonValue(Json.readJson(accessTokenJson));
         } catch (final IOException e) {
-            throw new AccessTokenException("Json of token '" + token + "' is malformed");
+            throw newAccessTokenException(ERR_OAUTH2_CTS_INVALID_JSON_TOKEN.get(token));
         }
     }
 }

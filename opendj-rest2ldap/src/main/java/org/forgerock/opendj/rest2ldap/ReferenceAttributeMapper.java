@@ -15,11 +15,12 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
+import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -31,7 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
-import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -206,15 +206,12 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                     }
 
                     if (primaryKeyAttribute == null || primaryKeyAttribute.isEmpty()) {
-                        promise.handleException(new BadRequestException(
-                                i18n("The request cannot be processed because the reference field '%s' contains "
-                                        + "a value which does not contain a primary key", path)));
+                        promise.handleException(newBadRequestException(ERR_REFERENCE_FIELD_NO_PRIMARY_KEY.get(path)));
                     }
 
                     if (primaryKeyAttribute.size() > 1) {
-                        promise.handleException(new BadRequestException(
-                                i18n("The request cannot be processed because the reference field '%s' contains "
-                                        + "a value which contains multiple primary keys", path)));
+                        promise.handleException(
+                                newBadRequestException(ERR_REFERENCE_FIELD_MULTIPLE_PRIMARY_KEYS.get(path)));
                     }
 
                     // Now search for the referenced entry in to get its DN.
@@ -237,15 +234,11 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                                       try {
                                           throw error;
                                       } catch (final EntryNotFoundException e) {
-                                          re = new BadRequestException(i18n(
-                                                  "The request cannot be processed because the resource "
-                                                  + "'%s' referenced in field '%s' does not exist",
+                                          re = newBadRequestException(ERR_REFERENCE_FIELD_DOES_NOT_EXIST.get(
                                                   primaryKeyValue.toString(), path));
                                       } catch (final MultipleEntriesFoundException e) {
-                                          re = new BadRequestException(i18n(
-                                                  "The request cannot be processed because the resource "
-                                                  + "'%s' referenced in field '%s' is ambiguous",
-                                                  primaryKeyValue.toString(), path));
+                                          re = newBadRequestException(
+                                                  ERR_REFERENCE_FIELD_AMBIGUOUS.get(primaryKeyValue.toString(), path));
                                       } catch (final LdapException e) {
                                           re = asResourceException(e);
                                       }

@@ -15,12 +15,14 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.Attributes.emptyAttribute;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
+import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
+import static org.forgerock.opendj.rest2ldap.Utils.newNotSupportedException;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
 
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ import java.util.Set;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
-import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
@@ -108,14 +109,12 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                 public List<Attribute> apply(Attribute newLDAPAttribute) throws ResourceException {
                     if (!writabilityPolicy.canCreate(ldapAttributeName)) {
                         if (!newLDAPAttribute.isEmpty() && !writabilityPolicy.discardWrites()) {
-                            throw new BadRequestException(i18n("The request cannot be processed because it attempts "
-                                    + "to create the read-only field '%s'", path));
+                            throw newBadRequestException(ERR_CREATION_READ_ONLY_FIELD.get(path));
                         }
                         return Collections.emptyList();
                     } else if (newLDAPAttribute.isEmpty()) {
                         if (isRequired) {
-                            throw new BadRequestException(i18n("The request cannot be processed because it attempts "
-                                    + "to remove the required field '%s'", path));
+                            throw newBadRequestException(ERR_REMOVE_REQUIRED_FIELD.get("create", path));
                         }
                         return Collections.emptyList();
                     }
@@ -148,9 +147,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
              * if it is configured to discard writes.
              */
             if (!writabilityPolicy.canWrite(ldapAttributeName)) {
-                throw new BadRequestException(i18n(
-                        "The request cannot be processed because it attempts to modify "
-                                + "the read-only field '%s'", path));
+                throw newBadRequestException(ERR_MODIFY_READ_ONLY_FIELD.get("patch", path));
             }
 
             switch (field.size()) {
@@ -164,16 +161,12 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                 if (attributeIsSingleValued()) {
                     if (v.isList()) {
                         // Single-valued field violation.
-                        throw new BadRequestException(i18n(
-                                "The request cannot be processed because an array of values was "
-                                        + "provided for the single valued field '%s'", path));
+                        throw newBadRequestException(ERR_ARRAY_FOR_SINGLE_VALUED_FIELD.get(path));
                     }
                 } else if (!v.isList() && !operation.isIncrement()
                         && !(v.isNull() && (operation.isReplace() || operation.isRemove()))) {
                     // Multi-valued field violation.
-                    throw new BadRequestException(i18n(
-                            "The request cannot be processed because an array of values was "
-                                    + "not provided for the multi-valued field '%s'", path));
+                    throw newBadRequestException(ERR_NO_ARRAY_FOR_MULTI_VALUED_FIELD.get(path));
                 }
                 break;
             case 1:
@@ -189,25 +182,16 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                 if (fieldName.equals("-") && operation.isAdd()) {
                     // Append a single value.
                     if (attributeIsSingleValued()) {
-                        throw new BadRequestException(i18n(
-                                "The request cannot be processed because it attempts to append a "
-                                        + "value to the single valued field '%s'", path));
+                        throw newBadRequestException(ERR_PATCH_APPEND_IN_SINGLE_VALUED_FIELD.get(path));
                     } else if (v.isList()) {
-                        throw new BadRequestException(i18n(
-                                "The request cannot be processed because it attempts to "
-                                        + "perform an indexed append of an array of values to "
-                                        + "the multi-valued field '%s'", path.child(fieldName)));
+                        throw newBadRequestException(
+                                ERR_PATCH_INDEXED_APPEND_TO_MULTI_VALUED_FIELD.get(path.child(fieldName)));
                     }
                 } else if (fieldName.matches("[0-9]+")) {
                     // Array index - not allowed.
-                    throw new NotSupportedException(i18n(
-                            "The request cannot be processed because it included "
-                                    + "an indexed patch operation '%s' which is not supported "
-                                    + "by this resource provider", path.child(fieldName)));
+                    throw newNotSupportedException(ERR_PATCH_INDEXED_OPERATION.get(path.child(fieldName)));
                 } else {
-                    throw new BadRequestException(i18n(
-                            "The request cannot be processed because it included "
-                                    + "an unrecognized field '%s'", path.child(fieldName)));
+                    throw newBadRequestException(ERR_UNRECOGNIZED_FIELD.get(path.child(fieldName)));
                 }
                 break;
             default:
@@ -215,9 +199,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                  * The patch operation targets the child of a sub-field. This is
                  * not possible for a LDAP attribute mapper.
                  */
-                throw new BadRequestException(i18n(
-                        "The request cannot be processed because it included "
-                                + "an unrecognized field '%s'", path.child(field.get(0))));
+                throw newBadRequestException(ERR_UNRECOGNIZED_FIELD.get(path.child(field.get(0))));
             }
 
             // Check that the values are compatible with the type of patch operation.
@@ -232,10 +214,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                 modType =
                         attributeIsSingleValued() ? ModificationType.REPLACE : ModificationType.ADD;
                 if (newValues.isEmpty()) {
-                    throw new BadRequestException(i18n(
-                            "The request cannot be processed because it included "
-                                    + "an add patch operation but no value(s) for field '%s'", path
-                                    .child(field.get(0))));
+                    throw newBadRequestException(ERR_PATCH_ADD_NO_VALUE_FOR_FIELD.get(path.child(field.get(0))));
                 }
             } else if (operation.isRemove()) {
                 modType = ModificationType.DELETE;
@@ -244,10 +223,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
             } else if (operation.isIncrement()) {
                 modType = ModificationType.INCREMENT;
             } else {
-                throw new NotSupportedException(i18n(
-                        "The request cannot be processed because it included "
-                                + "an unsupported type of patch operation '%s'", operation
-                                .getOperation()));
+                throw newNotSupportedException(ERR_PATCH_UNSUPPORTED_OPERATION.get(operation.getOperation()));
             }
 
             // Create the modification.
@@ -255,9 +231,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                 // Deleting the attribute.
                 if (isRequired) {
                     return Promises.<List<Modification>, ResourceException> newExceptionPromise(
-                            new BadRequestException(i18n(
-                                "The request cannot be processed because it attempts to remove the required field '%s'",
-                                path)));
+                            newBadRequestException(ERR_REMOVE_REQUIRED_FIELD.get("update", path)));
                 } else {
                     return Promises.newResultPromise(
                         singletonList(new Modification(modType, emptyAttribute(ldapAttributeName))));
@@ -300,9 +274,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                             // No change.
                             return Collections.emptyList();
                         }
-                        throw new BadRequestException(i18n(
-                            "The request cannot be processed because it attempts to modify the read-only field '%s'",
-                            path));
+                        throw newBadRequestException(ERR_MODIFY_READ_ONLY_FIELD.get("update", path));
                     }
 
                     if (oldLDAPAttribute.isEmpty() && newLDAPAttribute.isEmpty()) {
@@ -314,9 +286,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                     } else if (newLDAPAttribute.isEmpty()) {
                         // The attribute is being deleted - this is not allowed if the attribute is required.
                         if (isRequired) {
-                            throw new BadRequestException(i18n(
-                                "The request cannot be processed because it attempts to remove the required field '%s'",
-                                path));
+                            throw newBadRequestException(ERR_REMOVE_REQUIRED_FIELD.get("update", path));
                         }
                         return singletonList(new Modification(ModificationType.REPLACE, newLDAPAttribute));
                     } else {
@@ -359,15 +329,11 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
         if (attributeIsSingleValued()) {
             if (v != null && v.isList()) {
                 // Single-valued field violation.
-                throw new BadRequestException(i18n(
-                        "The request cannot be processed because an array of values was "
-                                + "provided for the single valued field '%s'", path));
+                throw newBadRequestException(ERR_ARRAY_FOR_SINGLE_VALUED_FIELD.get(path));
             }
         } else if (v != null && !v.isList()) {
             // Multi-valued field violation.
-            throw new BadRequestException(i18n(
-                    "The request cannot be processed because an array of values was "
-                            + "not provided for the multi-valued field '%s'", path));
+            throw newBadRequestException(ERR_NO_ARRAY_FOR_MULTI_VALUED_FIELD.get(path));
         }
     }
 

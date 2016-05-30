@@ -15,6 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.newAccessTokenException;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.promise.Promises.newExceptionPromise;
 import static org.forgerock.util.promise.Promises.newResultPromise;
@@ -48,7 +50,7 @@ final class FileAccessTokenResolver implements AccessTokenResolver {
         try (final InputStream stream = new FileInputStream(new File(folderPath, token))) {
             accessToken = new JsonValue(Json.readJsonLenient(stream));
         } catch (final IOException e) {
-            return newExceptionPromise(new AccessTokenException("Unable to find token file '" + token + "'", e));
+            return newExceptionPromise(newAccessTokenException(ERR_OAUTH2_FILE_NO_TOKEN.get(token) , e));
         }
 
         try {
@@ -58,7 +60,7 @@ final class FileAccessTokenResolver implements AccessTokenResolver {
             return newResultPromise(result);
         } catch (final JsonValueException e) {
             return newExceptionPromise(
-                    new AccessTokenException("Malformed token file '" + token + "': '" + e.getMessage() + "'.", e));
+                    newAccessTokenException(ERR_OAUTH2_FILE_INVALID_JSON_TOKEN.get(token, e.getMessage()), e));
         }
     }
 }

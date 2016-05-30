@@ -15,7 +15,9 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.newAccessTokenException;
 import static org.forgerock.util.Reject.checkNotNull;
 
 import java.io.IOException;
@@ -99,19 +101,18 @@ final class Rfc7662AccessTokenResolver implements AccessTokenResolver {
             public AccessTokenInfo apply(final Response response) throws AccessTokenException {
                 final Status status = response.getStatus();
                 if (!Status.OK.equals(status)) {
-                    throw new AccessTokenException(
-                            "Authorization server returned an error: " + status, response.getCause());
+                    throw newAccessTokenException(
+                            ERR_OAUTH2_RFC7662_RETURNED_ERROR.get(status), response.getCause());
                 }
 
                 try (final Entity entity = response.getEntity()) {
                     final JsonValue jsonResponse = asJson(entity);
                     if (!jsonResponse.get(RFC_7662_RESPONSE_ACTIVE_FIELD).defaultTo(Boolean.FALSE).asBoolean()) {
-                        throw new AccessTokenException(
-                                "Access token returned by authorization server is not currently active");
+                        throw newAccessTokenException(ERR_OAUTH2_RFC7662_TOKEN_NOT_ACTIVE.get());
                     }
                     return buildAccessTokenFromJson(jsonResponse, tokenSent);
                 } catch (final JsonValueException e) {
-                    throw new AccessTokenException("Invalid or malformed access token: " + e.getMessage(), e);
+                    throw newAccessTokenException(ERR_OAUTH2_RFC7662_INVALID_JSON_TOKEN.get(e.getMessage()), e);
                 }
             }
         };
@@ -129,7 +130,7 @@ final class Rfc7662AccessTokenResolver implements AccessTokenResolver {
             return new JsonValue(entity.getJson());
         } catch (final IOException e) {
             // Do not use Entity.toString(), we probably don't want to fully output the content here
-            throw new AccessTokenException("Cannot read response content as JSON", e);
+            throw newAccessTokenException(ERR_OAUTH2_RFC7662_CANNOT_READ_RESPONSE.get(), e);
         }
     }
 }

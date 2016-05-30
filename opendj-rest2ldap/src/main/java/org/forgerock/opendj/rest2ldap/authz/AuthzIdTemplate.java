@@ -15,6 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.newIllegalArgumentException;
 import static org.forgerock.util.Utils.joinAsString;
 
 import java.util.ArrayList;
@@ -87,8 +89,8 @@ final class AuthzIdTemplate {
                     return type;
                 }
             }
-            throw new IllegalArgumentException("Invalid authorization ID template: '" + template + "'. Templates must "
-                       + "start with one of the following elements: " + joinAsString(",", getSupportedStartKeys()));
+            throw newIllegalArgumentException(
+                    ERR_CONFIG_INVALID_AUTHZID_TEMPLATE.get(template, joinAsString(",", getSupportedStartKeys())));
         }
 
         private static List<String> getSupportedStartKeys() {
@@ -162,16 +164,12 @@ final class AuthzIdTemplate {
             final String key = keys.get(i);
             final JsonValue value = principals.get(new JsonPointer(key));
             if (value == null) {
-                throw new IllegalArgumentException(String.format(
-                        "The request could not be authorized because the required "
-                                + "security principal '%s' could not be determined", key));
+                throw newIllegalArgumentException(ERR_AUTHZID_DECODER_PRINCIPAL_CANNOT_BE_DETERMINED.get(key));
             }
 
             final Object object = value.getObject();
             if (!isJSONPrimitive(object)) {
-                throw new IllegalArgumentException(String.format(
-                        "The request could not be authorized because the required "
-                                + "security principal '%s' had an invalid data type", key));
+                throw newIllegalArgumentException(ERR_AUTHZID_DECODER_PRINCIPAL_INVALID_DATA_TYPE.get(key));
             }
             values[i] = String.valueOf(object);
         }

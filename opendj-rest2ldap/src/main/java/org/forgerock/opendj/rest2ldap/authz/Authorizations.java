@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.asConditionalFilter;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.newConditionalFilter;
 import static org.forgerock.util.promise.Promises.newResultPromise;
@@ -266,8 +267,9 @@ public final class Authorizations {
                 try {
                     authz.put(template.getSecurityContextID(), template.formatAsAuthzId(token.asJsonValue()));
                 } catch (final IllegalArgumentException e) {
-                    return newResultPromise(
-                            new Response().setStatus(Status.FORBIDDEN).setCause(e).setEntity("Invalid configuration"));
+                    return newResultPromise(new Response().setStatus(Status.FORBIDDEN)
+                                                          .setCause(e)
+                                                          .setEntity(ERR_AUTHZID_DECODER_RESPONSE.get().toString()));
                 }
                 final Context securityContext = new SecurityContext(context, token.getToken(), authz);
                 return next.handle(securityContext, request);

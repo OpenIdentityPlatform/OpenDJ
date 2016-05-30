@@ -15,10 +15,11 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
+import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
@@ -28,7 +29,6 @@ import java.util.Set;
 
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
-import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
@@ -58,8 +58,8 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     Promise<List<Attribute>, ResourceException> create(final Connection connection, final JsonPointer path,
             final JsonValue v) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
-            return Promises.<List<Attribute>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
-                    "The request cannot be processed because it attempts to create the read-only field '%s'", path)));
+            return Promises.<List<Attribute>, ResourceException> newExceptionPromise(
+                    newBadRequestException(ERR_CREATION_READ_ONLY_FIELD.get(path)));
         } else {
             return Promises.newResultPromise(Collections.<Attribute> emptyList());
         }
@@ -112,8 +112,8 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     @Override
     Promise<List<Modification>, ResourceException> patch(final Connection connection, final JsonPointer path,
             final PatchOperation operation) {
-        return Promises.<List<Modification>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
-                "The request cannot be processed because it attempts to patch the read-only field '%s'", path)));
+        return Promises.<List<Modification>, ResourceException> newExceptionPromise(
+                newBadRequestException(ERR_PATCH_READ_ONLY_FIELD.get(path)));
     }
 
     @Override
@@ -125,8 +125,8 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     Promise<List<Modification>, ResourceException> update(
             final Connection connection, final JsonPointer path, final Entry e, final JsonValue v) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(value.getObject())) {
-            return Promises.<List<Modification>, ResourceException> newExceptionPromise(new BadRequestException(i18n(
-                    "The request cannot be processed because it attempts to modify the read-only field '%s'", path)));
+            return Promises.<List<Modification>, ResourceException> newExceptionPromise(
+                    newBadRequestException(ERR_MODIFY_READ_ONLY_FIELD.get("update", path)));
         } else {
             return Promises.newResultPromise(Collections.<Modification> emptyList());
         }

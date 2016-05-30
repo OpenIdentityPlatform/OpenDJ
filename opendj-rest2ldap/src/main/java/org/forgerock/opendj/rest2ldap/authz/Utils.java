@@ -21,8 +21,10 @@ import static org.forgerock.util.Utils.closeSilently;
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.forgerock.authz.modules.oauth2.AccessTokenException;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
@@ -31,6 +33,18 @@ import org.forgerock.util.promise.Promises;
 final class Utils {
 
     private Utils() { }
+
+    static IllegalArgumentException newIllegalArgumentException(final LocalizableMessage message) {
+        return new IllegalArgumentException(message.toString());
+    }
+
+    static AccessTokenException newAccessTokenException(final LocalizableMessage message) {
+        return newAccessTokenException(message, null);
+    }
+
+    static AccessTokenException newAccessTokenException(final LocalizableMessage message, final Exception cause) {
+        return new AccessTokenException(message.toString(), cause);
+    }
 
     static Runnable close(final AtomicReference<? extends Closeable> holder) {
         return new Runnable() {

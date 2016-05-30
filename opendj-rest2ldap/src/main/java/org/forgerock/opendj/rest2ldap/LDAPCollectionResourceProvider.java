@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.Arrays.asList;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
@@ -24,7 +25,8 @@ import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
+import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
+import static org.forgerock.opendj.rest2ldap.Utils.newNotSupportedException;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 
 import java.nio.charset.StandardCharsets;
@@ -135,7 +137,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     public Promise<ActionResponse, ResourceException> actionCollection(
             final Context context, final ActionRequest request) {
         return Promises.<ActionResponse, ResourceException> newExceptionPromise(
-                                                            new NotSupportedException("Not yet implemented"));
+                                                            newNotSupportedException(ERR_NOT_YET_IMPLEMENTED.get()));
     }
 
     @Override
@@ -146,7 +148,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             return passwordModify(context, resourceId, request);
         }
         return Promises.<ActionResponse, ResourceException> newExceptionPromise(
-                new NotSupportedException("The action '" + actionId + "' is not supported"));
+                newNotSupportedException(ERR_ACTION_NOT_SUPPORTED.get(actionId)));
     }
 
     private Promise<ActionResponse, ResourceException> passwordModify(
@@ -154,12 +156,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         if (!context.containsContext(ClientContext.class)
                 || !context.asContext(ClientContext.class).isSecure()) {
             return Promises.newExceptionPromise(ResourceException.newResourceException(
-                    ResourceException.FORBIDDEN, "Password modify requires a secure connection."));
+                    ResourceException.FORBIDDEN, ERR_PASSWORD_MODIFY_SECURE_CONNECTION.get().toString()));
         }
         if (!context.containsContext(SecurityContext.class)
                 || context.asContext(SecurityContext.class).getAuthenticationId() == null) {
             return Promises.newExceptionPromise(ResourceException.newResourceException(
-                    ResourceException.FORBIDDEN, "Password modify requires user to be authenticated."));
+                    ResourceException.FORBIDDEN, ERR_PASSWORD_MODIFY_USER_AUTHENTICATED.get().toString()));
         }
 
         final JsonValue jsonContent = request.getContent();
@@ -169,8 +171,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             oldPassword = jsonContent.get("oldPassword").asString();
             newPassword = jsonContent.get("newPassword").asString();
         } catch (JsonValueException e) {
-            return Promises.newExceptionPromise(
-                    ResourceException.newResourceException(ResourceException.BAD_REQUEST, e.getLocalizedMessage(), e));
+            final ResourceException ex = newBadRequestException(ERR_PASSWORD_MODIFY_REQUEST_IS_INVALID.get(), e);
+            return Promises.newExceptionPromise(ex);
         }
 
         final Connection connection = context.asContext(AuthenticatedConnectionContext.class).getConnection();
@@ -844,8 +846,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
     private void ensureMVCCSupported() throws NotSupportedException {
         if (etagAttribute == null) {
-            throw new NotSupportedException(
-                    i18n("Multi-version concurrency control is not supported by this resource"));
+            throw newNotSupportedException(ERR_MVCC_NOT_SUPPORTED.get());
         }
     }
 
@@ -854,13 +855,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             ensureMVCCSupported();
             final String actualRevision = entry.parseAttribute(etagAttribute).asString();
             if (actualRevision == null) {
-                throw new PreconditionFailedException(i18n(
-                        "The resource could not be accessed because it did not contain any "
-                                + "version information, when the version '%s' was expected", expectedRevision));
+                throw new PreconditionFailedException(ERR_MVCC_NO_VERSION_INFORMATION.get(expectedRevision).toString());
             } else if (!expectedRevision.equals(actualRevision)) {
-                throw new PreconditionFailedException(i18n(
-                        "The resource could not be accessed because the expected version '%s' "
-                                + "does not match the current version '%s'", expectedRevision, actualRevision));
+                throw new PreconditionFailedException(
+                        ERR_MVCC_VERSIONS_MISMATCH.get(expectedRevision, actualRevision).toString());
             }
         }
     }

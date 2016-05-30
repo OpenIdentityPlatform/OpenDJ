@@ -15,13 +15,14 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
-import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -124,10 +125,8 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
                 return newResultPromise(toFilter(type, ldapAttributeName.toString(), va));
             } catch (final Exception e) {
                 // Invalid assertion value - bad request.
-                return newExceptionPromise((ResourceException) new BadRequestException(i18n(
-                        "The request cannot be processed because it contained an "
-                                + "illegal filter assertion value '%s' for field '%s'",
-                        String.valueOf(valueAssertion), path), e));
+                return newExceptionPromise((ResourceException) newBadRequestException(
+                        ERR_ILLEGAL_FILTER_ASSERTION_VALUE.get(String.valueOf(valueAssertion), path), e));
             }
         } else {
             // This attribute mapper does not support partial filtering.
@@ -141,9 +140,8 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
         try {
             return newResultPromise(jsonToAttribute(newValues, ldapAttributeName, encoder()));
         } catch (final Exception ex) {
-            return newExceptionPromise((ResourceException) new BadRequestException(i18n(
-                    "The request cannot be processed because an error occurred while "
-                            + "encoding the values for the field '%s': %s", path, ex.getMessage())));
+            return newExceptionPromise((ResourceException) newBadRequestException(
+                    ERR_ENCODING_VALUES_FOR_FIELD.get(path, ex.getMessage())));
         }
     }
 
