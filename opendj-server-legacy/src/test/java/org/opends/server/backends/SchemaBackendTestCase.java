@@ -30,6 +30,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +68,7 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ServerConstants;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -85,6 +87,25 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     schemaBackend = (SchemaBackend) DirectoryServer.getBackend("schema");
     assertNotNull(schemaBackend);
+  }
+
+  @AfterClass
+  public void removeFilesCreatedInTests()
+  {
+    final File schemaDir = DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+
+    final List<String> filesCreatedInTests = Arrays.asList(
+        "98-schema-test-attrtype.ldif",
+        "98-schema-test-replaceattrtype.ldif",
+        "98-schema-test-oc.ldif",
+        "98-schema-test-nameform.ldif",
+        "98-schema-test-dcr.ldif",
+        "98-schema-test-dsr.ldif",
+        "98-schema-test-mru.ldif");
+    for (String fileCreatedInTests : filesCreatedInTests)
+    {
+      new File(schemaDir, fileCreatedInTests).delete();
+    }
   }
 
   /**
@@ -827,23 +848,30 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddAttributeTypeObsoleteEMR()
-         throws Exception
+  public void testAddAttributeTypeObsoleteEMR() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testAddATObsoleteEMRMatch", "1.3.6.1.4.1.26027.1.999.20", true);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: attributeTypes",
-         "attributeTypes: ( testaddatobsoleteemr-oid " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: attributeTypes",
+          "attributeTypes: ( testaddatobsoleteemr-oid " +
               "NAME 'testAddATObsoleteEMR' " +
               "EQUALITY testAddATObsoleteEMRMatch " +
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
-              "X-ORGIN 'SchemaBackendTestCase' )");
+          "X-ORGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, System.err, CONSTRAINT_VIOLATION);
+      runModify(argsNotPermissive(), ldif, System.err, CONSTRAINT_VIOLATION);
+    }
+    finally
+    {
+      deregisterAttributeType("testaddatobsoleteemr-oid");
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**
@@ -1163,46 +1191,70 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testRemoveAttributeTypeReferencedByMRU()
-         throws Exception
+  public void testRemoveAttributeTypeReferencedByMRU() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testRemoveATRefByMRUMatch", "1.3.6.1.4.1.26027.1.999.17", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: attributeTypes",
-         "attributeTypes: ( testremoveatrefbymruat-oid " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: attributeTypes",
+          "attributeTypes: ( testremoveatrefbymruat-oid " +
               "NAME 'testRemoveATRefByMRUAT' " +
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORIGIN 'SchemaBackendTestCase' )",
-         "-",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.17 " +
+          "-",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.17 " +
               "NAME 'testRemoveATRefByMRUMRU' APPLIES testRemoveATRefByMRUAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "delete: attributeTypes",
-         "attributeTypes: ( testremoveatrefbymruat-oid " +
+              "",
+          "dn: cn=schema",
+          "changetype: modify",
+          "delete: attributeTypes",
+          "attributeTypes: ( testremoveatrefbymruat-oid " +
               "NAME 'testRemoveATRefByMRUAT' " +
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    String attrName = "testremoveatrefbymruat";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+      String attrName = "testremoveatrefbymruat";
+      assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+      runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
 
-    MatchingRuleUse mru =
-         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
-    assertNotNull(mru);
-    assertTrue(mru.hasName("testremoveatrefbymrumru"));
+      assertMatchingRuleUseExistsWithName(matchingRule, "testremoveatrefbymrumru");
 
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+      assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    }
+    finally
+    {
+      DirectoryServer.getSchema();
+      deregisterMatchingRuleUse(matchingRule);
+      deregisterAttributeType("testremoveatrefbymruat-oid");
+      deregisterMatchingRule(matchingRule);
+    }
   }
+
+  private void deregisterAttributeType(String nameOrOid) throws DirectoryException
+  {
+    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
+    schema.deregisterAttributeType(schema.getAttributeType(nameOrOid));
+  }
+
+  private void deregisterMatchingRuleUse(MatchingRule matchingRule) throws DirectoryException
+  {
+    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
+    schema.deregisterMatchingRuleUse(schema.getMatchingRuleUse(matchingRule));
+  }
+
+  private void deregisterMatchingRule(MatchingRule matchingRule) throws DirectoryException
+  {
+    DirectoryServer.getSchema().deregisterMatchingRule(matchingRule);
+  }
+
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3587,28 +3639,32 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddMatchingRuleUseSuccessful()
-         throws Exception
+  public void testAddMatchingRuleUseSuccessful() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testAddMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.10", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.10 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.10 " +
               "NAME 'testAddMRUSuccessful' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+      runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    MatchingRuleUse mru =
-         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
-    assertNotNull(mru);
-    assertTrue(mru.hasName("testaddmrusuccessful"));
+      assertMatchingRuleUseExistsWithName(matchingRule, "testaddmrusuccessful");
+    }
+    finally
+    {
+      deregisterMatchingRuleUse(matchingRule);
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**
@@ -3618,35 +3674,38 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddMatchingRuleUseToAltSchemaFile()
-         throws Exception
+  public void testAddMatchingRuleUseToAltSchemaFile() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testAddMRUToAltSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.18", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.18 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.18 " +
               "NAME 'testAddMRUToAltSchemaFile' APPLIES cn " +
               "X-SCHEMA-FILE '98-schema-test-mru.ldif' " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
-                               "98-schema-test-mru.ldif");
-    assertFalse(schemaFile.exists());
+      File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(), "98-schema-test-mru.ldif");
+      assertFalse(schemaFile.exists());
 
-    runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+      runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    MatchingRuleUse mru =
-         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
-    assertNotNull(mru);
-    assertTrue(mru.hasName("testaddmrutoaltschemafile"));
+      assertMatchingRuleUseExistsWithName(matchingRule, "testaddmrutoaltschemafile");
 
-    assertTrue(schemaFile.exists());
+      assertTrue(schemaFile.exists());
+    }
+    finally
+    {
+      deregisterMatchingRuleUse(matchingRule);
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**
@@ -3656,34 +3715,39 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testReplaceMatchingRuleUseSuccessful()
-         throws Exception
+  public void testReplaceMatchingRuleUseSuccessful() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testReplaceMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.11", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.11 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.11 " +
               "NAME 'testReplaceMRUSuccessful' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.11 " +
+          "",
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.11 " +
               "NAME 'testReplaceMRUSuccessful' APPLIES ( cn $ sn ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsPermissive(), ldif, System.err, SUCCESS);
+      runModify(argsPermissive(), ldif, System.err, SUCCESS);
 
-    MatchingRuleUse mru =         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
-    assertNotNull(mru);
-    assertTrue(mru.hasName("testreplacemrusuccessful"));
+      assertMatchingRuleUseExistsWithName(matchingRule, "testreplacemrusuccessful");
+    }
+    finally
+    {
+      deregisterMatchingRuleUse(matchingRule);
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**
@@ -3693,40 +3757,44 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testRemoveAndAddMatchingRuleUse()
-         throws Exception
+  public void testRemoveAndAddMatchingRuleUse() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testRemoveAndAddMRUMatch", "1.3.6.1.4.1.26027.1.999.12", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.12 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.12 " +
               "NAME 'testRemoveAndAddMRU' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "delete: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.12 " +
+          "",
+          "dn: cn=schema",
+          "changetype: modify",
+          "delete: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.12 " +
               "NAME 'testRemoveAndAddMRU' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )",
-         "-",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.12 " +
+          "-",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.12 " +
               "NAME 'testRemoveAndAddMRU' APPLIES ( cn $ sn ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+      runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    MatchingRuleUse mru =
-         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
-    assertNotNull(mru);
-    assertTrue(mru.hasName("testremoveandaddmru"));
+      assertMatchingRuleUseExistsWithName(matchingRule, "testremoveandaddmru");
+    }
+    finally
+    {
+      deregisterMatchingRuleUse(matchingRule);
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**
@@ -3737,35 +3805,46 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddMatchingRuleUseMRConflict()
-         throws Exception
+  public void testAddMatchingRuleUseMRConflict() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testAddMRUMRConflictMatch", "1.3.6.1.4.1.26027.1.999.14", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.14 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.14 " +
               "NAME 'testAddMRUMRConflict' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.14 " +
+          "",
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.14 " +
               "NAME 'testAddMRUMRConflict2' APPLIES sn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsNotPermissive(), ldif, ATTRIBUTE_OR_VALUE_EXISTS);
+      runModify(argsNotPermissive(), ldif, ATTRIBUTE_OR_VALUE_EXISTS);
 
-    MatchingRuleUse mru =
-         DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
+      assertMatchingRuleUseExistsWithName(matchingRule, "testaddmrumrconflict");
+    }
+    finally
+    {
+      deregisterMatchingRuleUse(matchingRule);
+      deregisterMatchingRule(matchingRule);
+    }
+  }
+
+  private void assertMatchingRuleUseExistsWithName(MatchingRule matchingRule, String mruName)
+  {
+    MatchingRuleUse mru = DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
     assertNotNull(mru);
-    assertTrue(mru.hasName("testaddmrumrconflict"));
+    assertTrue(mru.hasName(mruName));
   }
 
   /**
@@ -3796,24 +3875,30 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddMatchingRuleUseAttributeTypeUndefined()
-         throws Exception
+  public void testAddMatchingRuleUseAttributeTypeUndefined() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testAddMRUATUndefinedMatch", "1.3.6.1.4.1.26027.1.999.16", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.16 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.16 " +
               "NAME 'testAddMatchingRuleUseATUndefined' " +
               "APPLIES xxxundefinedxxx " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+      runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+    }
+    finally
+    {
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**
@@ -3823,25 +3908,31 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddMatchingRuleUseAttributeTypeMultipleUndefined()
-         throws Exception
+  public void testAddMatchingRuleUseAttributeTypeMultipleUndefined() throws Exception
   {
     MatchingRule matchingRule =
         getMatchingRule("testAddMRUATMultipleUndefinedMatch", "1.3.6.1.4.1.26027.1.999.19", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.19 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.19 " +
               "NAME 'testAddMatchingRuleUseATMultipleUndefined' " +
               "APPLIES ( cn $ xxxundefinedxxx ) " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+      runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+    }
+    finally
+    {
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   private void assertSchemaDoesNotHaveMatchingRuleUse(MatchingRule matchingRule)
@@ -3859,23 +3950,29 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddMatchingRuleUseObsoleteMatchingRule()
-         throws Exception
+  public void testAddMatchingRuleUseObsoleteMatchingRule() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteMRMatch", "1.3.6.1.4.1.26027.1.999.21", true);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.21 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.21 " +
               "NAME 'testAddMatchingRuleUseObsoleteMatchingRule' " +
-              "APPLIES cn X-ORIGIN 'SchemaBackendTestCase' )");
+          "APPLIES cn X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+      runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+    }
+    finally
+    {
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**
@@ -3885,28 +3982,35 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testAddMatchingRuleUseObsoleteAttributeType()
-         throws Exception
+  public void testAddMatchingRuleUseObsoleteAttributeType() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteATMatch", "1.3.6.1.4.1.26027.1.999.22", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: attributeTypes",
-         "attributeTypes: ( testaddmruobsoleteat-oid " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: attributeTypes",
+          "attributeTypes: ( testaddmruobsoleteat-oid " +
               "NAME 'testAddMRUObsoleteAT' OBSOLETE )",
-         "-",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.22 " +
+          "-",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.22 " +
               "NAME 'testAddMatchingRuleUseObsoleteAttributeType' " +
               "APPLIES testAddMRUObsoleteAT " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
 
-    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+      runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+    }
+    finally
+    {
+      deregisterAttributeType("testaddmruobsoleteat-oid");
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   private void runModify(String[] args, String ldifContent, ResultCode expectedRC)
@@ -3947,30 +4051,36 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testRemoveMatchingRuleUseSuccessful()
-         throws Exception
+  public void testRemoveMatchingRuleUseSuccessful() throws Exception
   {
     MatchingRule matchingRule = getMatchingRule("testRemoveMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.13", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.13 " +
+    try
+    {
+      String ldif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.13 " +
               "NAME 'testRemoveMRUSuccessful' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "delete: matchingRuleUse",
-         "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.13 " +
+          "",
+          "dn: cn=schema",
+          "changetype: modify",
+          "delete: matchingRuleUse",
+          "matchingRuleUse: ( 1.3.6.1.4.1.26027.1.999.13 " +
               "NAME 'testRemoveMRUSuccessful' APPLIES cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
-    runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+      runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+      assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
+    }
+    finally
+    {
+      deregisterMatchingRule(matchingRule);
+    }
   }
 
   /**

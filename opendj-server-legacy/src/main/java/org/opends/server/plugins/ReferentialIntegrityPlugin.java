@@ -43,6 +43,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -50,7 +51,6 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReferentialIntegrityPluginCfgDefn.CheckReferencesScopeCriteria;
 import org.forgerock.opendj.server.config.server.PluginCfg;
@@ -149,15 +149,6 @@ public class ReferentialIntegrityPlugin
    * holds the subordinate entry DNs related to a delete operation.
    */
   public static final String DELETE_DNS="deleteDNs";
-
-  /** The buffered reader that is used to read the log file by the background thread. */
-  private BufferedReader reader;
-
-  /**
-   * The buffered writer that is used to write update records in the log
-   * when the plugin is in background processing mode.
-   */
-  private BufferedWriter writer;
 
   /**
    * Specifies the mapping between the attribute type (specified in the
@@ -741,7 +732,7 @@ public class ReferentialIntegrityPlugin
 
   /**
    * Sets up the log file that the plugin can write update recored to and
-   * the background thread can use to read update records from. The specifed
+   * the background thread can use to read update records from. The specified
    * log file name is the name to use for the file. If the file exists from
    * a previous run, use it.
    *
@@ -770,24 +761,12 @@ public class ReferentialIntegrityPlugin
   }
 
   /**
-   * Sets up a buffered writer that the plugin can use to write update records
-   * with.
+   * Returns a buffered writer that the plugin can use to write update records with.
    *
    * @throws IOException If a new file writer cannot be created.
    */
-  private void setupWriter() throws IOException {
-    writer=new BufferedWriter(new FileWriter(logFile, true));
-  }
-
-
-  /**
-   * Sets up a buffered reader that the background thread can use to read
-   * update records with.
-   *
-   * @throws IOException If a new file reader cannot be created.
-   */
-  private void setupReader() throws IOException {
-    reader=new BufferedReader(new FileReader(logFile));
+  private BufferedWriter setupWriter() throws IOException {
+    return new BufferedWriter(new FileWriter(logFile, true));
   }
 
   /**
@@ -802,16 +781,13 @@ public class ReferentialIntegrityPlugin
   private void writeLog(Map<DN,DN> modDNmap) {
     synchronized(logFile)
     {
-      try
+      try (BufferedWriter writer = setupWriter())
       {
-        setupWriter();
         for(Map.Entry<DN,DN> mapEntry : modDNmap.entrySet())
         {
           writer.write(mapEntry.getKey() + "\t" + mapEntry.getValue());
           writer.newLine();
         }
-        writer.flush();
-        writer.close();
       }
       catch (IOException io)
       {
@@ -829,16 +805,13 @@ public class ReferentialIntegrityPlugin
   private void writeLog(Set<DN> deleteDNset) {
     synchronized(logFile)
     {
-      try
+      try (BufferedWriter writer = setupWriter())
       {
-        setupWriter();
         for (DN deletedEntryDN : deleteDNset)
         {
           writer.write(deletedEntryDN.toString());
           writer.newLine();
         }
-        writer.flush();
-        writer.close();
       }
       catch (IOException io)
       {
@@ -864,26 +837,27 @@ public class ReferentialIntegrityPlugin
           return;
         }
 
-        setupReader();
-        String line;
-        while((line=reader.readLine()) != null) {
-          try {
-            String[] a=line.split("[\t]");
-            DN origDn = DN.valueOf(a[0]);
-            //If there is only a single DN string than it must be a delete.
-            if(a.length == 1) {
-              processDelete(Collections.singleton(origDn), false);
-            } else {
-              DN movedDN=DN.valueOf(a[1]);
-              processModifyDN(origDn, movedDN);
+        try (BufferedReader reader = new BufferedReader(new FileReader(logFile)))
+        {
+          String line;
+          while((line=reader.readLine()) != null) {
+            try {
+              String[] a=line.split("[\t]");
+              DN origDn = DN.valueOf(a[0]);
+              //If there is only a single DN string than it must be a delete.
+              if(a.length == 1) {
+                processDelete(Collections.singleton(origDn), false);
+              } else {
+                DN movedDN=DN.valueOf(a[1]);
+                processModifyDN(origDn, movedDN);
+              }
+            } catch (LocalizedIllegalArgumentException e) {
+              //This exception should rarely happen since the plugin wrote the DN
+              //strings originally.
+              logger.error(ERR_PLUGIN_REFERENT_CANNOT_DECODE_STRING_AS_DN, e.getMessage());
             }
-          } catch (LocalizedIllegalArgumentException e) {
-            //This exception should rarely happen since the plugin wrote the DN
-            //strings originally.
-            logger.error(ERR_PLUGIN_REFERENT_CANNOT_DECODE_STRING_AS_DN, e.getMessage());
           }
         }
-        reader.close();
         logFile.delete();
         logFile.createNewFile();
       } catch (IOException io) {

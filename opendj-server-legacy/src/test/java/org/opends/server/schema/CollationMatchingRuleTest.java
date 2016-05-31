@@ -17,10 +17,11 @@
 package org.opends.server.schema;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
@@ -28,27 +29,27 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchResultEntry;
+import org.opends.server.util.CollectionUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static java.util.Arrays.*;
+
+import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
-/**
- * Integration tests for collation matching rules.
- */
+/** Integration tests for collation matching rules. */
 @SuppressWarnings("javadoc")
 public final class CollationMatchingRuleTest
         extends SchemaTestCase
 {
-
   /**
-   * Ensures that the Directory Server is running before executing the
-   * testcases.
+   * Ensures that the Directory Server is running before executing the testcases.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -63,7 +64,6 @@ public final class CollationMatchingRuleTest
     user3 = DN.valueOf("cn=user3,dc=example,dc=com");
     user4 = DN.valueOf("cn=user4,dc=example,dc=com");
   }
-
 
   /**
    * Test to verify an ADD of an entry containing international characters.
@@ -96,155 +96,89 @@ public final class CollationMatchingRuleTest
     assertEquals(err,0);
   }
 
-
-
-  /**
-   * Test to search the collation equality matching rule using OID.
-   */
-  @Test(dependsOnMethods = {"org.opends.server.schema."+
-                "CollationMatchingRuleTest.addEntry"})
+  /** Test to search the collation equality matching rule using OID. */
+  @Test(dependsOnMethods = "addEntry")
   public void searchCollationEqualityUsingOID() throws Exception
   {
     //Search the collation rule with OID of en and no suffix in the filter.
     SearchRequest request =
-        newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "cn:1.3.6.1.4.1.42.2.27.9.4.34.1:=sanchez");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-    SearchResultEntry e = entries.get(0);
-    //An entry must be returned.
-    assertNotNull(e);
+        newSearchRequest("uid=user,o=test", WHOLE_SUBTREE, "cn:1.3.6.1.4.1.42.2.27.9.4.34.1:=sanchez");
+    searchCollationAtLeastOneEntryReturned(request);
   }
 
-
-
-  /**
-   * Test to search the collation equality matching rule using language Tag.
-   */
-  @Test(dependsOnMethods = {"org.opends.server.schema."+
-                "CollationMatchingRuleTest.addEntry"})
+  /** Test to search the collation equality matching rule using language Tag. */
+  @Test(dependsOnMethods = "addEntry")
   public void searchCollationEqualityUsingLanguageTag() throws Exception
   {
     //Search the collation rule with language tag of en and no suffix
     //in the filter.
-    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "cn:en:=sanchez");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-    SearchResultEntry e = entries.get(0);
-    //An entry must be returned.
-    assertNotNull(e);
+    SearchRequest request = newSearchRequest("uid=user,o=test", WHOLE_SUBTREE, "cn:en:=sanchez");
+    searchCollationAtLeastOneEntryReturned(request);
   }
 
-
-  /**
-   * Test to search the collation Less than matching rule using OID and suffix.
-   */
-  @Test(dependsOnMethods = {"org.opends.server.schema."+
-                "CollationMatchingRuleTest.addEntry"})
+  /** Test to search the collation Less than matching rule using OID and suffix. */
+  @Test(dependsOnMethods = "addEntry")
   public void searchCollationLTUsingOIDSuffix() throws Exception
   {
     //Search the collation rule with OID of es and suffix in the filter.
     String filter = "departmentnumber:1.3.6.1.4.1.42.2.27.9.4.49.1.1:=abc120";
-    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, filter);
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-    SearchResultEntry e = entries.get(0);
-    //An entry must be returned.
-    assertNotNull(e);
+    SearchRequest request = newSearchRequest("uid=user,o=test", WHOLE_SUBTREE, filter);
+    searchCollationAtLeastOneEntryReturned(request);
   }
 
-
-
   /**
-   * Test to search the collation Less than Equal to matching rule using
-   * Language Tag and suffix.
+   * Test to search the collation Less than Equal to matching rule using Language Tag and suffix.
    */
-  @Test(dependsOnMethods = {"org.opends.server.schema."+
-                "CollationMatchingRuleTest.addEntry"})
+  @Test(dependsOnMethods = "addEntry")
   public void searchCollationLTEUsingLanguageSuffix() throws Exception
   {
     //Search the collation rule with tag of fr and suffix in the filter.
-    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "carLicense:fr.2:=ebe2");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-    SearchResultEntry e = entries.get(0);
-    //An entry must be returned.
-    assertNotNull(e);
+    SearchRequest request = newSearchRequest("uid=user,o=test", WHOLE_SUBTREE, "carLicense:fr.2:=ebe2");
+    searchCollationAtLeastOneEntryReturned(request);
   }
 
-
-
-  /**
-   * Test to search the collation Greater than matching rule using language
-   * tag.
-   */
-  @Test(dependsOnMethods = {"org.opends.server.schema."+
-                "CollationMatchingRuleTest.addEntry"})
+  /** Test to search the collation Greater than matching rule using language tag. */
+  @Test(dependsOnMethods = "addEntry")
   public void searchCollationGTUsingLanguage() throws Exception
   {
     //Search the collation rule with tag of fr in the filter.
-    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "carLicense:fr.5:=ebe1");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-    SearchResultEntry e = entries.get(0);
-    //An entry must be returned.
-    assertNotNull(e);
+    SearchRequest request = newSearchRequest("uid=user,o=test", WHOLE_SUBTREE, "carLicense:fr.5:=ebe1");
+    searchCollationAtLeastOneEntryReturned(request);
   }
 
-
-
-  /**
-   * Test to search the collation Greater than Equal to matching rule using
-   * language tag.
-   */
-  @Test(dependsOnMethods = {"org.opends.server.schema."+
-                "CollationMatchingRuleTest.addEntry"})
+  /** Test to search the collation Greater than Equal to matching rule using language tag. */
+  @Test(dependsOnMethods = "addEntry")
   public void searchCollationGTEUsingLanguage() throws Exception
   {
     //Search the collation rule with tag of es and suffix in the filter.
-    SearchRequest request =
-        newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "departmentnumber:es.4:=abc111");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-    SearchResultEntry e = entries.get(0);
-    //An entry must be returned.
-    assertNotNull(e);
+    SearchRequest request = newSearchRequest("uid=user,o=test", WHOLE_SUBTREE, "departmentnumber:es.4:=abc111");
+    searchCollationAtLeastOneEntryReturned(request);
   }
 
-
-
-  /**
-   * Test to search the collation substring matching rule using
-   * language tag and suffix.
-   */
-  @Test(dependsOnMethods = {"org.opends.server.schema."+
-                "CollationMatchingRuleTest.addEntry"})
+  /** Test to search the collation substring matching rule using language tag and suffix. */
+  @Test(dependsOnMethods = "addEntry")
   public void searchCollationSubstring() throws Exception
   {
     /*Search the collation rule with tag of en and suffix in the filter.
      *It searches for string quebec against the value of sn which is
      * Qu\u00e9bec.
      */
-    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "sn:en.6:=*u*bec");
+    SearchRequest request = newSearchRequest("uid=user,o=test", WHOLE_SUBTREE, "sn:en.6:=*u*bec");
+    searchCollationAtLeastOneEntryReturned(request);
+  }
+
+  private void searchCollationAtLeastOneEntryReturned(SearchRequest request)
+  {
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-    SearchResultEntry e = entries.get(0);
-    //An entry must be returned for sn=quebec.
-    assertNotNull(e);
+    assertNotNull(entries.get(0));
   }
 
   private DN user1;
   private DN user2 ;
   private DN user3;
   private DN user4;
-
 
   /**
    * Test to verify the Sort control works well with the Collation
@@ -253,16 +187,10 @@ public final class CollationMatchingRuleTest
   @Test
   public void testSortControlLTERule() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(user4);
-    expectedDNOrder.add(user3);
-    expectedDNOrder.add(user2);
-    expectedDNOrder.add(user1);
-    ArrayList<Control> requestControls = new ArrayList<>();
-    requestControls.add(new ServerSideSortRequestControl("displayname:fr"));
-    ValidateSortControl("displayname:fr-FR.6:=A*", expectedDNOrder, requestControls);
+    List<DN> expectedDNOrder = asList(user4, user3, user2, user1);
+    List<Control> requestControls = serverSideSortControl("displayname:fr");
+    validateSortControl("displayname:fr-FR.6:=A*", expectedDNOrder, requestControls);
   }
-
 
   /**
    * Test to verify the Sort control works with Collation equality
@@ -271,16 +199,10 @@ public final class CollationMatchingRuleTest
   @Test
   public void testSortControlEQRule() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(user4);
-    expectedDNOrder.add(user3);
-    expectedDNOrder.add(user2);
-    expectedDNOrder.add(user1);
-    ArrayList<Control> requestControls = new ArrayList<>();
-    requestControls.add(new ServerSideSortRequestControl("displayname:es"));
-    ValidateSortControl("displayname:es.6:=A*", expectedDNOrder, requestControls);
+    List<DN> expectedDNOrder = asList(user4, user3, user2, user1);
+    List<Control> requestControls = serverSideSortControl("displayname:es");
+    validateSortControl("displayname:es.6:=A*", expectedDNOrder, requestControls);
   }
-
 
   /**
    * Test to verify the Sort control works with Collation greater
@@ -289,47 +211,35 @@ public final class CollationMatchingRuleTest
   @Test
   public void testSortControlGTRule() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(user1);
-    expectedDNOrder.add(user2);
-    expectedDNOrder.add(user3);
-    expectedDNOrder.add(user4);
-    ArrayList<Control> requestControls = new ArrayList<>();
-    requestControls.add(new ServerSideSortRequestControl("-displayname:en"));
-    ValidateSortControl("displayname:en-US.6:=A*", expectedDNOrder, requestControls);
+    List<DN> expectedDNOrder = asList(user1, user2, user3, user4);
+    List<Control> requestControls = serverSideSortControl("-displayname:en");
+    validateSortControl("displayname:en-US.6:=A*", expectedDNOrder, requestControls);
   }
 
-
-
-  /**
-   * Tests the Sort control with the VLV control using a collation equality
-   * matching rule.
-   */
+  /** Tests the Sort control with the VLV control using a collation equality matching rule. */
   @Test
   public void testVLVSortControl() throws Exception
   {
-    ArrayList<DN> expectedDNOrder = new ArrayList<>();
-    expectedDNOrder.add(user4);
-    expectedDNOrder.add(user3);
-    expectedDNOrder.add(user2);
-    expectedDNOrder.add(user1);
-    ArrayList<Control> requestControls = new ArrayList<>();
-    requestControls.add(new ServerSideSortRequestControl("displayname:fr"));
-    requestControls.add(new VLVRequestControl(0, 4, 1, 0));
-    ValidateSortControl("objectclass=inetOrgPerson", expectedDNOrder, requestControls);
+    List<DN> expectedDNOrder = asList(user4, user3, user2, user1);
+    List<Control> requestControls = CollectionUtils.<Control> newArrayList(
+        new ServerSideSortRequestControl("displayname:fr"),
+        new VLVRequestControl(0, 4, 1, 0));
+    validateSortControl("objectclass=inetOrgPerson", expectedDNOrder, requestControls);
   }
 
+  private List<Control> serverSideSortControl(String sortOrderString) throws LDAPException
+  {
+    return Arrays.<Control> asList(new ServerSideSortRequestControl(sortOrderString));
+  }
 
-
-  private void ValidateSortControl(String searchFilter,
-          ArrayList<DN> expectedDNOrder,
-          ArrayList<Control> requestControls) throws Exception
+  private void validateSortControl(String searchFilter, List<DN> expectedDNOrder, List<Control> requestControls)
+      throws Exception
   {
     try
     {
       populateEntriesForControl();
 
-      SearchRequest request = newSearchRequest(DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE, searchFilter)
+      SearchRequest request = newSearchRequest(DN.valueOf("dc=example,dc=com"), WHOLE_SUBTREE, searchFilter)
           .addControl(requestControls);
       InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
       assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -350,7 +260,6 @@ public final class CollationMatchingRuleTest
     }
     return results;
   }
-
 
   private void populateEntriesForControl() throws Exception
   {
