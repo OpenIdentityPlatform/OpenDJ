@@ -2334,7 +2334,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private Set<ByteString> getLdapSyntaxDescValuesForSchemaFile(Schema schema, String schemaFile)
   {
     Set<ByteString> values = new LinkedHashSet<>();
-    for (LDAPSyntaxDescription ldapSyntax : schema.getLdapSyntaxDescriptions().values())
+    for (LDAPSyntaxDescription ldapSyntax : schema.getLdapSyntaxDescriptions())
     {
       if (schemaFile.equals(getSchemaFile(ldapSyntax)))
       {

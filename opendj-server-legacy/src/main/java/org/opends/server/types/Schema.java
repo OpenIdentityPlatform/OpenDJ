@@ -22,7 +22,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -602,16 +601,7 @@ public final class Schema
     }
   }
 
-  /**
-   * Retrieves the OID of the provided object class definition.
-   *
-   * @param definition
-   *            Definition of an object class.
-   * @return the OID of the object class
-   * @throws DirectoryException
-   *            If the definition couldn't be parsed.
-   */
-  public String parseObjectClassOID(String definition) throws DirectoryException
+  private String parseObjectClassOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ERR_PARSING_OBJECTCLASS_OID);
   }
@@ -1124,17 +1114,13 @@ public final class Schema
 
 
   /**
-   * Retrieves the ldap syntax definitions for this schema, as a
-   * mapping between the OID for the syntax and the ldap syntax
-   * definition itself. Each ldap syntax should only be present once,
-   * since its only key is its OID.  The contents of the returned
-   * mapping must not be altered.
+   * Retrieves the ldap syntax definitions for this schema.
    *
-   * @return  The ldap syntax definitions for this schema.
+   * @return The ldap syntax definitions for this schema.
    */
-  public ConcurrentHashMap<String,LDAPSyntaxDescription> getLdapSyntaxDescriptions()
+  public Collection<LDAPSyntaxDescription> getLdapSyntaxDescriptions()
   {
-    return ldapSyntaxDescriptions;
+    return Collections.unmodifiableCollection(ldapSyntaxDescriptions.values());
   }
 
   /**
@@ -1250,19 +1236,6 @@ public final class Schema
   public boolean hasMatchingRule(String nameOrOid)
   {
     return schemaNG.hasMatchingRule(nameOrOid);
-  }
-
-  /**
-   * Indicates whether this schema definition includes a matching rule use
-   * with the provided name or OID.
-   *
-   * @param  nameOrOid  The name or OID for which to make the determination, ignoring case considerations
-   * @return  {@code true} if this schema contains a matching rule use
-   *          with the provided name or OID, or {@code false} if not.
-   */
-  public boolean hasMatchingRuleUse(String nameOrOid)
-  {
-    return schemaNG.hasMatchingRuleUse(nameOrOid);
   }
 
   /**

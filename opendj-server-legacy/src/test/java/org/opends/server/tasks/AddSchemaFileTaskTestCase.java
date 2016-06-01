@@ -86,7 +86,7 @@ public class AddSchemaFileTaskTestCase
 
 
     MatchingRule matchingRule = getMatchingRule("testAddValidSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.23", false);
-    DirectoryServer.registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
 
 
     String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
@@ -160,7 +160,7 @@ public class AddSchemaFileTaskTestCase
     MatchingRule matchingRule1 =
         getMatchingRule("testAddMultipleValidSchemaFiles1Match", "1.3.6.1.4.1.26027.1.999.24", false);
 
-    DirectoryServer.registerMatchingRule(matchingRule1, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule1, false);
 
     String[] fileLines1 =
     {
@@ -193,7 +193,7 @@ public class AddSchemaFileTaskTestCase
 
     MatchingRule matchingRule2 =
         getMatchingRule("testAddMultipleValidSchemaFiles2Match", "1.3.6.1.4.1.26027.1.999.25", false);
-    DirectoryServer.registerMatchingRule(matchingRule2, false);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule2, false);
 
     String[] fileLines2 =
     {

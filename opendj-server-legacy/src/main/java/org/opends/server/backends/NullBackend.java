@@ -148,7 +148,7 @@ public class NullBackend extends Backend<BackendCfg>
     String nulOCName = "nullbackendobject";
     ObjectClass nulOC = DirectoryServer.getObjectClass(nulOCName);
     try {
-      DirectoryServer.registerObjectClass(nulOC, false);
+      DirectoryServer.getSchema().registerObjectClass(nulOC, false);
     } catch (DirectoryException de) {
       logger.traceException(de);
       throw new InitializationException(de.getMessageObject());

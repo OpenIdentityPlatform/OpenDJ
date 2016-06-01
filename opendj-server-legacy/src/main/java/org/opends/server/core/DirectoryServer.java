@@ -72,7 +72,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
-import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
@@ -200,7 +199,7 @@ public final class DirectoryServer
   private static boolean serverLocked;
 
   /** The message to be displayed on the command-line when the user asks for the usage. */
-  private static LocalizableMessage toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
+  private static final LocalizableMessage toolDescription = INFO_DSCORE_TOOL_DESCRIPTION.get();
 
   /**
    * Return codes used when the hidden option --checkStartability is used.
@@ -2284,16 +2283,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the set of matching rules registered with the Directory Server.
-   *
-   * @return  The set of matching rules registered with the Directory Server.
-   */
-  public static Collection<MatchingRule> getMatchingRules()
-  {
-    return directoryServer.schema.getMatchingRules();
-  }
-
-  /**
    * Retrieves the matching rule with the specified name or OID.
    *
    * @param  lowerName  The lowercase name or OID for the matching rule to
@@ -2308,39 +2297,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Registers the provided matching rule with the Directory Server.
-   *
-   * @param  matchingRule       The matching rule to register with the server.
-   * @param  overwriteExisting  Indicates whether to overwrite an existing
-   *                            mapping if there are any conflicts (i.e.,
-   *                            another matching rule with the same OID or
-   *                            name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag is set to
-   *                              <CODE>false</CODE>
-   */
-  public static void registerMatchingRule(MatchingRule matchingRule,
-                                          boolean overwriteExisting)
-         throws DirectoryException
-  {
-    directoryServer.schema.registerMatchingRule(matchingRule,
-                                                overwriteExisting);
-  }
-
-  /**
-   * Deregisters the provided matching rule with the Directory Server.
-   *
-   * @param  matchingRule  The matching rule to deregister with the server.
-   * @throws DirectoryException
-   *           If the matching rule is referenced by another schema element.
-   */
-  public static void deregisterMatchingRule(MatchingRule matchingRule) throws DirectoryException
-  {
-    directoryServer.schema.deregisterMatchingRule(matchingRule);
-  }
-
-  /**
    * Retrieves the objectclass for the provided name or OID. It can optionally return a generated
    * "default" version if the requested objectclass is not defined in the schema.
    *
@@ -2352,27 +2308,6 @@ public final class DirectoryServer
   public static ObjectClass getObjectClass(String nameOrOid)
   {
     return directoryServer.schema.getObjectClass(nameOrOid);
-  }
-
-  /**
-   * Registers the provided objectclass with the Directory Server.
-   *
-   * @param  objectClass        The objectclass instance to register with the
-   *                            server.
-   * @param  overwriteExisting  Indicates whether to overwrite an existing
-   *                            mapping if there are any conflicts (i.e.,
-   *                            another objectclass with the same OID or
-   *                            name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag is set to
-   *                              <CODE>false</CODE>
-   */
-  public static void registerObjectClass(ObjectClass objectClass,
-                                         boolean overwriteExisting)
-         throws DirectoryException
-  {
-    directoryServer.schema.registerObjectClass(objectClass, overwriteExisting);
   }
 
   /**
@@ -2441,26 +2376,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the set of attribute syntaxes defined in the Directory Server.
-   *
-   * @return The set of attribute syntaxes defined in the Directory Server.
-   */
-  public static Collection<Syntax> getAttributeSyntaxes()
-  {
-    return directoryServer.schema.getSyntaxes();
-  }
-
-  /**
-   * Retrieves the set of matching rule uses defined in the Directory Server.
-   *
-   * @return  The set of matching rule uses defined in the Directory Server.
-   */
-  public static Collection<MatchingRuleUse> getMatchingRuleUses()
-  {
-    return directoryServer.schema.getMatchingRuleUses();
-  }
-
-  /**
    * Retrieves the matching rule use associated with the provided matching rule.
    *
    * @param  matchingRule  The matching rule for which to retrieve the matching
@@ -2496,20 +2411,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the DIT structure rule associated with the provided rule ID.
-   *
-   * @param  ruleID  The rule ID for which to retrieve the associated DIT
-   *                 structure rule.
-   *
-   * @return  The requested DIT structure rule, or {@code null} if no such
-   *          rule is defined.
-   */
-  public static DITStructureRule getDITStructureRule(int ruleID)
-  {
-    return directoryServer.schema.getDITStructureRule(ruleID);
-  }
-
-  /**
    * Retrieves the name forms associated with the specified objectclass.
    *
    * @param  objectClass  The objectclass for which to retrieve the associated
@@ -2521,18 +2422,6 @@ public final class DirectoryServer
   public static Collection<NameForm> getNameForm(ObjectClass objectClass)
   {
     return directoryServer.schema.getNameForm(objectClass);
-  }
-
-  /**
-   * Deregisters the provided name form with the Directory Server.
-   *
-   * @param  nameForm  The name form to deregister with the server.
-   * @throws DirectoryException
-   *            If an error occurs.
-   */
-  public static void deregisterNameForm(NameForm nameForm) throws DirectoryException
-  {
-    directoryServer.schema.deregisterNameForm(nameForm);
   }
 
   /**
