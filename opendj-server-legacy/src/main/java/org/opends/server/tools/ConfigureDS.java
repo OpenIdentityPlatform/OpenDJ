@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.meta.CryptoManagerCfgDefn;
@@ -756,7 +757,7 @@ public class ConfigureDS
       {
         updateConfigEntryWithAttribute(
             DN_LDAP_CONNECTION_HANDLER, ATTR_LISTEN_PORT,
-            DirectoryServer.getDefaultIntegerSyntax(),
+            CoreSchema.getIntegerSyntax(),
             ldapPort.getIntValue());
       }
       catch (final Exception e)
@@ -775,7 +776,7 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             DN_ADMIN_CONNECTOR,
             ATTR_LISTEN_PORT,
-            DirectoryServer.getDefaultIntegerSyntax(),
+            CoreSchema.getIntegerSyntax(),
             adminConnectorPort.getIntValue());
       }
       catch (final Exception e)
@@ -794,13 +795,13 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             DN_LDAPS_CONNECTION_HANDLER,
             ATTR_LISTEN_PORT,
-            DirectoryServer.getDefaultIntegerSyntax(),
+            CoreSchema.getIntegerSyntax(),
             ldapsPort.getIntValue());
 
         updateConfigEntryWithAttribute(
             DN_LDAPS_CONNECTION_HANDLER,
             ATTR_CONNECTION_HANDLER_ENABLED,
-            DirectoryServer.getDefaultBooleanSyntax(),
+            CoreSchema.getBooleanSyntax(),
             ServerConstants.TRUE_VALUE);
       }
       catch (final Exception e)
@@ -819,13 +820,13 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             DN_JMX_CONNECTION_HANDLER,
             ATTR_LISTEN_PORT,
-            DirectoryServer.getDefaultIntegerSyntax(),
+            CoreSchema.getIntegerSyntax(),
             jmxPort.getIntValue());
 
         updateConfigEntryWithAttribute(
             DN_JMX_CONNECTION_HANDLER,
             ATTR_CONNECTION_HANDLER_ENABLED,
-            DirectoryServer.getDefaultBooleanSyntax(),
+            CoreSchema.getBooleanSyntax(),
             ServerConstants.TRUE_VALUE);
       }
       catch (final Exception e)
@@ -844,7 +845,7 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             DN_LDAP_CONNECTION_HANDLER,
             ATTR_ALLOW_STARTTLS,
-            DirectoryServer.getDefaultBooleanSyntax(),
+            CoreSchema.getBooleanSyntax(),
             ServerConstants.TRUE_VALUE);
       }
       catch (final Exception e)
@@ -866,7 +867,7 @@ public class ConfigureDS
           updateConfigEntryWithAttribute(
               keyManagerProviderDN.getValue(),
               ATTR_KEYMANAGER_ENABLED,
-              DirectoryServer.getDefaultBooleanSyntax(),
+              CoreSchema.getBooleanSyntax(),
               ServerConstants.TRUE_VALUE);
         }
         catch (final Exception e)
@@ -886,7 +887,7 @@ public class ConfigureDS
           updateConfigEntryWithAttribute(
               keyManagerProviderDN.getValue(),
               ATTR_KEYSTORE_FILE,
-              DirectoryServer.getDefaultStringSyntax(),
+              CoreSchema.getDirectoryStringSyntax(),
               keyManagerPath.getValue());
         }
         catch (final Exception e)
@@ -907,7 +908,7 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             attributeDN,
             ATTR_KEYMANAGER_DN,
-            DirectoryServer.getDefaultStringSyntax(),
+            CoreSchema.getDirectoryStringSyntax(),
             keyManagerProviderDN.getValue());
       }
       catch (final Exception e)
@@ -928,7 +929,7 @@ public class ConfigureDS
           updateConfigEntryWithAttribute(
               trustManagerProviderDN.getValue(),
               ATTR_TRUSTMANAGER_ENABLED,
-              DirectoryServer.getDefaultBooleanSyntax(),
+              CoreSchema.getBooleanSyntax(),
               ServerConstants.TRUE_VALUE);
         }
         catch (final Exception e)
@@ -968,7 +969,7 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             attributeDN,
             ATTR_TRUSTMANAGER_DN,
-            DirectoryServer.getDefaultStringSyntax(),
+            CoreSchema.getDirectoryStringSyntax(),
             trustManagerProviderDN.getValue());
       }
       catch (final Exception e)
@@ -988,7 +989,7 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             attributeDN,
             attrName,
-            DirectoryServer.getDefaultStringSyntax(),
+            CoreSchema.getDirectoryStringSyntax(),
             attrValues.toArray(new Object[attrValues.size()]));
       }
       else
@@ -1023,13 +1024,13 @@ public class ConfigureDS
         updateConfigEntryWithAttribute(
             DN_ROOT_USER,
             ATTR_ROOTDN_ALTERNATE_BIND_DN,
-            DirectoryServer.getDefaultStringSyntax(),
+            CoreSchema.getDirectoryStringSyntax(),
             rootDN);
         final String encodedPassword = SaltedSHA512PasswordStorageScheme.encodeOffline(getBytes(rootPW));
         updateConfigEntryWithAttribute(
             DN_ROOT_USER,
             ATTR_USER_PASSWORD,
-            DirectoryServer.getDefaultStringSyntax(),
+            CoreSchema.getDirectoryStringSyntax(),
             encodedPassword);
       }
       catch (final Exception e)
@@ -1047,7 +1048,7 @@ public class ConfigureDS
       updateConfigEntryWithAttribute(
           DN_DIGEST_MD5_SASL_MECHANISM,
           "ds-cfg-server-fqdn",
-          DirectoryServer.getDefaultStringSyntax(),
+          CoreSchema.getDirectoryStringSyntax(),
           hostName.getValue());
     }
     catch (final Exception e)
@@ -1097,7 +1098,7 @@ public class ConfigureDS
             updateConfigEntryWithAttribute(
                 DN_CRYPTO_MANAGER,
                 ATTR_CRYPTO_CIPHER_KEY_WRAPPING_TRANSFORMATION,
-                DirectoryServer.getDefaultStringSyntax(),
+                CoreSchema.getDirectoryStringSyntax(),
                 alternativeCipher);
           }
           catch (final Exception e)

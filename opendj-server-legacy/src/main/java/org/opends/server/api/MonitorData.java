@@ -95,19 +95,19 @@ public final class MonitorData implements Iterable<Attribute>
         || attrValue instanceof Double)
     {
       // coming first because they are the most common types
-      syntax = getDefaultStringSyntax();
+      syntax = CoreSchema.getDirectoryStringSyntax();
     }
     else if (attrValue instanceof Number)
     {
-      syntax = getDefaultIntegerSyntax();
+      syntax = CoreSchema.getIntegerSyntax();
     }
     else if (attrValue instanceof Boolean)
     {
-      syntax = getDefaultBooleanSyntax();
+      syntax = CoreSchema.getBooleanSyntax();
     }
     else if (attrValue instanceof DN)
     {
-      syntax = getDefaultDNSyntax();
+      syntax = CoreSchema.getDNSyntax();
     }
     else if (attrValue instanceof Date)
     {
@@ -125,7 +125,7 @@ public final class MonitorData implements Iterable<Attribute>
     }
     else
     {
-      syntax = getDefaultStringSyntax();
+      syntax = CoreSchema.getDirectoryStringSyntax();
     }
     add(attrName, syntax, attrValue);
   }

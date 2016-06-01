@@ -17,6 +17,7 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -70,7 +71,6 @@ import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -1213,7 +1213,6 @@ public final class DirectoryServer
         // the core schema should not have any warning
         throw new RuntimeException(unexpected);
       }
-      directoryServer.bootstrapAttributeSyntaxes();
 
       // Perform any additional initialization that might be necessary before
       // loading the configuration.
@@ -1674,45 +1673,6 @@ public final class DirectoryServer
   private void initializeAuthenticatedUsers()
   {
     directoryServer.authenticatedUsers = new AuthenticatedUsers();
-  }
-
-  /**
-   * Registers a basic set of attribute syntaxes with the server that should
-   * always be available regardless of the server configuration and may be
-   * needed for configuration processing.
-   */
-  private void bootstrapAttributeSyntaxes()
-  {
-    Syntax[] syntaxes = {
-      getDefaultBinarySyntax(),
-      getDefaultBooleanSyntax(),
-      getDefaultStringSyntax(),
-      getDefaultDNSyntax(),
-      getDefaultIntegerSyntax(),
-      CoreSchema.getAttributeTypeDescriptionSyntax(),
-      CoreSchema.getIA5StringSyntax(),
-      CoreSchema.getGeneralizedTimeSyntax(),
-      CoreSchema.getObjectClassDescriptionSyntax(),
-      CoreSchema.getOIDSyntax(),
-      CoreSchema.getTelephoneNumberSyntax()
-    };
-    for (Syntax syntax : syntaxes)
-    {
-      registerSyntax(syntax);
-    }
-  }
-
-  private Syntax registerSyntax(Syntax syntax)
-  {
-    try
-    {
-      schema.registerSyntax(syntax, true);
-    }
-    catch (Exception e)
-    {
-      logger.error(ERR_CANNOT_BOOTSTRAP_SYNTAX, syntax.getClass().getName(), stackTraceToSingleLineString(e));
-    }
-    return syntax;
   }
 
   /**
@@ -2450,7 +2410,7 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeType(String nameOrOid)
   {
-    return getAttributeType(nameOrOid, getDefaultAttributeSyntax());
+    return getAttributeType(nameOrOid, getSchema().getDefaultSyntax());
   }
 
   /**
@@ -2488,87 +2448,6 @@ public final class DirectoryServer
   public static Collection<Syntax> getAttributeSyntaxes()
   {
     return directoryServer.schema.getSyntaxes();
-  }
-
-  /**
-   * Retrieves the default attribute syntax that should be used for attributes
-   * that are not defined in the server schema.
-   *
-   * @return  The default attribute syntax that should be used for attributes
-   *          that are not defined in the server schema.
-   */
-  private static Syntax getDefaultAttributeSyntax()
-  {
-    return DirectoryServer.directoryServer.schema.getDefaultSyntax();
-  }
-
-  /**
-   * Retrieves the default attribute syntax that should be used for attributes
-   * that are not defined in the server schema and are meant to store binary
-   * values.
-   *
-   * @return  The default attribute syntax that should be used for attributes
-   *          that are not defined in the server schema and are meant to store
-   *          binary values.
-   */
-  public static Syntax getDefaultBinarySyntax()
-  {
-    return CoreSchema.getBinarySyntax();
-  }
-
-  /**
-   * Retrieves the default attribute syntax that should be used for attributes
-   * that are not defined in the server schema and are meant to store Boolean
-   * values.
-   *
-   * @return  The default attribute syntax that should be used for attributes
-   *          that are not defined in the server schema and are meant to store
-   *          Boolean values.
-   */
-  public static Syntax getDefaultBooleanSyntax()
-  {
-    return CoreSchema.getBooleanSyntax();
-  }
-
-  /**
-   * Retrieves the default attribute syntax that should be used for attributes
-   * that are not defined in the server schema and are meant to store DN values.
-   *
-   * @return  The default attribute syntax that should be used for attributes
-   *          that are not defined in the server schema and are meant to store
-   *          DN values.
-   */
-  public static Syntax getDefaultDNSyntax()
-  {
-    return CoreSchema.getDNSyntax();
-  }
-
-  /**
-   * Retrieves the default attribute syntax that should be used for attributes
-   * that are not defined in the server schema and are meant to store integer
-   * values.
-   *
-   * @return  The default attribute syntax that should be used for attributes
-   *          that are not defined in the server schema and are meant to store
-   *          integer values.
-   */
-  public static Syntax getDefaultIntegerSyntax()
-  {
-    return CoreSchema.getIntegerSyntax();
-  }
-
-  /**
-   * Retrieves the default attribute syntax that should be used for attributes
-   * that are not defined in the server schema and are meant to store string
-   * values.
-   *
-   * @return  The default attribute syntax that should be used for attributes
-   *          that are not defined in the server schema and are meant to store
-   *          string values.
-   */
-  public static Syntax getDefaultStringSyntax()
-  {
-    return CoreSchema.getDirectoryStringSyntax();
   }
 
   /**
