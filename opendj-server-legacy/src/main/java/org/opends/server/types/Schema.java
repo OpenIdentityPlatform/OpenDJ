@@ -16,6 +16,17 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.types.CommonSchemaElements.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -66,14 +77,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data structure that holds information about
@@ -150,7 +153,11 @@ public final class Schema
    */
   public Schema(org.forgerock.opendj.ldap.schema.Schema schemaNG) throws DirectoryException
   {
-    switchSchema(schemaNG);
+    final org.forgerock.opendj.ldap.schema.Schema newSchemaNG =
+        new SchemaBuilder(schemaNG)
+        .setOption(DEFAULT_SYNTAX_OID, getDirectoryStringSyntax().getOID())
+        .toSchema();
+    switchSchema(newSchemaNG);
 
     ldapSyntaxDescriptions = new ConcurrentHashMap<String,LDAPSyntaxDescription>();
     subordinateTypes = new ConcurrentHashMap<AttributeType,List<AttributeType>>();
