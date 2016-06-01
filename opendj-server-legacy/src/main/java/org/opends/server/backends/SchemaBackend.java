@@ -2251,7 +2251,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private File writeTempSchemaFile(Schema schema, String schemaFile)
           throws DirectoryException, IOException, LDIFException
   {
-    // Start with an empty schema entry.
     Entry schemaEntry = createEmptySchemaEntry();
 
      /*
@@ -2259,150 +2258,50 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * this only for the real part of the ldapsyntaxes attribute. The real part
      * is read and write to/from the schema files.
      */
-    Set<ByteString> values = new LinkedHashSet<>();
-    for (LDAPSyntaxDescription ldapSyntax :
-                                   schema.getLdapSyntaxDescriptions().values())
-    {
-      if (schemaFile.equals(getSchemaFile(ldapSyntax)))
-      {
-        values.add(ByteString.valueOfUtf8(ldapSyntax.toString()));
-      }
-    }
-
-   if (! values.isEmpty())
-   {
-     AttributeBuilder builder = new AttributeBuilder(ldapSyntaxesType);
-     builder.addAll(values);
-     schemaEntry.putAttribute(ldapSyntaxesType, newArrayList(builder.toAttribute()));
-   }
+    Set<ByteString> values = getLdapSyntaxDescValuesForSchemaFile(schema, schemaFile);
+    addAttribute(schemaEntry, ldapSyntaxesType, values);
 
     // Add all of the appropriate attribute types to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior types in the
     // same file are written before the subordinate types.
-    Set<AttributeType> addedTypes = new HashSet<>();
-    values = new LinkedHashSet<>();
-    for (AttributeType at : schema.getAttributeTypes())
-    {
-      String atSchemaFile = new ServerSchemaElement(at).getSchemaFile();
-      if (schemaFile.equals(atSchemaFile))
-      {
-        addAttrTypeToSchemaFile(schema, schemaFile, at, values, addedTypes, 0);
-      }
-    }
-
-    if (! values.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(attributeTypesType);
-      builder.addAll(values);
-      schemaEntry.putAttribute(attributeTypesType, newArrayList(builder.toAttribute()));
-    }
+    values = getAttributeTypeValuesForSchemaFile(schema, schemaFile);
+    addAttribute(schemaEntry, attributeTypesType, values);
 
     // Add all of the appropriate objectclasses to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior classes in the
     // same file are written before the subordinate classes.
-    Set<ObjectClass> addedClasses = new HashSet<>();
-    values = new LinkedHashSet<>();
-    for (ObjectClass oc : schema.getObjectClasses())
-    {
-      if (schemaFile.equals(getSchemaFile(oc)))
-      {
-        addObjectClassToSchemaFile(schema, schemaFile, oc, values, addedClasses,
-                                   0);
-      }
-    }
-
-    if (! values.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(objectClassesType);
-      builder.addAll(values);
-      schemaEntry.putAttribute(objectClassesType, newArrayList(builder.toAttribute()));
-    }
+    values = getObjectClassValuesForSchemaFile(schema, schemaFile);
+    addAttribute(schemaEntry, objectClassesType, values);
 
     // Add all of the appropriate name forms to the schema entry.  Since there
     // is no hierarchical relationship between name forms, we don't need to
     // worry about ordering.
-    values = new LinkedHashSet<>();
-    for (NameForm nf : schema.getNameForms())
-    {
-      if (schemaFile.equals(getSchemaFile(nf)))
-      {
-        values.add(ByteString.valueOfUtf8(nf.toString()));
-      }
-    }
-
-    if (! values.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(nameFormsType);
-      builder.addAll(values);
-      schemaEntry.putAttribute(nameFormsType, newArrayList(builder.toAttribute()));
-    }
+    values = getValuesForSchemaFile(schema.getNameForms(), schemaFile);
+    addAttribute(schemaEntry, nameFormsType, values);
 
     // Add all of the appropriate DIT content rules to the schema entry.  Since
     // there is no hierarchical relationship between DIT content rules, we don't
     // need to worry about ordering.
-    values = new LinkedHashSet<>();
-    for (DITContentRule dcr : schema.getDITContentRules())
-    {
-      if (schemaFile.equals(getSchemaFile(dcr)))
-      {
-        values.add(ByteString.valueOfUtf8(dcr.toString()));
-      }
-    }
-
-    if (! values.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(ditContentRulesType);
-      builder.addAll(values);
-      schemaEntry.putAttribute(ditContentRulesType, newArrayList(builder.toAttribute()));
-    }
+    values = getValuesForSchemaFile(schema.getDITContentRules(), schemaFile);
+    addAttribute(schemaEntry, ditContentRulesType, values);
 
     // Add all of the appropriate DIT structure rules to the schema entry.  We
     // need to be careful of the ordering to ensure that any superior rules in
     // the same file are written before the subordinate rules.
-    Set<DITStructureRule> addedDSRs = new HashSet<>();
-    values = new LinkedHashSet<>();
-    for (DITStructureRule dsr : schema.getDITStructureRules())
-    {
-      if (schemaFile.equals(getSchemaFile(dsr)))
-      {
-        addDITStructureRuleToSchemaFile(schema, schemaFile, dsr, values,
-                                        addedDSRs, 0);
-      }
-    }
-
-    if (! values.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(ditStructureRulesType);
-      builder.addAll(values);
-      schemaEntry.putAttribute(ditStructureRulesType, newArrayList(builder.toAttribute()));
-    }
+    values = getDITStructureRuleValuesForSchemaFile(schema, schemaFile);
+    addAttribute(schemaEntry, ditStructureRulesType, values);
 
     // Add all of the appropriate matching rule uses to the schema entry.  Since
     // there is no hierarchical relationship between matching rule uses, we
     // don't need to worry about ordering.
-    values = new LinkedHashSet<>();
-    for (MatchingRuleUse mru : schema.getMatchingRuleUses())
-    {
-      if (schemaFile.equals(new ServerSchemaElement(mru).getSchemaFile()))
-      {
-        values.add(ByteString.valueOfUtf8(mru.toString()));
-      }
-    }
-
-    if (! values.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(matchingRuleUsesType);
-      builder.addAll(values);
-      schemaEntry.putAttribute(matchingRuleUsesType, newArrayList(builder.toAttribute()));
-    }
+    addAttribute(schemaEntry, matchingRuleUsesType, getValuesForSchemaFile(schema.getMatchingRuleUses(), schemaFile));
 
     if (FILE_USER_SCHEMA_ELEMENTS.equals(schemaFile))
     {
-      Map<String, Attribute> attributes = schema.getExtraAttributes();
-      for (Attribute attribute : attributes.values())
+      for (Attribute attribute : schema.getExtraAttributes().values())
       {
-        ArrayList<Attribute> attrList = newArrayList(attribute);
-        schemaEntry.putAttribute(attribute.getAttributeDescription().getAttributeType(), attrList);
+        AttributeType attributeType = attribute.getAttributeDescription().getAttributeType();
+        schemaEntry.putAttribute(attributeType, newArrayList(attribute));
       }
     }
 
@@ -2417,6 +2316,87 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     return tempFile;
+  }
+
+  private Set<ByteString> getValuesForSchemaFile(Collection<? extends SchemaElement> schemaElements, String schemaFile)
+  {
+    Set<ByteString> values = new LinkedHashSet<>();
+    for (SchemaElement schemaElement : schemaElements)
+    {
+      if (schemaFile.equals(new ServerSchemaElement(schemaElement).getSchemaFile()))
+      {
+        values.add(ByteString.valueOfUtf8(schemaElement.toString()));
+      }
+    }
+    return values;
+  }
+
+  private Set<ByteString> getLdapSyntaxDescValuesForSchemaFile(Schema schema, String schemaFile)
+  {
+    Set<ByteString> values = new LinkedHashSet<>();
+    for (LDAPSyntaxDescription ldapSyntax : schema.getLdapSyntaxDescriptions().values())
+    {
+      if (schemaFile.equals(getSchemaFile(ldapSyntax)))
+      {
+        values.add(ByteString.valueOfUtf8(ldapSyntax.toString()));
+      }
+    }
+    return values;
+  }
+
+  private Set<ByteString> getAttributeTypeValuesForSchemaFile(Schema schema, String schemaFile)
+      throws DirectoryException
+  {
+    Set<AttributeType> addedTypes = new HashSet<>();
+    Set<ByteString> values = new LinkedHashSet<>();
+    for (AttributeType at : schema.getAttributeTypes())
+    {
+      String atSchemaFile = new ServerSchemaElement(at).getSchemaFile();
+      if (schemaFile.equals(atSchemaFile))
+      {
+        addAttrTypeToSchemaFile(schema, schemaFile, at, values, addedTypes, 0);
+      }
+    }
+    return values;
+  }
+
+  private Set<ByteString> getObjectClassValuesForSchemaFile(Schema schema, String schemaFile) throws DirectoryException
+  {
+    Set<ObjectClass> addedClasses = new HashSet<>();
+    Set<ByteString> values = new LinkedHashSet<>();
+    for (ObjectClass oc : schema.getObjectClasses())
+    {
+      if (schemaFile.equals(getSchemaFile(oc)))
+      {
+        addObjectClassToSchemaFile(schema, schemaFile, oc, values, addedClasses, 0);
+      }
+    }
+    return values;
+  }
+
+  private Set<ByteString> getDITStructureRuleValuesForSchemaFile(Schema schema, String schemaFile)
+      throws DirectoryException
+  {
+    Set<DITStructureRule> addedDSRs = new HashSet<>();
+    Set<ByteString> values = new LinkedHashSet<>();
+    for (DITStructureRule dsr : schema.getDITStructureRules())
+    {
+      if (schemaFile.equals(getSchemaFile(dsr)))
+      {
+        addDITStructureRuleToSchemaFile(schema, schemaFile, dsr, values, addedDSRs, 0);
+      }
+    }
+    return values;
+  }
+
+  private void addAttribute(Entry schemaEntry, AttributeType attrType, Set<ByteString> values)
+  {
+    if (!values.isEmpty())
+    {
+      AttributeBuilder builder = new AttributeBuilder(attrType);
+      builder.addAll(values);
+      schemaEntry.putAttribute(attrType, newArrayList(builder.toAttribute()));
+    }
   }
 
   /**
