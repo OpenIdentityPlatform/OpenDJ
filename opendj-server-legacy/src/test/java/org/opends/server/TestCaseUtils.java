@@ -538,6 +538,8 @@ public final class TestCaseUtils {
     }
 
     try {
+      new File(DirectoryServer.getEnvironmentConfig().getSchemaDirectory(), "99-user.ldif").delete();
+
       long startMs = System.currentTimeMillis();
 
       clearLoggersContents();

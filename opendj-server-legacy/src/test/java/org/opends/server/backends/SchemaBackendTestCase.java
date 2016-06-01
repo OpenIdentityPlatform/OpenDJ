@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.util.Utils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -579,14 +578,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     String attrName = "testaddattributetypetoaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
-
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
-                               "98-schema-test-attrtype.ldif");
-    assertFalse(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-attrtype.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
-    assertTrue(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-attrtype.ldif", true);
   }
 
   /**
@@ -653,14 +650,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     String attrName = "testreplaceattributetypeinaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
-
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
-                               "98-schema-test-replaceattrtype.ldif");
-    assertFalse(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-replaceattrtype.ldif", false);
 
     runModify(argsPermissive(), ldif, System.err, SUCCESS);
+
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
-    assertTrue(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-replaceattrtype.ldif", true);
   }
 
   /**
@@ -1331,14 +1326,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     String ocName = "testaddobjectclasstoaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
-
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
-                               "98-schema-test-oc.ldif");
-    assertFalse(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-oc.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
-    assertTrue(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-oc.ldif", true);
   }
 
   /**
@@ -1943,14 +1936,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     String nameFormName = "testaddnameformtoaltschemafile";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
-
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
-                               "98-schema-test-nameform.ldif");
-    assertFalse(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-nameform.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
+
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
-    assertTrue(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-nameform.ldif", true);
   }
 
   /**
@@ -2511,10 +2502,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     String ocName = "testadddcrtoaltschemafileoc";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
-
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
-                               "98-schema-test-dcr.ldif");
-    assertFalse(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-dcr.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
@@ -2525,7 +2513,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testadddcrtoaltschemafile"));
 
-    assertTrue(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-dcr.ldif", true);
   }
 
   /**
@@ -3241,15 +3229,8 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private void assertSchemaHasDITStructureRule(int ruleID, boolean expected)
   {
-    try
-    {
-      DirectoryServer.getSchema().getDITStructureRule(ruleID);
-      assertTrue(expected, "Expected to find a DITStructureRule with ruleID " + ruleID);
-    }
-    catch (UnknownSchemaElementException e)
-    {
-      assertFalse(expected, e.getMessage());
-    }
+    boolean hasDITStructureRule = DirectoryServer.getSchema().getSchemaNG().hasDITStructureRule(ruleID);
+    assertEquals(hasDITStructureRule, expected, "Expected to find a DITStructureRule with ruleID " + ruleID);
   }
 
   /**
@@ -3333,15 +3314,12 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     int ruleID = 999010;
     assertSchemaHasDITStructureRule(ruleID, false);
-
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(),
-                               "98-schema-test-dsr.ldif");
-    assertFalse(schemaFile.exists());
+    assertSchemaFileExists("98-schema-test-dsr.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertSchemaHasDITStructureRule(ruleID, true);
 
-    assertTrue(schemaFile.exists());
+    assertSchemaHasDITStructureRule(ruleID, true);
+    assertSchemaFileExists("98-schema-test-dsr.ldif", true);
   }
 
   /**
@@ -3767,21 +3745,25 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
       assertSchemaDoesNotHaveMatchingRuleUse(matchingRule);
-
-      File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(), "98-schema-test-mru.ldif");
-      assertFalse(schemaFile.exists());
+      assertSchemaFileExists("98-schema-test-mru.ldif", false);
 
       runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
       assertMatchingRuleUseExistsWithName(matchingRule, "testaddmrutoaltschemafile");
-
-      assertTrue(schemaFile.exists());
+      assertSchemaFileExists("98-schema-test-mru.ldif", true);
     }
     finally
     {
       deregisterMatchingRuleUse(matchingRule);
       deregisterMatchingRule(matchingRule);
     }
+  }
+
+  private File assertSchemaFileExists(String schemaFileName, boolean expectExists)
+  {
+    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(), schemaFileName);
+    assertEquals(schemaFile.exists(), expectExists);
+    return schemaFile;
   }
 
   /**
