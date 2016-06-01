@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.PagedResultsControl;
@@ -43,6 +44,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
@@ -52,7 +54,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.LDIFException;
@@ -148,7 +149,7 @@ public class NullBackend extends Backend<BackendCfg>
     String nulOCName = "nullbackendobject";
     ObjectClass nulOC = DirectoryServer.getObjectClass(nulOCName);
     try {
-      DirectoryServer.getSchema().registerObjectClass(nulOC, false);
+      DirectoryServer.getSchema().registerObjectClass(nulOC, new ServerSchemaElement(nulOC).getSchemaFile(), false);
     } catch (DirectoryException de) {
       logger.traceException(de);
       throw new InitializationException(de.getMessageObject());

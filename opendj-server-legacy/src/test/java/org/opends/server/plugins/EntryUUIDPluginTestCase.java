@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.UUID;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.EntryUUIDPluginCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
@@ -145,7 +145,7 @@ public class EntryUUIDPluginTestCase
     plugin.finalizePlugin();
 
 
-    DirectoryServer.getSchema().registerAttributeType(entryUUIDType, false);
+    DirectoryServer.getSchema().registerAttributeType(entryUUIDType, null, false);
   }
 
 

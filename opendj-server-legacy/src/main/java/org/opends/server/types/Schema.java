@@ -67,7 +67,6 @@ import org.forgerock.opendj.ldap.schema.MatchingRuleUse.Builder;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.util.Option;
@@ -75,7 +74,6 @@ import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.util.Base64;
-import org.opends.server.util.ServerConstants;
 
 /**
  * This class defines a data structure that holds information about
@@ -496,25 +494,6 @@ public final class Schema
    *
    * @param attributeType
    *          The attribute type to register with this schema.
-   * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are
-   *          any conflicts (i.e., another attribute type with the same OID or
-   *          name).
-   * @throws DirectoryException
-   *           If a conflict is encountered and the
-   *           <CODE>overwriteExisting</CODE> flag is set to <CODE>false</CODE>
-   */
-  public void registerAttributeType(final AttributeType attributeType, final boolean overwriteExisting)
-      throws DirectoryException
-  {
-    registerAttributeType(attributeType, null, overwriteExisting);
-  }
-
-  /**
-   * Registers the provided attribute type definition with this schema.
-   *
-   * @param attributeType
-   *          The attribute type to register with this schema.
    * @param schemaFile
    *          The schema file where this definition belongs, maybe {@code null}
    * @param overwriteExisting
@@ -834,24 +813,6 @@ public final class Schema
   public ObjectClass getObjectClass(String lowerName)
   {
     return getSchemaNG().getObjectClass(lowerName);
-  }
-
-  /**
-   * Registers the provided objectclass definition with this schema.
-   *
-   * @param objectClass
-   *          The objectclass to register with this schema.
-   * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
-   *          another objectclass with the same OID or name).
-   * @throws DirectoryException
-   *           If a conflict is encountered and the {@code overwriteExisting} flag is set to
-   *           {@code false}.
-   */
-  public void registerObjectClass(ObjectClass objectClass, boolean overwriteExisting) throws DirectoryException
-  {
-    String schemaFile = getSchemaFileName(objectClass);
-    registerObjectClass(objectClass, schemaFile, overwriteExisting);
   }
 
   /**
@@ -1983,12 +1944,6 @@ public final class Schema
       throws DirectoryException
   {
     registerObjectClasses(Collections.singletonList(definition), schemaFile, overwriteExisting);
-  }
-
-  private String getSchemaFileName(SchemaElement element)
-  {
-    List<String> values = element.getExtraProperties().get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
-    return values != null && ! values.isEmpty() ? values.get(0) : null;
   }
 
   /**

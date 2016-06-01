@@ -2987,7 +2987,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           AttributeType oldAttrType = schema.getAttributeType(attrType.getOID());
           if (oldAttrType == null || !oldAttrType.toString().equals(attrType.toString()))
           {
-            newSchema.registerAttributeType(attrType, true);
+            newSchema.registerAttributeType(attrType, schemaFile, true);
 
             if (schemaFile != null)
             {
@@ -3054,7 +3054,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           ObjectClass oldObjectClass = schema.getObjectClass(newObjectClass.getOID());
           if (oldObjectClass.isPlaceHolder() || !oldObjectClass.toString().equals(newObjectClass.toString()))
           {
-            newSchema.registerObjectClass(newObjectClass, true);
+            newSchema.registerObjectClass(newObjectClass, schemaFile, true);
 
             if (schemaFile != null)
             {

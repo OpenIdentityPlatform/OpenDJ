@@ -48,7 +48,6 @@ import org.opends.server.types.Schema;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -187,26 +186,10 @@ public class AddSchemaFileTask
           for (Modification m : modList)
           {
             Attribute a = m.getAttribute();
-            AttributeType attrType = a.getAttributeDescription().getAttributeType();
-            AttributeBuilder builder = new AttributeBuilder(attrType);
+            AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
             for (ByteString v : a)
             {
-              String s = v.toString();
-              if (!s.contains(SCHEMA_PROPERTY_FILENAME))
-              {
-                if (s.endsWith(" )"))
-                {
-                 s = s.substring(0, s.length()-1) + SCHEMA_PROPERTY_FILENAME +
-                     " '" + schemaFile + "' )";
-                }
-                else if (s.endsWith(")"))
-                {
-                 s = s.substring(0, s.length()-1) + " " +
-                     SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
-                }
-              }
-
-              builder.add(s);
+              builder.add(Schema.addSchemaFileToElementDefinitionIfAbsent(v.toString(), schemaFile));
             }
 
             mods.add(new Modification(m.getModificationType(), builder.toAttribute()));

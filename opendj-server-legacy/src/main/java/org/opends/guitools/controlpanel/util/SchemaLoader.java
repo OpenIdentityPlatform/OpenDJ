@@ -194,12 +194,11 @@ public class SchemaLoader
       {
         builder.buildAttributeType(attr).addToSchemaOverwrite();
       }
-      Schema schema = new Schema(builder.toSchema());
       for (ObjectClass oc : objectclassesToKeep)
       {
-        schema.registerObjectClass(oc, true);
+        builder.buildObjectClass(oc).addToSchemaOverwrite();
       }
-      return schema;
+      return new Schema(builder.toSchema());
     }
     catch (LocalizedIllegalArgumentException e)
     {
