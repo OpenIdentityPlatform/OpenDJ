@@ -563,43 +563,40 @@ public class SchemaConfigManager
       String schemaFile, boolean failOnError, List<Attribute> ldapSyntaxList)
       throws ConfigException
   {
-    if (ldapSyntaxList != null)
+    for (Attribute a : ldapSyntaxList)
     {
-      for (Attribute a : ldapSyntaxList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        final String definition = Schema.addSchemaFileToElementDefinitionIfAbsent(v.toString(), schemaFile);
+        try
         {
-          final String definition = Schema.addSchemaFileToElementDefinitionIfAbsent(v.toString(), schemaFile);
-          try
-          {
-            schema.registerLdapSyntaxDescription(definition, failOnError);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          schema.registerLdapSyntaxDescription(definition, failOnError);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
 
-            if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+          if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+          {
+            // Register it with the schema.  We will allow duplicates, with the
+            // later definition overriding any earlier definition, but we want
+            // to trap them and log a warning.
+            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX, schemaFile, de.getMessageObject());
+            try
             {
-              // Register it with the schema.  We will allow duplicates, with the
-              // later definition overriding any earlier definition, but we want
-              // to trap them and log a warning.
-              logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX, schemaFile, de.getMessageObject());
-              try
-              {
-                schema.registerLdapSyntaxDescription(definition, true);
-              }
-              catch (Exception e)
-              {
-                // This should never happen.
-                logger.traceException(e);
-              }
+              schema.registerLdapSyntaxDescription(definition, true);
             }
-            else
+            catch (Exception e)
             {
-              LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
-                  schemaFile, de.getMessageObject());
-              reportError(failOnError, de, message);
+              // This should never happen.
+              logger.traceException(e);
             }
+          }
+          else
+          {
+            LocalizableMessage message =
+                WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(schemaFile, de.getMessageObject());
+            reportError(failOnError, de, message);
           }
         }
       }
@@ -611,45 +608,35 @@ public class SchemaConfigManager
       Schema schema, String schemaFile, boolean failOnError, List<Attribute> attrList)
           throws ConfigException
   {
-    if (attrList != null)
+    List<String> definitions = toStrings(attrList);
+    try
     {
-      List<String> definitions = new ArrayList<>();
-      for (Attribute a : attrList)
-      {
-        for (ByteString v : a)
-        {
-          definitions.add(v.toString());
-        }
-      }
-      try
-      {
-        schema.registerAttributeTypes(definitions, schemaFile, !failOnError);
-      }
-      catch (DirectoryException de)
-      {
-        logger.traceException(de);
+      schema.registerAttributeTypes(definitions, schemaFile, !failOnError);
+    }
+    catch (DirectoryException de)
+    {
+      logger.traceException(de);
 
-        if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+      if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+      {
+        // Register it with the schema. We will allow duplicates, with the
+        // later definition overriding any earlier definition, but we want
+        // to trap them and log a warning.
+        logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE, schemaFile, de.getMessageObject());
+        try
         {
-          // Register it with the schema. We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
-          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE, schemaFile, de.getMessageObject());
-          try
-          {
-            schema.registerAttributeTypes(definitions, schemaFile, true);
-          }
-          catch (DirectoryException e)
-          {
-            // This should never happen
-            logger.traceException(e);
-          }
+          schema.registerAttributeTypes(definitions, schemaFile, true);
         }
-        else
+        catch (DirectoryException e)
         {
-          LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(schemaFile, de.getMessageObject());
-          reportError(failOnError, de, message);
+          // This should never happen
+          logger.traceException(e);
         }
+      }
+      else
+      {
+        LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(schemaFile, de.getMessageObject());
+        reportError(failOnError, de, message);
       }
     }
   }
@@ -659,47 +646,50 @@ public class SchemaConfigManager
       String schemaFile, boolean failOnError, List<Attribute> ocList)
       throws ConfigException
   {
-    if (ocList != null)
+    List<String> definitions = toStrings(ocList);
+    try
     {
-      List<String> definitions = new ArrayList<>();
-      for (Attribute a : ocList)
-      {
-        for (ByteString v : a)
-        {
-          definitions.add(v.toString());
-        }
-      }
-      try
-      {
-        schema.registerObjectClasses(definitions, schemaFile, !failOnError);
-      }
-      catch (DirectoryException de)
-      {
-        logger.traceException(de);
+      schema.registerObjectClasses(definitions, schemaFile, !failOnError);
+    }
+    catch (DirectoryException de)
+    {
+      logger.traceException(de);
 
-        if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+      if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+      {
+        // Register it with the schema. We will allow duplicates, with the
+        // later definition overriding any earlier definition, but we want
+        // to trap them and log a warning.
+        logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_OC, schemaFile, de.getMessageObject());
+        try
         {
-          // Register it with the schema. We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
-          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_OC, schemaFile, de.getMessageObject());
-          try
-          {
-            schema.registerObjectClasses(definitions, schemaFile, true);
-          }
-          catch (DirectoryException e)
-          {
-            // This should never happen
-            logger.traceException(e);
-          }
+          schema.registerObjectClasses(definitions, schemaFile, true);
         }
-        else
+        catch (DirectoryException e)
         {
-          LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(schemaFile, de.getMessageObject());
-          reportError(failOnError, de, message);
+          // This should never happen
+          logger.traceException(e);
         }
+      }
+      else
+      {
+        LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(schemaFile, de.getMessageObject());
+        reportError(failOnError, de, message);
       }
     }
+  }
+
+  private static List<String> toStrings(List<Attribute> attributes)
+  {
+    List<String> results = new ArrayList<>();
+    for (Attribute attr : attributes)
+    {
+      for (ByteString v : attr)
+      {
+        results.add(v.toString());
+      }
+    }
+    return results;
   }
 
   /** Parse the name form definitions if there are any. */
@@ -707,35 +697,32 @@ public class SchemaConfigManager
       String schemaFile, boolean failOnError, List<Attribute> nfList)
       throws ConfigException
   {
-    if (nfList != null)
+    for (Attribute a : nfList)
     {
-      for (Attribute a : nfList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        // Register it with the schema. We will allow duplicates, with the
+        // later definition overriding any earlier definition, but we want
+        // to trap them and log a warning.
+        String definition = v.toString();
+        try
         {
-          // Register it with the schema.  We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
-          String definition = v.toString();
+          schema.registerNameForm(definition, schemaFile, failOnError);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
+
+          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM, schemaFile, de.getMessageObject());
+
           try
           {
-            schema.registerNameForm(definition, schemaFile, failOnError);
+            schema.registerNameForm(definition, schemaFile, true);
           }
-          catch (DirectoryException de)
+          catch (Exception e)
           {
-            logger.traceException(de);
-
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM, schemaFile, de.getMessageObject());
-
-            try
-            {
-              schema.registerNameForm(definition, schemaFile, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              logger.traceException(e);
-            }
+            // This should never happen.
+            logger.traceException(e);
           }
         }
       }
@@ -747,32 +734,29 @@ public class SchemaConfigManager
       String schemaFile, boolean failOnError, List<Attribute> dcrList)
       throws ConfigException
   {
-    if (dcrList != null)
+    for (Attribute a : dcrList)
     {
-      for (Attribute a : dcrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        final String definition = v.toString();
+        try
         {
-          final String definition = v.toString();
+          schema.registerDITContentRule(definition, schemaFile, failOnError);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
+
+          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DCR, schemaFile, de.getMessageObject());
+
           try
           {
-            schema.registerDITContentRule(definition, schemaFile, failOnError);
+            schema.registerDITContentRule(definition, schemaFile, true);
           }
-          catch (DirectoryException de)
+          catch (Exception e)
           {
-            logger.traceException(de);
-
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DCR, schemaFile, de.getMessageObject());
-
-            try
-            {
-              schema.registerDITContentRule(definition, schemaFile, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              logger.traceException(e);
-            }
+            // This should never happen.
+            logger.traceException(e);
           }
         }
       }
@@ -794,35 +778,32 @@ public class SchemaConfigManager
       String schemaFile, boolean failOnError, List<Attribute> dsrList)
       throws ConfigException
   {
-    if (dsrList != null)
+    for (Attribute a : dsrList)
     {
-      for (Attribute a : dsrList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        // Register it with the schema. We will allow duplicates, with the
+        // later definition overriding any earlier definition, but we want
+        // to trap them and log a warning.
+        String definition = v.toString();
+        try
         {
-          // Register it with the schema.  We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
-          String definition = v.toString();
+          schema.registerDITStructureRule(definition, schemaFile, failOnError);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
+
+          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DSR, schemaFile, de.getMessageObject());
+
           try
           {
-            schema.registerDITStructureRule(definition, schemaFile, failOnError);
+            schema.registerDITStructureRule(definition, schemaFile, true);
           }
-          catch (DirectoryException de)
+          catch (Exception e)
           {
-            logger.traceException(de);
-
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DSR, schemaFile, de.getMessageObject());
-
-            try
-            {
-              schema.registerDITStructureRule(definition, schemaFile, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              logger.traceException(e);
-            }
+            // This should never happen.
+            logger.traceException(e);
           }
         }
       }
@@ -834,34 +815,32 @@ public class SchemaConfigManager
       String schemaFile, boolean failOnError, List<Attribute> mruList)
       throws ConfigException
   {
-    if (mruList != null)
+    for (Attribute a : mruList)
     {
-      for (Attribute a : mruList)
+      for (ByteString v : a)
       {
-        for (ByteString v : a)
+        // Register it with the schema. We will allow duplicates, with the
+        // later definition overriding any earlier definition, but we want
+        // to trap them and log a warning.
+        String definition = v.toString();
+        try
         {
-          // Register it with the schema.  We will allow duplicates, with the
-          // later definition overriding any earlier definition, but we want
-          // to trap them and log a warning.
+          schema.registerMatchingRuleUse(definition, schemaFile, failOnError);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
+
+          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_MRU, schemaFile, de.getMessageObject());
+
           try
           {
-            schema.registerMatchingRuleUse(v.toString(), schemaFile, failOnError);
+            schema.registerMatchingRuleUse(definition, schemaFile, true);
           }
-          catch (DirectoryException de)
+          catch (Exception e)
           {
-            logger.traceException(de);
-
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_MRU, schemaFile, de.getMessageObject());
-
-            try
-            {
-              schema.registerMatchingRuleUse(v.toString(), schemaFile, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              logger.traceException(e);
-            }
+            // This should never happen.
+            logger.traceException(e);
           }
         }
       }
