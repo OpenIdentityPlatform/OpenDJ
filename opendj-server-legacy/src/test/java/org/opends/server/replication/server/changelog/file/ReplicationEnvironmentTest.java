@@ -21,9 +21,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.data.MapEntry;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.util.time.TimeService;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -32,10 +32,8 @@ import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -61,14 +59,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available for DN decoding.
-    TestCaseUtils.startFakeServer();
     when(cryptoSuite.isEncrypted()).thenReturn(false);
-  }
-
-  @AfterClass
-  public void tearDown() throws Exception
-  {
-    TestCaseUtils.shutdownFakeServer();
   }
 
   @AfterMethod
@@ -366,5 +357,4 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null, time);
     assertThat(environment.getCnIndexDBLastRotationTime()).isEqualTo(200L);
   }
-
 }

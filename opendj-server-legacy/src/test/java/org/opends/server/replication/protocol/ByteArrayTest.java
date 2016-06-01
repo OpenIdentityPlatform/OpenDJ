@@ -21,25 +21,19 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.zip.DataFormatException;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
-import org.forgerock.opendj.ldap.DN;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-/**
- * Test for {@link ByteArrayBuilder} and {@link ByteArrayScanner} classes.
- */
+/** Test for {@link ByteArrayBuilder} and {@link ByteArrayScanner} classes. */
 @SuppressWarnings("javadoc")
 public class ByteArrayTest extends DirectoryServerTestCase
 {
-
   private static final class IntegerRange implements Iterator<Object[]>
   {
     private int next;
@@ -65,18 +59,6 @@ public class ByteArrayTest extends DirectoryServerTestCase
 
     @Override
     public void remove() { /* unused */ }
-  }
-
-  @BeforeClass
-  public void setup() throws Exception
-  {
-    TestCaseUtils.startFakeServer();
-  }
-
-  @AfterClass
-  public void teardown() throws Exception
-  {
-    TestCaseUtils.shutdownFakeServer();
   }
 
   private final byte[] byteArray = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, };
@@ -232,5 +214,4 @@ public class ByteArrayTest extends DirectoryServerTestCase
     final byte[] bytes = new ByteArrayBuilder().appendString("this is not a valid DN").toByteArray();
     new ByteArrayScanner(bytes).nextDN();
   }
-
 }

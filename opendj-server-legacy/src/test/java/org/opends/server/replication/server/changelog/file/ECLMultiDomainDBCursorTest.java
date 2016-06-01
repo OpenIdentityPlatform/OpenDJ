@@ -22,7 +22,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -58,7 +57,6 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   @BeforeMethod
   public void setup() throws Exception
   {
-    TestCaseUtils.startFakeServer();
     MockitoAnnotations.initMocks(this);
     options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
     multiDomainCursor = new MultiDomainDBCursor(domainDB, options);
@@ -68,7 +66,6 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   @AfterMethod
   public void teardown() throws Exception
   {
-    TestCaseUtils.shutdownFakeServer();
     domainDB = null;
     multiDomainCursor = null;
     eclCursor.close();
