@@ -631,6 +631,12 @@ public class ExportLDIF extends TaskTool {
     return !errorOccurred ? 0 : 1;
   }
 
+  @Override
+  protected void cleanup()
+  {
+    DirectoryServer.shutdownBackends();
+  }
+
   private Set<AttributeType> toAttributeTypes(StringArgument attributeArg)
   {
     if (attributeArg == null)

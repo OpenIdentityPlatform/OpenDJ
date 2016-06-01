@@ -110,6 +110,17 @@ public abstract class TaskTool implements TaskScheduleInformation {
                                       PrintStream err);
 
   /**
+   * Cleanup task environment after offline run.
+   * Default implementation does nothing.
+   * Tasks which initialize some static part of the DirectoryServer instance (e.g admin data local backends) must
+   * override this method to shutdown all needed component to prevent JVM environment alteration.
+   */
+  protected void cleanup()
+  {
+    // Do nothing by default.
+  }
+
+  /**
    * Creates an argument parser prepopulated with arguments for processing
    * input for scheduling tasks with the task backend.
    *
@@ -170,7 +181,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
    */
   protected void validateTaskArgs() throws ArgumentException, ClientException
   {
-    if (processAsTask())
+    if (isRemoteTask())
     {
       taskScheduleArgs.validateArgs();
     }
@@ -232,11 +243,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
   protected int process(LDAPConnectionArgumentParser argParser,
                         boolean initializeServer,
                         PrintStream out, PrintStream err) {
-    int ret;
-
     if (testIfOffline())
     {
-      if (!processAsTask())
+      if (!isRemoteTask())
       {
         return RUN_OFFLINE;
       }
@@ -246,115 +255,124 @@ public abstract class TaskTool implements TaskScheduleInformation {
       }
     }
 
-    if (processAsTask())
+    if (!isRemoteTask())
     {
-      if (initializeServer)
+      try
       {
-        try
-        {
-          DirectoryServer.bootstrapClient();
-          DirectoryServer.initializeJMX();
-        }
-        catch (Exception e)
-        {
-          printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
-          return 1;
-        }
-      }
-
-      LDAPConnection conn = null;
-      try {
-        conn = argParser.connect(out, err);
-        TaskClient tc = new TaskClient(conn);
-        TaskEntry taskEntry = tc.schedule(this);
-        LocalizableMessage startTime = taskEntry.getScheduledStartTime();
-        if (taskEntry.getTaskState() == TaskState.RECURRING) {
-          printWrappedText(out, INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(taskEntry.getType(), taskEntry.getId()));
-        } else if (startTime == null || startTime.length() == 0) {
-          printWrappedText(out, INFO_TASK_TOOL_TASK_SCHEDULED_NOW.get(taskEntry.getType(), taskEntry.getId()));
-        } else {
-          printWrappedText(out, INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
-              taskEntry.getType(), taskEntry.getId(), taskEntry.getScheduledStartTime()));
-        }
-        if (!taskScheduleArgs.startArg.isPresent()) {
-
-          // Poll the task printing log messages until finished
-          String taskId = taskEntry.getId();
-          Set<LocalizableMessage> printedLogMessages = new HashSet<>();
-          do {
-            taskEntry = tc.getTaskEntry(taskId);
-            List<LocalizableMessage> logs = taskEntry.getLogMessages();
-            for (LocalizableMessage log : logs) {
-              if (printedLogMessages.add(log)) {
-                out.println(log);
-              }
-            }
-
-            try {
-              Thread.sleep(SYNCHRONOUS_TASK_POLL_INTERVAL);
-            } catch (InterruptedException e) {
-              // ignore
-            }
-
-          } while (!taskEntry.isDone());
-          if (TaskState.isSuccessful(taskEntry.getTaskState())) {
-            if (taskEntry.getTaskState() != TaskState.RECURRING) {
-              printWrappedText(out, INFO_TASK_TOOL_TASK_SUCESSFULL.get(taskEntry.getType(), taskEntry.getId()));
-            }
-            return 0;
-          } else {
-            printWrappedText(out, INFO_TASK_TOOL_TASK_NOT_SUCESSFULL.get(taskEntry.getType(), taskEntry.getId()));
-            return 1;
-          }
-        }
-        ret = 0;
-      } catch (LDAPConnectionException e) {
-        if (isWrongPortException(e,
-            Integer.valueOf(argParser.getArguments().getPort())))
-        {
-          printWrappedText(err, ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
-              argParser.getArguments().getHostName(), argParser.getArguments().getPort()));
-        } else {
-          printWrappedText(err, ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage()));
-        }
-        ret = 1;
-      } catch (DecodeException ae) {
-        printWrappedText(err, ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage()));
-        ret = 1;
-      } catch (IOException ioe) {
-        printWrappedText(err, ERR_TASK_TOOL_IO_ERROR.get(ioe));
-        ret = 1;
-      } catch (LDAPException le) {
-        printWrappedText(err, ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage()));
-        ret = 1;
-      } catch (OpenDsException e) {
-        printWrappedText(err, e.getMessageObject());
-        ret = 1;
-      } catch (ArgumentException e) {
-        argParser.displayMessageAndUsageReference(err, e.getMessageObject());
-        ret = 1;
+        return processLocal(initializeServer, out, err);
       }
       finally
       {
-        if (conn != null)
+        if (initializeServer)
         {
-          try
-          {
-            conn.close(null);
-          }
-          catch (Throwable t)
-          {
-            // Ignore.
-          }
+          cleanup();
         }
       }
-    } else {
-      ret = processLocal(initializeServer, out, err);
     }
-    return ret;
+
+    if (initializeServer)
+    {
+      try
+      {
+        DirectoryServer.bootstrapClient();
+        DirectoryServer.initializeJMX();
+      }
+      catch (Exception e)
+      {
+        printWrappedText(err, ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e)));
+        return 1;
+      }
+    }
+
+    LDAPConnection conn = null;
+    try {
+      conn = argParser.connect(out, err);
+      TaskClient tc = new TaskClient(conn);
+      TaskEntry taskEntry = tc.schedule(this);
+      LocalizableMessage startTime = taskEntry.getScheduledStartTime();
+      if (taskEntry.getTaskState() == TaskState.RECURRING) {
+        printWrappedText(out, INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(taskEntry.getType(), taskEntry.getId()));
+      } else if (startTime == null || startTime.length() == 0) {
+        printWrappedText(out, INFO_TASK_TOOL_TASK_SCHEDULED_NOW.get(taskEntry.getType(), taskEntry.getId()));
+      } else {
+        printWrappedText(out, INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
+            taskEntry.getType(), taskEntry.getId(), taskEntry.getScheduledStartTime()));
+      }
+      if (!taskScheduleArgs.startArg.isPresent()) {
+
+        // Poll the task printing log messages until finished
+        String taskId = taskEntry.getId();
+        Set<LocalizableMessage> printedLogMessages = new HashSet<>();
+        do {
+          taskEntry = tc.getTaskEntry(taskId);
+          List<LocalizableMessage> logs = taskEntry.getLogMessages();
+          for (LocalizableMessage log : logs) {
+            if (printedLogMessages.add(log)) {
+              out.println(log);
+            }
+          }
+
+          try {
+            Thread.sleep(SYNCHRONOUS_TASK_POLL_INTERVAL);
+          } catch (InterruptedException e) {
+            // ignore
+          }
+
+        } while (!taskEntry.isDone());
+        if (TaskState.isSuccessful(taskEntry.getTaskState())) {
+          if (taskEntry.getTaskState() != TaskState.RECURRING) {
+            printWrappedText(out, INFO_TASK_TOOL_TASK_SUCESSFULL.get(taskEntry.getType(), taskEntry.getId()));
+          }
+          return 0;
+        } else {
+          printWrappedText(out, INFO_TASK_TOOL_TASK_NOT_SUCESSFULL.get(taskEntry.getType(), taskEntry.getId()));
+          return 1;
+        }
+      }
+      return 0;
+    } catch (LDAPConnectionException e) {
+      if (isWrongPortException(e,
+          Integer.valueOf(argParser.getArguments().getPort())))
+      {
+        printWrappedText(err, ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
+            argParser.getArguments().getHostName(), argParser.getArguments().getPort()));
+      } else {
+        printWrappedText(err, ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage()));
+      }
+      return 1;
+    } catch (DecodeException ae) {
+      printWrappedText(err, ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage()));
+      return 1;
+    } catch (IOException ioe) {
+      printWrappedText(err, ERR_TASK_TOOL_IO_ERROR.get(ioe));
+      return 1;
+    } catch (LDAPException le) {
+      printWrappedText(err, ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage()));
+      return 1;
+    } catch (OpenDsException e) {
+      printWrappedText(err, e.getMessageObject());
+      return 1;
+    } catch (ArgumentException e) {
+      argParser.displayMessageAndUsageReference(err, e.getMessageObject());
+      return 1;
+    }
+    finally
+    {
+      if (conn != null)
+      {
+        try
+        {
+          conn.close(null);
+        }
+        catch (Throwable t)
+        {
+          // Ignore.
+        }
+      }
+    }
   }
 
-  private boolean processAsTask() {
+  private boolean isRemoteTask() {
     return argParser.connectionArgumentsPresent();
   }
 

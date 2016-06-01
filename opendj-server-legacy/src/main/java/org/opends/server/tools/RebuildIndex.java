@@ -292,6 +292,12 @@ public class RebuildIndex extends TaskTool
     return rebuildIndex(currentBackend, rebuildConfig);
   }
 
+  @Override
+  protected void cleanup()
+  {
+    DirectoryServer.shutdownBackends();
+  }
+
   /**
    * Configures the rebuild index process. i.e.: decodes the selected DN and
    * retrieves the backend which holds it. Finally, initializes and sets the

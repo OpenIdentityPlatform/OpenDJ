@@ -5375,53 +5375,7 @@ public final class DirectoryServer
       }
     }
 
-    // Shut down the backends.
-    for (Backend<?> backend : directoryServer.backends.values())
-    {
-      try
-      {
-        for (BackendInitializationListener listener : getBackendInitializationListeners())
-        {
-          listener.performBackendPreFinalizationProcessing(backend);
-        }
-
-        // Deregister all the local backend workflow elements that have been
-        // registered with the server.
-        LocalBackendWorkflowElement.removeAll();
-
-        for (BackendInitializationListener listener :
-             directoryServer.backendInitializationListeners)
-        {
-          listener.performBackendPostFinalizationProcessing(backend);
-        }
-
-        backend.finalizeBackend();
-
-        // Remove the shared lock for this backend.
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(backend);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(), failureReason);
-            // FIXME -- Do we need to send an admin alert?
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.traceException(e2);
-
-          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK,
-              backend.getBackendID(), stackTraceToSingleLineString(e2));
-          // FIXME -- Do we need to send an admin alert?
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
+    shutdownBackends();
 
     if (directoryServer.configurationHandler != null) {
       directoryServer.configurationHandler.finalize();
@@ -5471,6 +5425,54 @@ public final class DirectoryServer
     DirectoryEnvironmentConfig envConfig = directoryServer.environmentConfig;
     directoryServer.destroy();
     directoryServer = getNewInstance(envConfig);
+  }
+
+  /** Shutdown directory server backends. */
+  public static void shutdownBackends()
+  {
+    for (Backend<?> backend : directoryServer.backends.values())
+    {
+      try
+      {
+        for (BackendInitializationListener listener : getBackendInitializationListeners())
+        {
+          listener.performBackendPreFinalizationProcessing(backend);
+        }
+
+        for (BackendInitializationListener listener : directoryServer.backendInitializationListeners)
+        {
+          listener.performBackendPostFinalizationProcessing(backend);
+        }
+
+        backend.finalizeBackend();
+
+        // Remove the shared lock for this backend.
+        try
+        {
+          String lockFile = LockFileManager.getBackendLockFileName(backend);
+          StringBuilder failureReason = new StringBuilder();
+          if (! LockFileManager.releaseLock(lockFile, failureReason))
+          {
+            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(), failureReason);
+            // FIXME -- Do we need to send an admin alert?
+          }
+        }
+        catch (Exception e2)
+        {
+          logger.traceException(e2);
+
+          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK,
+              backend.getBackendID(), stackTraceToSingleLineString(e2));
+          // FIXME -- Do we need to send an admin alert?
+        }
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
+    }
+    // Deregister all the local backend workflow elements that have been registered with the server.
+    LocalBackendWorkflowElement.removeAll();
   }
 
   /**

@@ -930,6 +930,12 @@ public class ImportLDIF extends TaskTool {
     return retCode;
   }
 
+  @Override
+  protected void cleanup()
+  {
+    DirectoryServer.shutdownBackends();
+  }
+
   private boolean useBackend(Set<DN> includeBranches, List<DN> dnlist)
   {
     for (DN baseDN : dnlist)
