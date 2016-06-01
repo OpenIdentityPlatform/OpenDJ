@@ -238,6 +238,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       // Ignore
     }
+
+    secureArgsList.initArgumentsWithConfiguration(this);
+
     createEnableReplicationSubCommand();
     createDisableReplicationSubCommand();
     createRelatedServersOptions();

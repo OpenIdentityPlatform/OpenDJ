@@ -399,8 +399,6 @@ public class ReplicationCliMain extends ConsoleApplication
       return CANNOT_INITIALIZE_ARGS;
     }
 
-    argParser.getSecureArgsList().initArgumentsWithConfiguration(argParser);
-
     // Parse the command-line arguments provided to this program.
     try
     {
