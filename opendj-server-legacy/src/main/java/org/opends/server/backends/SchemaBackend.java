@@ -16,6 +16,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -61,7 +62,6 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -84,8 +84,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.schema.ServerSchemaElement;
-import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
@@ -1066,13 +1064,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingType.isPlaceHolder())
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(attributeType));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, attributeType);
       schema.registerAttributeType(attributeType, schemaFile, false);
     }
     else
     {
-      String schemaFile = replaceExistingSchemaElement(
-          modifiedSchemaFiles, new ServerSchemaElement(attributeType), new ServerSchemaElement(existingType));
+      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, attributeType, existingType);
       schema.replaceAttributeType(attributeType, existingType, schemaFile);
     }
   }
@@ -1090,9 +1087,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * Update list of modified files and return the schema file to use for the
    * added element (may be null).
    */
-  private String addNewSchemaElement(Set<String> modifiedSchemaFiles, ServerSchemaElement elem)
+  private String addNewSchemaElement(Set<String> modifiedSchemaFiles, SchemaElement elem)
   {
-    String schemaFile = elem.getSchemaFile();
+    String schemaFile = getSchemaFile(elem);
     String finalFile = schemaFile != null ? schemaFile : FILE_USER_SCHEMA_ELEMENTS;
     modifiedSchemaFiles.add(finalFile);
     return schemaFile == null ? finalFile : null;
@@ -1102,11 +1099,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * Update list of modified files and return the schema file to use for the new
    * element (may be null).
    */
-  private String replaceExistingSchemaElement(Set<String> modifiedSchemaFiles, ServerSchemaElement newElem,
-      ServerSchemaElement existingElem)
+  private String replaceExistingSchemaElement(Set<String> modifiedSchemaFiles, SchemaElement newElem,
+      SchemaElement existingElem)
   {
-    String newSchemaFile = newElem.getSchemaFile();
-    String oldSchemaFile = existingElem.getSchemaFile();
+    String newSchemaFile = getSchemaFile(newElem);
+    String oldSchemaFile = getSchemaFile(existingElem);
     if (newSchemaFile == null)
     {
       if (oldSchemaFile == null)
@@ -1209,7 +1206,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // If we've gotten here, then it's OK to remove the attribute type from
     // the schema.
     schema.deregisterAttributeType(removeType);
-    String schemaFile = new ServerSchemaElement(removeType).getSchemaFile();
+    String schemaFile = getSchemaFile(removeType);
     if (schemaFile != null)
     {
       modifiedSchemaFiles.add(schemaFile);
@@ -1320,13 +1317,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingClass.isPlaceHolder())
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(objectClass));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, objectClass);
       schema.registerObjectClass(objectClass, schemaFile, false);
     }
     else
     {
-      final String schemaFile = replaceExistingSchemaElement(
-          modifiedSchemaFiles, new ServerSchemaElement(objectClass), new ServerSchemaElement(existingClass));
+      final String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, objectClass, existingClass);
       schema.replaceObjectClass(objectClass, existingClass, schemaFile);
     }
   }
@@ -1518,15 +1514,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (!schema.hasNameForm(nameForm.getNameOrOID()))
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(nameForm));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, nameForm);
       schema.registerNameForm(nameForm, schemaFile, false);
     }
     else
     {
       NameForm existingNF = schema.getNameForm(nameForm.getNameOrOID());
       schema.deregisterNameForm(existingNF);
-      String schemaFile = replaceExistingSchemaElement(
-          modifiedSchemaFiles, new ServerSchemaElement(nameForm), new ServerSchemaElement(existingNF));
+      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, nameForm, existingNF);
       schema.registerNameForm(nameForm, schemaFile, false);
     }
   }
@@ -1731,14 +1726,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingDCR == null)
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(ditContentRule));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, ditContentRule);
       schema.registerDITContentRule(ditContentRule, schemaFile, false);
     }
     else
     {
       schema.deregisterDITContentRule(existingDCR);
-      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(ditContentRule),
-          new ServerSchemaElement(existingDCR));
+      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, ditContentRule, existingDCR);
       schema.registerDITContentRule(ditContentRule, schemaFile, false);
     }
   }
@@ -1881,14 +1875,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing one.
     if (existingDSR == null)
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(ditStructureRule));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, ditStructureRule);
       schema.registerDITStructureRule(ditStructureRule, schemaFile, false);
     }
     else
     {
       schema.deregisterDITStructureRule(existingDSR);
-      String schemaFile = replaceExistingSchemaElement(
-          modifiedSchemaFiles, new ServerSchemaElement(ditStructureRule), new ServerSchemaElement(existingDSR));
+      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, ditStructureRule, existingDSR);
       schema.registerDITStructureRule(ditStructureRule, schemaFile, false);
     }
   }
@@ -2053,14 +2046,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Otherwise, we're replacing an existing matching rule use.
     if (existingMRU == null)
     {
-      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse));
+      String schemaFile = addNewSchemaElement(modifiedSchemaFiles, matchingRuleUse);
       schema.registerMatchingRuleUse(matchingRuleUse, schemaFile, false);
     }
     else
     {
       schema.deregisterMatchingRuleUse(existingMRU);
-      String schemaFile = replaceExistingSchemaElement(
-          modifiedSchemaFiles, new ServerSchemaElement(matchingRuleUse), new ServerSchemaElement(existingMRU));
+      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, matchingRuleUse, existingMRU);
       schema.registerMatchingRuleUse(matchingRuleUse, schemaFile, false);
     }
   }
@@ -2108,7 +2100,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
     schema.deregisterMatchingRuleUse(removeMRU);
-    String schemaFile = new ServerSchemaElement(removeMRU).getSchemaFile();
+    String schemaFile = getSchemaFile(removeMRU);
     if (schemaFile != null)
     {
       modifiedSchemaFiles.add(schemaFile);
@@ -2258,7 +2250,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * this only for the real part of the ldapsyntaxes attribute. The real part
      * is read and write to/from the schema files.
      */
-    Set<ByteString> values = getLdapSyntaxDescValuesForSchemaFile(schema, schemaFile);
+    Set<ByteString> values = getValuesForSchemaFile(schema.getLdapSyntaxDescriptions(), schemaFile);
     addAttribute(schemaEntry, ldapSyntaxesType, values);
 
     // Add all of the appropriate attribute types to the schema entry.  We need
@@ -2323,22 +2315,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Set<ByteString> values = new LinkedHashSet<>();
     for (SchemaElement schemaElement : schemaElements)
     {
-      if (schemaFile.equals(new ServerSchemaElement(schemaElement).getSchemaFile()))
+      if (schemaFile.equals(getSchemaFile(schemaElement)))
       {
         values.add(ByteString.valueOfUtf8(schemaElement.toString()));
-      }
-    }
-    return values;
-  }
-
-  private Set<ByteString> getLdapSyntaxDescValuesForSchemaFile(Schema schema, String schemaFile)
-  {
-    Set<ByteString> values = new LinkedHashSet<>();
-    for (LDAPSyntaxDescription ldapSyntax : schema.getLdapSyntaxDescriptions())
-    {
-      if (schemaFile.equals(getSchemaFile(ldapSyntax)))
-      {
-        values.add(ByteString.valueOfUtf8(ldapSyntax.toString()));
       }
     }
     return values;
@@ -2351,8 +2330,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Set<ByteString> values = new LinkedHashSet<>();
     for (AttributeType at : schema.getAttributeTypes())
     {
-      String atSchemaFile = new ServerSchemaElement(at).getSchemaFile();
-      if (schemaFile.equals(atSchemaFile))
+      if (schemaFile.equals(getSchemaFile(at)))
       {
         addAttrTypeToSchemaFile(schema, schemaFile, at, values, addedTypes, 0);
       }
@@ -2436,7 +2414,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     AttributeType superiorType = attributeType.getSuperiorType();
     if (superiorType != null &&
-        schemaFile.equals(new ServerSchemaElement(attributeType).getSchemaFile()) &&
+        schemaFile.equals(getSchemaFile(attributeType)) &&
         !addedTypes.contains(superiorType))
     {
       addAttrTypeToSchemaFile(schema, schemaFile, superiorType, values,
@@ -2956,13 +2934,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Schema newSchema = schema.duplicate();
     TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
-    // Get the attributeTypes attribute from the entry.
-    AttributeType attributeAttrType = CoreSchema.getAttributeTypesAttributeType();
-
     // loop on the attribute types in the entry just received
     // and add them in the existing schema.
     Set<String> oidList = new HashSet<>(1000);
-    for (Attribute a : newSchemaEntry.getAttribute(attributeAttrType))
+    for (Attribute a : newSchemaEntry.getAttribute(getAttributeTypesAttributeType()))
     {
       // Look for attribute types that could have been added to the schema
       // or modified in the schema
@@ -2970,7 +2945,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       {
         // Parse the attribute type.
         AttributeType attrType = schema.parseAttributeType(v.toString());
-        String schemaFile = new ServerSchemaElement(attrType).getSchemaFile();
+        String schemaFile = getSchemaFile(attrType);
         if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
         {
           // Don't import the file containing the definitions of the
@@ -2984,8 +2959,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         {
           // Register this attribute type in the new schema
           // unless it is already defined with the same syntax.
-          AttributeType oldAttrType = schema.getAttributeType(attrType.getOID());
-          if (oldAttrType == null || !oldAttrType.toString().equals(attrType.toString()))
+          if (hasDefinitionChanged(schema, attrType))
           {
             newSchema.registerAttributeType(attrType, schemaFile, true);
 
@@ -3006,7 +2980,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // them from the new schema if they are not in the imported schema entry.
     for (AttributeType removeType : newSchema.getAttributeTypes())
     {
-      String schemaFile = new SomeSchemaElement(removeType).getSchemaFile();
+      String schemaFile = getSchemaFile(removeType);
       if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile) || CORE_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
       {
         // Don't import the file containing the definitions of the
@@ -3027,10 +3001,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // loop on the objectClasses from the entry, search if they are
     // already in the current schema, add them if not.
-    AttributeType objectclassAttrType = CoreSchema.getObjectClassesAttributeType();
-
     oidList.clear();
-    for (Attribute a : newSchemaEntry.getAttribute(objectclassAttrType))
+    for (Attribute a : newSchemaEntry.getAttribute(getObjectClassesAttributeType()))
     {
       for (ByteString v : a)
       {
@@ -3051,8 +3023,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         {
           // Register this ObjectClass in the new schema
           // unless it is already defined with the same syntax.
-          ObjectClass oldObjectClass = schema.getObjectClass(newObjectClass.getOID());
-          if (oldObjectClass.isPlaceHolder() || !oldObjectClass.toString().equals(newObjectClass.toString()))
+          if (hasDefinitionChanged(schema, newObjectClass))
           {
             newSchema.registerObjectClass(newObjectClass, schemaFile, true);
 
@@ -3099,6 +3070,18 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       updateSchemaFiles(newSchema, modifiedSchemaFiles);
       DirectoryServer.setSchema(newSchema);
     }
+  }
+
+  private boolean hasDefinitionChanged(Schema schema, AttributeType newAttrType)
+  {
+    AttributeType oldAttrType = schema.getAttributeType(newAttrType.getOID());
+    return oldAttrType.isPlaceHolder() || !oldAttrType.toString().equals(newAttrType.toString());
+  }
+
+  private boolean hasDefinitionChanged(Schema schema, ObjectClass newObjectClass)
+  {
+    ObjectClass oldObjectClass = schema.getObjectClass(newObjectClass.getOID());
+    return oldObjectClass.isPlaceHolder() || !oldObjectClass.toString().equals(newObjectClass.toString());
   }
 
   @Override
