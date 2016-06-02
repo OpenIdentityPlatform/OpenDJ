@@ -19,7 +19,7 @@ package org.opends.server.replication.plugin;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.DN_DEFAULT_SCHEMA_ROOT;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
@@ -971,15 +971,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     for (String className : newFractionalSpecificClassesAttributes.keySet())
     {
       // Does the class exist ?
-      ObjectClass fractionalClass = schema.getObjectClass(className.toLowerCase());
+      ObjectClass fractionalClass = schema.getObjectClass(className);
       if (fractionalClass.isPlaceHolder())
       {
         throw new ConfigException(
           NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className));
       }
 
-      boolean isExtensibleObjectClass =
-          "extensibleObject".equalsIgnoreCase(className);
+      boolean isExtensibleObjectClass = fractionalClass.isExtensible();
 
       Set<String> attributes =
         newFractionalSpecificClassesAttributes.get(className);
@@ -4438,7 +4437,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       if (name.startsWith("@"))
       {
         String ocName = name.substring(1);
-        ObjectClass objectClass = DirectoryServer.getObjectClass(toLowerCase(ocName));
+        ObjectClass objectClass = DirectoryServer.getObjectClass(ocName);
         if (!objectClass.isPlaceHolder())
         {
           for (AttributeType at : objectClass.getRequiredAttributes())

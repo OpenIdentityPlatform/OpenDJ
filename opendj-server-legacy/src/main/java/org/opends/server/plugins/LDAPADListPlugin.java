@@ -26,6 +26,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.LDAPAttributeDescriptionListPluginCfg;
 import org.forgerock.opendj.server.config.server.PluginCfg;
@@ -33,13 +34,11 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.types.DirectoryConfig;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.core.DirectoryServer.getObjectClass;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This pre-parse plugin modifies the operation to allow an object class
@@ -89,15 +88,15 @@ public final class LDAPADListPlugin
       {
         if (attrName.startsWith("@"))
         {
-          final String lowerName = toLowerCase(attrName.substring(1));
-          final ObjectClass oc = getObjectClass(lowerName);
+          final String ocName = attrName.substring(1);
+          final ObjectClass oc = getObjectClass(ocName);
           if (oc.isPlaceHolder())
           {
-            logger.trace("Cannot replace unknown objectclass %s", lowerName);
+            logger.trace("Cannot replace unknown objectclass %s", ocName);
           }
           else
           {
-            logger.trace("Replacing objectclass %s", lowerName);
+            logger.trace("Replacing objectclass %s", ocName);
 
             for (final AttributeType at : oc.getRequiredAttributes())
             {

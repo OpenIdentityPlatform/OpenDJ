@@ -716,10 +716,9 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       {
         List<Object> ocs = sr.getAttributeValues(
             ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-        for (Object o : ocs)
+        for (Object oc : ocs)
         {
-          String oc = (String)o;
-          ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
+          ObjectClass objectClass = schema.getObjectClass((String) oc);
           if (!objectClass.isPlaceHolder())
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())
@@ -1155,7 +1154,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         List<Object> ocs = sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
         for (Object oc : ocs)
         {
-          ObjectClass objectClass = schema.getObjectClass(((String) oc).toLowerCase());
+          ObjectClass objectClass = schema.getObjectClass(((String) oc));
           if (!objectClass.isPlaceHolder() && objectClass.isRequired(attrType))
           {
             return true;
@@ -1823,7 +1822,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         Schema schema = getInfo().getServerDescriptor().getSchema();
         if (schema != null && structural != null)
         {
-          ObjectClass oc = schema.getObjectClass(structural.toLowerCase());
+          ObjectClass oc = schema.getObjectClass(structural);
           if (!oc.isPlaceHolder())
           {
             values.addAll(getObjectClassSuperiorValues(oc));

@@ -17,7 +17,6 @@
 package org.opends.server.tools.makeldif;
 
 import static org.opends.server.util.LDIFWriter.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -30,11 +29,11 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.LDIFExportConfig;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.util.LDIFException;
 
 /**
@@ -248,7 +247,7 @@ public class TemplateEntry
       {
         for (TemplateValue v : valueList)
         {
-          String ocName = toLowerCase(v.getValue().toString());
+          String ocName = v.getValue().toString();
           objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
         }
       }

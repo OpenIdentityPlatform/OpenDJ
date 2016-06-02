@@ -69,7 +69,7 @@ public class SchemaLoader
     Schema sc = DirectoryServer.getSchema();
     for (String name : OBJECTCLASS_TO_KEEP)
     {
-      ObjectClass oc = sc.getObjectClass(name.toLowerCase());
+      ObjectClass oc = sc.getObjectClass(name);
       if (!oc.isPlaceHolder())
       {
         objectclassesToKeep.add(oc);

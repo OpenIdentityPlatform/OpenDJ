@@ -969,8 +969,7 @@ public final class SambaPasswordPlugin extends
   private boolean isSynchronizable(final Entry entry)
   {
     final Schema schema = DirectoryServer.getSchema();
-    final ObjectClass sambaOc = schema
-        .getObjectClass(toLowerCase(SAMBA_SAM_ACCOUNT_OC_NAME));
+    final ObjectClass sambaOc = schema.getObjectClass(SAMBA_SAM_ACCOUNT_OC_NAME);
     return !sambaOc.isPlaceHolder() && entry.hasObjectClass(sambaOc);
   }
 

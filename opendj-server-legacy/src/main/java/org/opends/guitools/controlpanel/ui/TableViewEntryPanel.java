@@ -615,10 +615,9 @@ class TableViewEntryPanel extends ViewEntryPanel
       }
       if (ocs != null && schema != null)
       {
-        for (Object o : ocs)
+        for (Object oc : ocs)
         {
-          String oc = (String)o;
-          ObjectClass objectClass = schema.getObjectClass(oc.toLowerCase());
+          ObjectClass objectClass = schema.getObjectClass((String) oc);
           if (!objectClass.isPlaceHolder())
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())

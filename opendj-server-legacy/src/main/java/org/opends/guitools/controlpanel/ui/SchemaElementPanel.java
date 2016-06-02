@@ -113,7 +113,7 @@ public abstract class SchemaElementPanel extends StatusGenericPanel
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (o != null && schema != null)
     {
-      ObjectClass oc = schema.getObjectClass(o.toLowerCase());
+      ObjectClass oc = schema.getObjectClass(o);
       if (!oc.isPlaceHolder())
       {
         notifySchemaSelectionListeners(oc);

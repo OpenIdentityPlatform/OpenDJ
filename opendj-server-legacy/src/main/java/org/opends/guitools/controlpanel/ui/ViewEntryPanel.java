@@ -246,7 +246,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     SortedSet<String> auxiliaryClasses = new TreeSet<>();
     for (Object o : ocValues)
     {
-      ObjectClass objectClass = schema.getObjectClass(((String) o).toLowerCase());
+      ObjectClass objectClass = schema.getObjectClass(((String) o));
       if (!objectClass.isPlaceHolder())
       {
         if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL)
@@ -360,7 +360,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         Schema schema = getInfo().getServerDescriptor().getSchema();
         if (schema != null)
         {
-          ObjectClass oc = schema.getObjectClass(ocValue.getStructural().toLowerCase());
+          ObjectClass oc = schema.getObjectClass(ocValue.getStructural());
           if (!oc.isPlaceHolder())
           {
             Set<String> names = getObjectClassSuperiorValues(oc);

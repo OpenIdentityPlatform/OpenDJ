@@ -29,6 +29,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
@@ -47,7 +48,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -655,7 +655,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       String objectClassStr = fractionalConf[0];
       if (!objectClassStr.equals("*"))
       {
-        ObjectClass objectClass = DirectoryServer.getObjectClass(objectClassStr.toLowerCase());
+        ObjectClass objectClass = DirectoryServer.getObjectClass(objectClassStr);
         assertTrue(newEntry.hasObjectClass(objectClass));
       }
 
@@ -708,7 +708,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       String objectClassStr = fractionalConf[0];
       if (!objectClassStr.equals("*"))
       {
-        ObjectClass objectClass = DirectoryServer.getObjectClass(objectClassStr.toLowerCase());
+        ObjectClass objectClass = DirectoryServer.getObjectClass(objectClassStr);
         assertTrue(entry.hasObjectClass(objectClass));
       }
 
@@ -1235,7 +1235,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getName(), newEntry.getName());
-      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
 
@@ -1270,7 +1270,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getName(), newEntry.getName());
-      objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
       checkEntryAttributeValue(newEntry, "givenName", "ValueToBeKeptToo");
@@ -1326,7 +1326,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getName(), newEntry.getName());
-      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
       checkEntryAttributeValue(newEntry, "carLicense", "cirLicenseValue");
@@ -1363,7 +1363,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getName(), newEntry.getName());
-      objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
       checkEntryAttributeValue(newEntry, "description", "ValueToBeKeptToo");
@@ -1418,7 +1418,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getName(), newEntry.getName());
-      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
       checkEntryAttributeValue(newEntry, "givenName", "ValueToBeRemoved");
@@ -1441,7 +1441,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(newEntryDn, newEntry.getName());
-      objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
       assertThat(newEntry.getAttribute("givenName")).isEmpty();
@@ -1500,7 +1500,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry newEntry = getEntry(entry.getName(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getName(), newEntry.getName());
-      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
       checkEntryAttributeValue(newEntry, "description", "ValueToBeRemoved");
@@ -1523,7 +1523,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(newEntryDn, newEntry.getName());
-      objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
+      objectClass = DirectoryServer.getObjectClass("inetOrgPerson");
       assertTrue(newEntry.hasObjectClass(objectClass));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
       assertThat(newEntry.getAttribute("description")).isEmpty();
