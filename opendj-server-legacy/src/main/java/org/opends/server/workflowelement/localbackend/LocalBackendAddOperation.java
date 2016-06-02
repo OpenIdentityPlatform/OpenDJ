@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicy;
@@ -66,7 +67,6 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.operation.PostOperationAddOperation;
@@ -796,8 +796,8 @@ public class LocalBackendAddOperation
     }
 
     invalidReason = new LocalizableMessageBuilder();
-    checkAttributes(invalidReason, userAttributes);
-    checkAttributes(invalidReason, operationalAttributes);
+    checkAttributesConformToSyntax(invalidReason, userAttributes);
+    checkAttributesConformToSyntax(invalidReason, operationalAttributes);
 
 
     // See if the entry contains any attributes or object classes marked
@@ -831,7 +831,7 @@ public class LocalBackendAddOperation
   }
 
 
-  private void checkAttributes(LocalizableMessageBuilder invalidReason,
+  private void checkAttributesConformToSyntax(LocalizableMessageBuilder invalidReason,
       Map<AttributeType, List<Attribute>> attributes) throws DirectoryException
   {
     for (List<Attribute> attrList : attributes.values())
