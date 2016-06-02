@@ -215,7 +215,7 @@ public class AttributeSyntaxConfigManager
     if (syntax != null)
     {
       String oid = syntax.getOID();
-      for (AttributeType at : DirectoryServer.getAttributeTypes())
+      for (AttributeType at : DirectoryServer.getSchema().getAttributeTypes())
       {
         if (oid.equals(at.getSyntax().getOID()))
         {
@@ -284,7 +284,7 @@ public class AttributeSyntaxConfigManager
       if (syntax != null)
       {
         String oid = syntax.getOID();
-        for (AttributeType at : DirectoryServer.getAttributeTypes())
+        for (AttributeType at : DirectoryServer.getSchema().getAttributeTypes())
         {
           if (oid.equals(at.getSyntax().getOID()))
           {

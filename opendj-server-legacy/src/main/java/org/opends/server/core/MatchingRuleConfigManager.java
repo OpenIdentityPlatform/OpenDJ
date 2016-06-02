@@ -206,7 +206,7 @@ public class MatchingRuleConfigManager
     {
       if (matchingRule != null)
       {
-        for (AttributeType at : DirectoryServer.getAttributeTypes())
+        for (AttributeType at : DirectoryServer.getSchema().getAttributeTypes())
         {
           final String attr = at.getNameOrOID();
           if (!isDeleteAcceptable(at.getApproximateMatchingRule(), matchingRule, attr, unacceptableReasons)
@@ -299,7 +299,7 @@ public class MatchingRuleConfigManager
       {
         if (matchingRule != null)
         {
-          for (AttributeType at : DirectoryServer.getAttributeTypes())
+          for (AttributeType at : DirectoryServer.getSchema().getAttributeTypes())
           {
             final String attr = at.getNameOrOID();
             if (!isDisableAcceptable(at.getApproximateMatchingRule(), matchingRule, attr, unacceptableReasons)

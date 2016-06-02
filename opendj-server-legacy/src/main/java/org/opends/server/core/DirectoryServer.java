@@ -71,8 +71,6 @@ import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.DITContentRule;
-import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
@@ -2306,18 +2304,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the set of attribute type definitions that have been
-   * defined in the Directory Server.
-   *
-   * @return The set of attribute type definitions that have been
-   *         defined in the Directory Server.
-   */
-  public static Collection<AttributeType> getAttributeTypes()
-  {
-    return directoryServer.schema.getAttributeTypes();
-  }
-
-  /**
    * Retrieves the attribute type for the provided name or OID. It can optionally return a generated
    * placeholder version if the requested attribute type is not defined in the schema.
    *
@@ -2356,34 +2342,6 @@ public final class DirectoryServer
   public static AttributeType getObjectClassAttributeType()
   {
     return directoryServer.schema.getAttributeType(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-  }
-
-  /**
-   * Retrieves the DIT content rule associated with the specified objectclass.
-   *
-   * @param  objectClass  The objectclass for which to retrieve the associated
-   *                      DIT content rule.
-   *
-   * @return  The requested DIT content rule, or {@code null} if no such
-   *          rule is defined in the schema.
-   */
-  public static DITContentRule getDITContentRule(ObjectClass objectClass)
-  {
-    return directoryServer.schema.getDITContentRule(objectClass);
-  }
-
-  /**
-   * Retrieves the name forms associated with the specified objectclass.
-   *
-   * @param  objectClass  The objectclass for which to retrieve the associated
-   *                      name form.
-   *
-   * @return  The requested name forms, or {@code null} if no such name
-   *           form is defined in the schema.
-   */
-  public static Collection<NameForm> getNameForm(ObjectClass objectClass)
-  {
-    return directoryServer.schema.getNameForm(objectClass);
   }
 
   /**

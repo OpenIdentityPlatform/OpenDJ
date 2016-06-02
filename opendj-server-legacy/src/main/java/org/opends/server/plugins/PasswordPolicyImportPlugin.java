@@ -227,7 +227,7 @@ public final class PasswordPolicyImportPlugin
     // syntax defined in the schema.
     HashSet<AttributeType> authPWTypes = new HashSet<>();
     HashSet<AttributeType> userPWTypes = new HashSet<>();
-    for (AttributeType t : DirectoryServer.getAttributeTypes())
+    for (AttributeType t : DirectoryServer.getSchema().getAttributeTypes())
     {
       switch (SchemaUtils.checkPasswordType(t))
       {

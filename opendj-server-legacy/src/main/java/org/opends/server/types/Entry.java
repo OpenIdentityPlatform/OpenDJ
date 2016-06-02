@@ -1594,7 +1594,7 @@ public class Entry
     }
     else
     {
-      ditContentRule = DirectoryServer.getDITContentRule(structuralClass);
+      ditContentRule = DirectoryServer.getSchema().getDITContentRule(structuralClass);
       if (ditContentRule != null && ditContentRule.isObsolete())
       {
         ditContentRule = null;
@@ -1617,7 +1617,7 @@ public class Entry
          * DITStructureRules corresponding to other non-acceptable
          * nameforms are not applied.
          */
-        Collection<NameForm> forms = DirectoryServer.getNameForm(structuralClass);
+        Collection<NameForm> forms = DirectoryServer.getSchema().getNameForm(structuralClass);
         if (forms != null)
         {
           List<NameForm> listForms = new ArrayList<NameForm>(forms);
@@ -2165,7 +2165,7 @@ public class Entry
         }
         else
         {
-          Collection<NameForm> allNFs = DirectoryServer.getNameForm(parentStructuralClass);
+          Collection<NameForm> allNFs = DirectoryServer.getSchema().getNameForm(parentStructuralClass);
           if(allNFs != null)
           {
             for(NameForm parentNF : allNFs)
