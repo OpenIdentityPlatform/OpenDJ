@@ -38,11 +38,13 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.server.core.DirectoryServer;
 
 /**
@@ -2035,8 +2037,11 @@ public final class SearchFilter
             ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(filterString, startPos));
       }
 
-      MatchingRule mr = DirectoryServer.getMatchingRule(matchingRuleID);
-      if (mr == null)
+      try
+      {
+        DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+      }
+      catch (UnknownSchemaElementException e)
       {
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
             ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_SUCH_MR.get(filterString, startPos, matchingRuleID));
@@ -3177,16 +3182,14 @@ public final class SearchFilter
 
     if (matchingRuleID != null)
     {
-      matchingRule = DirectoryServer.getMatchingRule(matchingRuleID);
-      if (matchingRule == null)
+      try
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace(
-              "Unknown matching rule %s defined in extensibleMatch " +
-              "component of filter %s -- returning undefined.",
-                    matchingRuleID, this);
-        }
+        matchingRule = DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+      }
+      catch (UnknownSchemaElementException e)
+      {
+        logger.trace("Unknown matching rule %s defined in extensibleMatch "
+            + "component of filter %s -- returning undefined.", matchingRuleID, this);
         return ConditionResult.UNDEFINED;
       }
     }
@@ -3639,22 +3642,15 @@ public final class SearchFilter
       }
       else
       {
-        MatchingRule mrule = DirectoryServer.getMatchingRule(matchingRuleID);
-        if (mrule == null)
+        try
+        {
+          MatchingRule mrule = DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+          Assertion assertion = mrule.getAssertion(f.assertionValue);
+          return assertion.matches(mrule.normalizeAttributeValue(assertionValue)).toBoolean();
+        }
+        catch (DecodeException | UnknownSchemaElementException e)
         {
           return false;
-        }
-        else
-        {
-          try
-          {
-            Assertion assertion = mrule.getAssertion(f.assertionValue);
-            return assertion.matches(mrule.normalizeAttributeValue(assertionValue)).toBoolean();
-          }
-          catch (Exception e)
-          {
-            return false;
-          }
         }
       }
     }

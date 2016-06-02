@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -333,7 +334,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
         indexers.putAll(buildBaseIndexers(false, false, indexType, attributeType, indexingOptions));
         break;
       default:
-       throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
+        throw noMatchingRuleForIndexType(attributeType, indexType);
       }
     }
     return buildIndexesForIndexers(entryContainer, attributeType, state, indexEntryLimit, indexers, cryptoSuite);
@@ -344,7 +345,10 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
   {
     Map<Indexer, Boolean> indexers = new HashMap<>();
     MatchingRule rule = getMatchingRule(indexType, attributeType);
-    throwIfNoMatchingRule(attributeType, indexType, rule);
+    if (rule == null)
+    {
+      throw noMatchingRuleForIndexType(attributeType, indexType);
+    }
     throwIfProtectKeysAndValues(attributeType, protectIndexKeys, protectIndexValues);
     Collection<? extends Indexer> ruleIndexers = rule.createIndexers(indexingOptions);
     for (Indexer indexer: ruleIndexers)
@@ -361,13 +365,9 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     return indexers;
   }
 
-  private static void throwIfNoMatchingRule(AttributeType attributeType, IndexType indexType, MatchingRule rule)
-      throws ConfigException
+  private static ConfigException noMatchingRuleForIndexType(AttributeType attributeType, IndexType indexType)
   {
-    if (rule == null)
-    {
-      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
-    }
+    return new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
   }
 
   private void throwIfProtectKeysAndValues(AttributeType attributeType, boolean protectKeys, boolean protectValues)
@@ -403,17 +403,23 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     IndexType indexType = IndexType.EXTENSIBLE;
     if (extensibleRules == null || extensibleRules.isEmpty())
     {
-      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attributeType, indexType));
+      throw noMatchingRuleForIndexType(attributeType, indexType);
     }
 
     final Map<Indexer, Boolean> indexers = new HashMap<>();
     for (final String ruleName : extensibleRules)
     {
-      final MatchingRule rule = DirectoryServer.getMatchingRule(ruleName);
-      throwIfNoMatchingRule(attributeType, indexType, rule);
-      for (Indexer indexer : rule.createIndexers(options))
+      try
       {
-        indexers.put(indexer, false);
+        final MatchingRule rule = DirectoryServer.getSchema().getMatchingRule(ruleName);
+        for (Indexer indexer : rule.createIndexers(options))
+        {
+          indexers.put(indexer, false);
+        }
+      }
+      catch (UnknownSchemaElementException e)
+      {
+        throw noMatchingRuleForIndexType(attributeType, indexType);
       }
     }
 
@@ -1088,7 +1094,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       return evaluateFilter(indexQueryFactory, IndexFilterType.EQUALITY, filter, debugBuffer, monitor);
     }
 
-    MatchingRule rule = DirectoryServer.getMatchingRule(matchRuleOID);
+    MatchingRule rule = DirectoryServer.getSchema().getMatchingRule(matchRuleOID);
     if (!ruleHasAtLeastOneIndex(rule))
     {
       if (monitor.isFilterUseEnabled())

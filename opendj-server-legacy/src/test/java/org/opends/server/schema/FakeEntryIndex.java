@@ -125,7 +125,7 @@ class FakeEntryIndex
       return matchingRule.getGreaterOrEqualAssertion(filter.getAssertionValue());
 
     case EXTENSIBLE_MATCH:
-      MatchingRule rule = DirectoryServer.getMatchingRule(filter.getMatchingRuleID());
+      MatchingRule rule = DirectoryServer.getSchema().getMatchingRule(filter.getMatchingRuleID());
       return rule.getAssertion(filter.getAssertionValue());
 
     default:

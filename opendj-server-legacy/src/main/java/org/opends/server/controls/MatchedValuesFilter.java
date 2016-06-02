@@ -30,6 +30,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -944,7 +945,13 @@ public class MatchedValuesFilter
   {
     if (matchingRule == null && matchingRuleID != null)
     {
-      matchingRule = DirectoryServer.getMatchingRule(matchingRuleID);
+      try
+      {
+        matchingRule = DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+      }
+      catch (UnknownSchemaElementException e)
+      {
+      }
     }
     return matchingRule;
   }

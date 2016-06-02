@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Control;
@@ -111,14 +112,14 @@ public class ServerSideSortRequestControl
               reader.peekType() == TYPE_ORDERING_RULE_ID)
           {
             String orderingRuleID = reader.readOctetStringAsString();
-            orderingRule = DirectoryServer.getMatchingRule(orderingRuleID);
-            if (orderingRule == null)
+            try
             {
-              LocalizableMessage message =
-                  INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.
-                      get(orderingRuleID);
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                  message);
+              orderingRule = DirectoryServer.getSchema().getMatchingRule(orderingRuleID);
+            }
+            catch (UnknownSchemaElementException e)
+            {
+              LocalizableMessage message = INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.get(orderingRuleID);
+              throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
             }
           }
           if(reader.hasNextElement() &&
@@ -431,8 +432,11 @@ public class ServerSideSortRequestControl
       MatchingRule orderingRule = null;
       if(decodedKey[1] != null)
       {
-        orderingRule = DirectoryServer.getMatchingRule(decodedKey[1]);
-        if (orderingRule == null)
+        try
+        {
+          orderingRule = DirectoryServer.getSchema().getMatchingRule(decodedKey[1]);
+        }
+        catch (UnknownSchemaElementException e)
         {
           LocalizableMessage message = INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.get(decodedKey[1]);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);

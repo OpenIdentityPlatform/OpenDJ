@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
@@ -1911,8 +1911,11 @@ public class LDAPFilter
             ERR_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR.get());
       }
 
-      MatchingRule mr = DirectoryServer.getMatchingRule(matchingRuleID);
-      if (mr == null)
+      try
+      {
+        DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+      }
+      catch (UnknownSchemaElementException e)
       {
         throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
             ERR_LDAP_FILTER_UNKNOWN_MATCHING_RULE.get(matchingRuleID));

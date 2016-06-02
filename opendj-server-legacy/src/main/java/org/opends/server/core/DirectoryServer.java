@@ -2283,20 +2283,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the matching rule with the specified name or OID.
-   *
-   * @param  lowerName  The lowercase name or OID for the matching rule to
-   *                    retrieve.
-   *
-   * @return  The requested matching rule, or {@code null} if no such
-   *          matching rule has been defined in the server.
-   */
-  public static MatchingRule getMatchingRule(String lowerName)
-  {
-    return directoryServer.schema.getMatchingRule(lowerName);
-  }
-
-  /**
    * Retrieves the objectclass for the provided name or OID. It can optionally return a generated
    * "default" version if the requested objectclass is not defined in the schema.
    *

@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.AddOperation;
@@ -322,15 +323,30 @@ public abstract class Backend<C extends Configuration>
         }
 
         String matchingRuleID = filter.getMatchingRuleID();
-        MatchingRule matchingRule = matchingRuleID != null
-            ? DirectoryServer.getMatchingRule(matchingRuleID)
-            : attrType.getEqualityMatchingRule();
+        MatchingRule matchingRule = getMatchingRule(attrType, matchingRuleID);
         // FIXME isIndexed() always return false down below
         return matchingRule != null && isIndexed(attrType, matchingRule);
 
 
       default:
         return false;
+    }
+  }
+
+  private MatchingRule getMatchingRule(AttributeType attrType, String matchingRuleID)
+  {
+    if (matchingRuleID == null)
+    {
+      return attrType.getEqualityMatchingRule();
+    }
+
+    try
+    {
+      return DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+    }
+    catch (UnknownSchemaElementException e)
+    {
+      return null;
     }
   }
 
