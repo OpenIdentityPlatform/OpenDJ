@@ -72,12 +72,9 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
@@ -2359,27 +2356,6 @@ public final class DirectoryServer
   public static AttributeType getObjectClassAttributeType()
   {
     return directoryServer.schema.getAttributeType(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-  }
-
-  /**
-   * Retrieves the matching rule use associated with the provided matching rule.
-   *
-   * @param  matchingRule  The matching rule for which to retrieve the matching
-   *                       rule use.
-   *
-   * @return  The matching rule use for the provided matching rule, or
-   *          {@code null} if none is defined.
-   */
-  public static MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
-  {
-    try
-    {
-      return directoryServer.schema.getMatchingRuleUse(matchingRule);
-    }
-    catch (UnknownSchemaElementException e)
-    {
-      return null;
-    }
   }
 
   /**

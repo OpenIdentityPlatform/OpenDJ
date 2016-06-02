@@ -3226,18 +3226,19 @@ public final class SearchFilter
     // determine if it allows that attribute type.
     if (attributeType != null)
     {
-      MatchingRuleUse mru = DirectoryServer.getMatchingRuleUse(matchingRule);
-      if (mru != null && !mru.hasAttribute(attributeType))
+      try
       {
-        if (logger.isTraceEnabled())
+        MatchingRuleUse mru = DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
+        if (!mru.hasAttribute(attributeType))
         {
-          logger.trace(
-              "Attribute type %s is not allowed for use with " +
-              "matching rule %s because of matching rule use " +
-              "definition %s", attributeType.getNameOrOID(),
-              matchingRule.getNameOrOID(), mru.getNameOrOID());
+          logger.trace("Attribute type %s is not allowed for use with "
+              + "matching rule %s because of matching rule use definition %s",
+              attributeType.getNameOrOID(), matchingRule.getNameOrOID(), mru.getNameOrOID());
+          return ConditionResult.UNDEFINED;
         }
-        return ConditionResult.UNDEFINED;
+      }
+      catch (UnknownSchemaElementException ignored)
+      {
       }
     }
 
