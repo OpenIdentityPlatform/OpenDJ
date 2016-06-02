@@ -944,7 +944,7 @@ public class MatchedValuesFilter
   {
     if (matchingRule == null && matchingRuleID != null)
     {
-      matchingRule = DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
+      matchingRule = DirectoryServer.getMatchingRule(matchingRuleID);
     }
     return matchingRule;
   }

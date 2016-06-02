@@ -1911,7 +1911,7 @@ public class LDAPFilter
             ERR_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR.get());
       }
 
-      MatchingRule mr = DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
+      MatchingRule mr = DirectoryServer.getMatchingRule(matchingRuleID);
       if (mr == null)
       {
         throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,

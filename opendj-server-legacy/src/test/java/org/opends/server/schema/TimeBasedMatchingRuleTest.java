@@ -31,13 +31,13 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.SearchFilter;
@@ -200,8 +200,7 @@ public final class TimeBasedMatchingRuleTest
   public void testPartialDateNTimeMatch(long timeInMillis, String generalizedTime, String assertionValue)
       throws Exception
   {
-    MatchingRule partialTimeRule = DirectoryServer.getMatchingRule(
-            EXT_PARTIAL_DATE_TIME_NAME.toLowerCase());
+    MatchingRule partialTimeRule = DirectoryServer.getMatchingRule(EXT_PARTIAL_DATE_TIME_NAME);
     Assertion assertion = partialTimeRule.getAssertion(ByteString.valueOfUtf8(assertionValue));
     assertEquals(assertion.matches(ByteString.valueOfLong(timeInMillis)), ConditionResult.TRUE);
   }

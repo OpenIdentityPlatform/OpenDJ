@@ -28,12 +28,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.config.Configuration;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.AddOperation;
@@ -49,7 +50,6 @@ import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
@@ -321,17 +321,10 @@ public abstract class Backend<C extends Configuration>
           return false;
         }
 
-        MatchingRule matchingRule;
         String matchingRuleID = filter.getMatchingRuleID();
-        if (matchingRuleID != null)
-        {
-          matchingRule = DirectoryServer.getMatchingRule(
-                              matchingRuleID.toLowerCase());
-        }
-        else
-        {
-          matchingRule = attrType.getEqualityMatchingRule();
-        }
+        MatchingRule matchingRule = matchingRuleID != null
+            ? DirectoryServer.getMatchingRule(matchingRuleID)
+            : attrType.getEqualityMatchingRule();
         // FIXME isIndexed() always return false down below
         return matchingRule != null && isIndexed(attrType, matchingRule);
 

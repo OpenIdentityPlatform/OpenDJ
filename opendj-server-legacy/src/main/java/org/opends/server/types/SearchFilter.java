@@ -2035,7 +2035,7 @@ public final class SearchFilter
             ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(filterString, startPos));
       }
 
-      MatchingRule mr = DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
+      MatchingRule mr = DirectoryServer.getMatchingRule(matchingRuleID);
       if (mr == null)
       {
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
@@ -3177,9 +3177,7 @@ public final class SearchFilter
 
     if (matchingRuleID != null)
     {
-      matchingRule =
-           DirectoryServer.getMatchingRule(
-                toLowerCase(matchingRuleID));
+      matchingRule = DirectoryServer.getMatchingRule(matchingRuleID);
       if (matchingRule == null)
       {
         if (logger.isTraceEnabled())
@@ -3641,7 +3639,7 @@ public final class SearchFilter
       }
       else
       {
-        MatchingRule mrule = DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
+        MatchingRule mrule = DirectoryServer.getMatchingRule(matchingRuleID);
         if (mrule == null)
         {
           return false;

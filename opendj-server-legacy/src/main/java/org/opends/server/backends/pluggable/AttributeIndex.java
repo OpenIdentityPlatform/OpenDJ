@@ -19,7 +19,6 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -410,7 +409,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     final Map<Indexer, Boolean> indexers = new HashMap<>();
     for (final String ruleName : extensibleRules)
     {
-      final MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
+      final MatchingRule rule = DirectoryServer.getMatchingRule(ruleName);
       throwIfNoMatchingRule(attributeType, indexType, rule);
       for (Indexer indexer : rule.createIndexers(options))
       {

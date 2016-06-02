@@ -110,10 +110,8 @@ public class ServerSideSortRequestControl
           if(reader.hasNextElement() &&
               reader.peekType() == TYPE_ORDERING_RULE_ID)
           {
-            String orderingRuleID =
-                toLowerCase(reader.readOctetStringAsString());
-            orderingRule =
-                DirectoryServer.getMatchingRule(orderingRuleID);
+            String orderingRuleID = reader.readOctetStringAsString();
+            orderingRule = DirectoryServer.getMatchingRule(orderingRuleID);
             if (orderingRule == null)
             {
               LocalizableMessage message =
@@ -433,7 +431,7 @@ public class ServerSideSortRequestControl
       MatchingRule orderingRule = null;
       if(decodedKey[1] != null)
       {
-        orderingRule = DirectoryServer.getMatchingRule(decodedKey[1].toLowerCase());
+        orderingRule = DirectoryServer.getMatchingRule(decodedKey[1]);
         if (orderingRule == null)
         {
           LocalizableMessage message = INFO_SORTREQ_CONTROL_UNDEFINED_ORDERING_RULE.get(decodedKey[1]);
