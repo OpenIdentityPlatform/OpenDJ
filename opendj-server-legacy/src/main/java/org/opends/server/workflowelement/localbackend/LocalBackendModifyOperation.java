@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
@@ -70,7 +71,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SynchronizationProviderResult;
@@ -1238,25 +1238,11 @@ public class LocalBackendModifyOperation
   {
     final AttributeType attrType = attr.getAttributeDescription().getAttributeType();
     Reject.ifFalse(attrType.isObjectClass());
-    final MatchingRule eqRule = attrType.getEqualityMatchingRule();
 
     for (ByteString v : attr)
     {
       String name = v.toString();
-
-      String lowerName;
-      try
-      {
-        lowerName = eqRule.normalizeAttributeValue(v).toString();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        lowerName = toLowerCase(name);
-      }
-
-      ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
+      ObjectClass oc = DirectoryServer.getSchema().getObjectClass(name);
       if (oc.isPlaceHolder())
       {
         throw newDirectoryException(currentEntry,
