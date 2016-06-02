@@ -519,7 +519,7 @@ public final class Upgrade
         clearReplicationDbDirectory());
 
     /** See OPENDJ-2435 */
-    register("4.0.0",
+    register("3.5.0",
         addConfigEntry(INFO_UPGRADE_TASK_BCRYPT_SCHEME_SUMMARY.get(),
             "dn: cn=Bcrypt,cn=Password Storage Schemes,cn=config",
             "changetype: add",
@@ -531,7 +531,7 @@ public final class Upgrade
             "ds-cfg-enabled: true"));
 
     /** See OPENDJ-2683 */
-    register("4.0.0",
+    register("3.5.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_REMOVE_MATCHING_RULES.get(),
         "cn=Auth Password Exact Equality Matching Rule,cn=Matching Rules,cn=config",
         "cn=Bit String Equality Matching Rule,cn=Matching Rules,cn=config",
@@ -578,13 +578,13 @@ public final class Upgrade
         "cn=Word Equality Matching Rule,cn=Matching Rules,cn=config"));
 
     /** see OPENDJ-2730 */
-    register("4.0.0", removeOldJarFiles());
+    register("3.5.0", removeOldJarFiles());
 
-    register("4.0.0",
+    register("3.5.0",
         rebuildIndexesNamed(INFO_UPGRADE_REBUILD_INDEXES_DISTINGUISHED_NAME.get(),
             "distinguishedName", "member", "owner", "roleOccupant", "seeAlso"));
 
-    register("4.0.0",
+    register("3.5.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_CONFIGURATION_BACKEND_NOT_CONFIGURABLE.get(),
             "dn: ds-cfg-backend-id=config,cn=Backends,cn=config"));
 
@@ -611,7 +611,7 @@ public final class Upgrade
                     return instanceContainsJeBackends();
                 }
             },
-            requireConfirmation(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_1_SUMMARY.get("4.0.0"), NO,
+            requireConfirmation(INFO_UPGRADE_TASK_LOCAL_DB_TO_PDB_1_SUMMARY.get("3.5.0"), NO,
                     renameLocalDBBackendDirectories(JE_BACKEND_OBJECT_CLASS),
                     convertJEBackendsToPDBBackends(JE_BACKEND_OBJECT_CLASS))
         )
