@@ -76,19 +76,17 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.util.Base64;
 
 /**
- * This class defines a data structure that holds information about
- * the components of the Directory Server schema.  It includes the
- * following kinds of elements:
- *
+ * This class defines a data structure that holds information about the components of the Directory
+ * Server schema. It includes the following kinds of elements:
  * <UL>
- *   <LI>Attribute type definitions</LI>
- *   <LI>Objectclass definitions</LI>
- *   <LI>Attribute syntax definitions</LI>
- *   <LI>Matching rule definitions</LI>
- *   <LI>Matching rule use definitions</LI>
- *   <LI>DIT content rule definitions</LI>
- *   <LI>DIT structure rule definitions</LI>
- *   <LI>Name form definitions</LI>
+ * <LI>Attribute type definitions</LI>
+ * <LI>Objectclass definitions</LI>
+ * <LI>syntax definitions</LI>
+ * <LI>Matching rule definitions</LI>
+ * <LI>Matching rule use definitions</LI>
+ * <LI>DIT content rule definitions</LI>
+ * <LI>DIT structure rule definitions</LI>
+ * <LI>Name form definitions</LI>
  * </UL>
  * It always uses non-strict {@link org.forgerock.opendj.ldap.schema.Schema} under the hood.
  */
@@ -184,12 +182,13 @@ public final class Schema
   }
 
   /**
-   * Indicates whether this schema definition includes an attribute
-   * type with the provided name or OID.
+   * Indicates whether this schema definition includes an attribute type with the provided name or
+   * OID.
    *
-   * @param  nameOrOid  The name or OID for which to make the determination, ignoring case considerations
-   * @return  {@code true} if this schema contains an attribute type
-   *          with the provided name or OID, or {@code false} if not.
+   * @param nameOrOid
+   *          The name or OID for which to make the determination
+   * @return {@code true} if this schema contains an attribute type with the provided name or OID,
+   *         or {@code false} if not.
    */
   public boolean hasAttributeType(String nameOrOid)
   {
@@ -200,7 +199,7 @@ public final class Schema
    * Retrieves the attribute type definition with the specified name or OID.
    *
    * @param nameOrOid
-   *          The name or OID of the attribute type to retrieve, ignoring case considerations
+   *          The name or OID of the attribute type to retrieve
    * @return The requested attribute type
    */
   public AttributeType getAttributeType(String nameOrOid)
@@ -220,7 +219,7 @@ public final class Schema
    * Retrieves the attribute type definition with the specified name or OID.
    *
    * @param nameOrOid
-   *          The name or OID of the attribute type to retrieve, ignoring case considerations
+   *          The name or OID of the attribute type to retrieve
    * @param syntax
    *          The syntax to use when creating the temporary "place-holder" attribute type.
    * @return The requested attribute type
@@ -497,12 +496,11 @@ public final class Schema
    * @param schemaFile
    *          The schema file where this definition belongs, maybe {@code null}
    * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are
-   *          any conflicts (i.e., another attribute type with the same OID or
-   *          name).
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another attribute type with the same OID or name).
    * @throws DirectoryException
-   *           If a conflict is encountered and the
-   *           <CODE>overwriteExisting</CODE> flag is set to <CODE>false</CODE>
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           {@code false}
    */
   public void registerAttributeType(final AttributeType attributeType, final String schemaFile,
       final boolean overwriteExisting) throws DirectoryException
@@ -763,56 +761,42 @@ public final class Schema
     return subTypes != null ? subTypes : Collections.<AttributeType> emptyList();
   }
 
-
-
   /**
-   * Retrieves the objectclass definitions for this schema, as a
-   * mapping between the lowercase names and OIDs for the objectclass
-   * and the objectclass itself.  Each objectclass may be associated
-   * with multiple keys (once for the OID and again for each name).
-   * The contents of the returned mapping must not be altered.
+   * Retrieves the objectclass definitions for this schema.
    *
-   * @return  The objectclass definitions for this schema.
+   * @return The objectclass definitions for this schema.
    */
   public Collection<ObjectClass> getObjectClasses()
   {
     return schemaNG.getObjectClasses();
   }
 
-
-
   /**
-   * Indicates whether this schema definition includes an objectclass
-   * with the provided name or OID.
+   * Indicates whether this schema definition includes an objectclass with the provided name or OID.
    *
-   * @param  lowerName  The name or OID for which to make the
-   *                    determination, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  {@code true} if this schema contains an objectclass with
-   *          the provided name or OID, or {@code false} if not.
+   * @param nameOrOid
+   *          The name or OID for which to make the determination.
+   * @return {@code true} if this schema contains an objectclass with the provided name or OID, or
+   *         {@code false} if not.
    */
-  public boolean hasObjectClass(String lowerName)
+  public boolean hasObjectClass(String nameOrOid)
   {
-    return getSchemaNG().hasObjectClass(lowerName);
+    return getSchemaNG().hasObjectClass(nameOrOid);
   }
 
 
 
   /**
-   * Retrieves the objectclass definition with the specified name or
-   * OID.
+   * Retrieves the objectclass definition with the specified name or OID.
    *
-   * @param  lowerName  The name or OID of the objectclass to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested objectclass, or <CODE>null</CODE> if no
-   *          class is registered with the provided name or OID.
+   * @param nameOrOid
+   *          The name or OID of the objectclass to retrieve.
+   * @return The requested objectclass, or {@code null} if no class is registered with the provided
+   *         name or OID.
    */
-  public ObjectClass getObjectClass(String lowerName)
+  public ObjectClass getObjectClass(String nameOrOid)
   {
-    return getSchemaNG().getObjectClass(lowerName);
+    return getSchemaNG().getObjectClass(nameOrOid);
   }
 
   /**
@@ -935,9 +919,9 @@ public final class Schema
 
 
   /**
-   * Retrieves the attribute syntax definitions for this schema.
+   * Retrieves the syntax definitions for this schema.
    *
-   * @return  The attribute syntax definitions for this schema.
+   * @return The syntax definitions for this schema.
    */
   public Collection<Syntax> getSyntaxes()
   {
@@ -947,12 +931,12 @@ public final class Schema
 
 
   /**
-   * Indicates whether this schema definition includes an attribute
-   * syntax with the provided OID.
+   * Indicates whether this schema definition includes an attribute syntax with the provided OID.
    *
-   * @param  oid  The OID for which to make the determination
-   * @return  {@code true} if this schema contains an attribute syntax
-   *          with the provided OID, or {@code false} if not.
+   * @param oid
+   *          The OID for which to make the determination
+   * @return {@code true} if this schema contains an syntax with the provided OID, or {@code false}
+   *         if not.
    */
   public boolean hasSyntax(String oid)
   {
@@ -960,23 +944,23 @@ public final class Schema
   }
 
   /**
-   * Retrieves the attribute syntax definition with the OID.
+   * Retrieves the syntax definition with the OID.
    *
-   * @param  oid  The OID of the attribute syntax to retrieve.
-   * @return  The requested attribute syntax,
-   *          or {@code null} if no syntax is registered with the provided OID.
+   * @param numericOid
+   *          The OID of the syntax to retrieve.
+   * @return The requested syntax, or {@code null} if no syntax is registered with the provided OID.
    */
-  public Syntax getSyntax(String oid)
+  public Syntax getSyntax(String numericOid)
   {
-    return schemaNG.getSyntax(oid);
+    return schemaNG.getSyntax(numericOid);
   }
 
   /**
-   * Retrieves the default attribute syntax that should be used for attributes
-   * that are not defined in the server schema.
+   * Retrieves the default syntax that should be used for attributes that are not defined in the
+   * server schema.
    *
-   * @return  The default attribute syntax that should be used for attributes
-   *          that are not defined in the server schema.
+   * @return The default syntax that should be used for attributes that are not defined in the
+   *         server schema.
    */
   public Syntax getDefaultSyntax()
   {
@@ -984,19 +968,16 @@ public final class Schema
   }
 
   /**
-   * Registers the provided attribute syntax definition with this
-   * schema.
+   * Registers the provided syntax definition with this schema.
    *
-   * @param  syntax             The attribute syntax to register with
-   *                            this schema.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another attribute
-   *                            syntax with the same OID).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
+   * @param syntax
+   *          The syntax to register with this schema.
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another attribute syntax with the same OID).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           {@code false}
    */
   public void registerSyntax(final Syntax syntax, final boolean overwriteExisting) throws DirectoryException
   {
@@ -1051,9 +1032,10 @@ public final class Schema
   }
 
   /**
-   * Deregisters the provided attribute syntax definition with this schema.
+   * Deregisters the provided syntax definition with this schema.
    *
-   * @param  syntax  The attribute syntax to deregister with this schema.
+   * @param syntax
+   *          The syntax to deregister with this schema.
    * @throws DirectoryException
    *           If the LDAP syntax is referenced by another schema element.
    */
@@ -1087,15 +1069,14 @@ public final class Schema
   /**
    * Retrieves the ldap syntax definition with the OID.
    *
-   * @param  lowerName  The OID of the ldap syntax to retrieve,
-   *                    formatted in all lowercase characters.
-   *
-   * @return  The requested ldap syntax, or <CODE>null</CODE> if
-   *          no syntax is registered with the provided OID.
+   * @param nameOrOid
+   *          The OID of the ldap syntax to retrieve.
+   * @return The requested ldap syntax, or {@code null} if no syntax is registered with the provided
+   *         OID.
    */
-  public LDAPSyntaxDescription getLdapSyntaxDescription(String lowerName)
+  public LDAPSyntaxDescription getLdapSyntaxDescription(String nameOrOid)
   {
-    return ldapSyntaxDescriptions.get(lowerName);
+    return ldapSyntaxDescriptions.get(nameOrOid);
   }
 
   /**
@@ -1104,11 +1085,11 @@ public final class Schema
    * @param definition
    *          The ldap syntax definition to register with this schema.
    * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are
-   *          any conflicts (i.e., another ldap syntax with the same OID).
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another ldap syntax with the same OID).
    * @throws DirectoryException
-   *           If a conflict is encountered and <CODE>overwriteExisting</CODE>
-   *           flag is set to <CODE>false</CODE>
+   *           If a conflict is encountered and <CODE>overwriteExisting</CODE> flag is set to
+   *           {@code false}
    */
   public void registerLdapSyntaxDescription(String definition, boolean overwriteExisting)
       throws DirectoryException
@@ -1131,7 +1112,7 @@ public final class Schema
             ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_LDAP_SYNTAX.get(oid));
       }
 
-      // Register the attribute syntax with the schema.
+      // Register the syntax with the schema.
       // It will ensure syntax is available along with the other virtual values for ldapsyntaxes.
       registerSyntax(definition, overwriteExisting);
 
@@ -1187,12 +1168,13 @@ public final class Schema
 
 
   /**
-   * Indicates whether this schema definition includes a matching rule
-   * with the provided name or OID.
+   * Indicates whether this schema definition includes a matching rule with the provided name or
+   * OID.
    *
-   * @param  nameOrOid  The name or OID for which to make the determination, ignoring case considerations
-   * @return  {@code true} if this schema contains a matching rule
-   *          with the provided name or OID, or {@code false} if not.
+   * @param nameOrOid
+   *          The name or OID for which to make the determination
+   * @return {@code true} if this schema contains a matching rule with the provided name or OID, or
+   *         {@code false} if not.
    */
   public boolean hasMatchingRule(String nameOrOid)
   {
@@ -1202,8 +1184,12 @@ public final class Schema
   /**
    * Retrieves the matching rule definition with the specified name or OID.
    *
-   * @param nameOrOid The name or OID of the matching rule to retrieve, ignoring case considerations
-   * @return The requested matching rule, or {@code null} if no rule is registered with the provided name or OID.
+   * @param nameOrOid
+   *          The name or OID of the matching rule to retrieve
+   * @return The requested matching rule, or {@code null} if no rule is registered with the provided
+   *         name or OID.
+   * @throws UnknownSchemaElementException
+   *           If the requested matching rule was not found or if the provided name is ambiguous.
    */
   public MatchingRule getMatchingRule(String nameOrOid)
   {
@@ -1314,14 +1300,12 @@ public final class Schema
 
 
   /**
-   * Retrieves the matching rule use definition for the specified
-   * matching rule.
+   * Retrieves the matching rule use definition for the specified matching rule.
    *
-   * @param  matchingRule  The matching rule for which to retrieve the
-   *                       matching rule use definition.
-   *
-   * @return  The matching rule use definition, or <CODE>null</CODE>
-   *          if none exists for the specified matching rule.
+   * @param matchingRule
+   *          The matching rule for which to retrieve the matching rule use definition.
+   * @return The matching rule use definition, or {@code null} if none exists for the specified
+   *         matching rule.
    */
   public MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
   {
@@ -1383,7 +1367,7 @@ public final class Schema
    *          another matching rule use with the same matching rule).
    * @throws DirectoryException
    *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           <CODE>false</CODE>
+   *           {@code false}
    */
   public void registerMatchingRuleUse(String definition, String schemaFile, boolean overwriteExisting)
       throws DirectoryException
@@ -1445,15 +1429,12 @@ public final class Schema
 
 
   /**
-   * Retrieves the DIT content rule definition for the specified
-   * objectclass.
+   * Retrieves the DIT content rule definition for the specified objectclass.
    *
-   * @param  objectClass  The objectclass for the DIT content rule to
-   *                      retrieve.
-   *
-   * @return  The requested DIT content rule, or <CODE>null</CODE> if
-   *          no DIT content rule is registered with the provided
-   *          objectclass.
+   * @param objectClass
+   *          The objectclass for the DIT content rule to retrieve.
+   * @return The requested DIT content rule, or {@code null} if no DIT content rule is registered
+   *         with the provided objectclass.
    */
   public DITContentRule getDITContentRule(ObjectClass objectClass)
   {
@@ -1474,7 +1455,7 @@ public final class Schema
    *          another DIT content rule with the same objectclass).
    * @throws DirectoryException
    *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           <CODE>false</CODE>
+   *           {@code false}
    */
   public void registerDITContentRule(DITContentRule ditContentRule, String schemaFile, boolean overwriteExisting)
       throws DirectoryException
@@ -1517,7 +1498,7 @@ public final class Schema
    *          another DIT content rule with the same object class).
    * @throws DirectoryException
    *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           <CODE>false</CODE>
+   *           {@code false}
    */
   public void registerDITContentRule(String definition, String schemaFile, boolean overwriteExisting)
       throws DirectoryException
@@ -1575,15 +1556,12 @@ public final class Schema
   }
 
   /**
-   * Retrieves the DIT structure rule definition with the provided
-   * rule ID.
+   * Retrieves the DIT structure rule definition with the provided rule ID.
    *
-   * @param  ruleID  The rule ID for the DIT structure rule to
-   *                 retrieve.
-   *
-   * @return  The requested DIT structure rule, or <CODE>null</CODE>
-   *          if no DIT structure rule is registered with the provided
-   *          rule ID.
+   * @param ruleID
+   *          The rule ID for the DIT structure rule to retrieve.
+   * @return The requested DIT structure rule, or {@code null} if no DIT structure rule is
+   *         registered with the provided rule ID.
    */
   public DITStructureRule getDITStructureRule(int ruleID)
   {
@@ -1720,33 +1698,27 @@ public final class Schema
   }
 
   /**
-   * Indicates whether this schema definition includes a name form
-   * with the specified name or OID.
+   * Indicates whether this schema definition includes a name form with the specified name or OID.
    *
-   * @param  lowerName  The name or OID for which to make the
-   *                    determination, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  {@code true} if this schema contains a name form with
-   *          the provided name or OID, or {@code false} if not.
+   * @param nameOrOid
+   *          The name or OID for which to make the determination.
+   * @return {@code true} if this schema contains a name form with the provided name or OID, or
+   *         {@code false} if not.
    */
-  public boolean hasNameForm(String lowerName)
+  public boolean hasNameForm(String nameOrOid)
   {
-    return schemaNG.hasNameForm(lowerName);
+    return schemaNG.hasNameForm(nameOrOid);
   }
 
 
 
   /**
-   * Retrieves the name forms definition for the specified
-   * objectclass.
+   * Retrieves the name forms definition for the specified objectclass.
    *
-   * @param  objectClass  The objectclass for the name form to
-   *                      retrieve.
-   *
-   * @return  The requested name forms, or <CODE>null</CODE> if no
-   *           name forms are registered with the provided
-   *           objectClass.
+   * @param objectClass
+   *          The objectclass for the name form to retrieve.
+   * @return The requested name forms, or {@code null} if no name forms are registered with the
+   *         provided objectClass.
    */
   public Collection<NameForm> getNameForm(ObjectClass objectClass)
   {
@@ -1758,15 +1730,14 @@ public final class Schema
   /**
    * Retrieves the name form definition with the provided name or OID.
    *
-   * @param  lowerName  The name or OID of the name form to retrieve,
-   *                    formatted in all lowercase characters.
-   *
-   * @return  The requested name form, or <CODE>null</CODE> if no name
-   *          form is registered with the provided name or OID.
+   * @param nameOrOid
+   *          The name or OID of the name form to retrieve.
+   * @return The requested name form, or {@code null} if no name form is registered with the
+   *         provided name or OID.
    */
-  public NameForm getNameForm(String lowerName)
+  public NameForm getNameForm(String nameOrOid)
   {
-    return schemaNG.getNameForm(lowerName);
+    return schemaNG.getNameForm(nameOrOid);
   }
 
 
@@ -1783,7 +1754,7 @@ public final class Schema
    *          another name form with the same objectclass).
    * @throws DirectoryException
    *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           <CODE>false</CODE>
+   *           {@code false}
    */
   public void registerNameForm(NameForm nameForm, String schemaFile, boolean overwriteExisting)
       throws DirectoryException
@@ -1825,7 +1796,7 @@ public final class Schema
    *          Indicates whether to overwrite an existing mapping if there are any conflicts
    * @throws DirectoryException
    *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           <CODE>false</CODE>
+   *           {@code false}
    */
   public void registerNameForm(String definition, String schemaFile, boolean overwriteExisting)
       throws DirectoryException
