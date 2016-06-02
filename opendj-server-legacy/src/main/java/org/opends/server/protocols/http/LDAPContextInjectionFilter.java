@@ -20,7 +20,6 @@ import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.services.context.Context;
@@ -30,7 +29,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.http.LDAPContext.InternalConnectionFactory;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
 /**
@@ -55,11 +53,11 @@ final class LDAPContextInjectionFilter implements Filter
     final LDAPContext djContext = new LDAPContext(context, new InternalConnectionFactory()
     {
       @Override
-      public Connection getConnection(DN userDN) throws LdapException
+      public Connection getAuthenticatedConnection(Entry userEntry) throws LdapException
       {
         final HTTPClientConnection clientConnection =
             new HTTPClientConnection(serverContext, httpConnectionHandler, context, request);
-        clientConnection.setAuthenticationInfo(getAuthInfoForDN(userDN));
+        clientConnection.setAuthenticationInfo(getAuthInfoForUserEntry(userEntry));
         if (clientConnection.getConnectionID() < 0)
         {
           throw LdapException.newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED);
@@ -68,31 +66,9 @@ final class LDAPContextInjectionFilter implements Filter
         return new SdkConnectionAdapter(clientConnection);
       }
 
-      private AuthenticationInfo getAuthInfoForDN(DN userDN) throws LdapException
+      private AuthenticationInfo getAuthInfoForUserEntry(Entry userEntry)
       {
-        if (userDN == null || userDN.isRootDN())
-        {
-          return new AuthenticationInfo();
-        }
-        final DN rootUserDN = DirectoryServer.getActualRootBindDN(userDN);
-        if (rootUserDN != null)
-        {
-          userDN = rootUserDN;
-        }
-        Entry userEntry;
-        try
-        {
-          userEntry = DirectoryServer.getEntry(userDN);
-        }
-        catch (DirectoryException e)
-        {
-          throw LdapException.newLdapException(e.getResultCode());
-        }
-        if (userEntry == null)
-        {
-          throw LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS);
-        }
-        return new AuthenticationInfo(userEntry, DirectoryServer.isRootDN(userDN));
+        return new AuthenticationInfo(userEntry, DirectoryServer.isRootDN(userEntry.getName()));
       }
     });
     return next.handle(djContext, request);

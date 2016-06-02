@@ -42,6 +42,7 @@ import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 import org.opends.server.api.IdentityMapper;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.http.LDAPContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -71,7 +72,8 @@ final class InternalProxyAuthzFilter implements Filter
     Connection tmp = null;
     try
     {
-      tmp = ldapContext.getInternalConnectionFactory().getConnection(getUserDN(securityContext));
+      tmp = ldapContext.getInternalConnectionFactory()
+                       .getAuthenticatedConnection(getUserEntry(securityContext));
     }
     catch (LdapException | DirectoryException e)
     {
@@ -90,14 +92,14 @@ final class InternalProxyAuthzFilter implements Filter
                });
   }
 
-  private DN getUserDN(final SecurityContext securityContext) throws LdapException, DirectoryException
+  private Entry getUserEntry(final SecurityContext securityContext) throws LdapException, DirectoryException
   {
     final Map<String, Object> authz = securityContext.getAuthorization();
     if (authz.containsKey(AUTHZID_DN))
     {
       try
       {
-        return DN.valueOf(authz.get(AUTHZID_DN).toString(), schema);
+        return DirectoryServer.getEntry(DN.valueOf(authz.get(AUTHZID_DN).toString(), schema));
       }
       catch (LocalizedIllegalArgumentException e)
       {
@@ -111,7 +113,7 @@ final class InternalProxyAuthzFilter implements Filter
       {
         throw LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS);
       }
-      return entry.getName();
+      return entry;
     }
     throw LdapException.newLdapException(ResultCode.AUTHORIZATION_DENIED);
   }

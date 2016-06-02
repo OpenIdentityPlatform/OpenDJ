@@ -16,7 +16,6 @@
 package org.opends.server.protocols.http.authz;
 
 import static org.forgerock.http.filter.Filters.chainOf;
-import static org.forgerock.opendj.adapter.server3x.Adapters.newConnection;
 import static org.forgerock.opendj.adapter.server3x.Adapters.newRootConnectionFactory;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.ResultCode.INVALID_CREDENTIALS;
@@ -32,7 +31,6 @@ import static org.forgerock.util.Utils.closeSilently;
 import static org.forgerock.util.promise.Promises.newExceptionPromise;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 import static org.opends.server.core.DirectoryServer.getIdentityMapper;
-import static org.opends.server.core.DirectoryServer.isRootDN;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,8 +53,7 @@ import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.ServerContext;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.protocols.http.LDAPContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
@@ -130,7 +127,11 @@ final class HttpBasicAuthorizationMechanism extends HttpAuthorizationMechanism<H
       {
         final Entry userEntry = getMappedIdentity(username);
         doBind(userEntry.getName().toString(), password);
-        final Context authcContext = new AuthenticatedConnectionContext(parentContext, newConnectionAs(userEntry));
+        final Connection connection =
+            parentContext.asContext(LDAPContext.class)
+                         .getInternalConnectionFactory()
+                         .getAuthenticatedConnection(userEntry);
+        final Context authcContext = new AuthenticatedConnectionContext(parentContext, connection);
         final Map<String, Object> authz = new HashMap<>();
         authz.put(AUTHZID_DN, userEntry.getName().toString());
 
@@ -170,12 +171,6 @@ final class HttpBasicAuthorizationMechanism extends HttpAuthorizationMechanism<H
           throw newLdapException(INVALID_CREDENTIALS);
         }
       }
-    }
-
-    private Connection newConnectionAs(Entry userEntry)
-    {
-      return newConnection(new InternalClientConnection(
-          new AuthenticationInfo(userEntry, isRootDN(userEntry.getName()))));
     }
   }
 }

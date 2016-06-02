@@ -17,10 +17,10 @@
 package org.opends.server.protocols.http;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.services.context.AbstractContext;
 import org.forgerock.services.context.Context;
+import org.opends.server.types.Entry;
 
 /**
  * Context provided by a Directory Server. It contains a reference to a
@@ -64,13 +64,12 @@ public final class LDAPContext extends AbstractContext
     /**
      * Get a direct {@link Connection} to this Directory Server.
      *
-     * @param userDN
-     *          DN of the user's used to validate authorization.
+     * @param userEntry
+     *          The returned connection will be authenticated as userEntry.
      * @return A direct {@link Connection} to this Directory Server.
      * @throws LdapException
-     *           If a connection cannot be create (i.e: because the userDN
-     *           doesn't exists).
+     *           If a connection cannot be created (i.e: because an administrative limit has been exceeded).
      */
-    Connection getConnection(DN userDN) throws LdapException;
+    Connection getAuthenticatedConnection(Entry userEntry) throws LdapException;
   }
 }
