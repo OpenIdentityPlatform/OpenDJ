@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -41,11 +42,15 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.io.Buffer;
+import org.forgerock.http.protocol.Request;
+import org.forgerock.http.protocol.Response;
+import org.forgerock.http.protocol.Status;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -55,6 +60,10 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.HTTPConnectionHandlerCfg;
+import org.forgerock.services.context.Context;
+import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.time.TimeService;
 import org.glassfish.grizzly.http.HttpProbe;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -77,9 +86,12 @@ import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.OperationType;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
@@ -897,6 +909,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     {
       return Handlers.chainOf(
           serverContext.getHTTPRouter(),
+          new ExecuteInWorkerThreadFilter(),
           new AllowDenyFilter(currentConfig.getDeniedClient(), currentConfig.getAllowedClient()),
           new CommonAuditTransactionIdFilter(serverContext),
           new CommonAuditHttpAccessCheckEnabledFilter(serverContext,
@@ -920,4 +933,91 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     }
   }
 
+  /** Moves the processing of the request in this Directory Server's worker thread. */
+  private static final class ExecuteInWorkerThreadFilter implements Filter
+  {
+    @Override
+    public Promise<Response, NeverThrowsException> filter(final Context context, final Request request,
+        final Handler next)
+    {
+      final PromiseImpl<Response, NeverThrowsException> promise = PromiseImpl.create();
+      try
+      {
+        DirectoryServer.getWorkQueue().submitOperation(new AsyncOperation<>(
+            InternalClientConnection.getRootConnection(),
+            new Runnable()
+            {
+              @Override
+              public void run()
+              {
+                next.handle(context, request).thenOnResultOrException(promise, promise);
+              }
+            }));
+      }
+      catch (Exception e)
+      {
+        promise.handleResult(new Response(Status.INTERNAL_SERVER_ERROR).setCause(e));
+      }
+      return promise;
+    }
+
+    /** This operation is hack to be able to execute a {@link Runnable} in a Directory Server's worker thread. */
+    private static final class AsyncOperation<V> extends AbstractOperation
+    {
+      private final Runnable runnable;
+
+      AsyncOperation(InternalClientConnection icc, Runnable runnable)
+      {
+        super(icc, icc.nextOperationID(), icc.nextMessageID(),
+            Collections.<org.opends.server.types.Control> emptyList());
+        this.setInternalOperation(true);
+        this.runnable = runnable;
+      }
+
+      @Override
+      public void run()
+      {
+        runnable.run();
+      }
+
+      @Override
+      public OperationType getOperationType()
+      {
+        return null;
+      }
+
+      @Override
+      public List<org.opends.server.types.Control> getResponseControls()
+      {
+        return Collections.emptyList();
+      }
+
+      @Override
+      public void addResponseControl(org.opends.server.types.Control control)
+      {
+      }
+
+      @Override
+      public void removeResponseControl(org.opends.server.types.Control control)
+      {
+      }
+
+      @Override
+      public DN getProxiedAuthorizationDN()
+      {
+        return null;
+      }
+
+      @Override
+      public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
+      {
+      }
+
+      @Override
+      public void toString(StringBuilder buffer)
+      {
+        buffer.append(AsyncOperation.class.getSimpleName());
+      }
+    }
+  }
 }

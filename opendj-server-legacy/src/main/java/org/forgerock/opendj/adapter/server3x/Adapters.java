@@ -17,8 +17,6 @@ package org.forgerock.opendj.adapter.server3x;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
-import java.util.List;
 
 import org.forgerock.opendj.ldap.AbstractSynchronousConnection;
 import org.forgerock.opendj.ldap.ByteString;
@@ -53,19 +51,16 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.util.promise.Promise;
-import org.forgerock.util.promise.PromiseImpl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.OperationType;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -73,6 +68,7 @@ import org.opends.server.types.SearchResultReference;
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.util.promise.Promises.*;
 
 /** This class provides a connection factory and an adapter for the OpenDJ 2.x server. */
 public final class Adapters {
@@ -102,41 +98,25 @@ public final class Adapters {
     public static ConnectionFactory newConnectionFactory(final InternalClientConnection icc) {
         return new ConnectionFactory() {
             @Override
-            public void close() {
-                // Nothing to do.
-            }
-
-            @Override
             public Promise<Connection, LdapException> getConnectionAsync() {
-                final PromiseImpl<Connection, LdapException> promise = PromiseImpl.create();
-                try
-                {
-                  DirectoryServer.getWorkQueue().submitOperation(new AsyncOperation<>(icc, new Runnable()
-                  {
-                    @Override
-                    public void run()
-                    {
-                      try
-                      {
-                        promise.handleResult(getConnection());
-                      }
-                      catch (LdapException e)
-                      {
-                        promise.handleException(e);
-                      }
-                    }
-                  }));
-                }
-                catch (DirectoryException e)
-                {
-                  promise.handleException(LdapException.newLdapException(e.getResultCode()));
-                }
-                return promise;
+               try
+              {
+                return newResultPromise(getConnection());
+              }
+              catch (LdapException e)
+              {
+                return newExceptionPromise(e);
+              }
             }
 
             @Override
             public Connection getConnection() throws LdapException {
                 return newConnection(icc);
+            }
+
+            @Override
+            public void close() {
+                // Nothing to do.
             }
         };
     }
@@ -324,58 +304,4 @@ public final class Adapters {
       };
   }
 
-  /**
-   * This operation is hack to be able to execute a {@link Runnable} in a
-   * Directory Server's worker thread.
-   */
-  private static final class AsyncOperation<V> extends org.opends.server.types.AbstractOperation
-  {
-    private final Runnable runnable;
-
-    AsyncOperation(InternalClientConnection icc, Runnable runnable)
-    {
-      super(icc, icc.nextOperationID(), icc.nextMessageID(), Collections.<org.opends.server.types.Control> emptyList());
-      this.setInternalOperation(true);
-      this.runnable = runnable;
-    }
-
-    @Override
-    public void run()
-    {
-      runnable.run();
-    }
-
-    @Override
-    public OperationType getOperationType()
-    {
-      return null;
-    }
-    @Override
-    public List<org.opends.server.types.Control> getResponseControls()
-    {
-      return Collections.emptyList();
-    }
-    @Override
-    public void addResponseControl(org.opends.server.types.Control control)
-    {
-    }
-    @Override
-    public void removeResponseControl(org.opends.server.types.Control control)
-    {
-    }
-    @Override
-    public DN getProxiedAuthorizationDN()
-    {
-      return null;
-    }
-    @Override
-    public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
-    {
-    }
-    @Override
-    public void toString(StringBuilder buffer)
-    {
-      buffer.append(AsyncOperation.class.getSimpleName());
-    }
-  }
 }
