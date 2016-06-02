@@ -22,7 +22,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -100,12 +99,6 @@ public final class Schema
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
-   * Provides for each attribute type having at least one subordinate type the complete list of
-   * its descendants.
-   */
-  private Map<AttributeType, List<AttributeType>> subordinateTypes;
-
-  /**
    * The set of ldap syntax descriptions for this schema, mapped the OID and the
    * ldap syntax description itself.
    */
@@ -114,7 +107,6 @@ public final class Schema
 
   /** The oldest modification timestamp for any schema configuration file. */
   private long oldestModificationTime;
-
   /** The youngest modification timestamp for any schema configuration file. */
   private long youngestModificationTime;
 
@@ -155,7 +147,6 @@ public final class Schema
     switchSchema(newSchemaNG);
 
     ldapSyntaxDescriptions = new ConcurrentHashMap<String,LDAPSyntaxDescription>();
-    subordinateTypes = new ConcurrentHashMap<AttributeType,List<AttributeType>>();
 
     oldestModificationTime    = System.currentTimeMillis();
     youngestModificationTime  = oldestModificationTime;
@@ -448,11 +439,6 @@ public final class Schema
         builder.addAttributeType(defWithFile, overwrite);
       }
       switchSchema(builder.toSchema());
-
-      for (String definition : definitions)
-      {
-        updateSubordinateTypes(schemaNG.getAttributeType(parseAttributeTypeOID(definition)));
-      }
     }
     catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
     {
@@ -511,8 +497,6 @@ public final class Schema
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
       registerAttributeType0(builder, attributeType, schemaFile, overwriteExisting);
       switchSchema(builder.toSchema());
-
-      updateSubordinateTypes(attributeType);
     }
     catch (LocalizedIllegalArgumentException e)
     {
@@ -564,13 +548,6 @@ public final class Schema
       builder.removeAttributeType(existingAttributeType.getNameOrOID());
       registerAttributeType0(builder, newAttributeType, schemaFile, false);
       switchSchema(builder.toSchema());
-
-      AttributeType superiorType = existingAttributeType.getSuperiorType();
-      if (superiorType != null)
-      {
-        deregisterSubordinateType(existingAttributeType, superiorType);
-      }
-      updateSubordinateTypes(newAttributeType);
     }
     finally
     {
@@ -669,11 +646,6 @@ public final class Schema
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
       if (builder.removeAttributeType(attributeType.getNameOrOID()))
       {
-        AttributeType superiorType = attributeType.getSuperiorType();
-        if (superiorType != null)
-        {
-          deregisterSubordinateType(attributeType, superiorType);
-        }
         switchSchema(builder.toSchema());
       }
     }
@@ -681,84 +653,6 @@ public final class Schema
     {
       exclusiveLock.unlock();
     }
-  }
-
-  private void updateSubordinateTypes(AttributeType attributeType)
-  {
-    AttributeType superiorType = attributeType.getSuperiorType();
-    if (superiorType != null)
-    {
-      registerSubordinateType(attributeType, superiorType);
-    }
-  }
-
-  /**
-   * Registers the provided attribute type as a subtype of the given
-   * superior attribute type, recursively following any additional
-   * elements in the superior chain.
-   *
-   * @param  attributeType  The attribute type to be registered as a
-   *                        subtype for the given superior type.
-   * @param  superiorType   The superior type for which to register
-   *                        the given attribute type as a subtype.
-   */
-  private void registerSubordinateType(AttributeType attributeType, AttributeType superiorType)
-  {
-    List<AttributeType> subTypes = subordinateTypes.get(superiorType);
-    if (subTypes == null)
-    {
-      subordinateTypes.put(superiorType, newLinkedList(attributeType));
-    }
-    else if (!subTypes.contains(attributeType))
-    {
-      subTypes.add(attributeType);
-
-      AttributeType higherSuperior = superiorType.getSuperiorType();
-      if (higherSuperior != null)
-      {
-        registerSubordinateType(attributeType, higherSuperior);
-      }
-    }
-  }
-
-  /**
-   * Deregisters the provided attribute type as a subtype of the given
-   * superior attribute type, recursively following any additional
-   * elements in the superior chain.
-   *
-   * @param  attributeType  The attribute type to be deregistered as a
-   *                        subtype for the given superior type.
-   * @param  superiorType   The superior type for which to deregister
-   *                        the given attribute type as a subtype.
-   */
-  private void deregisterSubordinateType(AttributeType attributeType, AttributeType superiorType)
-  {
-    List<AttributeType> subTypes = subordinateTypes.get(superiorType);
-    if (subTypes != null && subTypes.remove(attributeType))
-    {
-      AttributeType higherSuperior = superiorType.getSuperiorType();
-      if (higherSuperior != null)
-      {
-        deregisterSubordinateType(attributeType, higherSuperior);
-      }
-    }
-  }
-
-  /**
-   * Retrieves the set of subtypes registered for the given attribute
-   * type.
-   *
-   * @param  attributeType  The attribute type for which to retrieve
-   *                        the set of registered subtypes.
-   *
-   * @return  The set of subtypes registered for the given attribute
-   *          type, or an empty set if there are no subtypes
-   *          registered for the attribute type.
-   */
-  public List<AttributeType> getSubTypes(AttributeType attributeType)
-  {
-    List<AttributeType> subTypes = subordinateTypes.get(attributeType);
-    return subTypes != null ? subTypes : Collections.<AttributeType> emptyList();
   }
 
   /**
@@ -1936,7 +1830,6 @@ public final class Schema
       throw new RuntimeException(unexpected);
     }
 
-    dupSchema.subordinateTypes.putAll(subordinateTypes);
     dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
     dupSchema.oldestModificationTime   = oldestModificationTime;
     dupSchema.youngestModificationTime = youngestModificationTime;
@@ -2363,12 +2256,6 @@ public final class Schema
     if (schemaNG != null)
     {
       schemaNG = null;
-    }
-
-    if (subordinateTypes != null)
-    {
-      subordinateTypes.clear();
-      subordinateTypes = null;
     }
 
     if (extraAttributes != null)

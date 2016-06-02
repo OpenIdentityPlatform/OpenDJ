@@ -124,11 +124,6 @@ public class Entry
    */
   private transient Object attachment;
 
-  /** The schema used to govern this entry. */
-  private final Schema schema;
-
-
-
   /**
    * Creates a new entry with the provided information.
    *
@@ -151,8 +146,6 @@ public class Entry
                Map<AttributeType,List<Attribute>> userAttributes,
                Map<AttributeType,List<Attribute>> operationalAttributes)
   {
-    schema = DirectoryServer.getSchema();
-
     setDN(dn);
 
     this.objectClasses = newMapIfNull(objectClasses);
@@ -453,8 +446,6 @@ public class Entry
   public boolean hasAttribute(AttributeDescription attributeDescription, boolean includeSubordinates)
   {
     AttributeType attributeType = attributeDescription.getAttributeType();
-
-    // Handle object class.
     if (attributeType.isObjectClass())
     {
       return !objectClasses.isEmpty() && !attributeDescription.hasOptions();
@@ -468,40 +459,8 @@ public class Entry
       return attribute != null && !attribute.isEmpty();
     }
 
-    // Check all matching attributes.
-    List<Attribute> attributes = getAttributes(attributeType);
-    if (attributes != null)
-    {
-      for (Attribute attribute : attributes)
-      {
-        // It's possible that there could be an attribute without any
-        // values, which we should treat as not having the requested attribute.
-        if (!attribute.isEmpty() && attribute.getAttributeDescription().isSubTypeOf(attributeDescription))
-        {
-          return true;
-        }
-      }
-    }
-
-    // Check sub-types.
-    for (AttributeType subType : schema.getSubTypes(attributeType))
-    {
-      attributes = getAttributes(subType);
-      if (attributes != null)
-      {
-        for (Attribute attribute : attributes)
-        {
-          // It's possible that there could be an attribute without any values,
-          // which we should treat as not having the requested attribute.
-          if (!attribute.isEmpty() && attribute.getAttributeDescription().isSubTypeOf(attributeDescription))
-          {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
+    return hasAttributeOrSubType(attributeDescription, userAttributes)
+        || hasAttributeOrSubType(attributeDescription, operationalAttributes);
   }
 
   /**
@@ -600,15 +559,8 @@ public class Entry
     if (includeSubordinates && !attributeType.isObjectClass())
     {
       List<Attribute> attributes = new LinkedList<>();
-      addAllIfNotNull(attributes, userAttributes.get(attributeType));
-      addAllIfNotNull(attributes, operationalAttributes.get(attributeType));
-
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        addAllIfNotNull(attributes, userAttributes.get(at));
-        addAllIfNotNull(attributes, operationalAttributes.get(at));
-      }
-
+      addAttributeTypeOrSubTypeValue(attributes, attributeType, userAttributes);
+      addAttributeTypeOrSubTypeValue(attributes, attributeType, operationalAttributes);
       return attributes;
     }
 
@@ -629,23 +581,59 @@ public class Entry
     return Collections.emptyList();
   }
 
-  /**
-   * Add to the destination all the elements from a non null source .
-   *
-   * @param dest
-   *          the destination where to add
-   * @param source
-   *          the source with the elements to be added
-   */
-  private void addAllIfNotNull(List<Attribute> dest, List<Attribute> source)
+  private void addAttributeTypeOrSubTypeValue(Collection<Attribute> results, AttributeType attrType,
+      Map<AttributeType, List<Attribute>> attrsMap)
   {
-    if (source != null)
+    for (Map.Entry<AttributeType, List<Attribute>> mapEntry : attrsMap.entrySet())
     {
-      dest.addAll(source);
+      if (attrType.isSuperTypeOf(mapEntry.getKey()))
+      {
+        results.addAll(mapEntry.getValue());
+      }
     }
   }
 
+  private void addAttributeTypeOrSubTypeValue(Collection<Attribute> results, AttributeDescription attrDesc,
+      Map<AttributeType, List<Attribute>> attrsMap)
+  {
+    for (Map.Entry<AttributeType, List<Attribute>> mapEntry : attrsMap.entrySet())
+    {
+      if (!attrDesc.getAttributeType().isSuperTypeOf(mapEntry.getKey()))
+      {
+        continue;
+      }
 
+      for (Attribute attribute : mapEntry.getValue())
+      {
+        if (attrDesc.isSuperTypeOf(attribute.getAttributeDescription()))
+        {
+          results.add(attribute);
+        }
+      }
+    }
+  }
+
+  private boolean hasAttributeOrSubType(AttributeDescription attrDesc, Map<AttributeType, List<Attribute>> attrsMap)
+  {
+    for (Map.Entry<AttributeType, List<Attribute>> mapEntry : attrsMap.entrySet())
+    {
+      if (!attrDesc.getAttributeType().isSuperTypeOf(mapEntry.getKey()))
+      {
+        continue;
+      }
+
+      for (Attribute attribute : mapEntry.getValue())
+      {
+        // It's possible that there could be an attribute without any values,
+        // which we should treat as not having the requested attribute.
+        if (!attribute.isEmpty() && attrDesc.isSuperTypeOf(attribute.getAttributeDescription()))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   /**
    * Retrieves the requested attribute element(s) for the attribute
@@ -674,7 +662,7 @@ public class Entry
     {
       if (attr.hasNameOrOID(lowerName))
       {
-        return getAttribute(attr, true);
+        return getAttribute(attr);
       }
     }
 
@@ -682,7 +670,7 @@ public class Entry
     {
       if (attr.hasNameOrOID(lowerName))
       {
-        return getAttribute(attr, true);
+        return getAttribute(attr);
       }
     }
 
@@ -710,38 +698,32 @@ public class Entry
   public List<Attribute> getAttribute(AttributeDescription attributeDescription)
   {
     AttributeType attributeType = attributeDescription.getAttributeType();
-    List<Attribute> attributes = new LinkedList<>();
+
+    final List<Attribute> attributes = new LinkedList<>();
     if (!attributeType.isObjectClass())
     {
-      addAllIfNotNull(attributes, userAttributes.get(attributeType));
-      addAllIfNotNull(attributes, operationalAttributes.get(attributeType));
-
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        addAllIfNotNull(attributes, userAttributes.get(at));
-        addAllIfNotNull(attributes, operationalAttributes.get(at));
-      }
+      addAttributeTypeOrSubTypeValue(attributes, attributeDescription, userAttributes);
+      addAttributeTypeOrSubTypeValue(attributes, attributeDescription, operationalAttributes);
+      return attributes;
     }
-    else
+
+    List<Attribute> attrs = userAttributes.get(attributeType);
+    if (attrs == null)
     {
-      List<Attribute> attrs = userAttributes.get(attributeType);
+      attrs = operationalAttributes.get(attributeType);
       if (attrs == null)
       {
-        attrs = operationalAttributes.get(attributeType);
-        if (attrs == null)
+        if (attributeType.isObjectClass()
+            && !objectClasses.isEmpty()
+            && !attributeDescription.hasOptions())
         {
-          if (attributeType.isObjectClass()
-              && !objectClasses.isEmpty()
-              && !attributeDescription.hasOptions())
-          {
-            attributes.add(getObjectClassAttribute());
-            return attributes;
-          }
-          return Collections.emptyList();
+          attributes.add(getObjectClassAttribute());
+          return attributes;
         }
+        return Collections.emptyList();
       }
-      attributes.addAll(attrs);
     }
+    attributes.addAll(attrs);
 
     onlyKeepAttributesWithAllOptions(attributes, attributeDescription);
 
@@ -805,55 +787,20 @@ public class Entry
     return getAttribute(attributeType, userAttributes);
   }
 
-  /**
-   * Returns the List of attributes for a given attribute type.
-   *
-   * @param attributeType
-   *          the attribute type to be looked for
-   * @param attrs
-   *          the attributes Map where to find the attributes
-   * @return the List of attributes
-   */
   private List<Attribute> getAttribute(AttributeType attributeType,
       Map<AttributeType, List<Attribute>> attrs)
   {
-    List<Attribute> attributes = new LinkedList<>();
-    addAllIfNotNull(attributes, attrs.get(attributeType));
-    for (AttributeType at : schema.getSubTypes(attributeType))
-    {
-      addAllIfNotNull(attributes, attrs.get(at));
-    }
-    return attributes;
+    List<Attribute> results = new LinkedList<>();
+    addAttributeTypeOrSubTypeValue(results, attributeType, attrs);
+    return results;
   }
 
-
-
-  /**
-   * Returns the List of attributes for a given attribute type having all the
-   * required options.
-   *
-   * @param attributeType
-   *          the attribute type to be looked for
-   * @param options
-   *          the options that must all be present
-   * @param attrs
-   *          the attributes Map where to find the attributes
-   * @return the filtered List of attributes
-   */
   private List<Attribute> getAttribute(AttributeDescription attributeDescription,
       Map<AttributeType, List<Attribute>> attrs)
   {
-    AttributeType attributeType = attributeDescription.getAttributeType();
-    List<Attribute> attributes = new LinkedList<>();
-    addAllIfNotNull(attributes, attrs.get(attributeType));
-
-    for (AttributeType at : schema.getSubTypes(attributeType))
-    {
-      addAllIfNotNull(attributes, attrs.get(at));
-    }
-
-    onlyKeepAttributesWithAllOptions(attributes, attributeDescription);
-    return attributes;
+    List<Attribute> results = new LinkedList<>();
+    addAttributeTypeOrSubTypeValue(results, attributeDescription, attrs);
+    return results;
   }
 
   /**
@@ -894,19 +841,13 @@ public class Entry
 
   private boolean hasAttribute(Map<AttributeType, List<Attribute>> attributes, AttributeType attributeType)
   {
-    if (attributes.containsKey(attributeType))
+    for (AttributeType key : attributes.keySet())
     {
-      return true;
-    }
-
-    for (AttributeType at : schema.getSubTypes(attributeType))
-    {
-      if (attributes.containsKey(at))
+      if (attributeType.isSuperTypeOf(key))
       {
         return true;
       }
     }
-
     return false;
   }
 
@@ -1708,8 +1649,7 @@ public class Entry
     {
       if (DirectoryServer.getObjectClass(o.getOID()).isPlaceHolder())
       {
-        LocalizableMessage message = ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(dn, o.getNameOrOID());
-        invalidReason.append(message);
+        invalidReason.append(ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(dn, o.getNameOrOID()));
         return false;
       }
 
@@ -2150,9 +2090,7 @@ public class Entry
       {
         if (parentStructuralClass == null)
         {
-          LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(
-              dn, parentEntry.getName());
-
+          LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(dn, parentEntry.getName());
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
             invalidReason.append(message);
@@ -2464,8 +2402,7 @@ public class Entry
    * @return true if the current entry has the object class or the attribute,
    *         false otherwise
    */
-  private boolean hasObjectClassOrAttribute(String objectClassName,
-      String attrTypeName)
+  private boolean hasObjectClassOrAttribute(String objectClassName, String attrTypeName)
   {
     ObjectClass oc = DirectoryServer.getObjectClass(objectClassName);
     if (oc.isPlaceHolder())
@@ -2479,7 +2416,6 @@ public class Entry
     {
       return false;
     }
-
 
     AttributeType attrType = DirectoryServer.getAttributeType(attrTypeName);
     if (attrType.isPlaceHolder())

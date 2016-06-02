@@ -417,16 +417,9 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     for (final SortKey sortKey : sortKeys)
     {
       final AttributeDescription attrDesc = AttributeDescription.valueOf(sortKey.getAttributeDescription());
-      final AttributeType attributeType = attrDesc.getAttributeType();
-      final List<AttributeType> subTypes = DirectoryServer.getSchema().getSubTypes(attributeType);
-      for (final Modification mod : mods)
+      if (EntryContainer.isAttributeModified(attrDesc.getAttributeType(), mods))
       {
-        final AttributeType modAttrType = mod.getAttribute().getAttributeDescription().getAttributeType();
-        if (modAttrType.equals(attributeType)
-            || subTypes.contains(modAttrType))
-        {
-          return true;
-        }
+        return true;
       }
     }
     return false;

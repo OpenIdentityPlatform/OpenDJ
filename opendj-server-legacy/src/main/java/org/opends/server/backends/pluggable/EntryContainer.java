@@ -45,6 +45,9 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -53,14 +56,11 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.util.Pair;
-import org.opends.messages.CoreMessages;
-import org.forgerock.opendj.config.server.ConfigurationAddListener;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
 import org.forgerock.opendj.server.config.server.BackendVLVIndexCfg;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
+import org.forgerock.util.Pair;
+import org.opends.messages.CoreMessages;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.VirtualAttributeProvider;
@@ -89,11 +89,11 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
+import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
-import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -2229,8 +2229,7 @@ public class EntryContainer
     // Process in index configuration order.
     for (AttributeIndex index : attrIndexMap.values())
     {
-      // Check whether any modifications apply to this indexed attribute.
-      if (isAttributeModified(index, mods))
+      if (isAttributeModified(index.getAttributeType(), mods))
       {
         index.modifyEntry(buffer, entryID, oldEntry, newEntry);
       }
@@ -2486,31 +2485,6 @@ public class EntryContainer
     return null;
   }
 
-  /**
-   * Checks if any modifications apply to this indexed attribute.
-   * @param index the indexed attributes.
-   * @param mods the modifications to check for.
-   * @return true if any apply, false otherwise.
-   */
-  private static boolean isAttributeModified(AttributeIndex index, List<Modification> mods)
-  {
-    AttributeType indexAttributeType = index.getAttributeType();
-    List<AttributeType> subTypes =
-            DirectoryServer.getSchema().getSubTypes(indexAttributeType);
-
-    for (Modification mod : mods)
-    {
-      Attribute modAttr = mod.getAttribute();
-      AttributeType modAttrType = modAttr.getAttributeDescription().getAttributeType();
-      if (modAttrType.equals(indexAttributeType)
-          || subTypes.contains(modAttrType))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
   boolean isConfidentialityEnabled()
   {
     return config.isConfidentialityEnabled();
@@ -2739,5 +2713,17 @@ public class EntryContainer
   @Override
   public String toString() {
     return treePrefix;
+  }
+
+  static boolean isAttributeModified(AttributeType attrType, List<Modification> mods)
+  {
+    for (Modification mod : mods)
+    {
+      if (attrType.isSuperTypeOf(mod.getAttribute().getAttributeDescription().getAttributeType()))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 }
