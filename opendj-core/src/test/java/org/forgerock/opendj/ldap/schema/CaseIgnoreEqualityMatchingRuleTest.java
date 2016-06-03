@@ -49,6 +49,7 @@ public class CaseIgnoreEqualityMatchingRuleTest extends MatchingRuleTest {
             { "foo\u0149bar", "foo\u02BC\u006Ebar", ConditionResult.TRUE },
             { "foo\u017Bbar", "foo\u017Cbar", ConditionResult.TRUE },
             { "foo\u017BBAR", "foo\u017Cbar", ConditionResult.TRUE },
+            { "Sofia", "Sofi\u00ADa", ConditionResult.TRUE }, // OPENDJ-3054: map soft hypen to nothing.
         };
     }
 
