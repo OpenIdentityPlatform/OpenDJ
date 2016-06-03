@@ -58,6 +58,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.rest2ldap.ErrorLoggerFilter;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.HTTPConnectionHandlerCfg;
 import org.forgerock.services.context.Context;
@@ -909,7 +910,8 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     {
       return Handlers.chainOf(
           serverContext.getHTTPRouter(),
-          new HttpLogFilter(serverContext),
+          new HttpAccessLogFilter(serverContext),
+          new ErrorLoggerFilter(),
           new ExecuteInWorkerThreadFilter(),
           new AllowDenyFilter(currentConfig.getDeniedClient(), currentConfig.getAllowedClient()),
           new CommonAuditTransactionIdFilter(serverContext),

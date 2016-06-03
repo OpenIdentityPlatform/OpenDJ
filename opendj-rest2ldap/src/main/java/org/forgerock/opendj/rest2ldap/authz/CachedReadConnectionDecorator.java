@@ -37,9 +37,13 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.promise.ResultHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cache entries by intercepting the result of base search requests. Entries in cache are automatically evicted if their
@@ -47,6 +51,21 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  * This happens frequently when we have to resolve entry references in a collection.
  */
 final class CachedReadConnectionDecorator extends AbstractAsynchronousConnectionDecorator {
+
+    private static final Logger logger = LoggerFactory.getLogger(CachedReadConnectionDecorator.class);
+
+    private static final ResultHandler<Response> RESPONSE_LOGGER = new ResultHandler<Response>() {
+        @Override
+        public void handleResult(final Response response) {
+            traceLog(response);
+        }
+    };
+
+    private static void traceLog(final Object o) {
+        if (logger.isTraceEnabled()) {
+            logger.trace(o.toString());
+        }
+    }
 
     @SuppressWarnings("serial")
     private final Map<DN, CachedRead> cachedReads = new LinkedHashMap<DN, CachedRead>() {
@@ -167,8 +186,9 @@ final class CachedReadConnectionDecorator extends AbstractAsynchronousConnection
          * Simple brute force implementation in case the bind operation
          * modifies an entry: clear the cachedReads.
          */
+        traceLog(request);
         evictAll();
-        return delegate.bindAsync(request, intermediateResponseHandler);
+        return delegate.bindAsync(request, intermediateResponseHandler).thenOnResult(RESPONSE_LOGGER);
     }
 
     private void evictAll() {
@@ -184,15 +204,17 @@ final class CachedReadConnectionDecorator extends AbstractAsynchronousConnection
          * Simple brute force implementation in case the extended
          * operation modifies an entry: clear the cachedReads.
          */
+        traceLog(request);
         evictAll();
-        return delegate.extendedRequestAsync(request, intermediateResponseHandler);
+        return delegate.extendedRequestAsync(request, intermediateResponseHandler).thenOnResult(RESPONSE_LOGGER);
     }
 
     @Override
     public LdapPromise<Result> modifyAsync(ModifyRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
+        traceLog(request);
         evict(request.getName());
-        return delegate.modifyAsync(request, intermediateResponseHandler);
+        return delegate.modifyAsync(request, intermediateResponseHandler).thenOnResult(RESPONSE_LOGGER);
     }
 
     private void evict(final DN name) {
@@ -204,18 +226,20 @@ final class CachedReadConnectionDecorator extends AbstractAsynchronousConnection
     @Override
     public LdapPromise<Result> deleteAsync(DeleteRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
+        traceLog(request);
         // Simple brute force implementation: clear the cachedReads.
         if (request.containsControl(SubtreeDeleteRequestControl.OID)) {
             evictAll();
         } else {
             evict(request.getName());
         }
-        return delegate.deleteAsync(request, intermediateResponseHandler);
+        return delegate.deleteAsync(request, intermediateResponseHandler).thenOnResult(RESPONSE_LOGGER);
     }
 
     @Override
     public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
+        traceLog(request);
         // Simple brute force implementation: clear the cachedReads.
         evictAll();
         return delegate.modifyDNAsync(request, intermediateResponseHandler);
@@ -229,8 +253,10 @@ final class CachedReadConnectionDecorator extends AbstractAsynchronousConnection
          * object), or if the search request passed in an intermediate
          * response handler.
          */
+        traceLog(request);
         if (!request.getScope().equals(SearchScope.BASE_OBJECT) || intermediateResponseHandler != null) {
-            return delegate.searchAsync(request, intermediateResponseHandler, entryHandler);
+            return delegate.searchAsync(request, intermediateResponseHandler, entryHandler)
+                           .thenOnResult(RESPONSE_LOGGER);
         }
 
         // This is a read request and a candidate for caching.
@@ -252,7 +278,7 @@ final class CachedReadConnectionDecorator extends AbstractAsynchronousConnection
                     .searchAsync(request, intermediateResponseHandler, pendingCachedRead)
                     .thenOnResult(pendingCachedRead).thenOnException(pendingCachedRead);
             pendingCachedRead.setPromise(promise);
-            return promise;
+            return promise.thenOnResult(RESPONSE_LOGGER);
         }
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.i18n.LocalizableMessage.raw;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.Arrays.asList;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
@@ -39,6 +40,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.JsonValueException;
@@ -95,6 +98,7 @@ import org.forgerock.services.context.ClientContext;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.AsyncFunction;
+
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
@@ -109,6 +113,9 @@ import org.forgerock.util.query.QueryFilterVisitor;
  * resource collection to LDAP entries beneath a base DN.
  */
 final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /** Dummy exception used for signalling search success. */
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
 
@@ -171,7 +178,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             oldPassword = jsonContent.get("oldPassword").asString();
             newPassword = jsonContent.get("newPassword").asString();
         } catch (JsonValueException e) {
-            final ResourceException ex = newBadRequestException(ERR_PASSWORD_MODIFY_REQUEST_IS_INVALID.get(), e);
+            final LocalizableMessage msg = ERR_PASSWORD_MODIFY_REQUEST_IS_INVALID.get();
+            final ResourceException ex = newBadRequestException(msg, e);
+            logger.error(msg, e);
             return Promises.newExceptionPromise(ex);
         }
 
@@ -233,6 +242,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                     request.getNewResourceId(),
                                     addRequest);
                         } catch (final ResourceException e) {
+                            logger.error(raw(e.getLocalizedMessage()), e);
                             return Promises.newExceptionPromise(e);
                         }
                         if (config.readOnUpdatePolicy() == CONTROLS) {
@@ -669,7 +679,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                         cookie = control.getCookie().toBase64String();
                                     }
                                 } catch (final DecodeException e) {
-                                    // FIXME: need some logging.
+                                    logger.error(ERR_DECODING_CONTROL.get(e.getLocalizedMessage()), e);
                                 }
                             }
                             completeIfNecessary(SUCCESS, promise);
@@ -930,7 +940,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         }
                     }
                 } catch (final DecodeException e) {
-                    // FIXME: log something?
+                    logger.error(ERR_DECODING_CONTROL.get(e.getLocalizedMessage()), e);
                     entry = null;
                 }
                 if (entry != null) {

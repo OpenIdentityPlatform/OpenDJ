@@ -60,6 +60,8 @@ import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.handler.HttpClientHandler;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Headers;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.Router;
@@ -81,8 +83,6 @@ import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
 import org.forgerock.util.time.TimeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Rest2ldap HTTP application. */
 public class Rest2LDAPHttpApplication implements HttpApplication {
@@ -101,7 +101,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
     private static final String CACHE_ENABLED = "enabled";
     private static final String CACHE_EXPIRATION = "cacheExpiration";
 
-    private static final Logger LOG = LoggerFactory.getLogger(Rest2LDAPHttpApplication.class);
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** URL to the JSON configuration file. */
     protected final URL configurationUrl;
@@ -178,12 +178,13 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
             configureConnectionFactories(configuration.get("ldapConnectionFactories"));
             return Handlers.chainOf(
                     CrestHttp.newHttpHandler(configureRest2Ldap(configuration)),
+                    new ErrorLoggerFilter(),
                     buildAuthorizationFilter(configuration.get("authorization").required()));
         } catch (final Exception e) {
-            final String errorMsg = ERR_FAIL_PARSE_CONFIGURATION.get(e.getLocalizedMessage()).toString();
-            LOG.error(errorMsg, e);
+            final LocalizableMessage errorMsg = ERR_FAIL_PARSE_CONFIGURATION.get(e.getLocalizedMessage());
+            logger.error(errorMsg, e);
             stop();
-            throw new HttpApplicationException(errorMsg, e);
+            throw new HttpApplicationException(errorMsg.toString(), e);
         }
     }
 
