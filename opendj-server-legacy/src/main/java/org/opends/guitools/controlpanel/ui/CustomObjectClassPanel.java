@@ -500,7 +500,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     lastAliases.addAll(aliases);
     this.aliases.setText(Utilities.getStringFromCollection(aliases, ", "));
 
-    String sOrigin = Utilities.getOrigin(new SomeSchemaElement(oc));
+    String sOrigin = new SomeSchemaElement(oc).getOrigin();
     if (sOrigin == null)
     {
       sOrigin = "";

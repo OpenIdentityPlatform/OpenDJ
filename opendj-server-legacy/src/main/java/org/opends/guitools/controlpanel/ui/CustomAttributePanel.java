@@ -527,7 +527,7 @@ class CustomAttributePanel extends SchemaElementPanel
     this.aliases.setText(Utilities.getStringFromCollection(someAliases, ", "));
 
     SomeSchemaElement element = new SomeSchemaElement(attr);
-    String sOrigin = Utilities.getOrigin(element);
+    String sOrigin = element.getOrigin();
     if (sOrigin == null)
     {
       sOrigin = "";

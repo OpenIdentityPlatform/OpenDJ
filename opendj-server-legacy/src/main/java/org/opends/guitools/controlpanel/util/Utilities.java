@@ -41,6 +41,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -137,12 +138,12 @@ public class Utilities
 
   private static final String HTML_SPACE = "&nbsp;";
   private static final String[] attrsToObfuscate = { ServerConstants.ATTR_USER_PASSWORD };
-  private static final String[] binarySyntaxOIDs = {
+  private static final List<String> binarySyntaxOIDs = Arrays.asList(
     SchemaConstants.SYNTAX_BINARY_OID,
     SchemaConstants.SYNTAX_JPEG_OID,
     SchemaConstants.SYNTAX_CERTIFICATE_OID,
     SchemaConstants.SYNTAX_OCTET_STRING_OID
-  };
+  );
 
   private static ImageIcon warningIcon;
   private static ImageIcon requiredIcon;
@@ -181,13 +182,13 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if an attribute value must be obfuscated because
-   * it contains sensitive information (like passwords) and <CODE>false</CODE>
-   * otherwise.
+   * Returns whether an attribute value must be obfuscated because
+   * it contains sensitive information (like passwords).
+   *
    * @param attrName the attribute name.
    * @param schema the schema of the server.
-   * @return <CODE>true</CODE> if an attribute value must be obfuscated because
-   * it contains sensitive information (like passwords) and <CODE>false</CODE>
+   * @return {@code true} if an attribute value must be obfuscated because
+   * it contains sensitive information (like passwords) and {@code false}
    * otherwise.
    */
   public static boolean mustObfuscate(String attrName, Schema schema)
@@ -263,14 +264,13 @@ public class Utilities
   }
 
   /**
-   * Displays a confirmation dialog.  Returns <CODE>true</CODE> if the user
-   * accepts the message and <CODE>false</CODE> otherwise.
+   * Displays a confirmation dialog.
+   *
    * @param parentComponent the parent component relative to which the dialog
    * will be displayed.
    * @param title the title of the dialog.
    * @param msg the message to be displayed.
-   * @return  <CODE>true</CODE> if the user accepts the message and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user accepts the message, {@code false} otherwise.
    */
   public static boolean displayConfirmationDialog(Component parentComponent,
       LocalizableMessage title, LocalizableMessage msg)
@@ -1445,12 +1445,11 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if the the provided strings represent the same
-   * DN and <CODE>false</CODE> otherwise.
+   * Returns whether the provided strings represent the same DN.
+   *
    * @param dn1 the first dn to compare.
    * @param dn2 the second dn to compare.
-   * @return <CODE>true</CODE> if the the provided strings represent the same
-   * DN and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided strings represent the same DN, {@code false} otherwise.
    */
   public static boolean areDnsEqual(String dn1, String dn2)
   {
@@ -1866,11 +1865,11 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if the server located in the provided path
-   * is running and <CODE>false</CODE> otherwise.
+   * Returns whether the server located in the provided path is running.
+   *
    * @param serverRootDirectory the path where the server is installed.
-   * @return <CODE>true</CODE> if the server located in the provided path
-   * is running and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the server located in the provided path is running,
+   *         {@code false} otherwise.
    */
   public static boolean isServerRunning(File serverRootDirectory)
   {
@@ -1898,11 +1897,11 @@ public class Utilities
     "abcdefghijklmnopqrstuvwxyz0123456789-";
 
   /**
-   * Returns <CODE>true</CODE> if the provided string can be used as objectclass
-   * name and <CODE>false</CODE> otherwise.
+   * Returns whether the provided string can be used as objectclass name.
+   *
    * @param s the string to be analyzed.
-   * @return <CODE>true</CODE> if the provided string can be used as objectclass
-   * name and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided string can be used as objectclass name,
+   *         {@code false} otherwise.
    */
   private static boolean isValidObjectclassName(String s)
   {
@@ -1925,11 +1924,11 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided string can be used as attribute
-   * name and <CODE>false</CODE> otherwise.
+   * Returns whether the provided string can be used as attribute name.
+   *
    * @param s the string to be analyzed.
-   * @return <CODE>true</CODE> if the provided string can be used as attribute
-   * name and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided string can be used as attribute name,
+   *         {@code false} otherwise.
    */
   public static boolean isValidAttributeName(String s)
   {
@@ -1958,92 +1957,66 @@ public class Utilities
     return INFO_CTRL_PANEL_VLV_INDEX_CELL.get(index.getName()).toString();
   }
 
-  private static final String[] standardSchemaFileNames =
-  {
+  private static final List<String> standardSchemaFileNames = Arrays.asList(
       "00-core.ldif", "01-pwpolicy.ldif", "03-changelog.ldif",
       "03-uddiv3.ldif", "05-solaris.ldif"
-  };
+  );
 
-  private static final String[] configurationSchemaOrigins =
-  {
+  private static final List<String> configurationSchemaOrigins = Arrays.asList(
       "OpenDJ Directory Server", "OpenDS Directory Server",
       "Sun Directory Server", "Microsoft Active Directory"
-  };
+  );
 
-  private static final String[] standardSchemaOrigins =
-  {
+  private static final List<String> standardSchemaOrigins = Arrays.asList(
       "Sun Java System Directory Server", "Solaris Specific", "X.501"
-  };
+  );
 
-  private static final String[] configurationSchemaFileNames =
-  {
+  private static final List<String> configurationSchemaFileNames = Arrays.asList(
       "02-config.ldif", "06-compat.ldif"
-  };
+  );
 
   /**
-   * Returns <CODE>true</CODE> if the provided schema element is part of the
-   * standard and <CODE>false</CODE> otherwise.
+   * Returns whether the provided schema element is part of the standard.
+   *
    * @param fileElement the schema element.
-   * @return <CODE>true</CODE> if the provided schema element is part of the
-   * standard and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided schema element is part of the standard,
+   *         {@code false} otherwise.
    */
   public static boolean isStandard(SomeSchemaElement fileElement)
   {
     final String fileName = fileElement.getSchemaFile();
     if (fileName != null)
     {
-      return contains(standardSchemaFileNames, fileName) || fileName.toLowerCase().contains("-rfc");
+      return standardSchemaFileNames.contains(fileName) || fileName.toLowerCase().contains("-rfc");
     }
-    String xOrigin = getOrigin(fileElement);
+    String xOrigin = fileElement.getOrigin();
     if (xOrigin != null)
     {
-      return contains(standardSchemaOrigins, xOrigin) || xOrigin.startsWith("RFC ") || xOrigin.startsWith("draft-");
+      return standardSchemaOrigins.contains(xOrigin) || xOrigin.startsWith("RFC ") || xOrigin.startsWith("draft-");
     }
     return false;
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided schema element is part of the
-   * configuration and <CODE>false</CODE> otherwise.
+   * Returns whether the provided schema element is part of the configuration.
+   *
    * @param fileElement the schema element.
-   * @return <CODE>true</CODE> if the provided schema element is part of the
-   * configuration and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided schema element is part of the configuration,
+   *         {@code false} otherwise.
    */
   public static boolean isConfiguration(SomeSchemaElement fileElement)
   {
     String fileName = fileElement.getSchemaFile();
     if (fileName != null)
     {
-      return contains(configurationSchemaFileNames, fileName);
+      return configurationSchemaFileNames.contains(fileName);
     }
-    String xOrigin = getOrigin(fileElement);
+    String xOrigin = fileElement.getOrigin();
     if (xOrigin != null)
     {
-      return contains(configurationSchemaOrigins, xOrigin);
+      return configurationSchemaOrigins.contains(xOrigin);
     }
     return false;
-  }
-
-  private static boolean contains(String[] names, String toFind)
-  {
-    for (String name : names)
-    {
-      if (toFind.equals(name))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns the origin of the provided schema element.
-   * @param element the schema element.
-   * @return the origin of the provided schema element.
-   */
-  public static String getOrigin(SomeSchemaElement element)
-  {
-    return element.getOrigin();
   }
 
   /**
@@ -2063,12 +2036,11 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided attribute has image syntax and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the provided attribute has image syntax.
+   *
    * @param attrName the name of the attribute.
    * @param schema the schema.
-   * @return <CODE>true</CODE> if the provided attribute has image syntax and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided attribute has image syntax, {@code false} otherwise.
    */
   public static boolean hasImageSyntax(String attrName, Schema schema)
   {
@@ -2090,12 +2062,11 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided attribute has binary syntax and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the provided attribute has binary syntax.
+   *
    * @param attrName the name of the attribute.
    * @param schema the schema.
-   * @return <CODE>true</CODE> if the provided attribute has binary syntax and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided attribute has binary syntax, {@code false} otherwise.
    */
   public static boolean hasBinarySyntax(String attrName, Schema schema)
   {
@@ -2104,12 +2075,11 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided attribute has password syntax and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the provided attribute has password syntax.
+   *
    * @param attrName the name of the attribute.
    * @param schema the schema.
-   * @return <CODE>true</CODE> if the provided attribute has password syntax and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided attribute has password syntax, {@code false} otherwise.
    */
   public static boolean hasPasswordSyntax(String attrName, Schema schema)
   {
@@ -2125,14 +2095,14 @@ public class Utilities
     return false;
   }
 
-  private static boolean hasAnySyntax(String attrName, Schema schema, String[] oids)
+  private static boolean hasAnySyntax(String attrName, Schema schema, List<String> oids)
   {
     if (schema != null)
     {
       AttributeType attrType = AttributeDescription.valueOf(attrName, schema.getSchemaNG()).getAttributeType();
       if (!attrType.isPlaceHolder())
       {
-        return contains(oids, attrType.getSyntax().getOID());
+        return oids.contains(attrType.getSyntax().getOID());
       }
     }
     return false;
@@ -2537,12 +2507,12 @@ public class Utilities
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided monitoring value represents the
-   * non implemented label and <CODE>false</CODE> otherwise.
+   * Returns whether the provided monitoring value represents the non implemented label.
+   *
    * @param attr the attribute to analyze.
    * @param monitoringEntry the monitoring entry.
-   * @return <CODE>true</CODE> if the provided monitoring value represents the
-   * non implemented label and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided monitoring value represents the non implemented label,
+   *         {@code false} otherwise.
    */
   private static boolean isNotImplemented(MonitoringAttributes attr,
       CustomSearchResult monitoringEntry)

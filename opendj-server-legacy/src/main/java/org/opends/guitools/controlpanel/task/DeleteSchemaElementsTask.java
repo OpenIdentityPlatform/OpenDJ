@@ -17,6 +17,7 @@
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.types.ExistingFileBehavior.*;
 import static org.opends.server.util.SchemaUtils.*;
 
 import java.io.File;
@@ -53,7 +54,6 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
@@ -61,7 +61,6 @@ import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.StaticUtils;
 
 /** The task that is launched when a schema element must be deleted. */
 public class DeleteSchemaElementsTask extends Task
@@ -280,7 +279,7 @@ public class DeleteSchemaElementsTask extends Task
     {
       try
       {
-        BasicAttribute attr = new BasicAttribute(getSchemaFileAttributeName(element));
+        BasicAttribute attr = new BasicAttribute(element.getAttributeName());
         attr.add(getSchemaFileAttributeValue(element));
         ModificationItem mod = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attr);
         getInfo().getConnection().getLdapContext().modifyAttributes(
@@ -316,37 +315,30 @@ public class DeleteSchemaElementsTask extends Task
    * @param schemaElement the schema element to be deleted.
    * @throws OpenDsException if an error occurs.
    */
-  private void updateSchemaFile(SomeSchemaElement schemaElement)
-  throws OpenDsException
+  private void updateSchemaFile(SomeSchemaElement schemaElement) throws OpenDsException
   {
     String schemaFile = getSchemaFile(schemaElement);
-    LDIFExportConfig exportConfig =
-      new LDIFExportConfig(schemaFile,
-          ExistingFileBehavior.OVERWRITE);
-    LDIFReader reader = null;
-    LDIFWriter writer = null;
-    try
+
+    try (LDIFExportConfig exportConfig = new LDIFExportConfig(schemaFile, OVERWRITE);
+        LDIFReader reader = new LDIFReader(new LDIFImportConfig(schemaFile)))
     {
-      reader = new LDIFReader(new LDIFImportConfig(schemaFile));
       Entry schemaEntry = reader.readEntry();
 
       Modification mod = new Modification(ModificationType.DELETE,
           Attributes.create(
-              getSchemaFileAttributeName(schemaElement).toLowerCase(),
+              schemaElement.getAttributeName(),
               getSchemaFileAttributeValue(schemaElement)));
       schemaEntry.applyModification(mod);
-      writer = new LDIFWriter(exportConfig);
-      writer.writeEntry(schemaEntry);
-      exportConfig.getWriter().newLine();
+      try (LDIFWriter writer = new LDIFWriter(exportConfig))
+      {
+        writer.writeEntry(schemaEntry);
+        exportConfig.getWriter().newLine();
+      }
     }
     catch (IOException e)
     {
       throw new OfflineUpdateException(
           ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(e), e);
-    }
-    finally
-    {
-      StaticUtils.close(reader, exportConfig, writer);
     }
   }
 
@@ -373,25 +365,6 @@ public class DeleteSchemaElementsTask extends Task
   }
 
   /**
-   * Returns the attribute name in the schema entry that corresponds to the
-   * provided schema element.
-   * @param element the schema element.
-   * @return the attribute name in the schema entry that corresponds to the
-   * provided schema element.
-   */
-  private String getSchemaFileAttributeName(SomeSchemaElement element)
-  {
-    if (element.isAttributeType())
-    {
-      return "attributeTypes";
-    }
-    else
-    {
-      return "objectClasses";
-    }
-  }
-
-  /**
    * Returns the value in the schema file for the provided element.
    * @param element the schema element.
    * @return the value in the schema file for the provided element.
@@ -409,25 +382,14 @@ public class DeleteSchemaElementsTask extends Task
   private void printEquivalentCommandToDelete(SomeSchemaElement element)
   {
     String schemaFile = getSchemaFile(element);
-    String attrName = getSchemaFileAttributeName(element);
+    String attrName = element.getAttributeName();
     String attrValue = getSchemaFileAttributeValue(element);
+
+    String msg;
     if (!isServerRunning())
     {
-      LocalizableMessage msg;
-      if (element.isAttributeType())
-      {
-        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_OFFLINE.get(
-            element.getNameOrOID(), schemaFile);
-      }
-      else
-      {
-        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_OBJECTCLASS_OFFLINE.get(
-            element.getNameOrOID(), schemaFile);
-      }
-      getProgressDialog().appendProgressHtml(Utilities.applyFont(
-          msg+"<br><b>"+
-          attrName+": "+attrValue+"</b><br><br>",
-          ColorAndFontConstants.progressFont));
+      msg = getEquivalentCommandOfflineMsg(element, schemaFile)
+          + "<br><b>" + attrName + ": " + attrValue + "</b><br><br>";
     }
     else
     {
@@ -436,33 +398,36 @@ public class DeleteSchemaElementsTask extends Task
       args.addAll(getObfuscatedCommandLineArguments(
           getConnectionCommandLineArguments(true, true)));
       args.add(getNoPropertiesFileArgument());
-      String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
-          args);
+      String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"), args);
 
-      LocalizableMessage msg;
-      if (element.isAttributeType())
-      {
-        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_ONLINE.get(
-            element.getNameOrOID());
-      }
-      else
-      {
-        msg = INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_OBJECTCLASS_ONLINE.get(
-            element.getNameOrOID());
-      }
-
-      StringBuilder sb = new StringBuilder();
-      sb.append(msg).append("<br><b>");
-      sb.append(equiv);
-      sb.append("<br>");
-      sb.append("dn: cn=schema<br>");
-      sb.append("changetype: modify<br>");
-      sb.append("delete: ").append(attrName).append("<br>");
-      sb.append(attrName).append(": ").append(attrValue);
-      sb.append("</b><br><br>");
-      getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
-          ColorAndFontConstants.progressFont));
+      msg = getEquivalentCommandOnlineMsg(element)
+          + "<br><b>" + equiv + "<br>"
+          + "dn: cn=schema<br>"
+          + "changetype: modify<br>"
+          + "delete: " + attrName + "<br>"
+          + attrName + ": " + attrValue
+          + "</b>"
+          + "<br><br>";
     }
+    getProgressDialog().appendProgressHtml(Utilities.applyFont(msg, ColorAndFontConstants.progressFont));
+  }
+
+  private LocalizableMessage getEquivalentCommandOfflineMsg(SomeSchemaElement element, String schemaFile)
+  {
+    if (element.isAttributeType())
+    {
+      return INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_OFFLINE.get(element.getNameOrOID(), schemaFile);
+    }
+    return INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_OBJECTCLASS_OFFLINE.get(element.getNameOrOID(), schemaFile);
+  }
+
+  private LocalizableMessage getEquivalentCommandOnlineMsg(SomeSchemaElement element)
+  {
+    if (element.isAttributeType())
+    {
+      return INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_ATTRIBUTE_ONLINE.get(element.getNameOrOID());
+    }
+    return INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_OBJECTCLASS_ONLINE.get(element.getNameOrOID());
   }
 
   private AttributeType getAttributeToAdd(AttributeType attrToDelete)

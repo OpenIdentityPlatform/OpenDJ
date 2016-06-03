@@ -15,8 +15,6 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.server.util.ServerConstants.*;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +96,7 @@ public class SomeSchemaElement implements SchemaElement
     return attributeType != null;
   }
 
-  private ServerSchemaElement asSchemaElement()
+  private ServerSchemaElement asServerSchemaElement()
   {
     if (element == null)
     {
@@ -140,19 +138,19 @@ public class SomeSchemaElement implements SchemaElement
   @Override
   public String getDescription()
   {
-    return asSchemaElement().getDescription();
+    return asServerSchemaElement().getDescription();
   }
 
   @Override
   public Map<String, List<String>> getExtraProperties()
   {
-    return asSchemaElement().getExtraProperties();
+    return asServerSchemaElement().getExtraProperties();
   }
 
   @Override
   public String toString()
   {
-    return asSchemaElement().toString();
+    return asServerSchemaElement().toString();
   }
 
   /**
@@ -164,7 +162,7 @@ public class SomeSchemaElement implements SchemaElement
    */
   public String getDefinitionWithFileName()
   {
-    return asSchemaElement().getDefinitionWithFileName();
+    return asServerSchemaElement().getDefinitionWithFileName();
   }
 
   /**
@@ -174,20 +172,7 @@ public class SomeSchemaElement implements SchemaElement
    */
   public String getSchemaFile()
   {
-    return asSchemaElement().getSchemaFile();
-  }
-
-  /**
-   * Sets the name of the schema file that contains the definition of the wrapped element.
-   *
-   * @param serverContext
-   *          the server context
-   * @param schemaFile
-   *          the name of the schema file that contains the definition of the wrapped element.
-   */
-  public void setSchemaFile(ServerContext serverContext, String schemaFile)
-  {
-    setExtraPropertySingleValue(serverContext, SCHEMA_PROPERTY_FILENAME, schemaFile);
+    return asServerSchemaElement().getSchemaFile();
   }
 
   /**
@@ -196,11 +181,15 @@ public class SomeSchemaElement implements SchemaElement
    */
   public String getOrigin()
   {
-    return asSchemaElement().getOrigin();
+    return asServerSchemaElement().getOrigin();
   }
 
   /**
    * Returns the attribute name of the wrapped element.
+   * <p>
+   * This corresponds to the attribute name in the schema entry that corresponds to the provided
+   * schema element.
+   *
    * @return the attribute name of the wrapped element.
    */
   public String getAttributeName()

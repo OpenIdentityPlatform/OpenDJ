@@ -243,7 +243,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   {
     LocalizableMessageBuilder returnValue = new LocalizableMessageBuilder();
     String fileName = element.getSchemaFile();
-    String xOrigin = Utilities.getOrigin(element);
+    String xOrigin = element.getOrigin();
     if (xOrigin != null)
     {
       returnValue.append(xOrigin);
