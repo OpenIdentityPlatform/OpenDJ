@@ -44,6 +44,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
@@ -205,8 +206,12 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         catch (LocalizedIllegalArgumentException e)
         {
           logger.traceException(e);
-          logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN,
+          if (DirectoryServer.getSyntaxEnforcementPolicy() == AcceptRejectWarn.REJECT)
+          {
+            logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN,
               v, someMemberAttributeType.getNameOrOID(), groupEntry.getName(), e.getMessageObject());
+          }
+          // else just ignore this value (issue OPENDJ-2833)
         }
       }
     }
