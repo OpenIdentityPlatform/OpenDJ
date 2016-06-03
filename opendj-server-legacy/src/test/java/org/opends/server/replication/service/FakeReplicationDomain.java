@@ -16,19 +16,20 @@
  */
 package org.opends.server.replication.service;
 
+import static org.forgerock.i18n.LocalizableMessage.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class is the minimum implementation of a Concrete ReplicationDomain
@@ -37,21 +38,12 @@ import org.forgerock.opendj.ldap.ResultCode;
 @SuppressWarnings("javadoc")
 public class FakeReplicationDomain extends ReplicationDomain
 {
-  /**
-   * A blocking queue that is used to send the UpdateMsg received from the
-   * Replication Service.
-   */
+  /** A blocking queue that is used to send the UpdateMsg received from the Replication Service. */
   private BlockingQueue<UpdateMsg> queue;
-
   /** A string that will be exported should exportBackend be called. */
   private String exportString;
-
-  /**
-   * A StringBuilder that will be used to build a new String should the import
-   * be called.
-   */
+  /** A StringBuilder that will be used to build a new String should the import be called. */
   private StringBuilder importString;
-
   private int exportedEntryCount;
 
   private FakeReplicationDomain(DN baseDN, int serverID,
@@ -122,7 +114,7 @@ public class FakeReplicationDomain extends ReplicationDomain
     }
     catch (IOException e)
     {
-      throw new DirectoryException(ResultCode.OPERATIONS_ERROR, LocalizableMessage.raw("exportBackend"));
+      throw new DirectoryException(OPERATIONS_ERROR, raw("IOException during exportBackend"), e);
     }
   }
 
@@ -139,7 +131,7 @@ public class FakeReplicationDomain extends ReplicationDomain
       }
       catch (IOException e)
       {
-        throw new DirectoryException(ResultCode.OPERATIONS_ERROR, LocalizableMessage.raw("importBackend"));
+        throw new DirectoryException(OPERATIONS_ERROR, raw("IOException during importBackend"), e);
       }
       if (ret>0)
       {
@@ -158,5 +150,4 @@ public class FakeReplicationDomain extends ReplicationDomain
     }
     return true;
   }
-
 }
