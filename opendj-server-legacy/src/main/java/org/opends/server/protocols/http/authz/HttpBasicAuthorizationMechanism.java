@@ -127,10 +127,9 @@ final class HttpBasicAuthorizationMechanism extends HttpAuthorizationMechanism<H
       {
         final Entry userEntry = getMappedIdentity(username);
         doBind(userEntry.getName().toString(), password);
-        final Connection connection =
-            parentContext.asContext(LDAPContext.class)
-                         .getInternalConnectionFactory()
-                         .getAuthenticatedConnection(userEntry);
+        final Connection connection = parentContext.asContext(LDAPContext.class)
+                                                   .getInternalConnectionFactory()
+                                                   .getAuthenticatedConnection(userEntry);
         final Context authcContext = new AuthenticatedConnectionContext(parentContext, connection);
         final Map<String, Object> authz = new HashMap<>();
         authz.put(AUTHZID_DN, userEntry.getName().toString());
