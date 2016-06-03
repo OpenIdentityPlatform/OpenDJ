@@ -33,7 +33,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -411,50 +410,6 @@ public final class Schema
   }
 
   /**
-   * Registers a list of attribute types from their provided definitions.
-   * <p>
-   * This method allows to do only one schema change for multiple definitions,
-   * thus avoiding the cost (and the issue of stale schema references) of rebuilding a new schema for each definition.
-   *
-   * @param definitions
-   *          The definitions of the attribute types
-   * @param schemaFile
-   *          The schema file where these definitions belong, can be {@code null}
-   * @param overwrite
-   *          Indicates whether to overwrite the attribute
-   *          type if it already exists based on OID or name
-   * @throws DirectoryException
-   *            If an error occurs
-   */
-  public void registerAttributeTypes(final List<String> definitions, final String schemaFile, final boolean overwrite)
-      throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      SchemaBuilder builder = new SchemaBuilder(schemaNG);
-      for (String definition : definitions)
-      {
-        String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-        builder.addAttributeType(defWithFile, overwrite);
-      }
-      switchSchema(builder.toSchema());
-    }
-    catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
-    {
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
-    }
-    catch (LocalizedIllegalArgumentException e)
-    {
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
-  /**
    * Registers an attribute type from its provided definition.
    *
    * @param definition
@@ -471,7 +426,26 @@ public final class Schema
   public void registerAttributeType(final String definition, final String schemaFile, final boolean overwrite)
       throws DirectoryException
   {
-    registerAttributeTypes(Arrays.asList(definition), schemaFile, overwrite);
+    exclusiveLock.lock();
+    try
+    {
+      String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
+      switchSchema(new SchemaBuilder(schemaNG)
+          .addAttributeType(defWithFile, overwrite)
+          .toSchema());
+    }
+    catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
   }
 
   /**
@@ -743,34 +717,28 @@ public final class Schema
   }
 
   /**
-   * Registers a list of object classes from their provided definitions.
-   * <p>
-   * This method allows to do only one schema change for multiple definitions,
-   * thus avoiding the cost (and the issue of stale schema references) of rebuilding a new schema for each definition.
+   * Registers an object class from its provided definition.
    *
-   * @param definitions
-   *          The definitions of the object classes
+   * @param definition
+   *          The definition of the object class
    * @param schemaFile
-   *          The schema file where these definitions belong, can be {@code null}
-   * @param overwrite
-   *          Indicates whether to overwrite the attribute
-   *          type if it already exists based on OID or name
+   *          The schema file where this definition belongs, may be {@code null}
+   * @param overwriteExisting
+   *          Indicates whether to overwrite the object class
+   *          if it already exists based on OID or name
    * @throws DirectoryException
    *            If an error occurs
    */
-  public void registerObjectClasses(final List<String> definitions, final String schemaFile, final boolean overwrite)
+  public void registerObjectClass(String definition, String schemaFile, boolean overwriteExisting)
       throws DirectoryException
   {
     exclusiveLock.lock();
     try
     {
-      SchemaBuilder builder = new SchemaBuilder(schemaNG);
-      for (String definition : definitions)
-      {
-        String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-        builder.addObjectClass(defWithFile, overwrite);
-      }
-      switchSchema(builder.toSchema());
+      String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
+      switchSchema(new SchemaBuilder(schemaNG)
+          .addObjectClass(defWithFile, overwriteExisting)
+          .toSchema());
     }
     catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
     {
@@ -1249,37 +1217,6 @@ public final class Schema
     }
   }
 
-  /**
-   * Registers the provided matching rule use definition with this schema.
-   *
-   * @param definition
-   *          The matching rule use definition to register.
-   * @param schemaFile
-   *          The schema file where this definition belongs, maybe {@code null}
-   * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
-   *          another matching rule use with the same matching rule).
-   * @throws DirectoryException
-   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           {@code false}
-   */
-  public void registerMatchingRuleUse(String definition, String schemaFile, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-      switchSchema(new SchemaBuilder(schemaNG)
-        .addMatchingRuleUse(definitionWithFile, overwriteExisting)
-        .toSchema());
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
   private String getDefinitionWithSchemaFile(String definition, String schemaFile)
   {
     return schemaFile != null ? addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile) : definition;
@@ -1373,37 +1310,6 @@ public final class Schema
         dcrBuilder.addToSchema();
       }
       switchSchema(builder.toSchema());
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
-  /**
-   * Registers the provided DIT content rule definition with this schema.
-   *
-   * @param definition
-   *          The DIT content rule definition to register.
-   * @param schemaFile
-   *          The schema file where this definition belongs, maybe {@code null}
-   * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
-   *          another DIT content rule with the same object class).
-   * @throws DirectoryException
-   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           {@code false}
-   */
-  public void registerDITContentRule(String definition, String schemaFile, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-      switchSchema(new SchemaBuilder(schemaNG)
-        .addDITContentRule(definitionWithFile, overwriteExisting)
-        .toSchema());
     }
     finally
     {
@@ -1525,37 +1431,6 @@ public final class Schema
   }
 
   /**
-   * Registers the provided DIT structure rule definition with this schema.
-   *
-   * @param definition
-   *          The definition of the DIT structure rule to register.
-   * @param schemaFile
-   *          The schema file where this definition belongs, maybe {@code null}
-   * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are any conflicts
-   *          (i.e., another DIT structure rule with the same name form).
-   * @throws DirectoryException
-   *           If a conflict is encountered and the {@code overwriteExisting} flag is set to
-   *           {@code false}
-   */
-  public void registerDITStructureRule(String definition, String schemaFile, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-      switchSchema(new SchemaBuilder(schemaNG)
-          .addDITStructureRule(definitionWithFile, overwriteExisting)
-          .toSchema());
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
-  /**
    * Deregisters the provided DIT structure rule definition with this schema.
    *
    * @param ditStructureRule
@@ -1563,8 +1438,7 @@ public final class Schema
    * @throws DirectoryException
    *           If an error occurs.
    */
-  public void deregisterDITStructureRule(
-      DITStructureRule ditStructureRule) throws DirectoryException
+  public void deregisterDITStructureRule(DITStructureRule ditStructureRule) throws DirectoryException
   {
     exclusiveLock.lock();
     try
@@ -1680,36 +1554,6 @@ public final class Schema
   }
 
   /**
-   * Registers the provided name form definition with this schema.
-   *
-   * @param definition
-   *          The name form definition to register.
-   * @param schemaFile
-   *          The schema file where this definition belongs, maybe {@code null}
-   * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are any conflicts
-   * @throws DirectoryException
-   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
-   *           {@code false}
-   */
-  public void registerNameForm(String definition, String schemaFile, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      String definitionWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-      switchSchema(new SchemaBuilder(schemaNG)
-        .addNameForm(definitionWithFile, overwriteExisting)
-        .toSchema());
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
-  /**
    * Deregisters the provided name form definition with this schema.
    *
    * @param  nameForm  The name form definition to deregister.
@@ -1790,25 +1634,6 @@ public final class Schema
                    long youngestModificationTime)
   {
     this.youngestModificationTime = youngestModificationTime;
-  }
-
-  /**
-   * Registers an object class from its provided definition.
-   *
-   * @param definition
-   *          The definition of the object class
-   * @param schemaFile
-   *          The schema file where this definition belongs, may be {@code null}
-   * @param overwriteExisting
-   *          Indicates whether to overwrite the object class
-   *          if it already exists based on OID or name
-   * @throws DirectoryException
-   *            If an error occurs
-   */
-  public void registerObjectClass(String definition, String schemaFile, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    registerObjectClasses(Collections.singletonList(definition), schemaFile, overwriteExisting);
   }
 
   /**

@@ -62,13 +62,11 @@ public class AddSchemaFileTask
   /** The list of files to be added to the server schema. */
   private TreeSet<String> filesToAdd;
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_ADD_SCHEMA_FILE_NAME.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeTask()
          throws DirectoryException
@@ -87,7 +85,6 @@ public class AddSchemaFileTask
       }
     }
 
-
     // Get the attribute that specifies which schema file(s) to add.
     Entry taskEntry = getTaskEntry();
     AttributeType attrType = DirectoryServer.getAttributeType(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
@@ -98,7 +95,6 @@ public class AddSchemaFileTask
           ATTR_TASK_ADDSCHEMAFILE_FILENAME, taskEntry.getName());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
-
 
     // Get the name(s) of the schema files to add and make sure they exist in
     // the schema directory.
@@ -136,7 +132,6 @@ public class AddSchemaFileTask
       }
     }
 
-
     // Create a new dummy schema and make sure that we can add the contents of
     // all the schema files into it.  Even though this duplicates work we'll
     // have to do later, it will be good to do it now as well so we can reject
@@ -159,9 +154,6 @@ public class AddSchemaFileTask
     }
   }
 
-
-
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {
@@ -182,7 +174,7 @@ public class AddSchemaFileTask
       {
         try
         {
-          List<Modification> modList = SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+          List<Modification> modList = SchemaConfigManager.loadSchemaFileReturnModifications(schema, schemaFile);
           for (Modification m : modList)
           {
             Attribute a = m.getAttribute();
@@ -234,4 +226,3 @@ public class AddSchemaFileTask
     }
   }
 }
-

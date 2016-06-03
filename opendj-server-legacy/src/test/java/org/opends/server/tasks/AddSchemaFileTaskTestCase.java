@@ -20,7 +20,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
@@ -28,8 +32,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.SchemaTestMatchingRuleImpl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.schema.SchemaConstants;
-import org.forgerock.opendj.ldap.DN;
+import org.opends.server.types.DirectoryException;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -39,9 +43,11 @@ import static org.testng.Assert.*;
  * Tests invocation of the import and export tasks, but does not aim to
  * thoroughly test the underlying backend implementations.
  */
-public class AddSchemaFileTaskTestCase
-       extends TasksTestCase
+@SuppressWarnings("javadoc")
+public class AddSchemaFileTaskTestCase extends TasksTestCase
 {
+  private static List<MatchingRule> matchingRulesToRemove = new ArrayList<>();
+
   /**
    * Make sure that the Directory Server is running.
    *
@@ -53,17 +59,29 @@ public class AddSchemaFileTaskTestCase
     TestCaseUtils.startServer();
   }
 
-  private MatchingRule getMatchingRule(String name, String oid, boolean isObsolete)
+  @AfterClass
+  public void deregisterMatchingRules() throws Exception
   {
-    Schema schema =
-        new SchemaBuilder(Schema.getCoreSchema())
-          .buildMatchingRule(oid)
-            .syntaxOID(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID)
-            .names(name)
-            .implementation(new SchemaTestMatchingRuleImpl())
-            .obsolete(isObsolete)
-            .addToSchema().toSchema();
-    return schema.getMatchingRule(oid);
+    for (MatchingRule matchingRule : matchingRulesToRemove)
+    {
+      org.opends.server.types.Schema schema = DirectoryServer.getSchema();
+      schema.deregisterMatchingRuleUse(schema.getMatchingRuleUse(matchingRule));
+      schema.deregisterMatchingRule(matchingRule);
+    }
+  }
+
+  private void registerNewMatchingRule(String name, String oid) throws DirectoryException
+  {
+    MatchingRule matchingRule = new SchemaBuilder(Schema.getCoreSchema())
+        .buildMatchingRule(oid)
+        .syntaxOID(CoreSchema.getDirectoryStringSyntax().getOID())
+        .names(name)
+        .implementation(new SchemaTestMatchingRuleImpl())
+        .addToSchema()
+        .toSchema()
+        .getMatchingRule(oid);
+    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    matchingRulesToRemove.add(matchingRule);
   }
 
   /**
@@ -85,8 +103,7 @@ public class AddSchemaFileTaskTestCase
     Thread.sleep(2);
 
 
-    MatchingRule matchingRule = getMatchingRule("testAddValidSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.23", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    registerNewMatchingRule("testAddValidSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.23");
 
 
     String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
@@ -134,8 +151,6 @@ public class AddSchemaFileTaskTestCase
                      beforeModifyTimestamp);
   }
 
-
-
   /**
    * Attempts to add multiple new files to the server schema where the files
    * exist and have valid contents.
@@ -154,13 +169,7 @@ public class AddSchemaFileTaskTestCase
               DirectoryServer.getSchema().getYoungestModificationTime();
     Thread.sleep(2);
 
-
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
-
-    MatchingRule matchingRule1 =
-        getMatchingRule("testAddMultipleValidSchemaFiles1Match", "1.3.6.1.4.1.26027.1.999.24", false);
-
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule1, false);
+    registerNewMatchingRule("testAddMultipleValidSchemaFiles1Match", "1.3.6.1.4.1.26027.1.999.24");
 
     String[] fileLines1 =
     {
@@ -187,13 +196,11 @@ public class AddSchemaFileTaskTestCase
            "APPLIES testAddMultipleValidSchemaFiles1AT )"
     };
 
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
     File validFile1 = new File(schemaDirectory, "05-multiple-valid-1.ldif");
     writeLines(validFile1, fileLines1);
 
-
-    MatchingRule matchingRule2 =
-        getMatchingRule("testAddMultipleValidSchemaFiles2Match", "1.3.6.1.4.1.26027.1.999.25", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule2, false);
+    registerNewMatchingRule("testAddMultipleValidSchemaFiles2Match", "1.3.6.1.4.1.26027.1.999.25");
 
     String[] fileLines2 =
     {

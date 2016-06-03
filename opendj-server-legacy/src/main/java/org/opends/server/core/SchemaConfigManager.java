@@ -20,18 +20,19 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
-import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -39,12 +40,11 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Schema;
+import org.opends.server.types.Schema.SchemaUpdater;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -295,21 +295,50 @@ public class SchemaConfigManager
    *                     to be loaded.
    * @param  schemaFile  The name of the schema file to be loaded into the
    *                     provided schema.
-   *
-   * @return  A list of the modifications that could be performed in order to
-   *          obtain the contents of the file.
-   *
    * @throws  ConfigException  If a configuration problem causes the schema
    *                           element initialization to fail.
-   *
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  public static List<Modification> loadSchemaFile(Schema schema, String schemaFile)
+  public static void loadSchemaFile(Schema schema, String schemaFile)
          throws ConfigException, InitializationException
   {
-    return loadSchemaFile(schema, schemaFile, true);
+    loadSchemaFile(schema, schemaFile, true);
+  }
+
+  /**
+   * Loads the contents of the specified schema file into the provided schema and returns the list
+   * of modifications.
+   *
+   * @param schema
+   *          The schema in which the contents of the schema file are to be loaded.
+   * @param schemaFile
+   *          The name of the schema file to be loaded into the provided schema.
+   * @return A list of the modifications that could be performed in order to obtain the contents of
+   *         the file.
+   * @throws ConfigException
+   *           If a configuration problem causes the schema element initialization to fail.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the schema elements that is not related to the
+   *           server configuration.
+   */
+  public static List<Modification> loadSchemaFileReturnModifications(Schema schema, String schemaFile)
+      throws ConfigException, InitializationException
+  {
+    final Entry entry = loadSchemaFile(schema, schemaFile, true);
+    if (entry != null)
+    {
+      return createAddModifications(entry,
+          CoreSchema.getLDAPSyntaxesAttributeType(),
+          CoreSchema.getAttributeTypesAttributeType(),
+          CoreSchema.getObjectClassesAttributeType(),
+          CoreSchema.getNameFormsAttributeType(),
+          CoreSchema.getDITContentRulesAttributeType(),
+          CoreSchema.getDITStructureRulesAttributeType(),
+          CoreSchema.getMatchingRuleUseAttributeType());
+    }
+    return Collections.emptyList();
   }
 
   /**
@@ -325,20 +354,63 @@ public class SchemaConfigManager
    *                      log an error message and return without an exception.
    *                      This should only be {@code false} when called from
    *                      {@code initializeSchemaFromFiles}.
-   *
-   * @return  A list of the modifications that could be performed in order to
-   *          obtain the contents of the file, or {@code null} if a problem
-   *          occurred and {@code failOnError} is {@code false}.
-   *
+   * @return the schema entry that has been read from the schema file
    * @throws  ConfigException  If a configuration problem causes the schema
    *                           element initialization to fail.
-   *
    * @throws  InitializationException  If a problem occurs while initializing
    *                                   the schema elements that is not related
    *                                   to the server configuration.
    */
-  private static List<Modification> loadSchemaFile(Schema schema, String schemaFile,
-      boolean failOnError) throws ConfigException, InitializationException
+  private static Entry loadSchemaFile(Schema schema, String schemaFile, boolean failOnError)
+      throws ConfigException, InitializationException
+  {
+    final Entry entry = readSchemaEntryFromFile(schemaFile, failOnError);
+    if (entry != null)
+    {
+      List<Attribute> ldapSyntaxList = entry.getAttribute(CoreSchema.getLDAPSyntaxesAttributeType());
+      parseLdapSyntaxesDefinitions(schema, schemaFile, failOnError, ldapSyntaxList);
+
+      updateSchemaWithEntry(schema, schemaFile, failOnError, entry);
+    }
+    return entry;
+  }
+
+  private static void updateSchemaWithEntry(Schema schema, String schemaFile, boolean failOnError, final Entry entry)
+      throws ConfigException
+  {
+    final org.forgerock.opendj.ldap.Entry schemaEntry = Converters.from(entry);
+    try
+    {
+      updateSchema(schema, schemaEntry, false);
+    }
+    catch (DirectoryException e)
+    {
+      if (e.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
+      {
+        // Register it with the schema. We will allow duplicates, with the
+        // later definition overriding any earlier definition, but we want
+        // to trap them and log a warning.
+        logger.warn(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE, schemaFile, e.getMessageObject());
+        try
+        {
+          updateSchema(schema, schemaEntry, true);
+        }
+        catch (DirectoryException e2)
+        {
+          // This should never happen
+          logger.traceException(e2);
+        }
+      }
+      else
+      {
+        reportError(failOnError, e,
+            WARN_CONFIG_SCHEMA_CANNOT_PARSE_DEFINITIONS_IN_SCHEMA_FILE.get(schemaFile, e.getMessageObject()));
+      }
+    }
+  }
+
+  private static Entry readSchemaEntryFromFile(String schemaFile, boolean failOnError)
+      throws ConfigException, InitializationException
   {
     // Create an LDIF reader to use when reading the files.
     String schemaDirPath = getSchemaDirectoryPath();
@@ -359,15 +431,12 @@ public class SchemaConfigManager
       {
         throw new ConfigException(message);
       }
-      else
-      {
-        logger.error(message);
-        return null;
-      }
+      logger.error(message);
+      return null;
     }
 
     // Read the LDIF entry from the file and close the file.
-    Entry entry;
+    final Entry entry;
     try
     {
       entry = reader.readEntry(false);
@@ -376,7 +445,7 @@ public class SchemaConfigManager
       {
         // The file was empty -- skip it.
         reader.close();
-        return new LinkedList<>();
+        return null;
       }
     }
     catch (Exception e)
@@ -390,12 +459,9 @@ public class SchemaConfigManager
       {
         throw new InitializationException(message, e);
       }
-      else
-      {
-        logger.error(message);
-        StaticUtils.close(reader);
-        return null;
-      }
+      logger.error(message);
+      StaticUtils.close(reader);
+      return null;
     }
 
     // If there are any more entries in the file, then print a warning message.
@@ -417,145 +483,34 @@ public class SchemaConfigManager
     {
       StaticUtils.close(reader);
     }
+    return entry;
+  }
 
-    // Get the attributeTypes attribute from the entry.
-    List<Modification> mods = new LinkedList<>();
-
-    //parse the syntaxes first because attributes rely on these.
-    List<Attribute> ldapSyntaxList = getLdapSyntaxesAttributes(schema, entry, mods);
-    List<Attribute> attrList = getAttributeTypeAttributes(schema, entry, mods);
-    List<Attribute> ocList = getObjectClassesAttributes(schema, entry, mods);
-    List<Attribute> nfList = getNameFormsAttributes(schema, entry, mods);
-    List<Attribute> dcrList = getDITContentRulesAttributes(schema, entry, mods);
-    List<Attribute> dsrList = getDITStructureRulesAttributes(schema, entry, mods);
-    List<Attribute> mruList = getMatchingRuleUsesAttributes(schema, entry, mods);
-
-    // Loop on all the attribute of the schema entry to
-    // find the extra attribute that should be loaded in the Schema.
-    for (Attribute attribute : entry.getAttributes())
+  private static void updateSchema(Schema schema, final org.forgerock.opendj.ldap.Entry schemaEntry,
+      final boolean overwrite) throws DirectoryException
+  {
+    schema.updateSchema(new SchemaUpdater()
     {
-      if (!isSchemaAttribute(attribute))
+      @Override
+      public org.forgerock.opendj.ldap.schema.Schema update(SchemaBuilder builder)
       {
-        schema.addExtraAttribute(attribute.getAttributeDescription().getNameOrOID(), attribute);
+        return builder.addSchema(schemaEntry, overwrite).toSchema();
+      }
+    });
+  }
+
+  private static List<Modification> createAddModifications(Entry entry,  AttributeType... attrTypes)
+  {
+    int nbMods = entry.getUserAttributes().size() + entry.getOperationalAttributes().size();
+    List<Modification> mods = new ArrayList<>(nbMods);
+    for (AttributeType attrType : attrTypes)
+    {
+      for (Attribute a : entry.getAttribute(attrType))
+      {
+        mods.add(new Modification(ModificationType.ADD, a));
       }
     }
-
-    parseLdapSyntaxesDefinitions(schema, schemaFile, failOnError, ldapSyntaxList);
-    parseAttributeTypeDefinitions(schema, schemaFile, failOnError, attrList);
-    parseObjectclassDefinitions(schema, schemaFile, failOnError, ocList);
-    parseNameFormDefinitions(schema, schemaFile, failOnError, nfList);
-    parseDITContentRuleDefinitions(schema, schemaFile, failOnError, dcrList);
-    parseDITStructureRuleDefinitions(schema, schemaFile, failOnError, dsrList);
-    parseMatchingRuleUseDefinitions(schema, schemaFile, failOnError, mruList);
-
     return mods;
-  }
-
-  private static List<Attribute> getLdapSyntaxesAttributes(Schema schema,
-      Entry entry, List<Modification> mods) throws ConfigException
-  {
-    Syntax syntax = schema.getSyntax(SYNTAX_LDAP_SYNTAX_OID);
-    if (syntax == null)
-    {
-      syntax = CoreSchema.getLDAPSyntaxDescriptionSyntax();
-    }
-
-    AttributeType ldapSyntaxAttrType = schema.getAttributeType(ATTR_LDAP_SYNTAXES, syntax);
-    return createAddModifications(entry, mods, ldapSyntaxAttrType);
-  }
-
-  private static List<Attribute> getAttributeTypeAttributes(Schema schema,
-      Entry entry, List<Modification> mods) throws ConfigException,
-      InitializationException
-  {
-    Syntax syntax = schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
-    if (syntax == null)
-    {
-      syntax = CoreSchema.getAttributeTypeDescriptionSyntax();
-    }
-    AttributeType attributeAttrType = schema.getAttributeType(ATTR_ATTRIBUTE_TYPES, syntax);
-    return createAddModifications(entry, mods, attributeAttrType);
-  }
-
-  /** Get the objectClasses attribute from the entry. */
-  private static List<Attribute> getObjectClassesAttributes(Schema schema,
-      Entry entry, List<Modification> mods) throws ConfigException,
-      InitializationException
-  {
-    Syntax syntax = schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
-    if (syntax == null)
-    {
-      syntax = CoreSchema.getObjectClassDescriptionSyntax();
-    }
-    AttributeType objectclassAttrType = schema.getAttributeType(ATTR_OBJECTCLASSES, syntax);
-    return createAddModifications(entry, mods, objectclassAttrType);
-  }
-
-  /** Get the name forms attribute from the entry. */
-  private static List<Attribute> getNameFormsAttributes(Schema schema,
-      Entry entry, List<Modification> mods) throws ConfigException,
-      InitializationException
-  {
-    Syntax syntax = schema.getSyntax(SYNTAX_NAME_FORM_OID);
-    if (syntax == null)
-    {
-      syntax = CoreSchema.getNameFormDescriptionSyntax();
-    }
-    AttributeType nameFormAttrType = schema.getAttributeType(ATTR_NAME_FORMS, syntax);
-    return createAddModifications(entry, mods, nameFormAttrType);
-  }
-
-  /** Get the DIT content rules attribute from the entry. */
-  private static List<Attribute> getDITContentRulesAttributes(Schema schema,
-      Entry entry, List<Modification> mods) throws ConfigException,
-      InitializationException
-  {
-    Syntax syntax = schema.getSyntax(SYNTAX_DIT_CONTENT_RULE_OID);
-    if (syntax == null)
-    {
-      syntax = CoreSchema.getDITContentRuleDescriptionSyntax();
-    }
-    AttributeType dcrAttrType = schema.getAttributeType(ATTR_DIT_CONTENT_RULES, syntax);
-    return createAddModifications(entry, mods, dcrAttrType);
-  }
-
-  /** Get the DIT structure rules attribute from the entry. */
-  private static List<Attribute> getDITStructureRulesAttributes(Schema schema,
-      Entry entry, List<Modification> mods) throws ConfigException,
-      InitializationException
-  {
-    Syntax syntax = schema.getSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID);
-    if (syntax == null)
-    {
-      syntax = CoreSchema.getDITStructureRuleDescriptionSyntax();
-    }
-    AttributeType dsrAttrType = schema.getAttributeType(ATTR_DIT_STRUCTURE_RULES, syntax);
-    return createAddModifications(entry, mods, dsrAttrType);
-  }
-
-  /** Get the matching rule uses attribute from the entry. */
-  private static List<Attribute> getMatchingRuleUsesAttributes(Schema schema,
-      Entry entry, List<Modification> mods) throws ConfigException,
-      InitializationException
-  {
-    Syntax syntax = schema.getSyntax(SYNTAX_MATCHING_RULE_USE_OID);
-    if (syntax == null)
-    {
-      syntax = CoreSchema.getMatchingRuleUseDescriptionSyntax();
-    }
-    AttributeType mruAttrType = schema.getAttributeType(ATTR_MATCHING_RULE_USE, syntax);
-    return createAddModifications(entry, mods, mruAttrType);
-  }
-
-  private static List<Attribute> createAddModifications(Entry entry,
-      List<Modification> mods, AttributeType attrType)
-  {
-    List<Attribute> attributes = entry.getAttribute(attrType);
-    for (Attribute a : attributes)
-    {
-      mods.add(new Modification(ModificationType.ADD, a));
-    }
-    return attributes;
   }
 
   /** Parse the ldapsyntaxes definitions if there are any. */
@@ -603,166 +558,6 @@ public class SchemaConfigManager
     }
   }
 
-  /** Parse the attribute type definitions if there are any. */
-  private static void parseAttributeTypeDefinitions(
-      Schema schema, String schemaFile, boolean failOnError, List<Attribute> attrList)
-          throws ConfigException
-  {
-    List<String> definitions = toStrings(attrList);
-    try
-    {
-      schema.registerAttributeTypes(definitions, schemaFile, !failOnError);
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
-      {
-        // Register it with the schema. We will allow duplicates, with the
-        // later definition overriding any earlier definition, but we want
-        // to trap them and log a warning.
-        logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_ATTR_TYPE, schemaFile, de.getMessageObject());
-        try
-        {
-          schema.registerAttributeTypes(definitions, schemaFile, true);
-        }
-        catch (DirectoryException e)
-        {
-          // This should never happen
-          logger.traceException(e);
-        }
-      }
-      else
-      {
-        LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(schemaFile, de.getMessageObject());
-        reportError(failOnError, de, message);
-      }
-    }
-  }
-
-  /** Parse the objectclass definitions if there are any. */
-  private static void parseObjectclassDefinitions(Schema schema,
-      String schemaFile, boolean failOnError, List<Attribute> ocList)
-      throws ConfigException
-  {
-    List<String> definitions = toStrings(ocList);
-    try
-    {
-      schema.registerObjectClasses(definitions, schemaFile, !failOnError);
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
-      {
-        // Register it with the schema. We will allow duplicates, with the
-        // later definition overriding any earlier definition, but we want
-        // to trap them and log a warning.
-        logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_OC, schemaFile, de.getMessageObject());
-        try
-        {
-          schema.registerObjectClasses(definitions, schemaFile, true);
-        }
-        catch (DirectoryException e)
-        {
-          // This should never happen
-          logger.traceException(e);
-        }
-      }
-      else
-      {
-        LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(schemaFile, de.getMessageObject());
-        reportError(failOnError, de, message);
-      }
-    }
-  }
-
-  private static List<String> toStrings(List<Attribute> attributes)
-  {
-    List<String> results = new ArrayList<>();
-    for (Attribute attr : attributes)
-    {
-      for (ByteString v : attr)
-      {
-        results.add(v.toString());
-      }
-    }
-    return results;
-  }
-
-  /** Parse the name form definitions if there are any. */
-  private static void parseNameFormDefinitions(Schema schema,
-      String schemaFile, boolean failOnError, List<Attribute> nfList)
-      throws ConfigException
-  {
-    for (Attribute a : nfList)
-    {
-      for (ByteString v : a)
-      {
-        // Register it with the schema. We will allow duplicates, with the
-        // later definition overriding any earlier definition, but we want
-        // to trap them and log a warning.
-        String definition = v.toString();
-        try
-        {
-          schema.registerNameForm(definition, schemaFile, failOnError);
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_NAME_FORM, schemaFile, de.getMessageObject());
-
-          try
-          {
-            schema.registerNameForm(definition, schemaFile, true);
-          }
-          catch (Exception e)
-          {
-            // This should never happen.
-            logger.traceException(e);
-          }
-        }
-      }
-    }
-  }
-
-  /** Parse the DIT content rule definitions if there are any. */
-  private static void parseDITContentRuleDefinitions(Schema schema,
-      String schemaFile, boolean failOnError, List<Attribute> dcrList)
-      throws ConfigException
-  {
-    for (Attribute a : dcrList)
-    {
-      for (ByteString v : a)
-      {
-        final String definition = v.toString();
-        try
-        {
-          schema.registerDITContentRule(definition, schemaFile, failOnError);
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DCR, schemaFile, de.getMessageObject());
-
-          try
-          {
-            schema.registerDITContentRule(definition, schemaFile, true);
-          }
-          catch (Exception e)
-          {
-            // This should never happen.
-            logger.traceException(e);
-          }
-        }
-      }
-    }
-  }
-
   private static void reportError(boolean failOnError, Exception e,
       LocalizableMessage message) throws ConfigException
   {
@@ -771,80 +566,6 @@ public class SchemaConfigManager
       throw new ConfigException(message, e);
     }
     logger.error(message);
-  }
-
-  /** Parse the DIT structure rule definitions if there are any. */
-  private static void parseDITStructureRuleDefinitions(Schema schema,
-      String schemaFile, boolean failOnError, List<Attribute> dsrList)
-      throws ConfigException
-  {
-    for (Attribute a : dsrList)
-    {
-      for (ByteString v : a)
-      {
-        // Register it with the schema. We will allow duplicates, with the
-        // later definition overriding any earlier definition, but we want
-        // to trap them and log a warning.
-        String definition = v.toString();
-        try
-        {
-          schema.registerDITStructureRule(definition, schemaFile, failOnError);
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_DSR, schemaFile, de.getMessageObject());
-
-          try
-          {
-            schema.registerDITStructureRule(definition, schemaFile, true);
-          }
-          catch (Exception e)
-          {
-            // This should never happen.
-            logger.traceException(e);
-          }
-        }
-      }
-    }
-  }
-
-  /** Parse the matching rule use definitions if there are any. */
-  private static void parseMatchingRuleUseDefinitions(Schema schema,
-      String schemaFile, boolean failOnError, List<Attribute> mruList)
-      throws ConfigException
-  {
-    for (Attribute a : mruList)
-    {
-      for (ByteString v : a)
-      {
-        // Register it with the schema. We will allow duplicates, with the
-        // later definition overriding any earlier definition, but we want
-        // to trap them and log a warning.
-        String definition = v.toString();
-        try
-        {
-          schema.registerMatchingRuleUse(definition, schemaFile, failOnError);
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_MRU, schemaFile, de.getMessageObject());
-
-          try
-          {
-            schema.registerMatchingRuleUse(definition, schemaFile, true);
-          }
-          catch (Exception e)
-          {
-            // This should never happen.
-            logger.traceException(e);
-          }
-        }
-      }
-    }
   }
 
   /**
