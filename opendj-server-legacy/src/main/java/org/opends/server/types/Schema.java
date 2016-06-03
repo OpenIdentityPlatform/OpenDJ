@@ -16,6 +16,7 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.opends.messages.BackendMessages.*;
@@ -1058,13 +1059,11 @@ public final class Schema
     return schemaNG.getMatchingRule(nameOrOid);
   }
 
-
-
   /**
-   * Registers the provided matching rule definition with this schema.
+   * Registers the provided matching rule definitions with this schema.
    *
-   * @param matchingRule
-   *          The matching rule to register with this schema.
+   * @param matchingRules
+   *          The matching rules to register with this schema.
    * @param overwriteExisting
    *          Indicates whether to overwrite an existing mapping if there are
    *          any conflicts (i.e., another matching rule with the same OID or
@@ -1073,40 +1072,30 @@ public final class Schema
    *           If a conflict is encountered and the
    *           {@code overwriteExisting} flag is set to {@code false}
    */
-  public void registerMatchingRule(final MatchingRule matchingRule, final boolean overwriteExisting)
-         throws DirectoryException
+  public void registerMatchingRules(Collection<MatchingRule> matchingRules, boolean overwriteExisting)
+      throws DirectoryException
   {
     exclusiveLock.lock();
     try
     {
       if (!overwriteExisting)
       {
-        // check all names of the matching rules because it is not checked by SDK schema
-        for (String name : matchingRule.getNames())
-        {
-          if (schemaNG.hasMatchingRule(name))
-          {
-            Collection<MatchingRule> conflictingRules = schemaNG.getMatchingRulesWithName(name);
-            // there should be only one
-            MatchingRule conflictingRule = conflictingRules.iterator().next();
-
-            LocalizableMessage message =
-                ERR_SCHEMA_CONFLICTING_MR_NAME.get(matchingRule.getOID(), name, conflictingRule.getOID());
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-          }
-        }
+        // Not checked by SDK schema
+        checkNoConflictingMatchingRuleNames(matchingRules);
       }
 
-      // now register the matching rule
       SchemaBuilder builder = new SchemaBuilder(schemaNG);
-      MatchingRule.Builder b = builder.buildMatchingRule(matchingRule);
-      if (overwriteExisting)
+      for (MatchingRule matchingRule : matchingRules)
       {
-        b.addToSchemaOverwrite();
-      }
-      else
-      {
-        b.addToSchema();
+        MatchingRule.Builder b = builder.buildMatchingRule(matchingRule);
+        if (overwriteExisting)
+        {
+          b.addToSchemaOverwrite();
+        }
+        else
+        {
+          b.addToSchema();
+        }
       }
       switchSchema(builder.toSchema());
     }
@@ -1118,6 +1107,36 @@ public final class Schema
     {
       exclusiveLock.unlock();
     }
+  }
+
+  private void checkNoConflictingMatchingRuleNames(Collection<MatchingRule> matchingRules) throws DirectoryException
+  {
+    final Map<String, MatchingRule> rules = new HashMap<>();
+    for (MatchingRule matchingRule : matchingRules)
+    {
+      for (String name : matchingRule.getNames())
+      {
+        if (schemaNG.hasMatchingRule(name))
+        {
+          // there should be only one
+          MatchingRule conflictingRule = schemaNG.getMatchingRulesWithName(name).iterator().next();
+          throw conflictingMatchingRuleName(name, matchingRule, conflictingRule);
+        }
+        MatchingRule conflictingRule = rules.get(name);
+        if (conflictingRule != null)
+        {
+          throw conflictingMatchingRuleName(name, matchingRule, conflictingRule);
+        }
+        rules.put(name, matchingRule);
+      }
+    }
+  }
+
+  private DirectoryException conflictingMatchingRuleName(
+      String name, MatchingRule matchingRule, MatchingRule conflictingRule)
+  {
+    return new DirectoryException(CONSTRAINT_VIOLATION,
+        ERR_SCHEMA_CONFLICTING_MR_NAME.get(matchingRule.getOID(), name, conflictingRule.getOID()));
   }
 
   /**

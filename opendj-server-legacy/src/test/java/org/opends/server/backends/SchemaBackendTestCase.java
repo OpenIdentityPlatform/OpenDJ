@@ -846,8 +846,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testAddAttributeTypeObsoleteEMR() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testAddATObsoleteEMRMatch", "1.3.6.1.4.1.26027.1.999.20", true);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testAddATObsoleteEMRMatch", "1.3.6.1.4.1.26027.1.999.20", true);
 
     try
     {
@@ -1189,8 +1189,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testRemoveAttributeTypeReferencedByMRU() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testRemoveATRefByMRUMatch", "1.3.6.1.4.1.26027.1.999.17", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testRemoveATRefByMRUMatch", "1.3.6.1.4.1.26027.1.999.17", false);
 
     try
     {
@@ -3695,8 +3695,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testAddMatchingRuleUseSuccessful() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testAddMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.10", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testAddMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.10", false);
 
     try
     {
@@ -3730,8 +3730,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testAddMatchingRuleUseToAltSchemaFile() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testAddMRUToAltSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.18", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testAddMRUToAltSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.18", false);
 
     try
     {
@@ -3775,8 +3775,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testReplaceMatchingRuleUseSuccessful() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testReplaceMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.11", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testReplaceMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.11", false);
 
     try
     {
@@ -3817,8 +3817,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testRemoveAndAddMatchingRuleUse() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testRemoveAndAddMRUMatch", "1.3.6.1.4.1.26027.1.999.12", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testRemoveAndAddMRUMatch", "1.3.6.1.4.1.26027.1.999.12", false);
 
     try
     {
@@ -3865,8 +3865,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testAddMatchingRuleUseMRConflict() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testAddMRUMRConflictMatch", "1.3.6.1.4.1.26027.1.999.14", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testAddMRUMRConflictMatch", "1.3.6.1.4.1.26027.1.999.14", false);
 
     try
     {
@@ -3935,8 +3935,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testAddMatchingRuleUseAttributeTypeUndefined() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testAddMRUATUndefinedMatch", "1.3.6.1.4.1.26027.1.999.16", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testAddMRUATUndefinedMatch", "1.3.6.1.4.1.26027.1.999.16", false);
 
     try
     {
@@ -3969,8 +3969,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseAttributeTypeMultipleUndefined() throws Exception
   {
     MatchingRule matchingRule =
-        getMatchingRule("testAddMRUATMultipleUndefinedMatch", "1.3.6.1.4.1.26027.1.999.19", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+        registerNewMatchingRule("testAddMRUATMultipleUndefinedMatch", "1.3.6.1.4.1.26027.1.999.19", false);
 
     try
     {
@@ -4010,8 +4009,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testAddMatchingRuleUseObsoleteMatchingRule() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteMRMatch", "1.3.6.1.4.1.26027.1.999.21", true);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testAddMRUObsoleteMRMatch", "1.3.6.1.4.1.26027.1.999.21", true);
 
     try
     {
@@ -4042,8 +4041,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testAddMatchingRuleUseObsoleteAttributeType() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteATMatch", "1.3.6.1.4.1.26027.1.999.22", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testAddMRUObsoleteATMatch", "1.3.6.1.4.1.26027.1.999.22", false);
 
     try
     {
@@ -4069,6 +4068,13 @@ public class SchemaBackendTestCase extends BackendTestCase
       deregisterAttributeType("testaddmruobsoleteat-oid");
       deregisterMatchingRule(matchingRule);
     }
+  }
+
+  private MatchingRule registerNewMatchingRule(String name, String oid, boolean obsolete) throws DirectoryException
+  {
+    MatchingRule matchingRule = getMatchingRule(name, oid, obsolete);
+    DirectoryServer.getSchema().registerMatchingRules(Arrays.asList(matchingRule), false);
+    return matchingRule;
   }
 
   private void runModify(String[] args, String ldifContent, ResultCode expectedRC)
@@ -4111,8 +4117,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   @Test
   public void testRemoveMatchingRuleUseSuccessful() throws Exception
   {
-    MatchingRule matchingRule = getMatchingRule("testRemoveMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.13", false);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    MatchingRule matchingRule =
+        registerNewMatchingRule("testRemoveMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.13", false);
 
     try
     {

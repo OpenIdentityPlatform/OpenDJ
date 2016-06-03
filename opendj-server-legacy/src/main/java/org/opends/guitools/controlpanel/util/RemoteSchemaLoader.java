@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -145,7 +146,7 @@ public class RemoteSchemaLoader extends SchemaLoader
                                                                 .implementation(impl)
                                                                 .addToSchema().toSchema().getMatchingRule(oid);
     }
-    schema.registerMatchingRule(matchingRule, true);
+    schema.registerMatchingRules(Arrays.asList(matchingRule), true);
   }
 
   private void registerSchemaAttr(final CustomSearchResult csr, final String schemaAttr) throws DirectoryException

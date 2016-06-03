@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.DN;
@@ -80,7 +81,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
         .addToSchema()
         .toSchema()
         .getMatchingRule(oid);
-    DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
+    DirectoryServer.getSchema().registerMatchingRules(Arrays.asList(matchingRule), false);
     matchingRulesToRemove.add(matchingRule);
   }
 

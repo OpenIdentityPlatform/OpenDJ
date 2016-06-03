@@ -186,10 +186,7 @@ public class MatchingRuleConfigManager
       throws InitializationException, DirectoryException
   {
     MatchingRuleFactory<?> factory = loadMatchingRuleFactory(className, configuration, true);
-    for (MatchingRule matchingRule: factory.getMatchingRules())
-    {
-      DirectoryServer.getSchema().registerMatchingRule(matchingRule, false);
-    }
+    DirectoryServer.getSchema().registerMatchingRules(factory.getMatchingRules(), false);
     matchingRuleFactories.put(configuration.dn(),factory);
   }
 
