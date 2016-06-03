@@ -73,6 +73,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
+import org.opends.guitools.controlpanel.datamodel.SomeSchemaElement;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedEvent;
 import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
@@ -98,7 +99,6 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.types.Schema;
 
 /** The pane that is displayed when the user clicks on 'Browse Schema'. */

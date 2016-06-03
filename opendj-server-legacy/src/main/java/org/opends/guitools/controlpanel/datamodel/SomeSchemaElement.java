@@ -13,7 +13,7 @@
  *
  * Copyright 2015-2016 ForgeRock AS.
  */
-package org.opends.server.schema;
+package org.opends.guitools.controlpanel.datamodel;
 
 import static org.opends.server.util.ServerConstants.*;
 
@@ -28,6 +28,7 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.ServerContext;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 
 /**

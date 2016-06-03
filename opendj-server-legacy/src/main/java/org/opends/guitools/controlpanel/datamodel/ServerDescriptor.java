@@ -31,7 +31,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.quicksetup.UserData;
-import org.opends.server.schema.SomeSchemaElement;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Schema;
 
