@@ -219,7 +219,7 @@
 				// This value is only used in gateway mode.
 				// This attribute must reference a connection factory defined in the "ldapConnectionFactories" section.
 				// Default value: "root" (i.e the root connection factory will be used to access the CTS).
-				"ldapConnectionFactory": "cts",
+				"ldapConnectionFactory": "root",
 
                 // The access token base DN.
                 // This attribute is required and must have a string syntax.
