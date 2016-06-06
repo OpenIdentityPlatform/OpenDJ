@@ -200,7 +200,7 @@
             "rfc7662": {
                 // Defines the token introspection endpoint URL where the request should be sent.
                 // This attribute is required and must have a string syntax.
-                "endpointURL": "http:/example.com/introspect",
+                "endpointURL": "http://openam.example.com:8080/openam/oauth2/myrealm/introspect",
 
 				// Token introspect endpoint requires authentication.
 				// It should support HTTP basic authorization (a base64-encoded string of clientId:clientSecret)

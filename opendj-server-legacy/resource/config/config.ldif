@@ -456,7 +456,7 @@ objectClass: ds-cfg-http-oauth2-token-introspection-authorization-mechanism
 cn: HTTP OAuth2 Token Introspection (RFC7662)
 ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2TokenIntrospectionAuthorizationMechanism
 ds-cfg-enabled: false
-ds-cfg-oauth2-token-introspection-url: http://openam.example.com:8080/oauth2/myrealm/introspect
+ds-cfg-oauth2-token-introspection-url: http://openam.example.com:8080/openam/oauth2/myrealm/introspect
 ds-cfg-oauth2-token-introspection-client-id: directoryserver 
 ds-cfg-oauth2-token-introspection-client-secret: secret
 ds-cfg-oauth2-authzid-json-pointer: sub
