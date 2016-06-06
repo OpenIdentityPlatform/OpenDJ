@@ -35,7 +35,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -43,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -98,13 +96,6 @@ public final class Schema
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The set of ldap syntax descriptions for this schema, mapped the OID and the
-   * ldap syntax description itself.
-   */
-  private ConcurrentHashMap<String,LDAPSyntaxDescription>
-          ldapSyntaxDescriptions;
-
   /** The oldest modification timestamp for any schema configuration file. */
   private long oldestModificationTime;
   /** The youngest modification timestamp for any schema configuration file. */
@@ -145,8 +136,6 @@ public final class Schema
         .setOption(DEFAULT_SYNTAX_OID, getDirectoryStringSyntax().getOID())
         .toSchema();
     switchSchema(newSchemaNG);
-
-    ldapSyntaxDescriptions = new ConcurrentHashMap<String,LDAPSyntaxDescription>();
 
     oldestModificationTime    = System.currentTimeMillis();
     youngestModificationTime  = oldestModificationTime;
@@ -869,7 +858,19 @@ public final class Schema
     }
   }
 
-  private void registerSyntax(final String definition, final boolean overwriteExisting) throws DirectoryException
+  /**
+   * Registers the provided syntax definition with this schema.
+   *
+   * @param definition
+   *          The definition to register with this schema.
+   * @param overwriteExisting
+   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
+   *          another attribute syntax with the same OID).
+   * @throws DirectoryException
+   *           If a conflict is encountered and the <CODE>overwriteExisting</CODE> flag is set to
+   *           {@code false}
+   */
+  public void registerSyntax(final String definition, final boolean overwriteExisting) throws DirectoryException
   {
     exclusiveLock.lock();
     try
@@ -917,107 +918,6 @@ public final class Schema
     }
   }
 
-
-
-  /**
-   * Retrieves the ldap syntax definitions for this schema.
-   *
-   * @return The ldap syntax definitions for this schema.
-   */
-  public Collection<LDAPSyntaxDescription> getLdapSyntaxDescriptions()
-  {
-    return Collections.unmodifiableCollection(ldapSyntaxDescriptions.values());
-  }
-
-  /**
-   * Retrieves the ldap syntax definition with the OID.
-   *
-   * @param nameOrOid
-   *          The OID of the ldap syntax to retrieve.
-   * @return The requested ldap syntax, or {@code null} if no syntax is registered with the provided
-   *         OID.
-   */
-  public LDAPSyntaxDescription getLdapSyntaxDescription(String nameOrOid)
-  {
-    return ldapSyntaxDescriptions.get(nameOrOid);
-  }
-
-  /**
-   * Registers the provided ldap syntax description with this schema.
-   *
-   * @param definition
-   *          The ldap syntax definition to register with this schema.
-   * @param overwriteExisting
-   *          Indicates whether to overwrite an existing mapping if there are any conflicts (i.e.,
-   *          another ldap syntax with the same OID).
-   * @throws DirectoryException
-   *           If a conflict is encountered and <CODE>overwriteExisting</CODE> flag is set to
-   *           {@code false}
-   */
-  public void registerLdapSyntaxDescription(String definition, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    /**
-     * ldapsyntaxes is part real and part virtual. For any
-     * ldapsyntaxes attribute this is real, an LDAPSyntaxDescription
-     * object is created and stored with the schema. Also, the
-     * associated LDAPSyntaxDescriptionSyntax is added into the
-     * virtual syntax set to make this available through virtual
-     * ldapsyntaxes attribute.
-     */
-    exclusiveLock.lock();
-    try
-    {
-      String oid = parseAttributeTypeOID(definition);
-      if (! overwriteExisting && ldapSyntaxDescriptions.containsKey(oid))
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_LDAP_SYNTAX.get(oid));
-      }
-
-      // Register the syntax with the schema.
-      // It will ensure syntax is available along with the other virtual values for ldapsyntaxes.
-      registerSyntax(definition, overwriteExisting);
-
-      Syntax syntax = schemaNG.getSyntax(oid);
-      LDAPSyntaxDescription syntaxDesc = new LDAPSyntaxDescription(definition, oid, syntax.getExtraProperties());
-      ldapSyntaxDescriptions.put(oid, syntaxDesc);
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
-
-
-  /**
-   * Deregisters the provided ldap syntax description with this schema.
-   *
-   * @param syntaxDesc
-   *          The ldap syntax to deregister with this schema.
-   * @throws DirectoryException
-   *           If the LDAP syntax is referenced by another schema element.
-   */
-  public void deregisterLdapSyntaxDescription(LDAPSyntaxDescription syntaxDesc) throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      // Remove the real value.
-      ldapSyntaxDescriptions.remove(toLowerCase(syntaxDesc.getOID()), syntaxDesc);
-
-      // Get rid of this from the virtual ldapsyntaxes.
-      deregisterSyntax(getSyntax(syntaxDesc.getOID()));
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
-
-
   /**
    * Retrieves all matching rule definitions for this schema.
    *
@@ -1027,8 +927,6 @@ public final class Schema
   {
     return schemaNG.getMatchingRules();
   }
-
-
 
   /**
    * Indicates whether this schema definition includes a matching rule with the provided name or
@@ -1674,7 +1572,6 @@ public final class Schema
       throw new RuntimeException(unexpected);
     }
 
-    dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
     dupSchema.oldestModificationTime   = oldestModificationTime;
     dupSchema.youngestModificationTime = youngestModificationTime;
     if (extraAttributes != null)
@@ -2106,12 +2003,6 @@ public final class Schema
     {
       extraAttributes.clear();
       extraAttributes = null;
-    }
-
-    if(ldapSyntaxDescriptions != null)
-    {
-      ldapSyntaxDescriptions.clear();
-      ldapSyntaxDescriptions = null;
     }
   }
 

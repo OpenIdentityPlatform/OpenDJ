@@ -69,6 +69,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
@@ -94,7 +95,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDAPSyntaxDescription;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
@@ -316,8 +316,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Set<String> newDCRs = new LinkedHashSet<>();
       Set<String> newDSRs = new LinkedHashSet<>();
       Set<String> newMRUs = new LinkedHashSet<>();
-      Set<String> newLSDs = new LinkedHashSet<>();
-      Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs, newMRUs,newLSDs);
+      Set<String> newLSs = new LinkedHashSet<>();
+      Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs, newMRUs, newLSs);
 
       // Next, generate lists of elements from the previous concatenated schema.
       // If there isn't a previous concatenated schema, then use the base
@@ -365,9 +365,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Set<String> oldDCRs = new LinkedHashSet<>();
       Set<String> oldDSRs = new LinkedHashSet<>();
       Set<String> oldMRUs = new LinkedHashSet<>();
-      Set<String> oldLSDs = new LinkedHashSet<>();
+      Set<String> oldLSs = new LinkedHashSet<>();
       Schema.readConcatenatedSchema(concatFilePath, oldATs, oldOCs, oldNFs,
-                                    oldDCRs, oldDSRs, oldMRUs,oldLSDs);
+                                    oldDCRs, oldDSRs, oldMRUs,oldLSs);
 
       // Create a list of modifications and add any differences between the old
       // and new schema into them.
@@ -378,7 +378,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Schema.compareConcatenatedSchema(oldDCRs, newDCRs, ditContentRulesType, mods);
       Schema.compareConcatenatedSchema(oldDSRs, newDSRs, ditStructureRulesType, mods);
       Schema.compareConcatenatedSchema(oldMRUs, newMRUs, matchingRuleUsesType, mods);
-      Schema.compareConcatenatedSchema(oldLSDs, newLSDs, ldapSyntaxesType, mods);
+      Schema.compareConcatenatedSchema(oldLSs, newLSs, ldapSyntaxesType, mods);
       if (! mods.isEmpty())
       {
         // TODO : Raise an alert notification.
@@ -2118,28 +2118,27 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    LDAPSyntaxDescription existingLSD = schema.getLdapSyntaxDescription(oid);
-    // If there is no existing lsd, then we're adding a new ldapsyntax.
+    Syntax existingLS = schema.getSyntax(oid);
+    // If there is no existing ldapsyntax, then we're adding a new one.
     // Otherwise, we're replacing an existing one.
-    if (existingLSD == null)
+    if (existingLS == null)
     {
       String def = Schema.addSchemaFileToElementDefinitionIfAbsent(definition, FILE_USER_SCHEMA_ELEMENTS);
-      schema.registerLdapSyntaxDescription(def, false);
+      schema.registerSyntax(def, false);
 
-      String schemaFile = getSchemaFile(schema.getLdapSyntaxDescription(oid));
-      modifiedSchemaFiles.add(schemaFile);
+      modifiedSchemaFiles.add(getSchemaFile(schema.getSyntax(oid)));
     }
     else
     {
-      schema.deregisterLdapSyntaxDescription(existingLSD);
+      schema.deregisterSyntax(existingLS);
 
-      String oldSchemaFile = getSchemaFile(existingLSD);
+      String oldSchemaFile = getSchemaFile(existingLS);
       String schemaFile = oldSchemaFile != null && oldSchemaFile.length() > 0 ?
           oldSchemaFile : FILE_USER_SCHEMA_ELEMENTS;
       String def = Schema.addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile);
-      schema.registerLdapSyntaxDescription(def, false);
+      schema.registerSyntax(def, false);
 
-      String newSchemaFile = getSchemaFile(schema.getLdapSyntaxDescription(oid));
+      String newSchemaFile = getSchemaFile(schema.getSyntax(oid));
       addIfNotNull(modifiedSchemaFiles, oldSchemaFile);
       addIfNotNull(modifiedSchemaFiles, newSchemaFile);
     }
@@ -2157,16 +2156,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      */
     String oid = Schema.parseOID(definition, ERR_PARSING_LDAP_SYNTAX_OID);
 
-    LDAPSyntaxDescription removeLSD = schema.getLdapSyntaxDescription(oid);
-    if (removeLSD == null)
+    Syntax removeLS = schema.getSyntax(oid);
+    if (removeLS == null)
     {
       LocalizableMessage message =
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_LSD.get(oid);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    schema.deregisterLdapSyntaxDescription(removeLSD);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeLSD));
+    schema.deregisterSyntax(removeLS);
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeLS));
   }
 
   /**
@@ -2223,7 +2222,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * this only for the real part of the ldapsyntaxes attribute. The real part
      * is read and write to/from the schema files.
      */
-    Set<ByteString> values = getValuesForSchemaFile(schema.getLdapSyntaxDescriptions(), schemaFile);
+    Set<ByteString> values = getValuesForSchemaFile(getCustomSyntaxes(schema), schemaFile);
     addAttribute(schemaEntry, ldapSyntaxesType, values);
 
     // Add all of the appropriate attribute types to the schema entry.  We need
@@ -2281,6 +2280,35 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     return tempFile;
+  }
+
+  /**
+   * Returns custom syntaxes defined by OpenDJ configuration or by users.
+   * <p>
+   * These are non-standard syntaxes.
+   *
+   * @param schema
+   *          the schema where to extract custom syntaxes from
+   * @return custom, non-standard syntaxes
+   */
+  private Collection<Syntax> getCustomSyntaxes(Schema schema)
+  {
+    List<Syntax> results = new ArrayList<>();
+    for (Syntax syntax : schema.getSyntaxes())
+    {
+      for (String propertyName : syntax.getExtraProperties().keySet())
+      {
+        if ("x-subst".equalsIgnoreCase(propertyName)
+            || "x-pattern".equalsIgnoreCase(propertyName)
+            || "x-enum".equalsIgnoreCase(propertyName)
+            || "x-schema-file".equalsIgnoreCase(propertyName))
+        {
+          results.add(syntax);
+          break;
+        }
+      }
+    }
+    return results;
   }
 
   private Set<ByteString> getValuesForSchemaFile(Collection<? extends SchemaElement> schemaElements, String schemaFile)

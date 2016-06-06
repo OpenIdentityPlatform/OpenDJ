@@ -27,7 +27,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -367,9 +366,6 @@ public class SchemaConfigManager
     final Entry entry = readSchemaEntryFromFile(schemaFile, failOnError);
     if (entry != null)
     {
-      List<Attribute> ldapSyntaxList = entry.getAttribute(CoreSchema.getLDAPSyntaxesAttributeType());
-      parseLdapSyntaxesDefinitions(schema, schemaFile, failOnError, ldapSyntaxList);
-
       updateSchemaWithEntry(schema, schemaFile, failOnError, entry);
     }
     return entry;
@@ -511,51 +507,6 @@ public class SchemaConfigManager
       }
     }
     return mods;
-  }
-
-  /** Parse the ldapsyntaxes definitions if there are any. */
-  private static void parseLdapSyntaxesDefinitions(Schema schema,
-      String schemaFile, boolean failOnError, List<Attribute> ldapSyntaxList)
-      throws ConfigException
-  {
-    for (Attribute a : ldapSyntaxList)
-    {
-      for (ByteString v : a)
-      {
-        final String definition = Schema.addSchemaFileToElementDefinitionIfAbsent(v.toString(), schemaFile);
-        try
-        {
-          schema.registerLdapSyntaxDescription(definition, failOnError);
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          if (de.getResultCode().equals(ResultCode.CONSTRAINT_VIOLATION))
-          {
-            // Register it with the schema.  We will allow duplicates, with the
-            // later definition overriding any earlier definition, but we want
-            // to trap them and log a warning.
-            logger.warn(WARN_CONFIG_SCHEMA_CONFLICTING_LDAP_SYNTAX, schemaFile, de.getMessageObject());
-            try
-            {
-              schema.registerLdapSyntaxDescription(definition, true);
-            }
-            catch (Exception e)
-            {
-              // This should never happen.
-              logger.traceException(e);
-            }
-          }
-          else
-          {
-            LocalizableMessage message =
-                WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(schemaFile, de.getMessageObject());
-            reportError(failOnError, de, message);
-          }
-        }
-      }
-    }
   }
 
   private static void reportError(boolean failOnError, Exception e,

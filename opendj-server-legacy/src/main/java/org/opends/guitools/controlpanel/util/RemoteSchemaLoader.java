@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.forgerock.opendj.ldap.schema.Schema.*;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,9 +61,10 @@ public class RemoteSchemaLoader extends SchemaLoader
   {
     matchingRulesToKeep.clear();
     syntaxesToKeep.clear();
-    matchingRulesToKeep.addAll(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema().getMatchingRules());
-    syntaxesToKeep.addAll(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema().getSyntaxes());
+    matchingRulesToKeep.addAll(getCoreSchema().getMatchingRules());
+    syntaxesToKeep.addAll(getCoreSchema().getSyntaxes());
   }
+
   /**
    * Reads the schema.
    *
@@ -154,7 +157,7 @@ public class RemoteSchemaLoader extends SchemaLoader
     final Set<Object> remainingAttrs = new HashSet<>(csr.getAttributeValues(schemaAttr));
     if (schemaAttr.equals(ConfigConstants.ATTR_LDAP_SYNTAXES_LC))
     {
-      registerSchemaLdapSyntaxDefinitions(remainingAttrs);
+      registerSyntaxDefinitions(remainingAttrs);
       return;
     }
 
@@ -164,17 +167,16 @@ public class RemoteSchemaLoader extends SchemaLoader
       final Set<Object> registered = new HashSet<>();
       for (final Object definition : remainingAttrs)
       {
-        final ByteStringBuilder sb = new ByteStringBuilder();
-        sb.appendObject(definition);
+        final String definitionStr = toString(definition);
         try
         {
           switch (schemaAttr)
           {
           case ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC:
-            schema.registerAttributeType(sb.toString(), null, true);
+            schema.registerAttributeType(definitionStr, null, true);
             break;
           case ConfigConstants.ATTR_OBJECTCLASSES_LC:
-            schema.registerObjectClass(sb.toString(), null, true);
+            schema.registerObjectClass(definitionStr, null, true);
             break;
           }
           registered.add(definition);
@@ -192,17 +194,16 @@ public class RemoteSchemaLoader extends SchemaLoader
     }
   }
 
-  private void registerSchemaLdapSyntaxDefinitions(Set<Object> remainingAttrs) throws DirectoryException
+  private void registerSyntaxDefinitions(Set<Object> definitions) throws DirectoryException
   {
-    for (final Object definition : remainingAttrs)
+    for (final Object definition : definitions)
     {
-      final ByteStringBuilder sb = new ByteStringBuilder();
-      sb.appendObject(definition);
+      final String definitionStr = toString(definition);
       if (definition.toString().contains(SchemaConstants.OID_OPENDS_SERVER_BASE))
       {
         try
         {
-          schema.registerLdapSyntaxDescription(sb.toString(), true);
+          schema.registerSyntax(definitionStr, true);
         }
         catch (DirectoryException e)
         {
@@ -214,6 +215,11 @@ public class RemoteSchemaLoader extends SchemaLoader
         }
       }
     }
+  }
+
+  private String toString(final Object definition)
+  {
+    return new ByteStringBuilder().appendObject(definition).toString();
   }
 
   /**
