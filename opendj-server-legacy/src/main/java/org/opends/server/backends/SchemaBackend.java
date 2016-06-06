@@ -1213,14 +1213,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // If we've gotten here, then it's OK to remove the attribute type from
-    // the schema.
+    // If we've gotten here, then it's OK to remove the attribute type from the schema.
     schema.deregisterAttributeType(removeType);
-    String schemaFile = getSchemaFile(removeType);
-    if (schemaFile != null)
-    {
-      modifiedSchemaFiles.add(schemaFile);
-    }
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeType));
   }
 
   /**
@@ -1460,14 +1455,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // If we've gotten here, then it's OK to remove the objectclass from the
-    // schema.
+    // If we've gotten here, then it's OK to remove the objectclass from the schema.
     schema.deregisterObjectClass(removeClass);
-    String schemaFile = getSchemaFile(removeClass);
-    if (schemaFile != null)
-    {
-      modifiedSchemaFiles.add(schemaFile);
-    }
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeClass));
   }
 
   /**
@@ -1626,11 +1616,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Now remove the name form from the schema.
     schema.deregisterNameForm(removeNF);
-    String schemaFile = getSchemaFile(removeNF);
-    if (schemaFile != null)
-    {
-      modifiedSchemaFiles.add(schemaFile);
-    }
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeNF));
   }
 
   /**
@@ -1788,11 +1774,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
     schema.deregisterDITContentRule(removeDCR);
-    String schemaFile = getSchemaFile(removeDCR);
-    if (schemaFile != null)
-    {
-      modifiedSchemaFiles.add(schemaFile);
-    }
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeDCR));
   }
 
   /**
@@ -1978,14 +1960,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // If we've gotten here, then it's OK to remove the DIT structure rule from
-    // the schema.
+    // If we've gotten here, then it's OK to remove the DIT structure rule from the schema.
     schema.deregisterDITStructureRule(removeDSR);
-    String schemaFile = getSchemaFile(removeDSR);
-    if (schemaFile != null)
-    {
-      modifiedSchemaFiles.add(schemaFile);
-    }
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeDSR));
   }
 
   /**
@@ -2110,11 +2087,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
     schema.deregisterMatchingRuleUse(removeMRU);
-    String schemaFile = getSchemaFile(removeMRU);
-    if (schemaFile != null)
-    {
-      modifiedSchemaFiles.add(schemaFile);
-    }
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeMRU));
   }
 
   /**
@@ -2167,14 +2140,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       schema.registerLdapSyntaxDescription(def, false);
 
       String newSchemaFile = getSchemaFile(schema.getLdapSyntaxDescription(oid));
-      if (oldSchemaFile != null)
-      {
-        modifiedSchemaFiles.add(oldSchemaFile);
-      }
-      if (newSchemaFile != null)
-      {
-        modifiedSchemaFiles.add(newSchemaFile);
-      }
+      addIfNotNull(modifiedSchemaFiles, oldSchemaFile);
+      addIfNotNull(modifiedSchemaFiles, newSchemaFile);
     }
   }
 
@@ -2199,11 +2166,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     schema.deregisterLdapSyntaxDescription(removeLSD);
-    String schemaFile = getSchemaFile(removeLSD);
-    if (schemaFile != null)
-    {
-      modifiedSchemaFiles.add(schemaFile);
-    }
+    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeLSD));
   }
 
   /**
