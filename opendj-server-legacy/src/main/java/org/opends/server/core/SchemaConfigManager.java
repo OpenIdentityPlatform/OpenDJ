@@ -17,7 +17,10 @@
 package org.opends.server.core;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,22 +30,22 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.opends.server.types.Attribute;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Schema;
 import org.opends.server.types.Schema.SchemaUpdater;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.StaticUtils;
 
+import static org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -371,10 +374,9 @@ public class SchemaConfigManager
     return entry;
   }
 
-  private static void updateSchemaWithEntry(Schema schema, String schemaFile, boolean failOnError, final Entry entry)
-      throws ConfigException
+  private static void updateSchemaWithEntry(Schema schema, String schemaFile, boolean failOnError,
+      final Entry schemaEntry) throws ConfigException
   {
-    final org.forgerock.opendj.ldap.Entry schemaEntry = Converters.from(entry);
     try
     {
       updateSchema(schema, schemaEntry, false);
@@ -411,17 +413,30 @@ public class SchemaConfigManager
     // Create an LDIF reader to use when reading the files.
     String schemaDirPath = getSchemaDirectoryPath();
     File f = new File(schemaDirPath, schemaFile);
-    LDIFReader reader;
-    try
+    try (final FileInputStream in = new FileInputStream(f);
+        final LDIFEntryReader reader = new LDIFEntryReader(in))
     {
-      reader = new LDIFReader(new LDIFImportConfig(f.getAbsolutePath()));
+      reader.setSchemaValidationPolicy(ignoreAll());
+
+      if (!reader.hasNext())
+      {
+        // The file was empty -- skip it.
+        return null;
+      }
+      final Entry entry = reader.readEntry();
+      if (reader.hasNext())
+      {
+        // If there are any more entries in the file, then print a warning message.
+        logger.warn(WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE, schemaFile, schemaDirPath);
+      }
+      return entry;
     }
-    catch (Exception e)
+    catch (FileNotFoundException e)
     {
       logger.traceException(e);
 
-      LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE.get(
-              schemaFile, schemaDirPath, getExceptionMessage(e));
+      LocalizableMessage message =
+          WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE.get(schemaFile, schemaDirPath, getExceptionMessage(e));
 
       if (failOnError)
       {
@@ -430,60 +445,24 @@ public class SchemaConfigManager
       logger.error(message);
       return null;
     }
-
-    // Read the LDIF entry from the file and close the file.
-    final Entry entry;
-    try
-    {
-      entry = reader.readEntry(false);
-
-      if (entry == null)
-      {
-        // The file was empty -- skip it.
-        reader.close();
-        return null;
-      }
-    }
-    catch (Exception e)
+    catch (IOException e)
     {
       logger.traceException(e);
 
-      LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
-              schemaFile, schemaDirPath, getExceptionMessage(e));
+      LocalizableMessage message =
+          WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(schemaFile, schemaDirPath, getExceptionMessage(e));
 
       if (failOnError)
       {
         throw new InitializationException(message, e);
       }
       logger.error(message);
-      StaticUtils.close(reader);
       return null;
     }
-
-    // If there are any more entries in the file, then print a warning message.
-    try
-    {
-      Entry e = reader.readEntry(false);
-      if (e != null)
-      {
-        logger.warn(WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE, schemaFile, schemaDirPath);
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      logger.warn(WARN_CONFIG_SCHEMA_UNPARSEABLE_EXTRA_DATA_IN_FILE, schemaFile, schemaDirPath, getExceptionMessage(e));
-    }
-    finally
-    {
-      StaticUtils.close(reader);
-    }
-    return entry;
   }
 
-  private static void updateSchema(Schema schema, final org.forgerock.opendj.ldap.Entry schemaEntry,
-      final boolean overwrite) throws DirectoryException
+  private static void updateSchema(Schema schema, final Entry schemaEntry, final boolean overwrite)
+      throws DirectoryException
   {
     schema.updateSchema(new SchemaUpdater()
     {
@@ -495,15 +474,14 @@ public class SchemaConfigManager
     });
   }
 
-  private static List<Modification> createAddModifications(Entry entry,  AttributeType... attrTypes)
+  private static List<Modification> createAddModifications(Entry entry, AttributeType... attrTypes)
   {
-    int nbMods = entry.getUserAttributes().size() + entry.getOperationalAttributes().size();
-    List<Modification> mods = new ArrayList<>(nbMods);
+    List<Modification> mods = new ArrayList<>(entry.getAttributeCount());
     for (AttributeType attrType : attrTypes)
     {
-      for (Attribute a : entry.getAttribute(attrType))
+      for (Attribute a : entry.getAllAttributes(AttributeDescription.create(attrType)))
       {
-        mods.add(new Modification(ModificationType.ADD, a));
+        mods.add(new Modification(ModificationType.ADD, Converters.toAttribute(a)));
       }
     }
     return mods;
@@ -517,37 +495,5 @@ public class SchemaConfigManager
       throw new ConfigException(message, e);
     }
     logger.error(message);
-  }
-
-  /**
-   * This method checks if a given attribute is an attribute that
-   * is used by the definition of the schema.
-   *
-   * @param attribute   The attribute to be checked.
-   * @return            true if the attribute is part of the schema definition,
-   *                    false if the attribute is not part of the schema
-   *                    definition.
-   */
-  public static boolean isSchemaAttribute(Attribute attribute)
-  {
-    String attributeOid = attribute.getAttributeDescription().getAttributeType().getOID();
-    return attributeOid.equals("2.5.21.1") ||
-        attributeOid.equals("2.5.21.2") ||
-        attributeOid.equals("2.5.21.4") ||
-        attributeOid.equals("2.5.21.5") ||
-        attributeOid.equals("2.5.21.6") ||
-        attributeOid.equals("2.5.21.7") ||
-        attributeOid.equals("2.5.21.8") ||
-        attributeOid.equals("2.5.4.3") ||
-        attributeOid.equals("1.3.6.1.4.1.1466.101.120.16") ||
-        attributeOid.equals("cn-oid") ||
-        attributeOid.equals("attributetypes-oid") ||
-        attributeOid.equals("objectclasses-oid") ||
-        attributeOid.equals("matchingrules-oid") ||
-        attributeOid.equals("matchingruleuse-oid") ||
-        attributeOid.equals("nameformdescription-oid") ||
-        attributeOid.equals("ditcontentrules-oid") ||
-        attributeOid.equals("ditstructurerules-oid") ||
-        attributeOid.equals("ldapsyntaxes-oid");
   }
 }

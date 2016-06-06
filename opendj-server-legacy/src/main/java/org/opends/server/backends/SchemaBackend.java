@@ -757,9 +757,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                 ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(m.getModificationType()));
           }
-          else  if (SchemaConfigManager.isSchemaAttribute(a))
+          else  if (isSchemaAttribute(a))
           {
-          logger.error(ERR_SCHEMA_INVALID_REPLACE_MODIFICATION, a.getAttributeDescription());
+            logger.error(ERR_SCHEMA_INVALID_REPLACE_MODIFICATION, a.getAttributeDescription());
           }
           else
           {
@@ -954,6 +954,38 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       LocalizableMessage message = ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
+  }
+
+  /**
+   * This method checks if a given attribute is an attribute that is used by the definition of the
+   * schema.
+   *
+   * @param attribute
+   *          The attribute to be checked.
+   * @return true if the attribute is part of the schema definition, false if the attribute is not
+   *         part of the schema definition.
+   */
+  private static boolean isSchemaAttribute(Attribute attribute)
+  {
+    String attributeOid = attribute.getAttributeDescription().getAttributeType().getOID();
+    return attributeOid.equals("2.5.21.1") ||
+        attributeOid.equals("2.5.21.2") ||
+        attributeOid.equals("2.5.21.4") ||
+        attributeOid.equals("2.5.21.5") ||
+        attributeOid.equals("2.5.21.6") ||
+        attributeOid.equals("2.5.21.7") ||
+        attributeOid.equals("2.5.21.8") ||
+        attributeOid.equals("2.5.4.3") ||
+        attributeOid.equals("1.3.6.1.4.1.1466.101.120.16") ||
+        attributeOid.equals("cn-oid") ||
+        attributeOid.equals("attributetypes-oid") ||
+        attributeOid.equals("objectclasses-oid") ||
+        attributeOid.equals("matchingrules-oid") ||
+        attributeOid.equals("matchingruleuse-oid") ||
+        attributeOid.equals("nameformdescription-oid") ||
+        attributeOid.equals("ditcontentrules-oid") ||
+        attributeOid.equals("ditstructurerules-oid") ||
+        attributeOid.equals("ldapsyntaxes-oid");
   }
 
   /**
