@@ -103,10 +103,10 @@
 				// If missing, "bind" factory will be used.
 				"ldapConnectionFactory": "bind",
 
-				// The Bind DN Template containing a single %s which will be replaced by the authenticating
-				// user's name. (i.e: uid=%s,ou=People,dc=example,dc=com)
-				// If missing, "%s" is used.
-				"bindDNTemplate": "uid=%s,ou=People,dc=example,dc=com"
+				// The Bind DN Template containing a single {username} which will be replaced by the authenticating
+				// user's name. (i.e: uid={username},ou=People,dc=example,dc=com)
+				// If missing, "{username}" is used.
+				"bindDNTemplate": "uid={username},ou=People,dc=example,dc=com"
 			},
 
 			// Bind to the LDAP server using a SASL Plain request
@@ -115,9 +115,9 @@
 				// If missing, "bind" factory will be used.
 			    "ldapConnectionFactory": "bind",
 
-				// Authentication identity template containing a single %s which will be replaced by the authenticating
-                // user's name. (i.e: u:%s)
-				"authzIdTemplate": "u:%s"
+				// Authentication identity template containing a single {username} which will be replaced by the authenticating
+                // user's name. (i.e: u:{username})
+				"authzIdTemplate": "u:{username}"
 			},
 			
 			// Bind to the LDAP server using the resulting DN of a search request. 
@@ -130,11 +130,11 @@
 				// If missing, "bind" factory will be used.
 				"bindLDAPConnectionFactory": "bind",
 			
-                // The %s filter format parameters will be substituted with the client-provided username, 
+                // The {username} filter format parameters will be substituted with the client-provided username,
                 // using LDAP filter string character escaping.
                 "baseDN"         : "ou=people,dc=example,dc=com",
                 "scope"          : "sub", // Or "one".
-                "filterTemplate" : "(&(uid=%s)(objectClass=inetOrgPerson))"
+                "filterTemplate" : "(&(uid={username})(objectClass=inetOrgPerson))"
 			}
 			// TODO: support for HTTP sessions?
 		},

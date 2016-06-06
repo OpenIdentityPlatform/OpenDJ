@@ -387,14 +387,14 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
     private AuthenticationStrategy buildSimpleBindStrategy(final JsonValue config) {
         return newSimpleBindStrategy(getConnectionFactory(config.get("ldapConnectionFactory")
                                                                 .defaultTo(DEFAULT_BIND_FACTORY).asString()),
-                                     config.get("bindDNTemplate").defaultTo("%s").asString(),
+                                     parseUserNameTemplate(config.get("bindDNTemplate").defaultTo("%s")),
                                      schema);
     }
 
     private AuthenticationStrategy buildSASLBindStrategy(JsonValue config) {
         return newSASLPlainStrategy(
                 getConnectionFactory(config.get("ldapConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
-                schema, config.get(AUTHZID_TEMPLATE).defaultTo("u:%s").asString());
+                schema, parseUserNameTemplate(config.get(AUTHZID_TEMPLATE).defaultTo("u:%s")));
     }
 
     private AuthenticationStrategy buildSearchThenBindStrategy(JsonValue config) {
@@ -405,6 +405,10 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
                         config.get("bindLDAPConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
                 DN.valueOf(config.get("baseDN").required().asString(), schema),
                 SearchScope.valueOf(config.get("scope").required().asString().toLowerCase()),
-                config.get("filterTemplate").required().asString());
+                parseUserNameTemplate(config.get("filterTemplate").required()));
+    }
+
+    private String parseUserNameTemplate(final JsonValue template) {
+        return template.asString().replace("{username}", "%s");
     }
 }
