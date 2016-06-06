@@ -4050,6 +4050,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.13
         ds-cfg-max-blocked-write-time-limit $
         ds-cfg-buffer-size )
   X-ORIGIN 'OpenDS Directory Server' )
+# OPENDJ-3048 attributes 'ds-cfg-config-file' and 'ds-cfg-authentication-required'
+# are kept for backward compatibility to avoid breaking replication
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.15
   NAME 'ds-cfg-http-connection-handler'
   SUP ds-cfg-connection-handler
@@ -4072,8 +4074,6 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.15
         ds-cfg-ssl-cipher-suite $
         ds-cfg-max-blocked-write-time-limit $
         ds-cfg-buffer-size $
-# OPENDJ-3048 attributes 'ds-cfg-config-file' and 'ds-cfg-authentication-required'
-# are kept for backward compatibility to avoid breaking replication
         ds-cfg-config-file $
         ds-cfg-authentication-required $
         ds-cfg-max-concurrent-ops-per-connection )
