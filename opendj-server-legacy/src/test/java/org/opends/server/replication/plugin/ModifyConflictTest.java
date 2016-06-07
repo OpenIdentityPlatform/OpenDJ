@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -1075,7 +1076,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     UUID uuid = UUID.randomUUID();
 
     // Create the att values list
-    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
+    AttributeType entryuuidAttrType = getEntryUUIDAttributeType();
     List<Attribute> uuidList = Attributes.createAsList(entryuuidAttrType, uuid.toString());
 
     // Add the uuid in the entry
@@ -1162,7 +1163,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    */
   private void assertEntryHistoricalEncodingDecoding(Entry entry, EntryHistorical hist)
   {
-    entry.removeAttribute(getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
+    entry.removeAttribute(getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
@@ -1194,7 +1195,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getExactAttribute(AttributeDescription.create(getAttributeType(attrName)));
+    Attribute attr = entry.getExactAttribute(AttributeDescription.create(getSchema().getAttributeType(attrName)));
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {
@@ -1215,8 +1216,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private String getEntryUUID(Entry entry)
   {
-    AttributeType entryuuidAttrType = getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
-    List<Attribute> uuidAttrs = entry.getOperationalAttributes().get(entryuuidAttrType);
+    List<Attribute> uuidAttrs = entry.getAttribute(getEntryUUIDAttributeType());
     return uuidAttrs.get(0).iterator().next().toString();
   }
 

@@ -31,8 +31,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
@@ -299,7 +299,8 @@ public final class TestLDIFReader extends UtilTestCase {
     try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(getDescriptionAttributeType(), ByteString.valueOfUtf8("once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(getDescriptionAttributeType(),
+                                       ByteString.valueOfUtf8("once upon a time in the west")));
     }
   }
 
@@ -319,7 +320,8 @@ public final class TestLDIFReader extends UtilTestCase {
     try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(getDescriptionAttributeType(), ByteString.valueOfUtf8("once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(getDescriptionAttributeType(),
+                                       ByteString.valueOfUtf8("once upon a time in the west")));
     }
   }
 
@@ -502,7 +504,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertTrue(i.hasNext());
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(), ModificationType.REPLACE);
-      attr = Attributes.empty(DirectoryServer.getAttributeType("postaladdress"));
+      attr = Attributes.empty(CoreSchema.getPostalAddressAttributeType());
       Assert.assertEquals(mod.getAttribute(), attr);
 
       // Change record #7.

@@ -24,16 +24,16 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
 import org.forgerock.opendj.server.config.server.PasswordPolicyCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.extensions.InitializationUtils;
-import org.opends.server.types.Entry;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
@@ -41,6 +41,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.testng.Assert.*;
 
 /**
@@ -2178,7 +2179,7 @@ public class PasswordPolicyTestCase
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     AttributeType  t = p.getPasswordAttribute();
-    assertEquals(t, DirectoryServer.getAttributeType("userpassword"));
+    assertEquals(t, getUserPasswordAttributeType());
   }
 
 
@@ -2197,7 +2198,7 @@ public class PasswordPolicyTestCase
                       "cn=config");
     PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     AttributeType  t = p.getPasswordAttribute();
-    assertEquals(t, DirectoryServer.getAttributeType("authpassword"));
+    assertEquals(t, getAuthPasswordAttributeType());
   }
 
 
@@ -4297,7 +4298,7 @@ public class PasswordPolicyTestCase
   {
     Entry entry = DirectoryServer.getEntry(DN.valueOf(dn));
     assertNotNull(entry);
-    AttributeType pwdHistory = DirectoryServer.getAttributeType("pwdhistory");
+    AttributeType pwdHistory = DirectoryServer.getSchema().getAttributeType("pwdhistory");
     assertNotNull(pwdHistory);
     Attribute historyAttr = entry.getExactAttribute(AttributeDescription.create(pwdHistory));
     assertNotNull(historyAttr);

@@ -765,7 +765,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final SearchResultEntry resultEntry = getFirstResult(searchOperation);
     if (resultEntry != null)
     {
-      AttributeType synchronizationGenIDType = DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
+      AttributeType synchronizationGenIDType = DirectoryServer.getSchema().getAttributeType(REPLICATION_GENERATION_ID);
       List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
       if (!attrs.isEmpty())
       {
@@ -786,7 +786,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   private Iterator<ByteString> getAttributeValueIterator(SearchResultEntry resultEntry, String attrName)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
     List<Attribute> exclAttrs = resultEntry.getAttribute(attrType);
     if (!exclAttrs.isEmpty())
     {
@@ -1365,7 +1365,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     Set<AttributeType> results = new HashSet<>();
     for (String attrName : fractionalConcernedAttributes)
     {
-      results.add(DirectoryServer.getAttributeType(attrName));
+      results.add(DirectoryServer.getSchema().getAttributeType(attrName));
     }
     return results;
   }
@@ -3289,8 +3289,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       SearchResultEntry resultEntry = result.get(0);
       if (resultEntry != null)
       {
-        AttributeType synchronizationGenIDType = DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
-        List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
+        List<Attribute> attrs = resultEntry.getAttribute(REPLICATION_GENERATION_ID);
         if (!attrs.isEmpty())
         {
           Attribute attr = attrs.get(0);
@@ -3442,7 +3441,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       Set<AttributeType> includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings)
       {
-        includeAttributes.add(DirectoryServer.getAttributeType(attrName));
+        includeAttributes.add(DirectoryServer.getSchema().getAttributeType(attrName));
       }
       exportConfig.setIncludeAttributes(includeAttributes);
     }

@@ -833,7 +833,7 @@ public class TemplateFile
         StringTokenizer tokenizer = new StringTokenizer(rdnAttrNames, "+");
         while (tokenizer.hasMoreTokens())
         {
-          attrList.add(DirectoryServer.getAttributeType(tokenizer.nextToken()));
+          attrList.add(DirectoryServer.getSchema().getAttributeType(tokenizer.nextToken()));
         }
 
         rdnAttributes = new AttributeType[attrList.size()];
@@ -995,7 +995,7 @@ public class TemplateFile
       }
     }
 
-    AttributeType attributeType = DirectoryServer.getAttributeType(lowerLine.substring(0, colonPos));
+    AttributeType attributeType = DirectoryServer.getSchema().getAttributeType(lowerLine.substring(0, colonPos));
 
     // First, check whether the value is an URL value: <attrName>:< <url>
     int length = line.length();

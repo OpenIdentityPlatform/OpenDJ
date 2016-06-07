@@ -489,7 +489,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     MockPolicyCfg withMappedAttribute(final String attrName)
     {
-      mappedAttributes.add(DirectoryServer.getAttributeType(attrName));
+      mappedAttributes.add(DirectoryServer.getSchema().getAttributeType(attrName));
       return this;
     }
 

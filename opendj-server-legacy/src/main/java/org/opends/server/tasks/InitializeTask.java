@@ -72,8 +72,8 @@ public class InitializeTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase = getAttributeType(ATTR_TASK_INITIALIZE_DOMAIN_DN);
-    AttributeType typeSourceScope = getAttributeType(ATTR_TASK_INITIALIZE_SOURCE);
+    AttributeType typeDomainBase = getSchema().getAttributeType(ATTR_TASK_INITIALIZE_DOMAIN_DN);
+    AttributeType typeSourceScope = getSchema().getAttributeType(ATTR_TASK_INITIALIZE_SOURCE);
 
     List<Attribute> attrList;
     attrList = taskEntry.getAttribute(typeDomainBase);

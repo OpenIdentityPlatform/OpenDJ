@@ -823,7 +823,7 @@ public abstract class Task implements Comparable<Task>
       String messageString = buildLogMessage(severity, message, exception);
       logMessages.add(messageString);
 
-      final AttributeType type = DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES);
+      final AttributeType type = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_LOG_MESSAGES);
       final Attribute attr = taskEntry.getExactAttribute(AttributeDescription.create(type));
       final AttributeBuilder builder = attr != null ? new AttributeBuilder(attr) : new AttributeBuilder(type);
       builder.add(messageString);

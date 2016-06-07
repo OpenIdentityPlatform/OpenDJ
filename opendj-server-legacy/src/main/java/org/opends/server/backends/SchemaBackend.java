@@ -22,7 +22,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -128,33 +127,17 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
   private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
 
+  private static final AttributeType attributeTypesType = getAttributeTypesAttributeType();
+  private static final AttributeType ditStructureRulesType = getDITStructureRulesAttributeType();
+  private static final AttributeType ditContentRulesType = getDITContentRulesAttributeType();
+  private static final AttributeType ldapSyntaxesType = getLDAPSyntaxesAttributeType();
+  private static final AttributeType matchingRulesType = getMatchingRulesAttributeType();
+  private static final AttributeType matchingRuleUsesType = getMatchingRuleUseAttributeType();
+  private static final AttributeType nameFormsType = getNameFormsAttributeType();
+  private static final AttributeType objectClassesType = getObjectClassesAttributeType();
+
   /** The set of user-defined attributes that will be included in the schema entry. */
   private ArrayList<Attribute> userDefinedAttributes;
-
-  /** The attribute type that will be used to include the defined attribute types. */
-  private AttributeType attributeTypesType;
-  /** The attribute type that will be used to hold the schema creation timestamp. */
-  private AttributeType createTimestampType;
-  /** The attribute type that will be used to hold the schema creator's name. */
-  private AttributeType creatorsNameType;
-  /** The attribute type that will be used to include the defined DIT content rules. */
-  private AttributeType ditContentRulesType;
-  /** The attribute type that will be used to include the defined DIT structure rules. */
-  private AttributeType ditStructureRulesType;
-  /** The attribute type that will be used to include the defined attribute syntaxes. */
-  private AttributeType ldapSyntaxesType;
-  /** The attribute type that will be used to include the defined matching rules. */
-  private AttributeType matchingRulesType;
-  /** The attribute type that will be used to include the defined matching rule uses. */
-  private AttributeType matchingRuleUsesType;
-  /** The attribute that will be used to hold the schema modifier's name. */
-  private AttributeType modifiersNameType;
-  /** The attribute type that will be used to hold the schema modification timestamp. */
-  private AttributeType modifyTimestampType;
-  /** The attribute type that will be used to include the defined object classes. */
-  private AttributeType objectClassesType;
-  /** The attribute type that will be used to include the defined name forms. */
-  private AttributeType nameFormsType;
 
   /** The value containing DN of the user we'll say created the configuration. */
   private ByteString creatorsName;
@@ -221,22 +204,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
     configEntryDN = configEntry.getName();
-
-    // Get all of the attribute types that we will use for schema elements.
-    attributeTypesType = getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
-    objectClassesType = getAttributeType(ATTR_OBJECTCLASSES_LC);
-    matchingRulesType = getAttributeType(ATTR_MATCHING_RULES_LC);
-    ldapSyntaxesType = getAttributeType(ATTR_LDAP_SYNTAXES_LC);
-    ditContentRulesType = getAttributeType(ATTR_DIT_CONTENT_RULES_LC);
-    ditStructureRulesType = getAttributeType(ATTR_DIT_STRUCTURE_RULES_LC);
-    matchingRuleUsesType = getAttributeType(ATTR_MATCHING_RULE_USE_LC);
-    nameFormsType = getAttributeType(ATTR_NAME_FORMS_LC);
-
-    // Initialize the lastmod attributes.
-    creatorsNameType = getAttributeType(OP_ATTR_CREATORS_NAME_LC);
-    createTimestampType = getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC);
-    modifiersNameType = getAttributeType(OP_ATTR_MODIFIERS_NAME_LC);
-    modifyTimestampType = getAttributeType(OP_ATTR_MODIFY_TIMESTAMP_LC);
 
     // Construct the set of objectclasses to include in the schema entry.
     schemaObjectClasses = new LinkedHashMap<>(3);
@@ -595,13 +562,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
     addAttributeToSchemaEntry(
-        Attributes.create(creatorsNameType, creatorsName), userAttrs, operationalAttrs);
+        Attributes.create(getCreatorsNameAttributeType(), creatorsName), userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(createTimestampType, createTimestamp), userAttrs, operationalAttrs);
+        Attributes.create(getCreateTimestampAttributeType(), createTimestamp), userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(modifiersNameType, modifiersName), userAttrs, operationalAttrs);
+        Attributes.create(getModifiersNameAttributeType(), modifiersName), userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(modifyTimestampType, modifyTimestamp), userAttrs, operationalAttrs);
+        Attributes.create(getModifyTimestampAttributeType(), modifyTimestamp), userAttrs, operationalAttrs);
 
     // Add the extra attributes.
     for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes().values())
@@ -2283,7 +2250,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Add all of the appropriate matching rule uses to the schema entry.  Since
     // there is no hierarchical relationship between matching rule uses, we
     // don't need to worry about ordering.
-    addAttribute(schemaEntry, matchingRuleUsesType, getValuesForSchemaFile(schema.getMatchingRuleUses(), schemaFile));
+    values = getValuesForSchemaFile(schema.getMatchingRuleUses(), schemaFile);
+    addAttribute(schemaEntry, matchingRuleUsesType, values);
 
     if (FILE_USER_SCHEMA_ELEMENTS.equals(schemaFile))
     {
@@ -2963,7 +2931,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // loop on the attribute types in the entry just received
     // and add them in the existing schema.
     Set<String> oidList = new HashSet<>(1000);
-    for (Attribute a : newSchemaEntry.getAttribute(getAttributeTypesAttributeType()))
+    for (Attribute a : newSchemaEntry.getAttribute(attributeTypesType))
     {
       // Look for attribute types that could have been added to the schema
       // or modified in the schema
@@ -3014,7 +2982,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // loop on the objectClasses from the entry, search if they are
     // already in the current schema, add them if not.
     oidList.clear();
-    for (Attribute a : newSchemaEntry.getAttribute(getObjectClassesAttributeType()))
+    for (Attribute a : newSchemaEntry.getAttribute(objectClassesType))
     {
       for (ByteString v : a)
       {

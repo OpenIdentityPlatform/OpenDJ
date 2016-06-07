@@ -17,6 +17,7 @@
 package org.opends.server.backends;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -138,10 +139,10 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("attributetypes")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("objectclasses")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("ldapsyntaxes")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("matchingrules")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeTypesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getObjectClassesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getLDAPSyntaxesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getMatchingRulesAttributeType()));
   }
 
   /**
@@ -178,20 +179,20 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("attributetypes")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("objectclasses")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("ldapsyntaxes")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("matchingrules")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeTypesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getObjectClassesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getLDAPSyntaxesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getMatchingRulesAttributeType()));
 
     schemaDN    = DN.valueOf("cn=subschema");
     schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("attributetypes")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("objectclasses")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("ldapsyntaxes")));
-    assertTrue(schemaEntry.hasAttribute(getAttributeType("matchingrules")));
+    assertTrue(schemaEntry.hasAttribute(getAttributeTypesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getObjectClassesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getLDAPSyntaxesAttributeType()));
+    assertTrue(schemaEntry.hasAttribute(getMatchingRulesAttributeType()));
   }
 
   /**
@@ -370,10 +371,10 @@ public class SchemaBackendTestCase extends BackendTestCase
          throws Exception
   {
     DN schemaDN = DN.valueOf("cn=schema");
-    AttributeType a = DirectoryServer.getAttributeType("attributetypes");
-    AttributeType o = DirectoryServer.getAttributeType("objectclasses");
-    AttributeType m = DirectoryServer.getAttributeType("matchingrules");
-    AttributeType s = DirectoryServer.getAttributeType("ldapsyntaxes");
+    AttributeType a = getAttributeTypesAttributeType();
+    AttributeType o = getObjectClassesAttributeType();
+    AttributeType m = getMatchingRulesAttributeType();
+    AttributeType s = getLDAPSyntaxesAttributeType();
 
     assertFalse(schemaBackend.showAllAttributes());
     Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
@@ -4478,10 +4479,10 @@ public class SchemaBackendTestCase extends BackendTestCase
     Entry schemaEntry = DirectoryServer.getEntry(DN.valueOf("cn=schema"));
     assertNotNull(schemaEntry);
 
-    AttributeType cnType = DirectoryServer.getAttributeType("creatorsname");
-    AttributeType ctType = DirectoryServer.getAttributeType("createtimestamp");
-    AttributeType mnType = DirectoryServer.getAttributeType("modifiersname");
-    AttributeType mtType = DirectoryServer.getAttributeType("modifytimestamp");
+    AttributeType cnType = getCreatorsNameAttributeType();
+    AttributeType ctType = getCreateTimestampAttributeType();
+    AttributeType mnType = getModifiersNameAttributeType();
+    AttributeType mtType = getModifyTimestampAttributeType();
 
     assertTrue(schemaEntry.hasAttribute(cnType));
     assertTrue(schemaEntry.hasAttribute(ctType));

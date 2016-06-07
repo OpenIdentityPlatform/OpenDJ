@@ -106,7 +106,7 @@ public final class PasswordPolicyImportPlugin
   {
     configuration.addPasswordPolicyImportChangeListener(this);
 
-    customPolicyAttribute = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
+    customPolicyAttribute = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
 
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)

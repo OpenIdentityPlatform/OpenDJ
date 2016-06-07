@@ -20,16 +20,17 @@ import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.VirtualAttributeRule;
@@ -67,8 +68,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
 
-    subschemaSubentryType = DirectoryServer.getAttributeType("subschemasubentry");
-    assertNotNull(subschemaSubentryType);
+    subschemaSubentryType = CoreSchema.getSubschemaSubentryAttributeType();
   }
 
 

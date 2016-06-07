@@ -19,7 +19,9 @@ package org.opends.server.extensions;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -27,8 +29,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -57,8 +57,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     TestCaseUtils.restartServer();
 
-    numSubordinatesType = DirectoryServer.getAttributeType("numsubordinates");
-    assertNotNull(numSubordinatesType);
+    numSubordinatesType = DirectoryServer.getSchema().getAttributeType("numsubordinates");
 
     entries = TestCaseUtils.makeEntries(
         "dn: dc=example,dc=com",

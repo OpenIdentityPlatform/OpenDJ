@@ -19,8 +19,11 @@ package org.opends.server.extensions;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -30,8 +33,6 @@ import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -67,14 +68,9 @@ public class UserDefinedVirtualAttributeProviderTestCase
   {
     TestCaseUtils.startServer();
 
-    descriptionType = DirectoryServer.getAttributeType("description");
-    assertNotNull(descriptionType);
-
-    pwPolicyDNType = DirectoryServer.getAttributeType("ds-pwp-password-policy-dn");
-    assertNotNull(pwPolicyDNType);
-
-    privNameType = DirectoryServer.getAttributeType("ds-privilege-name");
-    assertNotNull(privNameType);
+    descriptionType = CoreSchema.getDescriptionAttributeType();
+    pwPolicyDNType = DirectoryServer.getSchema().getAttributeType("ds-pwp-password-policy-dn");
+    privNameType = DirectoryServer.getSchema().getAttributeType("ds-privilege-name");
   }
 
 

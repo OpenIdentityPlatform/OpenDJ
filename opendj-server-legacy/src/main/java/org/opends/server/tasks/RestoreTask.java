@@ -108,9 +108,9 @@ public class RestoreTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeBackupDirectory = getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
-    AttributeType typebackupID = getAttributeType(ATTR_BACKUP_ID);
-    AttributeType typeVerifyOnly = getAttributeType(ATTR_TASK_RESTORE_VERIFY_ONLY);
+    AttributeType typeBackupDirectory = getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+    AttributeType typebackupID = getSchema().getAttributeType(ATTR_BACKUP_ID);
+    AttributeType typeVerifyOnly = getSchema().getAttributeType(ATTR_TASK_RESTORE_VERIFY_ONLY);
 
     List<Attribute> attrList;
 

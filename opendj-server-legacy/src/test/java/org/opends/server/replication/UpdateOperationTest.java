@@ -64,6 +64,7 @@ import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
@@ -433,8 +434,8 @@ public class UpdateOperationTest extends ReplicationTestCase
   {
     testSetUp("modifyConflicts");
     final DN dn1 = DN.valueOf("cn=test1," + baseDN);
-    final AttributeType attrType = DirectoryServer.getAttributeType("displayname");
-    final AttributeType entryuuidType = DirectoryServer.getAttributeType("entryuuid");
+    final AttributeType attrType = DirectoryServer.getSchema().getAttributeType("displayname");
+    final AttributeType entryuuidType = getEntryUUIDAttributeType();
     String monitorAttr = "resolved-modify-conflicts";
 
     /*

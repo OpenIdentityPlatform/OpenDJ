@@ -31,9 +31,9 @@ import java.util.Set;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -527,9 +527,7 @@ public class AttributeBuilderTest extends TypesTestCase
     TestCaseUtils.startServer();
 
     // Initialize the CN attribute type used in all tests.
-    cnType = DirectoryServer.getAttributeType("cn");
-    Assert.assertNotNull(cnType);
-
+    cnType = CoreSchema.getCNAttributeType();
     cnValue = bs("john doe");
   }
 

@@ -110,7 +110,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
     }
 
 
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getSchema().getAttributeType(type);
     ByteString attVal = null;
     if (attType != null)
     {
@@ -189,7 +189,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
 
     // input parameter
     String             rawAttTypeTest = type;
-    AttributeType         attTypeTest = DirectoryServer.getAttributeType(type);
+    AttributeType         attTypeTest = DirectoryServer.getSchema().getAttributeType(type);
     ByteString            subInitialTest = ByteString.valueOfUtf8(subInitial);
     List<ByteString> subAnyTest = new ArrayList<>(subAny.size());
     for (String s : subAny)
@@ -367,7 +367,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
     }
 
     // ( AttributeType attributeType, ByteString assertionValue
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getSchema().getAttributeType(type);
     ByteString attVal = null;
     if (attType != null)
     {
@@ -463,7 +463,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
     }
 
 
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getSchema().getAttributeType(type);
     ByteString attVal = null ;
     if (attType != null)
     {
@@ -539,7 +539,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
     assertEquals(mvf.getMatchType(), MatchedValuesFilter.PRESENT_TYPE);
 
     // ( AttributeType attributeType
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getSchema().getAttributeType(type);
 
     try
     {
@@ -608,7 +608,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
     }
 
     // ( AttributeType attributeType, ByteString assertionValue
-    AttributeType attType = DirectoryServer.getAttributeType(type);
+    AttributeType attType = DirectoryServer.getSchema().getAttributeType(type);
     ByteString attVal = null ;
     if (attType != null)
     {
@@ -680,7 +680,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
 
     // input value
     String          rawAttTypeTest = type ;
-    AttributeType      attTypeTest = DirectoryServer.getAttributeType(type) ;
+    AttributeType      attTypeTest = DirectoryServer.getSchema().getAttributeType(type) ;
     String             matchingRuleIdTest = matchingRule.getOID() ;
     ByteString    attValueTest = (attTypeTest == null) ? null : ByteString.valueOfUtf8(value);
     // parameter used for the test.
@@ -790,7 +790,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
   public void testDifferentNormalization(String type, ByteString value,
                                          String assertion)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType("usercertificate");
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType("usercertificate");
     MatchedValuesFilter mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOfUtf8(assertion));
     assertTrue(mvf.valueMatches(attrType, value));
   }

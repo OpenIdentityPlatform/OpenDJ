@@ -16,6 +16,7 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
 
@@ -28,6 +29,7 @@ import java.util.TreeMap;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
@@ -36,7 +38,6 @@ import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PreOperationAddOperation;
@@ -257,7 +258,7 @@ public class EntryHistorical
    */
   public static void setHistoricalAttrToOperation(PreOperationAddOperation addOperation)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
     String attrValue = encodeHistorical(OperationContext.getCSN(addOperation), "add");
     List<Attribute> attrs = Attributes.createAsList(attrType, attrValue);
     addOperation.setAttribute(attrType, attrs);
@@ -672,8 +673,7 @@ public class EntryHistorical
    */
   public static String getEntryUUID(Entry entry)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
-    List<Attribute> uuidAttrs = entry.getOperationalAttribute(attrType);
+    List<Attribute> uuidAttrs = entry.getOperationalAttribute(getEntryUUIDAttributeType());
     return extractEntryUUID(uuidAttrs, entry.getName());
   }
 
@@ -687,8 +687,7 @@ public class EntryHistorical
    */
   public static String getEntryUUID(PreOperationAddOperation op)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(ENTRYUUID_ATTRIBUTE_NAME);
-    List<Attribute> uuidAttrs = op.getOperationalAttributes().get(attrType);
+    List<Attribute> uuidAttrs = op.getOperationalAttributes().get(getEntryUUIDAttributeType());
     return extractEntryUUID(uuidAttrs, op.getEntryDN());
   }
 

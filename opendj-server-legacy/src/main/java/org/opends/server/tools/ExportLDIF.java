@@ -647,7 +647,7 @@ public class ExportLDIF extends TaskTool {
     Set<AttributeType> results = new HashSet<>();
     for (String attrName : attributeArg.getValues())
     {
-      results.add(DirectoryServer.getAttributeType(attrName));
+      results.add(DirectoryServer.getSchema().getAttributeType(attrName));
     }
     return results;
   }

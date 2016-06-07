@@ -20,16 +20,17 @@ import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.VirtualAttributeRule;
@@ -49,10 +50,7 @@ import static org.testng.Assert.*;
 public class EntryUUIDVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  /** The attribute type for the entryUUID attribute. */
-  private AttributeType entryUUIDType;
-
-
+  private static final AttributeType entryUUIDType = CoreSchema.getEntryUUIDAttributeType();
 
   /**
    * Ensures that the Directory Server is running.
@@ -64,9 +62,6 @@ public class EntryUUIDVirtualAttributeProviderTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-
-    entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
-    assertNotNull(entryUUIDType);
   }
 
 

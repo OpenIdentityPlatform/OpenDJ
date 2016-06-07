@@ -1808,7 +1808,7 @@ public class TaskScheduler
          throws DirectoryException
   {
     // Get the name of the class that implements the task logic.
-    AttributeType attrType = DirectoryServer.getAttributeType(ATTR_TASK_CLASS);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_CLASS);
     List<Attribute> attrList = entry.getAttribute(attrType);
     if (attrList.isEmpty())
     {

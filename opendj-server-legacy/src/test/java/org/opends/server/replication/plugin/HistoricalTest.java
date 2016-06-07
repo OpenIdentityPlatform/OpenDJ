@@ -49,6 +49,7 @@ import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -229,10 +230,9 @@ public class HistoricalTest extends ReplicationTestCase
     final DN dn1 = DN.valueOf("cn=test1," + TEST_ROOT_DN_STRING);
     final DN dn2 = DN.valueOf("cn=test2," + TEST_ROOT_DN_STRING);
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    final AttributeType attrType = DirectoryServer.getAttributeType("displayname");
+    final AttributeType attrType = DirectoryServer.getSchema().getAttributeType("displayname");
     final AttributeDescription attrDesc = AttributeDescription.create(attrType);
-    final AttributeType entryuuidType = DirectoryServer.getAttributeType("entryuuid");
-    final AttributeDescription entryuuidDesc = AttributeDescription.create(entryuuidType);
+    final AttributeDescription entryuuidDesc = AttributeDescription.create(getEntryUUIDAttributeType());
 
     /*
      * Open a session to the replicationServer using the broker API.

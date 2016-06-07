@@ -52,7 +52,7 @@ class FakeEntryIndex
 
   FakeEntryIndex(String attrName) throws DecodeException
   {
-    attrType = DirectoryServer.getAttributeType(attrName);
+    attrType = DirectoryServer.getSchema().getAttributeType(attrName);
     if (attrType == null)
     {
       throw new IllegalArgumentException("Cannot find attribute with name \"" + attrName + "\"");

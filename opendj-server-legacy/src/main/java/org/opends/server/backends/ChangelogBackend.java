@@ -15,6 +15,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -56,7 +57,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.EntryChangelogNotificationControl;
 import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.core.AddOperation;
@@ -189,11 +189,6 @@ public class ChangelogBackend extends Backend<Configuration>
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(getSchema().getObjectClass(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
   }
-
-  /** The attribute type for the "creatorsName" attribute. */
-  private static final AttributeType CREATORS_NAME_TYPE = getAttributeType(OP_ATTR_CREATORS_NAME);
-  /** The attribute type for the "modifiersName" attribute. */
-  private static final AttributeType MODIFIERS_NAME_TYPE = getAttributeType(OP_ATTR_MODIFIERS_NAME);
 
   /** The base DN for the external change log. */
   public static final DN CHANGELOG_BASE_DN = DN.valueOf(DN_EXTERNAL_CHANGELOG_ROOT);
@@ -698,7 +693,7 @@ public class ChangelogBackend extends Backend<Configuration>
   private SearchFilter buildSearchFilterFrom(final DN baseDN, final String attrName)
   {
     final RDN rdn = baseDN.rdn();
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
     final ByteString attrValue = rdn.getAttributeValue(attrType);
     if (attrValue != null)
     {
@@ -1174,7 +1169,8 @@ public class ChangelogBackend extends Backend<Configuration>
       final StringBuilder builder = new StringBuilder(256);
       for (Attribute attr : addMsg.getAttributes())
       {
-        if (attr.getAttributeDescription().getAttributeType().equals(CREATORS_NAME_TYPE) && !attr.isEmpty())
+        if (!attr.isEmpty()
+            && attr.getAttributeDescription().getAttributeType().equals(getCreatorsNameAttributeType()))
         {
           // This attribute is not multi-valued.
           changeInitiatorsName = attr.iterator().next().toString();
@@ -1216,8 +1212,8 @@ public class ChangelogBackend extends Backend<Configuration>
       {
         final Attribute attr = mod.getAttribute();
         if (mod.getModificationType() == ModificationType.REPLACE
-            && attr.getAttributeDescription().getAttributeType().equals(MODIFIERS_NAME_TYPE)
-            && !attr.isEmpty())
+            && !attr.isEmpty()
+            && attr.getAttributeDescription().getAttributeType().equals(getModifiersNameAttributeType()))
         {
           // This attribute is not multi-valued.
           changeInitiatorsName = attr.iterator().next().toString();
@@ -1310,45 +1306,43 @@ public class ChangelogBackend extends Backend<Configuration>
     final Map<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>();
 
     // Operational standard attributes
-    addAttributeByType(ATTR_SUBSCHEMA_SUBENTRY_LC, ATTR_SUBSCHEMA_SUBENTRY_LC,
-        ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, userAttrs, opAttrs);
-    addAttributeByType("numsubordinates", "numSubordinates", "0", userAttrs, opAttrs);
-    addAttributeByType("hassubordinates", "hasSubordinates", "false", userAttrs, opAttrs);
-    addAttributeByType("entrydn", "entryDN", dnString, userAttrs, opAttrs);
+    addAttributeByType(ATTR_SUBSCHEMA_SUBENTRY_LC, DN_DEFAULT_SCHEMA_ROOT, userAttrs, opAttrs);
+    addAttributeByType("numSubordinates", "0", userAttrs, opAttrs);
+    addAttributeByType("hasSubordinates", "false", userAttrs, opAttrs);
+    addAttributeByType("entryDN", dnString, userAttrs, opAttrs);
 
     // REQUIRED attributes
     if (changeNumber > 0)
     {
-      addAttributeByType("changenumber", "changeNumber", String.valueOf(changeNumber), userAttrs, opAttrs);
+      addAttributeByType("changeNumber", String.valueOf(changeNumber), userAttrs, opAttrs);
     }
     SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
     final String format = dateFormat.format(new Date(csn.getTime()));
-    addAttributeByType("changetime", "changeTime", format, userAttrs, opAttrs);
-    addAttributeByType("changetype", "changeType", changeType, userAttrs, opAttrs);
-    addAttributeByType("targetdn", "targetDN", msg.getDN().toString(), userAttrs, opAttrs);
+    addAttributeByType("changeTime", format, userAttrs, opAttrs);
+    addAttributeByType("changeType", changeType, userAttrs, opAttrs);
+    addAttributeByType("targetDN", msg.getDN().toString(), userAttrs, opAttrs);
 
     // NON REQUESTED attributes
-    addAttributeByType("replicationcsn", "replicationCSN", csn.toString(), userAttrs, opAttrs);
-    addAttributeByType("replicaidentifier", "replicaIdentifier", Integer.toString(csn.getServerId()),
-        userAttrs, opAttrs);
+    addAttributeByType("replicationCSN", csn.toString(), userAttrs, opAttrs);
+    addAttributeByType("replicaIdentifier", Integer.toString(csn.getServerId()), userAttrs, opAttrs);
 
     if (ldifChanges != null)
     {
-      addAttributeByType("changes", "changes", ldifChanges, userAttrs, opAttrs);
+      addAttributeByType("changes", ldifChanges, userAttrs, opAttrs);
     }
     if (changeInitiatorsName != null)
     {
-      addAttributeByType("changeinitiatorsname", "changeInitiatorsName", changeInitiatorsName, userAttrs, opAttrs);
+      addAttributeByType("changeInitiatorsName", changeInitiatorsName, userAttrs, opAttrs);
     }
 
     final String targetUUID = msg.getEntryUUID();
     if (targetUUID != null)
     {
-      addAttributeByType("targetentryuuid", "targetEntryUUID", targetUUID, userAttrs, opAttrs);
+      addAttributeByType("targetEntryUUID", targetUUID, userAttrs, opAttrs);
     }
     final String cookie2 = cookie != null ? cookie : "";
-    addAttributeByType("changelogcookie", "changeLogCookie", cookie2, userAttrs, opAttrs);
+    addAttributeByType("changeLogCookie", cookie2, userAttrs, opAttrs);
 
     final List<RawAttribute> includedAttributes = msg.getEclIncludes();
     if (includedAttributes != null && !includedAttributes.isEmpty())
@@ -1365,7 +1359,7 @@ public class ChangelogBackend extends Backend<Configuration>
         }
       }
       final String includedAttributesLDIF = builder.toString();
-      addAttributeByType("includedattributes", "includedAttributes", includedAttributesLDIF, userAttrs, opAttrs);
+      addAttributeByType("includedAttributes", includedAttributesLDIF, userAttrs, opAttrs);
     }
 
     return new Entry(DN.valueOf(dnString), CHANGELOG_ENTRY_OBJECT_CLASSES, userAttrs, opAttrs);
@@ -1445,11 +1439,10 @@ public class ChangelogBackend extends Backend<Configuration>
     // --   or we risk returning less entries if purge kicks in      after we computed numSubordinates
     // - Or we accumulate all the entries that must be returned before sending them => OutOfMemoryError
 
-    addAttributeByUppercaseName(ATTR_COMMON_NAME, ATTR_COMMON_NAME, BACKEND_ID, userAttrs, operationalAttrs);
-    addAttributeByUppercaseName(ATTR_SUBSCHEMA_SUBENTRY_LC, ATTR_SUBSCHEMA_SUBENTRY,
-        ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, userAttrs, operationalAttrs);
-    addAttributeByUppercaseName("hassubordinates", "hasSubordinates", hasSubordinatesStr, userAttrs, operationalAttrs);
-    addAttributeByUppercaseName("entrydn", "entryDN", DN_EXTERNAL_CHANGELOG_ROOT, userAttrs, operationalAttrs);
+    addAttributeByName(ATTR_COMMON_NAME, BACKEND_ID, userAttrs, operationalAttrs);
+    addAttributeByName(ATTR_SUBSCHEMA_SUBENTRY, DN_DEFAULT_SCHEMA_ROOT, userAttrs, operationalAttrs);
+    addAttributeByName("hasSubordinates", hasSubordinatesStr, userAttrs, operationalAttrs);
+    addAttributeByName("entryDN", DN_EXTERNAL_CHANGELOG_ROOT, userAttrs, operationalAttrs);
     return new Entry(CHANGELOG_BASE_DN, CHANGELOG_ROOT_OBJECT_CLASSES, userAttrs, operationalAttrs);
   }
 
@@ -1458,31 +1451,28 @@ public class ChangelogBackend extends Backend<Configuration>
     e.addAttribute(Attributes.create(attrType, attrValue), null);
   }
 
-  private static void addAttributeByType(String attrNameLowercase,
-      String attrNameUppercase, String attrValue,
+  private static void addAttributeByType(String attrName, String attrValue,
       Map<AttributeType, List<Attribute>> userAttrs,
       Map<AttributeType, List<Attribute>> operationalAttrs)
   {
-    addAttribute(attrNameLowercase, attrNameUppercase, attrValue, userAttrs, operationalAttrs, true);
+    addAttribute(attrName, attrValue, userAttrs, operationalAttrs, true);
   }
 
-  private static void addAttributeByUppercaseName(String attrNameLowercase,
-      String attrNameUppercase,  String attrValue,
+  private static void addAttributeByName(String attrName, String attrValue,
       Map<AttributeType, List<Attribute>> userAttrs,
       Map<AttributeType, List<Attribute>> operationalAttrs)
   {
-    addAttribute(attrNameLowercase, attrNameUppercase, attrValue, userAttrs, operationalAttrs, false);
+    addAttribute(attrName, attrValue, userAttrs, operationalAttrs, false);
   }
 
-  private static void addAttribute(final String attrNameLowercase,
-      final String attrNameUppercase, final String attrValue,
+  private static void addAttribute(final String attrName, final String attrValue,
       final Map<AttributeType, List<Attribute>> userAttrs,
       final Map<AttributeType, List<Attribute>> operationalAttrs, final boolean addByType)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attrNameUppercase);
     final Attribute a = addByType
-        ? Attributes.create(attrType, attrValue)
-        : Attributes.create(attrNameUppercase, attrValue);
+        ? Attributes.create(getSchema().getAttributeType(attrName), attrValue)
+        : Attributes.create(attrName, attrValue);
+    final AttributeType attrType = a.getAttributeDescription().getAttributeType();
     final List<Attribute> attrList = Collections.singletonList(a);
     if (attrType.isOperational())
     {

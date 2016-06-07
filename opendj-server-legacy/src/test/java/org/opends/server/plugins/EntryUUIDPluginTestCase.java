@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.server.config.meta.EntryUUIDPluginCfgDefn;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.PluginType;
@@ -138,7 +139,7 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType entryUUIDType = DirectoryServer.getAttributeType("entryuuid");
+    AttributeType entryUUIDType = CoreSchema.getEntryUUIDAttributeType();
     DirectoryServer.getSchema().deregisterAttributeType(entryUUIDType);
 
     EntryUUIDPlugin plugin = initializePlugin(e);

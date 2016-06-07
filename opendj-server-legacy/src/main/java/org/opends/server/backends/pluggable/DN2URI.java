@@ -77,7 +77,7 @@ class DN2URI extends AbstractTree
    * The standard attribute type that is used to specify the set of referral
    * URLs in a referral entry.
    */
-  private final AttributeType referralType = DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+  private final AttributeType referralType = DirectoryServer.getSchema().getAttributeType(ATTR_REFERRAL_URL);
 
   /**
    * A flag that indicates whether there are any referrals contained in this

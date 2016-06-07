@@ -383,7 +383,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
          throws DirectoryException
   {
     // Make sure that the DN specifies a certificate alias.
-    AttributeType t = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID);
+    AttributeType t = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
@@ -422,7 +422,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
     userAttrs.put(t, Attributes.createAsList(t, v));
 
-    t = DirectoryServer.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+    t = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
     AttributeBuilder builder = new AttributeBuilder(t);
     builder.setOption("binary");
     builder.add(certValue);
@@ -538,7 +538,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
       if (scope != SearchScope.BASE_OBJECT && aliases.length != 0)
       {
-        AttributeType certAliasType = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID);
+        AttributeType certAliasType = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
         for (String alias : aliases)
         {
           DN certDN = makeChildDN(getBaseDN(), certAliasType, alias);
@@ -1039,7 +1039,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     DN entryDN = entry.getName();
 
     // Make sure that the DN specifies a certificate alias.
-    AttributeType t = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID);
+    AttributeType t = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
@@ -1156,7 +1156,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
        throws DirectoryException
   {
     // Make sure that the DN specifies a certificate alias.
-    AttributeType t = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID);
+    AttributeType t = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {

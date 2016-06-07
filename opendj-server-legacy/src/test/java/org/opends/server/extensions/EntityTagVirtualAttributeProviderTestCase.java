@@ -21,8 +21,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -31,15 +33,14 @@ import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.mockito.ArgumentCaptor;
-import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.EntityTagVirtualAttributeCfgDefn.ChecksumAlgorithm;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.Scope;
 import org.forgerock.opendj.server.config.server.EntityTagVirtualAttributeCfg;
 import org.forgerock.opendj.server.config.server.VirtualAttributeCfg;
+import org.mockito.ArgumentCaptor;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.DirectoryServer;
@@ -51,7 +52,6 @@ import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
@@ -62,6 +62,7 @@ import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
@@ -207,7 +208,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     TestCaseUtils.startServer();
 
     // Initialize the provider.
-    config.getExcludedAttribute().add(DirectoryServer.getAttributeType("modifytimestamp"));
+    config.getExcludedAttribute().add(getModifyTimestampAttributeType());
     provider.initializeVirtualAttributeProvider(config);
   }
 
@@ -439,7 +440,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     final SearchOperation searchOp = mock(SearchOperation.class);
 
     VirtualAttributeRule rule = new VirtualAttributeRule(
-        DirectoryServer.getAttributeType(ETAG), provider,
+        DirectoryServer.getSchema().getAttributeType(ETAG), provider,
         Collections.<DN> emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN> emptySet(), Collections.<SearchFilter> emptySet(),
         VirtualAttributeCfgDefn.ConflictBehavior.REAL_OVERRIDES_VIRTUAL);
@@ -726,7 +727,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
 
   private VirtualAttributeRule getRule()
   {
-    AttributeType type = DirectoryServer.getAttributeType("etag");
+    AttributeType type = DirectoryServer.getSchema().getAttributeType(ETAG);
     return new VirtualAttributeRule(type, provider,
         Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN>emptySet(),

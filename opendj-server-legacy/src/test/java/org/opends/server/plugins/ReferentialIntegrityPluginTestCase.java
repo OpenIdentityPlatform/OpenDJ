@@ -1099,7 +1099,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                                      String attr,
                                      String... dns)
           throws Exception {
-    AttributeType type= getAttributeType(attr);
+    AttributeType type = getSchema().getAttributeType(attr);
     final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(" + attr + "=*)");
     InternalSearchOperation operation = getRootConnection().processSearch(request);
     for (SearchResultEntry entry : operation.getSearchEntries()) {

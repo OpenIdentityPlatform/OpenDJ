@@ -69,7 +69,7 @@ public abstract class AuthenticationPolicy
   {
     // First check to see if the ds-pwp-password-policy-dn is present.
     String userDNString = userEntry.getName().toString();
-    AttributeType type = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
+    AttributeType type = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
     for (Attribute a : userEntry.getAttribute(type))
     {
       if (a.isEmpty())

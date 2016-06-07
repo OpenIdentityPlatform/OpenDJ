@@ -162,7 +162,7 @@ public final class InternalClientConnection
       put(userAttrs, ATTR_SN, commonName);
       put(userAttrs, ATTR_ROOTDN_ALTERNATE_BIND_DN, shortDNString);
 
-      AttributeType privType = DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME);
+      AttributeType privType = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
       AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {
@@ -201,7 +201,7 @@ public final class InternalClientConnection
   private void put(Map<AttributeType, List<Attribute>> Attrs, String attrName, String value)
   {
     List<Attribute> attrs = newLinkedList(Attributes.create(attrName, value));
-    Attrs.put(DirectoryServer.getAttributeType(attrName), attrs);
+    Attrs.put(DirectoryServer.getSchema().getAttributeType(attrName), attrs);
   }
 
   /**

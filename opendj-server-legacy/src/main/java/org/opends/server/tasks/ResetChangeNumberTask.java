@@ -34,7 +34,7 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_RESET_CHANGE_NUMBER_BASE_DN;
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_RESET_CHANGE_NUMBER_CSN;
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_RESET_CHANGE_NUMBER_TO;
-import static org.opends.server.core.DirectoryServer.getAttributeType;
+import static org.opends.server.core.DirectoryServer.getSchema;
 import static org.opends.messages.TaskMessages.*;
 
 /**
@@ -96,7 +96,7 @@ public class ResetChangeNumberTask extends Task
 
   private List<Attribute> getTaskParameter(Entry taskEntry, String attrTaskResetChangeNumberTo)
   {
-    AttributeType taskAttr = getAttributeType(attrTaskResetChangeNumberTo);
+    AttributeType taskAttr = getSchema().getAttributeType(attrTaskResetChangeNumberTo);
     return taskEntry.getAttribute(taskAttr);
   }
 

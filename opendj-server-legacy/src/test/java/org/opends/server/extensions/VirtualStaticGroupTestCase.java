@@ -25,6 +25,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;
@@ -32,12 +33,19 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.MemberList;
+import org.opends.server.types.Modification;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -244,12 +252,8 @@ public class VirtualStaticGroupTestCase
   {
     TestCaseUtils.startServer();
 
-    memberType = DirectoryServer.getAttributeType("member");
-    assertNotNull(memberType);
-
-    uniqueMemberType = DirectoryServer.getAttributeType("uniquemember");
-    assertNotNull(uniqueMemberType);
-
+    memberType = getMemberAttributeType();
+    uniqueMemberType = getUniqueMemberAttributeType();
     groupManager = DirectoryServer.getGroupManager();
 
     u1 = DN.valueOf("uid=test.1,ou=People,o=test");

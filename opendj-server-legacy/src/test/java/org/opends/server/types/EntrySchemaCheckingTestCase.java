@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPModify;
@@ -443,7 +444,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: domain",
          "dc: example");
 
-    AttributeType creatorsNameType = DirectoryServer.getAttributeType("creatorsname");
+    AttributeType creatorsNameType = CoreSchema.getCreatorsNameAttributeType();
     assertTrue(creatorsNameType.isOperational());
 
     AttributeBuilder builder = new AttributeBuilder(creatorsNameType);

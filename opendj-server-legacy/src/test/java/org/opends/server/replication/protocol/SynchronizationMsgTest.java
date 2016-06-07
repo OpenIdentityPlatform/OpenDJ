@@ -16,6 +16,7 @@
  */
 package org.opends.server.replication.protocol;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
@@ -38,7 +39,6 @@ import java.util.zip.DataFormatException;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -47,7 +47,6 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
@@ -107,33 +106,28 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     CSN csn2 = new CSN(TimeThread.getTime(), 123,  45);
     CSN csn3 = new CSN(TimeThread.getTime(), 67894123,  45678);
 
-    AttributeType type = DirectoryServer.getAttributeType("description");
+    AttributeType type = getDescriptionAttributeType();
 
-    Attribute attr1 = Attributes.create("description", "new value");
-    Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+    Modification mod1 = new Modification(REPLACE, Attributes.create("description", "new value"));
     List<Modification> mods1 = newArrayList(mod1);
 
-    Attribute attr2 = Attributes.empty("description");
-    Modification mod2 = new Modification(ModificationType.DELETE, attr2);
+    Modification mod2 = new Modification(DELETE, Attributes.empty("description"));
     List<Modification> mods2 = newArrayList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
     builder.add("value");
     builder.add("again");
-    Attribute attr3 = builder.toAttribute();
-    Modification mod3 = new Modification(ModificationType.ADD, attr3);
+    Modification mod3 = new Modification(ADD, builder.toAttribute());
     List<Modification> mods3 = newArrayList(mod3);
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
-      Attribute attr = Attributes.create("description", "string" + i);
-      mods4.add(new Modification(ModificationType.ADD, attr));
+      mods4.add(new Modification(ADD, Attributes.create("description", "string" + i)));
     }
 
-    Attribute attr5 = Attributes.create("namingcontexts", TEST_ROOT_DN_STRING);
-    Modification mod5 = new Modification(ModificationType.REPLACE, attr5);
+    Modification mod5 = new Modification(REPLACE, Attributes.create("namingcontexts", TEST_ROOT_DN_STRING));
     List<Modification> mods5 = newArrayList(mod5);
 
     List<Attribute> eclIncludes = getEntryAttributes();
@@ -339,29 +333,25 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
 
-    AttributeType type = DirectoryServer.getAttributeType("description");
+    AttributeType type = getDescriptionAttributeType();
 
-    Attribute attr1 = Attributes.create("description", "new value");
-    Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+    Modification mod1 = new Modification(REPLACE, Attributes.create("description", "new value"));
     List<Modification> mods1 = newArrayList(mod1);
 
-    Attribute attr2 = Attributes.empty("description");
-    Modification mod2 = new Modification(ModificationType.DELETE, attr2);
+    Modification mod2 = new Modification(DELETE, Attributes.empty("description"));
     List<Modification> mods2 = newArrayList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
     builder.add("value");
     builder.add("again");
-    Attribute attr3 = builder.toAttribute();
-    Modification mod3 = new Modification(ModificationType.ADD, attr3);
+    Modification mod3 = new Modification(ADD, builder.toAttribute());
     List<Modification> mods3 = newArrayList(mod3);
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
-      Attribute attr = Attributes.create("description", "string" + i);
-      mods4.add(new Modification(ModificationType.ADD, attr));
+      mods4.add(new Modification(ADD, Attributes.create("description", "string" + i)));
     }
 
     List<Attribute> entryAttrList = getEntryAttributes();

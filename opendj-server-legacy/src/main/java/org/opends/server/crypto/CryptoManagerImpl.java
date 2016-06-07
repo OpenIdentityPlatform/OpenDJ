@@ -287,14 +287,14 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     this.serverContext = serverContext;
     if (!schemaInitDone) {
       // Initialize various schema references.
-      attrKeyID = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID);
-      attrPublicKeyCertificate = DirectoryServer.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-      attrTransformation = DirectoryServer.getAttributeType(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
-      attrMacAlgorithm = DirectoryServer.getAttributeType(ATTR_CRYPTO_MAC_ALGORITHM_NAME);
-      attrSymmetricKey = DirectoryServer.getAttributeType(ATTR_CRYPTO_SYMMETRIC_KEY);
-      attrInitVectorLength = DirectoryServer.getAttributeType(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
-      attrKeyLength = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_LENGTH_BITS);
-      attrCompromisedTime = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+      attrKeyID = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
+      attrPublicKeyCertificate = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+      attrTransformation = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
+      attrMacAlgorithm = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_MAC_ALGORITHM_NAME);
+      attrSymmetricKey = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_SYMMETRIC_KEY);
+      attrInitVectorLength = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
+      attrKeyLength = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_LENGTH_BITS);
+      attrCompromisedTime = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
       // TODO: ConfigConstants
       ocCertRequest = DirectoryServer.getSchema().getObjectClass("ds-cfg-self-signed-cert-request");
       ocInstanceKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY);

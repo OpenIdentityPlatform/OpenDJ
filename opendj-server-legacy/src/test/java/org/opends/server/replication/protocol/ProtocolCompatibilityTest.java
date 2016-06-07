@@ -17,6 +17,7 @@
 package org.opends.server.replication.protocol;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.AssuredMode.*;
@@ -35,7 +36,6 @@ import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -433,33 +433,26 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     CSN csn1 = new CSN(1, 0, 1);
     CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
 
-    AttributeType type = DirectoryServer.getAttributeType("description");
-
-    Attribute attr1 = Attributes.create("description", "new value");
-    Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+    Modification mod1 = new Modification(REPLACE, Attributes.create("description", "new value"));
     List<Modification> mods1 = newArrayList(mod1);
 
-    Attribute attr2 = Attributes.empty("description");
-    Modification mod2 = new Modification(ModificationType.DELETE, attr2);
+    Modification mod2 = new Modification(DELETE, Attributes.empty("description"));
     List<Modification> mods2 = newArrayList(mod1, mod2);
 
-    AttributeBuilder builder = new AttributeBuilder(type);
+    AttributeBuilder builder = new AttributeBuilder(getDescriptionAttributeType());
     builder.add("string");
     builder.add("value");
     builder.add("again");
-    Attribute attr3 = builder.toAttribute();
-    Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    List<Modification> mods3 = newArrayList(mod3);
+    List<Modification> mods3 = newArrayList(new Modification(ADD, builder.toAttribute()));
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
       Attribute attr = Attributes.create("description", "string" + i);
-      mods4.add(new Modification(ModificationType.ADD, attr));
+      mods4.add(new Modification(ADD, attr));
     }
 
-    Attribute attr5 = Attributes.create("namingcontexts", "o=test");
-    Modification mod5 = new Modification(ModificationType.REPLACE, attr5);
+    Modification mod5 = new Modification(REPLACE, Attributes.create("namingcontexts", "o=test"));
     List<Modification> mods5 = newArrayList(mod5);
 
     // Entry attributes
@@ -611,29 +604,25 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
 
-    AttributeType type = DirectoryServer.getAttributeType("description");
+    AttributeType type = DirectoryServer.getSchema().getAttributeType("description");
 
-    Attribute attr1 = Attributes.create("description", "new value");
-    Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+    Modification mod1 = new Modification(REPLACE, Attributes.create("description", "new value"));
     List<Modification> mods1 = newArrayList(mod1);
 
-    Attribute attr2 = Attributes.empty("description");
-    Modification mod2 = new Modification(ModificationType.DELETE, attr2);
+    Modification mod2 = new Modification(DELETE, Attributes.empty("description"));
     List<Modification> mods2 = newArrayList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
     builder.add("value");
     builder.add("again");
-    Attribute attr3 = builder.toAttribute();
-    Modification mod3 = new Modification(ModificationType.ADD, attr3);
+    Modification mod3 = new Modification(ADD, builder.toAttribute());
     List<Modification> mods3 = newArrayList(mod3);
 
     List<Modification> mods4 = new ArrayList<>();
     for (int i = 0; i < 10; i++)
     {
-      Attribute attr = Attributes.create("description", "string" + i);
-      mods4.add(new Modification(ModificationType.ADD, attr));
+      mods4.add(new Modification(ADD, Attributes.create("description", "string" + i)));
     }
 
     // Entry attributes

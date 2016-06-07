@@ -229,21 +229,21 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
     LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(GoodHandlerEntry);
     //Make attrTypes to remove
-    AttributeType at0=DirectoryServer.getAttributeType(ATTR_LISTEN_PORT);
+    AttributeType at0=DirectoryServer.getSchema().getAttributeType(ATTR_LISTEN_PORT);
 //    AttributeType at1=DirectoryServer.getAttributeType(ATTR_LISTEN_ADDRESS, true);
 //    Attribute rAttr1=new Attribute(at1);
 //    GoodHandlerEntry.removeAttribute(rAttr1, null);
-    AttributeType at2=DirectoryServer.getAttributeType(ATTR_ALLOW_LDAPV2);
-    AttributeType at3=DirectoryServer.getAttributeType(ATTR_ALLOW_LDAPV2);
-    AttributeType at4=DirectoryServer.getAttributeType(ATTR_KEEP_LDAP_STATS);
-    AttributeType at5=DirectoryServer.getAttributeType(ATTR_SEND_REJECTION_NOTICE);
-    AttributeType at6=DirectoryServer.getAttributeType(ATTR_USE_TCP_KEEPALIVE);
-    AttributeType at7=DirectoryServer.getAttributeType(ATTR_USE_TCP_NODELAY);
-    AttributeType at8=DirectoryServer.getAttributeType(ATTR_ALLOW_REUSE_ADDRESS);
-    AttributeType at9=DirectoryServer.getAttributeType(ATTR_USE_SSL);
-    AttributeType at10=DirectoryServer.getAttributeType(ATTR_ALLOW_STARTTLS);
-    AttributeType at11=DirectoryServer.getAttributeType(ATTR_MAX_REQUEST_SIZE);
-    AttributeType at12=DirectoryServer.getAttributeType(ATTR_ACCEPT_BACKLOG);
+    AttributeType at2=DirectoryServer.getSchema().getAttributeType(ATTR_ALLOW_LDAPV2);
+    AttributeType at3=DirectoryServer.getSchema().getAttributeType(ATTR_ALLOW_LDAPV2);
+    AttributeType at4=DirectoryServer.getSchema().getAttributeType(ATTR_KEEP_LDAP_STATS);
+    AttributeType at5=DirectoryServer.getSchema().getAttributeType(ATTR_SEND_REJECTION_NOTICE);
+    AttributeType at6=DirectoryServer.getSchema().getAttributeType(ATTR_USE_TCP_KEEPALIVE);
+    AttributeType at7=DirectoryServer.getSchema().getAttributeType(ATTR_USE_TCP_NODELAY);
+    AttributeType at8=DirectoryServer.getSchema().getAttributeType(ATTR_ALLOW_REUSE_ADDRESS);
+    AttributeType at9=DirectoryServer.getSchema().getAttributeType(ATTR_USE_SSL);
+    AttributeType at10=DirectoryServer.getSchema().getAttributeType(ATTR_ALLOW_STARTTLS);
+    AttributeType at11=DirectoryServer.getSchema().getAttributeType(ATTR_MAX_REQUEST_SIZE);
+    AttributeType at12=DirectoryServer.getSchema().getAttributeType(ATTR_ACCEPT_BACKLOG);
     //Remove them
     Attribute rAttr0=Attributes.empty(at0);
     GoodHandlerEntry.removeAttribute(rAttr0, null);

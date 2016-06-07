@@ -1056,7 +1056,7 @@ public abstract class ClientConnection
       newPrivileges.addAll(DirectoryServer.getRootPrivileges());
     }
 
-    AttributeType privType = DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME);
+    AttributeType privType = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
     for (Attribute a : entry.getAttribute(privType))
     {
       for (ByteString v : a)

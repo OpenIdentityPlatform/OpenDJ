@@ -1007,7 +1007,7 @@ public class LocalBackendBindOperation
       Arg1<Object> nonUniqueAttributeMessage,
       Arg2<Object, Object> cannotProcessAttributeMessage)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(attributeTypeName);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attributeTypeName);
     List<Attribute> attrList = userEntry.getAttribute(attrType);
     if (attrList.size() == 1)
     {

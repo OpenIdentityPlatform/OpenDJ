@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.util.Reject;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -158,7 +159,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
     {
       final String attributeName = index.getKey();
-      final AttributeType attribute = DirectoryServer.getAttributeType(attributeName);
+      final AttributeType attribute = DirectoryServer.getSchema().getAttributeType(attributeName);
       Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
 
       BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
@@ -620,7 +621,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     {
       for (IndexType type : index.getValue())
       {
-        final AttributeType attributeType = DirectoryServer.getAttributeType(index.getKey());
+        final AttributeType attributeType = DirectoryServer.getSchema().getAttributeType(index.getKey());
         assertTrue(backend.isIndexed(attributeType,
             org.opends.server.types.IndexType.valueOf(type.toString().toUpperCase())));
       }
@@ -671,7 +672,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     Entry oldEntry = workEntries.get(0);
     Entry newEntry = oldEntry.duplicate(false);
 
-    modifyAttribute = DirectoryServer.getAttributeType("jpegphoto");
+    modifyAttribute = DirectoryServer.getSchema().getAttributeType("jpegphoto");
     List<Modification> mods = Arrays.asList(
         // unindexed
         new Modification(ADD, create(modifyAttribute, modifyValue)),
@@ -917,8 +918,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       Entry actual = new Entry(dbEntry.getName(), dbEntry.getObjectClasses(), dbEntry.getUserAttributes(), null);
 
       // Remove the userPassword because it will have been encoded.
-      expected.removeAttribute(DirectoryServer.getAttributeType("userpassword"));
-      actual.removeAttribute(DirectoryServer.getAttributeType("userpassword"));
+      expected.removeAttribute(CoreSchema.getUserPasswordAttributeType());
+      actual.removeAttribute(CoreSchema.getUserPasswordAttributeType());
 
       assertThat(actual).isEqualTo(expected);
     }

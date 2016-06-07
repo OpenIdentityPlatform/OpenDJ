@@ -405,7 +405,7 @@ public class SubentryPasswordPolicyTestCase
     Entry testEntry = DirectoryServer.getEntry(DN.valueOf("uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
-    AttributeType attrType = DirectoryServer.getAttributeType("pwdpolicysubentry");
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType("pwdpolicysubentry");
 
     // Make sure that default policy is in effect
     // for the user entry.

@@ -204,15 +204,15 @@ public class AciEffectiveRights {
   {
     if (aclRights == null)
     {
-      aclRights = DirectoryServer.getAttributeType(aclRightsAttrStr);
+      aclRights = DirectoryServer.getSchema().getAttributeType(aclRightsAttrStr);
     }
     if (aclRightsInfo == null)
     {
-      aclRightsInfo = DirectoryServer.getAttributeType(aclRightsInfoAttrStr);
+      aclRightsInfo = DirectoryServer.getSchema().getAttributeType(aclRightsInfoAttrStr);
     }
     if (dnAttributeType == null)
     {
-      dnAttributeType = DirectoryServer.getAttributeType(dnAttrStr);
+      dnAttributeType = DirectoryServer.getSchema().getAttributeType(dnAttrStr);
     }
 
     // Check if the attributes aclRights and aclRightsInfo were requested and
@@ -244,7 +244,7 @@ public class AciEffectiveRights {
         }
         else
         {
-          nonRightsAttrs.add(DirectoryServer.getAttributeType(a));
+          nonRightsAttrs.add(DirectoryServer.getSchema().getAttributeType(a));
         }
       }
     }
@@ -374,7 +374,7 @@ public class AciEffectiveRights {
       // Only add the aclRights information if the aclRights attribute type was seen.
       if(hasAttrMask(mask, ACL_RIGHTS))  {
         String typeStr = aclRightsAttributeLevelStr + ";" + a.getNameOrOID();
-        AttributeType attributeType = DirectoryServer.getAttributeType(typeStr);
+        AttributeType attributeType = DirectoryServer.getSchema().getAttributeType(typeStr);
         Attribute attr = Attributes.create(attributeType, evalInfo.toString());
         //It is possible that the user might have specified the same attributes
         //in both the search and the specific attribute part of the control.
@@ -604,7 +604,7 @@ public class AciEffectiveRights {
     if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       //Build the attribute type.
       String typeStr = aclRightsInfoAttrLogsStr + ";" + rightStr + ";" + aType.getNameOrOID();
-      AttributeType attributeType = DirectoryServer.getAttributeType(typeStr);
+      AttributeType attributeType = DirectoryServer.getSchema().getAttributeType(typeStr);
       Attribute attr = Attributes.create(attributeType, container.getEvalSummary());
       // The attribute type might have already been added, probably
       // not but it is possible.

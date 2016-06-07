@@ -17,6 +17,7 @@
 package org.opends.server.plugins;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
@@ -158,10 +159,10 @@ public class LastModPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType ctType = DirectoryServer.getAttributeType("createtimestamp");
-    AttributeType cnType = DirectoryServer.getAttributeType("creatorsname");
-    AttributeType mtType = DirectoryServer.getAttributeType("modifytimestamp");
-    AttributeType mnType = DirectoryServer.getAttributeType("modifiersname");
+    AttributeType ctType = getCreateTimestampAttributeType();
+    AttributeType cnType = getCreatorsNameAttributeType();
+    AttributeType mtType = getModifyTimestampAttributeType();
+    AttributeType mnType = getModifiersNameAttributeType();
 
     DirectoryServer.getSchema().deregisterAttributeType(ctType);
     DirectoryServer.getSchema().deregisterAttributeType(cnType);

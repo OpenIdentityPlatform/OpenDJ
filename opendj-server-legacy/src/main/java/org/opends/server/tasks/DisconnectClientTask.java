@@ -93,7 +93,7 @@ public class DisconnectClientTask extends Task
 
   private long getConnectionID(Entry taskEntry) throws DirectoryException
   {
-    final AttributeType attrType = DirectoryServer.getAttributeType(ATTR_TASK_DISCONNECT_CONN_ID);
+    final AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_DISCONNECT_CONN_ID);
     for (Attribute a : taskEntry.getAttribute(attrType))
     {
       for (ByteString v : a)
@@ -114,7 +114,7 @@ public class DisconnectClientTask extends Task
 
   private boolean mustNotifyClient(Entry taskEntry) throws DirectoryException
   {
-    final AttributeType attrType = DirectoryServer.getAttributeType(ATTR_TASK_DISCONNECT_NOTIFY_CLIENT);
+    final AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_DISCONNECT_NOTIFY_CLIENT);
     for (Attribute a : taskEntry.getAttribute(attrType))
     {
       for (ByteString v : a)
@@ -140,7 +140,7 @@ public class DisconnectClientTask extends Task
 
   private LocalizableMessage getDisconnectMessage(Entry taskEntry)
   {
-    AttributeType attrType = DirectoryServer.getAttributeType(ATTR_TASK_DISCONNECT_MESSAGE);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_DISCONNECT_MESSAGE);
     for (Attribute a : taskEntry.getAttribute(attrType))
     {
       for (ByteString v : a)

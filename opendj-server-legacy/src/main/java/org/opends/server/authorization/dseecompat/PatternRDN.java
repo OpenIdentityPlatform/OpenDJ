@@ -160,7 +160,7 @@ public class PatternRDN
       AVA ava = rdn.getFirstAVA();
       if (!typePatterns[0].equals("*"))
       {
-        AttributeType thisType = DirectoryServer.getAttributeType(typePatterns[0]);
+        AttributeType thisType = DirectoryServer.getSchema().getAttributeType(typePatterns[0]);
         if (thisType.isPlaceHolder() || !thisType.equals(ava.getAttributeType()))
         {
           return false;
@@ -179,7 +179,7 @@ public class PatternRDN
     TreeMap<String, List<ByteString>> patternMap = new TreeMap<>();
     for (int i = 0; i < typePatterns.length; i++)
     {
-      AttributeType type = DirectoryServer.getAttributeType(typePatterns[i]);
+      AttributeType type = DirectoryServer.getSchema().getAttributeType(typePatterns[i]);
       if (type.isPlaceHolder())
       {
         return false;

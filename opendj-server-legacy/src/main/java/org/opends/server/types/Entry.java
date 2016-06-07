@@ -2418,7 +2418,7 @@ public class Entry
       return false;
     }
 
-    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeName);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrTypeName);
     if (attrType.isPlaceHolder())
     {
       // This should not happen
@@ -2461,7 +2461,7 @@ public class Entry
    */
   public Set<String> getReferralURLs()
   {
-    AttributeType referralType = DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType referralType = DirectoryServer.getSchema().getAttributeType(ATTR_REFERRAL_URL);
     if (referralType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have a ref attribute type defined.
@@ -2522,7 +2522,7 @@ public class Entry
    */
   public DN getAliasedDN() throws DirectoryException
   {
-    AttributeType aliasType = DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType aliasType = DirectoryServer.getSchema().getAttributeType(ATTR_REFERRAL_URL);
     if (aliasType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have an aliasedObjectName attribute type defined.
@@ -2741,7 +2741,7 @@ public class Entry
     }
 
     // Get collective attribute exclusions.
-    AttributeType exclusionsType = DirectoryServer.getAttributeType(ATTR_COLLECTIVE_EXCLUSIONS_LC);
+    AttributeType exclusionsType = DirectoryServer.getSchema().getAttributeType(ATTR_COLLECTIVE_EXCLUSIONS_LC);
     List<Attribute> exclusionsAttrList = operationalAttributes.get(exclusionsType);
     List<String> excludedAttrNames = new ArrayList<>();
     if (exclusionsAttrList != null && !exclusionsAttrList.isEmpty())

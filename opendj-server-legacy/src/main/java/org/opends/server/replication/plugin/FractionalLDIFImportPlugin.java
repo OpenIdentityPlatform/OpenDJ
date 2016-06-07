@@ -401,7 +401,7 @@ public final class FractionalLDIFImportPlugin
 
   private Attribute getAttribute(String attributeName, Entry entry)
   {
-    List<Attribute> attrs = entry.getAttribute(DirectoryServer.getAttributeType(attributeName));
+    List<Attribute> attrs = entry.getAttribute(DirectoryServer.getSchema().getAttributeType(attributeName));
     return !attrs.isEmpty() ? attrs.get(0) : null;
   }
 

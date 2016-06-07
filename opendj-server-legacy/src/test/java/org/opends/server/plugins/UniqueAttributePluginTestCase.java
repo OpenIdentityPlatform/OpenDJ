@@ -733,7 +733,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   }
 
   private void delAttribute(Entry entry, String attrTypeString) {
-    entry.removeAttribute(getAttributeType(attrTypeString));
+    entry.removeAttribute(getSchema().getAttributeType(attrTypeString));
   }
 
   private void addAttribute(Entry entry, String attrName, String... attrValues) {

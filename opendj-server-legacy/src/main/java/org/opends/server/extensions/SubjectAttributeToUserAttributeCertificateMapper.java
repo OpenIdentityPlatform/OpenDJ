@@ -364,7 +364,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         return null;
       }
 
-      AttributeType userAttrType = DirectoryServer.getAttributeType(userAttrName);
+      AttributeType userAttrType = DirectoryServer.getSchema().getAttributeType(userAttrName);
       if (userAttrType.isPlaceHolder())
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
@@ -385,6 +385,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
   private static String normalizeAttributeName(String attrName)
   {
-    return toLowerCase(DirectoryServer.getAttributeType(attrName).getNameOrOID());
+    return toLowerCase(DirectoryServer.getSchema().getAttributeType(attrName).getNameOrOID());
   }
 }

@@ -16,25 +16,24 @@
  */
 package org.opends.server.plugins;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.PluginMessages.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.EntryUUIDPluginCfg;
 import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
@@ -54,18 +53,15 @@ public final class EntryUUIDPlugin
        extends DirectoryServerPlugin<EntryUUIDPluginCfg>
        implements ConfigurationChangeListener<EntryUUIDPluginCfg>
 {
-  /** The name of the entryUUID attribute type. */
-  private static final String ENTRYUUID = "entryuuid";
-
   /** The attribute type for the "entryUUID" attribute. */
-  private final AttributeType entryUUIDType;
+  private static final AttributeType entryUUIDType = getEntryUUIDAttributeType();
   /** The current configuration for this plugin. */
   private EntryUUIDPluginCfg currentConfig;
 
   /** Mandatory default constructor of this Directory Server plugin. */
   public EntryUUIDPlugin()
   {
-    entryUUIDType = DirectoryServer.getAttributeType(ENTRYUUID);
+    super();
   }
 
   @Override
@@ -113,9 +109,7 @@ public final class EntryUUIDPlugin
     // Construct a new UUID.  In order to make sure that UUIDs are consistent
     // when the same LDIF is generated on multiple servers, we'll base the UUID
     // on the byte representation of the normalized DN.
-    UUID uuid = entry.getName().toUUID();
-    uuidList = Attributes.createAsList(entryUUIDType, uuid.toString());
-    entry.putAttribute(entryUUIDType, uuidList);
+    entry.putAttribute(entryUUIDType, toAttributeList(entry.getName().toUUID()));
 
     // We shouldn't ever need to return a non-success result.
     return PluginResult.ImportLDIF.continueEntryProcessing();
@@ -128,21 +122,20 @@ public final class EntryUUIDPlugin
     // See if the entry being added already contains an entryUUID attribute.
     // It shouldn't, since it's NO-USER-MODIFICATION, but if it does then leave
     // it alone.
-    Map<AttributeType,List<Attribute>> operationalAttributes =
-         addOperation.getOperationalAttributes();
-    List<Attribute> uuidList = operationalAttributes.get(entryUUIDType);
+    List<Attribute> uuidList = addOperation.getOperationalAttributes().get(entryUUIDType);
     if (uuidList != null)
     {
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
     // Construct a new random UUID.
-    UUID uuid = UUID.randomUUID();
-    uuidList = Attributes.createAsList(entryUUIDType, uuid.toString());
-
-    // Add the attribute to the entry and return.
-    addOperation.setAttribute(entryUUIDType, uuidList);
+    addOperation.setAttribute(entryUUIDType, toAttributeList(UUID.randomUUID()));
     return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  private List<Attribute> toAttributeList(UUID uuid)
+  {
+    return Attributes.createAsList(entryUUIDType, uuid.toString());
   }
 
   @Override

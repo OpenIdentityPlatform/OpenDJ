@@ -53,7 +53,6 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -803,18 +802,6 @@ public final class Schema
   public Syntax getSyntax(String numericOid)
   {
     return schemaNG.getSyntax(numericOid);
-  }
-
-  /**
-   * Retrieves the default syntax that should be used for attributes that are not defined in the
-   * server schema.
-   *
-   * @return The default syntax that should be used for attributes that are not defined in the
-   *         server schema.
-   */
-  public Syntax getDefaultSyntax()
-  {
-    return schemaNG.getSyntax(CoreSchema.getDirectoryStringSyntax().getOID());
   }
 
   /**

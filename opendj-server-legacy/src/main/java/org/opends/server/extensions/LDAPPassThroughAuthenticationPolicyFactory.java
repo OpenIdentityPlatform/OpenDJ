@@ -57,6 +57,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -66,7 +67,6 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
 import org.forgerock.opendj.server.config.server.LDAPPassThroughAuthenticationPolicyCfg;
 import org.opends.server.api.AuthenticationPolicy;
@@ -105,6 +105,7 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -1363,8 +1364,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         super(userEntry);
 
-        this.cachedPasswordAttribute = DirectoryServer.getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD);
-        this.cachedPasswordTimeAttribute = DirectoryServer.getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME);
+        this.cachedPasswordAttribute = getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD);
+        this.cachedPasswordTimeAttribute = getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME);
       }
 
       @Override

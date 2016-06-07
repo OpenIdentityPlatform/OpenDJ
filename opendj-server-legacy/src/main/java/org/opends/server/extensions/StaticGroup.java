@@ -35,9 +35,9 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.util.Reject;
 import org.forgerock.opendj.server.config.server.GroupImplementationCfg;
 import org.forgerock.opendj.server.config.server.StaticGroupImplementationCfg;
+import org.forgerock.util.Reject;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -56,6 +56,7 @@ import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchFilter;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -164,7 +165,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      someMemberAttributeType = DirectoryServer.getAttributeType(ATTR_MEMBER);
+      someMemberAttributeType = getMemberAttributeType();
     }
     else if (hasGroupOfNamesClass)
     {
@@ -175,11 +176,11 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      someMemberAttributeType = DirectoryServer.getAttributeType(ATTR_MEMBER);
+      someMemberAttributeType = getMemberAttributeType();
     }
     else if (hasGroupOfUniqueNamesClass)
     {
-      someMemberAttributeType = DirectoryServer.getAttributeType(ATTR_UNIQUE_MEMBER_LC);
+      someMemberAttributeType = getUniqueMemberAttributeType();
     }
     else
     {

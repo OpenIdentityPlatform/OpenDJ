@@ -16,8 +16,8 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 import static org.forgerock.opendj.config.ConfigurationMock.*;
+import static org.mockito.Mockito.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
@@ -26,13 +26,15 @@ import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
+import org.forgerock.opendj.server.config.server.BackendIndexCfg;
+import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.PromiseImpl;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
-import org.forgerock.opendj.server.config.server.BackendIndexCfg;
-import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.opends.server.backends.pdb.PDBStorage;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -42,11 +44,9 @@ import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.MemoryQuota;
 import org.opends.server.core.ServerContext;
 import org.opends.server.extensions.DiskSpaceMonitor;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -323,7 +323,7 @@ public class DN2IDTest extends DirectoryServerTestCase
 
     BackendIndexCfg indexCfg = mockCfg(BackendIndexCfg.class);
     when(indexCfg.getIndexType()).thenReturn(newTreeSet(IndexType.PRESENCE, IndexType.EQUALITY));
-    when(indexCfg.getAttribute()).thenReturn(DirectoryServer.getAttributeType("sn"));
+    when(indexCfg.getAttribute()).thenReturn(CoreSchema.getSNAttributeType());
     when(backendCfg.getBackendIndex("sn")).thenReturn(indexCfg);
 
     return backendCfg;

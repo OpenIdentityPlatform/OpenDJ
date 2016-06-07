@@ -69,7 +69,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
@@ -2272,20 +2271,6 @@ public final class DirectoryServer
     ifNull(offlineSchemaChanges);
 
     directoryServer.offlineSchemaChanges = offlineSchemaChanges;
-  }
-
-  /**
-   * Retrieves the attribute type for the provided name or OID. It can optionally return a generated
-   * placeholder version if the requested attribute type is not defined in the schema.
-   *
-   * @param nameOrOid
-   *          The name or OID for the attribute type to retrieve.
-   * @return The requested attribute type, or a generated placeholder version if there is no
-   *         attribute with the specified nameOrOid defined in the server schema
-   */
-  public static AttributeType getAttributeType(String nameOrOid)
-  {
-    return getSchema().getAttributeType(nameOrOid, getSchema().getDefaultSyntax());
   }
 
   /**

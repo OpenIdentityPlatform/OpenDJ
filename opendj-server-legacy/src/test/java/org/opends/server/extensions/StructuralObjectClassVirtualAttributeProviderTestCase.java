@@ -20,16 +20,16 @@ import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.VirtualAttributeRule;
@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -50,10 +51,7 @@ import static org.testng.Assert.*;
 public class StructuralObjectClassVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  /** The attribute type for the structuralobjectclass attribute. */
-  private AttributeType structuralObjectClassType;
-
-
+  private static final AttributeType structuralObjectClassType = getStructuralObjectClassAttributeType();
 
   /**
    * Ensures that the Directory Server is running.
@@ -67,9 +65,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.clearBackend("userRoot", "dc=example,dc=com");
-
-    structuralObjectClassType = DirectoryServer.getAttributeType("structuralobjectclass");
-    assertNotNull(structuralObjectClassType);
   }
 
 

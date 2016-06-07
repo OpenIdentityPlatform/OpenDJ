@@ -159,9 +159,9 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     ocCipherKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_CIPHER_KEY);
     ocMacKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_MAC_KEY);
 
-    attrCert = getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-    attrAlias = getAttributeType(ATTR_CRYPTO_KEY_ID);
-    attrCompromisedTime = getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+    attrCert = getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+    attrAlias = getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
+    attrCompromisedTime = getSchema().getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
 
     if (DirectoryServer.getBackendWithBaseDN(adminSuffixDN) != null)
     {
