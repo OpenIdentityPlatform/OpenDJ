@@ -637,7 +637,7 @@ public final class Schema
    */
   public boolean hasObjectClass(String nameOrOid)
   {
-    return getSchemaNG().hasObjectClass(nameOrOid);
+    return schemaNG.hasObjectClass(nameOrOid);
   }
 
 
@@ -652,7 +652,7 @@ public final class Schema
    */
   public ObjectClass getObjectClass(String nameOrOid)
   {
-    return getSchemaNG().getObjectClass(nameOrOid);
+    return schemaNG.getObjectClass(nameOrOid);
   }
 
   /**

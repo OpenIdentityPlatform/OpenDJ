@@ -635,7 +635,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     attrs.add(attribute);
   }
 
-  private void buildSchemaAttribute(Collection<?> elements,
+  private void buildSchemaAttribute(Collection<? extends SchemaElement> elements,
       Map<AttributeType, List<Attribute>> userAttrs,
       Map<AttributeType, List<Attribute>> operationalAttrs,
       AttributeType schemaAttributeType, boolean includeSchemaFile,
@@ -648,18 +648,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     AttributeBuilder builder = new AttributeBuilder(schemaAttributeType);
-    for (Object element : elements)
+    for (SchemaElement element : elements)
     {
       /* Add the file name to the description of the element if this was requested by the caller. */
-      String value;
-      if (includeSchemaFile && element instanceof SchemaElement)
-      {
-        value = getDefinitionWithFileName((SchemaElement) element);
-      }
-      else
-      {
-        value = element.toString();
-      }
+      String value = includeSchemaFile ? getDefinitionWithFileName(element) : element.toString();
       if (stripSyntaxMinimumUpperBound && value.indexOf('{') != -1)
       {
         // Strip the minimum upper bound value from the attribute value.
@@ -669,15 +661,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     Attribute attribute = builder.toAttribute();
-    ArrayList<Attribute> attrList = newArrayList(attribute);
-    if (attribute.getAttributeDescription().getAttributeType().isOperational()
+    AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
+    if (attrType.isOperational()
         && (ignoreShowAllOption || !showAllAttributes))
     {
-      operationalAttrs.put(attribute.getAttributeDescription().getAttributeType(), attrList);
+      operationalAttrs.put(attrType, newArrayList(attribute));
     }
     else
     {
-      userAttrs.put(attribute.getAttributeDescription().getAttributeType(), attrList);
+      userAttrs.put(attrType, newArrayList(attribute));
     }
   }
 
