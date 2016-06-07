@@ -16,6 +16,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -47,6 +48,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
@@ -72,7 +74,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BuildVersion;
@@ -220,7 +221,7 @@ public class RootDSEBackend
 
     // Construct the set of objectclasses to include in the root DSE entry.
     dseObjectClasses = new HashMap<>(2);
-    dseObjectClasses.put(DirectoryServer.getObjectClass(OC_TOP), OC_TOP);
+    dseObjectClasses.put(getTopObjectClass(), OC_TOP);
     dseObjectClasses.put(DirectoryServer.getObjectClass(OC_ROOT_DSE), OC_ROOT_DSE);
 
     // Set the backend ID for this backend. The identifier needs to be

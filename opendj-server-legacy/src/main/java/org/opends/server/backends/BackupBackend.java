@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.BackupBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.AddOperation;
@@ -70,7 +71,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 
@@ -580,7 +580,7 @@ public class BackupBackend
     LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(3);
     ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
     ocMap.put(DirectoryServer.getObjectClass(OC_BACKUP_INFO), OC_BACKUP_INFO);
-    ocMap.put(DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC), OC_EXTENSIBLE_OBJECT);
+    ocMap.put(CoreSchema.getExtensibleObjectObjectClass(), OC_EXTENSIBLE_OBJECT);
 
     LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType, List<Attribute>> userAttrs = new LinkedHashMap<>();

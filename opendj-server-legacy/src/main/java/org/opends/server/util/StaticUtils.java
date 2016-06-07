@@ -58,6 +58,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.util.Reject;
 import org.opends.messages.ToolMessages;
 import org.opends.server.core.DirectoryServer;
@@ -66,7 +67,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IdentifiedException;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -1971,8 +1971,7 @@ public final class StaticUtils
       // then we'll need to include the extensibleObject class.
       if (!structuralClass.isRequiredOrOptional(attrType) && !extensibleObjectAdded)
       {
-        ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC);
-        objectClasses.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
+        objectClasses.put(CoreSchema.getTopObjectClass(), OC_EXTENSIBLE_OBJECT);
         extensibleObjectAdded = true;
       }
 

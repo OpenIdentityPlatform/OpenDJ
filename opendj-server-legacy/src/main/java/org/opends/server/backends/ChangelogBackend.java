@@ -53,6 +53,8 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.EntryChangelogNotificationControl;
@@ -102,7 +104,6 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RestoreConfig;
@@ -176,7 +177,7 @@ public class ChangelogBackend extends Backend<Configuration>
     CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<>(2);
   static
   {
-    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_TOP), OC_TOP);
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
     CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass("container"), "container");
   }
 
@@ -185,7 +186,7 @@ public class ChangelogBackend extends Backend<Configuration>
     CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<>(2);
   static
   {
-    CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_TOP), OC_TOP);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
   }
 

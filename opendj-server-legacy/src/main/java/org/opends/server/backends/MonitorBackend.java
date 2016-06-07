@@ -49,6 +49,8 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.MonitorBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.Backend;
@@ -72,7 +74,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.DynamicConstants;
@@ -193,7 +194,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     addAll(userDefinedAttributes, configEntry.getOperationalAttributes().values());
 
     // Construct the set of objectclasses to include in the base monitor entry.
-    monitorObjectClasses.put(DirectoryServer.getObjectClass(OC_TOP), OC_TOP);
+    monitorObjectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
     monitorObjectClasses.put(DirectoryServer.getObjectClass(OC_MONITOR_ENTRY), OC_MONITOR_ENTRY);
 
     // Create the set of base DNs that we will handle. In this case, it's just
@@ -560,7 +561,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private Entry getBaseMonitorEntry()
   {
-    final ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC);
+    final ObjectClass extensibleObjectOC = CoreSchema.getExtensibleObjectObjectClass();
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
 
     final HashMap<AttributeType, List<Attribute>> monitorUserAttrs = new LinkedHashMap<>();
