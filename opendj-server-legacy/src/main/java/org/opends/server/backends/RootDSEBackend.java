@@ -222,7 +222,7 @@ public class RootDSEBackend
     // Construct the set of objectclasses to include in the root DSE entry.
     dseObjectClasses = new HashMap<>(2);
     dseObjectClasses.put(getTopObjectClass(), OC_TOP);
-    dseObjectClasses.put(DirectoryServer.getObjectClass(OC_ROOT_DSE), OC_ROOT_DSE);
+    dseObjectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_ROOT_DSE), OC_ROOT_DSE);
 
     // Set the backend ID for this backend. The identifier needs to be
     // specific enough to avoid conflict with user backend identifiers.

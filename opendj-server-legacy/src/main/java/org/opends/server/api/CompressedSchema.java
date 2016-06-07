@@ -603,7 +603,7 @@ public class CompressedSchema
     final LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(objectClassNames.size());
     for (final String name : objectClassNames)
     {
-      ocMap.put(DirectoryServer.getObjectClass(name), name);
+      ocMap.put(DirectoryServer.getSchema().getObjectClass(name), name);
     }
     if (sync)
     {

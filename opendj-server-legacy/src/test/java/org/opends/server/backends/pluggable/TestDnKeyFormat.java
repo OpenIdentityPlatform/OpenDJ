@@ -376,7 +376,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
 
         // check the object classes were not changed
         for (String ocBefore : entryBefore.getObjectClasses().values()) {
-          ObjectClass objectClass = DirectoryServer.getObjectClass(ocBefore);
+          ObjectClass objectClass = DirectoryServer.getSchema().getObjectClass(ocBefore);
           String ocAfter = entryAfter.getObjectClasses().get(objectClass);
           assertEquals(ocBefore, ocAfter);
         }

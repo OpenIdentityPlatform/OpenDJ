@@ -651,7 +651,7 @@ public class ManageTasksPanel extends StatusGenericPanel
         for (Object value : csr.getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
-          objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
+          objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
         }
       }
       else

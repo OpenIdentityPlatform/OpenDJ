@@ -1290,7 +1290,7 @@ public class Entry
     for (ByteString v : a)
     {
       String ocName = v.toString();
-      ocs.put(DirectoryServer.getObjectClass(ocName), ocName);
+      ocs.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
     }
 
     AttributeDescription attrDesc = a.getAttributeDescription();
@@ -1648,7 +1648,7 @@ public class Entry
     // all attributes required by the object classes are present.
     for (ObjectClass o : objectClasses.keySet())
     {
-      if (DirectoryServer.getObjectClass(o.getOID()).isPlaceHolder())
+      if (DirectoryServer.getSchema().getObjectClass(o.getOID()).isPlaceHolder())
       {
         invalidReason.append(ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(dn, o.getNameOrOID()));
         return false;
@@ -2405,7 +2405,7 @@ public class Entry
    */
   private boolean hasObjectClassOrAttribute(String objectClassName, String attrTypeName)
   {
-    ObjectClass oc = DirectoryServer.getObjectClass(objectClassName);
+    ObjectClass oc = DirectoryServer.getSchema().getObjectClass(objectClassName);
     if (oc.isPlaceHolder())
     {
       // This should not happen
@@ -2580,7 +2580,7 @@ public class Entry
    */
   private boolean hasObjectClass(String objectClassLowerCase)
   {
-    ObjectClass oc = DirectoryServer.getObjectClass(objectClassLowerCase);
+    ObjectClass oc = DirectoryServer.getSchema().getObjectClass(objectClassLowerCase);
     if (oc.isPlaceHolder())
     {
       // This should not happen
@@ -3421,7 +3421,7 @@ public class Entry
   {
     entryBuffer.position(startPos);
     final String ocName = entryBuffer.readStringUtf8(endPos - startPos);
-    objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
+    objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
   }
 
   /**
@@ -4156,7 +4156,7 @@ public class Entry
         String lowerName = toLowerName(rule, v);
 
         // Create a default object class if necessary.
-        ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
+        ObjectClass oc = DirectoryServer.getSchema().getObjectClass(lowerName);
 
         if (replace)
         {

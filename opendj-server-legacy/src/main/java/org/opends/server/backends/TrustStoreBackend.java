@@ -191,7 +191,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // Construct the trust store base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
     objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    objectClasses.put(DirectoryServer.getObjectClass("ds-cfg-branch"), "ds-cfg-branch");
+    objectClasses.put(DirectoryServer.getSchema().getObjectClass("ds-cfg-branch"), "ds-cfg-branch");
 
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
     for (AVA ava : getBaseDN().rdn())
@@ -415,7 +415,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // Construct the certificate entry to return.
     LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    ocMap.put(DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY), OC_CRYPTO_INSTANCE_KEY);
+    ocMap.put(DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY), OC_CRYPTO_INSTANCE_KEY);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
@@ -1056,7 +1056,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
-      if (entry.hasObjectClass(DirectoryServer.getObjectClass(OC_SELF_SIGNED_CERT_REQUEST)))
+      if (entry.hasObjectClass(DirectoryServer.getSchema().getObjectClass(OC_SELF_SIGNED_CERT_REQUEST)))
       {
         try
         {

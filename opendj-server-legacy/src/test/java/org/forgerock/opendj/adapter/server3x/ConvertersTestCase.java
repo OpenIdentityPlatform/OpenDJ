@@ -146,7 +146,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
         List<ObjectClass> ocs = new ArrayList<>(result.getObjectClasses().keySet());
         assertThat(ocs).hasSize(2);
-        assertThat(ocs.get(0).getOID()).isEqualTo(DirectoryServer.getObjectClass("ds-cfg-backend").getOID());
+        assertThat(ocs.get(0).getOID()).isEqualTo(DirectoryServer.getSchema().getObjectClass("ds-cfg-backend").getOID());
         assertThat(ocs.get(1).getOID()).as("This should be a placeholder").endsWith("-oid");
     }
 

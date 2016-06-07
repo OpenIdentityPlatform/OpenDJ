@@ -60,12 +60,11 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import net.jcip.annotations.GuardedBy;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -74,10 +73,10 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.core.AddOperation;
@@ -106,12 +105,13 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
+import net.jcip.annotations.GuardedBy;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -295,10 +295,11 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       attrInitVectorLength = DirectoryServer.getAttributeType(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
       attrKeyLength = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_LENGTH_BITS);
       attrCompromisedTime = DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
-      ocCertRequest = DirectoryServer.getObjectClass("ds-cfg-self-signed-cert-request"); // TODO: ConfigConstants
-      ocInstanceKey = DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY);
-      ocCipherKey = DirectoryServer.getObjectClass(OC_CRYPTO_CIPHER_KEY);
-      ocMacKey = DirectoryServer.getObjectClass(OC_CRYPTO_MAC_KEY);
+      // TODO: ConfigConstants
+      ocCertRequest = DirectoryServer.getSchema().getObjectClass("ds-cfg-self-signed-cert-request");
+      ocInstanceKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY);
+      ocCipherKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_CIPHER_KEY);
+      ocMacKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_MAC_KEY);
 
       localTruststoreDN = DN.valueOf(DN_TRUST_STORE_ROOT);
       DN adminSuffixDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());

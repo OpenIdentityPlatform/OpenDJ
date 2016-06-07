@@ -547,7 +547,7 @@ public class SearchResultEntryProtocolOp
         for (ByteString os : a.getValues())
         {
           String ocName = os.toString();
-          ObjectClass oc = DirectoryServer.getObjectClass(ocName);
+          ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
           objectClasses.put(oc, ocName);
         }
       }

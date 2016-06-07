@@ -304,7 +304,7 @@ public final class TestLDIFWriter extends UtilTestCase {
         String avalue = toLowerCase(s[i+1]);
 
         if (atype.equals("objectclass")) {
-          entry.addObjectClass(DirectoryServer.getObjectClass(avalue));
+          entry.addObjectClass(DirectoryServer.getSchema().getObjectClass(avalue));
         } else {
           Attribute attr = Attributes.create(atype, avalue);
 

@@ -1139,7 +1139,7 @@ public class ConfigureDS
       org.forgerock.opendj.ldap.Entry configEntry, String attrName, Syntax syntax, Object...values)
   {
     org.forgerock.opendj.ldap.Entry newEntry = LinkedHashMapEntry.deepCopyOfEntry(configEntry);
-    AttributeType attrType = DirectoryServer.getAttributeType(attrName, syntax);
+    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName, syntax);
     newEntry.replaceAttribute(new LinkedAttribute(AttributeDescription.create(attrType), values));
     return newEntry;
   }

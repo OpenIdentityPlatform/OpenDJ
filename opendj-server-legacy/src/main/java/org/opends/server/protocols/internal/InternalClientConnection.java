@@ -18,6 +18,7 @@ package org.opends.server.protocols.internal;
 
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -44,7 +45,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.AddOperation;
@@ -75,7 +76,6 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RawAttribute;
@@ -153,9 +153,9 @@ public final class InternalClientConnection
     try
     {
       LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
-      put(objectClasses, CoreSchema.getTopObjectClass());
-      put(objectClasses, DirectoryServer.getObjectClass(OC_PERSON));
-      put(objectClasses, DirectoryServer.getObjectClass(OC_ROOT_DN));
+      put(objectClasses, getTopObjectClass());
+      put(objectClasses, getPersonObjectClass());
+      put(objectClasses, DirectoryServer.getSchema().getObjectClass(OC_ROOT_DN));
 
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
       put(userAttrs, ATTR_COMMON_NAME, commonName);
@@ -883,7 +883,7 @@ public final class InternalClientConnection
         for (ByteString v : a)
         {
           String ocName = v.toString();
-          objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
+          objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
         }
       }
       else

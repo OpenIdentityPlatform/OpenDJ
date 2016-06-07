@@ -18,6 +18,7 @@ package org.opends.server.core;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -35,7 +36,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -285,7 +285,7 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
 
-    ObjectClass oc = DirectoryServer.getObjectClass("extensibleobject");
+    ObjectClass oc = getExtensibleObjectObjectClass();
     UpdatePreOpPlugin.addObjectClassToAdd(oc);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
@@ -317,7 +317,7 @@ public class AddOperationTestCase
 
     UpdatePreOpPlugin.reset();
 
-    ObjectClass oc = DirectoryServer.getObjectClass("extensibleobject");
+    ObjectClass oc = getExtensibleObjectObjectClass();
     UpdatePreOpPlugin.addObjectClassToRemove(oc);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
@@ -846,7 +846,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
-    List<Attribute> attrList = e.getAttribute(CoreSchema.getObjectClassAttributeType());
+    List<Attribute> attrList = e.getAttribute(getObjectClassAttributeType());
     assertTrue(findAttributeValueIgnoreCase(attrList, "top"));
   }
 

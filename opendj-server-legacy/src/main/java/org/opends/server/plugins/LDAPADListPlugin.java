@@ -89,7 +89,7 @@ public final class LDAPADListPlugin
         if (attrName.startsWith("@"))
         {
           final String ocName = attrName.substring(1);
-          final ObjectClass oc = getObjectClass(ocName);
+          final ObjectClass oc = getSchema().getObjectClass(ocName);
           if (oc.isPlaceHolder())
           {
             logger.trace("Cannot replace unknown objectclass %s", ocName);

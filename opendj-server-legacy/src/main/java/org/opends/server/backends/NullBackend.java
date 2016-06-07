@@ -16,6 +16,7 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -33,7 +34,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
@@ -144,10 +144,11 @@ public class NullBackend extends Backend<BackendCfg>
 
     // Initialize null entry object classes.
     objectClasses = new HashMap<>();
-    objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
+    objectClasses.put(getTopObjectClass(), OC_TOP);
+    objectClasses.put(getExtensibleObjectObjectClass(), "extensibleobject");
 
     String nulOCName = "nullbackendobject";
-    ObjectClass nulOC = DirectoryServer.getObjectClass(nulOCName);
+    ObjectClass nulOC = DirectoryServer.getSchema().getObjectClass(nulOCName);
     try {
       DirectoryServer.getSchema().registerObjectClass(nulOC, new ServerSchemaElement(nulOC).getSchemaFile(), false);
     } catch (DirectoryException de) {
@@ -155,14 +156,6 @@ public class NullBackend extends Backend<BackendCfg>
       throw new InitializationException(de.getMessageObject());
     }
     objectClasses.put(nulOC, nulOCName);
-
-    String extOCName = "extensibleobject";
-    ObjectClass extOC = DirectoryServer.getObjectClass(extOCName);
-    if (extOC.isPlaceHolder()) {
-      throw new InitializationException(LocalizableMessage.raw("Unable to locate " + extOCName +
-        " objectclass in the current server schema"));
-    }
-    objectClasses.put(extOC, extOCName);
   }
 
   @Override

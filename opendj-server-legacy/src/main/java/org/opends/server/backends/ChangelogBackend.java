@@ -178,7 +178,7 @@ public class ChangelogBackend extends Backend<Configuration>
   static
   {
     CHANGELOG_ROOT_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getObjectClass("container"), "container");
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getSchema().getObjectClass("container"), "container");
   }
 
   /** The set of objectclasses that will be used in ECL entries. */
@@ -187,7 +187,7 @@ public class ChangelogBackend extends Backend<Configuration>
   static
   {
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    CHANGELOG_ENTRY_OBJECT_CLASSES.put(DirectoryServer.getObjectClass(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(getSchema().getObjectClass(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
   }
 
   /** The attribute type for the "creatorsName" attribute. */

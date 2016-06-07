@@ -188,7 +188,7 @@ public class TestBackupAndRestore extends TasksTestCase
     final int restoreBeginCountStart = restoreBeginCount.get();
     final int restoreEndCountStart = restoreEndCount.get();
 
-    ObjectClass backupClass = DirectoryServer.getObjectClass("ds-task-backup");
+    ObjectClass backupClass = DirectoryServer.getSchema().getObjectClass("ds-task-backup");
 
     testTask(taskEntry, expectedState, 30);
     if (expectedState == TaskState.COMPLETED_SUCCESSFULLY ||

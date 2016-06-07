@@ -241,8 +241,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Construct the set of objectclasses to include in the schema entry.
     schemaObjectClasses = new LinkedHashMap<>(3);
     schemaObjectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    schemaObjectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
-    schemaObjectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
+    schemaObjectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
+    schemaObjectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
 
     configEntryDN = configEntry.getName();
     baseDNs = cfg.getBaseDN();
@@ -2203,8 +2203,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     Map<ObjectClass,String> objectClasses = new LinkedHashMap<>();
     objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    objectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
-    objectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
+    objectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
+    objectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
 
     Map<AttributeType,List<Attribute>> userAttributes = new LinkedHashMap<>();
     Map<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();

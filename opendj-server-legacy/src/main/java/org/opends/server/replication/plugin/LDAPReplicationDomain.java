@@ -4437,7 +4437,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       if (name.startsWith("@"))
       {
         String ocName = name.substring(1);
-        ObjectClass objectClass = DirectoryServer.getObjectClass(ocName);
+        ObjectClass objectClass = DirectoryServer.getSchema().getObjectClass(ocName);
         if (!objectClass.isPlaceHolder())
         {
           for (AttributeType at : objectClass.getRequiredAttributes())

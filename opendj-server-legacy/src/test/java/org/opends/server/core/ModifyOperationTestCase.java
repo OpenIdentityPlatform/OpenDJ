@@ -2124,7 +2124,7 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
-    assertFalse(e.hasObjectClass(DirectoryServer.getObjectClass("extensibleobject")));
+    assertFalse(e.hasObjectClass(getExtensibleObjectObjectClass()));
   }
 
 
@@ -2161,7 +2161,7 @@ public class ModifyOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     assertTrue(e.hasObjectClass(getExtensibleObjectObjectClass()));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("inetOrgPerson")));
+    assertTrue(e.hasObjectClass(DirectoryServer.getSchema().getObjectClass("inetOrgPerson")));
     assertTrue(e.hasObjectClass(getOrganizationalPersonObjectClass()));
     assertTrue(e.hasObjectClass(getPersonObjectClass()));
     assertTrue(e.hasObjectClass(getTopObjectClass()));

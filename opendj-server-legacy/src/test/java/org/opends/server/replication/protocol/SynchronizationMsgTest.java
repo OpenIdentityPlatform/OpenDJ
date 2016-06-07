@@ -1189,7 +1189,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       byte safeDataLevel, List<Attribute> entryAttrList) throws Exception
   {
     Map<ObjectClass, String> objectClassList = new HashMap<>();
-    objectClassList.put(DirectoryServer.getObjectClass("organization"), "organization");
+    objectClassList.put(getOrganizationObjectClass(), "organization");
 
     Attribute attr = Attributes.create("o", "com");
     Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();

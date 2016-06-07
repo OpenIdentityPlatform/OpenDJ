@@ -70,8 +70,6 @@ import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
@@ -2277,20 +2275,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the objectclass for the provided name or OID. It can optionally return a generated
-   * "default" version if the requested objectclass is not defined in the schema.
-   *
-   * @param nameOrOid
-   *          The name or OID for the objectclass to retrieve.
-   * @return The objectclass type, or {@code null} if there is no objectclass with the specified
-   *         name or OID defined in the server schema and a default class should not be returned.
-   */
-  public static ObjectClass getObjectClass(String nameOrOid)
-  {
-    return directoryServer.schema.getObjectClass(nameOrOid);
-  }
-
-  /**
    * Retrieves the attribute type for the provided name or OID. It can optionally return a generated
    * placeholder version if the requested attribute type is not defined in the schema.
    *
@@ -2301,24 +2285,7 @@ public final class DirectoryServer
    */
   public static AttributeType getAttributeType(String nameOrOid)
   {
-    return getAttributeType(nameOrOid, getSchema().getDefaultSyntax());
-  }
-
-  /**
-   * Retrieves the attribute type for the provided name or OID. It will return a generated
-   * placeholder version with the name or OID if the requested attribute type is not defined in the
-   * schema.
-   *
-   * @param nameOrOid
-   *          The name or OID for the attribute type to look for.
-   * @param syntax
-   *          The syntax for the attribute type to generate.
-   * @return The requested attribute type, or a generated placeholder version if there is no
-   *         attribute with the specified type defined in the server schema
-   */
-  public static AttributeType getAttributeType(String nameOrOid, Syntax syntax)
-  {
-    return directoryServer.schema.getAttributeType(nameOrOid, syntax);
+    return getSchema().getAttributeType(nameOrOid, getSchema().getDefaultSyntax());
   }
 
   /**

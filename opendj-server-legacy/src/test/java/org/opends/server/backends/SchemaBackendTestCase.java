@@ -4537,8 +4537,8 @@ public class SchemaBackendTestCase extends BackendTestCase
       "  MAY ( street $ c) X-ORIGIN 'user defined' )");
     assertEquals(resultCode, 0);
 
-    assertFalse(getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
-    assertFalse(getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
+    assertFalse(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
+    assertFalse(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
 
     resultCode = TestCaseUtils.applyModifications(false,
       "dn: cn=schema",
@@ -4549,8 +4549,8 @@ public class SchemaBackendTestCase extends BackendTestCase
       "  MAY ( street $ c) X-ORIGIN 'user defined' )");
     assertEquals(resultCode, 0);
 
-    assertTrue(getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
-    assertTrue(getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
+    assertTrue(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
+    assertTrue(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
   }
 
   /**

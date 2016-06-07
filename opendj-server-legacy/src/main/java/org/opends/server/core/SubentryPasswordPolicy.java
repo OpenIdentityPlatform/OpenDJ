@@ -140,7 +140,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   public SubentryPasswordPolicy(SubEntry subentry) throws DirectoryException
   {
     // Determine if this is a password policy subentry.
-    ObjectClass pwdPolicyOC = DirectoryServer.getObjectClass(PWD_OC_POLICY);
+    ObjectClass pwdPolicyOC = DirectoryServer.getSchema().getObjectClass(PWD_OC_POLICY);
     Entry entry = subentry.getEntry();
     Map<ObjectClass, String> objectClasses = entry.getObjectClasses();
     if (pwdPolicyOC.isPlaceHolder())
@@ -245,7 +245,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
 
     // Now check for the pwdValidatorPolicy OC and its attribute.
     // Determine if this is a password validator policy object class.
-    ObjectClass pwdValidatorPolicyOC = DirectoryServer.getObjectClass(PWD_OC_VALIDATORPOLICY);
+    ObjectClass pwdValidatorPolicyOC = DirectoryServer.getSchema().getObjectClass(PWD_OC_VALIDATORPOLICY);
     if (!pwdValidatorPolicyOC.isPlaceHolder() &&
         objectClasses.containsKey(pwdValidatorPolicyOC))
     {

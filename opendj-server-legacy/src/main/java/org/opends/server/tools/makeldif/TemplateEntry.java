@@ -248,7 +248,7 @@ public class TemplateEntry
         for (TemplateValue v : valueList)
         {
           String ocName = v.getValue().toString();
-          objectClasses.put(DirectoryServer.getObjectClass(ocName), ocName);
+          objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
         }
       }
       else if (t.isOperational())
