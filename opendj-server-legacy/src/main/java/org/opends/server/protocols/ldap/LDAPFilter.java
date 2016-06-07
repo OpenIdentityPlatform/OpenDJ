@@ -18,11 +18,8 @@ package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -1888,8 +1885,6 @@ public class LDAPFilter
     }
 
     AttributeDescription attrDesc = null;
-    AttributeType attributeType = null;
-    Set<String> options = Collections.emptySet();
     if (attributeDescription != null)
     {
       try
@@ -1900,8 +1895,6 @@ public class LDAPFilter
       {
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, e.getMessageObject(), e);
       }
-      attributeType = attrDesc.getAttributeType();
-      options = toSet(attrDesc);
     }
     if (assertionValue != null && attrDesc == null)
     {
@@ -1924,22 +1917,10 @@ public class LDAPFilter
 
     ArrayList<ByteString> subAnyComps =
         subAnyElements != null ? new ArrayList<ByteString>(subAnyElements) : null;
-    return new SearchFilter(filterType, subComps, notComp, attributeType, options,
+    return new SearchFilter(filterType, subComps, notComp, attrDesc,
                             assertionValue, subInitialElement, subAnyComps,
                             subFinalElement, matchingRuleID, dnAttributes);
   }
-
-  private Set<String> toSet(AttributeDescription attrDesc)
-  {
-    LinkedHashSet<String> results = new LinkedHashSet<>();
-    for (String option : attrDesc.getOptions())
-    {
-      results.add(option);
-    }
-    return results;
-  }
-
-
 
   /**
    * Appends a string representation of this search filter to the provided

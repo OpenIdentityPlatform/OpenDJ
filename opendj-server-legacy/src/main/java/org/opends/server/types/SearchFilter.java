@@ -24,7 +24,6 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,9 +64,6 @@ public final class SearchFilter
 
   /** The attribute description for this filter. */
   private final AttributeDescription attributeDescription;
-  /** The attribute type for this filter. */
-  private final AttributeType attributeType;
-
   /** The assertion value for this filter. */
   private final ByteString assertionValue;
 
@@ -92,7 +88,21 @@ public final class SearchFilter
   /** The matching rule ID for this search filter. */
   private final String matchingRuleID;
 
-
+  private SearchFilter(FilterType filterType,
+                      Collection<SearchFilter> filterComponents,
+                      SearchFilter notComponent,
+                      AttributeType attributeType,
+                      Set<String> attributeOptions,
+                      ByteString assertionValue,
+                      ByteString subInitialElement,
+                      List<ByteString> subAnyElements,
+                      ByteString subFinalElement,
+                      String matchingRuleID, boolean dnAttributes)
+  {
+    this(filterType, filterComponents, notComponent,
+        attributeType != null ? AttributeDescription.create(attributeType, attributeOptions) : null,
+        assertionValue, subInitialElement, subAnyElements, subFinalElement, matchingRuleID, dnAttributes);
+  }
 
   /**
    * Creates a new search filter with the provided information.
@@ -102,9 +112,7 @@ public final class SearchFilter
    * @param  filterComponents   The set of filter components for AND
    *                            and OR filters.
    * @param  notComponent       The filter component for NOT filters.
-   * @param  attributeType      The attribute type for this filter.
-   * @param  attributeOptions   The set of attribute options for the
-   *                            associated attribute type.
+   * @param  attributeDescription The attribute description for this filter.
    * @param  assertionValue     The assertion value for this filter.
    * @param  subInitialElement  The subInitial element for substring
    *                            filters.
@@ -123,8 +131,7 @@ public final class SearchFilter
   public SearchFilter(FilterType filterType,
                       Collection<SearchFilter> filterComponents,
                       SearchFilter notComponent,
-                      AttributeType attributeType,
-                      Set<String> attributeOptions,
+                      AttributeDescription attributeDescription,
                       ByteString assertionValue,
                       ByteString subInitialElement,
                       List<ByteString> subAnyElements,
@@ -146,10 +153,7 @@ public final class SearchFilter
     this.filterType        = filterType;
     this.filterComponents  = new LinkedHashSet<>(filterComponents);
     this.notComponent      = notComponent;
-    this.attributeDescription = attributeType != null
-        ? AttributeDescription.create(attributeType, attributeOptions)
-        : null;
-    this.attributeType     = attributeType;
+    this.attributeDescription = attributeDescription;
     this.assertionValue    = assertionValue;
     this.subInitialElement = subInitialElement;
     this.subAnyElements    = subAnyElements;
@@ -171,8 +175,7 @@ public final class SearchFilter
                                                   filterComponents)
   {
     return new SearchFilter(FilterType.AND, filterComponents, null,
-                            null, null, null, null, null, null, null,
-                            false);
+                            null, null, null, null, null, null, false);
   }
 
 
@@ -189,8 +192,7 @@ public final class SearchFilter
                                                  filterComponents)
   {
     return new SearchFilter(FilterType.OR, filterComponents, null,
-                            null, null, null, null, null, null, null,
-                            false);
+                            null, null, null, null, null, null, false);
   }
 
 
@@ -206,8 +208,7 @@ public final class SearchFilter
                                   SearchFilter notComponent)
   {
     return new SearchFilter(FilterType.NOT, null, notComponent, null,
-                            null, null, null, null, null, null,
-                            false);
+                            null, null, null, null, null, false);
   }
 
 
@@ -761,56 +762,27 @@ public final class SearchFilter
     // The part of the filter string before the equal sign should be
     // the attribute type (with or without options).  Decode it.
     String attrType = filterString.substring(startPos, attrEndPos);
-    StringBuilder lowerType = new StringBuilder(attrType.length());
-    Set<String> attributeOptions = new HashSet<>();
-
-    int semicolonPos = attrType.indexOf(';');
-    if (semicolonPos < 0)
+    AttributeDescription attrDesc = AttributeDescription.valueOf(toLowerCase(attrType));
+    if (!attrDesc.getNameOrOID().equals(attrDesc.getAttributeType().getNameOrOID()))
     {
-      for (int i=0; i < attrType.length(); i++)
-      {
-        lowerType.append(Character.toLowerCase(attrType.charAt(i)));
-      }
-    }
-    else
-    {
-      for (int i=0; i < semicolonPos; i++)
-      {
-        lowerType.append(Character.toLowerCase(attrType.charAt(i)));
-      }
-
-      int nextPos = attrType.indexOf(';', semicolonPos+1);
-      while (nextPos > 0)
-      {
-        attributeOptions.add(attrType.substring(semicolonPos+1,
-                                                nextPos));
-        semicolonPos = nextPos;
-        nextPos = attrType.indexOf(';', semicolonPos+1);
-      }
-
-      attributeOptions.add(attrType.substring(semicolonPos+1));
+      attrDesc = AttributeDescription.create(attrDesc.getAttributeType(), toSet(attrDesc.getOptions()));
     }
 
     // Get the attribute value.
-    AttributeType attributeType = getAttributeType(attrType, lowerType);
     String valueStr = filterString.substring(equalPos+1, endPos);
     if (valueStr.length() == 0)
     {
-      return new SearchFilter(filterType, null, null, attributeType,
-                    attributeOptions, ByteString.empty(),
+      return new SearchFilter(filterType, null, null, attrDesc, ByteString.empty(),
                     null, null, null, null, false);
     }
     else if (valueStr.equals("*"))
     {
-      return new SearchFilter(FilterType.PRESENT, null, null,
-                              attributeType, attributeOptions, null,
+      return new SearchFilter(FilterType.PRESENT, null, null, attrDesc, null,
                               null, null, null, null, false);
     }
     else if (valueStr.indexOf('*') >= 0)
     {
-      return decodeSubstringFilter(filterString, attributeType,
-                                   attributeOptions, equalPos,
-                                   endPos);
+      return decodeSubstringFilter(filterString, attrDesc, equalPos, endPos);
     }
     else
     {
@@ -987,13 +959,20 @@ public final class SearchFilter
         userValue = ByteString.wrap(valueBytes);
       }
 
-      return new SearchFilter(filterType, null, null, attributeType,
-                              attributeOptions, userValue, null, null,
-                              null, null, false);
+      return new SearchFilter(filterType, null, null, attrDesc,
+                              userValue, null, null, null, null, false);
     }
   }
 
-
+  private static Set<String> toSet(Iterable<String> options)
+  {
+    LinkedHashSet<String> results = new LinkedHashSet<>();
+    for (String option : options)
+    {
+      results.add(option);
+    }
+    return results;
+  }
 
   /**
    * Decodes a set of filters from the provided filter string within
@@ -1036,8 +1015,7 @@ public final class SearchFilter
       {
         // This is valid and will be treated as a TRUE/FALSE filter.
         return new SearchFilter(filterType, filterComponents, null,
-                                null, null, null, null, null, null,
-                                null, false);
+                                null, null, null, null, null, null, false);
       }
     }
 
@@ -1127,14 +1105,12 @@ public final class SearchFilter
       }
       SearchFilter notComponent = filterComponents.get(0);
       return new SearchFilter(filterType, null, notComponent, null,
-                              null, null, null, null, null, null,
-                              false);
+                              null, null, null, null, null, false);
     }
     else
     {
       return new SearchFilter(filterType, filterComponents, null,
-                              null, null, null, null, null, null,
-                              null, false);
+                              null, null, null, null, null, null, false);
     }
   }
 
@@ -1145,10 +1121,8 @@ public final class SearchFilter
    *
    * @param  filterString  The filter string containing the
    *                       information to decode.
-   * @param  attrType      The attribute type for this substring
+   * @param  attrDesc      The attribute description for this substring
    *                       filter component.
-   * @param  options       The set of attribute options for the
-   *                       associated attribute type.
    * @param  equalPos      The location of the equal sign separating
    *                       the attribute type from the value.
    * @param  endPos        The position of the first character after
@@ -1161,8 +1135,8 @@ public final class SearchFilter
    */
   private static SearchFilter decodeSubstringFilter(
                                    String filterString,
-                                   AttributeType attrType,
-                                   Set<String> options, int equalPos,
+                                   AttributeDescription attrDesc,
+                                   int equalPos,
                                    int endPos)
           throws DirectoryException
   {
@@ -1723,7 +1697,7 @@ public final class SearchFilter
 
 
     return new SearchFilter(FilterType.SUBSTRING, null, null,
-                            attrType, options, null, subInitial,
+                            attrDesc, null, subInitial,
                             subAny, subFinal, null, false);
   }
 
@@ -1754,8 +1728,7 @@ public final class SearchFilter
                                    int equalPos, int endPos)
           throws DirectoryException
   {
-    AttributeType attributeType    = null;
-    Set<String>   attributeOptions = new HashSet<>();
+    AttributeDescription attrDesc  = null;
     boolean       dnAttributes     = false;
     String        matchingRuleID   = null;
 
@@ -1767,9 +1740,7 @@ public final class SearchFilter
          toLowerCase(filterString.substring(startPos, equalPos));
     if (filterString.charAt(startPos) == ':')
     {
-      // See if it starts with ":dn".  Otherwise, it much be the
-      // matching rule
-      // ID.
+      // See if it starts with ":dn". Otherwise, it much be the matching rule ID.
       if (lowerLeftStr.startsWith(":dn:"))
       {
         dnAttributes = true;
@@ -1796,38 +1767,7 @@ public final class SearchFilter
 
 
       String attrType = filterString.substring(startPos, colonPos);
-      StringBuilder lowerType = new StringBuilder(attrType.length());
-
-      int semicolonPos = attrType.indexOf(';');
-      if (semicolonPos <0)
-      {
-        for (int i=0; i < attrType.length(); i++)
-        {
-          lowerType.append(Character.toLowerCase(attrType.charAt(i)));
-        }
-      }
-      else
-      {
-        for (int i=0; i < semicolonPos; i++)
-        {
-          lowerType.append(Character.toLowerCase(attrType.charAt(i)));
-        }
-
-        int nextPos = attrType.indexOf(';', semicolonPos+1);
-        while (nextPos > 0)
-        {
-          attributeOptions.add(attrType.substring(semicolonPos+1,
-                                                  nextPos));
-          semicolonPos = nextPos;
-          nextPos = attrType.indexOf(';', semicolonPos+1);
-        }
-
-        attributeOptions.add(attrType.substring(semicolonPos+1));
-      }
-
-
-      // Get the attribute type for the specified name.
-      attributeType = getAttributeType(attrType, lowerType);
+      attrDesc = AttributeDescription.valueOf(toLowerCase(attrType));
 
       // If there is anything left, then it should be ":dn" and/or ":"
       // followed by the matching rule ID.
@@ -2029,7 +1969,7 @@ public final class SearchFilter
     // Make sure that the filter contains at least one of an attribute
     // type or a matching rule ID.  Also, construct the appropriate
     // attribute  value.
-    if (attributeType == null)
+    if (attrDesc == null)
     {
       if (matchingRuleID == null)
       {
@@ -2048,21 +1988,8 @@ public final class SearchFilter
       }
     }
 
-    return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null,
-                            attributeType, attributeOptions, userValue,
-                            null, null, null, matchingRuleID,
-                            dnAttributes);
-  }
-
-  private static AttributeType getAttributeType(String attrType, StringBuilder lowerType)
-  {
-    AttributeType attributeType = DirectoryServer.getAttributeType(lowerType.toString());
-    if (attributeType.isPlaceHolder())
-    {
-      String typeStr = attrType.substring(0, lowerType.length());
-      attributeType = DirectoryServer.getAttributeType(typeStr);
-    }
-    return attributeType;
+    return new SearchFilter(FilterType.EXTENSIBLE_MATCH, null, null, attrDesc, userValue,
+                            null, null, null, matchingRuleID, dnAttributes);
   }
 
   /**
@@ -2111,7 +2038,7 @@ public final class SearchFilter
    */
   public AttributeType getAttributeType()
   {
-    return attributeType;
+    return attributeDescription != null ? attributeDescription.getAttributeType() : null;
   }
 
 
@@ -2620,7 +2547,7 @@ public final class SearchFilter
           throws DirectoryException
   {
     // Make sure that an attribute type has been defined.
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE.
@@ -2633,7 +2560,7 @@ public final class SearchFilter
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE.
-            get(entry.getName(), toString(), attributeType.getNameOrOID());
+            get(entry.getName(), toString(), getAttributeType().getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
 
@@ -2648,13 +2575,13 @@ public final class SearchFilter
             "filter %s because entry %s didn't have attribute " +
             "type %s",
                      this, completeFilter, entry.getName(),
-                     attributeType.getNameOrOID());
+                     getAttributeType().getNameOrOID());
       }
       return ConditionResult.FALSE;
     }
 
     // Get the equality matching rule for the given attribute type
-    MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
+    MatchingRule matchingRule = getAttributeType().getEqualityMatchingRule();
     if (matchingRule == null)
     {
       if (logger.isTraceEnabled())
@@ -2662,7 +2589,7 @@ public final class SearchFilter
         logger.trace(
          "Attribute type %s does not have an equality matching " +
          "rule -- returning undefined.",
-         attributeType.getNameOrOID());
+            getAttributeType().getNameOrOID());
       }
       return ConditionResult.UNDEFINED;
     }
@@ -2693,7 +2620,7 @@ public final class SearchFilter
       logger.trace(
           "Returning %s for equality component %s in filter %s " +
               "because entry %s didn't have attribute type %s with value %s",
-          result, this, completeFilter, entry.getName(), attributeType.getNameOrOID(), assertionValue);
+          result, this, completeFilter, entry.getName(), getAttributeType().getNameOrOID(), assertionValue);
     }
     return result;
   }
@@ -2722,7 +2649,7 @@ public final class SearchFilter
           throws DirectoryException
   {
     // Make sure that an attribute type has been defined.
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE.
@@ -2737,7 +2664,7 @@ public final class SearchFilter
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS.
-            get(entry.getName(), toString(), attributeType.getNameOrOID());
+              get(entry.getName(), toString(), getAttributeType().getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
 
@@ -2752,7 +2679,7 @@ public final class SearchFilter
             "filter %s because entry %s didn't have attribute " +
             "type %s",
                      this, completeFilter, entry.getName(),
-                     attributeType.getNameOrOID());
+            getAttributeType().getNameOrOID());
       }
       return ConditionResult.FALSE;
     }
@@ -2825,7 +2752,7 @@ public final class SearchFilter
           throws DirectoryException
   {
     // Make sure that an attribute type has been defined.
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE.
@@ -2838,7 +2765,7 @@ public final class SearchFilter
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE.
-            get(entry.getName(), toString(), attributeType.getNameOrOID());
+              get(entry.getName(), toString(), getAttributeType().getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
 
@@ -2852,7 +2779,7 @@ public final class SearchFilter
             "greater-or-equal component %s in filter %s " +
             "because entry %s didn't have attribute type %s",
                      this, completeFilter, entry.getName(),
-                     attributeType.getNameOrOID());
+            getAttributeType().getNameOrOID());
       }
       return ConditionResult.FALSE;
     }
@@ -2923,7 +2850,7 @@ public final class SearchFilter
           throws DirectoryException
   {
     // Make sure that an attribute type has been defined.
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE.
@@ -2936,7 +2863,7 @@ public final class SearchFilter
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE.
-            get(entry.getName(), toString(), attributeType.getNameOrOID());
+              get(entry.getName(), toString(), getAttributeType().getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
 
@@ -2950,7 +2877,7 @@ public final class SearchFilter
             "Returning FALSE for less-or-equal component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s", this, completeFilter, entry.getName(),
-                       attributeType.getNameOrOID());
+            getAttributeType().getNameOrOID());
       }
       return ConditionResult.FALSE;
     }
@@ -3021,7 +2948,7 @@ public final class SearchFilter
           throws DirectoryException
   {
     // Make sure that an attribute type has been defined.
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE.
@@ -3066,7 +2993,7 @@ public final class SearchFilter
           throws DirectoryException
   {
     // Make sure that an attribute type has been defined.
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE.
@@ -3079,7 +3006,7 @@ public final class SearchFilter
     {
       LocalizableMessage message =
           ERR_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE.
-            get(entry.getName(), toString(), attributeType.getNameOrOID());
+              get(entry.getName(), toString(), getAttributeType().getNameOrOID());
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
 
@@ -3093,7 +3020,7 @@ public final class SearchFilter
             "Returning FALSE for approximate component %s in " +
             "filter %s because entry %s didn't have attribute " +
             "type %s", this, completeFilter, entry.getName(),
-                       attributeType.getNameOrOID());
+            getAttributeType().getNameOrOID());
       }
       return ConditionResult.FALSE;
     }
@@ -3195,7 +3122,7 @@ public final class SearchFilter
     }
     else
     {
-      if (attributeType == null)
+      if (getAttributeType() == null)
       {
         LocalizableMessage message =
             ERR_SEARCH_FILTER_EXTENSIBLE_MATCH_NO_RULE_OR_TYPE.
@@ -3205,7 +3132,7 @@ public final class SearchFilter
       }
       else
       {
-        matchingRule = attributeType.getEqualityMatchingRule();
+        matchingRule = getAttributeType().getEqualityMatchingRule();
         if (matchingRule == null)
         {
           if (logger.isTraceEnabled())
@@ -3213,7 +3140,7 @@ public final class SearchFilter
             logger.trace(
              "Attribute type %s does not have an equality matching " +
              "rule -- returning undefined.",
-             attributeType.getNameOrOID());
+                getAttributeType().getNameOrOID());
           }
           return ConditionResult.UNDEFINED;
         }
@@ -3224,16 +3151,16 @@ public final class SearchFilter
     // If there is an attribute type, then check to see if there is a
     // corresponding matching rule use for the matching rule and
     // determine if it allows that attribute type.
-    if (attributeType != null)
+    if (getAttributeType() != null)
     {
       try
       {
         MatchingRuleUse mru = DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
-        if (!mru.hasAttribute(attributeType))
+        if (!mru.hasAttribute(getAttributeType()))
         {
           logger.trace("Attribute type %s is not allowed for use with "
               + "matching rule %s because of matching rule use definition %s",
-              attributeType.getNameOrOID(), matchingRule.getNameOrOID(), mru.getNameOrOID());
+              getAttributeType().getNameOrOID(), matchingRule.getNameOrOID(), mru.getNameOrOID());
           return ConditionResult.UNDEFINED;
         }
       }
@@ -3263,7 +3190,7 @@ public final class SearchFilter
     // that attribute.  Otherwise, we should check against all
     // attributes in the entry.
     ConditionResult result = ConditionResult.FALSE;
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
       for (List<Attribute> attrList :
            entry.getUserAttributes().values())
@@ -3429,7 +3356,7 @@ public final class SearchFilter
         {
           try
           {
-            if (attributeType == null || attributeType.equals(ava.getAttributeType()))
+            if (getAttributeType() == null || getAttributeType().equals(ava.getAttributeType()))
             {
               ByteString v = ava.getAttributeValue();
               ByteString nv = matchingRule.normalizeAttributeValue(v);
@@ -3554,7 +3481,7 @@ public final class SearchFilter
       return false;
     }
 
-    MatchingRule rule = attributeType.getSubstringMatchingRule();
+    MatchingRule rule = getAttributeType().getSubstringMatchingRule();
     if (rule == null)
     {
       return false;
@@ -3593,9 +3520,9 @@ public final class SearchFilter
 
   private boolean extensibleEqual(SearchFilter f)
   {
-    if (attributeType == null)
+    if (getAttributeType() == null)
     {
-      if (f.attributeType != null)
+      if (f.getAttributeType() != null)
       {
         return false;
       }
@@ -3690,7 +3617,7 @@ public final class SearchFilter
       case LESS_OR_EQUAL:
         return typeAndAssertionHashCode();
       case PRESENT:
-        return attributeType.hashCode();
+        return getAttributeType().hashCode();
       case APPROXIMATE_MATCH:
         return typeAndAssertionHashCode();
       case EXTENSIBLE_MATCH:
@@ -3706,9 +3633,9 @@ public final class SearchFilter
   {
     int hashCode = 0;
 
-    if (attributeType != null)
+    if (getAttributeType() != null)
     {
-      hashCode += attributeType.hashCode();
+      hashCode += getAttributeType().hashCode();
     }
 
     if (dnAttributes)
@@ -3731,13 +3658,13 @@ public final class SearchFilter
 
   private int typeAndAssertionHashCode()
   {
-    return attributeType.hashCode() + assertionValue.hashCode();
+    return getAttributeType().hashCode() + assertionValue.hashCode();
   }
 
   /** Returns hash code to use for substring filter. */
   private int substringHashCode()
   {
-    int hashCode = attributeType.hashCode();
+    int hashCode = getAttributeType().hashCode();
     if (subInitialElement != null)
     {
       hashCode += subInitialElement.hashCode();
