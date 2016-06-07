@@ -433,4 +433,17 @@ import java.util.SortedSet;
    * @param encrypt true if the user of the crypto suite needs encryption
    */
   CryptoSuite newCryptoSuite(String cipherTransformation, int cipherKeyLength, boolean encrypt);
+
+  /**
+   * Ensures that a key exists for the provided cipher transformation and key length.
+   * If none exists, a new one will be created.
+   *<p>
+   * Newly created keys will be published and propagated to the replication topology.
+   *
+   * @param cipherTransformation cipher transformation string specification
+   * @param cipherKeyLength length of key in bits
+   * @throws CryptoManagerException  If a problem occurs managing the encryption key
+   */
+  void ensureCipherKeyIsAvailable(String cipherTransformation, int cipherKeyLength) throws CryptoManagerException;
+
 }

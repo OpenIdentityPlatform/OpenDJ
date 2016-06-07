@@ -2362,22 +2362,40 @@ public class EntryContainer
   @Override
   public boolean isConfigurationChangeAcceptable(PluggableBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    StringBuilder builder = new StringBuilder();
-    for (AttributeIndex attributeIndex : attrIndexMap.values())
+    if (cfg.isConfidentialityEnabled())
     {
-      if (attributeIndex.isConfidentialityEnabled() && !cfg.isConfidentialityEnabled())
+      final String cipherTransformation = cfg.getCipherTransformation();
+      final int keyLength = cfg.getCipherKeyLength();
+
+      try
       {
-        if (builder.length() > 0)
-        {
-          builder.append(", ");
-        }
-        builder.append(attributeIndex.getAttributeType().getNameOrOID());
+        serverContext.getCryptoManager().ensureCipherKeyIsAvailable(cipherTransformation, keyLength);
+      }
+      catch (Exception e)
+      {
+        unacceptableReasons.add(ERR_BACKEND_FAULTY_CRYPTO_TRANSFORMATION.get(cipherTransformation, keyLength, e));
+        return false;
       }
     }
-    if (builder.length() > 0)
+    else
     {
-      unacceptableReasons.add(ERR_BACKEND_CANNOT_CHANGE_CONFIDENTIALITY.get(getBaseDN(), builder.toString()));
-      return false;
+      StringBuilder builder = new StringBuilder();
+      for (AttributeIndex attributeIndex : attrIndexMap.values())
+      {
+        if (attributeIndex.isConfidentialityEnabled())
+        {
+          if (builder.length() > 0)
+          {
+            builder.append(", ");
+          }
+          builder.append(attributeIndex.getAttributeType().getNameOrOID());
+        }
+      }
+      if (builder.length() > 0)
+      {
+        unacceptableReasons.add(ERR_BACKEND_CANNOT_CHANGE_CONFIDENTIALITY.get(getBaseDN(), builder.toString()));
+        return false;
+      }
     }
     return true;
   }

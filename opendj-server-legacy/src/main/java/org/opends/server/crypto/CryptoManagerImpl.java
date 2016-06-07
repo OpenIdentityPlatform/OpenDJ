@@ -2503,6 +2503,12 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     return new CipherOutputStream(outputStream, cipher);
   }
 
+  @Override
+  public void ensureCipherKeyIsAvailable(String cipherTransformation, int cipherKeyLength) throws CryptoManagerException
+  {
+    getCipherKeyEntry(cipherTransformation, cipherKeyLength);
+  }
+
   private CipherKeyEntry getCipherKeyEntry(String cipherTransformation, int keyLengthBits) throws CryptoManagerException
   {
     CipherKeyEntry keyEntry = CipherKeyEntry.getCipherKeyEntryOrNull(this, cipherTransformation, keyLengthBits);
