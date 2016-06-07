@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -38,11 +38,81 @@ public class HostPortTest extends TypesTestCase
   }
 
   @Test
+  public void valueOfHostNameDefaultPort()
+  {
+    final String serverURL = "home";
+    final HostPort hp = HostPort.valueOf(serverURL, 1);
+    assertThat(hp.getHost()).isEqualTo("home");
+    assertThat(hp.getPort()).isEqualTo(1);
+    assertThat(hp.toString()).isEqualTo(serverURL + ":1");
+  }
+
+  @Test
+  public void valueOfHostNameOverridingDefaultPort()
+  {
+    final String serverURL = "home:1";
+    final HostPort hp = HostPort.valueOf(serverURL, 2);
+    assertThat(hp.getHost()).isEqualTo("home");
+    assertThat(hp.getPort()).isEqualTo(1);
+    assertThat(hp.toString()).isEqualTo(serverURL);
+  }
+
+  @Test
   public void valueOfIPv4()
   {
     final String serverURL = "192.168.1.1:1";
     final HostPort hp = HostPort.valueOf(serverURL);
     assertThat(hp.getHost()).isEqualTo("192.168.1.1");
+    assertThat(hp.getPort()).isEqualTo(1);
+    assertThat(hp.toString()).isEqualTo(serverURL);
+  }
+
+  @Test
+  public void valueOfIPv4DefaultPort()
+  {
+    final String serverURL = "192.168.1.1";
+    final HostPort hp = HostPort.valueOf(serverURL, 1);
+    assertThat(hp.getHost()).isEqualTo("192.168.1.1");
+    assertThat(hp.getPort()).isEqualTo(1);
+    assertThat(hp.toString()).isEqualTo(serverURL + ":1");
+  }
+
+  @Test
+  public void valueOfIPv4OverridingDefaultPort()
+  {
+    final String serverURL = "192.168.1.1:1";
+    final HostPort hp = HostPort.valueOf(serverURL, 2);
+    assertThat(hp.getHost()).isEqualTo("192.168.1.1");
+    assertThat(hp.getPort()).isEqualTo(1);
+    assertThat(hp.toString()).isEqualTo(serverURL);
+  }
+
+  @Test
+  public void valueOfIPv6()
+  {
+    final String serverURL = "[" + IPV6_ADDRESS + "]:1";
+    final HostPort hp = HostPort.valueOf(serverURL);
+    assertThat(hp.getHost()).isEqualTo(IPV6_ADDRESS);
+    assertThat(hp.getPort()).isEqualTo(1);
+    assertThat(hp.toString()).isEqualTo(serverURL);
+  }
+
+  @Test
+  public void valueOfIPv6DefaultPort()
+  {
+    final String serverURL = "[" + IPV6_ADDRESS + "]";
+    final HostPort hp = HostPort.valueOf(serverURL, 1);
+    assertThat(hp.getHost()).isEqualTo(IPV6_ADDRESS);
+    assertThat(hp.getPort()).isEqualTo(1);
+    assertThat(hp.toString()).isEqualTo(serverURL + ":1");
+  }
+
+  @Test
+  public void valueOfIPv6OverridingDefaultPort()
+  {
+    final String serverURL = "[" + IPV6_ADDRESS + "]:1";
+    final HostPort hp = HostPort.valueOf(serverURL, 2);
+    assertThat(hp.getHost()).isEqualTo(IPV6_ADDRESS);
     assertThat(hp.getPort()).isEqualTo(1);
     assertThat(hp.toString()).isEqualTo(serverURL);
   }

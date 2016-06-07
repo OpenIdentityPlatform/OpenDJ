@@ -77,8 +77,7 @@ public class CoreConfigManager
     globalConfig.addChangeListener(this);
 
 
-    // If there are any STMP servers specified, then make sure that if the value
-    // contains a colon that the portion after it is an integer between 1 and 65535.
+    // Validate any specified SMTP servers
     Set<String> smtpServers = globalConfig.getSMTPServer();
     if (smtpServers != null)
     {
@@ -86,8 +85,7 @@ public class CoreConfigManager
       {
         try
         {
-          // validate provided string
-          HostPort.valueOf(server);
+          HostPort.valueOf(server, SMTP_DEFAULT_PORT);
         }
         catch (RuntimeException e)
         {
@@ -208,7 +206,7 @@ public class CoreConfigManager
         final Properties properties = new Properties();
         try
         {
-          final HostPort hp = HostPort.valueOf(smtpServer);
+          final HostPort hp = HostPort.valueOf(smtpServer, SMTP_DEFAULT_PORT);
 
           properties.setProperty(SMTP_PROPERTY_HOST, hp.getHost());
           properties.setProperty(SMTP_PROPERTY_PORT,
@@ -313,7 +311,7 @@ public class CoreConfigManager
         try
         {
           // validate provided string
-          HostPort.valueOf(server);
+          HostPort.valueOf(server, SMTP_DEFAULT_PORT);
         }
         catch (RuntimeException e)
         {

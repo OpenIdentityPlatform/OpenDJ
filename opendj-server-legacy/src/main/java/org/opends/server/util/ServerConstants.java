@@ -3003,6 +3003,10 @@ public final class ServerConstants
 
 
 
+  /** The default SMTP port to use */
+  public static final int SMTP_DEFAULT_PORT = 25;
+
+
   /**
    * The name of the JavaMail property that can be used to specify the address
    * of the SMTP server.

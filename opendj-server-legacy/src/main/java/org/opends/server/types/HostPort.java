@@ -198,24 +198,42 @@ public final class HostPort
     this.port = normalizePort(port, host);
   }
 
-
-
   /**
-   * Creates a new {@code HostPort} object by parsing the supplied
-   * "hostName:port" String URL. This method also accepts IPV6 style
-   * "[hostAddress]:port" String URLs.
+   * Creates a new {@code HostPort} object by parsing the supplied "hostName:port" String URL.
+   * This method also accepts IPV6 style "[hostAddress]:port" String URLs.
    *
    * @param hostPort
    *          a String representing the URL made of a host and a port.
    * @return a new {@link HostPort} built from the supplied string.
    * @throws NumberFormatException
-   *           If the "port" in the supplied string cannot be converted to an
-   *           int
+   *           If the "port" in the supplied string cannot be converted to an int
    * @throws IllegalArgumentException
    *           if no port could be found in the supplied string, or if the port
    *           is not a valid port number
    */
   public static HostPort valueOf(String hostPort) throws NumberFormatException,
+          IllegalArgumentException
+  {
+    return HostPort.valueOf(hostPort, null);
+  }
+
+  /**
+   * Creates a new {@code HostPort} object by parsing the supplied "hostName:port" String URL.
+   * This method also accepts IPV6 style "[hostAddress]:port" String URLs. Values without ports
+   * are allowed if a default port is provided.
+   *
+   * @param hostPort
+   *          a String representing the URL made of a host and a port.
+   * @param defaultPort
+   *          if not {@code null} then a default port to use if none is present in the string.
+   * @return a new {@link HostPort} built from the supplied string.
+   * @throws NumberFormatException
+   *           If the "port" in the supplied string cannot be converted to an int
+   * @throws IllegalArgumentException
+   *           if no port could be found in the supplied string, or if the port
+   *           is not a valid port number
+   */
+  public static HostPort valueOf(String hostPort, Integer defaultPort) throws NumberFormatException,
       IllegalArgumentException
   {
     final int sepIndex = hostPort.lastIndexOf(':');
@@ -223,6 +241,10 @@ public final class HostPort
         && hostPort.charAt(hostPort.length() - 1) == ']')
         || sepIndex == -1)
     {
+      if (defaultPort != null)
+      {
+        return new HostPort(hostPort, defaultPort.intValue());
+      }
       throw new IllegalArgumentException(
           "Invalid host/port string: no network port was provided in '"
               + hostPort + "'");
@@ -236,6 +258,10 @@ public final class HostPort
     else if (hostPort.lastIndexOf(':', sepIndex - 1) != -1
         && (hostPort.charAt(0) != '[' || hostPort.charAt(sepIndex - 1) != ']'))
     {
+      if (defaultPort != null)
+      {
+        return new HostPort(hostPort, defaultPort.intValue());
+      }
       throw new IllegalArgumentException(
           "Invalid host/port string: Suspected IPv6 address provided in '"
               + hostPort + "'. The only allowed format for providing IPv6 "
