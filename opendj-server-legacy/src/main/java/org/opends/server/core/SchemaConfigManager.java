@@ -62,6 +62,9 @@ public class SchemaConfigManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  private static final String CORE_SCHEMA_FILE = "00-core.ldif";
+  private static final String RFC_3112_SCHEMA_FILE = "03-rfc3112.ldif";
+
   /** The schema that has been parsed from the server configuration. */
   private Schema schema;
 
@@ -379,7 +382,10 @@ public class SchemaConfigManager
   {
     try
     {
-      updateSchema(schema, schemaEntry, false);
+      // immediately overwrite these definitions which are already defined in the SDK core schema
+      final boolean overwriteCoreSchemaDefinitions =
+          CORE_SCHEMA_FILE.equals(schemaFile) || RFC_3112_SCHEMA_FILE.equals(schemaFile);
+      updateSchema(schema, schemaEntry, overwriteCoreSchemaDefinitions);
     }
     catch (DirectoryException e)
     {
