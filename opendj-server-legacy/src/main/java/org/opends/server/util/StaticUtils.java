@@ -57,6 +57,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.util.Reject;
 import org.opends.messages.ToolMessages;
 import org.opends.server.core.DirectoryServer;
@@ -1952,8 +1953,7 @@ public final class StaticUtils
 
     // Get the top and untypedObject classes to include in the entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(3);
-
-    objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
     objectClasses.put(structuralClass, structuralClass.getNameOrOID());
 
 

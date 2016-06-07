@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.server.config.server.BackupBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.AddOperation;
@@ -211,7 +212,7 @@ public class BackupBackend
 
     // Construct the backup base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
-    objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
     objectClasses.put(DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC), OC_UNTYPED_OBJECT);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
@@ -501,8 +502,7 @@ public class BackupBackend
 
     // Construct the backup directory entry to return.
     LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
-    ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-
+    ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
     ocMap.put(DirectoryServer.getObjectClass(OC_BACKUP_DIRECTORY), OC_BACKUP_DIRECTORY);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
@@ -578,7 +578,7 @@ public class BackupBackend
 
     // Construct the backup entry to return.
     LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(3);
-    ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
     ocMap.put(DirectoryServer.getObjectClass(OC_BACKUP_INFO), OC_BACKUP_INFO);
     ocMap.put(DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC), OC_EXTENSIBLE_OBJECT);
 

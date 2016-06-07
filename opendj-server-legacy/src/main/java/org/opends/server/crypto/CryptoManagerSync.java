@@ -39,6 +39,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
@@ -373,7 +374,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   private void addEntry(Entry srcEntry, DN dstDN)
   {
     Map<ObjectClass, String> ocMap = new LinkedHashMap<>(2);
-    ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
     ocMap.put(ocInstanceKey, OC_CRYPTO_INSTANCE_KEY);
 
     Map<AttributeType, List<Attribute>> userAttrs = new HashMap<>();

@@ -22,7 +22,6 @@ import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.tools.ConfigureWindowsService.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.DynamicConstants.*;
@@ -2292,18 +2291,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the "top" objectClass, which should be the topmost objectclass in
-   * the inheritance chain for most other objectclasses.  If no such objectclass
-   * could be found, then one will be constructed.
-   *
-   * @return  The "top" objectClass.
-   */
-  public static ObjectClass getTopObjectClass()
-  {
-    return directoryServer.schema.getObjectClass(TOP_OBJECTCLASS_NAME);
-  }
-
-  /**
    * Retrieves the attribute type for the provided name or OID. It can optionally return a generated
    * placeholder version if the requested attribute type is not defined in the schema.
    *
@@ -2332,16 +2319,6 @@ public final class DirectoryServer
   public static AttributeType getAttributeType(String nameOrOid, Syntax syntax)
   {
     return directoryServer.schema.getAttributeType(nameOrOid, syntax);
-  }
-
-  /**
-   * Retrieves the attribute type for the "objectClass" attribute.
-   *
-   * @return  The attribute type for the "objectClass" attribute.
-   */
-  public static AttributeType getObjectClassAttributeType()
-  {
-    return directoryServer.schema.getAttributeType(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
   }
 
   /**

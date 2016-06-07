@@ -50,6 +50,7 @@ import javax.swing.event.ChangeListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
@@ -324,8 +325,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
       oid.setText("");
       description.setText("");
       aliases.setText("");
-      superiors.setSelectedSuperiors(
-          Collections.singleton(schema.getObjectClass("top")));
+      superiors.setSelectedSuperiors(Collections.singleton(CoreSchema.getTopObjectClass()));
       attributes.getAvailableListModel().addAll(
           attributes.getSelectedListModel1().getData());
       attributes.getAvailableListModel().addAll(

@@ -16,6 +16,17 @@
  */
 package org.opends.server.replication.protocol;
 
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.replication.common.AssuredMode.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +41,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
@@ -52,7 +64,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
@@ -62,16 +73,6 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.replication.common.AssuredMode.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.replication.protocol.ProtocolVersion.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test the constructors, encoders and decoders of the replication protocol
@@ -454,21 +455,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     final DN dn = DN.valueOf(rawDN);
 
-    Attribute objectClass = Attributes.create(DirectoryServer
-        .getObjectClassAttributeType(), "organization");
+    Attribute objectClass = Attributes.create(getObjectClassAttributeType(), "organization");
     Map<ObjectClass, String> objectClassList = new HashMap<>();
-    objectClassList.put(DirectoryServer.getObjectClass("organization"), "organization");
+    objectClassList.put(getOrganizationObjectClass(), "organization");
 
     Attribute attr = Attributes.create("o", "com");
     List<Attribute> userAttributes = newArrayList(attr);
-    Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
-    userAttList.put(attr.getAttributeDescription().getAttributeType(), userAttributes);
+    Map<AttributeType, List<Attribute>> userAttList = addAttribute(attr, userAttributes);
 
 
     attr = Attributes.create("creatorsname", "dc=creator");
     List<Attribute> operationalAttributes = newArrayList(attr);
-    Map<AttributeType, List<Attribute>> opList = new HashMap<>();
-    opList.put(attr.getAttributeDescription().getAttributeType(), operationalAttributes);
+    Map<AttributeType, List<Attribute>> opList = addAttribute(attr, operationalAttributes);
 
     CSN csn = new CSN(TimeThread.getTime(), 123,  45);
 
@@ -539,6 +537,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Create an update message from this op
     AddMsg updateMsg = (AddMsg) LDAPUpdateMsg.generateMsg(localAddOp);
     assertEquals(msg.getCSN(), updateMsg.getCSN());
+  }
+
+  private Map<AttributeType, List<Attribute>> addAttribute(Attribute attr, List<Attribute> userAttributes)
+  {
+    Map<AttributeType, List<Attribute>> userAttList = new HashMap<>();
+    userAttList.put(attr.getAttributeDescription().getAttributeType(), userAttributes);
+    return userAttList;
   }
 
   private void assertAttributesEqual(List<RawAttribute> actualAttrs,

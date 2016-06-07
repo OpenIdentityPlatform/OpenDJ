@@ -62,6 +62,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -239,7 +240,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Construct the set of objectclasses to include in the schema entry.
     schemaObjectClasses = new LinkedHashMap<>(3);
-    schemaObjectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    schemaObjectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
     schemaObjectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
     schemaObjectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
 
@@ -2201,7 +2202,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private Entry createEmptySchemaEntry()
   {
     Map<ObjectClass,String> objectClasses = new LinkedHashMap<>();
-    objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
     objectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
     objectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
 

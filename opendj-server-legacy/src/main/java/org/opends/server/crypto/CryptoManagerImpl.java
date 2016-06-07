@@ -73,6 +73,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
@@ -538,7 +539,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
           }
 
           final Entry entry = new Entry(entryDN, null, null, null);
-          entry.addObjectClass(DirectoryServer.getTopObjectClass());
+          entry.addObjectClass(CoreSchema.getTopObjectClass());
           entry.addObjectClass(ocCertRequest);
           AddOperation addOperation = icc.processAdd(entry);
           if (ResultCode.SUCCESS != addOperation.getResultCode()) {
@@ -637,7 +638,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       final InternalSearchOperation searchOp = icc.processSearch(request);
       if (searchOp.getSearchEntries().isEmpty()) {
         final Entry entry = new Entry(entryDN, null, null, null);
-        entry.addObjectClass(DirectoryServer.getTopObjectClass());
+        entry.addObjectClass(CoreSchema.getTopObjectClass());
         entry.addObjectClass(ocInstanceKey);
 
         // Add the key ID attribute.
@@ -1581,7 +1582,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
       // Set the entry object classes.
       LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
-      ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+      ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
       ocMap.put(ocCipherKey, OC_CRYPTO_CIPHER_KEY);
 
       // Create the user attributes.
@@ -2051,7 +2052,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
 
       // Set the entry object classes.
       LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
-      ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+      ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
       ocMap.put(ocMacKey, OC_CRYPTO_MAC_KEY);
 
       // Create the user attributes.

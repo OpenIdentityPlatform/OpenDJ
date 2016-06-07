@@ -32,6 +32,7 @@ import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
@@ -583,9 +584,8 @@ public class SearchOperationBasis
 
       // NOTE: the objectClass attribute is also present and must be
       // dealt with later.
-      AttributeType attrType = DirectoryServer.getObjectClassAttributeType();
-      Iterator<String> ocIterator =
-           filteredEntry.getObjectClasses().values().iterator();
+      AttributeType attrType = CoreSchema.getObjectClassAttributeType();
+      Iterator<String> ocIterator = filteredEntry.getObjectClasses().values().iterator();
       while (ocIterator.hasNext())
       {
         ByteString ocName = ByteString.valueOfUtf8(ocIterator.next());

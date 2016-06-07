@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -370,7 +371,7 @@ public class Entry
 
     if(objectClassAttribute == null)
     {
-      AttributeBuilder builder = new AttributeBuilder(DirectoryServer.getObjectClassAttributeType());
+      AttributeBuilder builder = new AttributeBuilder(CoreSchema.getObjectClassAttributeType());
       builder.addAllStrings(objectClasses.values());
       objectClassAttribute = builder.toAttribute();
     }
@@ -4261,7 +4262,7 @@ public class Entry
   public Entry filterEntry(Set<String> attrNameList,
       boolean omitValues, boolean omitReal, boolean omitVirtual)
   {
-    final AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
+    final AttributeType ocType = CoreSchema.getObjectClassAttributeType();
 
     Map<ObjectClass, String> objectClassesCopy;
     Map<AttributeType, List<Attribute>> userAttrsCopy;

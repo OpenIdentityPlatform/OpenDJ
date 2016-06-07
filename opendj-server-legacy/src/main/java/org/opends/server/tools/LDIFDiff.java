@@ -16,6 +16,16 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.CommonArguments.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,8 +44,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
@@ -47,7 +57,6 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NullOutputStream;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.StaticUtils;
@@ -56,14 +65,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.cli.CommonArguments.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class provides a program that may be used to determine the differences
@@ -755,29 +756,13 @@ public class LDIFDiff
     if (!sourceClasses.isEmpty())
     {
       // Whatever is left must have been deleted.
-      AttributeType attrType = DirectoryServer.getObjectClassAttributeType();
-      AttributeBuilder builder = new AttributeBuilder(attrType);
-      for (ObjectClass oc : sourceClasses)
-      {
-        builder.add(oc.getNameOrOID());
-      }
-
-      modifications.add(new Modification(ModificationType.DELETE, builder
-          .toAttribute()));
+      modifications.add(new Modification(DELETE, toObjectClassAttribute(sourceClasses)));
     }
 
     if (! targetClasses.isEmpty())
     {
       // Whatever is left must have been added.
-      AttributeType attrType = DirectoryServer.getObjectClassAttributeType();
-      AttributeBuilder builder = new AttributeBuilder(attrType);
-      for (ObjectClass oc : targetClasses)
-      {
-        builder.add(oc.getNameOrOID());
-      }
-
-      modifications.add(new Modification(ModificationType.ADD, builder
-          .toAttribute()));
+      modifications.add(new Modification(ADD, toObjectClassAttribute(targetClasses)));
     }
 
 
@@ -798,7 +783,7 @@ public class LDIFDiff
         // value individually.
         for (Attribute a : sourceAttrs)
         {
-          modifications.add(new Modification(ModificationType.DELETE, a));
+          modifications.add(new Modification(DELETE, a));
         }
       }
       else
@@ -824,28 +809,22 @@ public class LDIFDiff
 
           if (targetAttr == null)
           {
-            // The attribute doesn't exist in the target list, so it has been
-            // deleted.
-            modifications.add(new Modification(ModificationType.DELETE,
-                                               sourceAttr));
+            // The attribute doesn't exist in the target list, so it has been deleted.
+            modifications.add(new Modification(DELETE, sourceAttr));
           }
           else
           {
             // Compare the values.
-            AttributeBuilder addedValuesBuilder = new AttributeBuilder(targetAttr);
-            addedValuesBuilder.removeAll(sourceAttr);
-            Attribute addedValues = addedValuesBuilder.toAttribute();
+            Attribute addedValues = minusAttribute(targetAttr, sourceAttr);
             if (!addedValues.isEmpty())
             {
-              modifications.add(new Modification(ModificationType.ADD, addedValues));
+              modifications.add(new Modification(ADD, addedValues));
             }
 
-            AttributeBuilder deletedValuesBuilder = new AttributeBuilder(sourceAttr);
-            deletedValuesBuilder.removeAll(targetAttr);
-            Attribute deletedValues = deletedValuesBuilder.toAttribute();
+            Attribute deletedValues = minusAttribute(sourceAttr, targetAttr);
             if (!deletedValues.isEmpty())
             {
-              modifications.add(new Modification(ModificationType.DELETE, deletedValues));
+              modifications.add(new Modification(DELETE, deletedValues));
             }
           }
         }
@@ -854,7 +833,7 @@ public class LDIFDiff
         // Any remaining target attributes have been added.
         for (Attribute targetAttr: targetAttrs)
         {
-          modifications.add(new Modification(ModificationType.ADD, targetAttr));
+          modifications.add(new Modification(ADD, targetAttr));
         }
       }
     }
@@ -862,10 +841,9 @@ public class LDIFDiff
     // Any remaining target attribute types have been added.
     for (AttributeType type : targetEntry.getUserAttributes().keySet())
     {
-      List<Attribute> targetAttrs = targetEntry.getUserAttribute(type);
-      for (Attribute a : targetAttrs)
+      for (Attribute a : targetEntry.getUserAttribute(type))
       {
-        modifications.add(new Modification(ModificationType.ADD, a));
+        modifications.add(new Modification(ADD, a));
       }
     }
 
@@ -920,5 +898,22 @@ public class LDIFDiff
     }
 
     return true;
+  }
+
+  private static Attribute toObjectClassAttribute(Collection<ObjectClass> objectClasses)
+  {
+    AttributeBuilder builder = new AttributeBuilder(getObjectClassAttributeType());
+    for (ObjectClass oc : objectClasses)
+    {
+      builder.add(oc.getNameOrOID());
+    }
+    return builder.toAttribute();
+  }
+
+  private static Attribute minusAttribute(Attribute sourceAttr, Attribute removeAttr)
+  {
+    AttributeBuilder builder = new AttributeBuilder(sourceAttr);
+    builder.removeAll(removeAttr);
+    return builder.toAttribute();
   }
 }

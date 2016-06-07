@@ -45,6 +45,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -1313,7 +1314,7 @@ public class LDIFReader implements Closeable
     }
 
     // Reconstruct the object class attribute.
-    AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
+    AttributeType ocType = CoreSchema.getObjectClassAttributeType();
     AttributeBuilder builder = new AttributeBuilder(ocType);
     builder.addAllStrings(objectClasses.values());
     Map<AttributeType, List<Attribute>> attributes = toAttributesMap(attrBuilders);

@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
@@ -143,8 +144,7 @@ public class NullBackend extends Backend<BackendCfg>
 
     // Initialize null entry object classes.
     objectClasses = new HashMap<>();
-
-    objectClasses.put(DirectoryServer.getTopObjectClass(), "top");
+    objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
 
     String nulOCName = "nullbackendobject";
     ObjectClass nulOC = DirectoryServer.getObjectClass(nulOCName);

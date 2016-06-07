@@ -16,6 +16,19 @@
  */
 package org.opends.server.core;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.controls.GenericControl.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.newSearchRequest;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,18 +74,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.forgerock.opendj.ldap.controls.GenericControl.*;
-import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
 
 /**
  * A set of test cases for modify operations.
@@ -2159,11 +2160,11 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("extensibleobject")));
+    assertTrue(e.hasObjectClass(getExtensibleObjectObjectClass()));
     assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("inetOrgPerson")));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("organizationalPerson")));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("person")));
-    assertTrue(e.hasObjectClass(DirectoryServer.getObjectClass("top")));
+    assertTrue(e.hasObjectClass(getOrganizationalPersonObjectClass()));
+    assertTrue(e.hasObjectClass(getPersonObjectClass()));
+    assertTrue(e.hasObjectClass(getTopObjectClass()));
     assertEquals(e.getUserAttributes().size(), 8, "Incorrect number of user attributes");
   }
 

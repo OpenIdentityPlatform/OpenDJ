@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -845,7 +846,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
-    List<Attribute> attrList = e.getAttribute(DirectoryServer.getObjectClassAttributeType());
+    List<Attribute> attrList = e.getAttribute(CoreSchema.getObjectClassAttributeType());
     assertTrue(findAttributeValueIgnoreCase(attrList, "top"));
   }
 

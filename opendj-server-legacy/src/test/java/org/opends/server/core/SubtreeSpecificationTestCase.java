@@ -16,19 +16,19 @@
  */
 package org.opends.server.core;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.util.CollectionUtils.*;
+
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 
-/**
- * An abstract base class for all subtree specification tests.
- */
+/** An abstract base class for all subtree specification tests. */
 public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
   /** Cached set of entry object classes. */
   private Set<ObjectClass> objectClasses;
@@ -43,8 +43,8 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
    *          The entry's object classes.
    * @return The created entry.
    */
-  protected final Entry createEntry(DN entryDN,
-                                    Set<ObjectClass> objectClasses) {
+  protected final Entry createEntry(DN entryDN, Set<ObjectClass> objectClasses)
+  {
     HashMap<ObjectClass, String> map = new HashMap<>();
 
     for (ObjectClass oc : objectClasses) {
@@ -67,20 +67,7 @@ public abstract class SubtreeSpecificationTestCase extends CoreTestCase {
     // This test suite depends on having the schema available, so we'll start the server.
     TestCaseUtils.startServer();
 
-    // Retrieve required object classes.
-    objectClasses = new HashSet<>();
-
-    ObjectClass oc = DirectoryServer.getObjectClass("top");
-    if (oc.isPlaceHolder()) {
-      throw new RuntimeException("Unable to resolve object class top");
-    }
-    objectClasses.add(oc);
-
-    oc = DirectoryServer.getObjectClass("person");
-    if (oc.isPlaceHolder()) {
-      throw new RuntimeException("Unable to resolve object class person");
-    }
-    objectClasses.add(oc);
+    objectClasses = newHashSet(getTopObjectClass(), getPersonObjectClass());
   }
 
   /**

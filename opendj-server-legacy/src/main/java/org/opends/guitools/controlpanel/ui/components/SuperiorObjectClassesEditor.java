@@ -40,6 +40,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
 import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedListener;
@@ -275,7 +276,7 @@ public class SuperiorObjectClassesEditor extends JPanel
 
     if (this.schema == null)
     {
-      singleSuperior.setSelectedItem(schema.getObjectClass("top"));
+      singleSuperior.setSelectedItem(CoreSchema.getTopObjectClass());
     }
     this.schema = schema;
   }

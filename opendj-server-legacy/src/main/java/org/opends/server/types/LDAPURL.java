@@ -29,7 +29,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.UtilityMessages.*;
@@ -62,8 +62,7 @@ public final class LDAPURL
        SearchScope.BASE_OBJECT;
   /** The default search filter that will be used if none is provided. */
   public static final SearchFilter DEFAULT_SEARCH_FILTER =
-       SearchFilter.createPresenceFilter(
-            DirectoryServer.getObjectClassAttributeType());
+       SearchFilter.createPresenceFilter(CoreSchema.getObjectClassAttributeType());
 
 
   /** The host for this LDAP URL. */

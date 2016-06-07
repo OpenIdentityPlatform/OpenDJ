@@ -16,6 +16,9 @@
  */
 package org.opends.server.replication.protocol;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -27,19 +30,19 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.types.operation.PostOperationAddOperation;
-
-import static org.opends.server.replication.protocol.OperationContext.*;
 
 /**
  * This class is used to exchange Add operation between LDAP servers
@@ -223,8 +226,7 @@ public class AddMsg extends LDAPUpdateMsg
     try
     {
       //  Encode the object classes (SET OF LDAPString).
-      AttributeBuilder builder = new AttributeBuilder(
-          DirectoryServer.getObjectClassAttributeType());
+      AttributeBuilder builder = new AttributeBuilder(getObjectClassAttributeType());
       builder.addAllStrings(objectClasses.values());
       new LDAPAttribute(builder.toAttribute()).write(writer);
 

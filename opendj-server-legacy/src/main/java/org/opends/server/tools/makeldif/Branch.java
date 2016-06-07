@@ -28,7 +28,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 
@@ -110,13 +110,9 @@ public class Branch
         String[] valueStrings = new String[] { ocName };
         Tag[] tags = new Tag[1];
         tags[0] = new StaticTextTag();
-        tags[0].initializeForBranch(templateFile, this, valueStrings, 0,
-                                    warnings);
+        tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
 
-        TemplateLine l =
-             new TemplateLine(DirectoryServer.getObjectClassAttributeType(), 0,
-                              tags);
-        lineList.add(l);
+        lineList.add(new TemplateLine(CoreSchema.getObjectClassAttributeType(), 0, tags));
       }
       catch (Exception e)
       {

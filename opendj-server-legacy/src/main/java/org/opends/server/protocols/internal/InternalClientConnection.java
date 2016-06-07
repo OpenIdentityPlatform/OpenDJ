@@ -44,6 +44,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.AddOperation;
@@ -152,7 +153,7 @@ public final class InternalClientConnection
     try
     {
       LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
-      put(objectClasses, DirectoryServer.getTopObjectClass());
+      put(objectClasses, CoreSchema.getTopObjectClass());
       put(objectClasses, DirectoryServer.getObjectClass(OC_PERSON));
       put(objectClasses, DirectoryServer.getObjectClass(OC_ROOT_DN));
 

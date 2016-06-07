@@ -62,6 +62,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.server.config.server.TrustStoreBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.Backend;
@@ -189,7 +190,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
     // Construct the trust store base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
-    objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
     objectClasses.put(DirectoryServer.getObjectClass("ds-cfg-branch"), "ds-cfg-branch");
 
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
@@ -413,7 +414,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
     // Construct the certificate entry to return.
     LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
-    ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
     ocMap.put(DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY), OC_CRYPTO_INSTANCE_KEY);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);

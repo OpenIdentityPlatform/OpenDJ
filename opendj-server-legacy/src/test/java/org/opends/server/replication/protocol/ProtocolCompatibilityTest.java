@@ -16,9 +16,18 @@
  */
 package org.opends.server.replication.protocol;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.common.AssuredMode.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +53,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.util.TimeThread;
@@ -52,15 +60,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.replication.common.AssuredMode.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.replication.protocol.ProtocolVersion.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test the conversions between the various protocol versions.
@@ -197,22 +196,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     final DN dn = DN.valueOf(rawDN);
 
     // Create VLAST message
-    Attribute objectClass = Attributes.create(DirectoryServer
-        .getObjectClassAttributeType(), "organization");
-    HashMap<ObjectClass, String> objectClassList = new HashMap<>();
-    objectClassList.put(DirectoryServer.getObjectClass("organization"),
-        "organization");
-
-    Attribute attr = Attributes.create("o", "com");
-    List<Attribute> userAttributes = newArrayList(attr);
-    HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<>();
-    userAttList.put(attr.getAttributeDescription().getAttributeType(), userAttributes);
-
-
-    attr = Attributes.create("creatorsName", "dc=creator");
-    List<Attribute> operationalAttributes = newArrayList(attr);
-    HashMap<AttributeType, List<Attribute>> opList = new HashMap<>();
-    opList.put(attr.getAttributeDescription().getAttributeType(), operationalAttributes);
+    Attribute objectClass = Attributes.create(getObjectClassAttributeType(), "organization");
+    List<Attribute> userAttributes = newArrayList(Attributes.create("o", "com"));
+    List<Attribute> operationalAttributes = newArrayList(Attributes.create("creatorsName", "dc=creator"));
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
 

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -234,9 +235,7 @@ public class AciEffectiveRights {
         // Check for shorthands for user attributes "*" or operational "+".
         if ("*".equals(a))
         {
-          // Add objectclass.
-          AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
-          nonRightsAttrs.add(ocType);
+          nonRightsAttrs.add(CoreSchema.getObjectClassAttributeType());
           nonRightsAttrs.addAll(e.getUserAttributes().keySet());
         }
         else if ("+".equals(a))

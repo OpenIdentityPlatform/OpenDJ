@@ -16,6 +16,8 @@
  */
 package org.opends.server.util;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,19 +28,17 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.types.RawModification;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -51,22 +51,6 @@ import org.testng.annotations.Test;
  * {@link org.opends.server.util.LDIFReader} class.
  */
 public final class TestLDIFReader extends UtilTestCase {
-  /** Top object class. */
-  private ObjectClass OC_TOP;
-  /** Person object class. */
-  private ObjectClass OC_PERSON;
-
-  /** Object class attribute type. */
-  private AttributeType AT_OC;
-  /** Common name attribute type. */
-  private AttributeType AT_CN;
-  /** Surname attribute type. */
-  private AttributeType AT_SN;
-  /** Description attribute type. */
-  private AttributeType AT_DESCR;
-  /** Telephone number attribute type. */
-  private AttributeType AT_TELN;
-
   /** Temporary file containing an attribute value. */
   private File TEMP_FILE;
 
@@ -167,19 +151,7 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @BeforeClass
   public void setUp() throws Exception {
-    // This test suite depends on having the schema available, so we'll
-    // start the server.
     TestCaseUtils.startServer();
-
-    // Initialize schema bits.
-    OC_TOP = DirectoryServer.getTopObjectClass();
-    OC_PERSON = DirectoryServer.getObjectClass("person");
-
-    AT_OC = DirectoryServer.getObjectClassAttributeType();
-    AT_CN = DirectoryServer.getAttributeType("cn");
-    AT_SN = DirectoryServer.getAttributeType("sn");
-    AT_DESCR = DirectoryServer.getAttributeType("description");
-    AT_TELN = DirectoryServer.getAttributeType("telephonenumber");
 
     // Create a temporary file containing an attribute value.
     TEMP_FILE = File.createTempFile("tmp", "txt");
@@ -283,19 +255,24 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test(dependsOnMethods = { "testReadEntryEmptyStream" })
   public void testReadEntrySingle() throws Exception {
-    final String ldifString = "dn: cn=john, dc=foo, dc=com\n"
-        + "objectClass: top\n" + "objectClass: person\n" + "cn: john\n"
+    // @formatter:off
+    final String ldifString =
+        "dn: cn=john, dc=foo, dc=com\n"
+        + "objectClass: top\n"
+        + "objectClass: person\n"
+        + "cn: john\n"
         + "sn: smith\n";
+    // @formatter:on
 
     try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
 
       Assert.assertEquals(entry.getName(), DN.valueOf("cn=john, dc=foo, dc=com"));
-      Assert.assertTrue(entry.hasObjectClass(OC_TOP));
-      Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, ByteString.valueOfUtf8("john")));
-      Assert.assertTrue(entry.hasValue(AT_SN, ByteString.valueOfUtf8("smith")));
+      Assert.assertTrue(entry.hasObjectClass(getTopObjectClass()));
+      Assert.assertTrue(entry.hasObjectClass(getPersonObjectClass()));
+      Assert.assertTrue(entry.hasValue(getCNAttributeType(), ByteString.valueOfUtf8("john")));
+      Assert.assertTrue(entry.hasValue(getSNAttributeType(), ByteString.valueOfUtf8("smith")));
 
       Assert.assertNull(reader.readEntry());
 
@@ -322,7 +299,7 @@ public final class TestLDIFReader extends UtilTestCase {
     try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(AT_DESCR, ByteString.valueOfUtf8("once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(getDescriptionAttributeType(), ByteString.valueOfUtf8("once upon a time in the west")));
     }
   }
 
@@ -342,7 +319,7 @@ public final class TestLDIFReader extends UtilTestCase {
     try (LDIFReader reader = createLDIFReader(ldifString)) {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-      Assert.assertTrue(entry.hasValue(AT_DESCR, ByteString.valueOfUtf8("once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(getDescriptionAttributeType(), ByteString.valueOfUtf8("once upon a time in the west")));
     }
   }
 
@@ -354,11 +331,21 @@ public final class TestLDIFReader extends UtilTestCase {
    */
   @Test(dependsOnMethods = { "testReadEntrySingle" })
   public void testReadEntryMultiple() throws Exception {
-    final String ldifString = "dn: cn=john, dc=foo, dc=com\n"
-        + "objectClass: top\n" + "objectClass: person\n" + "cn: john\n"
-        + "sn: smith\n" + "\n" + "dn: cn=anne, dc=foo, dc=com\n"
-        + "objectClass: top\n" + "objectClass: person\n" + "cn: anne\n"
-        + "sn: other\n" + "\n";
+    // @formatter:off
+    final String ldifString =
+        "dn: cn=john, dc=foo, dc=com\n"
+        + "objectClass: top\n"
+        + "objectClass: person\n"
+        + "cn: john\n"
+        + "sn: smith\n"
+        + "\n"
+        + "dn: cn=anne, dc=foo, dc=com\n"
+        + "objectClass: top\n"
+        + "objectClass: person\n"
+        + "cn: anne\n"
+        + "sn: other\n"
+        + "\n";
+    // @formatter:on
 
     try (LDIFReader reader = createLDIFReader(ldifString)) {
       reader.readEntry();
@@ -367,10 +354,10 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertNotNull(entry);
 
       Assert.assertEquals(entry.getName(), DN.valueOf("cn=anne, dc=foo, dc=com"));
-      Assert.assertTrue(entry.hasObjectClass(OC_TOP));
-      Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, ByteString.valueOfUtf8("anne")));
-      Assert.assertTrue(entry.hasValue(AT_SN, ByteString.valueOfUtf8("other")));
+      Assert.assertTrue(entry.hasObjectClass(getTopObjectClass()));
+      Assert.assertTrue(entry.hasObjectClass(getPersonObjectClass()));
+      Assert.assertTrue(entry.hasValue(getCNAttributeType(), ByteString.valueOfUtf8("anne")));
+      Assert.assertTrue(entry.hasValue(getSNAttributeType(), ByteString.valueOfUtf8("other")));
 
       Assert.assertNull(reader.readEntry());
 
@@ -410,7 +397,7 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(add.getDN(), dn);
 
       List<Attribute> attrs = new ArrayList<>();
-      AttributeBuilder builder = new AttributeBuilder(AT_OC);
+      AttributeBuilder builder = new AttributeBuilder(getObjectClassAttributeType());
       builder.add("top");
       builder.add("person");
       builder.add("organizationalPerson");
@@ -481,14 +468,14 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.DELETE);
-      attr = Attributes.empty(AT_DESCR);
+      attr = Attributes.empty(getDescriptionAttributeType());
       Assert.assertEquals(mod.getAttribute(), attr);
 
       Assert.assertTrue(i.hasNext());
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.REPLACE);
-      builder = new AttributeBuilder(AT_TELN);
+      builder = new AttributeBuilder(getTelephoneNumberAttributeType());
       builder.add("+1 408 555 1234");
       builder.add("+1 408 555 5678");
       Assert.assertEquals(mod.getAttribute(), builder.toAttribute());
@@ -531,7 +518,7 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.DELETE);
-      attr = Attributes.empty(AT_DESCR);
+      attr = Attributes.empty(getDescriptionAttributeType());
       Assert.assertEquals(mod.getAttribute(), attr);
 
       // Change record #8.
@@ -548,7 +535,7 @@ public final class TestLDIFReader extends UtilTestCase {
       mod = i.next().toModification();
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.DELETE);
-      attr = Attributes.empty(AT_DESCR);
+      attr = Attributes.empty(getDescriptionAttributeType());
       Assert.assertEquals(mod.getAttribute(), attr);
 
       Assert.assertFalse(i.hasNext());
