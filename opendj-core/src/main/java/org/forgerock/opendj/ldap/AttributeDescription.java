@@ -529,7 +529,14 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType) {
-        return create(attributeType.getNameOrOID(), attributeType);
+        Reject.ifNull(attributeType);
+
+        // Use object identity in case attribute type does not come from core schema.
+        if (attributeType == OBJECT_CLASS.getAttributeType()) {
+            return OBJECT_CLASS;
+        }
+        String attributeName = attributeType.getNameOrOID();
+        return new AttributeDescription(attributeName, attributeName, attributeType,          ZERO_OPTION_IMPL);
     }
 
     /**
@@ -549,8 +556,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     public static AttributeDescription create(final String attributeName, final AttributeType attributeType) {
         Reject.ifNull(attributeName, attributeType);
 
-        // Use object identity in case attribute type does not come from core schema.
-        if (attributeType == OBJECT_CLASS.getAttributeType()) {
+        if (attributeType == OBJECT_CLASS.getAttributeType()
+                && attributeName.equals(attributeType.getNameOrOID())) {
             return OBJECT_CLASS;
         }
         return new AttributeDescription(attributeName, attributeName, attributeType, ZERO_OPTION_IMPL);

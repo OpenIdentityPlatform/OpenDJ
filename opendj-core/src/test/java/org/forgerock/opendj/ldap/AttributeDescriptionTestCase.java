@@ -438,8 +438,12 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
 
     @Test
     public void testCreateAttributeNameAndType() {
+        testCreateAttributeNameAndType0("CN");
+        testCreateAttributeNameAndType0("OBJECTCLASS");
+    }
+
+    private void testCreateAttributeNameAndType0(String name) {
         Schema schema = Schema.getCoreSchema();
-        String name = "CN";
         AttributeType attributeType = schema.getAttributeType(name);
 
         assertAttributeDescriptionCreate(
