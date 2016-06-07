@@ -48,11 +48,11 @@ public final class TrustManagers {
 
         private final X509TrustManager trustManager;
 
-        private final String hostNamePattern;
+        private final String hostName;
 
-        private CheckHostName(final X509TrustManager trustManager, final String hostNamePattern) {
+        private CheckHostName(final X509TrustManager trustManager, final String hostName) {
             this.trustManager = trustManager;
-            this.hostNamePattern = hostNamePattern;
+            this.hostName = hostName;
         }
 
         @Override
@@ -106,13 +106,13 @@ public final class TrustManagers {
                 final DN dn =
                         DN.valueOf(chain[0].getSubjectX500Principal().getName(), Schema
                                 .getCoreSchema());
-                final String value =
+                final String certSubjectHostName =
                         dn.iterator().next().iterator().next().getAttributeValue().toString();
-                if (!hostNameMatchesPattern(value, hostNamePattern)) {
+                if (!hostNameMatchesPattern(hostName, certSubjectHostName)) {
                     throw new CertificateException(
                             "The host name contained in the certificate chain subject DN \'"
                                     + chain[0].getSubjectX500Principal()
-                                    + "' does not match the host name \'" + hostNamePattern + "'");
+                                    + "' does not match the host name \'" + hostName + "'");
                 }
             } catch (final Throwable t) {
                 LOG.log(Level.WARNING, "Error parsing subject dn: "
@@ -234,8 +234,8 @@ public final class TrustManagers {
      * match the specified host name pattern. The pattern may contain
      * wild-cards, for example {@code *.example.com}.
      *
-     * @param hostNamePattern
-     *            A host name pattern which the RDN value contained in
+     * @param hostName
+     *            A host name which the RDN value contained in
      *            certificate subject DNs must match.
      * @param trustManager
      *            The trust manager to be wrapped.
@@ -244,10 +244,10 @@ public final class TrustManagers {
      *             If {@code trustManager} or {@code hostNamePattern} was
      *             {@code null}.
      */
-    public static X509TrustManager checkHostName(final String hostNamePattern,
+    public static X509TrustManager checkHostName(final String hostName,
             final X509TrustManager trustManager) {
-        Reject.ifNull(trustManager, hostNamePattern);
-        return new CheckHostName(trustManager, hostNamePattern);
+        Reject.ifNull(trustManager, hostName);
+        return new CheckHostName(trustManager, hostName);
     }
 
     /**
