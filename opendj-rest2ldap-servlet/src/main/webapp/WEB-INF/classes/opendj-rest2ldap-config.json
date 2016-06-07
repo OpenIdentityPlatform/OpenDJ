@@ -156,19 +156,6 @@
 			// and well formed in the "oauth2" JSON attribute.
 			"resolver": "openam",
 
-            // The default authzIdTemplate demonstrates how an authorization DN may be constructed
-			// from the "uid" field in the following example OAuth2 token introspection response:
-            // {
-            //     "token": "access_token_string",
-            //     "uid" : "user.2",
-			//     "userName" : [ "user.2" ]
-            // }
-			// This attribute is required and has a string syntax.
-			// It must start with either 'dn:' or 'u:'.
-			// Note: For the CTS resolver, the following placeholder "{userName/0}" must be part of the template string,
-			//       e.g "authzIdTemplate": "dn:uid={userName/0},ou=People,dc=example,dc=com"
-            "authzIdTemplate": "dn:uid={uid},ou=People,dc=example,dc=com",
-
             // Configures caching of access token introspection results.
             // This attribute is optional, if it is not present, no token caching will be performed.
             "accessTokenCache": {
@@ -191,7 +178,19 @@
             "openam": {
                 // Defines the OpenAM endpoint URL where the request should be sent.
                 // This attribute is required and must have a string syntax.
-                "endpointURL": "http://openam.example.com:8080/openam/oauth2/tokeninfo"
+                "endpointURL": "http://openam.example.com:8080/openam/oauth2/tokeninfo",
+
+				// The default authzIdTemplate demonstrates how an authorization DN may be constructed
+				// from the "uid" field in the following example OpenAM tokeninfo response:
+				// {
+				//     "scope":["uid"],
+				//     "realm":"/",
+				//     "expires_in":45,
+				//     "uid" : "bjensen",
+			    // }
+				// This attribute is required and has a string syntax.
+				// It must start with either 'dn:' or 'u:'.
+				"authzIdTemplate": "dn:uid={uid},ou=People,dc=example,dc=com"
             },
 
             // The RFC-7662 (see https://tools.ietf.org/html/rfc7662) access token resolver configuration.
@@ -206,7 +205,19 @@
 				// It should support HTTP basic authorization (a base64-encoded string of clientId:clientSecret)
 				// These attributes are mandatory.
 				"clientId": "client_id",
-				"clientSecret": "client_secret"
+				"clientSecret": "client_secret",
+
+				// The default authzIdTemplate demonstrates how an authorization DN may be constructed
+				// from the "username" field in the following example introspect response:
+				// {
+				//     "active": true,
+				//     "token_type": "access_token",
+				//     "exp": 3524,
+				//     "username" : "bjensen",
+				// }
+				// This attribute is required and has a string syntax.
+				// It must start with either 'dn:' or 'u:'.
+				"authzIdTemplate": "dn:uid={username},ou=People,dc=example,dc=com"
             },
 
             // The CTS access token resolver.
@@ -223,7 +234,19 @@
 
                 // The access token base DN.
                 // This attribute is required and must have a string syntax.
-                "baseDN": "ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com"
+                "baseDN": "ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com",
+
+				// The default authzIdTemplate demonstrates how an authorization DN may be constructed
+				// from the "userName" field in the following example CTS access token entry:
+				// {
+				//     "active": true,
+				//     "tokenName": ["access_token"],
+				//     "exp": [3524],
+				//     "userName" : ["bjensen"],
+				// }
+				// This attribute is required and has a string syntax.
+				// It must start with either 'dn:' or 'u:'.
+				"authzIdTemplate": "dn:uid={userName/0},ou=People,dc=example,dc=com"
             },
 
             // ONLY FOR TEST PURPOSE: A File based access token resolver
@@ -236,7 +259,18 @@
                 // File names must be equal to the token strings.
 				// The file content must a JSON object with the following attributes:
 				// 'scope', 'expireTime' and all the field(s) needed to resolve the authzIdTemplate.
-                "folderPath": "/path/to/test/folder"
+                "folderPath": "/path/to/test/folder",
+
+				// The default authzIdTemplate demonstrates how an authorization DN may be constructed
+				// from the "uid" field extracted from a fake token file:
+				// {
+				//      "scope": ["read", "uid", "write"],
+				//      "expireTime": 1961336698000,
+				//      "uid": "bjensen"
+			    // }
+				// This attribute is required and has a string syntax.
+				// It must start with either 'dn:' or 'u:'.
+				"authzIdTemplate": "dn:uid={uid},ou=People,dc=example,dc=com"
             }
         }
     },

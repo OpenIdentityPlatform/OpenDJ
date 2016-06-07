@@ -224,8 +224,9 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         final Set<String> scopes = config.get(SCOPES).required().asSet(String.class);
         final AccessTokenResolver resolver =
                 createCachedTokenResolverIfNeeded(config, parseUnderlyingResolver(config));
+        final String resolverName = config.get(RESOLVER_CONFIG_OBJECT).asString();
         final ConditionalFilter oAuth2Filter = newConditionalOAuth2ResourceServerFilter(
-                realm, scopes, resolver, config.get(AUTHZID_TEMPLATE).required().asString());
+                realm, scopes, resolver, config.get(resolverName).get(AUTHZID_TEMPLATE).required().asString());
         return newConditionalFilter(
                 Filters.chainOf(oAuth2Filter.getFilter(),
                                 newProxyAuthzFilter(getConnectionFactory(DEFAULT_ROOT_FACTORY))),

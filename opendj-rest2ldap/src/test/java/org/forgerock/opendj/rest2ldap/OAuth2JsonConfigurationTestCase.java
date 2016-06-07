@@ -83,19 +83,23 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
                 // Invalid 'authzIdTemplate' content
                 {
                         "{'realm': 'example.com',"
-                                + "'authzIdTemplate': 'userName: ou={/user/id},dc=example,dc=com',"
                                 + "'requiredScopes': ['read', 'write', 'dolphin'],"
                                 + "'resolver': 'openam',"
-                                + "'openam': {'endpointURL': 'http://www.example.com/token-info'},"
+                                + "'openam': {"
+                                + "    'endpointURL': 'http://www.example.com/token-info',"
+                                + "    'authzIdTemplate': 'userName: ou={/user/id},dc=example,dc=com'"
+                                + "},"
                                 + "'accessTokenCache': {'enabled': true, 'cacheExpiration': '42'}}",
                 },
                 // Invalid 'accessTokenCache/expiration' duration
                 {
                         "{'realm': 'example.com',"
-                                + "'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com',"
                                 + "'requiredScopes': ['read', 'write', 'dolphin'],"
                                 + "'resolver': 'openam',"
-                                + "'openam': {'endpointURL': 'http://www.example.com/token-info'},"
+                                + "'openam': {"
+                                + "    'endpointURL': 'http://www.example.com/token-info',"
+                                + "    'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'"
+                                + "},"
                                 + "'accessTokenCache': {'enabled': true, 'cacheExpiration': '42'}}",
                 }
         };
@@ -112,10 +116,12 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
     public void testOAuth2FilterWithEmptyScopes() throws Exception {
         final String config =
             "{'realm': 'example.com',"
-                    + "'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com',"
                     + "'requiredScopes': [],"
                     + "'resolver': 'openam',"
-                    + "'openam': {'endpointURL': 'http://www.example.com/token-info'}}";
+                    + "'openam': {"
+                    + "    'endpointURL': 'http://www.example.com/token-info',"
+                    + "    'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'"
+                    + "}}";
         fakeApp.buildOAuth2Filter(parseJson(config));
     }
 
@@ -211,20 +217,25 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
                 {
                         "{'resolver': 'rfc7662',"
                                 + "'rfc7662': { 'endpointURL': 'http:/example.com/introspect',"
-                                + "               'clientId': 'client_app_id',"
-                                + "               'clientSecret': 'client_app_secret'}}"
+                                + "             'clientId': 'client_app_id',"
+                                + "             'clientSecret': 'client_app_secret',"
+                                + "             'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'}}"
                 },
                 {
                         "{'resolver': 'openam',"
-                                + "'openam': { 'endpointURL': 'http:/example.com/tokeninfo'}}"
+                                + "'openam': { "
+                                + "    'endpointURL': 'http:/example.com/tokeninfo',"
+                                + "    'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'}}"
                 },
                 {
                         "{'resolver': 'cts',"
-                                + "'cts': { 'baseDN': 'coreTokenId={token},dc=com' }}"
+                                + "'cts': { 'baseDN': 'coreTokenId={token},dc=com',"
+                                + "         'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'}}"
                 },
                 {
                         "{'resolver': 'file',"
-                                + "'file': { 'folderPath': '/path/to/test/folder'}}"
+                                + "'file': { 'folderPath': '/path/to/test/folder',"
+                                + "          'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'}}"
                 }
         };
         // @Checkstyle:on
