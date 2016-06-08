@@ -1262,11 +1262,6 @@
       </dependencies>
 
       <build>
-        <resources>
-          <resource>
-            <directory>src/snmp/resource</directory>
-          </resource>
-        </resources>
         <plugins>
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
@@ -1360,22 +1355,26 @@
             </executions>
           </plugin>
 
-          <!-- Creates snmp jar file -->
           <plugin>
-            <artifactId>maven-jar-plugin</artifactId>
+            <artifactId>maven-assembly-plugin</artifactId>
             <executions>
+              <!-- Package snmp jar -->
               <execution>
-                <id>create-snmp-jar</id>
+                <id>build-snmp-jar</id>
                 <phase>prepare-package</phase>
                 <goals>
-                  <goal>jar</goal>
+                  <goal>single</goal>
                 </goals>
                 <configuration>
                   <outputDirectory>${jars.dir}</outputDirectory>
                   <finalName>${snmp.jar.name}</finalName>
-                  <includes>
-                    <include>org/opends/server/snmp/**</include>
-                  </includes>
+                  <descriptors>
+                    <descriptor>src/main/assembly/snmp-jar-assembly.xml</descriptor>
+                  </descriptors>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <formats>
+                    <format>jar</format>
+                  </formats>
                   <archive>
                     <index>true</index>
                     <addMavenDescriptor>false</addMavenDescriptor>
@@ -1387,13 +1386,8 @@
                   </archive>
                 </configuration>
               </execution>
-            </executions>
-          </plugin>
 
-          <!-- Package the final zip -->
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
+              <!-- Package the final zip -->
               <execution>
                 <id>build-opendj-archive</id>
                 <phase>package</phase>
