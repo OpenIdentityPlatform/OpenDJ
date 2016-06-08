@@ -3003,7 +3003,7 @@ public final class ServerConstants
 
 
 
-  /** The default SMTP port to use */
+  /** The default SMTP port to use. */
   public static final int SMTP_DEFAULT_PORT = 25;
 
 
