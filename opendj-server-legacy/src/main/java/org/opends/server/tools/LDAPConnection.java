@@ -220,6 +220,10 @@ public class LDAPConnection
         logger.traceException(e);
         throw new LDAPConnectionException(LocalizableMessage.raw(e.getMessage()), e);
       }
+      if (msg == null)
+      {
+        throw new LDAPConnectionException(ERR_STARTTLS_FAILED.get(), CLIENT_SIDE_CONNECT_ERROR, null);
+      }
       ExtendedResponseProtocolOp res = msg.getExtendedResponseProtocolOp();
       resultCode = res.getResultCode();
       if(resultCode != SUCCESS)
