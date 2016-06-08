@@ -22,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -98,24 +97,18 @@ public class SchemaConfigManager
    */
   public static String getSchemaDirectoryPath()
   {
-    File schemaDir =
-        DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
-    if (schemaDir != null) {
-      return schemaDir.getAbsolutePath();
-    }
-    return null;
+    File schemaDir = DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+    return schemaDir != null ? schemaDir.getAbsolutePath() : null;
   }
 
   /**
-   * Retrieves a reference to the schema information that has been read from the
-   * server configuration.  Note that this information will not be complete
-   * until the <CODE>initializeMatchingRules</CODE>,
-   * <CODE>initializeAttributeSyntaxes</CODE>, and
-   * <CODE>initializeAttributeTypesAndObjectClasses</CODE> methods have been
-   * called.
+   * Retrieves a reference to the schema information that has been read from the server
+   * configuration.
+   * <p>
+   * Note that this information will not be complete until the {@link #initializeMatchingRules()},
+   * {@link #initializeAttributeSyntaxes()} methods have been called.
    *
-   * @return  A reference to the schema information that has been read from the
-   *          server configuration.
+   * @return A reference to the schema information that has been read from the server configuration.
    */
   public Schema getSchema()
   {
@@ -154,8 +147,7 @@ public class SchemaConfigManager
   public void initializeAttributeSyntaxes()
          throws ConfigException, InitializationException
   {
-    AttributeSyntaxConfigManager syntaxConfigManager =
-         new AttributeSyntaxConfigManager(serverContext);
+    AttributeSyntaxConfigManager syntaxConfigManager = new AttributeSyntaxConfigManager(serverContext);
     syntaxConfigManager.initializeAttributeSyntaxes();
   }
 
@@ -192,48 +184,30 @@ public class SchemaConfigManager
     // and make sure that it exists and is a directory.  Get a list of the files
     // in that directory sorted in alphabetic order.
     String schemaInstanceDirPath  = getSchemaDirectoryPath();
-    File schemaInstanceDir        = null;
-
-    try
-    {
-      if (schemaInstanceDirPath != null)
-      {
-        schemaInstanceDir = new File(schemaInstanceDirPath);
-      }
-    } catch (Exception e)
-    {
-      schemaInstanceDir = null;
-    }
+    File schemaInstanceDir = schemaInstanceDirPath != null ? new File(schemaInstanceDirPath) : null;
     long oldestModificationTime   = -1L;
     long youngestModificationTime = -1L;
-    String[] fileNames;
+    List<String> fileNames;
 
     try
     {
-      if (schemaInstanceDir == null || ! schemaInstanceDir.exists())
+      if (schemaInstanceDir == null || !schemaInstanceDir.exists())
       {
-        LocalizableMessage message =
-          ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaInstanceDirPath);
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaInstanceDirPath));
       }
-      if (! schemaInstanceDir.isDirectory())
+      if (!schemaInstanceDir.isDirectory())
       {
-        LocalizableMessage message =
-            ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaInstanceDirPath);
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaInstanceDirPath));
       }
 
-      FilenameFilter filter = new SchemaFileFilter();
-      File[] schemaInstanceDirFiles =
-                schemaInstanceDir.listFiles(filter);
-      int fileNumber = schemaInstanceDirFiles.length ;
-      ArrayList<String> fileList = new ArrayList<>(fileNumber);
+      File[] schemaInstanceDirFiles = schemaInstanceDir.listFiles(new SchemaFileFilter());
+      fileNames = new ArrayList<>(schemaInstanceDirFiles.length);
 
       for (File f : schemaInstanceDirFiles)
       {
         if (f.isFile())
         {
-          fileList.add(f.getName());
+          fileNames.add(f.getName());
         }
 
         long modificationTime = f.lastModified();
@@ -250,9 +224,7 @@ public class SchemaConfigManager
         }
       }
 
-      fileNames = new String[fileList.size()];
-      fileList.toArray(fileNames);
-      Arrays.sort(fileNames);
+      Collections.sort(fileNames);
     }
     catch (InitializationException ie)
     {
