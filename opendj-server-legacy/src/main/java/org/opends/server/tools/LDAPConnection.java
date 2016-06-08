@@ -15,6 +15,7 @@
  * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ConnectException;
@@ -26,31 +27,31 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.controls.AuthorizationIdentityResponseControl;
+import org.opends.server.controls.ControlDecoder;
 import org.opends.server.controls.PasswordExpiringControl;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.loggers.JDKLogging;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 
 import com.forgerock.opendj.cli.ClientException;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides a tool that can be used to issue search requests to the
@@ -121,7 +122,7 @@ public class LDAPConnection
   public void connectToHost(String bindDN, String bindPassword)
          throws LDAPConnectionException
   {
-    connectToHost(bindDN, bindPassword, new AtomicInteger(1));
+    connectToHost(bindDN, bindPassword, new AtomicInteger(1), 0);
   }
 
   /**
@@ -180,7 +181,6 @@ public class LDAPConnection
       JDKLogging.disableLogging();
     }
 
-
     if(connectionOptions.useStartTLS())
     {
       try
@@ -208,18 +208,17 @@ public class LDAPConnection
       try
       {
         ldapWriter.writeMessage(msg);
-
-        // Read the response from the server.
         msg = ldapReader.readMessage();
-      }catch (LDAPException ex1)
+      }
+      catch (LDAPException e)
       {
-        logger.traceException(ex1);
-        throw new LDAPConnectionException(LocalizableMessage.raw(ex1.getMessage()), ex1
-            .getResultCode(), null, ex1);
-      } catch (Exception ex1)
+        logger.traceException(e);
+        throw new LDAPConnectionException(e.getMessageObject(), e.getResultCode(), null, e);
+      }
+      catch (Exception e)
       {
-        logger.traceException(ex1);
-        throw new LDAPConnectionException(LocalizableMessage.raw(ex1.getMessage()), ex1);
+        logger.traceException(e);
+        throw new LDAPConnectionException(LocalizableMessage.raw(e.getMessage()), e);
       }
       ExtendedResponseProtocolOp res = msg.getExtendedResponseProtocolOp();
       resultCode = res.getResultCode();
@@ -271,7 +270,6 @@ public class LDAPConnection
     {
       requestControls.add(new LDAPControl(OID_AUTHZID_REQUEST));
     }
-
     if (connectionOptions.usePasswordPolicyControl())
     {
       requestControls.add(new LDAPControl(OID_PASSWORD_POLICY_CONTROL));
@@ -281,25 +279,8 @@ public class LDAPConnection
          ldapReader, ldapWriter, hostName, nextMessageID);
     try
     {
-      ByteString bindDNBytes;
-      if(bindDN == null)
-      {
-        bindDNBytes = ByteString.empty();
-      }
-      else
-      {
-        bindDNBytes = ByteString.valueOfUtf8(bindDN);
-      }
-
-      ByteString bindPW;
-      if (bindPassword == null)
-      {
-        bindPW =  null;
-      }
-      else
-      {
-        bindPW = ByteString.valueOfUtf8(bindPassword);
-      }
+      ByteString bindDNBytes = bindDN != null ? ByteString.valueOfUtf8(bindDN) : ByteString.empty();
+      ByteString bindPW = bindPassword != null ? ByteString.valueOfUtf8(bindPassword) : null;
 
       String result = null;
       if (connectionOptions.useSASLExternal())
@@ -310,15 +291,16 @@ public class LDAPConnection
       }
       else if (connectionOptions.getSASLMechanism() != null)
       {
-            result = handler.doSASLBind(bindDNBytes, bindPW,
-            connectionOptions.getSASLMechanism(),
-            connectionOptions.getSASLProperties(),
-            requestControls, responseControls);
+        result = handler.doSASLBind(bindDNBytes,
+                                    bindPW,
+                                    connectionOptions.getSASLMechanism(),
+                                    connectionOptions.getSASLProperties(),
+                                    requestControls, responseControls);
       }
       else if(bindDN != null)
       {
-              result = handler.doSimpleBind(versionNumber, bindDNBytes, bindPW,
-              requestControls, responseControls);
+        result = handler.doSimpleBind(versionNumber, bindDNBytes, bindPW,
+                                      requestControls, responseControls);
       }
       if(result != null)
       {
@@ -329,63 +311,22 @@ public class LDAPConnection
       {
         if (c.getOID().equals(OID_AUTHZID_RESPONSE))
         {
-          AuthorizationIdentityResponseControl control;
-          if (c instanceof LDAPControl)
-          {
-            // We have to decode this control.
-            control = AuthorizationIdentityResponseControl.DECODER.decode(c
-                .isCritical(), ((LDAPControl) c).getValue());
-          }
-          else
-          {
-            // Control should already have been decoded.
-            control = (AuthorizationIdentityResponseControl)c;
-          }
-
-          LocalizableMessage message =
-              INFO_BIND_AUTHZID_RETURNED.get(
-                  control.getAuthorizationID());
-          out.println(message);
+          AuthorizationIdentityResponseControl control = decode(c, AuthorizationIdentityResponseControl.DECODER);
+          out.println(INFO_BIND_AUTHZID_RETURNED.get(control.getAuthorizationID()));
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRED))
         {
-          LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRED.get();
-          out.println(message);
+          out.println(INFO_BIND_PASSWORD_EXPIRED.get());
         }
         else if (c.getOID().equals(OID_NS_PASSWORD_EXPIRING))
         {
-          PasswordExpiringControl control;
-          if(c instanceof LDAPControl)
-          {
-            // We have to decode this control.
-            control = PasswordExpiringControl.DECODER.decode(c.isCritical(),
-                ((LDAPControl) c).getValue());
-          }
-          else
-          {
-            // Control should already have been decoded.
-            control = (PasswordExpiringControl)c;
-          }
-          LocalizableMessage timeString =
-               secondsToTimeString(control.getSecondsUntilExpiration());
-
-
-          LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
-          out.println(message);
+          PasswordExpiringControl control = decode(c, PasswordExpiringControl.DECODER);
+          LocalizableMessage timeString = secondsToTimeString(control.getSecondsUntilExpiration());
+          out.println(INFO_BIND_PASSWORD_EXPIRING.get(timeString));
         }
         else if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
         {
-          PasswordPolicyResponseControl pwPolicyControl;
-          if(c instanceof LDAPControl)
-          {
-            pwPolicyControl = PasswordPolicyResponseControl.DECODER.decode(c
-                .isCritical(), ((LDAPControl) c).getValue());
-          }
-          else
-          {
-            pwPolicyControl = (PasswordPolicyResponseControl)c;
-          }
-
+          PasswordPolicyResponseControl pwPolicyControl = decode(c, PasswordPolicyResponseControl.DECODER);
 
           PasswordPolicyErrorType errorType = pwPolicyControl.getErrorType();
           if (errorType != null)
@@ -393,19 +334,13 @@ public class LDAPConnection
             switch (errorType)
             {
               case PASSWORD_EXPIRED:
-
-                LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRED.get();
-                out.println(message);
+                out.println(INFO_BIND_PASSWORD_EXPIRED.get());
                 break;
               case ACCOUNT_LOCKED:
-
-                message = INFO_BIND_ACCOUNT_LOCKED.get();
-                out.println(message);
+                out.println(INFO_BIND_ACCOUNT_LOCKED.get());
                 break;
               case CHANGE_AFTER_RESET:
-
-                message = INFO_BIND_MUST_CHANGE_PASSWORD.get();
-                out.println(message);
+                out.println(INFO_BIND_MUST_CHANGE_PASSWORD.get());
                 break;
             }
           }
@@ -419,16 +354,10 @@ public class LDAPConnection
               case TIME_BEFORE_EXPIRATION:
                 LocalizableMessage timeString =
                      secondsToTimeString(pwPolicyControl.getWarningValue());
-
-
-                LocalizableMessage message = INFO_BIND_PASSWORD_EXPIRING.get(timeString);
-                out.println(message);
+                out.println(INFO_BIND_PASSWORD_EXPIRING.get(timeString));
                 break;
               case GRACE_LOGINS_REMAINING:
-
-                message = INFO_BIND_GRACE_LOGINS_REMAINING.get(
-                        pwPolicyControl.getWarningValue());
-                out.println(message);
+                out.println(INFO_BIND_GRACE_LOGINS_REMAINING.get(pwPolicyControl.getWarningValue()));
                 break;
             }
           }
@@ -470,7 +399,17 @@ public class LDAPConnection
         }
       }
     }
+  }
 
+  private <T extends Control> T decode(Control c, ControlDecoder<T> decoder) throws DirectoryException
+  {
+    if (c instanceof LDAPControl)
+    {
+      // We have to decode this control.
+      return decoder.decode(c.isCritical(), ((LDAPControl) c).getValue());
+    }
+    // Control should already have been decoded.
+    return (T) c;
   }
 
   /**
@@ -680,6 +619,4 @@ public class LDAPConnection
   {
     return ldapReader;
   }
-
 }
-
