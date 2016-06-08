@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -53,6 +54,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -341,7 +343,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     if (! requestedDigestAlgorithm.equals(this.preferredDigestAlgorithm))
     {
       try{
-        MessageDigest.getInstance(requestedDigestAlgorithm);
+        getMessageDigest(requestedDigestAlgorithm);
       }
       catch (Exception ex) {
         logger.traceException(ex);
@@ -1935,8 +1937,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       }
       cipher = Cipher.getInstance(transformation);
     }
-    catch (GeneralSecurityException ex) {
-      // NoSuchAlgorithmException, NoSuchPaddingException
+    catch (NoSuchAlgorithmException| NoSuchPaddingException ex) {
       logger.traceException(ex);
       throw new CryptoManagerException(
            ERR_CRYPTOMGR_GET_CIPHER_INVALID_CIPHER_TRANSFORMATION.get(
@@ -1953,15 +1954,15 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
         else {
           iv = initializationVector;
         }
-        // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2471
+        // TODO: RC4 encryption needs nonce to avoid producing identical ciphertext
+        // for identical userpassword attributes
         cipher.init(mode, keyEntry.getSecretKey(), new IvParameterSpec(iv));
       }
       else {
         cipher.init(mode, keyEntry.getSecretKey());
       }
     }
-    catch (GeneralSecurityException ex) {
-      // InvalidKeyException, InvalidAlgorithmParameterException
+    catch (InvalidKeyException| InvalidAlgorithmParameterException ex) {
       logger.traceException(ex);
       throw new CryptoManagerException(
               ERR_CRYPTOMGR_GET_CIPHER_CANNOT_INITIALIZE.get(
@@ -2195,7 +2196,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
      * @return  The key entry associated with the key identifier, or
      * {@code null} if no such entry exists.
      *
-     * @see CryptoManagerImpl.CipherKeyEntry
+     * @see CryptoManagerImpl.MacKeyEntry
      *     #getMacKeyEntryOrNull(CryptoManagerImpl, String, int)
      */
     public static MacKeyEntry getMacKeyEntryOrNull(final CryptoManagerImpl cryptoManager, final KeyEntryID keyID) {
@@ -2298,9 +2299,10 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   private static Mac getMacEngine(MacKeyEntry keyEntry)
           throws CryptoManagerException
   {
-    Mac mac;
     try {
-      mac = Mac.getInstance(keyEntry.getType());
+      Mac mac = Mac.getInstance(keyEntry.getType());
+      mac.init(keyEntry.getSecretKey());
+      return mac;
     }
     catch (NoSuchAlgorithmException ex){
       logger.traceException(ex);
@@ -2309,18 +2311,12 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                       keyEntry.getType(), getExceptionMessage(ex)),
               ex);
     }
-
-    try {
-      mac.init(keyEntry.getSecretKey());
-    }
     catch (InvalidKeyException ex) {
       logger.traceException(ex);
       throw new CryptoManagerException(
            ERR_CRYPTOMGR_GET_MAC_ENGINE_CANNOT_INITIALIZE.get(
                    getExceptionMessage(ex)), ex);
     }
-
-    return mac;
   }
 
   @Override
@@ -2347,37 +2343,21 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   public byte[] digest(byte[] data)
          throws NoSuchAlgorithmException
   {
-    return MessageDigest.getInstance(preferredDigestAlgorithm).
-                digest(data);
+    return getPreferredMessageDigest().digest(data);
   }
 
   @Override
   public byte[] digest(String digestAlgorithm, byte[] data)
          throws NoSuchAlgorithmException
   {
-    return MessageDigest.getInstance(digestAlgorithm).digest(data);
+    return getMessageDigest(digestAlgorithm).digest(data);
   }
 
   @Override
   public byte[] digest(InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-    MessageDigest digest =
-         MessageDigest.getInstance(preferredDigestAlgorithm);
-
-    byte[] buffer = new byte[8192];
-    while (true)
-    {
-      int bytesRead = inputStream.read(buffer);
-      if (bytesRead < 0)
-      {
-        break;
-      }
-
-      digest.update(buffer, 0, bytesRead);
-    }
-
-    return digest.digest();
+    return digestInputStream(getPreferredMessageDigest(), inputStream);
   }
 
   @Override
@@ -2385,8 +2365,11 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                        InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
-    MessageDigest digest = MessageDigest.getInstance(digestAlgorithm);
+    return digestInputStream(getMessageDigest(digestAlgorithm), inputStream);
+  }
 
+  private byte[] digestInputStream(MessageDigest digest, InputStream inputStream) throws IOException
+  {
     byte[] buffer = new byte[8192];
     while (true)
     {
@@ -2691,14 +2674,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       deflater.finish();
 
       int compressedLength = deflater.deflate(dst, dstOff, dstLen);
-      if (deflater.finished())
-      {
-        return compressedLength;
-      }
-      else
-      {
-        return -1;
-      }
+      return deflater.finished() ? compressedLength : -1;
     }
     finally
     {
@@ -2742,16 +2718,13 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   @Override
   public SSLContext getSslContext(String componentName, SortedSet<String> sslCertNicknames) throws ConfigException
   {
-    SSLContext sslContext;
     try
     {
       TrustStoreBackend trustStoreBackend = getTrustStoreBackend();
       KeyManager[] keyManagers = trustStoreBackend.getKeyManagers();
-      TrustManager[] trustManagers =
-           trustStoreBackend.getTrustManagers();
+      TrustManager[] trustManagers = trustStoreBackend.getTrustManagers();
 
-      sslContext = SSLContext.getInstance("TLS");
-
+      SSLContext sslContext = SSLContext.getInstance("TLS");
       if (sslCertNicknames == null)
       {
         sslContext.init(keyManagers, trustManagers, null);
@@ -2762,6 +2735,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
             SelectableCertificateKeyManager.wrap(keyManagers, sslCertNicknames, componentName);
         sslContext.init(extendedKeyManagers, trustManagers, null);
       }
+      return sslContext;
     }
     catch (Exception e)
     {
@@ -2772,8 +2746,6 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                 getExceptionMessage(e));
       throw new ConfigException(message, e);
     }
-
-    return sslContext;
   }
 
   @Override
