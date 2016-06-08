@@ -267,9 +267,8 @@ public final class Authorizations {
                 try {
                     authz.put(template.getSecurityContextID(), template.formatAsAuthzId(token.asJsonValue()));
                 } catch (final IllegalArgumentException e) {
-                    return newResultPromise(new Response().setStatus(Status.FORBIDDEN)
-                                                          .setCause(e)
-                                                          .setEntity(ERR_AUTHZID_DECODER_RESPONSE.get().toString()));
+                    return newResultPromise(new Response().setStatus(Status.INTERNAL_SERVER_ERROR)
+                                                          .setCause(e));
                 }
                 final Context securityContext = new SecurityContext(context, token.getToken(), authz);
                 return next.handle(securityContext, request);
