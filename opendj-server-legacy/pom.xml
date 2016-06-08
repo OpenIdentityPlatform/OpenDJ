@@ -1002,6 +1002,24 @@
               </archive>
             </configuration>
           </execution>
+
+          <!-- Creates the archive folder -->
+          <execution>
+            <id>build-example-plugin.zip</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <finalName>example-plugin</finalName>
+              <outputDirectory>${project.build.directory}/package/${product.name.lowercase}/</outputDirectory>
+              <appendAssemblyId>false</appendAssemblyId>
+              <attach>false</attach>
+              <descriptors>
+                <descriptor>src/main/assembly/example-plugin-assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 

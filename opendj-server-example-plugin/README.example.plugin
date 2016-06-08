@@ -6,33 +6,47 @@ when OpenDJ directory server is started.
 In order to build and use this example plugin, perform the following
 steps while the server is stopped:
 
-  1. Then unzip the example-plugin.zip (in place):
+# 1. ensure OpenDJ is stopped:
+
+     bin/stop-ds
+
+# 2. unzip the example-plugin.zip (in place):
 
      unzip example-plugin.zip
 
-  2. Go into the example-plugin source folder:
+# 3. Go into the example-plugin source folder:
 
-     cd example-plugin
+     cd opendj-server-example-plugin
 
-  3. And build the plugin (this requires Maven version 3):
+# 4. Build the plugin (this requires Maven version 3):
 
      mvn clean install
 
-  4. This will copy the following files into the parent OpenDJ installation:
+# 5. Unzip the built example-plugin zip
 
-     lib/extensions/example-plugin.jar
-     config/example-plugin.ldif
-     config/schema/99-example-plugin.ldif
+     unzip target/opendj-server-example-plugin-*.zip -d target
 
-  5. Add the plugin's config to the server configuration.
+# 6. Copy the example-plugin's content into the parent OpenDJ installation:
 
-     cd ../bin
-     ./start-ds
-     ./dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
-      create-plugin --plugin-name "Example Plugin" --type example
+     cp -r target/opendj-server-example-plugin-*/* ..
+
+# 7. This will copy the following files:
+
+#     lib/extensions/opendj-server-example-plugin-*.jar
+#     lib/extensions/commons-lang3-3.3.2.jar      (included to demonstrate how to include a 3rd party dependency)
+#     config/example-plugin.ldif
+#     config/schema/99-example-plugin.ldif
+#     README.example.plugin
+
+# 8. Add the plugin's config to the server configuration.
+
+     cd ..
+     bin/start-ds
+     bin/dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+      create-plugin --plugin-name "Example Plugin" --type example \
       --set enabled:true --set plugin-type:startup -X -n
 
-  6. Restart the server and look for the "HELLO WORLD" notice in the start
-     up log:
+# 9. Restart the server and look for the "HELLO WORLD" notice in the start up log:
 
-     ./stop-ds --restart
+     bin/stop-ds --restart
+
