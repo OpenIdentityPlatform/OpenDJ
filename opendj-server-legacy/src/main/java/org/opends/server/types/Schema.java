@@ -475,7 +475,8 @@ public final class Schema
     AttributeType.Builder b = builder.buildAttributeType(attributeType);
     if (schemaFile != null)
     {
-      b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      b.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
     }
     if (overwriteExisting)
     {
@@ -1537,9 +1538,9 @@ public final class Schema
    *
    * @return  The extraAttributes stored in this schema.
    */
-  public Map<String, Attribute> getExtraAttributes()
+  public Collection<Attribute> getExtraAttributes()
   {
-    return extraAttributes;
+    return extraAttributes.values();
   }
 
 

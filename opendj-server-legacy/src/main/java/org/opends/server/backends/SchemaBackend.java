@@ -513,8 +513,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       for (AVA ava : rdn)
       {
-        AttributeType attrType = ava.getAttributeType();
-        Attribute attribute = Attributes.create(attrType, ava.getAttributeValue());
+        Attribute attribute = Attributes.create(ava.getAttributeType(), ava.getAttributeValue());
         addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
       }
     }
@@ -571,7 +570,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         Attributes.create(getModifyTimestampAttributeType(), modifyTimestamp), userAttrs, operationalAttrs);
 
     // Add the extra attributes.
-    for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes().values())
+    for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes())
     {
       addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
     }
@@ -2255,7 +2254,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     if (FILE_USER_SCHEMA_ELEMENTS.equals(schemaFile))
     {
-      for (Attribute attribute : schema.getExtraAttributes().values())
+      for (Attribute attribute : schema.getExtraAttributes())
       {
         AttributeType attributeType = attribute.getAttributeDescription().getAttributeType();
         schemaEntry.putAttribute(attributeType, newArrayList(attribute));
