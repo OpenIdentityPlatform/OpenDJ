@@ -894,7 +894,7 @@ public final class DirectoryServer
 
       try
       {
-        directoryServer.initializeBackends(Arrays.asList("adminRoot", "ads-truststore"));
+        directoryServer.initializeRootAndAdminDataBackends();
       }
       catch (InitializationException | ConfigException e)
       {
@@ -1522,7 +1522,7 @@ public final class DirectoryServer
       new AlertHandlerConfigManager(serverContext).initializeAlertHandlers();
 
       // Initialize the default entry cache. We have to have one before
-      // <CODE>initializeBackends()</CODE> method kicks in further down.
+      // <CODE>initializeRootAndAdminDataBackends()</CODE> method kicks in further down.
       entryCacheConfigManager = new EntryCacheConfigManager(serverContext);
       entryCacheConfigManager.initializeDefaultEntryCache();
 
@@ -1553,7 +1553,19 @@ public final class DirectoryServer
       initializeGroupManager();
       AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
 
-      initializeBackends(Collections.<String> emptyList());
+      // Initialize backends needed by CryptoManagerSync for accessing keys.
+      // PreInitialization callbacks (for Groups, for example) may require these to be fully available
+      // before starting data backends.
+      initializeRootAndAdminDataBackends();
+
+      initializeAuthenticationPolicyComponents();
+
+      // Synchronization of ADS with the crypto manager.
+      // Need access to ADS keys before confidential backends and synchronization start to be able to
+      // decode encrypted data in the backend by reading them from the trust store.
+      new CryptoManagerSync();
+
+      initializeRemainingBackends();
 
       createAndRegisterRemainingWorkflows();
 
@@ -1573,14 +1585,7 @@ public final class DirectoryServer
       monitorConfigManager = new MonitorConfigManager(serverContext);
       monitorConfigManager.initializeMonitorProviders();
 
-      initializeAuthenticationPolicyComponents();
-
       pluginConfigManager.initializeUserPlugins(null);
-
-      // Synchronization of ADS with the crypto manager.
-      // Need access to ADS keys before synchronization starts to be able to decode encrypted data in the backend
-      // by reading them from the trust store.
-      new CryptoManagerSync();
 
       if (!environmentConfig.disableSynchronization())
       {
@@ -1813,24 +1818,11 @@ public final class DirectoryServer
     directoryServer.backendInitializationListeners.remove(listener);
   }
 
-  /**
-   * Initializes the set of backends defined in the Directory Server.
-   *
-   * @param backends The list of backends to initialize. All backends will be initialized
-   *                 if empty.
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the backends.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the backends that is not related to the
-   *                                   server configuration.
-   */
-  private void initializeBackends(Collection<String> backends) throws ConfigException, InitializationException
+  private void initializeRootAndAdminDataBackends() throws ConfigException, InitializationException
   {
     backendConfigManager = new BackendConfigManager(serverContext);
-    backendConfigManager.initializeBackendConfig(backends);
+    backendConfigManager.initializeBackendConfig(Arrays.asList("adminRoot", "ads-truststore"));
 
-    // Make sure to initialize the root DSE backend separately after all other backends.
     RootDSEBackendCfg rootDSECfg;
     try
     {
@@ -1846,6 +1838,15 @@ public final class DirectoryServer
     rootDSEBackend = new RootDSEBackend();
     rootDSEBackend.configureBackend(rootDSECfg, serverContext);
     rootDSEBackend.openBackend();
+  }
+
+  private void initializeRemainingBackends() throws ConfigException, InitializationException
+  {
+    if (backendConfigManager == null)
+    {
+      throw new InitializationException(ERR_MISSING_ADMIN_BACKENDS.get());
+    }
+    backendConfigManager.initializeBackends(Collections.<String>emptyList(), serverContext.getRootConfig());
   }
 
   /**

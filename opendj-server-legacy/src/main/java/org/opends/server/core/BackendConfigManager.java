@@ -126,18 +126,37 @@ public class BackendConfigManager implements
     {
       throw new ConfigException(ERR_CONFIG_BACKEND_BASE_DOES_NOT_EXIST.get());
     }
+    initializeBackends(backendIDsToStart, root);
+  }
 
-
+  /**
+   * Initializes specified backends. If a backend has been already initialized, do nothing.
+   * This should only be called at Directory Server startup, after #initializeBackendConfig()
+   *
+   * @param backendIDsToStart
+   *           The list of backendID to start. Everything will be started if empty.
+   * @param root
+   *           The configuration of the server's Root backend
+   * @throws ConfigException
+   *           If a critical configuration problem prevents the backend
+   *           initialization from succeeding.
+   */
+  public void initializeBackends(Collection<String> backendIDsToStart, RootCfg root) throws ConfigException
+  {
     // Initialize existing backends.
     for (String name : root.listBackends())
     {
       // Get the handler's configuration.
       // This will decode and validate its properties.
       final BackendCfg backendCfg = root.getBackend(name);
-      final DN backendDN = backendCfg.dn();
       final String backendID = backendCfg.getBackendId();
       if (!backendIDsToStart.isEmpty() && !backendIDsToStart.contains(backendID))
       {
+        continue;
+      }
+      if (DirectoryServer.hasBackend(backendID))
+      {
+        // Skip this backend if it is already initialized and registered as available.
         continue;
       }
 
@@ -145,14 +164,10 @@ public class BackendConfigManager implements
       // notified when it is disabled or enabled.
       backendCfg.addChangeListener(this);
 
+      final DN backendDN = backendCfg.dn();
       if (!backendCfg.isEnabled())
       {
         logger.debug(INFO_CONFIG_BACKEND_DISABLED, backendDN);
-        continue;
-      }
-      else if (DirectoryServer.hasBackend(backendID))
-      {
-        logger.warn(WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID, backendID, backendDN);
         continue;
       }
 
