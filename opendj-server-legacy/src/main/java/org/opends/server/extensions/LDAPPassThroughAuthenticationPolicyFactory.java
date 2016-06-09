@@ -34,6 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.IllegalFormatConversionException;
+import java.util.MissingFormatArgumentException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -66,6 +68,7 @@ import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
 import org.forgerock.opendj.server.config.server.LDAPPassThroughAuthenticationPolicyCfg;
@@ -1477,6 +1480,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             // A search against the remote directory is required in order to
             // determine the bind DN.
 
+            final String filterTemplate =  cfg.getMappedSearchFilterTemplate();
+
             // Construct the search filter.
             final LinkedList<SearchFilter> filterComponents = new LinkedList<>();
             for (final AttributeType at : cfg.getMappedAttribute())
@@ -1485,7 +1490,15 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               {
                 for (final ByteString value : attribute)
                 {
-                  filterComponents.add(SearchFilter.createEqualityFilter(at, value));
+                  if (filterTemplate != null)
+                  {
+                    filterComponents.add(SearchFilter.createFilterFromString(
+                        Filter.format(filterTemplate, value).toString()));
+                  }
+                  else
+                  {
+                    filterComponents.add(SearchFilter.createEqualityFilter(at, value));
+                  }
                 }
               }
             }
@@ -2054,6 +2067,26 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     return password;
   }
 
+  private static boolean isMappedFilterTemplateValid(
+      final String filterTemplate,
+      final List<LocalizableMessage> unacceptableReasons)
+  {
+    if (filterTemplate != null)
+    {
+      try
+      {
+        Filter.format(filterTemplate, "testValue");
+      }
+      catch(IllegalFormatConversionException | MissingFormatArgumentException | LocalizedIllegalArgumentException e)
+      {
+        unacceptableReasons.add(ERR_LDAP_PTA_INVALID_FILTER_TEMPLATE.get(filterTemplate));
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   private static boolean isServerAddressValid(
       final LDAPPassThroughAuthenticationPolicyCfg configuration,
       final List<LocalizableMessage> unacceptableReasons, final String hostPort)
@@ -2166,6 +2199,12 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         && cfg.getMappedSearchBindDN() != null
         && !cfg.getMappedSearchBindDN().isRootDN()
         && getMappedSearchBindPassword(cfg, unacceptableReasons) == null)
+    {
+      configurationIsAcceptable = false;
+    }
+
+    if (!isMappedFilterTemplateValid(cfg.getMappedSearchFilterTemplate(),
+        unacceptableReasons))
     {
       configurationIsAcceptable = false;
     }

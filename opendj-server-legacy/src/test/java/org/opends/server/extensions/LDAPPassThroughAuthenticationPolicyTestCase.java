@@ -43,6 +43,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -331,6 +332,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private int timeoutMS;
     private DN mappedSearchBindDN = searchBindDN;
     private String mappedSearchBindPassword = "searchPassword";
+    private String mappedSearchFilterTemplate;
     private String mappedSearchBindPasswordEnvVar;
     private String mappedSearchBindPasswordFile;
     private String mappedSearchBindPasswordProperty;
@@ -535,6 +537,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       return this;
     }
 
+    MockPolicyCfg withMappedSearchFilterTemplate(final String value)
+    {
+      this.mappedSearchFilterTemplate = value;
+      return this;
+    }
+
     MockPolicyCfg withMappedSearchBindPasswordProperty(final String value)
     {
       this.mappedSearchBindPasswordProperty = value;
@@ -563,6 +571,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     public String getMappedSearchBindPasswordProperty()
     {
       return mappedSearchBindPasswordProperty;
+    }
+
+    @Override
+    public String getMappedSearchFilterTemplate()
+    {
+      return mappedSearchFilterTemplate;
     }
 
     @Override
@@ -1242,6 +1256,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         "sn: user",
         "cn: test user",
         "aduser: " + adDNString,
+        "samAccountName: aduser",
+        "customStatus: Active",
         "uid: aduser"
         /* @formatter:on */
     );
@@ -1820,6 +1836,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordEnvVariable("ORG_OPENDJ_DUMMY_ENVVAR"), false },
         { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordFile("dummy_file.txt"), false },
         { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchBindPasswordFile("config/admin-keystore.pin"), true },
+
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchFilterTemplate("invalidFilter"), false },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchFilterTemplate("invalidFilter)"), false },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchFilterTemplate("valid=filter"), true },
+        { mockCfgWithPolicy(MAPPED_SEARCH).withMappedSearchFilterTemplate("(valid=%s)"), true },
 
     };
     // @formatter:on
@@ -2898,6 +2919,114 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   }
 
   /**
+   * Tests a mapped search with different filter templates.
+   * Connection attempts will succeed, as will any searches, but the final user
+   * bind may or may not succeed depending on the provided result code.
+   * <p>
+   * Non-fatal errors (e.g. entry not found) should not cause the bind
+   * connection to be closed.
+   *
+   * @param filter
+   *          The mapping filter template
+   * @param bindResultCode
+   *          The bind result code.
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(dataProvider = "testMappingFilterData")
+  public void testMappingFilterTemplateAuthentication(
+      final String filter, final ResultCode bindResultCode)
+      throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid")
+        .withMappedSearchFilterTemplate(filter)
+        .withBaseDN("o=ad");
+
+    // Create the provider and its list of expected events.
+    final GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(phost1, cfg);
+    final MockProvider provider = new MockProvider().expectEvent(fe);
+
+    // Add search events if doing a mapped search.
+    GetConnectionEvent ceSearch = new GetConnectionEvent(fe);
+
+    provider
+        .expectEvent(ceSearch)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch, searchBindDNString,
+                "searchPassword", ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch, "o=ad", SearchScope.WHOLE_SUBTREE,
+                Filter.format(filter, "aduser").toString(), adDNString));
+
+    // Connection should be cached until the policy is finalized.
+
+    // Add bind events.
+    final GetConnectionEvent ceBind = new GetConnectionEvent(fe);
+    provider.expectEvent(ceBind).expectEvent(new SimpleBindEvent(ceBind, adDNString, userPassword, bindResultCode));
+    if (isServiceError(bindResultCode))
+    {
+      // The connection will fail and be closed immediately, and the pool will
+      // retry on new connection.
+      provider.expectEvent(new CloseEvent(ceBind));
+      provider.expectEvent(new GetConnectionEvent(fe, bindResultCode));
+    }
+
+    // Connection should be cached until the policy is finalized or until the connection fails.
+
+    // Obtain policy and state.
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+    final AuthenticationPolicyState state = policy.createAuthenticationPolicyState(userEntry);
+    assertEquals(state.getAuthenticationPolicy(), policy);
+
+    // Perform authentication.
+    switch (bindResultCode.asEnum())
+    {
+      case SUCCESS:
+        assertTrue(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
+        break;
+      case INVALID_CREDENTIALS:
+        assertFalse(state.passwordMatches(ByteString.valueOfUtf8(userPassword)));
+        break;
+      default:
+        try
+        {
+          state.passwordMatches(ByteString.valueOfUtf8(userPassword));
+          fail("password match did not fail");
+        }
+        catch (final DirectoryException e)
+        {
+          // No valid connections available so this should always fail with INVALID_CREDENTIALS.
+          assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS, e.getMessage());
+        }
+        break;
+    }
+
+    // There should be no more pending events.
+    provider.assertAllExpectedEventsReceived();
+    state.finalizeStateAfterBind();
+
+    // Cached connections should be closed when the policy is finalized.
+    if (ceSearch != null)
+    {
+      provider.expectEvent(new CloseEvent(ceSearch));
+    }
+    if (!isServiceError(bindResultCode))
+    {
+      provider.expectEvent(new CloseEvent(ceBind));
+    }
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+  /**
    * Returns test data for {@link #testMappingPolicyAuthentication}.
    *
    * @return Test data for {@link #testMappingPolicyAuthentication}.
@@ -2919,6 +3048,26 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         { MappingPolicy.MAPPED_SEARCH, ResultCode.SUCCESS },
         { MappingPolicy.MAPPED_SEARCH, ResultCode.INVALID_CREDENTIALS },
         { MappingPolicy.MAPPED_SEARCH, ResultCode.UNAVAILABLE },
+    };
+    // @formatter:on
+  }
+
+  /**
+   * Returns test data for {@link #testMappingFilterTemplateAuthentication}.
+   *
+   * @return Test data for {@link #testMappingFilterTemplateAuthentication}.
+   */
+  @DataProvider
+  public Object[][] testMappingFilterData()
+  {
+    // @formatter:off
+    return new Object[][] {
+        /* policy, bind result code */
+        { "uid=%s", ResultCode.SUCCESS },
+        { "(&(uid=%s)(objectClass=nomatch))", ResultCode.INVALID_CREDENTIALS },
+        { "(samaccountname=%s)", ResultCode.SUCCESS },
+        { "(&(customstatus=Active)(samaccountname=%s))", ResultCode.SUCCESS },
+        { "filteris=notmatching", ResultCode.INVALID_CREDENTIALS },
     };
     // @formatter:on
   }

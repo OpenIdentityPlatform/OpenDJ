@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2011-2015 ForgeRock AS.
+  Copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="ldap-pass-through-authentication-policy"
   plural-name="ldap-pass-through-authentication-policies" extends="authentication-policy"
@@ -366,6 +366,37 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-mapped-search-bind-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="mapped-search-filter-template">
+    <adm:synopsis>
+      If defined, overrides the filter used when searching for the user, substituting
+      %s with the value of the local entry's "mapped-attribute".
+    </adm:synopsis>
+    <adm:description>
+      The filter-template may include ZERO or ONE %s substitutions.
+
+      If multiple mapped-attributes are configured, multiple renditions of this template
+      will be aggregated into one larger filter using an OR (|) operator.
+
+      An example use-case for this property would be to use a different attribute type
+      on the mapped search. For example, mapped-attribute could be set to "uid" and
+      filter-template to "(samAccountName=%s)".
+
+      You can also use the filter to restrict search results.
+      For example: "(&amp;(uid=%s)(objectclass=student))"
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-mapped-search-filter-template</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
