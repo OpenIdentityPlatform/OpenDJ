@@ -22,7 +22,7 @@ import static org.opends.messages.ConfigMessages.ERR_CONFIG_OAUTH2_INVALID_URL;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.forgerock.authz.modules.oauth2.AccessTokenResolver;
+import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.handler.HttpClientHandler;
 import org.forgerock.opendj.config.server.ConfigException;

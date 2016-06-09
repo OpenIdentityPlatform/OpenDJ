@@ -24,11 +24,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.forgerock.authz.modules.oauth2.AccessTokenInfo;
-import org.forgerock.authz.modules.oauth2.AccessTokenResolver;
-import org.forgerock.authz.modules.oauth2.OAuth2Context;
-import org.forgerock.authz.modules.oauth2.ResourceAccess;
-import org.forgerock.authz.modules.oauth2.ResourceServerFilter;
+import org.forgerock.openig.oauth2.AccessTokenInfo;
+import org.forgerock.openig.oauth2.AccessTokenResolver;
+import org.forgerock.openig.oauth2.OAuth2Context;
+import org.forgerock.openig.oauth2.ResourceAccess;
+import org.forgerock.openig.oauth2.ResourceServerFilter;
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
 import org.forgerock.http.filter.Filters;

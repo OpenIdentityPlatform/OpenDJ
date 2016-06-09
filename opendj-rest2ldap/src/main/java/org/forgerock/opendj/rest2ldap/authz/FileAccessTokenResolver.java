@@ -26,9 +26,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.forgerock.authz.modules.oauth2.AccessTokenInfo;
-import org.forgerock.authz.modules.oauth2.AccessTokenException;
-import org.forgerock.authz.modules.oauth2.AccessTokenResolver;
+import org.forgerock.openig.oauth2.AccessTokenInfo;
+import org.forgerock.openig.oauth2.AccessTokenException;
+import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.util.Json;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.JsonValueException;

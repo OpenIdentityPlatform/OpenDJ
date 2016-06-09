@@ -34,7 +34,7 @@
             org.forgerock.opendj.*;provide:=true,
             org.forgerock.json.*;provide:=true
         </opendj.osgi.import.additional>
-        <openig.version>5.0.0-SNAPSHOT</openig.version>
+        <openig.toolkit.version>4.5.0-SNAPSHOT</openig.toolkit.version>
     </properties>
 
 
@@ -66,8 +66,8 @@
 
         <dependency>
             <groupId>org.forgerock.openig</groupId>
-            <artifactId>openig-oauth2-resource-server-filter</artifactId>
-            <version>${openig.version}</version>
+            <artifactId>openig-toolkit</artifactId>
+            <version>${openig.toolkit.version}</version>
         </dependency>
 
         <dependency>

@@ -27,9 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import org.forgerock.authz.modules.oauth2.AccessTokenInfo;
-import org.forgerock.authz.modules.oauth2.AccessTokenException;
-import org.forgerock.authz.modules.oauth2.AccessTokenResolver;
+import org.forgerock.openig.oauth2.AccessTokenInfo;
+import org.forgerock.openig.oauth2.AccessTokenException;
+import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.Handler;
 import org.forgerock.http.MutableUri;
 import org.forgerock.http.protocol.Request;

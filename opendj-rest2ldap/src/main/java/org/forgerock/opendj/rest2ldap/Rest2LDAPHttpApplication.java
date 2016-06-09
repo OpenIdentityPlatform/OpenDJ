@@ -46,11 +46,11 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.forgerock.authz.modules.oauth2.AccessTokenInfo;
-import org.forgerock.authz.modules.oauth2.AccessTokenException;
-import org.forgerock.authz.modules.oauth2.AccessTokenResolver;
-import org.forgerock.authz.modules.oauth2.cache.CachingAccessTokenResolver;
-import org.forgerock.authz.modules.oauth2.resolver.OpenAmAccessTokenResolver;
+import org.forgerock.openig.oauth2.AccessTokenInfo;
+import org.forgerock.openig.oauth2.AccessTokenException;
+import org.forgerock.openig.oauth2.AccessTokenResolver;
+import org.forgerock.openig.oauth2.resolver.CachingAccessTokenResolver;
+import org.forgerock.openig.oauth2.resolver.OpenAmAccessTokenResolver;
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;

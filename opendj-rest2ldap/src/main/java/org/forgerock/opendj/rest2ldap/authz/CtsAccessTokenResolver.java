@@ -24,9 +24,9 @@ import static org.forgerock.util.Reject.checkNotNull;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.authz.modules.oauth2.AccessTokenInfo;
-import org.forgerock.authz.modules.oauth2.AccessTokenException;
-import org.forgerock.authz.modules.oauth2.AccessTokenResolver;
+import org.forgerock.openig.oauth2.AccessTokenInfo;
+import org.forgerock.openig.oauth2.AccessTokenException;
+import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.util.Json;
 import org.forgerock.json.JsonValue;
 import org.forgerock.opendj.ldap.Connection;
