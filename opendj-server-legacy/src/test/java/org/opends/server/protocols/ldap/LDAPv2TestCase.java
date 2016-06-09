@@ -23,6 +23,7 @@ import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -103,15 +104,14 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
-  public void testRejectExtendedRequest()
-         throws Exception
+  @Test(expectedExceptions = EOFException.class)
+  public void testRejectExtendedRequest() throws Exception
   {
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
       conn.writeMessage(new ExtendedRequestProtocolOp(OID_START_TLS_REQUEST));
-      assertNull(conn.readMessage());
+      conn.readMessage();
     }
   }
 

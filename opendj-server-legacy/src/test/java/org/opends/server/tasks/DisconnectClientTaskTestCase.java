@@ -64,40 +64,21 @@ public class DisconnectClientTaskTestCase
   public void testDisconnectWithNotification()
          throws Exception
   {
-    // Establish a connection to the server, bind, and get the connection ID.
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
-      long connectionID = getConnectionID(conn);
-
-      // Invoke the disconnect client task.
-      String taskID = "Disconnect Client " + connectionID;
-      LocalizableMessage disconnectMessage = LocalizableMessage.raw("testDisconnectWithNotification");
-      DN taskDN = DN.valueOf("ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=Tasks");
-      TestCaseUtils.addEntry(
-          "dn: " + taskDN,
-          "objectClass: top",
-          "objectClass: ds-task",
-          "objectClass: ds-task-disconnect",
-          "ds-task-id: " + taskID,
-          "ds-task-class-name: org.opends.server.tasks.DisconnectClientTask",
-          "ds-task-disconnect-connection-id: " + connectionID,
-          "ds-task-disconnect-notify-client: true",
-          "ds-task-disconnect-message: " + disconnectMessage);
-
+      String disconnectMessage = "testDisconnectWithNotification";
+      DN taskDN = invokeClientDisconnectTask(conn, disconnectMessage);
       waitTaskCompletedSuccessfully(taskDN);
-
 
       // Make sure that we get a notice of disconnection on the initial connection.
       LDAPMessage message = conn.readMessage();
       ExtendedResponseProtocolOp extendedResponse = message.getExtendedResponseProtocolOp();
       assertEquals(extendedResponse.getOID(), LDAPConstants.OID_NOTICE_OF_DISCONNECTION);
-      assertEquals(extendedResponse.getErrorMessage(), disconnectMessage);
+      assertEquals(extendedResponse.getErrorMessage(), LocalizableMessage.raw(disconnectMessage));
     }
   }
-
-
 
   /**
    * Tests the ability of the server to disconnect an arbitrary client
@@ -109,17 +90,43 @@ public class DisconnectClientTaskTestCase
   public void testDisconnectWithoutNotification()
          throws Exception
   {
-    // Establish a connection to the server, bind, and get the connection ID.
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
-      long connectionID = getConnectionID(conn);
+      DN taskDN = invokeClientDisconnectTask(conn, null);
+      waitTaskCompletedSuccessfully(taskDN);
 
+      // Make sure that the client connection has been closed with no notice of disconnection.
+      try
+      {
+        conn.readMessage();
+        fail("Expected IOException");
+      }
+      catch (IOException expected) { /* nothing to do */ }
+    }
+  }
 
-      // Invoke the disconnect client task.
-      String taskID = "Disconnect Client " + connectionID;
-      DN taskDN = DN.valueOf("ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=Tasks");
+  private DN invokeClientDisconnectTask(RemoteConnection conn, String disconnectMessage) throws Exception
+  {
+    long connectionID = getConnectionID(conn);
+    String taskID = "Disconnect Client " + connectionID;
+    DN taskDN = DN.valueOf("ds-task-id=" + taskID + ",cn=Scheduled Tasks,cn=Tasks");
+    if (disconnectMessage != null)
+    {
+      TestCaseUtils.addEntry(
+          "dn: " + taskDN,
+          "objectClass: top",
+          "objectClass: ds-task",
+          "objectClass: ds-task-disconnect",
+          "ds-task-id: " + taskID,
+          "ds-task-class-name: org.opends.server.tasks.DisconnectClientTask",
+          "ds-task-disconnect-connection-id: " + connectionID,
+          "ds-task-disconnect-notify-client: true",
+          "ds-task-disconnect-message: " + disconnectMessage);
+    }
+    else
+    {
       TestCaseUtils.addEntry(
           "dn: " + taskDN,
           "objectClass: top",
@@ -129,13 +136,8 @@ public class DisconnectClientTaskTestCase
           "ds-task-class-name: org.opends.server.tasks.DisconnectClientTask",
           "ds-task-disconnect-connection-id: " + connectionID,
           "ds-task-disconnect-notify-client: false");
-
-      waitTaskCompletedSuccessfully(taskDN);
-
-
-      // Make sure that the client connection has been closed with no notice of disconnection.
-      assertNull(conn.readMessage());
     }
+    return taskDN;
   }
 
   private long getConnectionID(RemoteConnection conn) throws IOException, LDAPException, LdapException, DecodeException
