@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -671,8 +670,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
     catch (Exception e)
     {
-      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(StaticUtils
-          .stackTraceToSingleLineString(e, false)), e);
+      throw new DirectoryException(getServerErrorResultCode(),
+                                   LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e, true)), e);
     }
     finally
     {
@@ -772,14 +771,6 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
       getImportStrategy(serverContext, rootContainer).rebuildIndex(rebuildConfig);
     }
-    catch (ExecutionException execEx)
-    {
-      throw new DirectoryException(getServerErrorResultCode(), ERR_EXECUTION_ERROR.get(execEx.getMessage()), execEx);
-    }
-    catch (InterruptedException intEx)
-    {
-      throw new DirectoryException(getServerErrorResultCode(), ERR_INTERRUPTED_ERROR.get(intEx.getMessage()), intEx);
-    }
     catch (ConfigException ce)
     {
       throw new DirectoryException(getServerErrorResultCode(), ce.getMessageObject(), ce);
@@ -792,10 +783,10 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     {
       throw e;
     }
-    catch (Exception ex)
+    catch (Exception e)
     {
-      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(stackTraceToSingleLineString(ex)),
-          ex);
+      throw new DirectoryException(getServerErrorResultCode(),
+                                   LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e, true)), e);
     }
     finally
     {
