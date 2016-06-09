@@ -621,18 +621,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         InternalSearchOperation searchOperation = connection.processSearch(request);
         Assertions.assertThat(searchOperation.getSearchEntries()).isNotEmpty();
         Entry resultEntry = searchOperation.getSearchEntries().get(0);
-        String completionTime = resultEntry.parseAttribute(
-            ATTR_TASK_COMPLETION_TIME.toLowerCase()).asString();
+        String completionTime = resultEntry.parseAttribute(ATTR_TASK_COMPLETION_TIME).asString();
         assertNotNull(completionTime, "The task has not completed");
         return resultEntry;
       }
     });
 
     // Check that the task state is as expected.
-    String stateString = resultEntry.parseAttribute(
-        ATTR_TASK_STATE.toLowerCase()).asString();
-    TaskState taskState = TaskState.fromString(stateString);
-    assertEquals(taskState, TaskState.COMPLETED_SUCCESSFULLY,
+    assertEquals(getTaskState(resultEntry), TaskState.COMPLETED_SUCCESSFULLY,
                  "The task completed in an unexpected state");
   }
 
@@ -715,8 +711,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     });
 
     // Check that the task contains some log messages.
-    Set<String> logMessages = resultEntry.parseAttribute(
-        ATTR_TASK_LOG_MESSAGES.toLowerCase()).asSetOfString();
+    Set<String> logMessages = resultEntry.parseAttribute(ATTR_TASK_LOG_MESSAGES).asSetOfString();
 
     TaskState taskState = getTaskState(resultEntry);
     if (taskState != COMPLETED_SUCCESSFULLY && taskState != RUNNING)
@@ -748,10 +743,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
   }
 
-  private TaskState getTaskState(Entry resultEntry)
+  private TaskState getTaskState(Entry entry)
   {
-    String stateString = resultEntry.parseAttribute(ATTR_TASK_STATE.toLowerCase()).asString();
-    return TaskState.fromString(stateString);
+    return TaskState.fromString(entry.parseAttribute(ATTR_TASK_STATE).asString());
   }
 
   /** Add to the current DB the entries necessary to the test. */

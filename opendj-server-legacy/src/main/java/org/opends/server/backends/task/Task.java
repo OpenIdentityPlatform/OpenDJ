@@ -34,6 +34,7 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
@@ -42,7 +43,6 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -311,7 +311,7 @@ public abstract class Task implements Comparable<Task>
   private String getAttributeValue(String attributeName, boolean isRequired)
           throws InitializationException
   {
-    List<Attribute> attrList = taskEntry.getAttribute(attributeName.toLowerCase());
+    List<Attribute> attrList = taskEntry.getAttribute(attributeName);
     if (attrList.isEmpty())
     {
       if (isRequired)
@@ -360,7 +360,7 @@ public abstract class Task implements Comparable<Task>
   private LinkedList<String> getAttributeValues(String attributeName) throws InitializationException
   {
     LinkedList<String> valueStrings = new LinkedList<>();
-    List<Attribute> attrList = taskEntry.getAttribute(attributeName.toLowerCase());
+    List<Attribute> attrList = taskEntry.getAttribute(attributeName);
     if (attrList.isEmpty())
     {
       return valueStrings;

@@ -757,7 +757,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    */
   private static void checkEntryAttributeValue(Entry entry, String attributeName, String attributeValue)
   {
-    List<Attribute> attrs = entry.getAttribute(attributeName.toLowerCase());
+    List<Attribute> attrs = entry.getAttribute(attributeName);
     assertThat(attrs).as("Was expecting attribute " + attributeName + "=" + attributeValue).hasSize(1);
     Attribute attr = attrs.get(0);
     Iterator<ByteString> attrValues = attr.iterator();

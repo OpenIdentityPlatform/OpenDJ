@@ -18,7 +18,6 @@ package org.opends.server.replication.plugin;
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.Iterator;
@@ -383,7 +382,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private void assertAttributeValue(Entry entry, String expectedValue)
   {
-    ByteString actualValue = getActualValue(entry.getAttribute(toLowerCase(ATTRIBUTE_NAME)));
+    ByteString actualValue = getActualValue(entry.getAttribute(ATTRIBUTE_NAME));
     assertEquals(actualValue, expectedValue != null ? ByteString.valueOfUtf8(expectedValue) : null);
   }
 

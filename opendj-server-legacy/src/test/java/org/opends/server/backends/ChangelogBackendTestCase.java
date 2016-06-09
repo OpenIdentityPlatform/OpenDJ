@@ -1480,7 +1480,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   private static String getAttributeValue(Entry entry, String attrName)
   {
-    List<Attribute> attrs = entry.getAttribute(attrName.toLowerCase());
+    List<Attribute> attrs = entry.getAttribute(attrName);
     if (attrs.isEmpty())
     {
       return null;

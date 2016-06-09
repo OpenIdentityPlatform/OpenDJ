@@ -536,7 +536,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             return OBJECT_CLASS;
         }
         String attributeName = attributeType.getNameOrOID();
-        return new AttributeDescription(attributeName, attributeName, attributeType,          ZERO_OPTION_IMPL);
+        return new AttributeDescription(attributeName, attributeName, attributeType, ZERO_OPTION_IMPL);
     }
 
     /**
@@ -1139,6 +1139,9 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     /**
      * Returns the attribute name or the oid provided by the user associated with this attribute
      * description.
+     * <p>
+     * In other words, it returns the user-provided name or oid of this attribute description,
+     * leaving out the option(s).
      *
      * @return The attribute name or the oid provided by the user associated with this attribute
      *         description.

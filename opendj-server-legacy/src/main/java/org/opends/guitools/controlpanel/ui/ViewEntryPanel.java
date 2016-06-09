@@ -282,8 +282,9 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       String attrName = ava.getAttributeName();
       ByteString value = ava.getAttributeValue();
       boolean done = false;
-      for (org.opends.server.types.Attribute attr : entry.getAttribute(attrName.toLowerCase()))
+      for (org.opends.server.types.Attribute attr : entry.getAttribute(attrName))
       {
+        // TODO JNR use Entry.getAttribute(AttributeDescription) instead?
         if (attr.getAttributeDescription().toString().equals(attrName))
         {
           List<ByteString> newValues = getValues(attr);

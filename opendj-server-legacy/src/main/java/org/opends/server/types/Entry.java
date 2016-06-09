@@ -650,18 +650,16 @@ public class Entry
    * the version of this method that takes an
    * <CODE>AttributeType</CODE> argument.
    *
-   * @param  lowerName  The name or OID of the attribute to return,
-   *                    formatted in all lowercase characters.
-   *
+   * @param  nameOrOID  The name or OID of the attribute to return
    * @return  The requested attribute element(s) for the specified
    *          attribute type, or an empty list if the specified
    *          attribute type is not present in this entry.
    */
-  public List<Attribute> getAttribute(String lowerName)
+  public List<Attribute> getAttribute(String nameOrOID)
   {
     for (AttributeType attr : userAttributes.keySet())
     {
-      if (attr.hasNameOrOID(lowerName))
+      if (attr.hasNameOrOID(nameOrOID))
       {
         return getAttribute(attr);
       }
@@ -669,13 +667,13 @@ public class Entry
 
     for (AttributeType attr : operationalAttributes.keySet())
     {
-      if (attr.hasNameOrOID(lowerName))
+      if (attr.hasNameOrOID(nameOrOID))
       {
         return getAttribute(attr);
       }
     }
 
-    if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME)
+    if (CoreSchema.getObjectClassAttributeType().hasNameOrOID(nameOrOID)
         && !objectClasses.isEmpty())
     {
       return newLinkedList(getObjectClassAttribute());

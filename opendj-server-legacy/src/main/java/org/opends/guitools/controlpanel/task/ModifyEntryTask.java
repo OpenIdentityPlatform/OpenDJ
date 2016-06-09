@@ -601,9 +601,8 @@ public class ModifyEntryTask extends Task
       }
       List<Object> oldValues = oldEntry.getAttributeValues(attrName);
       AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
-      String attrNoOptions = attrDesc.getNameOrOID().toLowerCase();
 
-      List<org.opends.server.types.Attribute> attrs = newEntry.getAttribute(attrNoOptions);
+      List<org.opends.server.types.Attribute> attrs = newEntry.getAttribute(attrDesc.getNameOrOID());
       if (!find(attrs, attrName) && !oldValues.isEmpty())
       {
         modifications.add(new ModificationItem(
@@ -616,6 +615,7 @@ public class ModifyEntryTask extends Task
 
   private static boolean find(List<org.opends.server.types.Attribute> attrs, String attrName)
   {
+    // TODO JNR use Entry.hasAttribute(AttributeDescription) instead?
     for (org.opends.server.types.Attribute attr : attrs)
     {
       if (attr.getAttributeDescription().toString().equalsIgnoreCase(attrName))

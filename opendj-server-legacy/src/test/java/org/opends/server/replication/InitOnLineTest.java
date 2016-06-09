@@ -16,11 +16,16 @@
  */
 package org.opends.server.replication;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -31,12 +36,17 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.protocol.DoneMsg;
+import org.opends.server.replication.protocol.EntryMsg;
+import org.opends.server.replication.protocol.ErrorMsg;
+import org.opends.server.replication.protocol.InitializeRequestMsg;
+import org.opends.server.replication.protocol.InitializeTargetMsg;
+import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.util.Base64;
@@ -220,15 +230,13 @@ public class InitOnLineTest extends ReplicationTestCase
       Entry resultEntry = getCompletionTime(taskEntry);
 
       // Check that the task state is as expected.
-      String stateString =
-          resultEntry.parseAttribute(ATTR_TASK_STATE.toLowerCase()).asString();
+      String stateString = resultEntry.parseAttribute(ATTR_TASK_STATE).asString();
       TaskState taskState = TaskState.fromString(stateString);
       assertEquals(taskState, expectedState,
           "The task completed in an unexpected state");
 
       // Check that the task contains some log messages.
-      Set<String> logMessages = resultEntry.parseAttribute(
-          ATTR_TASK_LOG_MESSAGES.toLowerCase()).asSetOfString();
+      Set<String> logMessages = resultEntry.parseAttribute(ATTR_TASK_LOG_MESSAGES).asSetOfString();
       if (taskState != TaskState.COMPLETED_SUCCESSFULLY &&
           logMessages.isEmpty())
       {
@@ -258,8 +266,7 @@ public class InitOnLineTest extends ReplicationTestCase
       InternalSearchOperation searchOperation = connection.processSearch(request);
       Entry resultEntry = searchOperation.getSearchEntries().getFirst();
 
-      String completionTime = resultEntry.parseAttribute(
-          ATTR_TASK_COMPLETION_TIME.toLowerCase()).asString();
+      String completionTime = resultEntry.parseAttribute(ATTR_TASK_COMPLETION_TIME).asString();
       if (completionTime != null)
       {
         return resultEntry;
@@ -274,10 +281,10 @@ public class InitOnLineTest extends ReplicationTestCase
     while (true);
   }
 
-  private void assertAttributeValue(Entry resultEntry, String lowerAttrName,
+  private void assertAttributeValue(Entry resultEntry, String attrName,
       long expected, String message) throws DirectoryException
   {
-    String value = resultEntry.parseAttribute(lowerAttrName).asString();
+    String value = resultEntry.parseAttribute(attrName).asString();
     assertEquals(Long.decode(value).longValue(), expected, message);
   }
 

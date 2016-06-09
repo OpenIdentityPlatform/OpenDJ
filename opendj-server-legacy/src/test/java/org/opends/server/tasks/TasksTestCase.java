@@ -19,6 +19,7 @@ package org.opends.server.tasks;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
@@ -29,8 +30,6 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.AttributeParser;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.Test;
@@ -62,13 +61,13 @@ public class TasksTestCase extends DirectoryServerTestCase {
 
     // Check that the task state is as expected.
     Entry resultEntry = getCompletedTaskEntry(taskEntry.getName(), timeoutInSec);
-    String stateString = parseAttribute(resultEntry, ATTR_TASK_STATE).asString();
+    String stateString = resultEntry.parseAttribute(ATTR_TASK_STATE).asString();
     TaskState taskState = TaskState.fromString(stateString);
     assertEquals(taskState, expectedState,
                  "The task completed in an unexpected state");
 
     // Check that the task contains some log messages.
-    Set<String> logMessages = parseAttribute(resultEntry, ATTR_TASK_LOG_MESSAGES).asSetOfString();
+    Set<String> logMessages = resultEntry.parseAttribute(ATTR_TASK_LOG_MESSAGES).asSetOfString();
     assertTrue(taskState == TaskState.COMPLETED_SUCCESSFULLY || !logMessages.isEmpty(),
         "No log messages were written to the task entry on a failed task.\n"
           + "taskState=" + taskState
@@ -90,17 +89,12 @@ public class TasksTestCase extends DirectoryServerTestCase {
       {
         InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
         Entry resultEntry = searchOperation.getSearchEntries().getFirst();
-        String completionTime = parseAttribute(resultEntry, ATTR_TASK_COMPLETION_TIME).asString();
+        String completionTime = resultEntry.parseAttribute(ATTR_TASK_COMPLETION_TIME).asString();
         assertNotNull(completionTime,
             "The task had not completed after " + timeoutInSec + " seconds.\nresultEntry=[" + resultEntry + "]");
         return resultEntry;
       }
     });
-  }
-
-  private AttributeParser parseAttribute(Entry resultEntry, String attrName)
-  {
-    return resultEntry.parseAttribute(attrName.toLowerCase());
   }
 
   /**
