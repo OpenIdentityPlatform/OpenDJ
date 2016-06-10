@@ -23,6 +23,8 @@ public enum UninstallProgressStep implements ProgressStep {
 
   /** Uninstall not started. */
   NOT_STARTED,
+  /** Uninstall has started. */
+  STARTED,
   /** Unconfiguring replication in remote servers. */
   UNCONFIGURING_REPLICATION,
   /** Stopping server. */

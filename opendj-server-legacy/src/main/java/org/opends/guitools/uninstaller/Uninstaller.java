@@ -40,6 +40,7 @@ import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
@@ -51,6 +52,7 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
+import org.opends.admin.ads.ServerDescriptor.ServerProperty;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -87,7 +89,6 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ClientException;
 
@@ -96,6 +97,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.forgerock.util.Utils.*;
+import static org.opends.guitools.uninstaller.UninstallProgressStep.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
@@ -105,8 +107,8 @@ import static org.opends.server.tools.ConfigureWindowsService.*;
 /** This class is in charge of performing the uninstallation of Open DS. */
 public class Uninstaller extends GuiApplication implements CliApplication {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private ProgressStep status = UninstallProgressStep.NOT_STARTED;
-  private boolean runStarted;
+  private UninstallProgressStep status = NOT_STARTED;
+  private boolean displaySeparator;
   private boolean errorOnRemoteOccurred;
   private boolean errorDeletingOccurred;
 
@@ -354,7 +356,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   public void notifyListeners(Integer ratio, LocalizableMessage currentPhaseSummary,
       final LocalizableMessage newLogDetail)
   {
-    if (runStarted)
+    if (status != NOT_STARTED)
     {
       super.notifyListeners(ratio, currentPhaseSummary, newLogDetail);
     }
@@ -557,25 +559,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   /** Initialize the different map used in this class. */
   private void initMaps() {
-    hmSummary.put(UninstallProgressStep.NOT_STARTED,
-            getFormattedSummary(INFO_SUMMARY_UNINSTALL_NOT_STARTED.get()));
-    hmSummary.put(UninstallProgressStep.STOPPING_SERVER,
-            getFormattedSummary(INFO_SUMMARY_STOPPING.get()));
-    hmSummary.put(UninstallProgressStep.UNCONFIGURING_REPLICATION,
-            getFormattedSummary(INFO_SUMMARY_UNCONFIGURING_REPLICATION.get()));
-    hmSummary.put(UninstallProgressStep.DISABLING_WINDOWS_SERVICE,
-            getFormattedSummary(INFO_SUMMARY_DISABLING_WINDOWS_SERVICE.get()));
-    hmSummary.put(UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES,
-            getFormattedSummary(INFO_SUMMARY_DELETING_EXTERNAL_DB_FILES.get()));
-    hmSummary.put(UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES,
-            getFormattedSummary(
-                    INFO_SUMMARY_DELETING_EXTERNAL_LOG_FILES.get()));
-    hmSummary.put(UninstallProgressStep.REMOVING_EXTERNAL_REFERENCES,
-            getFormattedSummary(
-                    INFO_SUMMARY_DELETING_EXTERNAL_REFERENCES.get()));
-    hmSummary.put(UninstallProgressStep.DELETING_INSTALLATION_FILES,
-            getFormattedSummary(
-                    INFO_SUMMARY_DELETING_INSTALLATION_FILES.get()));
+    putSummary(NOT_STARTED, INFO_SUMMARY_UNINSTALL_NOT_STARTED);
+    putSummary(STOPPING_SERVER, INFO_SUMMARY_STOPPING);
+    putSummary(UNCONFIGURING_REPLICATION, INFO_SUMMARY_UNCONFIGURING_REPLICATION);
+    putSummary(DISABLING_WINDOWS_SERVICE, INFO_SUMMARY_DISABLING_WINDOWS_SERVICE);
+    putSummary(DELETING_EXTERNAL_DATABASE_FILES, INFO_SUMMARY_DELETING_EXTERNAL_DB_FILES);
+    putSummary(DELETING_EXTERNAL_LOG_FILES, INFO_SUMMARY_DELETING_EXTERNAL_LOG_FILES);
+    putSummary(REMOVING_EXTERNAL_REFERENCES, INFO_SUMMARY_DELETING_EXTERNAL_REFERENCES);
+    putSummary(DELETING_INSTALLATION_FILES, INFO_SUMMARY_DELETING_INSTALLATION_FILES);
 
     LocalizableMessage successMsg;
     Installation installation = getInstallation();
@@ -616,8 +607,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     } else {
       successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY.get();
     }
-    hmSummary.put(UninstallProgressStep.FINISHED_SUCCESSFULLY,
-            getFormattedSuccess(successMsg));
+    hmSummary.put(FINISHED_SUCCESSFULLY, getFormattedSuccess(successMsg));
 
     LocalizableMessage nonCriticalMsg;
     if (!isCli())
@@ -630,8 +620,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       nonCriticalMsg =
         INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR_ON_REMOTE_CLI.get();
     }
-    hmSummary.put(UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE,
-            getFormattedWarning(nonCriticalMsg));
+    hmSummary.put(FINISHED_WITH_ERROR_ON_REMOTE, getFormattedWarning(nonCriticalMsg));
     if (!isCli())
     {
       nonCriticalMsg =
@@ -642,11 +631,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       nonCriticalMsg =
         INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR_DELETING_CLI.get();
     }
-    hmSummary.put(UninstallProgressStep.FINISHED_WITH_ERROR_DELETING,
-        getFormattedWarning(nonCriticalMsg));
-    hmSummary.put(UninstallProgressStep.FINISHED_WITH_ERROR,
-            getFormattedError(
-                    INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR.get()));
+    hmSummary.put(FINISHED_WITH_ERROR_DELETING, getFormattedWarning(nonCriticalMsg));
+    hmSummary.put(FINISHED_WITH_ERROR, getFormattedError(INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR.get()));
 
     /*
     * hmTime contains the relative time that takes for each task to be
@@ -655,41 +641,39 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     * value for extracting.
     */
     Map<UninstallProgressStep, Integer> hmTime = new HashMap<>();
-    hmTime.put(UninstallProgressStep.UNCONFIGURING_REPLICATION, 5);
-    hmTime.put(UninstallProgressStep.STOPPING_SERVER, 15);
-    hmTime.put(UninstallProgressStep.DISABLING_WINDOWS_SERVICE, 5);
-    hmTime.put(UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES, 30);
-    hmTime.put(UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES, 5);
-    hmTime.put(UninstallProgressStep.REMOVING_EXTERNAL_REFERENCES, 5);
-    hmTime.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, 10);
+    hmTime.put(UNCONFIGURING_REPLICATION, 5);
+    hmTime.put(STOPPING_SERVER, 15);
+    hmTime.put(DISABLING_WINDOWS_SERVICE, 5);
+    hmTime.put(DELETING_EXTERNAL_DATABASE_FILES, 30);
+    hmTime.put(DELETING_EXTERNAL_LOG_FILES, 5);
+    hmTime.put(REMOVING_EXTERNAL_REFERENCES, 5);
+    hmTime.put(DELETING_INSTALLATION_FILES, 10);
 
     int totalTime = 0;
     List<UninstallProgressStep> steps = new ArrayList<>();
     if (getUninstallUserData().getUpdateRemoteReplication()) {
-      totalTime += hmTime.get(UninstallProgressStep.UNCONFIGURING_REPLICATION);
-      steps.add(UninstallProgressStep.UNCONFIGURING_REPLICATION);
+      totalTime += hmTime.get(UNCONFIGURING_REPLICATION);
+      steps.add(UNCONFIGURING_REPLICATION);
     }
     if (getUserData().getStopServer()) {
-      totalTime += hmTime.get(UninstallProgressStep.STOPPING_SERVER);
-      steps.add(UninstallProgressStep.STOPPING_SERVER);
+      totalTime += hmTime.get(STOPPING_SERVER);
+      steps.add(STOPPING_SERVER);
     }
     if (isWindowsServiceEnabled()) {
-      totalTime += hmTime.get(UninstallProgressStep.DISABLING_WINDOWS_SERVICE);
-      steps.add(UninstallProgressStep.DISABLING_WINDOWS_SERVICE);
+      totalTime += hmTime.get(DISABLING_WINDOWS_SERVICE);
+      steps.add(DISABLING_WINDOWS_SERVICE);
     }
-    totalTime += hmTime.get(UninstallProgressStep.DELETING_INSTALLATION_FILES);
-    steps.add(UninstallProgressStep.DELETING_INSTALLATION_FILES);
+    totalTime += hmTime.get(DELETING_INSTALLATION_FILES);
+    steps.add(DELETING_INSTALLATION_FILES);
 
     if (!getUninstallUserData().getExternalDbsToRemove().isEmpty()) {
-      totalTime += hmTime.get(
-              UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES);
-      steps.add(UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES);
+      totalTime += hmTime.get(DELETING_EXTERNAL_DATABASE_FILES);
+      steps.add(DELETING_EXTERNAL_DATABASE_FILES);
     }
 
     if (!getUninstallUserData().getExternalLogsToRemove().isEmpty()) {
-      totalTime += hmTime.get(
-              UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES);
-      steps.add(UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES);
+      totalTime += hmTime.get(DELETING_EXTERNAL_LOG_FILES);
+      steps.add(DELETING_EXTERNAL_LOG_FILES);
     }
 
     int cumulatedTime = 0;
@@ -701,15 +685,20 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
     }
 
-    hmRatio.put(UninstallProgressStep.FINISHED_SUCCESSFULLY, 100);
-    hmRatio.put(UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE, 100);
-    hmRatio.put(UninstallProgressStep.FINISHED_WITH_ERROR, 100);
+    hmRatio.put(FINISHED_SUCCESSFULLY, 100);
+    hmRatio.put(FINISHED_WITH_ERROR_ON_REMOTE, 100);
+    hmRatio.put(FINISHED_WITH_ERROR, 100);
+  }
+
+  private void putSummary(UninstallProgressStep status, Arg0 msg)
+  {
+    hmSummary.put(status, getFormattedSummary(msg.get()));
   }
 
   /** Actually performs the uninstall in this thread. The thread is blocked. */
   @Override
   public void run() {
-    runStarted = true;
+    status = STARTED;
     logger.info(LocalizableMessage.raw("run of the Uninstaller started"));
 
     initMaps();
@@ -723,150 +712,24 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         System.setOut(out);
       }
 
-      boolean displaySeparator = false;
-
-      logger.info(LocalizableMessage.raw("Update remote replication? "+
-          getUninstallUserData().getUpdateRemoteReplication()));
-      if (getUninstallUserData().getUpdateRemoteReplication())
-      {
-        status = UninstallProgressStep.UNCONFIGURING_REPLICATION;
-        removeRemoteServerReferences();
-        displaySeparator = true;
-      }
-
-      logger.info(LocalizableMessage.raw("Stop server? "+getUserData().getStopServer()));
-      if (getUserData().getStopServer()) {
-        status = UninstallProgressStep.STOPPING_SERVER;
-        if (displaySeparator && isVerbose()) {
-          notifyListeners(getTaskSeparator());
-        }
-        if (!isVerbose())
-        {
-          notifyListeners(getFormattedWithPoints(
-              INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
-        }
-        // In case of uninstall, the server stop has to run locally.
-        // In order to bypass the tools.properties mechanism, if any,
-        // we systematically add the --noPropertiesFile flag
-        // when we run the stop-ds command. This is done
-        // by setting the parameter "noPropertiesFile" to 'true'
-        // in the following call.
-        new ServerController(this).stopServer(!isVerbose(),true);
-        if (!isVerbose())
-        {
-          notifyListeners(getFormattedDoneWithLineBreak());
-        }
-        displaySeparator = true;
-      }
-      logger.info(LocalizableMessage.raw("Is Windows Service Enabled? "+
-          isWindowsServiceEnabled()));
-      if (isWindowsServiceEnabled()) {
-        status = UninstallProgressStep.DISABLING_WINDOWS_SERVICE;
-        if (displaySeparator && isVerbose()) {
-          notifyListeners(getTaskSeparator());
-        }
-        disableWindowsService();
-        displaySeparator = true;
-      }
-
-      Set<String> dbsToDelete = getUninstallUserData().getExternalDbsToRemove();
-      if (!dbsToDelete.isEmpty()) {
-        status = UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES;
-        if (displaySeparator && isVerbose()) {
-          notifyListeners(getTaskSeparator());
-        }
-
-        try
-        {
-          deleteExternalDatabaseFiles(dbsToDelete);
-          displaySeparator = true;
-        }
-        catch (ApplicationException ae)
-        {
-          if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
-          {
-            errorDeletingOccurred = true;
-            LocalizableMessage msg = getFormattedWarning(ae.getMessageObject());
-            notifyListeners(msg);
-          }
-          else
-          {
-            throw ae;
-          }
-        }
-      }
-
-      Set<String> logsToDelete = getUninstallUserData().getExternalLogsToRemove();
-      if (!logsToDelete.isEmpty()) {
-        status = UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES;
-
-        if (displaySeparator && isVerbose()) {
-          notifyListeners(getTaskSeparator());
-        }
-
-        try
-        {
-          deleteExternalLogFiles(logsToDelete);
-          displaySeparator = true;
-        }
-        catch (ApplicationException ae)
-        {
-          if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
-          {
-            errorDeletingOccurred = true;
-            LocalizableMessage msg = getFormattedWarning(ae.getMessageObject());
-            notifyListeners(msg);
-          }
-          else
-          {
-            throw ae;
-          }
-        }
-      }
-
-      UninstallUserData userData = getUninstallUserData();
-      boolean somethingToDelete = userData.getRemoveBackups() ||
-              userData.getRemoveConfigurationAndSchema() ||
-              userData.getRemoveDatabases() ||
-              userData.getRemoveLDIFs() ||
-              userData.getRemoveLibrariesAndTools() ||
-              userData.getRemoveLogs();
-      if (displaySeparator && somethingToDelete && isVerbose()) {
-        notifyListeners(getTaskSeparator());
-      }
-
-      if (somethingToDelete) {
-        status = UninstallProgressStep.DELETING_INSTALLATION_FILES;
-        try
-        {
-          deleteInstallationFiles(getRatio(status),
-                getRatio(UninstallProgressStep.FINISHED_SUCCESSFULLY));
-        }
-        catch (ApplicationException ae)
-        {
-          if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
-          {
-            errorDeletingOccurred = true;
-            LocalizableMessage msg = getFormattedWarning(ae.getMessageObject());
-            notifyListeners(msg);
-          }
-          else
-          {
-            throw ae;
-          }
-        }
-      }
+      displaySeparator = false;
+      removeRemoteServerReferences0();
+      stopServer0();
+      disableWindowsService0();
+      deleteExternalDatabaseFiles0();
+      deleteExternalLogFiles0();
+      deleteInstallationFiles0();
       if (errorOnRemoteOccurred)
       {
-        status = UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE;
+        status = FINISHED_WITH_ERROR_ON_REMOTE;
       }
       else if (errorDeletingOccurred)
       {
-        status = UninstallProgressStep.FINISHED_WITH_ERROR_DELETING;
+        status = FINISHED_WITH_ERROR_DELETING;
       }
       else
       {
-        status = UninstallProgressStep.FINISHED_SUCCESSFULLY;
+        status = FINISHED_SUCCESSFULLY;
       }
       if (isCli()) {
         notifyListeners(new LocalizableMessageBuilder(getLineBreak())
@@ -878,18 +741,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     } catch (ApplicationException ex) {
       logger.error(LocalizableMessage.raw("Error: "+ex, ex));
       ue = ex;
-      status = UninstallProgressStep.FINISHED_WITH_ERROR;
-      LocalizableMessage msg = getFormattedError(ex, true);
-      notifyListeners(msg);
+      status = FINISHED_WITH_ERROR;
+      notifyListeners(getFormattedError(ex, true));
     }
     catch (Throwable t) {
       logger.error(LocalizableMessage.raw("Error: "+t, t));
       ue = new ApplicationException(
               ReturnCode.BUG,
               getThrowableMsg(INFO_BUG_MSG.get(), t), t);
-      status = UninstallProgressStep.FINISHED_WITH_ERROR;
-      LocalizableMessage msg = getFormattedError(ue, true);
-      notifyListeners(msg);
+      status = FINISHED_WITH_ERROR;
+      notifyListeners(getFormattedError(ue, true));
     }
     if (!isCli()) {
       System.setErr(origErr);
@@ -897,8 +758,145 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
+  private void removeRemoteServerReferences0() throws ApplicationException
+  {
+    boolean runStep = getUninstallUserData().getUpdateRemoteReplication();
+    logger.info(LocalizableMessage.raw("Update remote replication? " + runStep));
+    if (runStep)
+    {
+      status = UNCONFIGURING_REPLICATION;
+      removeRemoteServerReferences();
+      displaySeparator = true;
+    }
+  }
+
+  private void disableWindowsService0() throws ApplicationException
+  {
+    boolean runStep = isWindowsServiceEnabled();
+    logger.info(LocalizableMessage.raw("Is Windows Service Enabled? " + runStep));
+    if (runStep)
+    {
+      status = DISABLING_WINDOWS_SERVICE;
+      notifyListenersBeforeStep();
+      disableWindowsService();
+      displaySeparator = true;
+    }
+  }
+
+  private void stopServer0() throws ApplicationException
+  {
+    boolean runStep = getUserData().getStopServer();
+    logger.info(LocalizableMessage.raw("Stop server? " + runStep));
+    if (runStep)
+    {
+      status = STOPPING_SERVER;
+      notifyListenersBeforeStep();
+      if (!isVerbose())
+      {
+        notifyListeners(getFormattedWithPoints(
+            INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+      }
+      // In case of uninstall, the server stop has to run locally.
+      // In order to bypass the tools.properties mechanism, if any,
+      // we systematically add the --noPropertiesFile flag
+      // when we run the stop-ds command. This is done
+      // by setting the parameter "noPropertiesFile" to 'true'
+      // in the following call.
+      new ServerController(this).stopServer(!isVerbose(),true);
+      if (!isVerbose())
+      {
+        notifyListeners(getFormattedDoneWithLineBreak());
+      }
+      displaySeparator = true;
+    }
+  }
+
+  private void deleteInstallationFiles0() throws ApplicationException
+  {
+    UninstallUserData userData = getUninstallUserData();
+    boolean somethingToDelete = userData.getRemoveBackups() ||
+            userData.getRemoveConfigurationAndSchema() ||
+            userData.getRemoveDatabases() ||
+            userData.getRemoveLDIFs() ||
+            userData.getRemoveLibrariesAndTools() ||
+            userData.getRemoveLogs();
+
+    if (somethingToDelete) {
+      status = DELETING_INSTALLATION_FILES;
+      notifyListenersBeforeStep();
+      try
+      {
+        deleteInstallationFiles(getRatio(status), getRatio(FINISHED_SUCCESSFULLY));
+      }
+      catch (ApplicationException ae)
+      {
+        handle(ae);
+      }
+    }
+  }
+
+  private void deleteExternalLogFiles0() throws ApplicationException
+  {
+    Set<String> logsToDelete = getUninstallUserData().getExternalLogsToRemove();
+    if (!logsToDelete.isEmpty())
+    {
+      status = DELETING_EXTERNAL_LOG_FILES;
+      notifyListenersBeforeStep();
+
+      try
+      {
+        deleteExternalLogFiles(logsToDelete);
+        displaySeparator = true;
+      }
+      catch (ApplicationException ae)
+      {
+        handle(ae);
+      }
+    }
+  }
+
+  private void deleteExternalDatabaseFiles0() throws ApplicationException
+  {
+    Set<String> dbsToDelete = getUninstallUserData().getExternalDbsToRemove();
+    if (!dbsToDelete.isEmpty()) {
+      status = DELETING_EXTERNAL_DATABASE_FILES;
+      notifyListenersBeforeStep();
+
+      try
+      {
+        deleteExternalDatabaseFiles(dbsToDelete);
+        displaySeparator = true;
+      }
+      catch (ApplicationException ae)
+      {
+        handle(ae);
+      }
+    }
+  }
+
+  private void notifyListenersBeforeStep()
+  {
+    if (displaySeparator && isVerbose())
+    {
+      notifyListeners(getTaskSeparator());
+    }
+  }
+
+  private void handle(ApplicationException e) throws ApplicationException
+  {
+    if (e.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
+    {
+      errorDeletingOccurred = true;
+      notifyListeners(getFormattedWarning(e.getMessageObject()));
+    }
+    else
+    {
+      throw e;
+    }
+  }
+
   @Override
-  public ProgressStep getCurrentProgressStep() {
+  public UninstallProgressStep getCurrentProgressStep() {
     return status;
   }
 
@@ -930,14 +928,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   @Override
   public boolean isFinished() {
-    return getCurrentProgressStep() ==
-            UninstallProgressStep.FINISHED_SUCCESSFULLY
-    || getCurrentProgressStep() ==
-            UninstallProgressStep.FINISHED_WITH_ERROR
-    || getCurrentProgressStep() ==
-            UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE
-    || getCurrentProgressStep() ==
-            UninstallProgressStep.FINISHED_WITH_ERROR_DELETING;
+    ProgressStep currentProgressStep = getCurrentProgressStep();
+    return currentProgressStep == FINISHED_SUCCESSFULLY
+        || currentProgressStep == FINISHED_WITH_ERROR
+        || currentProgressStep == FINISHED_WITH_ERROR_ON_REMOTE
+        || currentProgressStep == FINISHED_WITH_ERROR_DELETING;
   }
 
   @Override
@@ -1123,22 +1118,17 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           int relativeRatio;
           if (equalsOrDescendant(f, installation.getLibrariesDirectory())) {
             relativeRatio = 10;
-          } else
-          if (equalsOrDescendant(f, installation.getBinariesDirectory())) {
+          } else if (equalsOrDescendant(f, installation.getBinariesDirectory())) {
             relativeRatio = 5;
-          } else
-          if (equalsOrDescendant(f, installation.getConfigurationDirectory())) {
+          } else if (equalsOrDescendant(f, installation.getConfigurationDirectory())) {
             relativeRatio = 5;
-          } else
-          if (equalsOrDescendant(f, installation.getBackupDirectory())) {
+          } else if (equalsOrDescendant(f, installation.getBackupDirectory())) {
             relativeRatio = 20;
-          } else
-          if (equalsOrDescendant(f, installation.getLdifDirectory())) {
+          } else if (equalsOrDescendant(f, installation.getLdifDirectory())) {
             relativeRatio = 20;
           } else if (equalsOrDescendant(f, installation.getDatabasesDirectory())) {
             relativeRatio = 50;
-          } else
-          if (equalsOrDescendant(f, installation.getLogsDirectory())) {
+          } else if (equalsOrDescendant(f, installation.getLogsDirectory())) {
             relativeRatio = 30;
           } else {
             relativeRatio = 2;
@@ -1154,10 +1144,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         int beforeRatio = minRatio +
                 (it.next() * (maxRatio - minRatio)) / totalRatio;
-        hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, beforeRatio);
+        hmRatio.put(DELETING_INSTALLATION_FILES, beforeRatio);
         deleteRecursively(rootFile, filter);
       }
-      hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
+      hmRatio.put(DELETING_INSTALLATION_FILES, maxRatio);
     }
     if (!isVerbose())
     {
@@ -1322,9 +1312,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       };
 
       Installation installation = getInstallation();
-      File[] parentFiles  ;
+      File[] parentFiles;
       try {
-        File[] tmp  = {
+        parentFiles = new File[] {
               installation.getLibrariesDirectory().getCanonicalFile(),
               installation.getBinariesDirectory().getCanonicalFile(),
               installation.getResourcesDirectory().getCanonicalFile(),
@@ -1334,8 +1324,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
               installation.getConfigurationDirectory().getCanonicalFile(),
               installation.getBackupDirectory().getCanonicalFile(),
               installation.getLdifDirectory().getCanonicalFile()
-      };
-        parentFiles = tmp ;
+        };
       }
       catch (Exception e)
       {
@@ -1356,8 +1345,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       for (int i = 0; i < uData.length && accept; i++) {
         File parent = parentFiles[i];
-        accept &= uData[i] ||
-                !equalsOrDescendant(file, parent);
+        accept &= uData[i] || !equalsOrDescendant(file, parent);
       }
 
       logger.info(LocalizableMessage.raw("accept for :"+file+" is: "+accept));
@@ -1437,24 +1425,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             @Override
             public void run()
             {
-              if (isServerRunning)
-              {
-                startProgressDlg.setSummary(getFormattedSuccess(
-                    INFO_SUMMARY_START_SUCCESS.get()));
-              }
-              else
-              {
-               startProgressDlg.setSummary(getFormattedError(
-                       INFO_SUMMARY_START_ERROR.get()));
-              }
+              startProgressDlg.setSummary(isServerRunning
+                  ? getFormattedSuccess(INFO_SUMMARY_START_SUCCESS.get())
+                  : getFormattedError(INFO_SUMMARY_START_ERROR.get()));
               startProgressDlg.setCloseButtonEnabled(true);
             }
           });
         }
         catch (Throwable t)
         {
-          LocalizableMessage msg = getFormattedError(t, true);
-          notifyListeners(msg);
+          notifyListeners(getFormattedError(t, true));
         }
       }
     });
@@ -1528,8 +1508,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             if (throwable instanceof TopologyCacheException)
             {
               qs.displayError(
-                      getMessage(
-                              (TopologyCacheException)throwable),
+                      getMessage((TopologyCacheException) throwable),
                       INFO_ERROR_TITLE.get());
             }
             else
@@ -1838,104 +1817,86 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   {
     /* First check if the server must be updated based in the contents of the
      * ServerDescriptor object. */
-    boolean hasReferences = false;
+    UninstallUserData uData = getUninstallUserData();
+    String rsUrl = uData.getReplicationServer();
+    if (!isReferenced(server.getServerProperties(), rsUrl)
+        && !isReferenced(server.getReplicas(), rsUrl))
+    {
+      logger.info(LocalizableMessage.raw("No references in: " + server.getHostPort(true)));
+      return;
+    }
 
-    Object v = server.getServerProperties().get(
-        ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
+    logger.info(LocalizableMessage.raw("Updating references in: " + server.getHostPort(true)));
+    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_REMOVING_REFERENCES.get(server.getHostPort(true))));
+
+    String dn = ADSContext.getAdministratorDN(uData.getAdminUID());
+    String pwd = uData.getAdminPwd();
+    try (ConnectionWrapper connWrapper =
+        getRemoteConnection(server, dn, pwd, getConnectTimeout(), new LinkedHashSet<PreferredConnection>()))
+    {
+      // Update replication servers and domains. If the domain
+      // is an ADS, then remove it from there.
+      removeReferences(connWrapper, server.getHostPort(true), serverADSProperties);
+
+      notifyListeners(getFormattedDoneWithLineBreak());
+    }
+    catch (ApplicationException ae)
+    {
+      errorOnRemoteOccurred = true;
+      logger.info(LocalizableMessage.raw("Error updating replication references in: " + server.getHostPort(true), ae));
+
+      if (!uData.isForceOnError())
+      {
+        LocalizableMessage msg =
+            ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get("--" + parser.getSecureArgsList().getAdminUidArg()
+                .getLongIdentifier(), "--" + OPTION_LONG_BINDPWD, "--" + OPTION_LONG_BINDPWD_FILE, "--"
+                    + parser.forceOnErrorArg.getLongIdentifier(), ae.getMessageObject());
+        throw new ApplicationException(ae.getType(), msg, ae);
+      }
+      else
+      {
+        notifyListeners(getFormattedError(ae, true));
+      }
+    }
+  }
+
+  private boolean isReferenced(Map<ServerProperty, Object> serverProperties, String toFind)
+  {
+    Object v = serverProperties.get(ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
     if (Boolean.TRUE.equals(v))
     {
-      Set<?> replicationServers = (Set<?>)server.getServerProperties().get(
-          ServerDescriptor.ServerProperty.EXTERNAL_REPLICATION_SERVERS);
+      Set<?> replicationServers = (Set<?>)
+          serverProperties.get(ServerDescriptor.ServerProperty.EXTERNAL_REPLICATION_SERVERS);
       if (replicationServers != null)
       {
-        for (Object o : replicationServers)
+        for (Object rsUrl : replicationServers)
         {
-          if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(
-              (String)o))
+          if (toFind.equalsIgnoreCase((String) rsUrl))
           {
-            hasReferences = true;
-            break;
+            return true;
           }
         }
       }
     }
+    return false;
+  }
 
-    if (!hasReferences)
+  private boolean isReferenced(Set<ReplicaDescriptor> replicas, String toFind)
+  {
+    for (ReplicaDescriptor replica : replicas)
     {
-      for (ReplicaDescriptor replica : server.getReplicas())
+      if (replica.isReplicated())
       {
-        if (replica.isReplicated())
+        for (String rsUrl : replica.getReplicationServers())
         {
-          for (Object o : replica.getReplicationServers())
+          if (toFind.equalsIgnoreCase(rsUrl))
           {
-            if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(
-                (String)o))
-            {
-              hasReferences = true;
-              break;
-            }
+            return true;
           }
         }
-        if (hasReferences)
-        {
-          break;
-        }
       }
     }
-
-    if (!hasReferences)
-    {
-      logger.info(LocalizableMessage.raw("No references in: "+ server.getHostPort(true)));
-    }
-    if (hasReferences)
-    {
-      logger.info(LocalizableMessage.raw("Updating references in: "+ server.getHostPort(true)));
-      notifyListeners(getFormattedWithPoints(
-          INFO_PROGRESS_REMOVING_REFERENCES.get(server.getHostPort(true))));
-      ConnectionWrapper connWrapper = null;
-      try
-      {
-        String dn = ADSContext.getAdministratorDN(
-            getUninstallUserData().getAdminUID());
-        String pwd = getUninstallUserData().getAdminPwd();
-        connWrapper = getRemoteConnection(server, dn, pwd, getTrustManager(),
-            getConnectTimeout(),
-            new LinkedHashSet<PreferredConnection>());
-
-        // Update replication servers and domains.  If the domain
-        // is an ADS, then remove it from there.
-        removeReferences(connWrapper, server.getHostPort(true), serverADSProperties);
-
-        notifyListeners(getFormattedDoneWithLineBreak());
-      }
-      catch (ApplicationException ae)
-      {
-        errorOnRemoteOccurred = true;
-        logger.info(LocalizableMessage.raw("Error updating replication references in: "+
-            server.getHostPort(true), ae));
-
-        if (!getUninstallUserData().isForceOnError())
-        {
-          LocalizableMessage msg =
-            ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
-              "--" + parser.getSecureArgsList().getAdminUidArg().getLongIdentifier(),
-              "--" + OPTION_LONG_BINDPWD,
-              "--" + OPTION_LONG_BINDPWD_FILE,
-              "--" + parser.forceOnErrorArg.getLongIdentifier(),
-              ae.getMessageObject());
-          throw new ApplicationException(ae.getType(), msg, ae);
-        }
-        else
-        {
-          LocalizableMessage html = getFormattedError(ae, true);
-          notifyListeners(html);
-        }
-      }
-      finally
-      {
-        StaticUtils.close(connWrapper);
-      }
-    }
+    return false;
   }
 
   /**

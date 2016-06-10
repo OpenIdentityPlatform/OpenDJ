@@ -30,6 +30,7 @@ import javax.naming.NamingException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
@@ -593,8 +594,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * provided ServerDescriptor object.  Note that the server is assumed to be
    * registered and that contains a Map with ADSContext.ServerProperty keys.
    * @param server the object describing the server.
-   * @param trustManager the trust manager to be used to establish the
-   * connection.
    * @param dn the dn to be used to authenticate.
    * @param pwd the pwd to be used to authenticate.
    * @param timeout the timeout to establish the connection in milliseconds.
@@ -604,19 +603,15 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the InitialLdapContext to the remote server.
    * @throws ApplicationException if something goes wrong.
    */
-  protected ConnectionWrapper getRemoteConnection(ServerDescriptor server,
-      String dn, String pwd, ApplicationTrustManager trustManager,
-      int timeout,
-      Set<PreferredConnection> cnx)
-  throws ApplicationException
+  protected ConnectionWrapper getRemoteConnection(ServerDescriptor server, String dn, String pwd, int timeout,
+      Set<PreferredConnection> cnx) throws ApplicationException
   {
     Map<ADSContext.ServerProperty, Object> adsProperties =
       server.getAdsProperties();
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);
-    ServerLoader loader = new ServerLoader(adsProperties, dn, pwd,
-        trustManager, timeout, cnx, filter);
+    ServerLoader loader = new ServerLoader(adsProperties, dn, pwd, getTrustManager(), timeout, cnx, filter);
 
     ConnectionWrapper connection;
     try
@@ -625,19 +620,11 @@ public abstract class Application implements ProgressNotifier, Runnable {
     }
     catch (NamingException ne)
     {
-      LocalizableMessage msg;
-      if (isCertificateException(ne))
-      {
-        msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-            server.getHostPort(true), ne.toString(true));
-      }
-      else
-      {
-         msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-             server.getHostPort(true), ne.toString(true));
-      }
-      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg,
-          ne);
+      Arg2<Object, Object> arg2 = isCertificateException(ne)
+          ? INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER
+          : INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC;
+      LocalizableMessage msg = arg2.get(server.getHostPort(true), ne.toString(true));
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
     }
     return connection;
   }
@@ -730,7 +717,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
     protected LocalizableMessage formatString(String s) {
       return getFormattedLogError(LocalizableMessage.raw(s));
     }
-
   }
 
   /**
@@ -745,7 +731,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public class OutputPrintStream extends ApplicationPrintStream
   {
-
     /** Default constructor. */
     public OutputPrintStream() {
       super();
@@ -755,7 +740,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
     protected LocalizableMessage formatString(String s) {
       return getFormattedLog(LocalizableMessage.raw(s));
     }
-
   }
 
   /**
@@ -764,7 +748,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   private abstract class ApplicationPrintStream extends PrintStream
   {
-
     private boolean isFirstLine;
 
     /**

@@ -18,7 +18,7 @@ package org.opends.quicksetup.installer;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
@@ -1834,8 +1834,7 @@ public class Installer extends GuiApplication
     for (ServerDescriptor server : hmConfiguredRemoteReplication.keySet())
     {
       notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UNCONFIGURING_REPLICATION_REMOTE.get(getHostPort(server))));
-      try (ConnectionWrapper connectionWrapper =
-          getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
+      try (ConnectionWrapper connectionWrapper = getRemoteConnection(server))
       {
         helper.unconfigureReplication(connectionWrapper, hmConfiguredRemoteReplication.get(server));
       }
@@ -2148,7 +2147,7 @@ public class Installer extends GuiApplication
           }
         }
 
-        try (ConnectionWrapper conn = getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
+        try (ConnectionWrapper conn = getRemoteConnection(server))
         {
           ConfiguredReplication repl = helper.configureReplication(
               conn, remoteReplicationServers, replicationPort, enableSecureReplication,
@@ -2466,7 +2465,7 @@ public class Installer extends GuiApplication
     /* Initialize local ADS and schema contents using any replica. */
     {
       ServerDescriptor server = suffixes.iterator().next().getReplicas().iterator().next().getServer();
-      try (ConnectionWrapper remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
+      try (ConnectionWrapper remoteConn = getRemoteConnection(server))
       {
         TopologyCacheFilter filter = new TopologyCacheFilter();
         filter.setSearchMonitoringInformation(false);
@@ -2536,7 +2535,7 @@ public class Installer extends GuiApplication
         if (replicationId == -1)
         {
           // This occurs if the remote server had not replication configured.
-          try (ConnectionWrapper remoteConn = getRemoteConnection(server, getTrustManager(), getPreferredConnections()))
+          try (ConnectionWrapper remoteConn = getRemoteConnection(server))
           {
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
@@ -4108,17 +4107,11 @@ public class Installer extends GuiApplication
    *
    * @param server
    *          the object describing the server.
-   * @param trustManager
-   *          the trust manager to be used to establish the connection.
-   * @param cnx
-   *          the list of preferred LDAP URLs to be used to connect to the
-   *          server.
    * @return the InitialLdapContext to the remote server.
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  private ConnectionWrapper getRemoteConnection(ServerDescriptor server, ApplicationTrustManager trustManager,
-      Set<PreferredConnection> cnx) throws ApplicationException
+  private ConnectionWrapper getRemoteConnection(ServerDescriptor server) throws ApplicationException
   {
     Map<ADSContext.ServerProperty, Object> adsProperties;
     AuthenticationData auth = getUserData().getReplicationOptions().getAuthenticationData();
@@ -4146,7 +4139,7 @@ public class Installer extends GuiApplication
       }
       server.setAdsProperties(adsProperties);
     }
-    return getRemoteConnection(server, auth.getDn(), auth.getPwd(), trustManager, getConnectTimeout(), cnx);
+    return getRemoteConnection(server, auth.getDn(), auth.getPwd(), getConnectTimeout(), getPreferredConnections());
   }
 
   /**
