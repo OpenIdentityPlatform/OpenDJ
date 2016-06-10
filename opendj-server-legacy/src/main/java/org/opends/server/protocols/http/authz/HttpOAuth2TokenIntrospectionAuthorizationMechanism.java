@@ -50,7 +50,7 @@ final class HttpOAuth2TokenIntrospectionAuthorizationMechanism extends
       return newRfc7662AccessTokenResolver(
           new HttpClientHandler(toHttpOptions(config.getTrustManagerProviderDN(), config.getKeyManagerProviderDN())),
           new URI(config.getTokenIntrospectionUrl()),
-          config.getClientSecret(), config.getClientSecret());
+          config.getClientId(), config.getClientSecret());
     }
     catch (HttpApplicationException e)
     {
