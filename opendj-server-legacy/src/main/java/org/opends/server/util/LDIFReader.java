@@ -46,6 +46,8 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.util.Pair;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -57,7 +59,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RawModification;
 
 /**
@@ -200,29 +201,24 @@ public class LDIFReader implements Closeable
         // read and return the next entry.
         continue;
       }
-      else if (!importConfig.includeEntry(entryDN))
+
+      entriesRead.incrementAndGet();
+      Pair<Boolean, LocalizableMessage> includeResult = importConfig.includeEntry(entryDN);
+      if (!includeResult.getFirst())
       {
-        logger.trace("Skipping entry %s because the DN is not one that "
-            + "should be included based on the include and exclude branches.", entryDN);
-        entriesRead.incrementAndGet();
-        logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
+        logToSkipWriter(lines, includeResult.getSecond());
         continue;
       }
-      else
-      {
-        entriesRead.incrementAndGet();
-      }
 
-      // Create the entry and see if it is one that should be included in the import.
       final Entry entry = createEntry(entryDN, lines, checkSchema);
       if (!isIncludedInImport(entry,lines)
           || !invokeImportPlugins(entry, lines))
       {
         continue;
       }
-      validateAgainstSchemaIfNeeded(checkSchema, entry, lines);
 
       // The entry should be included in the import, so return it.
+      validateAgainstSchemaIfNeeded(checkSchema, entry, lines);
       return entry;
     }
   }
@@ -247,12 +243,10 @@ public class LDIFReader implements Closeable
   {
     try
     {
-      if (!importConfig.includeEntry(entry))
+      Pair<Boolean, LocalizableMessage> includeResult = importConfig.includeEntry(entry);
+      if (!includeResult.getFirst())
       {
-        final DN entryDN = entry.getName();
-        logger.trace("Skipping entry %s because the DN is not one that "
-            + "should be included based on the include and exclude filters.", entryDN);
-        logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
+        logToSkipWriter(lines, includeResult.getSecond());
         return false;
       }
       return true;

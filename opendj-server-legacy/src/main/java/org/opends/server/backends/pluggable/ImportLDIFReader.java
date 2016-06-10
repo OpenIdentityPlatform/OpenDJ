@@ -29,15 +29,16 @@ import java.util.concurrent.CountDownLatch;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeBuilder;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 
@@ -151,12 +152,13 @@ final class ImportLDIFReader extends LDIFReader
           // read and return the next entry.
           continue;
         }
-        if (!importConfig.includeEntry(entryDN))
+
+        entriesRead.incrementAndGet();
+
+        final Pair<Boolean, LocalizableMessage> includeResult = importConfig.includeEntry(entryDN);
+        if (!includeResult.getFirst())
         {
-          logger.trace("Skipping entry %s because the DN is not one that "
-              + "should be included based on the include and exclude branches.", entryDN);
-          entriesRead.incrementAndGet();
-          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
+          logToSkipWriter(lines, includeResult.getSecond());
           continue;
         }
         entryContainer = getEntryContainer(entryDN, suffixesMap);
@@ -164,11 +166,9 @@ final class ImportLDIFReader extends LDIFReader
         {
           logger.trace("Skipping entry %s because the DN is not one that "
               + "should be included based on a suffix match check.", entryDN);
-          entriesRead.incrementAndGet();
           logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
           continue;
         }
-        entriesRead.incrementAndGet();
         entryID = rootContainer.getNextEntryID();
 
         if (!addPending(entryDN))
@@ -227,11 +227,10 @@ final class ImportLDIFReader extends LDIFReader
     final DN entryDN = entry.getName();
     try
     {
-      if (!importConfig.includeEntry(entry))
+      final Pair<Boolean, LocalizableMessage> includeResult = importConfig.includeEntry(entry);
+      if (!includeResult.getFirst())
       {
-        logger.trace("Skipping entry %s because the DN is not one that "
-            + "should be included based on the include and exclude filters.", entryDN);
-        logToSkipWriter(entryLines, ERR_LDIF_SKIP.get(entryDN));
+        logToSkipWriter(entryLines, includeResult.getSecond());
         return false;
       }
       return true;

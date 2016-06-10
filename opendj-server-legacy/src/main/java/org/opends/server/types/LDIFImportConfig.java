@@ -16,6 +16,8 @@
  */
 package org.opends.server.types;
 
+import static java.lang.Boolean.*;
+
 import static org.opends.messages.UtilityMessages.*;
 
 import java.io.BufferedReader;
@@ -38,9 +40,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.util.Pair;
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.util.CollectionUtils;
@@ -58,7 +62,6 @@ import org.opends.server.util.StaticUtils;
 public final class LDIFImportConfig extends OperationConfig
                                     implements Closeable
 {
-
   /** The default buffer size that will be used when reading LDIF data. */
   private static final int DEFAULT_BUFFER_SIZE = 8192;
 
@@ -646,17 +649,16 @@ public final class LDIFImportConfig extends OperationConfig
   }
 
   /**
-   * Indicates whether to include the entry with the specified DN in
-   * the import.
+   * Indicates whether to include the entry with the specified DN in the import.
    *
-   * @param  dn  The DN of the entry for which to make the
-   *             determination.
-   *
-   * @return  <CODE>true</CODE> if the entry with the specified DN
-   *          should be included in the import, or <CODE>false</CODE>
-   *          if not.
+   * @param dn
+   *          The DN of the entry for which to make the determination.
+   * @return a pair where the first element is a boolean indicating whether the entry with the
+   *         specified DN should be included in the import, and the second element is a message with
+   *         the reason why an entry is not included in the import (it is {@code null} when the
+   *         entry is included in the import).
    */
-  public boolean includeEntry(DN dn)
+  public Pair<Boolean, LocalizableMessage> includeEntry(DN dn)
   {
     if (! excludeBranches.isEmpty())
     {
@@ -664,7 +666,7 @@ public final class LDIFImportConfig extends OperationConfig
       {
         if (excludeBranch.isSuperiorOrEqualTo(dn))
         {
-          return false;
+          return Pair.of(FALSE, ERR_LDIF_SKIP_EXCLUDE_BRANCH.get(dn, excludeBranch));
         }
       }
     }
@@ -675,14 +677,14 @@ public final class LDIFImportConfig extends OperationConfig
       {
         if (includeBranch.isSuperiorOrEqualTo(dn))
         {
-          return true;
+          return Pair.of(TRUE, null);
         }
       }
 
-      return false;
+      return Pair.of(FALSE, ERR_LDIF_SKIP_NOT_IN_INCLUDED_BRANCHES.get(dn));
     }
 
-    return true;
+    return Pair.of(TRUE, null);
   }
 
 
@@ -881,46 +883,45 @@ public final class LDIFImportConfig extends OperationConfig
 
   /**
    * Indicates whether the specified entry should be included in the
-   * import based on the configured set of include and exclude
-   * filters.
+   * import based on the configured set of include and exclude filters.
    *
    * @param  entry  The entry for which to make the determination.
-   *
-   * @return  <CODE>true</CODE> if the specified entry should be
-   *          included in the import, or <CODE>false</CODE> if not.
-   *
+   * @return  a pair where the first element is a boolean indicating whether
+   *          the entry with the specified DN should be included in the import,
+   *          and the second element is a message with the reason why an entry
+   *          is not included in the import (it is {@code null} when the entry
+   *          is included in the import).
    * @throws  DirectoryException  If there is a problem with any of
    *                              the search filters used to make the
    *                              determination.
    */
-  public boolean includeEntry(Entry entry)
-         throws DirectoryException
+  public Pair<Boolean, LocalizableMessage> includeEntry(Entry entry) throws DirectoryException
   {
     if (! excludeFilters.isEmpty())
     {
-      for (SearchFilter filter : excludeFilters)
+      for (SearchFilter excludeFilter : excludeFilters)
       {
-        if (filter.matchesEntry(entry))
+        if (excludeFilter.matchesEntry(entry))
         {
-          return false;
+          return Pair.of(FALSE, ERR_LDIF_SKIP_EXCLUDE_FILTER.get(entry.getName(), excludeFilter));
         }
       }
     }
 
     if (! includeFilters.isEmpty())
     {
-      for (SearchFilter filter : includeFilters)
+      for (SearchFilter includeFilter : includeFilters)
       {
-        if (filter.matchesEntry(entry))
+        if (includeFilter.matchesEntry(entry))
         {
-          return true;
+          return Pair.of(TRUE, null);
         }
       }
 
-      return false;
+      return Pair.of(FALSE, ERR_LDIF_SKIP_NOT_IN_INCLUDED_FILTERS.get(entry.getName()));
     }
 
-    return true;
+    return Pair.of(TRUE, null);
   }
 
 
