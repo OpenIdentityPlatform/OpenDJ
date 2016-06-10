@@ -1357,7 +1357,6 @@
                   <finalName>${snmp.jar.name}</finalName>
                   <includes>
                     <include>org/opends/server/snmp/**</include>
-                    <include>META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>
                   </includes>
                   <archive>
                     <index>true</index>
