@@ -69,8 +69,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   //
   // -------------------------------------------------------------------------
 
-  // These are valid filters.
-  @DataProvider(name = "paramsCreateFilterFromStringValidFilters")
+  /** These are valid filters. */
+  @DataProvider
   public Object[][] paramsCreateFilterFromStringValidFilters() {
     return new Object[][]{
             {"(&)", "(&)"},
@@ -161,7 +161,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   /** These are filters with invalid escape sequences. */
-  @DataProvider(name = "invalidEscapeSequenceFilters")
+  @DataProvider
   public Object[][] invalidEscapeSequenceFilters() {
     final char[] VALID_NIBBLES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                                  'a', 'b', 'c', 'd', 'e', 'f',
@@ -218,13 +218,13 @@ public class SearchFilterTests extends DirectoryServerTestCase {
    * @return a value that can be used in an LDAP filter.
    */
   private String getFilterValueForChar(byte value) {
-    if (((value & 0x7F) != value) ||  // Not 7-bit clean
-         (value <= 0x1F) ||           // Below the printable character range
-         (value == 0x28) ||           // Open parenthesis
-         (value == 0x29) ||           // Close parenthesis
-         (value == 0x2A) ||           // Asterisk
-         (value == 0x5C) ||           // Backslash
-         (value == 0x7F))             // Delete character
+    if (((value & 0x7F) != value)  // Not 7-bit clean
+        || value <= 0x1F           // Below the printable character range
+        || value == 0x28           // Open parenthesis
+        || value == 0x29           // Close parenthesis
+        || value == 0x2A           // Asterisk
+        || value == 0x5C           // Backslash
+        || value == 0x7F)          // Delete character
     {
       return "\\" + StaticUtils.byteToHex(value);
     }
@@ -256,7 +256,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   // -------------------------------------------------------------------------
 
   /** Invalid filters that are detected. */
-  @DataProvider(name = "invalidFilters")
+  @DataProvider
   public Object[][] invalidFilters() {
     return new Object[][]{
             {null},
@@ -334,7 +334,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
           "labeledUri: http://opends.org/john"
           );
 
-  @DataProvider(name = "matchesParams")
+  @DataProvider
   public Object[][] matchesParams() {
     return new Object[][]{
             {JOHN_SMITH_LDIF, "(objectclass=inetorgperson)", true},
@@ -817,8 +817,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
 
-  @DataProvider(name = "filterDescriptions")
-  public Object[][] getFilterDescriptions() throws Exception {
+  @DataProvider
+  public Object[][] filterDescriptions() throws Exception {
     List<FilterDescription> allDescriptions = getFilterDescriptionList();
 
     // Now convert to [][]
@@ -964,8 +964,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   };
 
 
-  @DataProvider(name = "equalsTest")
-  public Object[][] getEqualsTests() throws Exception {
+  @DataProvider
+  public Object[][] equalsTest() throws Exception {
     return TEST_EQUALS_PARAMS;
   }
 
@@ -1000,8 +1000,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   /**
    * Dataprovider for testing different normalization for value and assertion.
    */
-  @DataProvider(name = "differentNormalization")
-  public Object[][] differentNormalizationData() throws ParseException
+  @DataProvider
+  public Object[][] differentNormalization() throws ParseException
   {
     final String BASE64_CERT_VALUE =
       "MIICpTCCAg6gAwIBAgIJALeoA6I3ZC/cMA0GCSqGSIb3DQEBBQUAMFYxCzAJBgNV" +
