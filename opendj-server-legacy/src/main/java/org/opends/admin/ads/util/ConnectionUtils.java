@@ -176,13 +176,9 @@ public class ConnectionUtils
     env.put("java.naming.ldap.factory.socket",
         org.opends.admin.ads.util.TrustedSocketFactory.class.getName());
 
-    if (dn != null)
+    if (dn != null && pwd != null)
     {
       env.put(Context.SECURITY_PRINCIPAL, dn);
-    }
-
-    if (pwd != null)
-    {
       env.put(Context.SECURITY_CREDENTIALS, pwd);
     }
 

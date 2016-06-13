@@ -41,7 +41,6 @@ import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.util.Options;
 import org.opends.admin.ads.util.PreferredConnection.Type;
@@ -157,7 +156,7 @@ public class ConnectionWrapper implements Closeable
     this.keyManager = keyManager;
 
     final Options options = toOptions(connectionType, bindDn, bindPwd, connectTimeout, trustManager, keyManager);
-    ldapContext = createAdministrativeContext(options);
+    ldapContext = createAdministrativeContext(options, bindDn, bindPwd);
     connectionFactory = new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
     connection = buildConnection();
   }
@@ -168,14 +167,22 @@ public class ConnectionWrapper implements Closeable
     final boolean isStartTls = START_TLS.equals(connectionType);
     final boolean isLdaps = LDAPS.equals(connectionType);
 
-    Options options = Options.defaultOptions();
-    options.set(CONNECT_TIMEOUT, duration(connectTimeout, TimeUnit.MILLISECONDS));
+    Options options = Options.defaultOptions()
+        .set(CONNECT_TIMEOUT, duration(connectTimeout, TimeUnit.MILLISECONDS));
     if (isLdaps || isStartTls)
     {
       options.set(SSL_CONTEXT, getSSLContext(trustManager, keyManager))
              .set(SSL_USE_STARTTLS, isStartTls);
     }
-    options.set(AUTHN_BIND_REQUEST, Requests.newSimpleBindRequest(bindDn, bindPwd.toCharArray()));
+    if (bindDn != null && bindPwd != null)
+    {
+      options.set(AUTHN_BIND_REQUEST, Requests.newSimpleBindRequest(bindDn, bindPwd.toCharArray()));
+    }
+    else
+    {
+      final String traceString = "Anonymous ConnectionWrapper: tried connecting with bindDN=" + bindDn;
+      options.set(AUTHN_BIND_REQUEST, Requests.newAnonymousSASLBindRequest(traceString));
+    }
     return options;
   }
 
@@ -183,7 +190,8 @@ public class ConnectionWrapper implements Closeable
   {
     try
     {
-      return new SSLContextBuilder().setTrustManager(trustManager != null ? trustManager : new BlindTrustManager())
+      return new SSLContextBuilder()
+          .setTrustManager(trustManager != null ? trustManager : new BlindTrustManager())
           .setKeyManager(keyManager).getSSLContext();
     }
     catch (GeneralSecurityException e)
@@ -192,9 +200,10 @@ public class ConnectionWrapper implements Closeable
     }
   }
 
-  private InitialLdapContext createAdministrativeContext(Options options) throws NamingException
+  private InitialLdapContext createAdministrativeContext(Options options, String bindDn, String bindPwd)
+      throws NamingException
   {
-    final InitialLdapContext ctx = createAdministrativeContext0(options);
+    final InitialLdapContext ctx = createAdministrativeContext0(options, bindDn, bindPwd);
     if (!connectedAsAdministrativeUser(ctx))
     {
       throw new NoPermissionException(ERR_NOT_ADMINISTRATIVE_USER.get().toString());
@@ -202,14 +211,12 @@ public class ConnectionWrapper implements Closeable
     return ctx;
   }
 
-  private InitialLdapContext createAdministrativeContext0(Options options) throws NamingException
+  private InitialLdapContext createAdministrativeContext0(Options options, String bindDn, String bindPwd)
+      throws NamingException
   {
     SSLContext sslContext = options.get(SSL_CONTEXT);
     boolean useSSL = sslContext != null;
     boolean useStartTLS = options.get(SSL_USE_STARTTLS);
-    SimpleBindRequest bindRequest = (SimpleBindRequest) options.get(AUTHN_BIND_REQUEST);
-    String bindDn = bindRequest.getName();
-    String bindPwd = new String(bindRequest.getPassword());
     final String ldapUrl = getLDAPUrl(getHostPort(), useSSL);
     if (useSSL)
     {
