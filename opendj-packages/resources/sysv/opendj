@@ -45,8 +45,9 @@ elif [ -f /etc/SuSE-release ] ; then
     # SuSE
     . /etc/rc.status
     LOCKFILE=/var/run/rcopendj
-elif [ -f /etc/lsb-release ] ; then
+elif [ -f /etc/lsb-release ] || lsb_release -a >/dev/null 2>&1 ; then
     # Debian
+    # On Debian 8 the file /etc/lsb-release does not exist. The lsb_release command may be used instead.
     . /lib/lsb/init-functions
     LOCKFILE=/var/lock/opendj
 elif [ -f /etc/init.d/functions.sh ] ; then
