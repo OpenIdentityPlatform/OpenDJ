@@ -483,14 +483,13 @@ final class OnDiskMergeImporter
       final long availableMemory = calculateAvailableHeapMemoryForBuffers();
       logger.info(NOTE_IMPORT_LDIF_TOT_MEM_BUF, availableMemory, nbBuffer);
 
-      final int bufferSize = Math.min((int) (availableMemory / nbBuffer), MAX_BUFFER_SIZE);
-      if (bufferSize < MIN_BUFFER_SIZE)
+      final long minimumRequiredMemory = nbBuffer * MIN_BUFFER_SIZE + DB_CACHE_SIZE + REQUIRED_FREE_MEMORY;
+      if (availableMemory < minimumRequiredMemory)
       {
         // Not enough memory.
-        throw new InitializationException(ERR_IMPORT_LDIF_LACK_MEM.get(availableMemory, nbBuffer * MIN_BUFFER_SIZE
-            + DB_CACHE_SIZE + REQUIRED_FREE_MEMORY));
+        throw new InitializationException(ERR_IMPORT_LDIF_LACK_MEM.get(availableMemory, minimumRequiredMemory));
       }
-      return bufferSize;
+      return Math.min((int) (availableMemory / nbBuffer), MAX_BUFFER_SIZE);
     }
 
     /**
@@ -499,12 +498,6 @@ final class OnDiskMergeImporter
      */
     private long calculateAvailableHeapMemoryForBuffers()
     {
-      final Runtime runtime = Runtime.getRuntime();
-      // call twice gc to ensure finalizers are called
-      // and young to old gen references are properly gc'd
-      runtime.gc();
-      runtime.gc();
-
       final long totalAvailableMemory;
       if (DirectoryServer.isRunning())
       {
@@ -525,7 +518,7 @@ final class OnDiskMergeImporter
         // Be pessimistic when memory is low.
         importMemPct -= 25;
       }
-      return (totalAvailableMemory * importMemPct / 100) - (DB_CACHE_SIZE + REQUIRED_FREE_MEMORY);
+      return (totalAvailableMemory * importMemPct / 100);
     }
   }
 
