@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2008 Sun Microsystems, Inc.
-  Portions Copyright 2012-2015 ForgeRock AS.
+  Portions Copyright 2012-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="administration-connector"
   plural-name="administration-connectors"
@@ -131,12 +131,16 @@
   </adm:property>
   <adm:property name="ssl-cert-nickname" mandatory="true" multi-valued="true">
     <adm:synopsis>
-      Specifies the nicknames (also called the aliases) of the certificates
+      Specifies the nicknames (also called the aliases) of the keys or key pairs
       that the
       <adm:user-friendly-name />
       should use when performing SSL communication. The property can be used multiple times
-      (referencing different nicknames) when an RSA, a DSA, and an ECC based server certificate
-      is used in parallel.
+      (referencing different nicknames) when server certificates
+      with different public key algorithms are used in parallel
+      (for example, RSA, DSA, and ECC-based algorithms).
+      When a nickname refers to an asymmetric (public/private) key pair,
+      the nickname for the public key certificate and associated private key entry must match exactly.
+      A single nickname is used to retrieve both the public key and the private key.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:server-restart />
