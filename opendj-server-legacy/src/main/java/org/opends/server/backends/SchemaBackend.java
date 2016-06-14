@@ -22,6 +22,8 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -84,7 +86,6 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
@@ -218,39 +219,19 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     creatorsName = newBaseDN;
     modifiersName = newBaseDN;
 
-    long createTime = DirectoryServer.getSchema().getOldestModificationTime();
-    createTimestamp =
-         GeneralizedTimeSyntax.createGeneralizedTimeValue(createTime);
-
-    long newModifyTime =
-        DirectoryServer.getSchema().getYoungestModificationTime();
-    modifyTimestamp =
-         GeneralizedTimeSyntax.createGeneralizedTimeValue(newModifyTime);
+    createTimestamp = createGeneralizedTimeValue(getSchema().getOldestModificationTime());
+    modifyTimestamp = createGeneralizedTimeValue(getSchema().getYoungestModificationTime());
 
     // Get the set of user-defined attributes for the configuration entry.  Any
     // attributes that we don't recognize will be included directly in the
     // schema entry.
     userDefinedAttributes = new ArrayList<>();
-    addAll(configEntry.getUserAttributes().values());
-    addAll(configEntry.getOperationalAttributes().values());
+    addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getUserAttributes().values());
+    addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getOperationalAttributes().values());
 
     showAllAttributes = cfg.isShowAllAttributes();
 
     currentConfig = cfg;
-  }
-
-  private void addAll(Collection<List<Attribute>> attrsList)
-  {
-    for (List<Attribute> attrs : attrsList)
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isSchemaConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
   }
 
   @Override
@@ -290,42 +271,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       // Next, generate lists of elements from the previous concatenated schema.
       // If there isn't a previous concatenated schema, then use the base
       // schema for the current revision.
-      String concatFilePath;
-      File configFile       = new File(DirectoryServer.getConfigFile());
-      File configDirectory  = configFile.getParentFile();
-      File upgradeDirectory = new File(configDirectory, "upgrade");
-      File concatFile       = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
-      if (concatFile.exists())
-      {
-        concatFilePath = concatFile.getAbsolutePath();
-      }
-      else
-      {
-        concatFile = new File(upgradeDirectory, SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION +
-            BuildVersion.instanceVersion().getRevision());
-        if (concatFile.exists())
-        {
-          concatFilePath = concatFile.getAbsolutePath();
-        }
-        else
-        {
-          String runningUnitTestsStr =
-               System.getProperty(PROPERTY_RUNNING_UNIT_TESTS);
-          if ("true".equalsIgnoreCase(runningUnitTestsStr))
-          {
-            Schema.writeConcatenatedSchema();
-            concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
-            concatFilePath = concatFile.getAbsolutePath();
-          }
-          else
-          {
-            LocalizableMessage message = ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.
-                get(upgradeDirectory.getAbsolutePath(), SCHEMA_CONCAT_FILE_NAME,
-                    concatFile.getName());
-            throw new InitializationException(message);
-          }
-        }
-      }
+      File concatFile = getConcatFile();
 
       Set<String> oldATs  = new LinkedHashSet<>();
       Set<String> oldOCs  = new LinkedHashSet<>();
@@ -334,7 +280,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Set<String> oldDSRs = new LinkedHashSet<>();
       Set<String> oldMRUs = new LinkedHashSet<>();
       Set<String> oldLSs = new LinkedHashSet<>();
-      Schema.readConcatenatedSchema(concatFilePath, oldATs, oldOCs, oldNFs,
+      Schema.readConcatenatedSchema(concatFile, oldATs, oldOCs, oldNFs,
                                     oldDCRs, oldDSRs, oldMRUs,oldLSs);
 
       // Create a list of modifications and add any differences between the old
@@ -371,6 +317,34 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Register with the Directory Server as a configurable component.
     currentConfig.addSchemaChangeListener(this);
+  }
+
+  private File getConcatFile() throws InitializationException
+  {
+    File configDirectory  = new File(DirectoryServer.getConfigFile()).getParentFile();
+    File upgradeDirectory = new File(configDirectory, "upgrade");
+    File concatFile       = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
+    if (concatFile.exists())
+    {
+      return concatFile.getAbsoluteFile();
+    }
+
+    String fileName = SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION + BuildVersion.instanceVersion().getRevision();
+    concatFile = new File(upgradeDirectory, fileName);
+    if (concatFile.exists())
+    {
+      return concatFile.getAbsoluteFile();
+    }
+
+    String runningUnitTestsStr = System.getProperty(PROPERTY_RUNNING_UNIT_TESTS);
+    if ("true".equalsIgnoreCase(runningUnitTestsStr))
+    {
+      Schema.writeConcatenatedSchema();
+      concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
+      return concatFile.getAbsoluteFile();
+    }
+    throw new InitializationException(ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.get(
+        upgradeDirectory.getAbsolutePath(), SCHEMA_CONCAT_FILE_NAME, concatFile.getName()));
   }
 
   @Override
@@ -556,8 +530,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       synchronized (this)
       {
         modifyTime = DirectoryServer.getSchema().getYoungestModificationTime();
-        modifyTimestamp = GeneralizedTimeSyntax
-            .createGeneralizedTimeValue(modifyTime);
+        modifyTimestamp = createGeneralizedTimeValue(modifyTime);
       }
     }
     addAttributeToSchemaEntry(
@@ -749,8 +722,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     modifiersName = ByteString.valueOfUtf8(authzDN.toString());
-    modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
-                           System.currentTimeMillis());
+    modifyTimestamp = createGeneralizedTimeValue(System.currentTimeMillis());
   }
 
   private void addAttribute(Schema newSchema, Attribute a, Set<String> modifiedSchemaFiles) throws DirectoryException

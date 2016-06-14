@@ -15,7 +15,7 @@
  */
 package org.opends.server.schema;
 
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
+import static org.opends.server.types.Schema.*;
 
 import java.util.List;
 import java.util.Map;
@@ -56,15 +56,8 @@ public class ServerSchemaElement
    */
   public String getDefinitionWithFileName()
   {
-    final String schemaFile = getSchemaFile();
     final String definition = element.toString();
-    if (schemaFile != null)
-    {
-      int pos = definition.lastIndexOf(')');
-      return definition.substring(0, pos).trim() + " "
-          + SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
-    }
-    return definition;
+    return addSchemaFileToElementDefinitionIfAbsent(definition, getSchemaFile());
   }
 
   /**

@@ -156,14 +156,7 @@ public final class CommonSchemaElements
    */
   public static String getDefinitionWithFileName(SchemaElement elem)
   {
-    final String schemaFile = getSchemaFile(elem);
     final String definition = elem.toString();
-    if (schemaFile != null)
-    {
-      int pos = definition.lastIndexOf(')');
-      return definition.substring(0, pos).trim() + " "
-          + SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
-    }
-    return definition;
+    return Schema.addSchemaFileToElementDefinitionIfAbsent(definition, getSchemaFile(elem));
   }
 }

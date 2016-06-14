@@ -16,6 +16,7 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.opends.messages.BackendMessages.*;
@@ -27,6 +28,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -1680,8 +1682,7 @@ public final class Schema
   {
     // Get a sorted list of the files in the schema directory.
     TreeSet<File> schemaFiles = new TreeSet<>();
-    String schemaDirectory =
-      SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
 
     final FilenameFilter filter = new SchemaConfigManager.SchemaFileFilter();
     for (File f : new File(schemaDirectory).listFiles(filter))
@@ -1697,34 +1698,7 @@ public final class Schema
     // contain, appending them to the appropriate lists.
     for (File f : schemaFiles)
     {
-      // Read the contents of the file into a list with one schema
-      // element per list element.
-      LinkedList<StringBuilder> lines = new LinkedList<>();
-      BufferedReader reader = new BufferedReader(new FileReader(f));
-
-      while (true)
-      {
-        String line = reader.readLine();
-        if (line == null)
-        {
-          break;
-        }
-        else if (line.startsWith("#") || line.length() == 0)
-        {
-          continue;
-        }
-        else if (line.startsWith(" "))
-        {
-          lines.getLast().append(line.substring(1));
-        }
-        else
-        {
-          lines.add(new StringBuilder(line));
-        }
-      }
-
-      reader.close();
-
+      List<StringBuilder> lines = readSchemaElementsFromLdif(f);
 
       // Iterate through each line in the list.  Find the colon and
       // get the attribute name at the beginning.  If it's something
@@ -1741,40 +1715,58 @@ public final class Schema
     }
   }
 
+  private static List<StringBuilder> readSchemaElementsFromLdif(File f) throws IOException, FileNotFoundException
+  {
+    final LinkedList<StringBuilder> lines = new LinkedList<>();
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(f)))
+    {
+      String line;
+      while ((line = reader.readLine()) != null)
+      {
+        if (line.startsWith("#") || line.length() == 0)
+        {
+          continue;
+        }
+        else if (line.startsWith(" "))
+        {
+          lines.getLast().append(line.substring(1));
+        }
+        else
+        {
+          lines.add(new StringBuilder(line));
+        }
+      }
+    }
+    return lines;
+  }
+
 
 
   /**
    * Reads data from the specified concatenated schema file into the
    * provided sets.
    *
-   * @param  concatSchemaFile   The path to the concatenated schema
-   *                            file to be read.
-   * @param  attributeTypes     The set into which to place the
-   *                            attribute types read from the
-   *                            concatenated schema file.
-   * @param  objectClasses      The set into which to place the object
-   *                            classes read from the concatenated
-   *                            schema file.
-   * @param  nameForms          The set into which to place the name
-   *                            forms read from the concatenated
-   *                            schema file.
-   * @param  ditContentRules    The set into which to place the DIT
-   *                            content rules read from the
-   *                            concatenated schema file.
-   * @param  ditStructureRules  The set into which to place the DIT
-   *                            structure rules read from the
-   *                            concatenated schema file.
-   * @param  matchingRuleUses   The set into which to place the
-   *                            matching rule uses read from the
-   *                            concatenated schema file.
-   * @param ldapSyntaxes The set into which to place the
-   *                            ldap syntaxes read from the
-   *                            concatenated schema file.
+   * @param  concatSchemaFile   The concatenated schema file to be read.
+   * @param  attributeTypes     The set into which to place the attribute types
+   *                            read from the concatenated schema file.
+   * @param  objectClasses      The set into which to place the object classes
+   *                            read from the concatenated schema file.
+   * @param  nameForms          The set into which to place the name forms
+   *                            read from the concatenated schema file.
+   * @param  ditContentRules    The set into which to place the DIT content rules
+   *                            read from the concatenated schema file.
+   * @param  ditStructureRules  The set into which to place the DIT structure rules
+   *                            read from the concatenated schema file.
+   * @param  matchingRuleUses   The set into which to place the matching rule
+   *                            uses read from the concatenated schema file.
+   * @param ldapSyntaxes        The set into which to place the ldap syntaxes
+   *                            read from the concatenated schema file.
    *
    * @throws  IOException  If a problem occurs while reading the
    *                       schema file elements.
    */
-  public static void readConcatenatedSchema(String concatSchemaFile,
+  public static void readConcatenatedSchema(File concatSchemaFile,
                           Set<String> attributeTypes,
                           Set<String> objectClasses,
                           Set<String> nameForms,
@@ -1784,24 +1776,19 @@ public final class Schema
                           Set<String> ldapSyntaxes)
           throws IOException
   {
-    BufferedReader reader =
-         new BufferedReader(new FileReader(concatSchemaFile));
-    while (true)
+    try (BufferedReader reader = new BufferedReader(new FileReader(concatSchemaFile)))
     {
-      String line = reader.readLine();
-      if (line == null)
+      String line;
+      while ((line = reader.readLine()) != null)
       {
-        break;
+        parseSchemaLine(line, null, attributeTypes, objectClasses,
+            nameForms, ditContentRules, ditStructureRules, matchingRuleUses,
+            ldapSyntaxes);
       }
-      parseSchemaLine(line, null, attributeTypes, objectClasses,
-          nameForms, ditContentRules, ditStructureRules, matchingRuleUses,
-          ldapSyntaxes);
     }
-
-    reader.close();
   }
 
-  private static void parseSchemaLine(String line, String fileName,
+  private static void parseSchemaLine(String definition, String fileName,
       Set<String> attributeTypes,
       Set<String> objectClasses,
       Set<String> nameForms,
@@ -1810,71 +1797,66 @@ public final class Schema
       Set<String> matchingRuleUses,
       Set<String> ldapSyntaxes)
   {
-    String lowerLine = toLowerCase(line);
+    String lowerLine = toLowerCase(definition);
 
     try
     {
       if (lowerLine.startsWith(ATTR_ATTRIBUTE_TYPES_LC))
       {
-        attributeTypes.add(getSchemaDefinition(line.substring(ATTR_ATTRIBUTE_TYPES_LC.length()), fileName));
+        addSchemaDefinition(attributeTypes, definition, ATTR_ATTRIBUTE_TYPES_LC, fileName);
       }
       else if (lowerLine.startsWith(ATTR_OBJECTCLASSES_LC))
       {
-        objectClasses.add(getSchemaDefinition(line.substring(ATTR_OBJECTCLASSES_LC.length()), fileName));
+        addSchemaDefinition(objectClasses, definition, ATTR_OBJECTCLASSES_LC, fileName);
       }
       else if (lowerLine.startsWith(ATTR_NAME_FORMS_LC))
       {
-        nameForms.add(getSchemaDefinition(line.substring(ATTR_NAME_FORMS_LC.length()), fileName));
+        addSchemaDefinition(nameForms, definition, ATTR_NAME_FORMS_LC, fileName);
       }
       else if (lowerLine.startsWith(ATTR_DIT_CONTENT_RULES_LC))
       {
-        ditContentRules.add(getSchemaDefinition(line.substring(ATTR_DIT_CONTENT_RULES_LC.length()), fileName));
+        addSchemaDefinition(ditContentRules, definition, ATTR_DIT_CONTENT_RULES_LC, fileName);
       }
       else if (lowerLine.startsWith(ATTR_DIT_STRUCTURE_RULES_LC))
       {
-        ditStructureRules.add(getSchemaDefinition(line.substring(ATTR_DIT_STRUCTURE_RULES_LC.length()), fileName));
+        addSchemaDefinition(ditStructureRules, definition, ATTR_DIT_STRUCTURE_RULES_LC, fileName);
       }
       else if (lowerLine.startsWith(ATTR_MATCHING_RULE_USE_LC))
       {
-        matchingRuleUses.add(getSchemaDefinition(line.substring(ATTR_MATCHING_RULE_USE_LC.length()), fileName));
+        addSchemaDefinition(matchingRuleUses, definition, ATTR_MATCHING_RULE_USE_LC, fileName);
       }
       else if (lowerLine.startsWith(ATTR_LDAP_SYNTAXES_LC))
       {
-        ldapSyntaxes.add(getSchemaDefinition(line.substring(ATTR_LDAP_SYNTAXES_LC.length()), fileName));
+        addSchemaDefinition(ldapSyntaxes, definition, ATTR_LDAP_SYNTAXES_LC, fileName);
       }
     } catch (ParseException pe)
     {
-      logger.error(ERR_SCHEMA_PARSE_LINE.get(line, pe.getLocalizedMessage()));
+      logger.error(ERR_SCHEMA_PARSE_LINE.get(definition, pe.getLocalizedMessage()));
     }
   }
 
-  private static String getSchemaDefinition(String line, String fileName) throws ParseException
+  private static void addSchemaDefinition(Set<String> definitions, String line, String attrName, String fileName)
+      throws ParseException
   {
-    if (line.startsWith("::"))
+    definitions.add(getSchemaDefinition(line.substring(attrName.length()), fileName));
+  }
+
+  private static String getSchemaDefinition(String definition, String schemaFile) throws ParseException
+  {
+    if (definition.startsWith("::"))
     {
-      line = ByteString.wrap(Base64.decode(line.substring(2).trim())).toString();
+      definition = ByteString.wrap(Base64.decode(definition.substring(2).trim())).toString();
     }
-    else if (line.startsWith(":"))
+    else if (definition.startsWith(":"))
     {
-      line = line.substring(1).trim();
+      definition = definition.substring(1).trim();
     }
     else
     {
       throw new ParseException(ERR_SCHEMA_COULD_NOT_PARSE_DEFINITION.get().toString(), 0);
     }
 
-    if (fileName != null)
-    {
-      if (line.endsWith(" )"))
-      {
-        line = line.substring(0, line.length() - 1) + SCHEMA_PROPERTY_FILENAME + " '" + fileName + "' )";
-      }
-      else if (line.endsWith(")"))
-      {
-        line = line.substring(0, line.length() - 1) + " " + SCHEMA_PROPERTY_FILENAME + " '" + fileName + "' )";
-      }
-    }
-    return line;
+    return addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile);
   }
 
   /**
@@ -1899,37 +1881,28 @@ public final class Schema
                           List<Modification> mods)
   {
     AttributeBuilder builder = new AttributeBuilder(elementType);
-    for (String s : oldElements)
-    {
-      if (!newElements.contains(s))
-      {
-        builder.add(s);
-      }
-    }
-
-    if (!builder.isEmpty())
-    {
-      mods.add(new Modification(ModificationType.DELETE,
-                                builder.toAttribute()));
-    }
+    addModification(mods, DELETE, oldElements, newElements, builder);
 
     builder.setAttributeDescription(AttributeDescription.create(elementType));
-    for (String s : newElements)
+    addModification(mods, ADD, newElements, oldElements, builder);
+  }
+
+  private static void addModification(List<Modification> mods, ModificationType modType, Set<String> included,
+      Set<String> excluded, AttributeBuilder builder)
+  {
+    for (String val : included)
     {
-      if (!oldElements.contains(s))
+      if (!excluded.contains(val))
       {
-        builder.add(s);
+        builder.add(val);
       }
     }
 
     if (!builder.isEmpty())
     {
-      mods.add(new Modification(ModificationType.ADD,
-                                builder.toAttribute()));
+      mods.add(new Modification(modType, builder.toAttribute()));
     }
   }
-
-
 
   /**
    * Destroys the structures maintained by the schema so that they are
