@@ -3837,12 +3837,6 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.157
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.158
-  NAME 'ds-task-import-offheap-size'
-  EQUALITY integerMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.160
   NAME 'ds-cfg-base-path'
   EQUALITY caseIgnoreMatch
@@ -4632,7 +4626,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.63
         ds-task-import-is-encrypted $
         ds-task-import-backend-id $
         ds-task-import-thread-count $
-        ds-task-import-offheap-size $
         ds-task-import-clear-backend )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.64

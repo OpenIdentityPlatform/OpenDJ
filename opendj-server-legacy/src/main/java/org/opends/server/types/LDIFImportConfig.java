@@ -125,10 +125,6 @@ public final class LDIFImportConfig extends OperationConfig
   private boolean skipDNValidation;
   private int threadCount;
 
-  /** Indicates the memory size, in megabytes, to use for off-heap buffers. */
-  private int offHeapSize;
-
-
   /**
    * Creates a new LDIF import configuration that will read from the
    * specified LDIF file.
@@ -1059,27 +1055,6 @@ public final class LDIFImportConfig extends OperationConfig
   public boolean getSkipDNValidation()
   {
     return skipDNValidation;
-  }
-
-
-  /**
-   * Set the memory size available for off-heap buffers.
-   *
-   * @param sizeInMb The memory size available expressed in megabytes.
-   */
-  public void setOffHeapSize(int sizeInMb)
-  {
-    this.offHeapSize = sizeInMb;
-  }
-
-  /**
-   * Get the memory size available for off-heap buffers.
-   *
-   * @return The memory size in megabytes.
-   */
-  public int getOffHeapSize()
-  {
-    return offHeapSize;
   }
 
   /**

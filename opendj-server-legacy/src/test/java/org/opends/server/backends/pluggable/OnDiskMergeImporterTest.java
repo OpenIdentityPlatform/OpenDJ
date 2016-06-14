@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -42,10 +42,8 @@ import org.forgerock.util.Pair;
 import org.mockito.Mockito;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.pluggable.OnDiskMergeImporter.Buffer;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool;
-import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.HeapBuffer;
-import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.OffHeapBuffer;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.MemoryBuffer;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Chunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Collector;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.EntryIDSetsCollector;
@@ -69,35 +67,29 @@ import com.forgerock.opendj.util.PackedLong;
 public class OnDiskMergeImporterTest extends DirectoryServerTestCase
 {
   @Test
-  public void testHeapBuffer() throws IOException
+  public void testHeapBuffer()
   {
-    try(Buffer buffer = new HeapBuffer(1024))
-    {
-      testBufferImplementation(buffer);
-    }
+    testBufferImplementation(new MemoryBuffer(ByteBuffer.allocate(1024)));
   }
 
   @Test
-  public void testOffHeapBuffer() throws IOException
+  public void testOffHeapBuffer()
   {
-    if (BufferPool.SUPPORTS_OFF_HEAP)
-    {
-      try (Buffer buffer = new OffHeapBuffer(1024))
-      {
-        testBufferImplementation(buffer);
-      }
-    }
+    testBufferImplementation(new MemoryBuffer(ByteBuffer.allocateDirect(1024)));
   }
 
-  private static void testBufferImplementation(Buffer buffer)
+  private static void testBufferImplementation(MemoryBuffer buffer)
   {
-    final ByteString binary = ByteString.valueOfBytes(new byte[] { 1, 2, 3, 4 });
+    final ByteString binary = ByteString.valueOfBytes(new byte[] { 1, 2, 3, 4, 1 });
 
     buffer.writeByteSequence(0, binary);
-    buffer.writeInt(4, 1234);
+    buffer.writeInt(5, 1234);
 
-    assertThat(buffer.readByteString(0, 4)).isEqualTo(binary);
-    assertThat(buffer.readInt(4)).isEqualTo(1234);
+    assertThat(buffer.readByteString(0, 5)).isEqualTo(binary);
+    assertThat(buffer.readInt(5)).isEqualTo(1234);
+    assertThat(buffer.compare(0, 1, 2, 1)).isLessThan(0);
+    assertThat(buffer.compare(0, 1, 4, 1)).isEqualTo(0);
+    assertThat(buffer.compare(1, 1, 0, 1)).isGreaterThan(0);
   }
 
   @Test
@@ -239,7 +231,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   @Test
   public void testInMemorySortedChunkSortUnsignedOnFlip() throws Exception
   {
-    try(final BufferPool bufferPool = new BufferPool(1, 1024)) {
+    try(final BufferPool bufferPool = new BufferPool(1, 1024, false)) {
       final Chunk chunk = new InMemorySortedChunk("test", bufferPool);
       populate(chunk, content(new String[][] {
         { new String(new byte[] { (byte) 0xFF }), "value0xFF" },
@@ -313,7 +305,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     final int NB_REGION = 10;
     final ByteString KEY = ByteString.valueOfUtf8("key");
     final File tempDir = TestCaseUtils.createTemporaryDirectory("testExternalSortChunk");
-    try (final BufferPool bufferPool = new BufferPool(2, 4 + 4 + KEY.length() + 4 + 4))
+    try (final BufferPool bufferPool = new BufferPool(2, 4 + 4 + KEY.length() + 4 + 4, false))
     {
       // 4: record offset, 4: key length, 4: value length, 4: value
       final ExternalSortChunk chunk =

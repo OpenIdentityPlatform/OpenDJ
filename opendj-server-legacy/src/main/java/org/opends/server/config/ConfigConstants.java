@@ -3829,13 +3829,6 @@ public final class ConfigConstants
        NAME_PREFIX_TASK + "import-thread-count";
 
   /**
-   * The name of the attribute in an import task definition that specifies the
-   * off-heap memory size used during the import.
-   */
-  public static final String ATTR_IMPORT_OFFHEAP_SIZE =
-       NAME_PREFIX_TASK + "import-offheap-size";
-
-  /**
    * The name of the attribute in an import task definition that specifies
    * whether the import process should append to the existing database rather
    * than overwriting it.

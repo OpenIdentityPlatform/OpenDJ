@@ -955,7 +955,6 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       importConf.setIncludeBranches(Collections.singleton(testBaseDN));
       importConf.setSkipDNValidation(true);
       importConf.setThreadCount(0);
-      importConf.setOffHeapSize(0); // Force heap buffer for automatic buffer scaling.
       backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
     }
     assertEquals(rejectedEntries.size(), 0,
