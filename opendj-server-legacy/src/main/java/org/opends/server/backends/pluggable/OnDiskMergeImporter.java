@@ -309,7 +309,18 @@ final class OnDiskMergeImporter
       rootContainer.getStorage().close();
       final int threadCount = Runtime.getRuntime().availableProcessors();
       final int nbBuffer = 2 * indexesToRebuild.size() * threadCount;
-      final int bufferSize = computeBufferSize(nbBuffer);
+      final int bufferSize;
+      if (BufferPool.SUPPORTS_OFF_HEAP)
+      {
+        bufferSize = MAX_BUFFER_SIZE;
+        logger.info(NOTE_IMPORT_LDIF_OFFHEAP_MEM_BUF_INFO, 
+            DB_CACHE_SIZE, (((long) bufferSize) * nbBuffer) / MB, nbBuffer, bufferSize / KB);
+      }
+      else
+      {
+        bufferSize = computeBufferSize(nbBuffer);
+        logger.info(NOTE_IMPORT_LDIF_DB_MEM_BUF_INFO, DB_CACHE_SIZE, bufferSize);
+      }
 
       final ExecutorService sorter = Executors.newFixedThreadPool(
           Runtime.getRuntime().availableProcessors(),
