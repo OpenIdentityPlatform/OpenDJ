@@ -48,6 +48,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -122,8 +123,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The fully-qualified name of this class. */
-  private static final String CLASS_NAME =
-       "org.opends.server.backends.SchemaBackend";
+  private static final String CLASS_NAME = "org.opends.server.backends.SchemaBackend";
 
   private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
   private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
@@ -137,9 +137,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private static final AttributeType nameFormsType = getNameFormsAttributeType();
   private static final AttributeType objectClassesType = getObjectClassesAttributeType();
 
-  /** The set of user-defined attributes that will be included in the schema entry. */
-  private ArrayList<Attribute> userDefinedAttributes;
-
   /** The value containing DN of the user we'll say created the configuration. */
   private ByteString creatorsName;
   /** The value containing the DN of the last user to modify the configuration. */
@@ -148,33 +145,26 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private ByteString createTimestamp;
   /** The timestamp that will be used for the latest schema modification time. */
   private ByteString modifyTimestamp;
-
-  /**
-   * Indicates whether the attributes of the schema entry should always be
-   * treated as user attributes even if they are defined as operational.
-   */
-  private boolean showAllAttributes;
+  /** The time that the schema was last modified. */
+  private long modifyTime;
 
   /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
-
   /** The current configuration state. */
   private SchemaBackendCfg currentConfig;
-
   /** The set of base DNs for this backend. */
   private Set<DN> baseDNs;
 
+  /** The set of user-defined attributes that will be included in the schema entry. */
+  private List<Attribute> userDefinedAttributes;
   /** The set of objectclasses that will be used in the schema entry. */
-  private HashMap<ObjectClass,String> schemaObjectClasses;
-
-  /** The time that the schema was last modified. */
-  private long modifyTime;
+  private Map<ObjectClass, String> schemaObjectClasses;
 
   /**
    * Regular expression used to strip minimum upper bound value from syntax
    * Attribute Type Description. The value looks like: {count}.
    */
-  private String stripMinUpperBoundRegEx = "\\{\\d+\\}";
+  private final Pattern stripMinUpperBoundRegEx = Pattern.compile("\\{\\d+\\}");
 
   private ServerContext serverContext;
 
@@ -218,7 +208,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     ByteString newBaseDN = ByteString.valueOfUtf8(baseDNs.iterator().next().toString());
     creatorsName = newBaseDN;
     modifiersName = newBaseDN;
-
     createTimestamp = createGeneralizedTimeValue(getSchema().getOldestModificationTime());
     modifyTimestamp = createGeneralizedTimeValue(getSchema().getYoungestModificationTime());
 
@@ -228,8 +217,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     userDefinedAttributes = new ArrayList<>();
     addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getUserAttributes().values());
     addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getOperationalAttributes().values());
-
-    showAllAttributes = cfg.isShowAllAttributes();
 
     currentConfig = cfg;
   }
@@ -449,15 +436,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * Generates and returns a schema entry for the Directory Server.
    *
    * @param  entryDN            The DN to use for the generated entry.
-   * @param  includeSchemaFile  A boolean indicating if the X-SCHEMA-FILE
-   *                            extension should be used when generating
-   *                            the entry.
-   *
    * @return  The schema entry that was generated.
    */
-  public Entry getSchemaEntry(DN entryDN, boolean includeSchemaFile)
+  public Entry getSchemaEntry(DN entryDN)
   {
-    return getSchemaEntry(entryDN, includeSchemaFile, false);
+    return getSchemaEntry(entryDN, false, false);
   }
 
   /**
@@ -595,7 +578,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       if (stripSyntaxMinimumUpperBound && value.indexOf('{') != -1)
       {
         // Strip the minimum upper bound value from the attribute value.
-        value = value.replaceFirst(stripMinUpperBoundRegEx, "");
+        value = stripMinUpperBoundRegEx.matcher(value).replaceFirst("");
       }
       builder.add(value);
     }
@@ -603,7 +586,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Attribute attribute = builder.toAttribute();
     AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     if (attrType.isOperational()
-        && (ignoreShowAllOption || !showAllAttributes))
+        && (ignoreShowAllOption || !showAllAttributes()))
     {
       operationalAttrs.put(attrType, newArrayList(attribute));
     }
@@ -2742,7 +2725,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Get the schema entry and see if it matches the filter.  If so, then send
     // it to the client.
-    Entry schemaEntry = getSchemaEntry(baseDN, false);
+    Entry schemaEntry = getSchemaEntry(baseDN);
     SearchFilter filter = searchOperation.getFilter();
     if (filter.matchesEntry(schemaEntry))
     {
@@ -3089,12 +3072,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       newBaseDNs = null;
     }
 
-    // Check to see if we should change the behavior regarding whether to show
-    // all schema attributes.
-    boolean newShowAllAttributes = backendCfg.isShowAllAttributes();
-
     // Check to see if there is a new set of user-defined attributes.
-    ArrayList<Attribute> newUserAttrs = new ArrayList<>();
+    List<Attribute> newUserAttrs = new ArrayList<>();
     try
     {
       Entry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
@@ -3158,11 +3137,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
 
-      showAllAttributes = newShowAllAttributes;
-
       userDefinedAttributes = newUserAttrs;
-      LocalizableMessage message = INFO_SCHEMA_USING_NEW_USER_ATTRS.get();
-      ccr.addMessage(message);
+      ccr.addMessage(INFO_SCHEMA_USING_NEW_USER_ATTRS.get());
     }
 
     currentConfig = backendCfg;
@@ -3192,20 +3168,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   boolean showAllAttributes()
   {
-    return showAllAttributes;
-  }
-
-  /**
-   * Specifies whether to treat common schema attributes like user attributes
-   * rather than operational attributes.
-   *
-   * @param  showAllAttributes  Specifies whether to treat common schema
-   *                            attributes like user attributes rather than
-   *                            operational attributes.
-   */
-  void setShowAllAttributes(boolean showAllAttributes)
-  {
-    this.showAllAttributes = showAllAttributes;
+    return this.currentConfig.isShowAllAttributes();
   }
 
   @Override

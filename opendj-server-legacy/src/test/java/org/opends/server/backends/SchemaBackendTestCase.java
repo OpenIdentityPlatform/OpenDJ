@@ -18,6 +18,7 @@ package org.opends.server.backends;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.mockito.Mockito.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -47,6 +48,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.forgerock.util.Utils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -171,11 +173,10 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testGetSchemaEntry()
-         throws Exception
+  public void testGetSchemaEntry() throws Exception
   {
     DN    schemaDN    = DN.valueOf("cn=schema");
-    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
+    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
@@ -185,7 +186,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(getMatchingRulesAttributeType()));
 
     schemaDN    = DN.valueOf("cn=subschema");
-    schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
+    schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getName(), schemaDN);
 
@@ -237,9 +238,9 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     DN schemaDN = DN.valueOf("cn=schema");
 
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
-                             null, schemaDN);
+    DeleteOperationBasis deleteOperation = new DeleteOperationBasis(
+        getRootConnection(), nextOperationID(), nextMessageID(),
+        null, schemaDN);
 
     schemaBackend.deleteEntry(schemaDN, deleteOperation);
   }
@@ -252,16 +253,12 @@ public class SchemaBackendTestCase extends BackendTestCase
     DN currentSchemaDN = DN.valueOf("cn=schema");
     DN newSchemaDN     = DN.valueOf("cn=newschema");
 
-    InternalClientConnection conn = getRootConnection();
-    ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), null,
-                               currentSchemaDN, newSchemaDN.rdn(),
-                               true, null);
+    ModifyDNOperationBasis modifyDNOperation = new ModifyDNOperationBasis(
+        getRootConnection(), nextOperationID(), nextMessageID(),
+        null, currentSchemaDN, newSchemaDN.rdn(), true, null);
 
-    schemaBackend.renameEntry(currentSchemaDN,
-                              schemaBackend.getSchemaEntry(newSchemaDN, false),
-                              modifyDNOperation);
+    Entry newSchemaEntry = schemaBackend.getSchemaEntry(newSchemaDN);
+    schemaBackend.renameEntry(currentSchemaDN, newSchemaEntry, modifyDNOperation);
   }
 
   /**
@@ -377,27 +374,33 @@ public class SchemaBackendTestCase extends BackendTestCase
     AttributeType s = getLDAPSyntaxesAttributeType();
 
     assertFalse(schemaBackend.showAllAttributes());
-    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
+    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
     assertTrue(schemaEntry.hasOperationalAttribute(a));
     assertTrue(schemaEntry.hasOperationalAttribute(o));
     assertTrue(schemaEntry.hasOperationalAttribute(m));
     assertTrue(schemaEntry.hasOperationalAttribute(s));
 
-    schemaBackend.setShowAllAttributes(true);
-    assertTrue(schemaBackend.showAllAttributes());
-    schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
+    setShowAllAttributes(schemaBackend, true);
+    schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
     assertFalse(schemaEntry.hasOperationalAttribute(a));
     assertFalse(schemaEntry.hasOperationalAttribute(o));
     assertFalse(schemaEntry.hasOperationalAttribute(m));
     assertTrue(schemaEntry.hasOperationalAttribute(s));
 
-    schemaBackend.setShowAllAttributes(false);
+    setShowAllAttributes(schemaBackend, false);
     assertFalse(schemaBackend.showAllAttributes());
-    schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
+    schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
     assertTrue(schemaEntry.hasOperationalAttribute(a));
     assertTrue(schemaEntry.hasOperationalAttribute(o));
     assertTrue(schemaEntry.hasOperationalAttribute(m));
     assertTrue(schemaEntry.hasOperationalAttribute(s));
+  }
+
+  private void setShowAllAttributes(SchemaBackend schemaBackend, boolean showAllAttributes)
+  {
+    SchemaBackendCfg cfg = spy(SchemaBackendCfg.class);
+    when(cfg.isShowAllAttributes()).thenReturn(showAllAttributes);
+    schemaBackend.applyConfigurationChange(cfg);
   }
 
   /**

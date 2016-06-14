@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -44,8 +45,8 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.util.Utils;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.forgerock.util.Utils;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DirectoryServerMBean;
@@ -80,22 +81,16 @@ public final class JMXMBean
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = "org.opends.server.config.JMXMBean";
-
 
 
   /** The set of alert generators for this MBean. */
   private List<AlertGenerator> alertGenerators;
-
   /** The set of monitor providers for this MBean. */
   private List<MonitorProvider<? extends MonitorProviderCfg>> monitorProviders;
-
   /** The DN of the configuration entry with which this MBean is associated. */
   private DN configEntryDN;
-
   /** The object name for this MBean. */
   private ObjectName objectName;
 
@@ -252,8 +247,8 @@ public final class JMXMBean
    * @param  generator  The alert generator to remove from the set of alert
    *                    generators for this JMX MBean.
    *
-   * @return  <CODE>true</CODE> if the alert generator was removed, or
-   *          <CODE>false</CODE> if it was not associated with this MBean.
+   * @return  {@code true} if the alert generator was removed,
+   *          or {@code false} if it was not associated with this MBean.
    */
   public boolean removeAlertGenerator(AlertGenerator generator)
   {
@@ -283,8 +278,7 @@ public final class JMXMBean
    * @param  component  The component to add to the set of monitor providers
    *                    for this JMX MBean.
    */
-  public void addMonitorProvider(MonitorProvider<? extends MonitorProviderCfg>
-                                      component)
+  public void addMonitorProvider(MonitorProvider<? extends MonitorProviderCfg> component)
   {
     synchronized (monitorProviders)
     {
@@ -304,8 +298,8 @@ public final class JMXMBean
    * @param  component  The component to remove from the set of monitor
    *                    providers for this JMX MBean.
    *
-   * @return  <CODE>true</CODE> if the specified component was successfully
-   *          removed, or <CODE>false</CODE> if not.
+   * @return  {@code true} if the specified component was successfully removed,
+   *          or {@code false} if not.
    */
   public boolean removeMonitorProvider(MonitorProvider<?> component)
   {
@@ -322,7 +316,7 @@ public final class JMXMBean
    *
    * @param  name  The name of the configuration attribute to retrieve.
    *
-   * @return  The specified configuration attribute, or <CODE>null</CODE> if
+   * @return  The specified configuration attribute, or {@code null} if
    *          there is no such attribute.
    */
   private Attribute getJmxAttribute(String name)
@@ -342,14 +336,14 @@ public final class JMXMBean
           }
 
           Iterator<ByteString> iterator = a.iterator();
-          ByteString value = iterator.next();
+          ByteString firstValue = iterator.next();
 
           if (iterator.hasNext())
           {
-            List<String> stringValues = newArrayList(value.toString());
+            List<String> stringValues = newArrayList(firstValue.toString());
             while (iterator.hasNext())
             {
-              value = iterator.next();
+              ByteString value = iterator.next();
               stringValues.add(value.toString());
             }
 
@@ -358,7 +352,7 @@ public final class JMXMBean
           }
           else
           {
-            return new Attribute(name, value.toString());
+            return new Attribute(name, firstValue.toString());
           }
         }
       }
@@ -557,7 +551,7 @@ public final class JMXMBean
     StringBuilder buffer = new StringBuilder();
     buffer.append(actionName);
     buffer.append("(");
-    Utils.joinAsString(", ", (Object[]) signature);
+    Utils.joinAsString(buffer, ", ", (Object[]) signature);
     buffer.append(")");
 
     LocalizableMessage message = ERR_CONFIG_JMX_NO_METHOD.get(buffer, configEntryDN);
@@ -571,7 +565,7 @@ public final class JMXMBean
    * Provides the exposed attributes and actions of the Dynamic MBean using an
    * MBeanInfo object.
    *
-   * @return  An instance of <CODE>MBeanInfo</CODE> allowing all attributes and
+   * @return  An instance of {@code MBeanInfo} allowing all attributes and
    *          actions exposed by this Dynamic MBean to be retrieved.
    */
   @Override
@@ -601,10 +595,10 @@ public final class JMXMBean
       String className = generator.getClassName();
 
       Map<String, String> alerts = generator.getAlerts();
-      for (String type : alerts.keySet())
+      for (Entry<String, String> mapEntry : alerts.entrySet())
       {
-        String[] types       = { type };
-        String   description = alerts.get(type);
+        String[] types       = { mapEntry.getKey() };
+        String   description = mapEntry.getValue();
         notifications.add(new MBeanNotificationInfo(types, className, description));
       }
     }
@@ -629,23 +623,19 @@ public final class JMXMBean
    */
   private ClientConnection getClientConnection()
   {
-    ClientConnection clientConnection = null;
-    java.security.AccessControlContext acc = java.security.AccessController
-        .getContext();
+    java.security.AccessControlContext acc = java.security.AccessController.getContext();
     try
     {
-      javax.security.auth.Subject subject = javax.security.auth.Subject
-          .getSubject(acc);
+      javax.security.auth.Subject subject = javax.security.auth.Subject.getSubject(acc);
       if (subject != null)
       {
         Set<?> privateCreds = subject.getPrivateCredentials(Credential.class);
-        clientConnection = ((Credential) privateCreds.iterator().next())
-            .getClientConnection();
+        return ((Credential) privateCreds.iterator().next()).getClientConnection();
       }
     }
     catch (Exception e)
     {
     }
-    return clientConnection;
+    return null;
   }
 }

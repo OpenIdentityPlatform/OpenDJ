@@ -1583,24 +1583,20 @@ public final class Schema
 
 
       File configFile = new File(DirectoryServer.getConfigFile());
-      File configDirectory  = configFile.getParentFile();
+      File configDirectory = configFile.getParentFile();
       File upgradeDirectory = new File(configDirectory, "upgrade");
       upgradeDirectory.mkdir();
-      File concatFile       = new File(upgradeDirectory,
-                                       SCHEMA_CONCAT_FILE_NAME);
+      File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
       concatFilePath = concatFile.getAbsolutePath();
 
       File tempFile = new File(concatFilePath + ".tmp");
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile, false)))
       {
-        writer.write("dn: " + DirectoryServer.getSchemaDN());
-        writer.newLine();
-        writer.write("objectClass: top");
-        writer.newLine();
-        writer.write("objectClass: ldapSubentry");
-        writer.newLine();
-        writer.write("objectClass: subschema");
-        writer.newLine();
+        writeLines(writer,
+            "dn: " + DirectoryServer.getSchemaDN(),
+            "objectClass: top",
+            "objectClass: ldapSubentry",
+            "objectClass: subschema");
 
         writeLines(writer, ATTR_ATTRIBUTE_TYPES, attributeTypes);
         writeLines(writer, ATTR_OBJECTCLASSES, objectClasses);
@@ -1630,6 +1626,15 @@ public final class Schema
     }
   }
 
+  private static void writeLines(BufferedWriter writer, String... lines) throws IOException
+  {
+    for (String line : lines)
+    {
+      writer.write(line);
+      writer.newLine();
+    }
+  }
+
   private static void writeLines(BufferedWriter writer, String beforeColumn, Set<String> lines) throws IOException
   {
     for (String line : lines)
@@ -1640,8 +1645,6 @@ public final class Schema
       writer.newLine();
     }
   }
-
-
 
   /**
    * Reads the files contained in the schema directory and generates a
@@ -1845,6 +1848,9 @@ public final class Schema
   {
     if (definition.startsWith("::"))
     {
+      // See OPENDJ-2792: the definition of the ds-cfg-csv-delimiter-char attribute type
+      // had a space accidentally added after the closing parenthesis.
+      // This was unfortunately interpreted as base64
       definition = ByteString.wrap(Base64.decode(definition.substring(2).trim())).toString();
     }
     else if (definition.startsWith(":"))

@@ -271,18 +271,13 @@ public final class UpgradeTasks
         final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 20);
         context.notifyProgress(pnc);
 
-        final File schemaFileTemplate =
-            new File(templateConfigSchemaDirectory, fileName);
-
+        final File schemaFileTemplate = new File(templateConfigSchemaDirectory, fileName);
         final File pathDestination = new File(configSchemaDirectory, fileName);
         try
         {
-          final int changeCount =
-              updateSchemaFile(schemaFileTemplate, pathDestination,
-                  attributeOids, null);
+          final int changeCount = updateSchemaFile(schemaFileTemplate, pathDestination, attributeOids, null);
 
-          displayChangeCount(pathDestination.getPath(), changeCount);
-
+          displayChangeCount(pathDestination, changeCount);
           context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException | IllegalStateException e)
@@ -330,21 +325,15 @@ public final class UpgradeTasks
         final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 20);
         context.notifyProgress(pnc);
 
-        final File schemaFileTemplate =
-            new File(templateConfigSchemaDirectory, fileName);
-
+        final File schemaFileTemplate = new File(templateConfigSchemaDirectory, fileName);
         final File pathDestination = new File(configSchemaDirectory, fileName);
-
         context.notifyProgress(pnc.setProgress(20));
 
         try
         {
-          final int changeCount =
-              updateSchemaFile(schemaFileTemplate, pathDestination,
-                  null, objectClassesOids);
+          final int changeCount = updateSchemaFile(schemaFileTemplate, pathDestination, null, objectClassesOids);
 
-          displayChangeCount(pathDestination.getPath(), changeCount);
-
+          displayChangeCount(pathDestination, changeCount);
           context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)
@@ -714,7 +703,7 @@ public final class UpgradeTasks
 
         List<String> args = new ArrayList<>(baseArgs);
         args.add("--configFile");
-        args.add(CONFIG_FILE_PATH);
+        args.add(configFile.getAbsolutePath());
         for (final String be : baseDNs)
         {
           args.add("--baseDN");
@@ -1147,9 +1136,9 @@ public final class UpgradeTasks
     }
   }
 
-  private static void displayChangeCount(final String fileName,
-      final int changeCount)
+  private static void displayChangeCount(final File configfile, final int changeCount)
   {
+    String fileName = configfile.getAbsolutePath();
     if (changeCount != 0)
     {
       logger.debug(INFO_UPGRADE_CHANGE_DONE_IN_SPECIFIC_FILE, fileName, changeCount);
@@ -1218,8 +1207,8 @@ public final class UpgradeTasks
     try
     {
       final Filter filterVal = filter != null ? Filter.valueOf(filter) : null;
-      final int changeCount = updateConfigFile(CONFIG_FILE_PATH, filterVal, changeOperationType, ldif);
-      displayChangeCount(CONFIG_FILE_PATH, changeCount);
+      final int changeCount = updateConfigFile(configFile, filterVal, changeOperationType, ldif);
+      displayChangeCount(configFile, changeCount);
 
       context.notifyProgress(pnc.setProgress(100));
     }

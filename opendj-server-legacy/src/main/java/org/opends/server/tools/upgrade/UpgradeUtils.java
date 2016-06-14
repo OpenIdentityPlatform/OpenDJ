@@ -23,7 +23,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,7 +44,6 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.Matcher;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -74,28 +72,27 @@ final class UpgradeUtils
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The config folder of the current instance. */
+  /** The {@code config} folder of the current instance. */
   static final File configDirectory = new File(getInstancePath(), CONFIG_PATH_RELATIVE);
-  /** The config/schema folder of the current instance. */
+  /** The {@code config/schema} folder of the current instance. */
   static final File configSchemaDirectory = new File(configDirectory, SCHEMA_PATH_RELATIVE);
-  /** The template folder of the current installation. */
+  /** The {@code template} folder of the current installation. */
   private static final File templateDirectory = new File(getInstallationPath(), TEMPLATE_RELATIVE_PATH);
-  /** The template/config folder of the current installation. */
+  /** The {@code template/config} folder of the current installation. */
   static final File templateConfigDirectory = new File(templateDirectory, CONFIG_PATH_RELATIVE);
-  /** The template/config/schema folder of the current installation. */
+  /** The {@code template/config/schema} folder of the current installation. */
   static final File templateConfigSchemaDirectory = new File(templateConfigDirectory, SCHEMA_PATH_RELATIVE);
-  /** The config/snmp/security folder of the current instance. */
+  /** The {@code config/snmp/security} folder of the current instance. */
   static final File configSnmpSecurityDirectory = new File(
       configDirectory + File.separator + SNMP_PATH_RELATIVE + File.separator + SECURITY_PATH_RELATIVE);
-  /** The lib folder of the current installation. */
+  /** The {@code lib} folder of the current installation. */
   static final File libDirectory = new File(getInstallationPath(), LIB_RELATIVE_PATH);
-  /** The bin folder of the current installation. */
+  /** The {@code bin} folder of the current installation. */
   static final File binDirectory = new File(getInstallationPath(), UNIX_BINARIES_PATH_RELATIVE);
-  /** The bat folder of the current installation. */
+  /** The {@code bat} folder of the current installation. */
   static final File batDirectory = new File(getInstallationPath(), WINDOWS_BINARIES_PATH_RELATIVE);
   /** The server configuration file path. */
-  static final String CONFIG_FILE_PATH =
-      Paths.get(configDirectory.getAbsolutePath(), CURRENT_CONFIG_FILE_NAME).toString();
+  static final File configFile = new File(configDirectory, CURRENT_CONFIG_FILE_NAME);
 
   /**
    * Returns the path of the installation of the directory server. Note that
@@ -302,42 +299,41 @@ final class UpgradeUtils
     return baseDNs;
   }
 
-  static EntryReader searchConfigFile(final SearchRequest sr) throws FileNotFoundException
+  static EntryReader searchConfigFile(final SearchRequest searchRequest) throws FileNotFoundException
   {
     final Schema schema = getUpgradeSchema();
     final File configFile = new File(configDirectory, CURRENT_CONFIG_FILE_NAME);
     final LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configFile)).setSchema(schema);
-    return LDIF.search(entryReader, sr, schema);
+    return LDIF.search(entryReader, searchRequest, schema);
   }
 
   /**
    * Updates the config file during the upgrade process.
    *
-   * @param configPath
+   * @param configFile
    *          The original path to the file.
    * @param filter
    *          The filter to select entries. Only useful for modify change type.
    * @param changeType
    *          The change type which must be applied to ldif lines.
    * @param ldifLines
-   *          The change record ldif lines.
-   *          For ADD change type, the first line must be the dn.
-   *          For DELETE change type, the first and only line must be the dn.
+   *          The change record ldif lines. For ADD change type, the first line must be the dn. For
+   *          DELETE change type, the first and only line must be the dn.
    * @throws IOException
    *           If an Exception occurs during the input output methods.
    * @return The changes number that have occurred.
    */
-  static int updateConfigFile(final String configPath,
+  static int updateConfigFile(final File configFile,
       final Filter filter, final ChangeOperationType changeType,
       final String... ldifLines) throws IOException
   {
-    final File original = new File(configPath);
+    final File original = configFile;
     final File copyConfig =
         File.createTempFile("copyConfig", ".tmp", original.getParentFile());
 
     int changeCount = 0;
     final Schema schema = getUpgradeSchema();
-    try (LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configPath)).setSchema(schema);
+    try (LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configFile)).setSchema(schema);
         LDIFEntryWriter writer = new LDIFEntryWriter(new FileOutputStream(copyConfig)))
     {
       writer.setWrapColumn(80);
@@ -414,8 +410,7 @@ final class UpgradeUtils
 
       if (changeType == ADD && !entryAlreadyExist)
       {
-        final AddRequest ar = Requests.newAddRequest(ldifLines);
-        writer.writeEntry(ar);
+        writer.writeEntry(Requests.newAddRequest(ldifLines));
         logger.debug(LocalizableMessage.raw("Entry successfully added %s in %s", ldifDN, original.getAbsolutePath()));
         changeCount++;
       }
@@ -431,7 +426,8 @@ final class UpgradeUtils
     try
     {
       // Renaming the file, overwriting previous one.
-      rename(copyConfig, new File(configPath));
+      rename(copyConfig, configFile);
+      return changeCount;
     }
     catch (IOException e)
     {
@@ -439,8 +435,6 @@ final class UpgradeUtils
       deleteRecursively(original);
       throw e;
     }
-
-    return changeCount;
   }
 
   private static String removeDnPrefix(String dnLine)
@@ -608,14 +602,13 @@ final class UpgradeUtils
     {
       throw new IllegalStateException(e);
     }
-    throw new IllegalStateException(ERR_UPGRADE_UNKNOWN_OC_ATT.get(type, oid)
-        .toString());
+    throw new IllegalStateException(ERR_UPGRADE_UNKNOWN_OC_ATT.get(type, oid).toString());
   }
 
   /**
-   * Creates a new file in the config/upgrade folder. The new file is a
-   * concatenation of entries of all files contained in the config/schema
-   * folder.
+   * Creates a new file in The {@code config/upgrade} folder.
+   * The new file is a concatenation of entries of all files contained in the
+   * {@code config/schema} folder.
    *
    * @param folder
    *          The folder containing the schema files.
@@ -740,7 +733,7 @@ final class UpgradeUtils
   static List<String> filterExistingIndexes(final Set<String> candidateIndexes, final String backendID)
   {
     final List<String> indexesToRebuild = new ArrayList<>();
-    try (final LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(CONFIG_FILE_PATH)))
+    try (final LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configFile)))
     {
       while (entryReader.hasNext())
       {
