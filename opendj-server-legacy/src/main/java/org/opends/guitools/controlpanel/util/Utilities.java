@@ -46,6 +46,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javax.naming.CompositeName;
@@ -2776,7 +2777,11 @@ public class Utilities
     {
       try
       {
+        // Initialize configuration framework without logging anything.
+        final Logger configFrameworkLogger = Logger.getLogger("com.forgerock.opendj.ldap.config.config");
+        configFrameworkLogger.setUseParentHandlers(false);
         ConfigurationFramework.getInstance().initialize();
+        configFrameworkLogger.setUseParentHandlers(true);
       }
       catch (ConfigException e)
       {
