@@ -39,24 +39,30 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="config-url" mandatory="true">
+  <adm:property name="config-directory" mandatory="true">
     <adm:synopsis>
-      URL of the REST2LDAP configuration file.
+      The directory containing the Rest2Ldap configuration file(s) for this specific endpoint.
     </adm:synopsis>
+    <adm:description>
+      The directory must be readable by the server and may contain multiple configuration files, one for each
+      supported version of the REST endpoint. If a relative path is used then it will be resolved against the server's
+      instance directory.
+    </adm:description>
     <adm:syntax>
       <adm:string>
         <adm:pattern>
           <adm:regex>.*</adm:regex>
-          <adm:usage>URL</adm:usage>
+          <adm:usage>DIRECTORY</adm:usage>
           <adm:synopsis>
-            A URL to an existing file that is readable by the server.
+            A directory that is readable by the server.
           </adm:synopsis>
         </adm:pattern>
       </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-config-url</ldap:name>
+        <ldap:name>ds-cfg-config-directory</ldap:name>
       </ldap:attribute>
     </adm:profile>
+  </adm:property>
 </adm:managed-object>

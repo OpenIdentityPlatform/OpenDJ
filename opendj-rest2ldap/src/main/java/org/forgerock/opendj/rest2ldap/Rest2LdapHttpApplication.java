@@ -16,39 +16,37 @@
 
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
-import static org.forgerock.http.handler.HttpClientHandler.*;
-import static org.forgerock.opendj.ldap.KeyManagers.*;
-import static org.forgerock.opendj.ldap.TrustManagers.checkUsingTrustStore;
-import static org.forgerock.opendj.ldap.TrustManagers.trustAll;
-import static org.forgerock.http.util.Json.readJsonLenient;
+import static org.forgerock.http.handler.HttpClientHandler.OPTION_KEY_MANAGERS;
+import static org.forgerock.http.handler.HttpClientHandler.OPTION_TRUST_MANAGERS;
 import static org.forgerock.json.JsonValueFunctions.duration;
 import static org.forgerock.json.JsonValueFunctions.enumConstant;
 import static org.forgerock.json.JsonValueFunctions.setOf;
-import static org.forgerock.opendj.rest2ldap.Rest2Ldap.configureConnectionFactory;
-import static org.forgerock.opendj.rest2ldap.Utils.newLocalizedIllegalArgumentException;
+import static org.forgerock.json.resource.http.CrestHttp.newHttpHandler;
+import static org.forgerock.opendj.ldap.KeyManagers.useSingleCertificate;
+import static org.forgerock.opendj.rest2ldap.Rest2LdapJsonConfigurator.*;
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
-import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.*;
+import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSASLPlainStrategy;
+import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSearchThenBindStrategy;
+import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSimpleBindStrategy;
 import static org.forgerock.opendj.rest2ldap.authz.Authorizations.*;
-import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.*;
-import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.*;
+import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.newConditionalFilter;
+import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.httpBasicExtractor;
+import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.newCustomHeaderExtractor;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
 import static org.forgerock.util.Utils.joinAsString;
-import static org.forgerock.opendj.rest2ldap.Utils.readPasswordFromFile;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -56,11 +54,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 
-import org.forgerock.openig.oauth2.AccessTokenInfo;
-import org.forgerock.openig.oauth2.AccessTokenException;
-import org.forgerock.openig.oauth2.AccessTokenResolver;
-import org.forgerock.openig.oauth2.resolver.CachingAccessTokenResolver;
-import org.forgerock.openig.oauth2.resolver.OpenAmAccessTokenResolver;
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
@@ -71,20 +64,22 @@ import org.forgerock.http.handler.HttpClientHandler;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Headers;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.RequestHandler;
-import org.forgerock.json.resource.Router;
-import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.rest2ldap.Rest2LDAP.KeyManagerType;
-import org.forgerock.opendj.rest2ldap.Rest2LDAP.TrustManagerType;
 import org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategy;
 import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;
+import org.forgerock.openig.oauth2.AccessTokenException;
+import org.forgerock.openig.oauth2.AccessTokenInfo;
+import org.forgerock.openig.oauth2.AccessTokenResolver;
+import org.forgerock.openig.oauth2.resolver.CachingAccessTokenResolver;
+import org.forgerock.openig.oauth2.resolver.OpenAmAccessTokenResolver;
 import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.Factory;
 import org.forgerock.util.Function;
@@ -116,8 +111,8 @@ public class Rest2LdapHttpApplication implements HttpApplication {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /** URL to the JSON configuration file. */
-    protected final URL configurationUrl;
+    /** The name of the JSON configuration directory in which config.json and rest2ldap/rest2ldap.json are located. */
+    protected final File configDirectory;
 
     /** Schema used to perform DN validations. */
     protected final Schema schema;
@@ -166,37 +161,47 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     }
 
     /**
-     * Default constructor called by the HTTP Framework which will use the default configuration file location.
+     * Default constructor called by the HTTP Framework which will use the default configuration directory.
      */
     public Rest2LdapHttpApplication() {
-        this.configurationUrl = getClass().getResource("/opendj-rest2ldap-config.json");
+        try {
+            // The null check is required for unit test mocks because the resource does not exist.
+            final URL configUrl = getClass().getResource("/config.json");
+            this.configDirectory = configUrl != null ? new File(configUrl.toURI()).getParentFile() : null;
+        } catch (final URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
         this.schema = Schema.getDefaultSchema();
     }
 
     /**
-     * Creates a new Rest2LDAP HTTP application using the provided configuration URL.
+     * Creates a new Rest2LDAP HTTP application using the provided configuration directory.
      *
-     * @param configurationURL
-     *            The URL to the JSON configuration file
+     * @param configDirectory
+     *         The name of the JSON configuration directory in which config.json and rest2ldap/rest2ldap.json are
+     *         located.
      * @param schema
-     *            The {@link Schema} used to perform DN validations
+     *         The {@link Schema} used to perform DN validations
      */
-    public Rest2LdapHttpApplication(final URL configurationURL, final Schema schema) {
-        this.configurationUrl = checkNotNull(configurationURL, "configurationURL cannot be null");
+    public Rest2LdapHttpApplication(final File configDirectory, final Schema schema) {
+        this.configDirectory = checkNotNull(configDirectory, "configDirectory cannot be null");
         this.schema = checkNotNull(schema, "schema cannot be null");
     }
 
     @Override
     public final Handler start() throws HttpApplicationException {
         try {
-            final JsonValue configuration = readJson(configurationUrl);
+            logger.info(INFO_REST2LDAP_STARTING.get(configDirectory));
+
             executorService = Executors.newSingleThreadScheduledExecutor();
-            configureSecurity(configuration.get("security"));
-            configureConnectionFactories(configuration.get("ldapConnectionFactories"));
-            return Handlers.chainOf(
-                    CrestHttp.newHttpHandler(configureRest2Ldap(configuration)),
-                    new ErrorLoggerFilter(),
-                    buildAuthorizationFilter(configuration.get("authorization").required()));
+
+            final JsonValue config = readJson(new File(configDirectory, "config.json"));
+            configureSecurity(config.get("security"));
+            configureConnectionFactories(config.get("ldapConnectionFactories"));
+            final Filter authorizationFilter = buildAuthorizationFilter(config.get("authorization").required());
+            return Handlers.chainOf(newHttpHandler(configureRest2Ldap(configDirectory)),
+                                    new ErrorLoggerFilter(),
+                                    authorizationFilter);
         } catch (final Exception e) {
             final LocalizableMessage errorMsg = ERR_FAIL_PARSE_CONFIGURATION.get(e.getLocalizedMessage());
             logger.error(errorMsg, e);
@@ -205,86 +210,16 @@ public class Rest2LdapHttpApplication implements HttpApplication {
         }
     }
 
-    private static JsonValue readJson(final URL resource) throws IOException {
-        try (InputStream in = resource.openStream()) {
-            return new JsonValue(readJsonLenient(in));
-        }
-    }
-
-    private static RequestHandler configureRest2Ldap(final JsonValue configuration) {
-        final JsonValue mappings = configuration.get("mappings").required();
-        final Router router = new Router();
-        for (final String mappingUrl : mappings.keys()) {
-            final JsonValue mapping = mappings.get(mappingUrl);
-            router.addRoute(Router.uriTemplate(mappingUrl), Rest2Ldap.builder().configureMapping(mapping).build());
-        }
-        return router;
+    private static RequestHandler configureRest2Ldap(final File configDirectory) throws IOException {
+        final File rest2LdapConfigDirectory = new File(configDirectory, "rest2ldap");
+        final Options options = configureOptions(readJson(new File(rest2LdapConfigDirectory, "rest2ldap.json")));
+        final File endpointsDirectory = new File(rest2LdapConfigDirectory, "endpoints");
+        return configureEndpoints(endpointsDirectory, options);
     }
 
     private void configureSecurity(final JsonValue configuration) {
-        try {
-            trustManager = configureTrustManager(configuration, TrustManagerType.JVM);
-        } catch (GeneralSecurityException | IOException e) {
-            throw new IllegalArgumentException(ERR_CONFIG_INVALID_TRUST_MANAGER
-                    .get(configuration.getPointer(), e.getLocalizedMessage()).toString(), e);
-        }
-
-        try {
-            keyManager = configureKeyManager(configuration, KeyManagerType.JVM);
-        } catch (GeneralSecurityException | IOException e) {
-            throw new IllegalArgumentException(ERR_CONFIG_INVALID_KEY_MANAGER
-                    .get(configuration.getPointer(), e.getLocalizedMessage()).toString(), e);
-        }
-    }
-
-    private TrustManager configureTrustManager(JsonValue config, TrustManagerType defaultIfMissing)
-            throws GeneralSecurityException, IOException {
-        // Parse trust store configuration.
-        final TrustManagerType trustManagerType =
-                config.get("trustManager").defaultTo(defaultIfMissing).as(enumConstant(TrustManagerType.class));
-        switch (trustManagerType) {
-        case TRUSTALL:
-            return trustAll();
-        case JVM:
-            return null;
-        case FILE:
-            final String fileName = config.get("fileBasedTrustManagerFile").required().asString();
-            final String passwordFile = config.get("fileBasedTrustManagerPasswordFile").asString();
-            final String password = passwordFile != null
-                    ? readPasswordFromFile(passwordFile)
-                    : config.get("fileBasedTrustManagerPassword").asString();
-            final String type = config.get("fileBasedTrustManagerType").asString();
-            return checkUsingTrustStore(fileName, password != null ? password.toCharArray() : null, type);
-        default:
-            throw new IllegalArgumentException("Unsupported trust-manager type: " + trustManagerType);
-        }
-    }
-
-    private X509KeyManager configureKeyManager(JsonValue config, KeyManagerType defaultIfMissing)
-            throws GeneralSecurityException, IOException {
-        // Parse trust store configuration.
-        final KeyManagerType keyManagerType = config.get("keyManager").defaultTo(defaultIfMissing)
-                .as(enumConstant(KeyManagerType.class));
-        switch (keyManagerType) {
-        case JVM:
-            return useJvmDefaultKeyStore();
-        case KEYSTORE:
-            final String fileName = config.get("keyStoreFile").required().asString();
-            final String passwordFile = config.get("keyStorePasswordFile").asString();
-            final String password = passwordFile != null
-                    ? readPasswordFromFile(passwordFile)
-                    : config.get("keyStorePassword").asString();
-            final String format = config.get("keyStoreFormat").asString();
-            final String provider = config.get("keyStoreProvider").asString();
-            return useKeyStoreFile(fileName, password != null ? password.toCharArray() : null, format, provider);
-        case PKCS11:
-            final String pkcs11PasswordFile = config.get("pkcs11PasswordFile").asString();
-            return usePKCS11Token(pkcs11PasswordFile != null
-                    ? readPasswordFromFile(pkcs11PasswordFile).toCharArray()
-                    : null);
-        default:
-            throw new IllegalArgumentException("Unsupported key-manager type: " + keyManagerType);
-        }
+        trustManager = configureTrustManager(configuration);
+        keyManager = configureKeyManager(configuration);
     }
 
     private void configureConnectionFactories(final JsonValue config) {
@@ -505,8 +440,8 @@ public class Rest2LdapHttpApplication implements HttpApplication {
         case SASL_PLAIN:
             return buildSaslBindStrategy(config);
         default:
-            throw newLocalizedIllegalArgumentException(ERR_CONFIG_UNSUPPORTED_BIND_STRATEGY.get(
-                    strategy, BindStrategy.listValues()));
+            throw new LocalizedIllegalArgumentException(
+                    ERR_CONFIG_UNSUPPORTED_BIND_STRATEGY.get(strategy, BindStrategy.listValues()));
         }
     }
 

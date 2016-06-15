@@ -24,6 +24,8 @@ import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.newNotSupportedException;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
+import static org.forgerock.util.promise.Promises.newExceptionPromise;
+import static org.forgerock.util.promise.Promises.newResultPromise;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,7 +56,7 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
     List<Object> defaultJsonValues = emptyList();
     final AttributeDescription ldapAttributeName;
     private boolean isRequired;
-    private boolean isSingleValued;
+    private boolean isMultiValued;
     private WritabilityPolicy writabilityPolicy = READ_WRITE;
 
     AbstractLdapPropertyMapper(final AttributeDescription ldapAttributeName) {
@@ -62,30 +64,29 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
     }
 
     /**
-     * Indicates that the LDAP attribute is mandatory and must be provided
-     * during create requests.
+     * Indicates that the LDAP attribute is mandatory and must be provided during create requests.
      *
+     * @param isRequired {@code true} if this property is required.
      * @return This property mapper.
      */
-    public final T isRequired() {
-        this.isRequired = true;
+    public final T isRequired(final boolean isRequired) {
+        this.isRequired = isRequired;
         return getThis();
     }
 
     /**
-     * Indicates that multi-valued LDAP attribute should be represented as a
-     * single-valued JSON value, rather than an array of values.
+     * Indicates that the LDAP attribute is multi-valued and should be represented in JSON using an array of values.
      *
+     * @param isMultiValued {@code true} if this property is multi-valued.
      * @return This property mapper.
      */
-    public final T isSingleValued() {
-        this.isSingleValued = true;
+    public final T isMultiValued(final boolean isMultiValued) {
+        this.isMultiValued = isMultiValued;
         return getThis();
     }
 
     /**
-     * Indicates whether the LDAP attribute supports updates.
-     * The default is {@link WritabilityPolicy#READ_WRITE}.
+     * Indicates whether the LDAP attribute supports updates. The default is {@link WritabilityPolicy#READ_WRITE}.
      *
      * @param policy
      *            The writability policy.
@@ -97,13 +98,14 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
     }
 
     boolean attributeIsSingleValued() {
-        return isSingleValued || ldapAttributeName.getAttributeType().isSingleValue();
+        return !isMultiValued || ldapAttributeName.getAttributeType().isSingleValue();
     }
 
     @Override
-    Promise<List<Attribute>, ResourceException> create(
-            final Connection connection, final JsonPointer path, final JsonValue v) {
-        return getNewLdapAttributes(connection, path, v).then(
+    Promise<List<Attribute>, ResourceException> create(final Connection connection,
+                                                       final Resource resource, final JsonPointer path,
+                                                       final JsonValue v) {
+        return getNewLdapAttributes(connection, resource, path, v).then(
             new Function<Attribute, List<Attribute>, ResourceException>() {
                 @Override
                 public List<Attribute> apply(Attribute newLDAPAttribute) throws ResourceException {
@@ -114,38 +116,33 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
                         return Collections.emptyList();
                     } else if (newLDAPAttribute.isEmpty()) {
                         if (isRequired) {
-                            throw newBadRequestException(ERR_REMOVE_REQUIRED_FIELD.get("create", path));
+                            throw newBadRequestException(ERR_MISSING_REQUIRED_FIELD.get(path));
                         }
                         return Collections.emptyList();
                     }
-
                     return singletonList(newLDAPAttribute);
                 }
             });
     }
 
     @Override
-    void getLdapAttributes(final Connection connection, final JsonPointer path,
-                           final JsonPointer subPath, final Set<String> ldapAttributes) {
+    void getLdapAttributes(final JsonPointer path, final JsonPointer subPath, final Set<String> ldapAttributes) {
         ldapAttributes.add(ldapAttributeName.toString());
     }
 
-    abstract Promise<Attribute, ResourceException> getNewLdapAttributes(Connection connection, JsonPointer path,
-                                                                        List<Object> newValues);
+    abstract Promise<Attribute, ResourceException> getNewLdapAttributes(Connection connection, Resource resource,
+                                                                        JsonPointer path, List<Object> newValues);
 
     abstract T getThis();
 
     @Override
-    Promise<List<Modification>, ResourceException> patch(
-                final Connection connection, final JsonPointer path, final PatchOperation operation) {
+    Promise<List<Modification>, ResourceException> patch(final Connection connection, final Resource resource,
+                                                         final JsonPointer path, final PatchOperation operation) {
         try {
             final JsonPointer field = operation.getField();
             final JsonValue v = operation.getValue();
 
-            /*
-             * Reject any attempts to patch this field if it is read-only, even
-             * if it is configured to discard writes.
-             */
+            // Reject any attempts to patch this field if it is read-only, even if it is configured to discard writes.
             if (!writabilityPolicy.canWrite(ldapAttributeName)) {
                 throw newBadRequestException(ERR_MODIFY_READ_ONLY_FIELD.get("patch", path));
             }
@@ -211,8 +208,7 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
                  * LDAP attribute is multi-valued, or the attribute already
                  * contains a value.
                  */
-                modType =
-                        attributeIsSingleValued() ? ModificationType.REPLACE : ModificationType.ADD;
+                modType = attributeIsSingleValued() ? ModificationType.REPLACE : ModificationType.ADD;
                 if (newValues.isEmpty()) {
                     throw newBadRequestException(ERR_PATCH_ADD_NO_VALUE_FOR_FIELD.get(path.child(field.get(0))));
                 }
@@ -233,11 +229,11 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
                     return Promises.<List<Modification>, ResourceException> newExceptionPromise(
                             newBadRequestException(ERR_REMOVE_REQUIRED_FIELD.get("update", path)));
                 } else {
-                    return Promises.newResultPromise(
+                    return newResultPromise(
                         singletonList(new Modification(modType, emptyAttribute(ldapAttributeName))));
                 }
             } else {
-                return getNewLdapAttributes(connection, path, newValues)
+                return getNewLdapAttributes(connection, resource, path, newValues)
                         .then(new Function<Attribute, List<Modification>, ResourceException>() {
                             @Override
                             public List<Modification> apply(final Attribute value) {
@@ -246,16 +242,16 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
                         });
             }
         } catch (final RuntimeException e) {
-            return Promises.newExceptionPromise(asResourceException(e));
+            return asResourceException(e).asPromise();
         } catch (final ResourceException e) {
-            return Promises.newExceptionPromise(e);
+            return newExceptionPromise(e);
         }
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> update(final Connection connection, final JsonPointer path,
-            final Entry e, final JsonValue v) {
-        return getNewLdapAttributes(connection, path, v).then(
+    Promise<List<Modification>, ResourceException> update(final Connection connection, final Resource resource,
+                                                          final JsonPointer path, final Entry e, final JsonValue v) {
+        return getNewLdapAttributes(connection, resource, path, v).then(
             new Function<Attribute, List<Modification>, ResourceException>() {
                 @Override
                 public List<Modification> apply(final Attribute newLDAPAttribute) throws ResourceException {
@@ -338,19 +334,20 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
     }
 
     private Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection,
-                                                                       final JsonPointer path, final JsonValue v) {
+                                                                       final Resource resource, final JsonPointer path,
+                                                                       final JsonValue v) {
         try {
             // Ensure that the value is of the correct type.
             checkSchema(path, v);
             final List<Object> newValues = asList(v, defaultJsonValues);
             if (newValues.isEmpty()) {
                 // Skip sub-class implementation if there are no values.
-                return Promises.newResultPromise(emptyAttribute(ldapAttributeName));
+                return newResultPromise(emptyAttribute(ldapAttributeName));
             } else {
-                return getNewLdapAttributes(connection, path, newValues);
+                return getNewLdapAttributes(connection, resource, path, newValues);
             }
-        } catch (final Exception ex) {
-            return Promises.newExceptionPromise(asResourceException(ex));
+        } catch (final Exception e) {
+            return asResourceException(e).asPromise();
         }
     }
 

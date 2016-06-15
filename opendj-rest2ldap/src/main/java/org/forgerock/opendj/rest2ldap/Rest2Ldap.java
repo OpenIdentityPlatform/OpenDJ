@@ -11,845 +11,206 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2016 ForgeRock AS.
+ * Copyright 2016 ForgeRock AS.
+ *
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
-import static java.util.Arrays.asList;
-import static org.forgerock.json.resource.ResourceException.newResourceException;
-import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
-import static org.forgerock.opendj.ldap.Connections.newFailoverLoadBalancer;
-import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.Connections.LOAD_BALANCER_MONITORING_INTERVAL;
-import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
-import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
+import static org.forgerock.opendj.ldap.ResultCode.ADMIN_LIMIT_EXCEEDED;
+import static org.forgerock.opendj.ldap.ResultCode.ENTRY_ALREADY_EXISTS;
+import static org.forgerock.opendj.ldap.ResultCode.SIZE_LIMIT_EXCEEDED;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
-import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
-import static org.forgerock.opendj.rest2ldap.Utils.newLocalizedIllegalArgumentException;
-import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
-import static org.forgerock.util.Reject.checkNotNull;
-import static org.forgerock.util.time.Duration.*;
-import static org.forgerock.opendj.ldap.KeyManagers.useSingleCertificate;
 
-import java.security.GeneralSecurityException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509KeyManager;
-
-import org.forgerock.json.JsonValue;
-import org.forgerock.json.resource.CollectionResourceProvider;
+import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.ForbiddenException;
+import org.forgerock.json.resource.InternalServerErrorException;
+import org.forgerock.json.resource.NotFoundException;
+import org.forgerock.json.resource.PermanentException;
+import org.forgerock.json.resource.PreconditionFailedException;
+import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.RetryableException;
+import org.forgerock.json.resource.Router;
+import org.forgerock.json.resource.ServiceUnavailableException;
 import org.forgerock.opendj.ldap.AssertionFailureException;
-import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionException;
-import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
-import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SSLContextBuilder;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
-import org.forgerock.opendj.ldap.requests.BindRequest;
-import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.requests.SearchRequest;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
-import org.forgerock.util.time.Duration;
 
-/** Provides core factory methods and builders for constructing LDAP resource collections. */
+/**
+ * Provides methods for constructing Rest2Ldap protocol gateways. Applications construct a new Rest2Ldap
+ * instance by calling {@link #rest2Ldap} passing in a list of {@link Resource resources} which together define
+ * the data model being exposed by the gateway. Call {@link #newRequestHandlerFor(String)} in order to obtain
+ * a request handler for a specific resource. The methods in this class can be categorized as follows:
+ * <p/>
+ * Creating Rest2Ldap gateways:
+ * <ul>
+ * <li>{@link #rest2Ldap} - creates a gateway for a given set of resources</li>
+ * <li>{@link #newRequestHandlerFor} - obtains a request handler for the specified endpoint resource.</li>
+ * </ul>
+ * <p/>
+ * Defining resource types, e.g. users, groups, devices, etc:
+ * <ul>
+ * <li>{@link #resource} - creates a resource having a fluent API for defining additional characteristics
+ * such as the resource's inheritance, sub-resources, and properties</li>
+ * </ul>
+ * <p/>
+ * Defining a resource's sub-resources. A sub-resource is a resource which is subordinate to another resource. Or, to
+ * put it another way, sub-resources define parent child relationships where the life-cycle of a child resource is
+ * constrained by the life-cycle of the parent: deleting the parent implies that all children are deleted as well. An
+ * example of a sub-resource is a subscriber having one or more devices:
+ * <ul>
+ * <li>{@link #collectionOf} - creates a one-to-many relationship. Collections support creation, deletion,
+ * and querying of child resources</li>
+ * <li>{@link #singletonOf} - creates a one-to-one relationship. Singletons cannot be created or destroyed,
+ * although they may be modified if they have properties which are modifiable. Singletons are usually only used as
+ * top-level entry points into REST APIs.
+ * </li>
+ * </ul>
+ * <p/>
+ * Defining a resource's properties:
+ * <ul>
+ * <li>{@link #resourceType} - defines a property whose JSON value will be the name of the resource, e.g. "user"</li>
+ * <li>{@link #simple} - defines a property which maps a JSON value to a single LDAP attribute</li>
+ * <li>{@link #object} - defines a property which is a JSON object having zero or more nested properties</li>
+ * <li>{@link #reference} - defines a property whose JSON value is a reference to another resource. Use these for
+ * mapping LDAP attributes which contain the DN of another LDAP entry exposed by Rest2Ldap. For example, a user's
+ * "manager" attribute or the members of a group.</li>
+ * </ul>
+ */
 public final class Rest2Ldap {
-    /** Indicates whether LDAP client connections should use SSL or StartTLS. */
-    private enum ConnectionSecurity {
-        NONE, SSL, STARTTLS
-    }
-
     /**
-     * Specifies the mechanism which should be used for trusting certificates
-     * presented by the LDAP server.
+     * Specifies the LDAP decoding options which should be used when decoding LDAP DNs, attribute types, and controls.
+     * By default Rest2Ldap will use a set of options of will always use the default schema.
      */
-    enum TrustManagerType {
-        TRUSTALL, JVM, FILE
-    }
-
+    public static final Option<DecodeOptions> DECODE_OPTIONS = Option.withDefault(new DecodeOptions());
     /**
-     * Specifies the mechanism which manage which X509 certificate-based key pairs should be used to authenticate the
-     * local side of a secure socket.
+     * Specifies whether Rest2Ldap should support multi-version concurrency control (MVCC) through the use of an MVCC
+     * LDAP {@link #MVCC_ATTRIBUTE attribute} such as "etag". By default Rest2Ldap will use MVCC.
      */
-    enum KeyManagerType {
-        JVM, KEYSTORE, PKCS11
-    }
-
-    /** A builder for incrementally constructing LDAP resource collections. */
-    public static final class Builder {
-        private final List<Attribute> additionalLDAPAttributes = new LinkedList<>();
-        private DN baseDN; // TODO: support template variables.
-        private AttributeDescription etagAttribute;
-        private NamingStrategy namingStrategy;
-        private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
-        private PropertyMapper rootMapper;
-        private Schema schema = Schema.getDefaultSchema();
-        private boolean usePermissiveModify;
-        private boolean useSubtreeDelete;
-
-        private Builder() {
-            useEtagAttribute();
-            useClientDNNaming("uid");
-        }
-
-        /**
-         * Specifies an additional LDAP attribute which should be included with
-         * new LDAP entries when they are created. Use this method to specify
-         * the LDAP objectClass attribute.
-         *
-         * @param attribute
-         *            The additional LDAP attribute to be included with new LDAP
-         *            entries.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder additionalLDAPAttribute(final Attribute attribute) {
-            additionalLDAPAttributes.add(attribute);
-            return this;
-        }
-
-        /**
-         * Specifies an additional LDAP attribute which should be included with
-         * new LDAP entries when they are created. Use this method to specify
-         * the LDAP objectClass attribute.
-         *
-         * @param attribute
-         *            The name of the additional LDAP attribute to be included
-         *            with new LDAP entries.
-         * @param values
-         *            The value(s) of the additional LDAP attribute.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder additionalLDAPAttribute(final String attribute, final Object... values) {
-            return additionalLDAPAttribute(new LinkedAttribute(ad(attribute), values));
-        }
-
-        /**
-         * Sets the base DN beneath which LDAP entries (resources) are to be found.
-         *
-         * @param dn
-         *            The base DN.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder baseDN(final DN dn) {
-            Reject.ifNull(dn);
-            this.baseDN = dn;
-            return this;
-        }
-
-        /**
-         * Sets the base DN beneath which LDAP entries (resources) are to be found.
-         *
-         * @param dn
-         *            The base DN.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder baseDN(final String dn) {
-            return baseDN(DN.valueOf(dn, schema));
-        }
-
-        /**
-         * Creates a new LDAP resource collection configured using this builder.
-         *
-         * @return The new LDAP resource collection.
-         */
-        public CollectionResourceProvider build() {
-            Reject.ifNull(baseDN);
-            if (rootMapper == null) {
-                throw new IllegalStateException(ERR_CONFIG_NO_MAPPINGS_PROVIDED.get().toString());
-            }
-            return new SubResourceImpl(baseDN, rootMapper, namingStrategy, etagAttribute,
-                                       new Config(readOnUpdatePolicy, useSubtreeDelete, usePermissiveModify, schema),
-                                       additionalLDAPAttributes);
-        }
-
-        /**
-         * Configures the JSON to LDAP mapping using the provided JSON
-         * configuration. The caller is still required to set the connection
-         * factory. See the sample configuration file for a detailed description
-         * of its content.
-         *
-         * @param configuration
-         *            The JSON configuration.
-         * @return A reference to this LDAP resource collection builder.
-         * @throws IllegalArgumentException
-         *             If the configuration is invalid.
-         */
-        public Builder configureMapping(final JsonValue configuration) {
-            baseDN(configuration.get("baseDN").required().asString());
-
-            final JsonValue readOnUpdatePolicy = configuration.get("readOnUpdatePolicy");
-            if (!readOnUpdatePolicy.isNull()) {
-                readOnUpdatePolicy(readOnUpdatePolicy.asEnum(ReadOnUpdatePolicy.class));
-            }
-
-            for (final JsonValue v : configuration.get("additionalLDAPAttributes")) {
-                final String type = v.get("type").required().asString();
-                final List<Object> values = v.get("values").required().asList();
-                additionalLDAPAttribute(new LinkedAttribute(type, values));
-            }
-
-            final JsonValue namingStrategy = configuration.get("namingStrategy");
-            if (!namingStrategy.isNull()) {
-                final String name = namingStrategy.get("strategy").required().asString();
-                if (name.equalsIgnoreCase("clientDNNaming")) {
-                    useClientDNNaming(namingStrategy.get("dnAttribute").required().asString());
-                } else if (name.equalsIgnoreCase("clientNaming")) {
-                    useClientNaming(namingStrategy.get("dnAttribute").required().asString(),
-                            namingStrategy.get("idAttribute").required().asString());
-                } else if (name.equalsIgnoreCase("serverNaming")) {
-                    useServerNaming(namingStrategy.get("dnAttribute").required().asString(),
-                            namingStrategy.get("idAttribute").required().asString());
-                } else {
-                    throw newLocalizedIllegalArgumentException(ERR_CONFIG_UNKNOWN_NAMING_CONFIGURATION.get(
-                            namingStrategy.asString(), "clientDNNaming, clientNaming or serverNaming"));
-                }
-            }
-
-            final JsonValue etagAttribute = configuration.get("etagAttribute");
-            if (!etagAttribute.isNull()) {
-                useEtagAttribute(etagAttribute.asString());
-            }
-
-            /*
-             * Default to false, even though it is supported by OpenDJ, because
-             * it requires additional permissions.
-             */
-            if (configuration.get("useSubtreeDelete").defaultTo(false).asBoolean()) {
-                useSubtreeDelete();
-            }
-
-            /*
-             * Default to true because it is supported by OpenDJ and does not
-             * require additional permissions.
-             */
-            if (configuration.get("usePermissiveModify").defaultTo(true).asBoolean()) {
-                usePermissiveModify();
-            }
-
-            mapper(configureObjectMapper(configuration.get("attributes").required()));
-
-            return this;
-        }
-
-        /**
-         * Sets the property mapper which should be used for mapping JSON
-         * resources to and from LDAP entries.
-         *
-         * @param mapper
-         *            The property mapper.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder mapper(final PropertyMapper mapper) {
-            this.rootMapper = mapper;
-            return this;
-        }
-
-        /**
-         * Sets the policy which should be used in order to read an entry before
-         * it is deleted, or after it is added or modified. The default read on
-         * update policy is to use {@link ReadOnUpdatePolicy#CONTROLS controls}.
-         *
-         * @param policy
-         *            The policy which should be used in order to read an entry
-         *            before it is deleted, or after it is added or modified.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder readOnUpdatePolicy(final ReadOnUpdatePolicy policy) {
-            this.readOnUpdatePolicy = checkNotNull(policy);
-            return this;
-        }
-
-        /**
-         * Sets the schema which should be used when attribute types and
-         * controls.
-         *
-         * @param schema
-         *            The schema which should be used when attribute types and
-         *            controls.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder schema(final Schema schema) {
-            this.schema = checkNotNull(schema);
-            return this;
-        }
-
-        /**
-         * Indicates that the JSON resource ID must be provided by the user, and
-         * will be used for naming the associated LDAP entry. More specifically,
-         * LDAP entry names will be derived by appending a single RDN to the
-         * {@link #baseDN(String) base DN} composed of the specified attribute
-         * type and LDAP value taken from the LDAP entry once attribute mapping
-         * has been performed.
-         * <p>
-         * Note that this naming policy requires that the user provides the
-         * resource name when creating new resources, which means it must be
-         * included in the resource content when not specified explicitly in the
-         * create request.
-         *
-         * @param attribute
-         *            The LDAP attribute which will be used for naming.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useClientDNNaming(final AttributeType attribute) {
-            this.namingStrategy = new DNNamingStrategy(attribute);
-            return this;
-        }
-
-        /**
-         * Indicates that the JSON resource ID must be provided by the user, and
-         * will be used for naming the associated LDAP entry. More specifically,
-         * LDAP entry names will be derived by appending a single RDN to the
-         * {@link #baseDN(String) base DN} composed of the specified attribute
-         * type and LDAP value taken from the LDAP entry once attribute mapping
-         * has been performed.
-         * <p>
-         * Note that this naming policy requires that the user provides the
-         * resource name when creating new resources, which means it must be
-         * included in the resource content when not specified explicitly in the
-         * create request.
-         *
-         * @param attribute
-         *            The LDAP attribute which will be used for naming.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useClientDNNaming(final String attribute) {
-            return useClientDNNaming(at(attribute));
-        }
-
-        /**
-         * Indicates that the JSON resource ID must be provided by the user, but
-         * will not be used for naming the associated LDAP entry. Instead the
-         * JSON resource ID will be taken from the {@code idAttribute} in the
-         * LDAP entry, and the LDAP entry name will be derived by appending a
-         * single RDN to the {@link #baseDN(String) base DN} composed of the
-         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
-         * has been performed.
-         * <p>
-         * Note that this naming policy requires that the user provides the
-         * resource name when creating new resources, which means it must be
-         * included in the resource content when not specified explicitly in the
-         * create request.
-         *
-         * @param dnAttribute
-         *            The attribute which will be used for naming LDAP entries.
-         * @param idAttribute
-         *            The attribute which will be used for JSON resource IDs.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useClientNaming(final AttributeType dnAttribute,
-                final AttributeDescription idAttribute) {
-            this.namingStrategy = new AttributeNamingStrategy(dnAttribute, idAttribute, false);
-            return this;
-        }
-
-        /**
-         * Indicates that the JSON resource ID must be provided by the user, but
-         * will not be used for naming the associated LDAP entry. Instead the
-         * JSON resource ID will be taken from the {@code idAttribute} in the
-         * LDAP entry, and the LDAP entry name will be derived by appending a
-         * single RDN to the {@link #baseDN(String) base DN} composed of the
-         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
-         * has been performed.
-         * <p>
-         * Note that this naming policy requires that the user provides the
-         * resource name when creating new resources, which means it must be
-         * included in the resource content when not specified explicitly in the
-         * create request.
-         *
-         * @param dnAttribute
-         *            The attribute which will be used for naming LDAP entries.
-         * @param idAttribute
-         *            The attribute which will be used for JSON resource IDs.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useClientNaming(final String dnAttribute, final String idAttribute) {
-            return useClientNaming(at(dnAttribute), ad(idAttribute));
-        }
-
-        /**
-         * Indicates that the "etag" LDAP attribute should be used for resource
-         * versioning. This is the default behavior.
-         *
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useEtagAttribute() {
-            return useEtagAttribute("etag");
-        }
-
-        /**
-         * Indicates that the provided LDAP attribute should be used for
-         * resource versioning. The "etag" attribute will be used by default.
-         *
-         * @param attribute
-         *            The name of the attribute to use for versioning, or
-         *            {@code null} if resource versioning will not supported.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useEtagAttribute(final AttributeDescription attribute) {
-            this.etagAttribute = attribute;
-            return this;
-        }
-
-        /**
-         * Indicates that the provided LDAP attribute should be used for
-         * resource versioning. The "etag" attribute will be used by default.
-         *
-         * @param attribute
-         *            The name of the attribute to use for versioning, or
-         *            {@code null} if resource versioning will not supported.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useEtagAttribute(final String attribute) {
-            return useEtagAttribute(attribute != null ? ad(attribute) : null);
-        }
-
-        /**
-         * Indicates that all LDAP modify operations should be performed using
-         * the LDAP permissive modify control. The default behavior is to not
-         * use the permissive modify control. Use of the control is strongly
-         * recommended.
-         *
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder usePermissiveModify() {
-            this.usePermissiveModify = true;
-            return this;
-        }
-
-        /**
-         * Indicates that the JSON resource ID will be derived from the server
-         * provided "entryUUID" LDAP attribute. The LDAP entry name will be
-         * derived by appending a single RDN to the {@link #baseDN(String) base
-         * DN} composed of the {@code dnAttribute} taken from the LDAP entry
-         * once attribute mapping has been performed.
-         * <p>
-         * Note that this naming policy requires that the server provides the
-         * resource name when creating new resources, which means it must not be
-         * specified in the create request, nor included in the resource
-         * content.
-         *
-         * @param dnAttribute
-         *            The attribute which will be used for naming LDAP entries.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useServerEntryUUIDNaming(final AttributeType dnAttribute) {
-            return useServerNaming(dnAttribute, AttributeDescription
-                    .create(getEntryUUIDAttributeType()));
-        }
-
-        /**
-         * Indicates that the JSON resource ID will be derived from the server
-         * provided "entryUUID" LDAP attribute. The LDAP entry name will be
-         * derived by appending a single RDN to the {@link #baseDN(String) base
-         * DN} composed of the {@code dnAttribute} taken from the LDAP entry
-         * once attribute mapping has been performed.
-         * <p>
-         * Note that this naming policy requires that the server provides the
-         * resource name when creating new resources, which means it must not be
-         * specified in the create request, nor included in the resource
-         * content.
-         *
-         * @param dnAttribute
-         *            The attribute which will be used for naming LDAP entries.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useServerEntryUUIDNaming(final String dnAttribute) {
-            return useServerEntryUUIDNaming(at(dnAttribute));
-        }
-
-        /**
-         * Indicates that the JSON resource ID must not be provided by the user,
-         * and will not be used for naming the associated LDAP entry. Instead
-         * the JSON resource ID will be taken from the {@code idAttribute} in
-         * the LDAP entry, and the LDAP entry name will be derived by appending
-         * a single RDN to the {@link #baseDN(String) base DN} composed of the
-         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
-         * has been performed.
-         * <p>
-         * Note that this naming policy requires that the server provides the
-         * resource name when creating new resources, which means it must not be
-         * specified in the create request, nor included in the resource
-         * content.
-         *
-         * @param dnAttribute
-         *            The attribute which will be used for naming LDAP entries.
-         * @param idAttribute
-         *            The attribute which will be used for JSON resource IDs.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useServerNaming(final AttributeType dnAttribute,
-                final AttributeDescription idAttribute) {
-            this.namingStrategy = new AttributeNamingStrategy(dnAttribute, idAttribute, true);
-            return this;
-        }
-
-        /**
-         * Indicates that the JSON resource ID must not be provided by the user,
-         * and will not be used for naming the associated LDAP entry. Instead
-         * the JSON resource ID will be taken from the {@code idAttribute} in
-         * the LDAP entry, and the LDAP entry name will be derived by appending
-         * a single RDN to the {@link #baseDN(String) base DN} composed of the
-         * {@code dnAttribute} taken from the LDAP entry once attribute mapping
-         * has been performed.
-         * <p>
-         * Note that this naming policy requires that the server provides the
-         * resource name when creating new resources, which means it must not be
-         * specified in the create request, nor included in the resource
-         * content.
-         *
-         * @param dnAttribute
-         *            The attribute which will be used for naming LDAP entries.
-         * @param idAttribute
-         *            The attribute which will be used for JSON resource IDs.
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useServerNaming(final String dnAttribute, final String idAttribute) {
-            return useServerNaming(at(dnAttribute), ad(idAttribute));
-        }
-
-        /**
-         * Indicates that all LDAP delete operations should be performed using
-         * the LDAP subtree delete control. The default behavior is to not use
-         * the subtree delete control.
-         *
-         * @return A reference to this LDAP resource collection builder.
-         */
-        public Builder useSubtreeDelete() {
-            this.useSubtreeDelete = true;
-            return this;
-        }
-
-        private AttributeDescription ad(final String attribute) {
-            return AttributeDescription.valueOf(attribute, schema);
-        }
-
-        private AttributeType at(final String attribute) {
-            return schema.getAttributeType(attribute);
-        }
-
-        private PropertyMapper configureMapper(final JsonValue mapper) {
-            if (mapper.isDefined("constant")) {
-                return constant(mapper.get("constant").getObject());
-            } else if (mapper.isDefined("simple")) {
-                final JsonValue config = mapper.get("simple");
-                final SimplePropertyMapper s =
-                        simple(ad(config.get("ldapAttribute").required().asString()));
-                if (config.isDefined("defaultJSONValue")) {
-                    s.defaultJsonValue(config.get("defaultJSONValue").getObject());
-                }
-                if (config.get("isBinary").defaultTo(false).asBoolean()) {
-                    s.isBinary();
-                }
-                if (config.get("isRequired").defaultTo(false).asBoolean()) {
-                    s.isRequired();
-                }
-                if (config.get("isSingleValued").defaultTo(false).asBoolean()) {
-                    s.isSingleValued();
-                }
-                s.writability(parseWritability(mapper, config));
-                return s;
-            } else if (mapper.isDefined("reference")) {
-                final JsonValue config = mapper.get("reference");
-                final AttributeDescription ldapAttribute =
-                        ad(config.get("ldapAttribute").required().asString());
-                final DN baseDN = DN.valueOf(config.get("baseDN").required().asString(), schema);
-                final AttributeDescription primaryKey =
-                        ad(config.get("primaryKey").required().asString());
-                final PropertyMapper m = configureMapper(config.get("mapper").required());
-                final ReferencePropertyMapper r = reference(ldapAttribute, baseDN, primaryKey, m);
-                if (config.get("isRequired").defaultTo(false).asBoolean()) {
-                    r.isRequired();
-                }
-                if (config.get("isSingleValued").defaultTo(false).asBoolean()) {
-                    r.isSingleValued();
-                }
-                if (config.isDefined("searchFilter")) {
-                    r.searchFilter(config.get("searchFilter").asString());
-                }
-                r.writability(parseWritability(mapper, config));
-                return r;
-            } else if (mapper.isDefined("object")) {
-                return configureObjectMapper(mapper.get("object"));
-            } else {
-                throw newJsonValueException(mapper, ERR_CONFIG_NO_MAPPING_IN_CONFIGURATION.get(
-                        "constant, simple, reference or object"));
-            }
-        }
-
-        private ObjectPropertyMapper configureObjectMapper(final JsonValue mapper) {
-            final ObjectPropertyMapper object = object();
-            for (final String attribute : mapper.keys()) {
-                object.attribute(attribute, configureMapper(mapper.get(attribute)));
-            }
-            return object;
-        }
-
-        private WritabilityPolicy parseWritability(final JsonValue mapper, final JsonValue config) {
-            if (config.isDefined("writability")) {
-                final String writability = config.get("writability").asString();
-                if (writability.equalsIgnoreCase("readOnly")) {
-                    return WritabilityPolicy.READ_ONLY;
-                } else if (writability.equalsIgnoreCase("readOnlyDiscardWrites")) {
-                    return WritabilityPolicy.READ_ONLY_DISCARD_WRITES;
-                } else if (writability.equalsIgnoreCase("createOnly")) {
-                    return WritabilityPolicy.CREATE_ONLY;
-                } else if (writability.equalsIgnoreCase("createOnlyDiscardWrites")) {
-                    return WritabilityPolicy.CREATE_ONLY_DISCARD_WRITES;
-                } else if (writability.equalsIgnoreCase("readWrite")) {
-                    return WritabilityPolicy.READ_WRITE;
-                } else {
-                    throw newJsonValueException(mapper, ERR_CONFIG_UNKNOWN_WRITABILITY.get(writability,
-                                "readOnly, readOnlyDiscardWrites, createOnly, createOnlyDiscardWrites, or readWrite"));
-                }
-            } else {
-                return WritabilityPolicy.READ_WRITE;
-            }
-        }
-    }
-
-    private static final class AttributeNamingStrategy extends NamingStrategy {
-        private final AttributeDescription dnAttribute;
-        private final AttributeDescription idAttribute;
-        private final boolean isServerProvided;
-
-        private AttributeNamingStrategy(final AttributeType dnAttribute,
-                                        final AttributeDescription idAttribute, final boolean isServerProvided) {
-            this.dnAttribute = AttributeDescription.create(dnAttribute);
-            if (this.dnAttribute.equals(idAttribute)) {
-                throw newLocalizedIllegalArgumentException(ERR_CONFIG_NAMING_STRATEGY_DN_AND_ID_NOT_DIFFERENT.get());
-            }
-            this.idAttribute = checkNotNull(idAttribute);
-            this.isServerProvided = isServerProvided;
-        }
-
-        @Override
-        SearchRequest createSearchRequest(final Connection connection, final DN baseDN, final String resourceId) {
-            return newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, Filter.equality(idAttribute
-                    .toString(), resourceId));
-        }
-
-        @Override
-        void getLdapAttributes(final Connection connection, final Set<String> ldapAttributes) {
-            ldapAttributes.add(idAttribute.toString());
-        }
-
-        @Override
-        String getResourceId(final Connection connection, final Entry entry) {
-            return entry.parseAttribute(idAttribute).asString();
-        }
-
-        @Override
-        void setResourceId(final Connection connection, final DN baseDN, final String resourceId,
-                final Entry entry) throws ResourceException {
-            if (isServerProvided) {
-                if (resourceId != null) {
-                    throw newBadRequestException(ERR_CLIENT_PROVIDER_RESOURCE_ID_MISSING.get());
-                }
-            } else {
-                entry.addAttribute(new LinkedAttribute(idAttribute, ByteString.valueOfUtf8(resourceId)));
-            }
-            final String rdnValue = entry.parseAttribute(dnAttribute).asString();
-            final RDN rdn = new RDN(dnAttribute.getAttributeType(), rdnValue);
-            entry.setName(baseDN.child(rdn));
-        }
-    }
-
-    private static final class DNNamingStrategy extends NamingStrategy {
-        private final AttributeDescription attribute;
-
-        private DNNamingStrategy(final AttributeType attribute) {
-            this.attribute = AttributeDescription.create(attribute);
-        }
-
-        @Override
-        SearchRequest createSearchRequest(final Connection connection, final DN baseDN, final String resourceId) {
-            return newSearchRequest(baseDN.child(rdn(resourceId)), SearchScope.BASE_OBJECT, Filter
-                    .objectClassPresent());
-        }
-
-        @Override
-        void getLdapAttributes(final Connection connection, final Set<String> ldapAttributes) {
-            ldapAttributes.add(attribute.toString());
-        }
-
-        @Override
-        String getResourceId(final Connection connection, final Entry entry) {
-            return entry.parseAttribute(attribute).asString();
-        }
-
-        @Override
-        void setResourceId(final Connection connection, final DN baseDN, final String resourceId,
-                final Entry entry) throws ResourceException {
-            if (resourceId != null) {
-                entry.setName(baseDN.child(rdn(resourceId)));
-                entry.addAttribute(new LinkedAttribute(attribute, ByteString.valueOfUtf8(resourceId)));
-            } else if (entry.getAttribute(attribute) != null) {
-                entry.setName(baseDN.child(rdn(entry.parseAttribute(attribute).asString())));
-            } else {
-                throw newBadRequestException(ERR_CLIENT_PROVIDER_RESOURCE_ID_MISSING.get());
-            }
-        }
-
-        private RDN rdn(final String resourceId) {
-            return new RDN(attribute.getAttributeType(), resourceId);
-        }
-    }
+    public static final Option<Boolean> USE_MVCC = Option.withDefault(true);
+    /**
+     * Specifies the name of the LDAP attribute which should be used for multi-version concurrency control (MVCC) if
+     * {@link #USE_MVCC enabled}. By default Rest2Ldap will use the "etag" operational attribute.
+     */
+    public static final Option<String> MVCC_ATTRIBUTE = Option.withDefault("etag");
+    /**
+     * Specifies the policy which should be used in order to read an entry before it is deleted, or after it is added or
+     * modified. By default Rest2Ldap will use the {@link ReadOnUpdatePolicy#CONTROLS controls} read on update policy.
+     */
+    public static final Option<ReadOnUpdatePolicy> READ_ON_UPDATE_POLICY = Option.withDefault(CONTROLS);
+    /**
+     * Specifies whether Rest2Ldap should perform LDAP modify operations using the LDAP permissive modify
+     * control. By default Rest2Ldap will use the permissive modify control and use of the control is strongly
+     * recommended.
+     */
+    public static final Option<Boolean> USE_PERMISSIVE_MODIFY = Option.withDefault(true);
+    /**
+     * Specifies whether Rest2Ldap should perform LDAP delete operations using the LDAP subtree delete control. By
+     * default Rest2Ldap will use the subtree delete control and use of the control is strongly recommended.
+     */
+    public static final Option<Boolean> USE_SUBTREE_DELETE = Option.withDefault(true);
 
     /**
-     * Adapts a {@code Throwable} to a {@code ResourceException}. If the
-     * {@code Throwable} is an LDAP {@link LdapException} then an
-     * appropriate {@code ResourceException} is returned, otherwise an
-     * {@code InternalServerErrorException} is returned.
+     * Creates a new {@link Rest2Ldap} instance using the provided options and {@link Resource resources}.
+     * Applications should call {@link #newRequestHandlerFor(String)} to obtain a request handler for a specific
+     * resource.
+     * <p>
+     * The supported options are defined in this class.
      *
-     * @param t
-     *            The {@code Throwable} to be converted.
-     * @return The equivalent resource exception.
+     * @param options The configuration options for interactions with the backend LDAP server. The set of available
+     *                options are provided in this class.
+     * @param resources The list of resources.
+     * @return A new Rest2Ldap instance from which REST request handlers can be obtained.
      */
-    public static ResourceException asResourceException(final Throwable t) {
-        int resourceResultCode;
-        try {
-            throw t;
-        } catch (final ResourceException e) {
-            return e;
-        } catch (final AssertionFailureException e) {
-            resourceResultCode = ResourceException.VERSION_MISMATCH;
-        } catch (final ConstraintViolationException e) {
-            final ResultCode rc = e.getResult().getResultCode();
-            if (rc.equals(ResultCode.ENTRY_ALREADY_EXISTS)) {
-                resourceResultCode = ResourceException.VERSION_MISMATCH; // Consistent with MVCC.
-            } else {
-                // Schema violation, etc.
-                resourceResultCode = ResourceException.BAD_REQUEST;
-            }
-        } catch (final AuthenticationException e) {
-            resourceResultCode = 401;
-        } catch (final AuthorizationException e) {
-            resourceResultCode = ResourceException.FORBIDDEN;
-        } catch (final ConnectionException e) {
-            resourceResultCode = ResourceException.UNAVAILABLE;
-        } catch (final EntryNotFoundException e) {
-            resourceResultCode = ResourceException.NOT_FOUND;
-        } catch (final MultipleEntriesFoundException e) {
-            resourceResultCode = ResourceException.INTERNAL_ERROR;
-        } catch (final TimeoutResultException e) {
-            resourceResultCode = 408;
-        } catch (final LdapException e) {
-            final ResultCode rc = e.getResult().getResultCode();
-            if (rc.equals(ResultCode.ADMIN_LIMIT_EXCEEDED)) {
-                resourceResultCode = 413; // Request Entity Too Large
-            } else if (rc.equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
-                resourceResultCode = 413; // Request Entity Too Large
-            } else {
-                resourceResultCode = ResourceException.INTERNAL_ERROR;
-            }
-        } catch (final Throwable tmp) {
-            resourceResultCode = ResourceException.INTERNAL_ERROR;
-        }
-        return newResourceException(resourceResultCode, t.getMessage(), t);
+    public static Rest2Ldap rest2Ldap(final Options options, final Collection<Resource> resources) {
+        return new Rest2Ldap(options, resources);
     }
 
     /**
-     * Returns a builder for incrementally constructing LDAP resource
-     * collections.
+     * Creates a new {@link Rest2Ldap} instance using the provided options and {@link Resource resources}.
+     * Applications should call {@link #newRequestHandlerFor(String)} to obtain a request handler for a specific
+     * resource.
+     * <p>
+     * The supported options are defined in this class.
      *
-     * @return An LDAP resource collection builder.
+     * @param options The configuration options for interactions with the backend LDAP server. The set of available
+     *                options are provided in this class.
+     * @param resources The list of resources.
+     * @return A new Rest2Ldap instance from which REST request handlers can be obtained.
      */
-    public static Builder builder() {
-        return new Builder();
+    public static Rest2Ldap rest2Ldap(final Options options, final Resource... resources) {
+        return rest2Ldap(options, Arrays.asList(resources));
     }
 
     /**
-     * Creates a new connection factory using the named configuration in the
-     * provided JSON list of factory configurations. See the sample
-     * configuration file for a detailed description of its content.
+     * Creates a new {@link Resource resource} definition with the provided resource ID.
      *
-     * @param configuration
-     *            The JSON configuration.
-     * @param name
-     *            The name of the connection factory configuration to be parsed.
-     * @param trustManager
-     *            The trust manager to use for secure connection. Can be {@code null}
-     *            to use the default JVM trust manager.
-     * @param keyManager
-     *            The key manager to use for secure connection. Can be {@code null}
-     *            to use the default JVM key manager.
-     * @param providerClassLoader
-     *            The {@link ClassLoader} used to fetch the
-     *            {@link org.forgerock.opendj.ldap.spi.TransportProvider}.
-     *            This can be useful in OSGI environments.
-     * @return A new connection factory using the provided JSON configuration.
-     * @throws IllegalArgumentException
-     *             If the configuration is invalid.
+     * @param resourceId
+     *         The resource ID.
+     * @return A new resource definition with the provided resource ID.
      */
-    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
-                                                               final String name,
-                                                               final TrustManager trustManager,
-                                                               final X509KeyManager keyManager,
-                                                               final ClassLoader providerClassLoader) {
-        final JsonValue normalizedConfiguration =
-                normalizeConnectionFactory(configuration, name, 0);
-        return configureConnectionFactory(normalizedConfiguration, trustManager, keyManager, providerClassLoader);
+    public static Resource resource(final String resourceId) {
+        return new Resource(resourceId);
     }
 
     /**
-     * Creates a new connection factory using the named configuration in the
-     * provided JSON list of factory configurations. See the sample
-     * configuration file for a detailed description of its content.
+     * Creates a new {@link SubResourceCollection collection} sub-resource definition whose members will be resources
+     * having the provided resource ID or its sub-types.
      *
-     * @param configuration
-     *            The JSON configuration.
-     * @param name
-     *            The name of the connection factory configuration to be parsed.
-     * @param trustManager
-     *            The trust manager to use for secure connection. Can be {@code null}
-     *            to use the default JVM trust manager.
-     * @param keyManager
-     *            The key manager to use for secure connection. Can be {@code null}
-     *            to use the default JVM key manager.
-     * @return A new connection factory using the provided JSON configuration.
-     * @throws IllegalArgumentException
-     *             If the configuration is invalid.
+     * @param resourceId
+     *         The type of resource contained in the sub-resource collection.
+     * @return A new sub-resource definition with the provided resource ID.
      */
-    public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
-            final String name, final TrustManager trustManager, final X509KeyManager keyManager) {
-        return configureConnectionFactory(configuration, name, trustManager, keyManager, null);
+    public static SubResourceCollection collectionOf(final String resourceId) {
+        return new SubResourceCollection(resourceId);
     }
 
     /**
-     * Returns an property mapper which maps a single JSON attribute to a JSON
-     * constant.
+     * Creates a new {@link SubResourceSingleton singleton} sub-resource definition which will reference a single
+     * resource having the specified resource ID.
+     *
+     * @param resourceId
+     *         The type of resource referenced by the sub-resource singleton.
+     * @return A new sub-resource definition with the provided resource ID.
+     */
+    public static SubResourceSingleton singletonOf(final String resourceId) {
+        return new SubResourceSingleton(resourceId);
+    }
+
+    /**
+     * Returns a property mapper which maps a JSON property containing the resource type to its associated LDAP
+     * object classes.
+     *
+     * @return The property mapper.
+     */
+    public static PropertyMapper resourceType() {
+        return ResourceTypePropertyMapper.INSTANCE;
+    }
+
+    /**
+     * Returns a property mapper which maps a single JSON attribute to a JSON constant.
      *
      * @param value
-     *            The constant JSON value (a Boolean, Number, String, Map, or
-     *            List).
+     *         The constant JSON value (a Boolean, Number, String, Map, or List).
      * @return The property mapper.
      */
     public static PropertyMapper constant(final Object value) {
@@ -857,7 +218,7 @@ public final class Rest2Ldap {
     }
 
     /**
-     * Returns an property mapper which maps JSON objects to LDAP attributes.
+     * Returns a property mapper which maps JSON objects to LDAP attributes.
      *
      * @return The property mapper.
      */
@@ -866,55 +227,50 @@ public final class Rest2Ldap {
     }
 
     /**
-     * Returns an property mapper which provides a mapping from a JSON value to
-     * a single DN valued LDAP attribute.
+     * Returns a property mapper which provides a mapping from a JSON value to a single DN valued LDAP attribute.
      *
      * @param attribute
-     *            The DN valued LDAP attribute to be mapped.
+     *         The DN valued LDAP attribute to be mapped.
      * @param baseDN
-     *            The search base DN for performing reverse lookups.
+     *         The search base DN for performing reverse lookups.
      * @param primaryKey
-     *            The search primary key LDAP attribute to use for performing
-     *            reverse lookups.
+     *         The search primary key LDAP attribute to use for performing reverse lookups.
      * @param mapper
-     *            An property mapper which will be used to map LDAP attributes
-     *            in the referenced entry.
+     *         An property mapper which will be used to map LDAP attributes in the referenced entry.
      * @return The property mapper.
      */
-    public static ReferencePropertyMapper reference(final AttributeDescription attribute,
-                                                    final DN baseDN, final AttributeDescription primaryKey,
+    public static ReferencePropertyMapper reference(final AttributeDescription attribute, final DN baseDN,
+                                                    final AttributeDescription primaryKey,
                                                     final PropertyMapper mapper) {
         return new ReferencePropertyMapper(Schema.getDefaultSchema(), attribute, baseDN, primaryKey, mapper);
     }
 
     /**
-     * Returns an property mapper which provides a mapping from a JSON value to
-     * a single DN valued LDAP attribute.
+     * Returns a property mapper which provides a mapping from a JSON value to a single DN valued LDAP attribute.
      *
      * @param attribute
-     *            The DN valued LDAP attribute to be mapped.
+     *         The DN valued LDAP attribute to be mapped.
      * @param baseDN
-     *            The search base DN for performing reverse lookups.
+     *         The search base DN for performing reverse lookups.
      * @param primaryKey
-     *            The search primary key LDAP attribute to use for performing
-     *            reverse lookups.
+     *         The search primary key LDAP attribute to use for performing reverse lookups.
      * @param mapper
-     *            An property mapper which will be used to map LDAP attributes
-     *            in the referenced entry.
+     *         An property mapper which will be used to map LDAP attributes in the referenced entry.
      * @return The property mapper.
      */
     public static ReferencePropertyMapper reference(final String attribute, final String baseDN,
                                                     final String primaryKey, final PropertyMapper mapper) {
-        return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN),
-                AttributeDescription.valueOf(primaryKey), mapper);
+        return reference(AttributeDescription.valueOf(attribute),
+                         DN.valueOf(baseDN),
+                         AttributeDescription.valueOf(primaryKey),
+                         mapper);
     }
 
     /**
-     * Returns an property mapper which provides a simple mapping from a JSON
-     * value to a single LDAP attribute.
+     * Returns a property mapper which provides a simple mapping from a JSON value to a single LDAP attribute.
      *
      * @param attribute
-     *            The LDAP attribute to be mapped.
+     *         The LDAP attribute to be mapped.
      * @return The property mapper.
      */
     public static SimplePropertyMapper simple(final AttributeDescription attribute) {
@@ -922,142 +278,95 @@ public final class Rest2Ldap {
     }
 
     /**
-     * Returns an property mapper which provides a simple mapping from a JSON
-     * value to a single LDAP attribute.
+     * Returns a property mapper which provides a simple mapping from a JSON value to a single LDAP attribute.
      *
      * @param attribute
-     *            The LDAP attribute to be mapped.
+     *         The LDAP attribute to be mapped.
      * @return The property mapper.
      */
     public static SimplePropertyMapper simple(final String attribute) {
         return simple(AttributeDescription.valueOf(attribute));
     }
 
-    private static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
-                                                                final TrustManager trustManager,
-                                                                final X509KeyManager keyManager,
-                                                                final ClassLoader providerClassLoader) {
-        final long heartBeatIntervalSeconds = configuration.get("heartBeatIntervalSeconds").defaultTo(30L).asLong();
-        final Duration heartBeatInterval = duration(Math.max(heartBeatIntervalSeconds, 1L), TimeUnit.SECONDS);
-
-        final long heartBeatTimeoutMillis = configuration.get("heartBeatTimeoutMilliSeconds").defaultTo(500L).asLong();
-        final Duration heartBeatTimeout = duration(Math.max(heartBeatTimeoutMillis, 100L), TimeUnit.MILLISECONDS);
-
-        final Options options = Options.defaultOptions()
-                                       .set(TRANSPORT_PROVIDER_CLASS_LOADER, providerClassLoader)
-                                       .set(HEARTBEAT_ENABLED, true)
-                                       .set(HEARTBEAT_INTERVAL, heartBeatInterval)
-                                       .set(HEARTBEAT_TIMEOUT, heartBeatTimeout)
-                                       .set(LOAD_BALANCER_MONITORING_INTERVAL, heartBeatInterval);
-
-        // Parse pool parameters,
-        final int connectionPoolSize =
-                Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
-
-        // Parse authentication parameters.
-        if (configuration.isDefined("authentication")) {
-            final JsonValue authn = configuration.get("authentication");
-            if (authn.isDefined("simple")) {
-                final JsonValue simple = authn.get("simple");
-                final BindRequest bindRequest =
-                        Requests.newSimpleBindRequest(simple.get("bindDN").required().asString(),
-                                simple.get("bindPassword").required().asString().toCharArray());
-                options.set(AUTHN_BIND_REQUEST, bindRequest);
+    /**
+     * Adapts a {@code Throwable} to a {@code ResourceException}. If the {@code Throwable} is an LDAP
+     * {@link LdapException} then an appropriate {@code ResourceException} is returned, otherwise an {@code
+     * InternalServerErrorException} is returned.
+     * @param t
+     *         The {@code Throwable} to be converted.
+     * @return The equivalent resource exception.
+     */
+    public static ResourceException asResourceException(final Throwable t) {
+        try {
+            throw t;
+        } catch (final ResourceException e) {
+            return e;
+        } catch (final AssertionFailureException e) {
+            return new PreconditionFailedException(e);
+        } catch (final ConstraintViolationException e) {
+            final ResultCode rc = e.getResult().getResultCode();
+            if (rc.equals(ENTRY_ALREADY_EXISTS)) {
+                return new PreconditionFailedException(e); // Consistent with MVCC.
             } else {
-                throw newLocalizedIllegalArgumentException(ERR_CONFIG_INVALID_AUTHENTICATION.get());
+                return new BadRequestException(e); // Schema violation, etc.
             }
-        }
-
-        // Parse SSL/StartTLS parameters.
-        final ConnectionSecurity connectionSecurity =
-                configuration.get("connectionSecurity").defaultTo(ConnectionSecurity.NONE).asEnum(
-                        ConnectionSecurity.class);
-        if (connectionSecurity != ConnectionSecurity.NONE) {
-            try {
-                // Configure SSL.
-                final SSLContextBuilder builder = new SSLContextBuilder();
-                builder.setTrustManager(trustManager);
-                final String sslCertAlias = configuration.get("sslCertAlias").asString();
-                builder.setKeyManager(sslCertAlias != null
-                        ? useSingleCertificate(sslCertAlias, keyManager)
-                        : keyManager);
-                options.set(SSL_CONTEXT, builder.getSSLContext());
-                options.set(SSL_USE_STARTTLS, connectionSecurity == ConnectionSecurity.STARTTLS);
-            } catch (GeneralSecurityException e) {
-                // Rethrow as unchecked exception.
-                throw new IllegalArgumentException(e);
-            }
-        }
-
-        // Parse primary data center.
-        final JsonValue primaryLDAPServers = configuration.get("primaryLDAPServers");
-        if (!primaryLDAPServers.isList() || primaryLDAPServers.size() == 0) {
-            throw new IllegalArgumentException("No primaryLDAPServers");
-        }
-        final ConnectionFactory primary = parseLDAPServers(primaryLDAPServers, connectionPoolSize, options);
-
-        // Parse secondary data center(s).
-        final JsonValue secondaryLDAPServers = configuration.get("secondaryLDAPServers");
-        ConnectionFactory secondary = null;
-        if (secondaryLDAPServers.isList()) {
-            if (secondaryLDAPServers.size() > 0) {
-                secondary = parseLDAPServers(secondaryLDAPServers, connectionPoolSize, options);
-            }
-        } else if (!secondaryLDAPServers.isNull()) {
-            throw newLocalizedIllegalArgumentException(ERR_CONFIG_INVALID_SECONDARY_LDAP_SERVER.get());
-        }
-
-        // Create fail-over.
-        if (secondary != null) {
-            return newFailoverLoadBalancer(asList(primary, secondary), options);
-        } else {
-            return primary;
-        }
-    }
-
-    private static JsonValue normalizeConnectionFactory(final JsonValue configuration,
-            final String name, final int depth) {
-        // Protect against infinite recursion in the configuration.
-        if (depth > 100) {
-            throw newLocalizedIllegalArgumentException(ERR_CONFIG_SERVER_CIRCULAR_DEPENDENCIES.get(name));
-        }
-
-        final JsonValue current = configuration.get(name).required();
-        if (current.isDefined("inheritFrom")) {
-            // Inherit missing fields from inherited configuration.
-            final JsonValue parent =
-                    normalizeConnectionFactory(configuration,
-                            current.get("inheritFrom").asString(), depth + 1);
-            final Map<String, Object> normalized = new LinkedHashMap<>(parent.asMap());
-            normalized.putAll(current.asMap());
-            normalized.remove("inheritFrom");
-            return new JsonValue(normalized);
-        } else {
-            // No normalization required.
-            return current;
-        }
-    }
-
-    private static ConnectionFactory parseLDAPServers(JsonValue config, int poolSize, Options options) {
-        final List<ConnectionFactory> servers = new ArrayList<>(config.size());
-        for (final JsonValue server : config) {
-            final String host = server.get("hostname").required().asString();
-            final int port = server.get("port").required().asInteger();
-            final ConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
-            if (poolSize > 1) {
-                servers.add(newCachedConnectionPool(factory, 0, poolSize, 60L, TimeUnit.SECONDS));
+        } catch (final AuthenticationException e) {
+            return new PermanentException(401, null, e); // Unauthorized
+        } catch (final AuthorizationException e) {
+            return new ForbiddenException(e);
+        } catch (final ConnectionException e) {
+            return new ServiceUnavailableException(e);
+        } catch (final EntryNotFoundException e) {
+            return new NotFoundException(e);
+        } catch (final MultipleEntriesFoundException e) {
+            return new InternalServerErrorException(e);
+        } catch (final TimeoutResultException e) {
+            return new RetryableException(408, null, e); // Request Timeout
+        } catch (final LdapException e) {
+            final ResultCode rc = e.getResult().getResultCode();
+            if (rc.equals(ADMIN_LIMIT_EXCEEDED) || rc.equals(SIZE_LIMIT_EXCEEDED)) {
+                return new PermanentException(413, null, e); // Payload Too Large (Request Entity Too Large)
             } else {
-                servers.add(factory);
+                return new InternalServerErrorException(e);
             }
-        }
-        if (servers.size() > 1) {
-            return newRoundRobinLoadBalancer(servers, options);
-        } else {
-            return servers.get(0);
+        } catch (final Throwable tmp) {
+            return new InternalServerErrorException(t);
         }
     }
 
-    private Rest2Ldap() {
-        // Prevent instantiation.
+    private final Map<String, Resource> resources = new LinkedHashMap<>();
+    private final Options options;
+
+    private Rest2Ldap(final Options options, final Collection<Resource> resources) {
+        this.options = options;
+        for (final Resource resource : resources) {
+            this.resources.put(resource.getResourceId(), resource);
+        }
+        // Now build the model.
+        for (final Resource resource : resources) {
+            resource.build(this);
+        }
+    }
+
+    /**
+     * Returns a {@link RequestHandler} which will handle requests to the named resource and any of its sub-resources.
+     *
+     * @param resourceId
+     *         The resource ID.
+     * @return A {@link RequestHandler} which will handle requests to the named resource.
+     */
+    public RequestHandler newRequestHandlerFor(final String resourceId) {
+        Reject.ifTrue(!resources.containsKey(resourceId), "unrecognized resource '" + resourceId + "'");
+        final SubResourceSingleton root = singletonOf(resourceId);
+        root.build(this, null);
+        return root.addRoutes(new Router());
+    }
+
+    Options getOptions() {
+        return options;
+    }
+
+    Resource getResource(final String resourceId) {
+        return resources.get(resourceId);
     }
 }

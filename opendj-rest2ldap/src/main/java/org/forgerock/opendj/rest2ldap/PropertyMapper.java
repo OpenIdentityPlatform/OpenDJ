@@ -53,6 +53,7 @@ public abstract class PropertyMapper {
      *
      * @param connection
      *            The LDAP connection to use to perform the operation.
+     * @param resource The exact type of resource being created.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            property mapper. This may be used when constructing error
@@ -63,7 +64,8 @@ public abstract class PropertyMapper {
      *            in the resource.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Attribute>, ResourceException> create(Connection connection, JsonPointer path, JsonValue v);
+    abstract Promise<List<Attribute>, ResourceException> create(Connection connection, Resource resource,
+                                                                JsonPointer path, JsonValue v);
 
     /**
      * Adds the names of the LDAP attributes required by this property mapper
@@ -72,8 +74,6 @@ public abstract class PropertyMapper {
      * Implementations should only add the names of attributes found in the LDAP
      * entry directly associated with the resource.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            property mapper. This may be used when constructing error
@@ -83,11 +83,9 @@ public abstract class PropertyMapper {
      *            root if all attributes associated with this mapper have been
      *            targeted.
      * @param ldapAttributes
-     *            The set into which the required LDAP attribute names should be
-     *            put.
+ *            The set into which the required LDAP attribute names should be
      */
-    abstract void getLdapAttributes(Connection connection, JsonPointer path, JsonPointer subPath,
-                                    Set<String> ldapAttributes);
+    abstract void getLdapAttributes(JsonPointer path, JsonPointer subPath, Set<String> ldapAttributes);
 
     /**
      * Transforms the provided REST comparison filter parameters to an LDAP
@@ -100,6 +98,7 @@ public abstract class PropertyMapper {
      *
      * @param connection
      *            The LDAP connection to use to perform the operation.
+     * @param resource The type of resource being queried.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            property mapper. This may be used when constructing error
@@ -119,9 +118,9 @@ public abstract class PropertyMapper {
      *            {@link FilterType#PRESENT}.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<Filter, ResourceException> getLdapFilter(Connection connection, JsonPointer path,
-                                                              JsonPointer subPath, FilterType type, String operator,
-                                                              Object valueAssertion);
+    abstract Promise<Filter, ResourceException> getLdapFilter(Connection connection, Resource resource,
+                                                              JsonPointer path, JsonPointer subPath, FilterType type,
+                                                              String operator, Object valueAssertion);
 
     /**
      * Maps a JSON patch operation to one or more LDAP modifications, returning
@@ -130,6 +129,7 @@ public abstract class PropertyMapper {
      *
      * @param connection
      *            The LDAP connection to use to perform the operation.
+     * @param resource The exact type of resource being patched.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            property mapper. This may be used when constructing error
@@ -141,8 +141,8 @@ public abstract class PropertyMapper {
      *            with this mapper have been targeted.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Modification>, ResourceException> patch(
-            Connection connection, JsonPointer path, PatchOperation operation);
+    abstract Promise<List<Modification>, ResourceException> patch(Connection connection, Resource resource,
+                                                                  JsonPointer path, PatchOperation operation);
 
     /**
      * Maps one or more LDAP attributes to their JSON representation, returning
@@ -161,6 +161,7 @@ public abstract class PropertyMapper {
      *
      * @param connection
      *            The LDAP connection to use to perform the operation.
+     * @param resource The exact type of resource being read.
      * @param path
      *            The pointer from the root of the JSON resource to this
      *            property mapper. This may be used when constructing error
@@ -169,7 +170,8 @@ public abstract class PropertyMapper {
      *            The LDAP entry to be converted to JSON.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<JsonValue, ResourceException> read(Connection connection, JsonPointer path, Entry e);
+    abstract Promise<JsonValue, ResourceException> read(Connection connection, Resource resource,
+                                                        JsonPointer path, Entry e);
 
     /**
      * Maps a JSON value to one or more LDAP modifications, returning a promise
@@ -184,14 +186,15 @@ public abstract class PropertyMapper {
      *
      * @param connection
      *            The LDAP connection to use to perform the operation.
+     * @param resource The exact type of resource being updated.
      * @param v
      *            The JSON value to be converted to LDAP attributes, which may
      *            be {@code null} indicating that the JSON value was not present
      *            in the resource.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Modification>, ResourceException> update(Connection connection, JsonPointer path, Entry e,
-            JsonValue v);
+    abstract Promise<List<Modification>, ResourceException> update(Connection connection, Resource resource,
+                                                                   JsonPointer path, Entry e, JsonValue v);
 
     // TODO: methods for obtaining schema information (e.g. name, description, type information).
     // TODO: methods for creating sort controls.

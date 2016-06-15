@@ -13,88 +13,57 @@
  *
  * Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
-import java.util.Set;
-
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 
 /**
- * A naming strategy is responsible for naming REST resources and LDAP entries.
+ * A naming strategy is responsible for naming JSON resources and LDAP entries.
  */
-abstract class NamingStrategy {
-    /*
-     * This interface is an abstract class so that methods can be made package
-     * private until API is finalized.
-     */
-
-    NamingStrategy() {
-        // Nothing to do.
-    }
-
+interface NamingStrategy {
     /**
-     * Returns a search request which can be used to obtain the specified REST
-     * resource.
+     * Returns a search request which can be used to obtain the specified JSON resource.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
-     * @param baseDN
-     *            The search base DN.
+     * @param baseDn
+     *         The search base DN.
      * @param resourceId
-     *            The resource ID.
-     * @return A search request which can be used to obtain the specified REST
-     *         resource.
+     *         The resource ID.
+     * @return A search request which can be used to obtain the specified JSON resource.
      */
-    abstract SearchRequest createSearchRequest(Connection connection, DN baseDN, String resourceId);
+    SearchRequest createSearchRequest(DN baseDn, String resourceId);
 
     /**
-     * Adds the name of any LDAP attribute required by this naming strategy to the
-     * provided set.
+     * Returns the name of the LDAP attribute from which this naming strategy computes the JSON resource ID.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
-     * @param ldapAttributes
-     *            The set into which any required LDAP attribute name should be
-     *            put.
+     * @return The name of the LDAP attribute from which this naming strategy computes the JSON resource ID.
      */
-    abstract void getLdapAttributes(Connection connection, Set<String> ldapAttributes);
+    String getResourceIdLdapAttribute();
 
     /**
-     * Retrieves the resource ID from the provided LDAP entry. Implementations
-     * may use the entry DN as well as any attributes in order to determine the
-     * resource ID.
+     * Decodes the JSON resource ID from the provided LDAP entry. Implementations may use the entry DN as well as any
+     * attributes in order to determine the resource ID.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
      * @param entry
-     *            The LDAP entry from which the resource ID should be obtained.
-     * @return The resource ID.
+     *         The LDAP entry from which the resource ID should be obtained.
+     * @return The resource ID or {@code null} if the resource ID will be obtained from the resource's "_id" field.
      */
-    abstract String getResourceId(Connection connection, Entry entry);
+    String decodeResourceId(Entry entry);
 
     /**
-     * Sets the resource ID in the provided LDAP entry. Implementations are
-     * responsible for setting the entry DN as well as any attributes associated
-     * with the resource ID.
+     * Encodes the JSON resource ID in the provided LDAP entry. Implementations are responsible for setting the entry
+     * DN as well as any attributes associated with the resource ID.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
-     * @param baseDN
-     *            The baseDN to use when constructing the entry's DN.
+     * @param baseDn
+     *         The base DN to use when constructing the entry's DN.
      * @param resourceId
-     *            The resource ID.
+     *         The resource ID.
      * @param entry
-     *            The LDAP entry whose DN and resource ID attributes are to be
-     *            set.
+     *         The LDAP entry whose DN and resource ID attributes are to be set.
      * @throws ResourceException
-     *             If the resource ID cannot be determined.
+     *         If the resource ID cannot be determined.
      */
-    abstract void setResourceId(Connection connection, DN baseDN, String resourceId, Entry entry)
-            throws ResourceException;
-
+    void encodeResourceId(DN baseDn, String resourceId, Entry entry) throws ResourceException;
 }

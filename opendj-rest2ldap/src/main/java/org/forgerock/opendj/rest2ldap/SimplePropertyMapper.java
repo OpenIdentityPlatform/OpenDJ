@@ -18,6 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -37,15 +38,11 @@ import org.forgerock.util.promise.Promise;
 import static java.util.Collections.*;
 
 import static org.forgerock.opendj.ldap.Filter.*;
-import static org.forgerock.opendj.rest2ldap.Rest2Ldap.*;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
-import static org.forgerock.util.promise.Promises.newExceptionPromise;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
-/**
- * An property mapper which provides a simple mapping from a JSON value to a
- * single LDAP attribute.
- */
+/** An property mapper which provides a simple mapping from a JSON value to a single LDAP attribute. */
 public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<SimplePropertyMapper> {
     private Function<ByteString, ?, NeverThrowsException> decoder;
     private Function<Object, ByteString, NeverThrowsException> encoder;
@@ -68,8 +65,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
     }
 
     /**
-     * Sets the default JSON value which should be substituted when the LDAP
-     * attribute is not found in the LDAP entry.
+     * Sets the default JSON value which should be substituted when the LDAP attribute is not found in the LDAP entry.
      *
      * @param defaultValue
      *            The default JSON value.
@@ -77,6 +73,18 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
      */
     public SimplePropertyMapper defaultJsonValue(final Object defaultValue) {
         this.defaultJsonValues = defaultValue != null ? singletonList(defaultValue) : emptyList();
+        return this;
+    }
+
+    /**
+     * Sets the default JSON values which should be substituted when the LDAP attribute is not found in the LDAP entry.
+     *
+     * @param defaultValues
+     *            The default JSON values.
+     * @return This property mapper.
+     */
+    public SimplePropertyMapper defaultJsonValues(final Collection<?> defaultValues) {
+        this.defaultJsonValues = defaultValues != null ? new ArrayList<>(defaultValues) : emptyList();
         return this;
     }
 
@@ -95,18 +103,27 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
 
     /**
      * Indicates that JSON values are base 64 encodings of binary data. Calling
-     * this method is equivalent to the following:
+     * this method with the value {@code true} is equivalent to the following:
      *
      * <pre>
      * mapper.decoder(...); // function that converts binary data to base 64
      * mapper.encoder(...); // function that converts base 64 to binary data
      * </pre>
      *
+     * Passing in a value of {@code false} resets the encoding and decoding
+     * functions to the default.
+     *
+     * @param isBinary {@code true} if this property is binary.
      * @return This property mapper.
      */
-    public SimplePropertyMapper isBinary() {
-        decoder = byteStringToBase64();
-        encoder = base64ToByteString();
+    public SimplePropertyMapper isBinary(final boolean isBinary) {
+        if (isBinary) {
+            decoder = byteStringToBase64();
+            encoder = base64ToByteString();
+        } else {
+            decoder = null;
+            encoder = null;
+        }
         return this;
     }
 
@@ -116,18 +133,18 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
     }
 
     @Override
-    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final JsonPointer path,
-                                                     final JsonPointer subPath, final FilterType type,
-                                                     final String operator, final Object valueAssertion) {
+    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final Resource resource,
+                                                     final JsonPointer path, final JsonPointer subPath,
+                                                     final FilterType type, final String operator,
+                                                     final Object valueAssertion) {
         if (subPath.isEmpty()) {
             try {
-                final ByteString va =
-                        valueAssertion != null ? encoder().apply(valueAssertion) : null;
+                final ByteString va = valueAssertion != null ? encoder().apply(valueAssertion) : null;
                 return newResultPromise(toFilter(type, ldapAttributeName.toString(), va));
             } catch (final Exception e) {
                 // Invalid assertion value - bad request.
-                return newExceptionPromise((ResourceException) newBadRequestException(
-                        ERR_ILLEGAL_FILTER_ASSERTION_VALUE.get(String.valueOf(valueAssertion), path), e));
+                return newBadRequestException(
+                        ERR_ILLEGAL_FILTER_ASSERTION_VALUE.get(String.valueOf(valueAssertion), path), e).asPromise();
             }
         } else {
             // This property mapper does not support partial filtering.
@@ -136,13 +153,12 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
     }
 
     @Override
-    Promise<Attribute, ResourceException> getNewLdapAttributes(
-            final Connection connection, final JsonPointer path, final List<Object> newValues) {
+    Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection, final Resource resource,
+                                                               final JsonPointer path, final List<Object> newValues) {
         try {
             return newResultPromise(jsonToAttribute(newValues, ldapAttributeName, encoder()));
         } catch (final Exception ex) {
-            return newExceptionPromise((ResourceException) newBadRequestException(
-                    ERR_ENCODING_VALUES_FOR_FIELD.get(path, ex.getMessage())));
+            return newBadRequestException(ERR_ENCODING_VALUES_FOR_FIELD.get(path, ex.getMessage())).asPromise();
         }
     }
 
@@ -151,21 +167,26 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
         return this;
     }
 
+    @SuppressWarnings("fallthrough")
     @Override
-    Promise<JsonValue, ResourceException> read(final Connection connection, final JsonPointer path, final Entry e) {
+    Promise<JsonValue, ResourceException> read(final Connection connection, final Resource resource,
+                                               final JsonPointer path, final Entry e) {
         try {
-            final Object value;
-            if (attributeIsSingleValued()) {
-                value = e.parseAttribute(ldapAttributeName)
-                         .as(decoder(), defaultJsonValues.isEmpty() ? null : defaultJsonValues.get(0));
-            } else {
-                final Set<Object> s = e.parseAttribute(ldapAttributeName).asSetOf(decoder(), defaultJsonValues);
-                value = s.isEmpty() ? null : new ArrayList<>(s);
+            final Set<Object> s = e.parseAttribute(ldapAttributeName).asSetOf(decoder(), defaultJsonValues);
+            switch (s.size()) {
+            case 0:
+                return newResultPromise(null);
+            case 1:
+                if (attributeIsSingleValued()) {
+                    return newResultPromise(new JsonValue(s.iterator().next()));
+                }
+                // Fall-though: unexpectedly got multiple values. It's probably best to just return them.
+            default:
+                return newResultPromise(new JsonValue(new ArrayList<>(s)));
             }
-            return newResultPromise(value != null ? new JsonValue(value) : null);
         } catch (final Exception ex) {
             // The LDAP attribute could not be decoded.
-            return newExceptionPromise(asResourceException(ex));
+            return asResourceException(ex).asPromise();
         }
     }
 

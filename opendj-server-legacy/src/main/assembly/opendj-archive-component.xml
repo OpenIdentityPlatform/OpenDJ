@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <!-- OpenDJ final archive content descriptor -->
 <component>
@@ -202,9 +202,6 @@
     <fileSet>
       <directory>${basedir}/resource/config</directory>
       <outputDirectory>template/config</outputDirectory>
-      <includes>
-        <include>*.*</include>
-      </includes>
       <excludes>
         <exclude>config.ldif</exclude>
       </excludes>

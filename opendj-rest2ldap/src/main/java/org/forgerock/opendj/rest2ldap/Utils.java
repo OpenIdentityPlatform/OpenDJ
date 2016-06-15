@@ -27,11 +27,6 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSynt
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNRECOGNIZED_JSON_VALUE;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -73,12 +68,6 @@ final class Utils {
                 }
             };
 
-    static String readPasswordFromFile(String fileName) throws IOException {
-        try (final BufferedReader reader = new BufferedReader(new FileReader(new File(fileName)))) {
-            return reader.readLine();
-        }
-    }
-
     static Function<Object, ByteString, NeverThrowsException> base64ToByteString() {
         return BASE64_TO_BYTESTRING;
     }
@@ -106,19 +95,6 @@ final class Utils {
         };
     }
 
-    /**
-     * Stub formatter for i18n strings.
-     *
-     * @param format
-     *            The format string.
-     * @param args
-     *            The string arguments.
-     * @return The formatted string.
-     */
-    static String i18n(final String format, final Object... args) {
-        return String.format(format, args);
-    }
-
     private static boolean isJsonPrimitive(final Object value) {
         return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
@@ -138,7 +114,7 @@ final class Utils {
             }
             return a;
         } else {
-            throw newLocalizedIllegalArgumentException(ERR_UNRECOGNIZED_JSON_VALUE.get(value.getClass().getName()));
+            throw new LocalizedIllegalArgumentException(ERR_UNRECOGNIZED_JSON_VALUE.get(value.getClass().getName()));
         }
     }
 
@@ -154,8 +130,8 @@ final class Utils {
                         return ByteString.valueOfObject(value);
                     }
                 } else {
-                    throw newLocalizedIllegalArgumentException(
-                            ERR_UNRECOGNIZED_JSON_VALUE.get(value.getClass().getName()));
+                    throw new LocalizedIllegalArgumentException(ERR_UNRECOGNIZED_JSON_VALUE.get(value.getClass()
+                                                                                                     .getName()));
                 }
             }
         };
@@ -199,10 +175,6 @@ final class Utils {
 
     static JsonValueException newJsonValueException(final JsonValue value, final LocalizableMessage message) {
         return new JsonValueException(value, message.toString());
-    }
-
-    static LocalizedIllegalArgumentException newLocalizedIllegalArgumentException(final LocalizableMessage message) {
-        return new LocalizedIllegalArgumentException(message);
     }
 
     static BadRequestException newBadRequestException(final LocalizableMessage message) {

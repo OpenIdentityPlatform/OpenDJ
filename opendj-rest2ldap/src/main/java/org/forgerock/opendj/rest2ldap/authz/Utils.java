@@ -33,6 +33,13 @@ import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 
 final class Utils {
+    private static final AsyncFunction<LdapException, Response, NeverThrowsException> HANDLE_CONNECTION_FAILURE =
+            new AsyncFunction<LdapException, Response, NeverThrowsException>() {
+                @Override
+                public Promise<Response, NeverThrowsException> apply(final LdapException exception) {
+                    return asErrorResponse(exception);
+                }
+            };
 
     private Utils() { }
 
@@ -58,19 +65,13 @@ final class Utils {
     }
 
     static AsyncFunction<LdapException, Response, NeverThrowsException> handleConnectionFailure() {
-        return new AsyncFunction<LdapException, Response, NeverThrowsException>() {
-            @Override
-            public Promise<Response, NeverThrowsException> apply(final LdapException exception) {
-                return asErrorResponse(exception);
-            }
-        };
+        return HANDLE_CONNECTION_FAILURE;
     }
 
     static Promise<Response, NeverThrowsException> asErrorResponse(final Throwable t) {
         final ResourceException e = asResourceException(t);
-        final Response response = new Response()
-                .setStatus(Status.valueOf(e.getCode()))
-                .setEntity(e.toJsonValue().getObject());
+        final Response response = new Response().setStatus(Status.valueOf(e.getCode()))
+                                                .setEntity(e.toJsonValue() .getObject());
         if (response.getStatus() == Status.UNAUTHORIZED) {
             response.getHeaders().put("WWW-Authenticate", "Basic");
         }

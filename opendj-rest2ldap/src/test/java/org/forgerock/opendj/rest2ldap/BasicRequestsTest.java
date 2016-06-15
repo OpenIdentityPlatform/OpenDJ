@@ -24,21 +24,22 @@ import static org.forgerock.json.resource.PatchOperation.add;
 import static org.forgerock.json.resource.PatchOperation.increment;
 import static org.forgerock.json.resource.PatchOperation.remove;
 import static org.forgerock.json.resource.PatchOperation.replace;
-import static org.forgerock.json.resource.Requests.newDeleteRequest;
-import static org.forgerock.json.resource.Requests.newPatchRequest;
-import static org.forgerock.json.resource.Requests.newQueryRequest;
-import static org.forgerock.json.resource.Requests.newReadRequest;
-import static org.forgerock.json.resource.Requests.newUpdateRequest;
-import static org.forgerock.json.resource.Resources.newCollection;
+import static org.forgerock.json.resource.Requests.*;
 import static org.forgerock.json.resource.Resources.newInternalConnection;
 import static org.forgerock.opendj.ldap.Connections.newInternalConnectionFactory;
 import static org.forgerock.opendj.ldap.Functions.byteStringToInteger;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.collectionOf;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.constant;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.rest2Ldap;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.object;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.resource;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.simple;
 import static org.forgerock.opendj.rest2ldap.TestUtils.asResource;
 import static org.forgerock.opendj.rest2ldap.TestUtils.content;
 import static org.forgerock.opendj.rest2ldap.TestUtils.ctx;
+import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.CREATE_ONLY;
+import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_ONLY;
+import static org.forgerock.util.Options.defaultOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,7 +57,6 @@ import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.RequestContext;
@@ -76,7 +76,6 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
-import org.forgerock.opendj.rest2ldap.Rest2Ldap.Builder;
 import org.forgerock.services.context.Context;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.forgerock.util.query.QueryFilter;
@@ -208,7 +207,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchEmpty() throws Exception {
         final List<Request> requests = new LinkedList<>();
         final Context context = newAuthConnectionContext(requests);
-        final Connection connection = newConnection(requests);
+        final Connection connection = newConnection();
         final ResourceResponse resource1 = connection.patch(context, newPatchRequest("/test1"));
         checkResourcesAreEqual(resource1, getTestUser1(12345));
 
@@ -486,7 +485,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     @Test
     public void testUpdateNoChange() throws Exception {
         final List<Request> requests = new LinkedList<>();
-        final Connection connection = newConnection(requests);
+        final Connection connection = newConnection();
         final Context context = newAuthConnectionContext(requests);
         final ResourceResponse resource1 = connection.update(context, newUpdateRequest("/test1", getTestUser1(12345)));
 
@@ -604,51 +603,40 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     private Connection newConnection() throws IOException {
-        return newConnection(new LinkedList<Request>());
+        return newInternalConnection(usersApi().newRequestHandlerFor("api"));
     }
 
-    private Connection newConnection(final List<Request> requests) throws IOException {
-        return newInternalConnection(newCollection(builder(requests).build()));
-    }
-
-    private Builder builder(final List<Request> requests) throws IOException {
-        return Rest2Ldap.builder()
-                        .baseDN("dc=test")
-                        .useEtagAttribute()
-                        .useClientDNNaming("uid")
-                        .readOnUpdatePolicy(ReadOnUpdatePolicy.CONTROLS)
-                        .additionalLDAPAttribute("objectClass", "top", "person")
-                        .mapper(object()
-                        .attribute("schemas", constant(asList("urn:scim:schemas:core:1.0")))
-                        .attribute("_id", simple("uid").isSingleValued()
-                                                       .isRequired()
-                                                       .writability(WritabilityPolicy.CREATE_ONLY))
-                        .attribute("name", object().attribute("displayName", simple("cn").isSingleValued()
-                                                                                         .isRequired())
-                                                    .attribute("surname", simple("sn").isSingleValued().isRequired()))
-                        .attribute("_rev", simple("etag").isSingleValued()
-                                                         .isRequired()
-                                                         .writability(WritabilityPolicy.READ_ONLY))
-                        .attribute("description", simple("description"))
-                        .attribute("singleNumber", simple("singleNumber").decoder(byteStringToInteger())
-                                                                         .isSingleValued())
-                        .attribute("multiNumber", simple("multiNumber").decoder(byteStringToInteger())));
+    private Rest2Ldap usersApi() throws IOException {
+        return rest2Ldap(defaultOptions(),
+                         resource("api").subResource(collectionOf("user").dnTemplate("dc=test")
+                                                                         .useClientDnNaming("uid")),
+                         resource("user").objectClasses("top", "person")
+                                         .property("schemas", constant(asList("urn:scim:schemas:core:1.0")))
+                                         .property("_id", simple("uid").isRequired(true).writability(CREATE_ONLY))
+                                         .property("name", object().property("displayName",
+                                                                             simple("cn").isRequired(true))
+                                                                   .property("surname", simple("sn").isRequired(true)))
+                                         .property("_rev", simple("etag").isRequired(true).writability(READ_ONLY))
+                                         .property("description", simple("description").isMultiValued(true))
+                                         .property("singleNumber",
+                                                   simple("singleNumber").decoder(byteStringToInteger()))
+                                         .property("multiNumber",
+                                                   simple("multiNumber").isMultiValued(true)
+                                                                        .decoder(byteStringToInteger())));
     }
 
     private void checkResourcesAreEqual(final ResourceResponse actual, final JsonValue expected) {
         final ResourceResponse expectedResource = asResource(expected);
         assertThat(actual.getId()).isEqualTo(expectedResource.getId());
         assertThat(actual.getRevision()).isEqualTo(expectedResource.getRevision());
-        assertThat(actual.getContent().getObject()).isEqualTo(
-                expectedResource.getContent().getObject());
+        assertThat(actual.getContent().getObject()).isEqualTo(expectedResource.getContent().getObject());
     }
 
-    private AuthenticatedConnectionContext newAuthConnectionContext() throws LdapException, IOException {
+    private AuthenticatedConnectionContext newAuthConnectionContext() throws IOException {
         return newAuthConnectionContext(new ArrayList<Request>());
     }
 
-    private AuthenticatedConnectionContext newAuthConnectionContext(List<Request> requests)
-            throws LdapException, IOException {
+    private AuthenticatedConnectionContext newAuthConnectionContext(List<Request> requests) throws IOException {
         return new AuthenticatedConnectionContext(ctx(), getConnectionFactory(requests).getConnection());
     }
 

@@ -15,12 +15,14 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.opendj.ldap.ResultCode.ADMIN_LIMIT_EXCEEDED;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.util.Reject.checkNotNull;
+import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
+import static org.forgerock.util.promise.Promises.newResultPromise;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -44,7 +46,6 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -133,10 +134,11 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     }
 
     @Override
-    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final JsonPointer path,
-                                                     final JsonPointer subPath, final FilterType type,
-                                                     final String operator, final Object valueAssertion) {
-        return mapper.getLdapFilter(connection, path, subPath, type, operator, valueAssertion)
+    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final Resource resource,
+                                                     final JsonPointer path, final JsonPointer subPath,
+                                                     final FilterType type, final String operator,
+                                                     final Object valueAssertion) {
+        return mapper.getLdapFilter(connection, resource, path, subPath, type, operator, valueAssertion)
                 .thenAsync(new AsyncFunction<Filter, Filter, ResourceException>() {
                     @Override
                     public Promise<Filter, ResourceException> apply(final Filter result) {
@@ -164,8 +166,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                             @Override
                             public Filter apply(Result result) throws ResourceException {
                                 if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
-                                    throw asResourceException(
-                                            newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED));
+                                    throw asResourceException(newLdapException(ADMIN_LIMIT_EXCEEDED));
                                 } else if (subFilters.size() == 1) {
                                     return subFilters.get(0);
                                 } else {
@@ -183,8 +184,8 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     }
 
     @Override
-    Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection, final JsonPointer path,
-                                                               final List<Object> newValues) {
+    Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection, final Resource resource,
+                                                               final JsonPointer path, final List<Object> newValues) {
         /*
          * For each value use the subordinate mapper to obtain the LDAP primary
          * key, the perform a search for each one to find the corresponding entries.
@@ -195,70 +196,75 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         final PromiseImpl<Attribute, ResourceException> promise = PromiseImpl.create();
 
         for (final Object value : newValues) {
-            mapper.create(connection, path, new JsonValue(value)).thenOnResult(new ResultHandler<List<Attribute>>() {
-                @Override
-                public void handleResult(List<Attribute> result) {
-                    Attribute primaryKeyAttribute = null;
-                    for (final Attribute attribute : result) {
-                        if (attribute.getAttributeDescription().equals(primaryKey)) {
-                            primaryKeyAttribute = attribute;
-                            break;
-                        }
-                    }
+            mapper.create(connection, resource, path, new JsonValue(value))
+                  .thenOnResult(new ResultHandler<List<Attribute>>() {
+                      @Override
+                      public void handleResult(List<Attribute> result) {
+                          Attribute primaryKeyAttribute = null;
+                          for (final Attribute attribute : result) {
+                              if (attribute.getAttributeDescription().equals(primaryKey)) {
+                                  primaryKeyAttribute = attribute;
+                                  break;
+                              }
+                          }
 
-                    if (primaryKeyAttribute == null || primaryKeyAttribute.isEmpty()) {
-                        promise.handleException(newBadRequestException(ERR_REFERENCE_FIELD_NO_PRIMARY_KEY.get(path)));
-                    }
+                          if (primaryKeyAttribute == null || primaryKeyAttribute.isEmpty()) {
+                              promise.handleException(newBadRequestException(
+                                      ERR_REFERENCE_FIELD_NO_PRIMARY_KEY.get(path)));
+                              return;
+                          }
 
-                    if (primaryKeyAttribute.size() > 1) {
-                        promise.handleException(
-                                newBadRequestException(ERR_REFERENCE_FIELD_MULTIPLE_PRIMARY_KEYS.get(path)));
-                    }
+                          if (primaryKeyAttribute.size() > 1) {
+                              promise.handleException(
+                                      newBadRequestException(ERR_REFERENCE_FIELD_MULTIPLE_PRIMARY_KEYS.get(path)));
+                              return;
+                          }
 
-                    // Now search for the referenced entry in to get its DN.
-                    final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
-                    final Filter filter = Filter.equality(primaryKey.toString(), primaryKeyValue);
-                    final SearchRequest search = createSearchRequest(filter);
-                    connection.searchSingleEntryAsync(search)
-                              .thenOnResult(new ResultHandler<SearchResultEntry>() {
-                                  @Override
-                                  public void handleResult(final SearchResultEntry result) {
-                                      synchronized (newLDAPAttribute) {
-                                          newLDAPAttribute.add(result.getName());
-                                      }
-                                      completeIfNecessary();
-                                  }
-                              }).thenOnException(new ExceptionHandler<LdapException>() {
-                                  @Override
-                                  public void handleException(final LdapException error) {
-                                      ResourceException re;
-                                      try {
-                                          throw error;
-                                      } catch (final EntryNotFoundException e) {
-                                          re = newBadRequestException(ERR_REFERENCE_FIELD_DOES_NOT_EXIST.get(
-                                                  primaryKeyValue.toString(), path));
-                                      } catch (final MultipleEntriesFoundException e) {
-                                          re = newBadRequestException(
-                                                  ERR_REFERENCE_FIELD_AMBIGUOUS.get(primaryKeyValue.toString(), path));
-                                      } catch (final LdapException e) {
-                                          re = asResourceException(e);
-                                      }
-                                      exception.compareAndSet(null, re);
-                                      completeIfNecessary();
-                                  }
-                              });
-                }
+                          // Now search for the referenced entry in to get its DN.
+                          final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
+                          final Filter filter = Filter.equality(primaryKey.toString(), primaryKeyValue);
+                          final SearchRequest search = createSearchRequest(filter);
+                          connection.searchSingleEntryAsync(search)
+                                    .thenOnResult(new ResultHandler<SearchResultEntry>() {
+                                        @Override
+                                        public void handleResult(final SearchResultEntry result) {
+                                            synchronized (newLDAPAttribute) {
+                                                newLDAPAttribute.add(result.getName());
+                                            }
+                                            completeIfNecessary();
+                                        }
+                                    })
+                                    .thenOnException(new ExceptionHandler<LdapException>() {
+                                        @Override
+                                        public void handleException(final LdapException error) {
+                                            ResourceException re;
+                                            try {
+                                                throw error;
+                                            } catch (final EntryNotFoundException e) {
+                                                re = newBadRequestException(
+                                                        ERR_REFERENCE_FIELD_DOES_NOT_EXIST.get(primaryKeyValue, path));
+                                            } catch (final MultipleEntriesFoundException e) {
+                                                re = newBadRequestException(
+                                                        ERR_REFERENCE_FIELD_AMBIGUOUS.get(primaryKeyValue, path));
+                                            } catch (final LdapException e) {
+                                                re = asResourceException(e);
+                                            }
+                                            exception.compareAndSet(null, re);
+                                            completeIfNecessary();
+                                        }
+                                    });
+                      }
 
-                private void completeIfNecessary() {
-                    if (pendingSearches.decrementAndGet() == 0) {
-                        if (exception.get() != null) {
-                            promise.handleException(exception.get());
-                        } else {
-                            promise.handleResult(newLDAPAttribute);
-                        }
-                    }
-                }
-            });
+                      private void completeIfNecessary() {
+                          if (pendingSearches.decrementAndGet() == 0) {
+                              if (exception.get() != null) {
+                                  promise.handleException(exception.get());
+                              } else {
+                                  promise.handleResult(newLDAPAttribute);
+                              }
+                          }
+                      }
+                  });
         }
         return promise;
     }
@@ -268,28 +274,30 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         return this;
     }
 
+    @SuppressWarnings("fallthrough")
     @Override
-    Promise<JsonValue, ResourceException> read(final Connection connection, final JsonPointer path, final Entry e) {
-        final Attribute attribute = e.getAttribute(ldapAttributeName);
-        if (attribute == null || attribute.isEmpty()) {
-            return Promises.newResultPromise(null);
-        } else if (attributeIsSingleValued()) {
-            try {
-                final DN dn = attribute.parse().usingSchema(schema).asDN();
-                return readEntry(connection, path, dn);
-            } catch (final Exception ex) {
-                // The LDAP attribute could not be decoded.
-                return Promises.newExceptionPromise(asResourceException(ex));
+    Promise<JsonValue, ResourceException> read(final Connection connection, final Resource resource,
+                                               final JsonPointer path, final Entry e) {
+        final Set<DN> dns = e.parseAttribute(ldapAttributeName).usingSchema(schema).asSetOfDN();
+        switch (dns.size()) {
+        case 0:
+            return newResultPromise(null);
+        case 1:
+            if (attributeIsSingleValued()) {
+                try {
+                    return readEntry(connection, resource, path, dns.iterator().next());
+                } catch (final Exception ex) {
+                    // The LDAP attribute could not be decoded.
+                    return Promises.newExceptionPromise(asResourceException(ex));
+                }
             }
-        } else {
+            // Fall-though: unexpectedly got multiple values. It's probably best to just return them.
+        default:
             try {
-                final Set<DN> dns = attribute.parse().usingSchema(schema).asSetOfDN();
-
                 final List<Promise<JsonValue, ResourceException>> promises = new ArrayList<>(dns.size());
                 for (final DN dn : dns) {
-                    promises.add(readEntry(connection, path, dn));
+                    promises.add(readEntry(connection, resource, path, dn));
                 }
-
                 return Promises.when(promises)
                                .then(new Function<List<JsonValue>, JsonValue, ResourceException>() {
                                    @Override
@@ -322,9 +330,9 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     }
 
     private Promise<JsonValue, ResourceException> readEntry(
-            final Connection connection, final JsonPointer path, final DN dn) {
+            final Connection connection, final Resource resource, final JsonPointer path, final DN dn) {
         final Set<String> requestedLDAPAttributes = new LinkedHashSet<>();
-        mapper.getLdapAttributes(connection, path, new JsonPointer(), requestedLDAPAttributes);
+        mapper.getLdapAttributes(path, new JsonPointer(), requestedLDAPAttributes);
 
         final Filter searchFilter = filter != null ? filter : Filter.alwaysTrue();
         final String[] attributes = requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
@@ -335,7 +343,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                 .thenAsync(new AsyncFunction<SearchResultEntry, JsonValue, ResourceException>() {
                     @Override
                     public Promise<JsonValue, ResourceException> apply(final SearchResultEntry result) {
-                        return mapper.read(connection, path, result);
+                        return mapper.read(connection, resource, path, result);
                     }
                 }, new AsyncFunction<LdapException, JsonValue, ResourceException>() {
                     @Override

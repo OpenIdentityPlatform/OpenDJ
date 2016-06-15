@@ -386,7 +386,7 @@ objectClass: ds-cfg-rest2ldap-endpoint
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.protocols.http.rest2ldap.Rest2LdapEndpoint
 ds-cfg-base-path: /api
-ds-cfg-config-url: config/http-config.json
+ds-cfg-config-directory: config/rest2ldap/endpoints/api
 ds-cfg-http-authorization-mechanism: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config
 
 dn: cn=HTTP Authorization Mechanisms,cn=config
