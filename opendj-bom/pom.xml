@@ -45,7 +45,7 @@
             <dependency>
                 <groupId>org.forgerock.commons</groupId>
                 <artifactId>commons-bom</artifactId>
-                <version>20.0.0-SNAPSHOT</version>
+                <version>20.0.0-RC1</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
