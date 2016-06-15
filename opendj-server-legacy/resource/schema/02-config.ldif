@@ -6062,3 +6062,8 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.43
   STRUCTURAL
   MUST ( ds-cfg-oauth2-access-token-directory )
   X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.44
+  NAME 'ds-cfg-admin-endpoint'
+  SUP ds-cfg-http-endpoint
+  STRUCTURAL
+  X-ORIGIN 'OpenDJ Directory Server' )

@@ -389,6 +389,15 @@ ds-cfg-base-path: /api
 ds-cfg-config-directory: config/rest2ldap/endpoints/api
 ds-cfg-http-authorization-mechanism: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config
 
+dn: ds-cfg-base-path=/admin,cn=HTTP Endpoints,cn=config
+objectClass: top
+objectClass: ds-cfg-http-endpoint
+objectClass: ds-cfg-admin-endpoint
+ds-cfg-enabled: true
+ds-cfg-base-path: /admin
+ds-cfg-java-class: org.opends.server.protocols.http.rest2ldap.AdminEndpoint
+ds-cfg-http-authorization-mechanism: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config
+
 dn: cn=HTTP Authorization Mechanisms,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
