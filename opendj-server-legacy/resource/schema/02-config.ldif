@@ -6003,8 +6003,8 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.35
   NAME 'ds-cfg-http-authorization-mechanism'
   SUP top
   STRUCTURAL
-  MUST ( cn $ 
-         ds-cfg-java-class $ 
+  MUST ( cn $
+         ds-cfg-java-class $
          ds-cfg-enabled )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.36
@@ -6045,7 +6045,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.40
   SUP ds-cfg-http-oauth2-authorization-mechanism
   STRUCTURAL
   MUST ( ds-cfg-oauth2-token-introspection-url $
-         ds-cfg-oauth2-token-introspection-client-id $ 
+         ds-cfg-oauth2-token-introspection-client-id $
          ds-cfg-oauth2-token-introspection-client-secret )
   MAY ( ds-cfg-trust-manager-provider $
         ds-cfg-key-manager-provider )

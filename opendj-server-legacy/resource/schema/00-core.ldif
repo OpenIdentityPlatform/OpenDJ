@@ -525,7 +525,7 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.59
   X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.2.840.113549.1.9.1 NAME 'emailAddress'
   DESC 'represents the email address part of an X.509 certificate'
-  EQUALITY caseIgnoreIA5Match 
+  EQUALITY caseIgnoreIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   X-ORIGIN 'RFC 2985' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.141 NAME 'fullVendorVersion'
