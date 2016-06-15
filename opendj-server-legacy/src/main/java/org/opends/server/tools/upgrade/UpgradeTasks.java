@@ -15,6 +15,8 @@
  */
 package org.opends.server.tools.upgrade;
 
+import static java.nio.charset.StandardCharsets.*;
+import static java.nio.file.StandardOpenOption.*;
 import static javax.security.auth.callback.ConfirmationCallback.NO;
 import static javax.security.auth.callback.ConfirmationCallback.YES;
 import static javax.security.auth.callback.TextOutputCallback.*;
@@ -23,10 +25,13 @@ import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.copy;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
-import static org.opends.server.util.StaticUtils.isClassAvailable;
+import static org.opends.server.util.StaticUtils.*;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,7 +53,14 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldif.EntryReader;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.tools.RebuildIndex;
@@ -1373,5 +1385,95 @@ public final class UpgradeTasks
   private UpgradeTasks()
   {
     // Do nothing.
+  }
+
+  /**
+   * This task exists because OpenDJ 3.0.0 added an attribute type definition for
+   * {@code ds-cfg-csv-delimiter-char}, but unfortunately trailing spaces existed after the closing
+   * parenthesis. As a consequence, this definition was not added to the concatenated schema.
+   * <p>
+   * This task restores this definition in the concatenated schema using the following algorithm:
+   * <p>
+   * If {@code ds-cfg-csv-delimiter-char} attribute type definition exists in 02-config.ldif,
+   * but not in the concatenated schema then append its definition to the concatenated schema,
+   * omitting the trailing spaces.
+   *
+   * @return The relevant upgrade task
+   * @see OPENDJ-3081
+   */
+  static UpgradeTask restoreCsvDelimiterAttributeTypeInConcatenatedSchemaFile()
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(UpgradeContext context) throws ClientException
+      {
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, getSummary(), 0);
+
+        final File configFile = new File(configSchemaDirectory, "02-config.ldif");
+        AttributeType configCsvCharAT = readCsvDelimiterCharAttributeType(configFile, context, pnc);
+        context.notifyProgress(pnc.setProgress(33));
+
+        AttributeType concatenatedCsvCharAT = readCsvDelimiterCharAttributeType(concatenatedSchemaFile, context, pnc);
+        context.notifyProgress(pnc.setProgress(66));
+
+        if (!configCsvCharAT.isPlaceHolder() && concatenatedCsvCharAT.isPlaceHolder())
+        {
+          try (BufferedWriter writer = Files.newBufferedWriter(concatenatedSchemaFile.toPath(), UTF_8, APPEND))
+          {
+            writer.append(CoreSchema.getAttributeTypesAttributeType().getNameOrOID());
+            writer.append(": ");
+            writer.append(configCsvCharAT.toString().trim());
+            writer.newLine();
+          }
+          catch (IOException e)
+          {
+            throw unexpectedException(context, pnc, INFO_UPGRADE_TASK_CANNOT_WRITE_TO_CONCATENATED_SCHEMA_FILE.get(
+                concatenatedSchemaFile.toPath(), stackTraceToSingleLineString(e)));
+          }
+        }
+        context.notifyProgress(pnc.setProgress(100));
+      }
+
+      private AttributeType readCsvDelimiterCharAttributeType(final File schemaFile,
+          final UpgradeContext context, final ProgressNotificationCallback pnc) throws ClientException
+      {
+        final Schema coreSchema = Schema.getCoreSchema();
+        try (EntryReader entryReader = new LDIFEntryReader(new FileReader(schemaFile)))
+        {
+          final Entry schemaEntry = entryReader.readEntry();
+          final SchemaBuilder builder = new SchemaBuilder();
+          for (Syntax syntax : coreSchema.getSyntaxes())
+          {
+            builder.buildSyntax(syntax).addToSchema();
+          }
+          for (MatchingRule rule : coreSchema.getMatchingRules())
+          {
+            builder.buildMatchingRule(rule).addToSchema();
+          }
+          return builder
+              .addSchema(schemaEntry, false)
+              .toSchema()
+              .asNonStrictSchema()
+              .getAttributeType("ds-cfg-csv-delimiter-char");
+        }
+        catch (IOException e)
+        {
+          throw unexpectedException(context, pnc, INFO_UPGRADE_TASK_CANNOT_READ_SCHEMA_FILE.get(
+              schemaFile.getAbsolutePath(), stackTraceToSingleLineString(e)));
+        }
+      }
+
+      private LocalizableMessage getSummary()
+      {
+        return INFO_UPGRADE_TASK_SUMMARY_RESTORE_CSV_DELIMITER_CHAR.get();
+      }
+
+      @Override
+      public String toString()
+      {
+        return getSummary().toString();
+      }
+    };
   }
 }

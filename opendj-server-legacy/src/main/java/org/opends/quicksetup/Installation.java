@@ -19,6 +19,7 @@ package org.opends.quicksetup;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -485,7 +486,7 @@ public final class Installation
    */
   public File getSchemaConcatFile()
   {
-    return new File(getConfigurationUpgradeDirectory(), "schema.ldif.current");
+    return new File(getConfigurationUpgradeDirectory(), SCHEMA_CONCAT_FILE_NAME);
   }
 
   /**

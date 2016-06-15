@@ -588,6 +588,9 @@ public final class Upgrade
         deleteConfigEntry(INFO_UPGRADE_TASK_CONFIGURATION_BACKEND_NOT_CONFIGURABLE.get(),
             "dn: ds-cfg-backend-id=config,cn=Backends,cn=config"));
 
+    register("3.5.0",
+        restoreCsvDelimiterAttributeTypeInConcatenatedSchemaFile());
+
     /** All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(
         performOEMMigrationIfNeeded(),

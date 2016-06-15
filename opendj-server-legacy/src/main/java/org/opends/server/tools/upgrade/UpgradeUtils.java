@@ -66,6 +66,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.*;
 import static org.opends.server.tools.upgrade.Installation.*;
 import static org.opends.server.util.ChangeOperationType.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /** Common utility methods needed by the upgrade. */
 final class UpgradeUtils
@@ -76,6 +77,8 @@ final class UpgradeUtils
   static final File configDirectory = new File(getInstancePath(), CONFIG_PATH_RELATIVE);
   /** The {@code config/schema} folder of the current instance. */
   static final File configSchemaDirectory = new File(configDirectory, SCHEMA_PATH_RELATIVE);
+  /** The {@code config/upgrade} folder of the current instance. */
+  static final File configUpgradeDirectory = new File(configDirectory, "upgrade");
   /** The {@code template} folder of the current installation. */
   private static final File templateDirectory = new File(getInstallationPath(), TEMPLATE_RELATIVE_PATH);
   /** The {@code template/config} folder of the current installation. */
@@ -93,6 +96,8 @@ final class UpgradeUtils
   static final File batDirectory = new File(getInstallationPath(), WINDOWS_BINARIES_PATH_RELATIVE);
   /** The server configuration file path. */
   static final File configFile = new File(configDirectory, CURRENT_CONFIG_FILE_NAME);
+  /** The concatenated schema file of the current installation. */
+  static final File concatenatedSchemaFile = new File(configUpgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
 
   /**
    * Returns the path of the installation of the directory server. Note that
