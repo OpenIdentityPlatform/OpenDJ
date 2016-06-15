@@ -771,7 +771,14 @@ public final class Upgrade
       context.notify(INFO_UPGRADE_PERFORMING_TASKS.get(), TITLE_CALLBACK);
       for (final UpgradeTask task : tasks)
       {
-        task.perform(context);
+        try
+        {
+          task.perform(context);
+        }
+        catch (ClientException e)
+        {
+          handleClientException(context, e);
+        }
       }
 
       if (UpgradeTasks.countErrors == 0)

@@ -139,8 +139,8 @@ public final class UpgradeTasks
         }
         catch (final IOException e)
         {
-          manageTaskException(context, ERR_UPGRADE_COPYSCHEMA_FAILS.get(
-              schemaFileTemplate.getName(), e.getMessage()), pnc);
+          throw unexpectedException(context, pnc, ERR_UPGRADE_COPYSCHEMA_FAILS.get(
+              schemaFileTemplate.getName(), e.getMessage()));
         }
       }
 
@@ -184,8 +184,8 @@ public final class UpgradeTasks
         }
         catch (final IOException e)
         {
-          manageTaskException(context, ERR_UPGRADE_ADD_CONFIG_FILE_FAILS.get(
-              configFile.getName(), e.getMessage()), pnc);
+          throw unexpectedException(context, pnc, ERR_UPGRADE_ADD_CONFIG_FILE_FAILS.get(
+              configFile.getName(), e.getMessage()));
         }
       }
 
@@ -276,14 +276,13 @@ public final class UpgradeTasks
         try
         {
           final int changeCount = updateSchemaFile(schemaFileTemplate, pathDestination, attributeOids, null);
-
           displayChangeCount(pathDestination, changeCount);
           context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException | IllegalStateException e)
         {
-          manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
-              schemaFileTemplate.getName(), e.getMessage()), pnc);
+          throw unexpectedException(context, pnc, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
+              schemaFileTemplate.getName(), e.getMessage()));
         }
       }
 
@@ -332,19 +331,18 @@ public final class UpgradeTasks
         try
         {
           final int changeCount = updateSchemaFile(schemaFileTemplate, pathDestination, null, objectClassesOids);
-
           displayChangeCount(pathDestination, changeCount);
           context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)
         {
-          manageTaskException(context, ERR_UPGRADE_ADDOBJECTCLASS_FAILS.get(
-              schemaFileTemplate.getName(), e.getMessage()), pnc);
+          throw unexpectedException(context, pnc, ERR_UPGRADE_ADDOBJECTCLASS_FAILS.get(
+              schemaFileTemplate.getName(), e.getMessage()));
         }
         catch (final IllegalStateException e)
         {
-          manageTaskException(context, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
-              schemaFileTemplate.getName(), e.getMessage()), pnc);
+          throw unexpectedException(context, pnc, ERR_UPGRADE_ADDATTRIBUTE_FAILS.get(
+              schemaFileTemplate.getName(), e.getMessage()));
         }
       }
 
@@ -489,7 +487,14 @@ public final class UpgradeTasks
         {
           for (UpgradeTask task : tasks)
           {
-            task.perform(context);
+            try
+            {
+              task.perform(context);
+            }
+            catch (ClientException e)
+            {
+              handleClientException(context, e);
+            }
           }
         }
       }
@@ -510,7 +515,7 @@ public final class UpgradeTasks
               }
               catch (ClientException e)
               {
-                logger.error(LocalizableMessage.raw(e.getMessage()));
+                logger.error(e.getMessageObject());
                 isOk = false;
               }
             }
@@ -763,7 +768,7 @@ public final class UpgradeTasks
         }
         catch (final Exception ex)
         {
-          manageTaskException(context, ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER.get(ex.getMessage()), pnc);
+          throw unexpectedException(context, pnc, ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER.get(ex.getMessage()));
         }
       }
 
@@ -817,7 +822,7 @@ public final class UpgradeTasks
           catch (final Exception ex)
           {
             LocalizableMessage msg = ERR_UPGRADE_RENAME_SNMP_SECURITY_CONFIG_FILE.get(ex.getMessage());
-            manageTaskException(context, msg, pnc);
+            throw unexpectedException(context, pnc, msg);
           }
         }
       }
@@ -854,7 +859,7 @@ public final class UpgradeTasks
         }
         catch (Exception e)
         {
-          manageTaskException(context, LocalizableMessage.raw(e.getMessage()), pnc);
+          throw unexpectedException(context, pnc, LocalizableMessage.raw(e.getMessage()));
         }
       }
 
@@ -979,7 +984,7 @@ public final class UpgradeTasks
               JEHelper.migrateDatabases(backend.envDir, backend.renamedDbs);
               context.notifyProgress(pnc.setProgress(100));
             } catch (ClientException e) {
-              manageTaskException(context, e.getMessageObject(), pnc);
+              throw unexpectedException(context, pnc, e.getMessageObject());
             }
           } else {
             // Skip backends which have been disabled.
@@ -1163,16 +1168,20 @@ public final class UpgradeTasks
     }
   }
 
-  private static void manageTaskException(final UpgradeContext context,
-      final LocalizableMessage message, final ProgressNotificationCallback pnc)
-      throws ClientException
+  private static ClientException unexpectedException(final UpgradeContext context,
+      final ProgressNotificationCallback pnc, final LocalizableMessage message) throws ClientException
   {
     countErrors++;
     context.notifyProgress(pnc.setProgress(-100));
-    logger.error(message);
+    return new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
+  }
+
+  static void handleClientException(final UpgradeContext context, ClientException e) throws ClientException
+  {
+    logger.error(e.getMessageObject());
     if (!context.isIgnoreErrorsMode())
     {
-      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
+      throw e;
     }
   }
 
@@ -1214,7 +1223,7 @@ public final class UpgradeTasks
     }
     catch (final Exception e)
     {
-      manageTaskException(context, LocalizableMessage.raw(e.getMessage()), pnc);
+      throw unexpectedException(context, pnc, LocalizableMessage.raw(e.getMessage()));
     }
   }
 
@@ -1276,11 +1285,11 @@ public final class UpgradeTasks
         }
         catch (ClientException e)
         {
-          manageTaskException(context, e.getMessageObject(), pnc);
+          throw unexpectedException(context, pnc, e.getMessageObject());
         }
         catch (Exception e)
         {
-          manageTaskException(context, LocalizableMessage.raw(e.getLocalizedMessage()), pnc);
+          throw unexpectedException(context, pnc, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
       }
 
