@@ -1564,10 +1564,10 @@ final class OnDiskMergeImporter
            * performed by the CollectorCursor.
            */
           checkThreadNotInterrupted();
-          final FileRegion region = new FileRegion(channel, startOffset, chunk.size());
           final int regionSize;
-          try (final SequentialCursor<ByteString, ByteString> source =
-              new CollectorCursor<>(chunk.flip(), phaseOneDeduplicator))
+          try (final FileRegion region = new FileRegion(channel, startOffset, chunk.size());
+               final SequentialCursor<ByteString, ByteString> source =
+                new CollectorCursor<>(chunk.flip(), phaseOneDeduplicator))
           {
             regionSize = region.write(source);
           }
@@ -1827,7 +1827,7 @@ final class OnDiskMergeImporter
      * +------------+--------------+--------------+----------------+
      * </pre>
      */
-    static final class FileRegion
+    static final class FileRegion implements Closeable
     {
       private final MappedByteBuffer mmapBuffer;
       private final OutputStream mmapBufferOS = new OutputStream()
@@ -1863,6 +1863,15 @@ final class OnDiskMergeImporter
           checkThreadNotInterrupted();
         }
         return mmapBuffer.position();
+      }
+
+      @Override
+      public void close()
+      {
+        // Since this mmapBuffer will be GC'd, we have to ensure that the modified data
+        // are synced to disk. Indeed, there is no guarantee that these data
+        // will otherwise be available for the future File.map(READ).
+        mmapBuffer.force();
       }
 
       /** Cursor through the specific memory-mapped file's region. */
