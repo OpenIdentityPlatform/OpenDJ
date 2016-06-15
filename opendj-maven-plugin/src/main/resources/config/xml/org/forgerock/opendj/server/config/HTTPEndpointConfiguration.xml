@@ -46,19 +46,15 @@
     </adm:profile>
   </adm:property>
 
-  <adm:property name="authorization-mechanism" mandatory="false" multi-valued="true">
+  <adm:property name="authorization-mechanism" mandatory="true" multi-valued="true">
     <adm:synopsis>
-      DNs of the authorization filters to apply to this
-      <adm:user-friendly-name />
-      .
+      The HTTP authorization mechanisms supported by this <adm:user-friendly-name />.
     </adm:synopsis>
     <adm:syntax>
       <adm:aggregation relation-name="http-authorization-mechanism" parent-path="/">
         <adm:constraint>
           <adm:synopsis>
-            The referenced authorization-mechanism must be enabled when the
-            <adm:user-friendly-name />
-            is enabled.
+            The referenced authorization mechanism must be enabled when the <adm:user-friendly-name /> is enabled.
           </adm:synopsis>
           <adm:target-needs-enabling-condition>
             <adm:contains property="enabled" value="true" />
@@ -69,11 +65,6 @@
         </adm:constraint>
       </adm:aggregation>
     </adm:syntax>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-http-authorization-mechanism</ldap:name>
