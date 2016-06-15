@@ -15,7 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.rest2ldap.Utils.*;
+import static org.forgerock.util.Reject.checkNotNull;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.services.context.AbstractContext;
@@ -49,25 +49,7 @@ public final class AuthenticatedConnectionContext extends AbstractContext {
      *            re-used for subsequent LDAP operations.
      */
     public AuthenticatedConnectionContext(final Context parent, final Connection connection) {
-        super(ensureNotNull(parent), "authenticated connection");
-        this.connection = connection;
-    }
-
-    /**
-     * Creates a new pre-authenticated cached LDAP connection context having the
-     * provided ID and parent.
-     *
-     * @param id
-     *            The context ID.
-     * @param parent
-     *            The parent context.
-     * @param connection
-     *            The cached pre-authenticated LDAP connection which should be
-     *            re-used for subsequent LDAP operations.
-     */
-    AuthenticatedConnectionContext(final String id, final Context parent,
-            final Connection connection) {
-        super(id, "authenticated connection", ensureNotNull(parent));
+        super(checkNotNull(parent), "authenticated connection");
         this.connection = connection;
     }
 

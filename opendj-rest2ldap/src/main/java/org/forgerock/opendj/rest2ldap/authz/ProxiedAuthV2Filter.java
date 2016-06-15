@@ -16,8 +16,8 @@
 package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl.newControl;
-import static org.forgerock.opendj.rest2ldap.authz.Utils.asErrorResponse;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.close;
+import static org.forgerock.opendj.rest2ldap.authz.Utils.handleConnectionFailure;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.util.Reject.checkNotNull;
@@ -99,12 +99,7 @@ final class ProxiedAuthV2Filter implements Filter {
                     public Promise<Response, NeverThrowsException> apply(Connection connection) {
                         return next.handle(new AuthenticatedConnectionContext(context, connection), request);
                     }
-                }, new AsyncFunction<LdapException, Response, NeverThrowsException>() {
-                    @Override
-                    public Promise<Response, NeverThrowsException> apply(LdapException ldapException) {
-                        return asErrorResponse(ldapException);
-                    }
-                })
+                }, handleConnectionFailure())
                 .thenFinally(close(connectionHolder));
     }
 

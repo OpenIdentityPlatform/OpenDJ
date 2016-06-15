@@ -15,47 +15,48 @@
   Copyright 2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="rest2ldap-endpoint"
-	plural-name="rest2ldap-endpoints" extends="http-endpoint"
-	package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
-	xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  plural-name="rest2ldap-endpoints" extends="http-endpoint"
+  package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
 
-	<adm:synopsis>
-		The <adm:user-friendly-name /> provides RESTful access to LDAP application data using a set of 
-		customizable data transformations.
-	</adm:synopsis>
-	<adm:profile name="ldap">
-		<ldap:object-class>
-			<ldap:name>ds-cfg-rest2ldap-endpoint</ldap:name>
-			<ldap:superior>ds-cfg-http-endpoint</ldap:superior>
-		</ldap:object-class>
-	</adm:profile>
-	<adm:property-override name="java-class"
-		advanced="true">
-		<adm:default-behavior>
-			<adm:defined>
-				<adm:value>
-					org.opends.server.protocols.http.rest2ldap.Rest2LdapEndpoint
-				</adm:value>
-			</adm:defined>
-		</adm:default-behavior>
-	</adm:property-override>
-	<adm:property name="config-url" mandatory="true">
-		<adm:synopsis>
-			URL of the REST2LDAP configuration file.
-		</adm:synopsis>
-		<adm:syntax>
-          <adm:pattern>
-            <adm:regex>.*</adm:regex>
-            <adm:usage>URL</adm:usage>
-            <adm:synopsis>
-              An URL to an existing file that is readable by the server.
-            </adm:synopsis>
-          </adm:pattern>
-		</adm:syntax>
-		<adm:profile name="ldap">
-			<ldap:attribute>
-				<ldap:name>ds-cfg-config-url</ldap:name>
-			</ldap:attribute>
-		</adm:profile>
-	</adm:property>
+  <adm:synopsis>
+    The <adm:user-friendly-name /> provides RESTful access to LDAP application data using a set of
+    customizable data transformations.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-rest2ldap-endpoint</ldap:name>
+      <ldap:superior>ds-cfg-http-endpoint</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class"
+    advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.protocols.http.rest2ldap.Rest2LdapEndpoint
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="config-url" mandatory="true">
+    <adm:synopsis>
+      URL of the REST2LDAP configuration file.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>URL</adm:usage>
+          <adm:synopsis>
+            A URL to an existing file that is readable by the server.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-config-url</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
 </adm:managed-object>

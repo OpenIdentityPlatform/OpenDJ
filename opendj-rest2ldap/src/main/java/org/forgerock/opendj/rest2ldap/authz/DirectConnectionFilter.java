@@ -26,7 +26,6 @@ import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.AsyncFunction;
@@ -64,12 +63,7 @@ final class DirectConnectionFilter implements Filter {
                         connectionHolder.set(connection);
                         return next.handle(new AuthenticatedConnectionContext(context, connection), request);
                     }
-                }, new AsyncFunction<LdapException, Response, NeverThrowsException>() {
-                    @Override
-                    public Promise<Response, NeverThrowsException> apply(LdapException exception) {
-                        return asErrorResponse(exception);
-                    }
-                })
+                }, handleConnectionFailure())
                 .thenFinally(close(connectionHolder));
     }
 }

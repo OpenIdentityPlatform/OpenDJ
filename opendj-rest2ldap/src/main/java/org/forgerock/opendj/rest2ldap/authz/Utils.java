@@ -26,6 +26,8 @@ import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
@@ -51,6 +53,15 @@ final class Utils {
             @Override
             public void run() {
                 closeSilently(holder.get());
+            }
+        };
+    }
+
+    static AsyncFunction<LdapException, Response, NeverThrowsException> handleConnectionFailure() {
+        return new AsyncFunction<LdapException, Response, NeverThrowsException>() {
+            @Override
+            public Promise<Response, NeverThrowsException> apply(final LdapException exception) {
+                return asErrorResponse(exception);
             }
         };
     }

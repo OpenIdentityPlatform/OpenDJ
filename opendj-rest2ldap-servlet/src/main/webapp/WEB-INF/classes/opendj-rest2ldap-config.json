@@ -51,7 +51,7 @@
             //
             "connectionSecurity": "none",
 
-            // This alias points at an existing certificate that is used for SSL authentication for secure 
+            // This alias points at an existing certificate that is used for SSL authentication for secure
             // communication between this gateway and the remote LDAP server.
             "sslCertAlias": "client-cert",
 
@@ -98,7 +98,7 @@
         // The authorization policies to use. Supported policies are "anonymous", "basic" and "oauth2".
         "policies": [ "basic" ],
 
-        // Perform all operations using a pre-authorization connection. 
+        // Perform all operations using a pre-authorized connection.
         "anonymous": {
             // Specify the connection factory to use to perform LDAP operations.
             // If missing, the "root" factory will be used.
@@ -141,7 +141,7 @@
                 "authzIdTemplate": "u:{username}"
             },
 
-            // Bind to the LDAP server using the resulting DN of a search request. 
+            // Bind to the LDAP server using the resulting DN of a search request.
             "search": {
                 // Connection factory used to perform the search operation.
                 // If missing, "root" factory will be used.
@@ -201,7 +201,7 @@
                 // This attribute is required and must have a string syntax.
                 "endpointURL": "http://openam.example.com:8080/openam/oauth2/tokeninfo",
 
-                // This alias points at an existing certificate that is used for SSL authentication for secure 
+                // This alias points at an existing certificate that is used for SSL authentication for secure
                 // communication between this gateway and the OpenAM access-token resolver.
                 "sslCertAlias": "client-cert",
 
@@ -226,7 +226,7 @@
                 // This attribute is required and must have a string syntax.
                 "endpointURL": "http://openam.example.com:8080/openam/oauth2/myrealm/introspect",
 
-                // This alias points at an existing certificate that is used for SSL authentication for secure 
+                // This alias points at an existing certificate that is used for SSL authentication for secure
                 // communication between this gateway and the introspection access-token resolver.
                 "sslCertAlias": "client-cert",
 

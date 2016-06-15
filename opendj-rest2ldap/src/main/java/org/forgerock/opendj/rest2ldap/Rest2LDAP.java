@@ -26,10 +26,10 @@ import static org.forgerock.opendj.ldap.Connections.LOAD_BALANCER_MONITORING_INT
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeType;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
-import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.newLocalizedIllegalArgumentException;
 import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
+import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.time.Duration.*;
 import static org.forgerock.opendj.ldap.KeyManagers.useSingleCertificate;
 
@@ -77,6 +77,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Options;
+import org.forgerock.util.Reject;
 import org.forgerock.util.time.Duration;
 
 /** Provides core factory methods and builders for constructing LDAP resource collections. */
@@ -158,7 +159,7 @@ public final class Rest2LDAP {
          * @return A reference to this LDAP resource collection builder.
          */
         public Builder baseDN(final DN dn) {
-            ensureNotNull(dn);
+            Reject.ifNull(dn);
             this.baseDN = dn;
             return this;
         }
@@ -180,7 +181,7 @@ public final class Rest2LDAP {
          * @return The new LDAP resource collection.
          */
         public CollectionResourceProvider build() {
-            ensureNotNull(baseDN);
+            Reject.ifNull(baseDN);
             if (rootMapper == null) {
                 throw new IllegalStateException(ERR_CONFIG_NO_MAPPINGS_PROVIDED.get().toString());
             }
@@ -282,7 +283,7 @@ public final class Rest2LDAP {
          * @return A reference to this LDAP resource collection builder.
          */
         public Builder readOnUpdatePolicy(final ReadOnUpdatePolicy policy) {
-            this.readOnUpdatePolicy = ensureNotNull(policy);
+            this.readOnUpdatePolicy = checkNotNull(policy);
             return this;
         }
 
@@ -296,7 +297,7 @@ public final class Rest2LDAP {
          * @return A reference to this LDAP resource collection builder.
          */
         public Builder schema(final Schema schema) {
-            this.schema = ensureNotNull(schema);
+            this.schema = checkNotNull(schema);
             return this;
         }
 
@@ -645,7 +646,7 @@ public final class Rest2LDAP {
             if (this.dnAttribute.equals(idAttribute)) {
                 throw newLocalizedIllegalArgumentException(ERR_CONFIG_NAMING_STRATEGY_DN_AND_ID_NOT_DIFFERENT.get());
             }
-            this.idAttribute = ensureNotNull(idAttribute);
+            this.idAttribute = checkNotNull(idAttribute);
             this.isServerProvided = isServerProvided;
         }
 

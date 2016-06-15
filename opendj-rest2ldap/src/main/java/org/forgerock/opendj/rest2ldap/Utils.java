@@ -15,7 +15,6 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
-import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static javax.xml.bind.DatatypeConverter.parseDateTime;
 import static javax.xml.bind.DatatypeConverter.printDateTime;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
@@ -26,6 +25,7 @@ import static org.forgerock.opendj.ldap.Functions.byteStringToString;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNRECOGNIZED_JSON_VALUE;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -80,12 +79,6 @@ final class Utils {
         }
     }
 
-    static Object attributeToJson(final Attribute a) {
-        final Function<ByteString, Object, NeverThrowsException> f = byteStringToJson(a.getAttributeDescription());
-        final boolean isSingleValued = a.getAttributeDescription().getAttributeType().isSingleValue();
-        return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
-    }
-
     static Function<Object, ByteString, NeverThrowsException> base64ToByteString() {
         return BASE64_TO_BYTESTRING;
     }
@@ -113,24 +106,6 @@ final class Utils {
         };
     }
 
-    static <T> T ensureNotNull(final T object) {
-        if (object == null) {
-            throw new NullPointerException();
-        }
-        return object;
-    }
-
-    static <T> T ensureNotNull(final T object, final String message) {
-        if (object == null) {
-            throw new NullPointerException(message);
-        }
-        return object;
-    }
-
-    static String getAttributeName(final Attribute a) {
-        return a.getAttributeDescription().withoutOption("binary").toString();
-    }
-
     /**
      * Stub formatter for i18n strings.
      *
@@ -144,16 +119,12 @@ final class Utils {
         return String.format(format, args);
     }
 
-    static boolean isJSONPrimitive(final Object value) {
+    private static boolean isJSONPrimitive(final Object value) {
         return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
 
     static boolean isNullOrEmpty(final JsonValue v) {
         return v == null || v.isNull() || (v.isList() && v.size() == 0);
-    }
-
-    static Attribute jsonToAttribute(final Object value, final AttributeDescription ad) {
-        return jsonToAttribute(value, ad, jsonToByteString(ad));
     }
 
     static Attribute jsonToAttribute(final Object value, final AttributeDescription ad,
@@ -240,13 +211,6 @@ final class Utils {
 
     static BadRequestException newBadRequestException(final LocalizableMessage message, final Throwable cause) {
         return new BadRequestException(message.toString(), cause);
-    }
-
-    private static <T> List<T> asList(final Collection<T> c) {
-        if (c instanceof List) {
-            return (List<T>) c;
-        }
-        return new ArrayList<>(c);
     }
 
     /** Prevent instantiation. */

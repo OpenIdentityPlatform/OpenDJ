@@ -19,8 +19,8 @@ import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
+import static org.forgerock.util.Reject.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -54,6 +54,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
+import org.forgerock.util.Reject;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
@@ -96,7 +97,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
      * @return This attribute mapper.
      */
     public ReferenceAttributeMapper searchFilter(final Filter filter) {
-        this.filter = ensureNotNull(filter);
+        this.filter = checkNotNull(filter);
         return this;
     }
 
@@ -123,7 +124,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
      * @return This attribute mapper.
      */
     public ReferenceAttributeMapper searchScope(final SearchScope scope) {
-        this.scope = ensureNotNull(scope);
+        this.scope = checkNotNull(scope);
         return this;
     }
 
