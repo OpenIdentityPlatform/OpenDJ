@@ -953,7 +953,8 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
               @Override
               public void run()
               {
-                next.handle(context, request).thenOnResultOrException(promise, promise);
+                // Trap and forward runtime exceptions.
+                next.handle(context, request).thenOnResult(promise).thenOnRuntimeException(promise);
               }
             }));
       }
