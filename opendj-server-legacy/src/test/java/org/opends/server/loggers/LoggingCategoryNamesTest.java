@@ -11,12 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -25,17 +24,15 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class LoggingCategoryNamesTest extends DirectoryServerTestCase
 {
-  private static final String CORE_PACKAGE = DirectoryServer.class.getPackage().getName();
+  private static final String CORE_PACKAGE = "org.opends.messages.core";
   private static final String CORE_PACKAGE_NAME = "CORE";
 
   @DataProvider
   public Object[][] matchingNames()
   {
     return new Object[][] {
-      { CORE_PACKAGE },
-      { CORE_PACKAGE + ".SomeClass" },
-      { CORE_PACKAGE + ".pack1.SomeClass"},
-      { CORE_PACKAGE + ".pack1.pack2.SomeClass" },
+      { CORE_PACKAGE, CORE_PACKAGE_NAME },
+      { CORE_PACKAGE_NAME + ".dummy", CORE_PACKAGE_NAME + ".dummy"}
     };
   }
 
@@ -53,9 +50,9 @@ public class LoggingCategoryNamesTest extends DirectoryServerTestCase
   }
 
   @Test(dataProvider = "matchingNames")
-  public void testMatching(String classname) throws Exception
+  public void testMatching(String classname, String category) throws Exception
   {
-    assertEquals(LoggingCategoryNames.getCategoryName(classname), CORE_PACKAGE_NAME);
+    assertEquals(LoggingCategoryNames.getCategoryName(classname), category);
   }
 
   @Test(dataProvider = "nonMatchingNames")
@@ -65,11 +62,8 @@ public class LoggingCategoryNamesTest extends DirectoryServerTestCase
   }
 
   @Test
-  public void testSubPackages() throws Exception
+  public void testNoCategory() throws Exception
   {
-    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server.backends.jeb.foo"), "JEB");
-    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server.backends.jeb"), "JEB");
-    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server.backends"), "BACKEND");
-    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server"), "org.opends.server");
+    assertNotNull(LoggingCategoryNames.getCategoryName(null), "Category for null message should be NONE");
   }
 }

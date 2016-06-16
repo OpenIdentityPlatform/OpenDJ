@@ -448,8 +448,9 @@ public class TextErrorLogPublisher
   }
 
   @Override
-  public void log(String category, Severity severity, LocalizableMessage message, Throwable exception)
+  public void log(String source, Severity severity, LocalizableMessage message, Throwable exception)
   {
+    String category = LoggingCategoryNames.getCategoryName(message.resourceName(), source);
     if (isEnabledFor(category, severity))
     {
       StringBuilder sb = new StringBuilder()
@@ -460,8 +461,6 @@ public class TextErrorLogPublisher
           .append(" severity=")
           .append(severity)
           .append(" msgID=")
-          .append(message.resourceName())
-          .append('.')
           .append(message.ordinal())
           .append(" msg=")
           .append(message.toString());

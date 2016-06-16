@@ -11,13 +11,12 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
-import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Provides mapping from class names to simple category names used for logging.
@@ -33,82 +32,61 @@ public class LoggingCategoryNames
    * most case, package name is sufficient to map to a category name. It is
    * valid if several entries point to the same category name.
    */
-  private static final NavigableMap<String, String> NAMES = new TreeMap<>();
+  private static final Map<String, String> NAMES = new HashMap<>();
+  private static final String DEFAULT_CATEGORY = "NONE";
   static
   {
     // The category used for messages associated with the core server.
-    NAMES.put("org.opends.server.core", "CORE");
-    NAMES.put("org.forgerock.opendj.ldap", "CORE");
+    NAMES.put("org.opends.messages.core", "CORE");
+    NAMES.put("org.opends.messages.runtime", "CORE");
+    NAMES.put("com.forgerock.opendj.ldap", "CORE");
 
     // The category used for messages associated with server extensions
     // (e.g. extended operations, SASL mechanisms, password storage, schemes, password validators, etc.).
-    NAMES.put("org.opends.server.extensions", "EXTENSIONS");
+    NAMES.put("org.opends.messages.extension", "EXTENSIONS");
 
     // The category used for messages associated with
     // connection and protocol handling (e.g., ASN.1 and LDAP).
-    NAMES.put("org.opends.server.protocol", "PROTOCOL");
-    NAMES.put("org.forgerock.opendj.io", "PROTOCOL");
+    NAMES.put("org.opends.messages.protocol", "PROTOCOL");
 
     // The category used for messages associated with configuration handling.
-    NAMES.put("org.opends.server.config", "CONFIG");
+    NAMES.put("org.opends.messages.config", "CONFIG");
 
     // The category used for messages associated with the server loggers.
-    NAMES.put("org.opends.server.loggers", "LOG");
+    NAMES.put("org.opends.messages.logger", "LOG");
 
     // The category used for messages associated with the general server utilities.
-    NAMES.put("org.opends.server.util", "UTIL");
+    NAMES.put("org.opends.messages.utility", "UTIL");
 
     // The category used for messages associated with the server schema elements.
-    NAMES.put("org.opends.server.schema", "SCHEMA");
-    NAMES.put("org.forgerock.opendj.ldap.schema", "SCHEMA");
-
-    // The category used for messages associated with the server controls.
-    NAMES.put("org.opends.server.controls", "CONTROLS");
-    NAMES.put("org.forgerock.opendj.ldap.controls", "CONTROLS");
+    NAMES.put("org.opends.messages.schema", "SCHEMA");
 
     // The category that will be used for messages associated with plugin processing.
-    NAMES.put("org.opends.server.plugins", "PLUGIN");
-
-    // The category used for messages associated with the JE backend.
-    NAMES.put("org.opends.server.backends.jeb", "JEB");
-
-    // The category used for messages associated with the pluggable backend.
-    NAMES.put("org.opends.server.backends.pluggable", "PLUGGABLE");
-
-    // The category used for messages associated with the PDB backend.
-    NAMES.put("org.opends.server.backends.pdb", "PDB");
+    NAMES.put("org.opends.messages.plugin", "PLUGIN");
 
     // The category used for messages associated with generic backends.
-    NAMES.put("org.opends.server.backends", "BACKEND");
+    NAMES.put("org.opends.messages.backend", "BACKEND");
 
     // The category used for messages associated with tools
-    NAMES.put("org.opends.server.tools", "TOOLS");
-
-    // The category used for messages associated with upgrade tool
-    NAMES.put("org.opends.server.tools.upgrade", "UPGRADE");
+    NAMES.put("org.opends.messages.tool", "TOOLS");
 
     // The category used for messages associated with tasks
-    NAMES.put("org.opends.server.tasks", "TASK");
+    NAMES.put("org.opends.messages.task", "TASK");
 
     // The category used for messages associated with Access Control
-    NAMES.put("org.opends.server.authorization", "ACCESS_CONTROL");
+    NAMES.put("org.opends.messages.access_control", "ACCESS_CONTROL");
 
     // The category used for messages associated with the administration framework.
-    NAMES.put("org.opends.server.admin", "ADMIN");
+    NAMES.put("org.opends.messages.admin", "ADMIN");
 
     // The category used for messages associated with the Synchronization
     NAMES.put("org.opends.server.replication", "SYNC");
 
     // The category used for messages associated with quicksetup tools
-    NAMES.put("org.opends.quicksetup", "QUICKSETUP");
+    NAMES.put("org.opends.messages.quickSetup", "QUICKSETUP");
 
     // The category used for messages associated with the tool like the offline installer and unintaller.
-    NAMES.put("org.opends.quicksetup.offline", "ADMIN_TOOL");
-    NAMES.put("org.opends.guitools.uninstaller", "ADMIN_TOOL");
-
-    // The category used for messages associated with the dsconfig
-    // administration tool.
-    NAMES.put("org.opends.admin.ads", "DSCONFIG");
+    NAMES.put("org.opends.messages.admin_tool", "ADMIN_TOOL");
 
     // The category used for messages associated with common audit.
     NAMES.put("org.forgerock.audit", "AUDIT");
@@ -125,11 +103,29 @@ public class LoggingCategoryNames
    */
   public static String getCategoryName(final String className)
   {
-    final Entry<String, String> entry = NAMES.floorEntry(className);
-    if (entry != null && className.startsWith(entry.getKey()))
+    return getCategoryName(className, null);
+  }
+
+  /**
+   * Returns the simple category name corresponding to the provided class name
+   * or a class name if no mapping corresponds.
+   * The returned class name will be {@code fallbackCategory} if the class name is
+   * null.
+   *
+   * @param className
+   *          The classname to retrieve the category name from.
+   * @param fallbackCategory
+   *          The category to return when className is null.
+   * @return the simple category name, or the provided className if no matching
+   *         simple category name is found
+   */
+  public static String getCategoryName(final String className, String fallbackCategory)
+  {
+    if (className == null)
     {
-      return entry.getValue();
+      return fallbackCategory == null ? DEFAULT_CATEGORY : fallbackCategory;
     }
-    return className;
+    final String category = NAMES.get(className);
+    return category != null ? category : className;
   }
 }
