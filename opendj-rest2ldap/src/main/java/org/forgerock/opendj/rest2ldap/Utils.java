@@ -27,6 +27,10 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,6 +74,11 @@ final class Utils {
                 }
             };
 
+    static String readPasswordFromFile(String fileName) throws IOException {
+        try (final BufferedReader reader = new BufferedReader(new FileReader(new File(fileName)))) {
+            return reader.readLine();
+        }
+    }
 
     static Object attributeToJson(final Attribute a) {
         final Function<ByteString, Object, NeverThrowsException> f = byteStringToJson(a.getAttributeDescription());

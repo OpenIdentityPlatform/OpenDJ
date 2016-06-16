@@ -31,8 +31,8 @@ import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.newLocalizedIllegalArgumentException;
 import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
 import static org.forgerock.util.time.Duration.*;
+import static org.forgerock.opendj.ldap.KeyManagers.useSingleCertificate;
 
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -41,6 +41,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509KeyManager;
 
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.CollectionResourceProvider;
@@ -68,7 +71,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
-import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -88,8 +90,16 @@ public final class Rest2LDAP {
      * Specifies the mechanism which should be used for trusting certificates
      * presented by the LDAP server.
      */
-    private enum TrustManagerType {
+    enum TrustManagerType {
         TRUSTALL, JVM, FILE
+    }
+
+    /**
+     * Specifies the mechanism which manage which X509 certificate-based key pairs should be used to authenticate the
+     * local side of a secure socket.
+     */
+    enum KeyManagerType {
+        JVM, KEYSTORE, PKCS11
     }
 
     /** A builder for incrementally constructing LDAP resource collections. */
@@ -784,6 +794,12 @@ public final class Rest2LDAP {
      *            The JSON configuration.
      * @param name
      *            The name of the connection factory configuration to be parsed.
+     * @param trustManager
+     *            The trust manager to use for secure connection. Can be {@code null}
+     *            to use the default JVM trust manager.
+     * @param keyManager
+     *            The key manager to use for secure connection. Can be {@code null}
+     *            to use the default JVM key manager.
      * @param providerClassLoader
      *            The {@link ClassLoader} used to fetch the
      *            {@link org.forgerock.opendj.ldap.spi.TransportProvider}.
@@ -794,10 +810,12 @@ public final class Rest2LDAP {
      */
     public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
                                                                final String name,
+                                                               final TrustManager trustManager,
+                                                               final X509KeyManager keyManager,
                                                                final ClassLoader providerClassLoader) {
         final JsonValue normalizedConfiguration =
                 normalizeConnectionFactory(configuration, name, 0);
-        return configureConnectionFactory(normalizedConfiguration, providerClassLoader);
+        return configureConnectionFactory(normalizedConfiguration, trustManager, keyManager, providerClassLoader);
     }
 
     /**
@@ -809,13 +827,19 @@ public final class Rest2LDAP {
      *            The JSON configuration.
      * @param name
      *            The name of the connection factory configuration to be parsed.
+     * @param trustManager
+     *            The trust manager to use for secure connection. Can be {@code null}
+     *            to use the default JVM trust manager.
+     * @param keyManager
+     *            The key manager to use for secure connection. Can be {@code null}
+     *            to use the default JVM key manager.
      * @return A new connection factory using the provided JSON configuration.
      * @throws IllegalArgumentException
      *             If the configuration is invalid.
      */
     public static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
-            final String name) {
-        return configureConnectionFactory(configuration, name, null);
+            final String name, final TrustManager trustManager, final X509KeyManager keyManager) {
+        return configureConnectionFactory(configuration, name, trustManager, keyManager, null);
     }
 
     /**
@@ -908,6 +932,8 @@ public final class Rest2LDAP {
     }
 
     private static ConnectionFactory configureConnectionFactory(final JsonValue configuration,
+                                                                final TrustManager trustManager,
+                                                                final X509KeyManager keyManager,
                                                                 final ClassLoader providerClassLoader) {
         final long heartBeatIntervalSeconds = configuration.get("heartBeatIntervalSeconds").defaultTo(30L).asLong();
         final Duration heartBeatInterval = duration(Math.max(heartBeatIntervalSeconds, 1L), TimeUnit.SECONDS);
@@ -948,32 +974,14 @@ public final class Rest2LDAP {
             try {
                 // Configure SSL.
                 final SSLContextBuilder builder = new SSLContextBuilder();
-
-                // Parse trust store configuration.
-                final TrustManagerType trustManagerType =
-                        configuration.get("trustManager").defaultTo(TrustManagerType.TRUSTALL)
-                                .asEnum(TrustManagerType.class);
-                switch (trustManagerType) {
-                case TRUSTALL:
-                    builder.setTrustManager(TrustManagers.trustAll());
-                    break;
-                case JVM:
-                    // Do nothing: JVM trust manager is the default.
-                    break;
-                case FILE:
-                    final String fileName =
-                            configuration.get("fileBasedTrustManagerFile").required().asString();
-                    final String password =
-                            configuration.get("fileBasedTrustManagerPassword").asString();
-                    final String type = configuration.get("fileBasedTrustManagerType").asString();
-                    builder.setTrustManager(TrustManagers.checkUsingTrustStore(fileName,
-                            password != null ? password.toCharArray() : null, type));
-                    break;
-                }
+                builder.setTrustManager(trustManager);
+                final String sslCertAlias = configuration.get("sslCertAlias").asString();
+                builder.setKeyManager(sslCertAlias != null
+                        ? useSingleCertificate(sslCertAlias, keyManager)
+                        : keyManager);
                 options.set(SSL_CONTEXT, builder.getSSLContext());
-                options.set(SSL_USE_STARTTLS,
-                            connectionSecurity == ConnectionSecurity.STARTTLS);
-            } catch (GeneralSecurityException | IOException e) {
+                options.set(SSL_USE_STARTTLS, connectionSecurity == ConnectionSecurity.STARTTLS);
+            } catch (GeneralSecurityException e) {
                 // Rethrow as unchecked exception.
                 throw new IllegalArgumentException(e);
             }

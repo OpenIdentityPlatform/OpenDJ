@@ -17,6 +17,10 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+import static org.forgerock.http.handler.HttpClientHandler.*;
+import static org.forgerock.opendj.ldap.KeyManagers.*;
+import static org.forgerock.opendj.ldap.TrustManagers.checkUsingTrustStore;
+import static org.forgerock.opendj.ldap.TrustManagers.trustAll;
 import static org.forgerock.http.util.Json.readJsonLenient;
 import static org.forgerock.json.JsonValueFunctions.duration;
 import static org.forgerock.json.JsonValueFunctions.enumConstant;
@@ -31,12 +35,14 @@ import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.*;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
 import static org.forgerock.util.Utils.joinAsString;
+import static org.forgerock.opendj.rest2ldap.Utils.readPasswordFromFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +51,10 @@ import java.util.Set;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509KeyManager;
 
 import org.forgerock.openig.oauth2.AccessTokenInfo;
 import org.forgerock.openig.oauth2.AccessTokenException;
@@ -71,11 +81,14 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.rest2ldap.Rest2LDAP.KeyManagerType;
+import org.forgerock.opendj.rest2ldap.Rest2LDAP.TrustManagerType;
 import org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategy;
 import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;
 import org.forgerock.services.context.SecurityContext;
 import org.forgerock.util.Factory;
 import org.forgerock.util.Function;
+import org.forgerock.util.Options;
 import org.forgerock.util.Pair;
 import org.forgerock.util.PerItemEvictionStrategyCache;
 import org.forgerock.util.annotations.VisibleForTesting;
@@ -112,6 +125,9 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
     private final Map<String, ConnectionFactory> connectionFactories = new HashMap<>();
     /** Used for token caching. */
     private ScheduledExecutorService executorService;
+
+    private TrustManager trustManager;
+    private X509KeyManager keyManager;
 
     /** Define the method which should be used to resolve an OAuth2 access token. */
     private enum OAuth2ResolverType {
@@ -175,6 +191,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         try {
             final JsonValue configuration = readJson(configurationUrl);
             executorService = Executors.newSingleThreadScheduledExecutor();
+            configureSecurity(configuration.get("security"));
             configureConnectionFactories(configuration.get("ldapConnectionFactories"));
             return Handlers.chainOf(
                     CrestHttp.newHttpHandler(configureRest2Ldap(configuration)),
@@ -204,10 +221,76 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         return router;
     }
 
+    private void configureSecurity(final JsonValue configuration) {
+        try {
+            trustManager = configureTrustManager(configuration, TrustManagerType.JVM);
+        } catch (GeneralSecurityException | IOException e) {
+            throw new IllegalArgumentException(ERR_CONFIG_INVALID_TRUST_MANAGER
+                    .get(configuration.getPointer(), e.getLocalizedMessage()).toString(), e);
+        }
+
+        try {
+            keyManager = configureKeyManager(configuration, KeyManagerType.JVM);
+        } catch (GeneralSecurityException | IOException e) {
+            throw new IllegalArgumentException(ERR_CONFIG_INVALID_KEY_MANAGER
+                    .get(configuration.getPointer(), e.getLocalizedMessage()).toString(), e);
+        }
+    }
+
+    private TrustManager configureTrustManager(JsonValue config, TrustManagerType defaultIfMissing)
+            throws GeneralSecurityException, IOException {
+        // Parse trust store configuration.
+        final TrustManagerType trustManagerType =
+                config.get("trustManager").defaultTo(defaultIfMissing).as(enumConstant(TrustManagerType.class));
+        switch (trustManagerType) {
+        case TRUSTALL:
+            return trustAll();
+        case JVM:
+            return null;
+        case FILE:
+            final String fileName = config.get("fileBasedTrustManagerFile").required().asString();
+            final String passwordFile = config.get("fileBasedTrustManagerPasswordFile").asString();
+            final String password = passwordFile != null
+                    ? readPasswordFromFile(passwordFile)
+                    : config.get("fileBasedTrustManagerPassword").asString();
+            final String type = config.get("fileBasedTrustManagerType").asString();
+            return checkUsingTrustStore(fileName, password != null ? password.toCharArray() : null, type);
+        default:
+            throw new IllegalArgumentException("Unsupported trust-manager type: " + trustManagerType);
+        }
+    }
+
+    private X509KeyManager configureKeyManager(JsonValue config, KeyManagerType defaultIfMissing)
+            throws GeneralSecurityException, IOException {
+        // Parse trust store configuration.
+        final KeyManagerType keyManagerType = config.get("keyManager").defaultTo(defaultIfMissing)
+                .as(enumConstant(KeyManagerType.class));
+        switch (keyManagerType) {
+        case JVM:
+            return useJvmDefaultKeyStore();
+        case KEYSTORE:
+            final String fileName = config.get("keyStoreFile").required().asString();
+            final String passwordFile = config.get("keyStorePasswordFile").asString();
+            final String password = passwordFile != null
+                    ? readPasswordFromFile(passwordFile)
+                    : config.get("keyStorePassword").asString();
+            final String format = config.get("keyStoreFormat").asString();
+            final String provider = config.get("keyStoreProvider").asString();
+            return useKeyStoreFile(fileName, password != null ? password.toCharArray() : null, format, provider);
+        case PKCS11:
+            final String pkcs11PasswordFile = config.get("pkcs11PasswordFile").asString();
+            return usePKCS11Token(pkcs11PasswordFile != null
+                    ? readPasswordFromFile(pkcs11PasswordFile).toCharArray()
+                    : null);
+        default:
+            throw new IllegalArgumentException("Unsupported key-manager type: " + keyManagerType);
+        }
+    }
+
     private void configureConnectionFactories(final JsonValue config) {
         connectionFactories.clear();
         for (String name : config.keys()) {
-            connectionFactories.put(name, configureConnectionFactory(config, name));
+            connectionFactories.put(name, configureConnectionFactory(config, name, trustManager, keyManager));
         }
     }
 
@@ -282,9 +365,10 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         case RFC7662:
             return parseRfc7662Resolver(configuration);
         case OPENAM:
-            return new OpenAmAccessTokenResolver(new HttpClientHandler(),
+            final JsonValue openAm = configuration.get("openam");
+            return new OpenAmAccessTokenResolver(newHttpClientHandler(openAm),
                                                  TimeService.SYSTEM,
-                                                 configuration.get("openam").get("endpointURL").required().asString());
+                                                 openAm.get("endpointURL").required().asString());
         case CTS:
             final JsonValue cts = configuration.get("cts").required();
             return newCtsAccessTokenResolver(
@@ -303,7 +387,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         final JsonValue rfc7662 = configuration.get("rfc7662").required();
         final String introspectionEndPointURL = rfc7662.get("endpointURL").required().asString();
         try {
-            return newRfc7662AccessTokenResolver(new HttpClientHandler(),
+            return newRfc7662AccessTokenResolver(newHttpClientHandler(rfc7662),
                                                  new URI(introspectionEndPointURL),
                                                  rfc7662.get("clientId").required().asString(),
                                                  rfc7662.get("clientSecret").required().asString());
@@ -311,6 +395,19 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
             throw new IllegalArgumentException(ERR_CONIFG_OAUTH2_INVALID_INTROSPECT_URL.get(
                     introspectionEndPointURL, e.getLocalizedMessage()).toString(), e);
         }
+    }
+
+    private HttpClientHandler newHttpClientHandler(final JsonValue config) throws HttpApplicationException {
+        final Options httpOptions = Options.defaultOptions();
+        if (trustManager != null) {
+            httpOptions.set(OPTION_TRUST_MANAGERS, new TrustManager[] { trustManager });
+        }
+        if (keyManager != null) {
+            final String keyAlias = config.get("sslCertAlias").asString();
+            httpOptions.set(OPTION_KEY_MANAGERS,
+                    new KeyManager[] { keyAlias != null ? useSingleCertificate(keyAlias, keyManager) : keyManager });
+        }
+        return new HttpClientHandler(httpOptions);
     }
 
     private Duration parseCacheExpiration(final JsonValue expirationJson) {
