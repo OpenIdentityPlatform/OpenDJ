@@ -16,7 +16,6 @@
  */
 package org.opends.server.api;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -288,6 +287,9 @@ public abstract class Group<T extends GroupImplementationCfg>
    *                         its DN should be added to the list, and
    *                         any DN already contained in the list
    *                         should be skipped.
+   *                         The use of an atomic reference allow to
+   *                         lazily create the Set to optimize memory
+   *                         when there is no nested groups.
    *
    * @return  {@code true} if the specified user is currently a member
    *          of this group, or {@code false} if not.
@@ -339,6 +341,9 @@ public abstract class Group<T extends GroupImplementationCfg>
    *                         its DN should be added to the list, and
    *                         any DN already contained in the list
    *                         should be skipped.
+   *                         The use of an atomic reference allow to
+   *                         lazily create the Set to optimize memory
+   *                         when there is no nested groups.
    *
    * @return  {@code true} if the specified user is currently a member
    *          of this group, or {@code false} if not.

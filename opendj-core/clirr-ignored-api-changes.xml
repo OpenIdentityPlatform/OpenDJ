@@ -86,5 +86,15 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <to>org/forgerock/opendj/ldap/schema/**SchemaElement$SchemaElementBuilder</to>
     <justification>Renamed class SchemaElement to AbstractSchemaElement</justification>
   </difference>
-  
+   <difference>
+    <className>org/forgerock/opendj/ldap/DN</className>
+    <differenceType>7002</differenceType>
+    <method>org.forgerock.opendj.ldap.DN$CompactDn compact()</method>
+    <justification>CompactDN has been migrated to server</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/DN$CompactDn</className>
+    <differenceType>8001</differenceType>
+    <justification>CompactDN has been migrated to server</justification>
+  </difference>
 </differences>

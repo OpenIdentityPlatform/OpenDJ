@@ -25,9 +25,10 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.DN.CompactDn;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.core.ServerContext;
+import org.opends.server.extensions.StaticGroup.CompactDn;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -65,10 +66,14 @@ public class FilteredStaticGroupMemberList extends MemberList
   /** The search scope to apply against the base DN for the member subset. */
   private SearchScope scope;
 
+  private final ServerContext serverContext;
+
   /**
    * Creates a new filtered static group member list with the provided
    * information.
    *
+   * @param serverContext
+   *            The server context.
    * @param  groupDN    The DN of the static group with which this member list
    *                    is associated.
    * @param  memberDNs  The set of DNs for the users that are members of the
@@ -82,11 +87,12 @@ public class FilteredStaticGroupMemberList extends MemberList
    *                    match.  If this is {@code null}, then all members will
    *                    be considered eligible.
    */
-  public FilteredStaticGroupMemberList(DN groupDN, Set<CompactDn> memberDNs, DN baseDN, SearchScope scope,
-      SearchFilter filter)
+  public FilteredStaticGroupMemberList(ServerContext serverContext, DN groupDN, Set<CompactDn> memberDNs, DN baseDN,
+      SearchScope scope, SearchFilter filter)
   {
     ifNull(groupDN, memberDNs);
 
+    this.serverContext = serverContext;
     this.groupDN   = groupDN;
     this.memberDNIterator = memberDNs.iterator();
     this.baseDN = baseDN;
@@ -112,7 +118,7 @@ public class FilteredStaticGroupMemberList extends MemberList
       DN nextDN = null;
       try
       {
-        nextDN = StaticGroup.fromCompactDn(memberDNIterator.next());
+        nextDN = memberDNIterator.next().toDn(serverContext);
       }
       catch (LocalizedIllegalArgumentException e)
       {

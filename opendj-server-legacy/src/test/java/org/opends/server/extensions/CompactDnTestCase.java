@@ -11,20 +11,23 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
-package org.forgerock.opendj.ldap;
+package org.opends.server.extensions;
 
+import org.forgerock.opendj.ldap.DN;
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.extensions.StaticGroup.CompactDn;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 
 /**
- * This class defines a set of tests for the org.forgerock.opendj.ldap.DN.CompactDn class.
+ * This class defines a set of tests for the inner class StaticGroup.CompactDn.
  */
 @SuppressWarnings("javadoc")
-public class CompactDnTestCase extends SdkTestCase {
+public class CompactDnTestCase extends DirectoryServerTestCase {
 
     /**
      * DN test data provider.
@@ -80,11 +83,11 @@ public class CompactDnTestCase extends SdkTestCase {
 
     @Test(dataProvider = "equivalentDnRepresentations")
     public void testEquals(String dn, String otherDn) throws Exception {
-        assertThat(DN.valueOf(dn).compact()).isEqualTo(DN.valueOf(otherDn).compact());
+      assertThat(new CompactDn(DN.valueOf(dn))).isEqualTo(new CompactDn(DN.valueOf(otherDn)));
     }
 
     @Test(dataProvider = "equivalentDnRepresentations")
     public void testCompareTo(String dn, String otherDn) throws Exception {
-        assertThat(DN.valueOf(dn).compact().compareTo(DN.valueOf(otherDn).compact())).isEqualTo(0);
+        assertThat(new CompactDn(DN.valueOf(dn)).compareTo(new CompactDn(DN.valueOf(otherDn)))).isEqualTo(0);
     }
 }

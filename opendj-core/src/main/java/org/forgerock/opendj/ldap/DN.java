@@ -16,7 +16,6 @@
  */
 package org.forgerock.opendj.ldap;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -35,7 +34,6 @@ import org.forgerock.util.Reject;
 import com.forgerock.opendj.util.SubstringReader;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * A distinguished name (DN) as defined in RFC 4512 section 2.3 is the
@@ -329,6 +327,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     private final RDN rdn;
     private DN parent;
     private final int size;
+    private int hashCode = -1;
 
     /**
      * The normalized byte string representation of this DN, which is not
@@ -472,7 +471,10 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
     @Override
     public int hashCode() {
-        return toNormalizedByteString().hashCode();
+        if (hashCode == -1) {
+            hashCode = toNormalizedByteString().hashCode();
+        }
+        return hashCode;
     }
 
     /**
@@ -985,92 +987,4 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         return UUID.nameUUIDFromBytes(normDN.toByteArray());
     }
 
-    /**
-     * A compact representation of a DN, suitable for equality and comparisons, and providing a natural hierarchical
-     * ordering.
-     * <p>
-     * This representation should be used when it is important to reduce memory usage. The memory consumption compared
-     * to a regular DN object is minimal. Prototypical usage is for static groups implementation where large groups of
-     * DNs must be recorded and must be converted back to DNs.
-     * <p>
-     * This representation can be created either eagerly or lazily.
-     * <ul>
-     *   <li>eagerly: the normalized value is computed immediately at creation time.</li>
-     *   <li>lazily: the normalized value is computed only the first time it is needed.</li>
-     * </ul>
-     *
-     * @deprecated This class will eventually be replaced by a compact implementation of a DN.
-     */
-    @Deprecated
-    public static final class CompactDn implements Comparable<CompactDn> {
-        /** Original string corresponding to the DN. */
-        private final byte[] originalValue;
-
-        /**
-         * Normalized byte string, suitable for equality and comparisons, and providing a natural hierarchical ordering,
-         * but not usable as a valid DN.
-         */
-        private volatile byte[] normalizedValue;
-
-        private final Schema schema;
-
-        private CompactDn(final DN dn) {
-            this.originalValue = getBytes(dn.toString());
-            this.schema = dn.schema;
-        }
-
-        @Override
-        public int compareTo(final CompactDn other) {
-            byte[] normValue = getNormalizedValue();
-            byte[] otherNormValue = other.getNormalizedValue();
-            return ByteString.compareTo(normValue, 0, normValue.length, otherNormValue, 0, otherNormValue.length);
-        }
-
-        /**
-         * Returns the DN corresponding to this compact representation.
-         *
-         *  @return the DN
-         */
-        public DN toDn() {
-            return DN.valueOf(ByteString.toString(originalValue, 0, originalValue.length), schema);
-        }
-
-        @Override
-        public int hashCode() {
-            return Arrays.hashCode(getNormalizedValue());
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            } else if (obj instanceof CompactDn) {
-                final CompactDn other = (CompactDn) obj;
-                return Arrays.equals(getNormalizedValue(), other.getNormalizedValue());
-            } else {
-                return false;
-            }
-        }
-
-        @Override
-        public String toString() {
-            return ByteString.toString(originalValue, 0, originalValue.length);
-        }
-
-        private byte[] getNormalizedValue() {
-            if (normalizedValue == null) {
-                normalizedValue = toDn().toNormalizedByteString().toByteArray();
-            }
-            return normalizedValue;
-        }
-    }
-
-    /**
-     * Returns a compact representation of this DN, with lazy evaluation of the normalized value.
-     *
-     * @return the DN compact representation
-     */
-    public CompactDn compact() {
-        return new CompactDn(this);
-    }
 }
