@@ -19,11 +19,11 @@ setlocal
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.upgrade.UpgradeCli"
 set SCRIPT_NAME=upgrade
 
-for %%i in (%~sf0) do set DIR_HOME=%%~dPsi
+set DIR_HOME=%~dp0
 set INSTALL_ROOT=%DIR_HOME%
 set INSTANCE_DIR=
 if exist "%INSTALL_ROOT%\instance.loc" (
-  set /p INSTANCE_DIR=<%INSTALL_ROOT%\instance.loc
+  set /p INSTANCE_DIR=<"%INSTALL_ROOT%\instance.loc"
 ) else (
 set INSTANCE_DIR=.
 )
@@ -46,5 +46,5 @@ move /-Y "%DIR_CLASSES%" "%INSTANCE_ROOT%\classes.disabled" > nul
 mkdir %DIR_CLASSES%
 
 :end
-for %%i in (%~sf0) do call "%%~dPsi\lib\_server-script.bat" %*
+call "%~dp0\lib\_server-script.bat" %*
 
