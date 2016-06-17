@@ -38,8 +38,8 @@ public class LoggingCategoryNames
   {
     // The category used for messages associated with the core server.
     NAMES.put("org.opends.messages.core", "CORE");
-    NAMES.put("org.opends.messages.runtime", "CORE");
-    NAMES.put("com.forgerock.opendj.ldap", "CORE");
+    NAMES.put("org.opends.messages.runtime", "JVM");
+    NAMES.put("com.forgerock.opendj.ldap", "SDK");
 
     // The category used for messages associated with server extensions
     // (e.g. extended operations, SASL mechanisms, password storage, schemes, password validators, etc.).
