@@ -26,6 +26,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -387,7 +388,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   @Override
-  public boolean isMember(DN userDN, Set<DN> examinedGroups) throws DirectoryException
+  public boolean isMember(DN userDN, AtomicReference<Set<DN>> examinedGroups) throws DirectoryException
   {
     reloadIfNeeded();
     CompactDn compactUserDN = new CompactDn(userDN);
@@ -398,19 +399,22 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       {
         return true;
       }
-      else if (!examinedGroups.add(getGroupDN()))
+      if (nestedGroups.isEmpty()) {
+        return false;
+      }
+
+      // there are nested groups
+      Set<DN> groups = getExaminedGroups(examinedGroups);
+      if (!groups.add(getGroupDN()))
       {
         return false;
       }
-      else
+      for (DN nestedGroupDN : nestedGroups)
       {
-        for (DN nestedGroupDN : nestedGroups)
+        Group<? extends GroupImplementationCfg> group = getGroupManager().getGroupInstance(nestedGroupDN);
+        if (group != null && group.isMember(userDN, examinedGroups))
         {
-          Group<? extends GroupImplementationCfg> group = getGroupManager().getGroupInstance(nestedGroupDN);
-          if (group != null && group.isMember(userDN, examinedGroups))
-          {
-            return true;
-          }
+          return true;
         }
       }
     }
@@ -421,8 +425,19 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     return false;
   }
 
+  private Set<DN> getExaminedGroups(AtomicReference<Set<DN>> examinedGroups)
+  {
+    Set<DN> groups = examinedGroups.get();
+    if (groups == null)
+    {
+      groups = new HashSet<DN>();
+      examinedGroups.set(groups);
+    }
+    return groups;
+  }
+
   @Override
-  public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
+  public boolean isMember(Entry userEntry, AtomicReference<Set<DN>> examinedGroups)
          throws DirectoryException
   {
     return isMember(userEntry.getName(), examinedGroups);
@@ -445,8 +460,8 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         // Check if the group itself has been removed
         if (thisGroup == null)
         {
-          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_STATICGROUP_GROUP_INSTANCE_INVALID
-              .get(groupEntryDN));
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
+              ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(groupEntryDN));
         }
         else if (thisGroup != this)
         {

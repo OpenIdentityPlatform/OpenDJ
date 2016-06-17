@@ -18,6 +18,7 @@ package org.opends.server.api;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -263,7 +264,7 @@ public abstract class Group<T extends GroupImplementationCfg>
    */
   public boolean isMember(DN userDN) throws DirectoryException
   {
-    return userDN != null && isMember(userDN, new HashSet<DN>());
+    return userDN != null && isMember(userDN, new AtomicReference<Set<DN>>());
   }
 
   /**
@@ -297,7 +298,7 @@ public abstract class Group<T extends GroupImplementationCfg>
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to make the determination.
    */
-  public abstract boolean isMember(DN userDN, Set<DN> examinedGroups)
+  public abstract boolean isMember(DN userDN, AtomicReference<Set<DN>> examinedGroups)
          throws DirectoryException;
 
   /**
@@ -317,7 +318,7 @@ public abstract class Group<T extends GroupImplementationCfg>
   public boolean isMember(Entry userEntry)
          throws DirectoryException
   {
-    return isMember(userEntry, new HashSet<DN>());
+    return isMember(userEntry, new AtomicReference<Set<DN>>());
   }
 
   /**
@@ -351,8 +352,7 @@ public abstract class Group<T extends GroupImplementationCfg>
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to make the determination.
    */
-  public abstract boolean isMember(Entry userEntry,
-                                   Set<DN> examinedGroups)
+  public abstract boolean isMember(Entry userEntry, AtomicReference<Set<DN>> examinedGroups)
          throws DirectoryException;
 
   /**

@@ -17,10 +17,12 @@
 package org.opends.server.extensions;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -206,10 +208,11 @@ public class DynamicGroup
   }
 
   @Override
-  public boolean isMember(DN userDN, Set<DN> examinedGroups)
+  public boolean isMember(DN userDN, AtomicReference<Set<DN>> examinedGroups)
          throws DirectoryException
   {
-    if (! examinedGroups.add(getGroupDN()))
+    Set<DN> groups = getExaminedGroups(examinedGroups);
+    if (! groups.add(getGroupDN()))
     {
       return false;
     }
@@ -219,10 +222,11 @@ public class DynamicGroup
   }
 
   @Override
-  public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
+  public boolean isMember(Entry userEntry, AtomicReference<Set<DN>> examinedGroups)
          throws DirectoryException
   {
-    if (! examinedGroups.add(getGroupDN()))
+    Set<DN> groups = getExaminedGroups(examinedGroups);
+    if (! groups.add(getGroupDN()))
     {
       return false;
     }
@@ -236,6 +240,17 @@ public class DynamicGroup
     }
 
     return false;
+  }
+
+  private Set<DN> getExaminedGroups(AtomicReference<Set<DN>> examinedGroups)
+  {
+    Set<DN> groups = examinedGroups.get();
+    if (groups == null)
+    {
+      groups = new HashSet<DN>();
+      examinedGroups.set(groups);
+    }
+    return groups;
   }
 
   @Override
