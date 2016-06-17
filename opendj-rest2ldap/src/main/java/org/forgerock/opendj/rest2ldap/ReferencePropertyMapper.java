@@ -18,7 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.util.Reject.checkNotNull;
 
@@ -54,7 +54,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
-import org.forgerock.util.Reject;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
@@ -62,27 +61,27 @@ import org.forgerock.util.promise.Promises;
 import org.forgerock.util.promise.ResultHandler;
 
 /**
- * An attribute mapper which provides a mapping from a JSON value to a single DN
+ * An property mapper which provides a mapping from a JSON value to a single DN
  * valued LDAP attribute.
  */
-public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<ReferenceAttributeMapper> {
+public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<ReferencePropertyMapper> {
     /**
      * The maximum number of candidate references to allow in search filters.
      */
     private static final int SEARCH_MAX_CANDIDATES = 1000;
 
-    private final DN baseDN;
+    private final DN baseDn;
     private final Schema schema;
     private Filter filter;
-    private final AttributeMapper mapper;
+    private final PropertyMapper mapper;
     private final AttributeDescription primaryKey;
     private SearchScope scope = SearchScope.WHOLE_SUBTREE;
 
-    ReferenceAttributeMapper(final Schema schema, final AttributeDescription ldapAttributeName, final DN baseDN,
-        final AttributeDescription primaryKey, final AttributeMapper mapper) {
+    ReferencePropertyMapper(final Schema schema, final AttributeDescription ldapAttributeName, final DN baseDn,
+                            final AttributeDescription primaryKey, final PropertyMapper mapper) {
         super(ldapAttributeName);
         this.schema = schema;
-        this.baseDN = baseDN;
+        this.baseDn = baseDn;
         this.primaryKey = primaryKey;
         this.mapper = mapper;
     }
@@ -94,9 +93,9 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
      * @param filter
      *            The filter which should be used when searching for referenced
      *            LDAP entries.
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
-    public ReferenceAttributeMapper searchFilter(final Filter filter) {
+    public ReferencePropertyMapper searchFilter(final Filter filter) {
         this.filter = checkNotNull(filter);
         return this;
     }
@@ -108,9 +107,9 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
      * @param filter
      *            The filter which should be used when searching for referenced
      *            LDAP entries.
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
-    public ReferenceAttributeMapper searchFilter(final String filter) {
+    public ReferencePropertyMapper searchFilter(final String filter) {
         return searchFilter(Filter.valueOf(filter));
     }
 
@@ -121,9 +120,9 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
      * @param scope
      *            The search scope which should be used when searching for
      *            referenced LDAP entries.
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
-    public ReferenceAttributeMapper searchScope(final SearchScope scope) {
+    public ReferencePropertyMapper searchScope(final SearchScope scope) {
         this.scope = checkNotNull(scope);
         return this;
     }
@@ -134,9 +133,10 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
-            final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
-        return mapper.getLDAPFilter(connection, path, subPath, type, operator, valueAssertion)
+    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final JsonPointer path,
+                                                     final JsonPointer subPath, final FilterType type,
+                                                     final String operator, final Object valueAssertion) {
+        return mapper.getLdapFilter(connection, path, subPath, type, operator, valueAssertion)
                 .thenAsync(new AsyncFunction<Filter, Filter, ResourceException>() {
                     @Override
                     public Promise<Filter, ResourceException> apply(final Filter result) {
@@ -183,8 +183,8 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     }
 
     @Override
-    Promise<Attribute, ResourceException> getNewLDAPAttributes(final Connection connection, final JsonPointer path,
-            final List<Object> newValues) {
+    Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection, final JsonPointer path,
+                                                               final List<Object> newValues) {
         /*
          * For each value use the subordinate mapper to obtain the LDAP primary
          * key, the perform a search for each one to find the corresponding entries.
@@ -264,7 +264,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     }
 
     @Override
-    ReferenceAttributeMapper getThis() {
+    ReferencePropertyMapper getThis() {
         return this;
     }
 
@@ -318,13 +318,13 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
 
     private SearchRequest createSearchRequest(final Filter result) {
         final Filter searchFilter = filter != null ? Filter.and(filter, result) : result;
-        return newSearchRequest(baseDN, scope, searchFilter, "1.1");
+        return newSearchRequest(baseDn, scope, searchFilter, "1.1");
     }
 
     private Promise<JsonValue, ResourceException> readEntry(
             final Connection connection, final JsonPointer path, final DN dn) {
         final Set<String> requestedLDAPAttributes = new LinkedHashSet<>();
-        mapper.getLDAPAttributes(connection, path, new JsonPointer(), requestedLDAPAttributes);
+        mapper.getLdapAttributes(connection, path, new JsonPointer(), requestedLDAPAttributes);
 
         final Filter searchFilter = filter != null ? filter : Filter.alwaysTrue();
         final String[] attributes = requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);

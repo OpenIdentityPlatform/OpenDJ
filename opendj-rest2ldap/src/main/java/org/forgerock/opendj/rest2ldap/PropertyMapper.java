@@ -29,14 +29,14 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.util.promise.Promise;
 
-/** An attribute mapper is responsible for converting JSON values to and from LDAP attributes. */
-public abstract class AttributeMapper {
+/** An property mapper is responsible for converting JSON values to and from LDAP attributes. */
+public abstract class PropertyMapper {
     /*
      * This interface is an abstract class so that methods can be made package
      * private until API is finalized.
      */
 
-    AttributeMapper() {
+    PropertyMapper() {
         // Nothing to do.
     }
 
@@ -55,7 +55,7 @@ public abstract class AttributeMapper {
      *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
-     *            attribute mapper. This may be used when constructing error
+     *            property mapper. This may be used when constructing error
      *            messages.
      * @param v
      *            The JSON value to be converted to LDAP attributes, which may
@@ -66,7 +66,7 @@ public abstract class AttributeMapper {
     abstract Promise<List<Attribute>, ResourceException> create(Connection connection, JsonPointer path, JsonValue v);
 
     /**
-     * Adds the names of the LDAP attributes required by this attribute mapper
+     * Adds the names of the LDAP attributes required by this property mapper
      * to the provided set.
      * <p>
      * Implementations should only add the names of attributes found in the LDAP
@@ -76,18 +76,18 @@ public abstract class AttributeMapper {
      *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
-     *            attribute mapper. This may be used when constructing error
+     *            property mapper. This may be used when constructing error
      *            messages.
      * @param subPath
-     *            The targeted JSON field relative to this attribute mapper, or
+     *            The targeted JSON field relative to this property mapper, or
      *            root if all attributes associated with this mapper have been
      *            targeted.
      * @param ldapAttributes
      *            The set into which the required LDAP attribute names should be
      *            put.
      */
-    abstract void getLDAPAttributes(Connection connection, JsonPointer path, JsonPointer subPath,
-            Set<String> ldapAttributes);
+    abstract void getLdapAttributes(Connection connection, JsonPointer path, JsonPointer subPath,
+                                    Set<String> ldapAttributes);
 
     /**
      * Transforms the provided REST comparison filter parameters to an LDAP
@@ -102,10 +102,10 @@ public abstract class AttributeMapper {
      *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
-     *            attribute mapper. This may be used when constructing error
+     *            property mapper. This may be used when constructing error
      *            messages.
      * @param subPath
-     *            The targeted JSON field relative to this attribute mapper, or
+     *            The targeted JSON field relative to this property mapper, or
      *            root if all attributes associated with this mapper have been
      *            targeted.
      * @param type
@@ -119,8 +119,9 @@ public abstract class AttributeMapper {
      *            {@link FilterType#PRESENT}.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<Filter, ResourceException> getLDAPFilter(Connection connection, JsonPointer path,
-            JsonPointer subPath, FilterType type, String operator, Object valueAssertion);
+    abstract Promise<Filter, ResourceException> getLdapFilter(Connection connection, JsonPointer path,
+                                                              JsonPointer subPath, FilterType type, String operator,
+                                                              Object valueAssertion);
 
     /**
      * Maps a JSON patch operation to one or more LDAP modifications, returning
@@ -131,12 +132,12 @@ public abstract class AttributeMapper {
      *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
-     *            attribute mapper. This may be used when constructing error
+     *            property mapper. This may be used when constructing error
      *            messages.
      * @param operation
      *            The JSON patch operation to be converted to LDAP
      *            modifications. The targeted JSON field will be relative to
-     *            this attribute mapper, or root if all attributes associated
+     *            this property mapper, or root if all attributes associated
      *            with this mapper have been targeted.
      * @return A {@link Promise} containing the result of the operation.
      */
@@ -162,7 +163,7 @@ public abstract class AttributeMapper {
      *            The LDAP connection to use to perform the operation.
      * @param path
      *            The pointer from the root of the JSON resource to this
-     *            attribute mapper. This may be used when constructing error
+     *            property mapper. This may be used when constructing error
      *            messages.
      * @param e
      *            The LDAP entry to be converted to JSON.

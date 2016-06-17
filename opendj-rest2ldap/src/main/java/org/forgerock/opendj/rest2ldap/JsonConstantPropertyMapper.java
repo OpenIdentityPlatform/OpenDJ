@@ -40,12 +40,12 @@ import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 
 /**
- * An attribute mapper which maps a single JSON attribute to a fixed value.
+ * An property mapper which maps a single JSON attribute to a fixed value.
  */
-final class JSONConstantAttributeMapper extends AttributeMapper {
+final class JsonConstantPropertyMapper extends PropertyMapper {
     private final JsonValue value;
 
-    JSONConstantAttributeMapper(final Object value) {
+    JsonConstantPropertyMapper(final Object value) {
         this.value = new JsonValue(value);
     }
 
@@ -66,14 +66,15 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void getLDAPAttributes(final Connection connection, final JsonPointer path, final JsonPointer subPath,
-            final Set<String> ldapAttributes) {
+    void getLdapAttributes(final Connection connection, final JsonPointer path, final JsonPointer subPath,
+                           final Set<String> ldapAttributes) {
         // Nothing to do.
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
-            final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
+    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final JsonPointer path,
+                                                     final JsonPointer subPath, final FilterType type,
+                                                     final String operator, final Object valueAssertion) {
         final Filter filter;
         final JsonValue subValue = value.get(subPath);
         if (subValue == null) {
@@ -103,7 +104,7 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
             final Boolean v2 = (Boolean) valueAssertion;
             filter = compare(type, v1, v2);
         } else {
-            // This attribute mapper is a candidate but it does not match.
+            // This property mapper is a candidate but it does not match.
             filter = alwaysFalse();
         }
         return Promises.newResultPromise(filter);

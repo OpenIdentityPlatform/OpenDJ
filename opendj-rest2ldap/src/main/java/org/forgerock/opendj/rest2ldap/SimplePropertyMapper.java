@@ -37,20 +37,20 @@ import org.forgerock.util.promise.Promise;
 import static java.util.Collections.*;
 
 import static org.forgerock.opendj.ldap.Filter.*;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.*;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
 import static org.forgerock.util.promise.Promises.newExceptionPromise;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
 /**
- * An attribute mapper which provides a simple mapping from a JSON value to a
+ * An property mapper which provides a simple mapping from a JSON value to a
  * single LDAP attribute.
  */
-public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<SimpleAttributeMapper> {
+public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<SimplePropertyMapper> {
     private Function<ByteString, ?, NeverThrowsException> decoder;
     private Function<Object, ByteString, NeverThrowsException> encoder;
 
-    SimpleAttributeMapper(final AttributeDescription ldapAttributeName) {
+    SimplePropertyMapper(final AttributeDescription ldapAttributeName) {
         super(ldapAttributeName);
     }
 
@@ -60,9 +60,9 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
      *
      * @param f
      *            The function to use for decoding LDAP attribute values.
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
-    public SimpleAttributeMapper decoder(final Function<ByteString, ?, NeverThrowsException> f) {
+    public SimplePropertyMapper decoder(final Function<ByteString, ?, NeverThrowsException> f) {
         this.decoder = f;
         return this;
     }
@@ -73,10 +73,10 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
      *
      * @param defaultValue
      *            The default JSON value.
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
-    public SimpleAttributeMapper defaultJSONValue(final Object defaultValue) {
-        this.defaultJSONValues = defaultValue != null ? singletonList(defaultValue) : emptyList();
+    public SimplePropertyMapper defaultJsonValue(final Object defaultValue) {
+        this.defaultJsonValues = defaultValue != null ? singletonList(defaultValue) : emptyList();
         return this;
     }
 
@@ -86,9 +86,9 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
      *
      * @param f
      *            The function to use for encoding LDAP attribute values.
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
-    public SimpleAttributeMapper encoder(final Function<Object, ByteString, NeverThrowsException> f) {
+    public SimplePropertyMapper encoder(final Function<Object, ByteString, NeverThrowsException> f) {
         this.encoder = f;
         return this;
     }
@@ -102,9 +102,9 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
      * mapper.encoder(...); // function that converts base 64 to binary data
      * </pre>
      *
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
-    public SimpleAttributeMapper isBinary() {
+    public SimplePropertyMapper isBinary() {
         decoder = byteStringToBase64();
         encoder = base64ToByteString();
         return this;
@@ -116,8 +116,9 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
-            final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
+    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final JsonPointer path,
+                                                     final JsonPointer subPath, final FilterType type,
+                                                     final String operator, final Object valueAssertion) {
         if (subPath.isEmpty()) {
             try {
                 final ByteString va =
@@ -129,13 +130,13 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
                         ERR_ILLEGAL_FILTER_ASSERTION_VALUE.get(String.valueOf(valueAssertion), path), e));
             }
         } else {
-            // This attribute mapper does not support partial filtering.
+            // This property mapper does not support partial filtering.
             return newResultPromise(alwaysFalse());
         }
     }
 
     @Override
-    Promise<Attribute, ResourceException> getNewLDAPAttributes(
+    Promise<Attribute, ResourceException> getNewLdapAttributes(
             final Connection connection, final JsonPointer path, final List<Object> newValues) {
         try {
             return newResultPromise(jsonToAttribute(newValues, ldapAttributeName, encoder()));
@@ -146,7 +147,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
     }
 
     @Override
-    SimpleAttributeMapper getThis() {
+    SimplePropertyMapper getThis() {
         return this;
     }
 
@@ -155,12 +156,10 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
         try {
             final Object value;
             if (attributeIsSingleValued()) {
-                value =
-                        e.parseAttribute(ldapAttributeName).as(decoder(),
-                                defaultJSONValues.isEmpty() ? null : defaultJSONValues.get(0));
+                value = e.parseAttribute(ldapAttributeName)
+                         .as(decoder(), defaultJsonValues.isEmpty() ? null : defaultJsonValues.get(0));
             } else {
-                final Set<Object> s =
-                        e.parseAttribute(ldapAttributeName).asSetOf(decoder(), defaultJSONValues);
+                final Set<Object> s = e.parseAttribute(ldapAttributeName).asSetOf(decoder(), defaultJsonValues);
                 value = s.isEmpty() ? null : new ArrayList<>(s);
             }
             return newResultPromise(value != null ? new JsonValue(value) : null);

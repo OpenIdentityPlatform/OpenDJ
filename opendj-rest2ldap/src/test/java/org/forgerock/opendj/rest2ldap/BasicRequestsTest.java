@@ -33,9 +33,9 @@ import static org.forgerock.json.resource.Resources.newCollection;
 import static org.forgerock.json.resource.Resources.newInternalConnection;
 import static org.forgerock.opendj.ldap.Connections.newInternalConnectionFactory;
 import static org.forgerock.opendj.ldap.Functions.byteStringToInteger;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.constant;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.object;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.simple;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.constant;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.object;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.simple;
 import static org.forgerock.opendj.rest2ldap.TestUtils.asResource;
 import static org.forgerock.opendj.rest2ldap.TestUtils.content;
 import static org.forgerock.opendj.rest2ldap.TestUtils.ctx;
@@ -76,7 +76,7 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
-import org.forgerock.opendj.rest2ldap.Rest2LDAP.Builder;
+import org.forgerock.opendj.rest2ldap.Rest2Ldap.Builder;
 import org.forgerock.services.context.Context;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.forgerock.util.query.QueryFilter;
@@ -612,13 +612,13 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     private Builder builder(final List<Request> requests) throws IOException {
-        return Rest2LDAP.builder()
-                .baseDN("dc=test")
-                .useEtagAttribute()
-                .useClientDNNaming("uid")
-                .readOnUpdatePolicy(ReadOnUpdatePolicy.CONTROLS)
-                .additionalLDAPAttribute("objectClass", "top", "person")
-                .mapper(object()
+        return Rest2Ldap.builder()
+                        .baseDN("dc=test")
+                        .useEtagAttribute()
+                        .useClientDNNaming("uid")
+                        .readOnUpdatePolicy(ReadOnUpdatePolicy.CONTROLS)
+                        .additionalLDAPAttribute("objectClass", "top", "person")
+                        .mapper(object()
                         .attribute("schemas", constant(asList("urn:scim:schemas:core:1.0")))
                         .attribute("_id", simple("uid").isSingleValued()
                                                        .isRequired()

@@ -19,7 +19,7 @@ import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.forgerock.opendj.ldap.Attributes.emptyAttribute;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.newNotSupportedException;
@@ -47,17 +47,17 @@ import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 
 /**
- * An abstract LDAP attribute mapper which provides a simple mapping from a JSON
+ * An abstract LDAP property mapper which provides a simple mapping from a JSON
  * value to a single LDAP attribute.
  */
-abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper<T>> extends AttributeMapper {
-    List<Object> defaultJSONValues = emptyList();
+abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T>> extends PropertyMapper {
+    List<Object> defaultJsonValues = emptyList();
     final AttributeDescription ldapAttributeName;
     private boolean isRequired;
     private boolean isSingleValued;
     private WritabilityPolicy writabilityPolicy = READ_WRITE;
 
-    AbstractLDAPAttributeMapper(final AttributeDescription ldapAttributeName) {
+    AbstractLdapPropertyMapper(final AttributeDescription ldapAttributeName) {
         this.ldapAttributeName = ldapAttributeName;
     }
 
@@ -65,7 +65,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
      * Indicates that the LDAP attribute is mandatory and must be provided
      * during create requests.
      *
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
     public final T isRequired() {
         this.isRequired = true;
@@ -76,7 +76,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
      * Indicates that multi-valued LDAP attribute should be represented as a
      * single-valued JSON value, rather than an array of values.
      *
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
     public final T isSingleValued() {
         this.isSingleValued = true;
@@ -89,7 +89,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
      *
      * @param policy
      *            The writability policy.
-     * @return This attribute mapper.
+     * @return This property mapper.
      */
     public final T writability(final WritabilityPolicy policy) {
         this.writabilityPolicy = policy;
@@ -103,7 +103,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
     @Override
     Promise<List<Attribute>, ResourceException> create(
             final Connection connection, final JsonPointer path, final JsonValue v) {
-        return getNewLDAPAttributes(connection, path, v).then(
+        return getNewLdapAttributes(connection, path, v).then(
             new Function<Attribute, List<Attribute>, ResourceException>() {
                 @Override
                 public List<Attribute> apply(Attribute newLDAPAttribute) throws ResourceException {
@@ -125,13 +125,13 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
     }
 
     @Override
-    void getLDAPAttributes(final Connection connection, final JsonPointer path,
-            final JsonPointer subPath, final Set<String> ldapAttributes) {
+    void getLdapAttributes(final Connection connection, final JsonPointer path,
+                           final JsonPointer subPath, final Set<String> ldapAttributes) {
         ldapAttributes.add(ldapAttributeName.toString());
     }
 
-    abstract Promise<Attribute, ResourceException> getNewLDAPAttributes(Connection connection, JsonPointer path,
-            List<Object> newValues);
+    abstract Promise<Attribute, ResourceException> getNewLdapAttributes(Connection connection, JsonPointer path,
+                                                                        List<Object> newValues);
 
     abstract T getThis();
 
@@ -197,7 +197,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
             default:
                 /*
                  * The patch operation targets the child of a sub-field. This is
-                 * not possible for a LDAP attribute mapper.
+                 * not possible for a LDAP property mapper.
                  */
                 throw newBadRequestException(ERR_UNRECOGNIZED_FIELD.get(path.child(field.get(0))));
             }
@@ -237,7 +237,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
                         singletonList(new Modification(modType, emptyAttribute(ldapAttributeName))));
                 }
             } else {
-                return getNewLDAPAttributes(connection, path, newValues)
+                return getNewLdapAttributes(connection, path, newValues)
                         .then(new Function<Attribute, List<Modification>, ResourceException>() {
                             @Override
                             public List<Modification> apply(final Attribute value) {
@@ -255,7 +255,7 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
     @Override
     Promise<List<Modification>, ResourceException> update(final Connection connection, final JsonPointer path,
             final Entry e, final JsonValue v) {
-        return getNewLDAPAttributes(connection, path, v).then(
+        return getNewLdapAttributes(connection, path, v).then(
             new Function<Attribute, List<Modification>, ResourceException>() {
                 @Override
                 public List<Modification> apply(final Attribute newLDAPAttribute) throws ResourceException {
@@ -337,17 +337,17 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
         }
     }
 
-    private Promise<Attribute, ResourceException> getNewLDAPAttributes(final Connection connection,
-            final JsonPointer path, final JsonValue v) {
+    private Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection,
+                                                                       final JsonPointer path, final JsonValue v) {
         try {
             // Ensure that the value is of the correct type.
             checkSchema(path, v);
-            final List<Object> newValues = asList(v, defaultJSONValues);
+            final List<Object> newValues = asList(v, defaultJsonValues);
             if (newValues.isEmpty()) {
                 // Skip sub-class implementation if there are no values.
                 return Promises.newResultPromise(emptyAttribute(ldapAttributeName));
             } else {
-                return getNewLDAPAttributes(connection, path, newValues);
+                return getNewLdapAttributes(connection, path, newValues);
             }
         } catch (final Exception ex) {
             return Promises.newExceptionPromise(asResourceException(ex));

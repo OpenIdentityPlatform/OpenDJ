@@ -25,15 +25,15 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 
 /**
- * A name strategy is responsible for naming REST resources and LDAP entries.
+ * A naming strategy is responsible for naming REST resources and LDAP entries.
  */
-abstract class NameStrategy {
+abstract class NamingStrategy {
     /*
      * This interface is an abstract class so that methods can be made package
      * private until API is finalized.
      */
 
-    NameStrategy() {
+    NamingStrategy() {
         // Nothing to do.
     }
 
@@ -53,7 +53,7 @@ abstract class NameStrategy {
     abstract SearchRequest createSearchRequest(Connection connection, DN baseDN, String resourceId);
 
     /**
-     * Adds the name of any LDAP attribute required by this name strategy to the
+     * Adds the name of any LDAP attribute required by this naming strategy to the
      * provided set.
      *
      * @param connection
@@ -62,7 +62,7 @@ abstract class NameStrategy {
      *            The set into which any required LDAP attribute name should be
      *            put.
      */
-    abstract void getLDAPAttributes(Connection connection, Set<String> ldapAttributes);
+    abstract void getLdapAttributes(Connection connection, Set<String> ldapAttributes);
 
     /**
      * Retrieves the resource ID from the provided LDAP entry. Implementations

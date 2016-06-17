@@ -15,7 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.Closeable;

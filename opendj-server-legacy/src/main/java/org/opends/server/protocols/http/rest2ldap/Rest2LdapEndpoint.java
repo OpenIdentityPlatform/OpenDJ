@@ -35,7 +35,7 @@ import org.forgerock.json.JsonValue;
 import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.http.CrestHttp;
-import org.forgerock.opendj.rest2ldap.Rest2LDAP;
+import org.forgerock.opendj.rest2ldap.Rest2Ldap;
 import org.forgerock.opendj.server.config.server.Rest2ldapEndpointCfg;
 import org.forgerock.util.Factory;
 import org.opends.server.api.HttpEndpoint;
@@ -113,7 +113,7 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
         for (final String mappingUrl : mappings.keys())
         {
           final JsonValue mapping = mappings.get(mappingUrl);
-          router.addRoute(Router.uriTemplate(mappingUrl), Rest2LDAP.builder().configureMapping(mapping).build());
+          router.addRoute(Router.uriTemplate(mappingUrl), Rest2Ldap.builder().configureMapping(mapping).build());
         }
       }
       catch (JsonValueException e)

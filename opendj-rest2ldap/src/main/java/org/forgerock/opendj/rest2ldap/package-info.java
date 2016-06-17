@@ -16,7 +16,7 @@
 
 /**
  * APIs for implementing REST to LDAP gateways. The API is implemented by
- * {@link org.forgerock.opendj.rest2ldap.LDAPCollectionResourceProvider} which is using a pre-established
+ * {@link org.forgerock.opendj.rest2ldap.SubResourceImpl} which is using a pre-established
  * {@link org.forgerock.opendj.ldap.Connection} encapsulated in the
  * {@link org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext}. This context is injected by the
  * {@link org.forgerock.opendj.rest2ldap.authz.ProxiedAuthV2Filter} depending on the

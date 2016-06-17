@@ -25,7 +25,7 @@ import static org.forgerock.http.util.Json.readJsonLenient;
 import static org.forgerock.json.JsonValueFunctions.duration;
 import static org.forgerock.json.JsonValueFunctions.enumConstant;
 import static org.forgerock.json.JsonValueFunctions.setOf;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.configureConnectionFactory;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.configureConnectionFactory;
 import static org.forgerock.opendj.rest2ldap.Utils.newLocalizedIllegalArgumentException;
 import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
 import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.*;
@@ -98,7 +98,7 @@ import org.forgerock.util.time.Duration;
 import org.forgerock.util.time.TimeService;
 
 /** Rest2ldap HTTP application. */
-public class Rest2LDAPHttpApplication implements HttpApplication {
+public class Rest2LdapHttpApplication implements HttpApplication {
     private static final String DEFAULT_ROOT_FACTORY = "root";
     private static final String DEFAULT_BIND_FACTORY = "bind";
 
@@ -168,7 +168,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
     /**
      * Default constructor called by the HTTP Framework which will use the default configuration file location.
      */
-    public Rest2LDAPHttpApplication() {
+    public Rest2LdapHttpApplication() {
         this.configurationUrl = getClass().getResource("/opendj-rest2ldap-config.json");
         this.schema = Schema.getDefaultSchema();
     }
@@ -181,7 +181,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
      * @param schema
      *            The {@link Schema} used to perform DN validations
      */
-    public Rest2LDAPHttpApplication(final URL configurationURL, final Schema schema) {
+    public Rest2LdapHttpApplication(final URL configurationURL, final Schema schema) {
         this.configurationUrl = checkNotNull(configurationURL, "configurationURL cannot be null");
         this.schema = checkNotNull(schema, "schema cannot be null");
     }
@@ -216,7 +216,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         final Router router = new Router();
         for (final String mappingUrl : mappings.keys()) {
             final JsonValue mapping = mappings.get(mappingUrl);
-            router.addRoute(Router.uriTemplate(mappingUrl), Rest2LDAP.builder().configureMapping(mapping).build());
+            router.addRoute(Router.uriTemplate(mappingUrl), Rest2Ldap.builder().configureMapping(mapping).build());
         }
         return router;
     }
@@ -503,7 +503,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
         case SEARCH:
             return buildSearchThenBindStrategy(config);
         case SASL_PLAIN:
-            return buildSASLBindStrategy(config);
+            return buildSaslBindStrategy(config);
         default:
             throw newLocalizedIllegalArgumentException(ERR_CONFIG_UNSUPPORTED_BIND_STRATEGY.get(
                     strategy, BindStrategy.listValues()));
@@ -517,7 +517,7 @@ public class Rest2LDAPHttpApplication implements HttpApplication {
                                      schema);
     }
 
-    private AuthenticationStrategy buildSASLBindStrategy(JsonValue config) {
+    private AuthenticationStrategy buildSaslBindStrategy(JsonValue config) {
         return newSASLPlainStrategy(
                 getConnectionFactory(config.get("ldapConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
                 schema, parseUserNameTemplate(config.get(AUTHZID_TEMPLATE).defaultTo("u:%s")));

@@ -13,4 +13,4 @@
 #
 # Copyright 2015 ForgeRock AS.
 #
-org.forgerock.opendj.rest2ldap.Rest2LDAPHttpApplication
+org.forgerock.opendj.rest2ldap.Rest2LdapHttpApplication

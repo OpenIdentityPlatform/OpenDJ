@@ -18,7 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.json.resource.PatchOperation.operation;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
 
@@ -43,14 +43,14 @@ import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.Promises;
 
-/** An attribute mapper which maps JSON objects to LDAP attributes. */
-public final class ObjectAttributeMapper extends AttributeMapper {
+/** An property mapper which maps JSON objects to LDAP attributes. */
+public final class ObjectPropertyMapper extends PropertyMapper {
 
     private static final class Mapping {
-        private final AttributeMapper mapper;
+        private final PropertyMapper mapper;
         private final String name;
 
-        private Mapping(final String name, final AttributeMapper mapper) {
+        private Mapping(final String name, final PropertyMapper mapper) {
             this.name = name;
             this.mapper = mapper;
         }
@@ -63,7 +63,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
 
     private final Map<String, Mapping> mappings = new LinkedHashMap<>();
 
-    ObjectAttributeMapper() {
+    ObjectPropertyMapper() {
         // Nothing to do.
     }
 
@@ -73,11 +73,11 @@ public final class ObjectAttributeMapper extends AttributeMapper {
      * @param name
      *            The name of the JSON attribute to be mapped.
      * @param mapper
-     *            The attribute mapper responsible for mapping the JSON
+     *            The property mapper responsible for mapping the JSON
      *            attribute to LDAP attribute(s).
-     * @return A reference to this attribute mapper.
+     * @return A reference to this property mapper.
      */
-    public ObjectAttributeMapper attribute(final String name, final AttributeMapper mapper) {
+    public ObjectPropertyMapper attribute(final String name, final PropertyMapper mapper) {
         mappings.put(toLowerCase(name), new Mapping(name, mapper));
         return this;
     }
@@ -122,30 +122,31 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     @Override
-    void getLDAPAttributes(final Connection connection, final JsonPointer path, final JsonPointer subPath,
-            final Set<String> ldapAttributes) {
+    void getLdapAttributes(final Connection connection, final JsonPointer path, final JsonPointer subPath,
+                           final Set<String> ldapAttributes) {
         if (subPath.isEmpty()) {
             // Request all subordinate mappings.
             for (final Mapping mapping : mappings.values()) {
-                mapping.mapper.getLDAPAttributes(connection, path.child(mapping.name), subPath, ldapAttributes);
+                mapping.mapper.getLdapAttributes(connection, path.child(mapping.name), subPath, ldapAttributes);
             }
         } else {
             // Request single subordinate mapping.
             final Mapping mapping = getMapping(subPath);
             if (mapping != null) {
-                mapping.mapper.getLDAPAttributes(
+                mapping.mapper.getLdapAttributes(
                         connection, path.child(subPath.get(0)), subPath.relativePointer(), ldapAttributes);
             }
         }
     }
 
     @Override
-    Promise<Filter, ResourceException> getLDAPFilter(final Connection connection, final JsonPointer path,
-            final JsonPointer subPath, final FilterType type, final String operator, final Object valueAssertion) {
+    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final JsonPointer path,
+                                                     final JsonPointer subPath, final FilterType type,
+                                                     final String operator, final Object valueAssertion) {
         final Mapping mapping = getMapping(subPath);
         if (mapping != null) {
-            return mapping.mapper.getLDAPFilter(connection, path.child(subPath.get(0)),
-                    subPath.relativePointer(), type, operator, valueAssertion);
+            return mapping.mapper.getLdapFilter(connection, path.child(subPath.get(0)),
+                                                subPath.relativePointer(), type, operator, valueAssertion);
         } else {
             /*
              * Either the filter targeted the entire object (i.e. it was "/"),

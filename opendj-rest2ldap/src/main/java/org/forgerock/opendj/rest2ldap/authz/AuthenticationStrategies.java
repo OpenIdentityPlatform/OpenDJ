@@ -93,6 +93,6 @@ public final class AuthenticationStrategies {
      */
     public static AuthenticationStrategy newSASLPlainStrategy(ConnectionFactory connectionFactory, Schema schema,
             String authcIdTemplate) {
-        return new SASLPlainStrategy(connectionFactory, schema, authcIdTemplate);
+        return new SaslPlainStrategy(connectionFactory, schema, authcIdTemplate);
     }
 }

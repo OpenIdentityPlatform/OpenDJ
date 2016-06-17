@@ -119,7 +119,7 @@ final class Utils {
         return String.format(format, args);
     }
 
-    private static boolean isJSONPrimitive(final Object value) {
+    private static boolean isJsonPrimitive(final Object value) {
         return value instanceof String || value instanceof Boolean || value instanceof Number;
     }
 
@@ -129,7 +129,7 @@ final class Utils {
 
     static Attribute jsonToAttribute(final Object value, final AttributeDescription ad,
             final Function<Object, ByteString, NeverThrowsException> f) {
-        if (isJSONPrimitive(value)) {
+        if (isJsonPrimitive(value)) {
             return new LinkedAttribute(ad, f.apply(value));
         } else if (value instanceof Collection<?>) {
             final Attribute a = new LinkedAttribute(ad);
@@ -146,7 +146,7 @@ final class Utils {
         return new Function<Object, ByteString, NeverThrowsException>() {
             @Override
             public ByteString apply(final Object value) {
-                if (isJSONPrimitive(value)) {
+                if (isJsonPrimitive(value)) {
                     final Syntax syntax = ad.getAttributeType().getSyntax();
                     if (syntax.equals(getGeneralizedTimeSyntax())) {
                         return ByteString.valueOfObject(GeneralizedTime.valueOf(parseDateTime(value.toString())));

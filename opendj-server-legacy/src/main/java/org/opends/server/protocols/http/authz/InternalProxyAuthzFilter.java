@@ -15,7 +15,7 @@
  */
 package org.opends.server.protocols.http.authz;
 
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_DN;
 import static org.forgerock.services.context.SecurityContext.AUTHZID_ID;
 import static org.forgerock.util.Reject.checkNotNull;

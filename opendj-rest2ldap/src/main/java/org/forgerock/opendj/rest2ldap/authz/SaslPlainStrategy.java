@@ -44,7 +44,7 @@ import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 
 /** Bind using a computed DN from a template and the current request/context. */
-final class SASLPlainStrategy implements AuthenticationStrategy {
+final class SaslPlainStrategy implements AuthenticationStrategy {
 
     private final ConnectionFactory connectionFactory;
     private final Function<String, String, LdapException> formatter;
@@ -62,8 +62,8 @@ final class SASLPlainStrategy implements AuthenticationStrategy {
      * @throws NullPointerException
      *             If a parameter is null
      */
-    public SASLPlainStrategy(final ConnectionFactory connectionFactory, final Schema schema,
-            final String authcIdTemplate) {
+    public SaslPlainStrategy(final ConnectionFactory connectionFactory, final Schema schema,
+                             final String authcIdTemplate) {
         this.connectionFactory = checkNotNull(connectionFactory, "connectionFactory cannot be null");
         checkNotNull(schema, "schema cannot be null");
         checkNotNull(authcIdTemplate, "authcIdTemplate cannot be null");
@@ -98,13 +98,14 @@ final class SASLPlainStrategy implements AuthenticationStrategy {
                     @Override
                     public Promise<SecurityContext, LdapException> apply(Connection connection) throws LdapException {
                         connectionHolder.set(connection);
-                        return doSASLPlainBind(connection, parentContext, username, password);
+                        return doSaslPlainBind(connection, parentContext, username, password);
                     }
                 }).thenFinally(close(connectionHolder));
     }
 
-    private Promise<SecurityContext, LdapException> doSASLPlainBind(final Connection connection,
-            final Context parentContext, final String authzId, final String password) throws LdapException {
+    private Promise<SecurityContext, LdapException> doSaslPlainBind(final Connection connection,
+                                                                    final Context parentContext, final String authzId,
+                                                                    final String password) throws LdapException {
         final String authcId = formatter.apply(authzId);
         return connection
                 .bindAsync(newPlainSASLBindRequest(authcId, password.toCharArray())

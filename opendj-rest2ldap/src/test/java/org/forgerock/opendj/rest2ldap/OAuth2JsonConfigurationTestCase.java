@@ -41,12 +41,12 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
     private AccessTokenResolver resolver;
 
     @Spy
-    private Rest2LDAPHttpApplication fakeApp;
+    private Rest2LdapHttpApplication fakeApp;
 
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        fakeApp = spy(Rest2LDAPHttpApplication.class);
+        fakeApp = spy(Rest2LdapHttpApplication.class);
     }
 
     @DataProvider

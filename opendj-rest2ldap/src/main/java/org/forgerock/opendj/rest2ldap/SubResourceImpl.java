@@ -16,6 +16,7 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.i18n.LocalizableMessage.raw;
+import static org.forgerock.json.resource.Responses.newResourceResponse;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.Arrays.asList;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
@@ -25,7 +26,7 @@ import static org.forgerock.opendj.ldap.requests.Requests.newDeleteRequest;
 import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.newNotSupportedException;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
@@ -112,7 +113,7 @@ import org.forgerock.util.query.QueryFilterVisitor;
  * A {@code CollectionResourceProvider} implementation which maps a JSON
  * resource collection to LDAP entries beneath a base DN.
  */
-final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
+final class SubResourceImpl implements CollectionResourceProvider {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -123,19 +124,19 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     private static final DecodeOptions DECODE_OPTIONS = new DecodeOptions();
 
     private final List<Attribute> additionalLDAPAttributes;
-    private final AttributeMapper attributeMapper;
-    private final DN baseDN; // TODO: support template variables.
+    private final PropertyMapper propertyMapper;
+    private final DN baseDn; // TODO: support template variables.
     private final Config config;
     private final AttributeDescription etagAttribute;
-    private final NameStrategy nameStrategy;
+    private final NamingStrategy namingStrategy;
 
-    LDAPCollectionResourceProvider(final DN baseDN, final AttributeMapper mapper,
-            final NameStrategy nameStrategy, final AttributeDescription etagAttribute,
-            final Config config, final List<Attribute> additionalLDAPAttributes) {
-        this.baseDN = baseDN;
-        this.attributeMapper = mapper;
+    SubResourceImpl(final DN baseDn, final PropertyMapper mapper,
+                    final NamingStrategy namingStrategy, final AttributeDescription etagAttribute,
+                    final Config config, final List<Attribute> additionalLDAPAttributes) {
+        this.baseDn = baseDn;
+        this.propertyMapper = mapper;
         this.config = config;
-        this.nameStrategy = nameStrategy;
+        this.namingStrategy = namingStrategy;
         this.etagAttribute = etagAttribute;
         this.additionalLDAPAttributes = additionalLDAPAttributes;
     }
@@ -224,7 +225,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             final CreateRequest request) {
         final Connection connection = context.asContext(AuthenticatedConnectionContext.class).getConnection();
         // Calculate entry content.
-        return attributeMapper
+        return propertyMapper
                 .create(connection, new JsonPointer(), request.getContent())
                 .thenAsync(new AsyncFunction<List<Attribute>, ResourceResponse, ResourceException>() {
                     @Override
@@ -238,16 +239,16 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                             addRequest.addAttribute(attribute);
                         }
                         try {
-                            nameStrategy.setResourceId(connection, getBaseDN(),
-                                    request.getNewResourceId(),
-                                    addRequest);
+                            namingStrategy.setResourceId(connection, getBaseDn(),
+                                                         request.getNewResourceId(),
+                                                         addRequest);
                         } catch (final ResourceException e) {
                             logger.error(raw(e.getLocalizedMessage()), e);
                             return Promises.newExceptionPromise(e);
                         }
                         if (config.readOnUpdatePolicy() == CONTROLS) {
-                            addRequest.addControl(PostReadRequestControl.newControl(false,
-                                    getLDAPAttributes(connection, request.getFields())));
+                            addRequest.addControl(PostReadRequestControl.newControl(
+                                    false, getLdapAttributes(connection, request.getFields())));
                         }
                         return connection.applyChangeAsync(addRequest)
                                          .thenAsync(
@@ -268,7 +269,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         try {
                             final ChangeRecord deleteRequest = newDeleteRequest(dn);
                             if (config.readOnUpdatePolicy() == CONTROLS) {
-                                final String[] attributes = getLDAPAttributes(connection, request.getFields());
+                                final String[] attributes = getLdapAttributes(connection, request.getFields());
                                 deleteRequest.addControl(PreReadRequestControl.newControl(false, attributes));
                             }
                             if (config.useSubtreeDelete()) {
@@ -302,7 +303,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         List<Promise<List<Modification>, ResourceException>> promises =
                                 new ArrayList<>(request.getPatchOperations().size());
                         for (final PatchOperation operation : request.getPatchOperations()) {
-                            promises.add(attributeMapper.patch(connection, new JsonPointer(), operation));
+                            promises.add(propertyMapper.patch(connection, new JsonPointer(), operation));
                         }
 
                         return Promises.when(promises).thenAsync(
@@ -322,7 +323,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                             }
 
                                             final List<String> attributes =
-                                                    asList(getLDAPAttributes(connection, request.getFields()));
+                                                    asList(getLdapAttributes(connection, request.getFields()));
                                             if (modifyRequest.getModifications().isEmpty()) {
                                                 // This patch is a no-op so just read the entry and check its version.
                                                 return
@@ -374,7 +375,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     throws ResourceException {
                 try {
                     // Fail if there is a version mismatch.
-                    ensureMVCCVersionMatches(entry, request.getRevision());
+                    ensureMvccVersionMatches(entry, request.getRevision());
                     return adaptEntry(connection, entry);
                 } catch (final Exception e) {
                     return Promises.newExceptionPromise(asResourceException(e));
@@ -388,12 +389,12 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
             final Context context, final QueryRequest request, final QueryResourceHandler resourceHandler) {
         final Connection connection = context.asContext(AuthenticatedConnectionContext.class).getConnection();
         // Calculate the filter (this may require the connection).
-        return getLDAPFilter(connection, request.getQueryFilter())
+        return getLdapFilter(connection, request.getQueryFilter())
                 .thenAsync(runQuery(request, resourceHandler, connection));
     }
 
-    private Promise<Filter, ResourceException> getLDAPFilter(final Connection connection,
-            final QueryFilter<JsonPointer> queryFilter) {
+    private Promise<Filter, ResourceException> getLdapFilter(final Connection connection,
+                                                             final QueryFilter<JsonPointer> queryFilter) {
         final QueryFilterVisitor<Promise<Filter, ResourceException>, Void, JsonPointer> visitor =
                 new QueryFilterVisitor<Promise<Filter, ResourceException>, Void, JsonPointer>() {
 
@@ -439,50 +440,50 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Promise<Filter, ResourceException> visitContainsFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(
+                        return propertyMapper.getLdapFilter(
                                 connection, new JsonPointer(), field, FilterType.CONTAINS, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitEqualsFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(
+                        return propertyMapper.getLdapFilter(
                                 connection, new JsonPointer(), field, FilterType.EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitExtendedMatchFilter(final Void unused,
                             final JsonPointer field, final String operator, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(
+                        return propertyMapper.getLdapFilter(
                                 connection, new JsonPointer(), field, FilterType.EXTENDED, operator, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitGreaterThanFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(
+                        return propertyMapper.getLdapFilter(
                                 connection, new JsonPointer(), field, FilterType.GREATER_THAN, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitGreaterThanOrEqualToFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(connection, new JsonPointer(), field,
-                                FilterType.GREATER_THAN_OR_EQUAL_TO, null, valueAssertion);
+                        return propertyMapper.getLdapFilter(connection, new JsonPointer(), field,
+                                                            FilterType.GREATER_THAN_OR_EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitLessThanFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(
+                        return propertyMapper.getLdapFilter(
                                 connection, new JsonPointer(), field, FilterType.LESS_THAN, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitLessThanOrEqualToFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(connection, new JsonPointer(), field,
-                                FilterType.LESS_THAN_OR_EQUAL_TO, null, valueAssertion);
+                        return propertyMapper.getLdapFilter(connection, new JsonPointer(), field,
+                                                            FilterType.LESS_THAN_OR_EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
@@ -538,19 +539,19 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Promise<Filter, ResourceException> visitPresentFilter(
                             final Void unused, final JsonPointer field) {
-                        return attributeMapper.getLDAPFilter(
+                        return propertyMapper.getLdapFilter(
                                 connection, new JsonPointer(), field, FilterType.PRESENT, null, null);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitStartsWithFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
-                        return attributeMapper.getLDAPFilter(
+                        return propertyMapper.getLdapFilter(
                                 connection, new JsonPointer(), field, FilterType.STARTS_WITH, null, valueAssertion);
                     }
 
                 };
-        // Note that the returned LDAP filter may be null if it could not be mapped by any attribute mappers.
+        // Note that the returned LDAP filter may be null if it could not be mapped by any property mappers.
         return queryFilter.accept(visitor, null);
     }
 
@@ -577,11 +578,11 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 }
                 final PromiseImpl<QueryResponse, ResourceException> promise = PromiseImpl.create();
                 // Perform the search.
-                final String[] attributes = getLDAPAttributes(connection, request.getFields());
+                final String[] attributes = getLdapAttributes(connection, request.getFields());
                 final Filter searchFilter = ldapFilter == Filter.alwaysTrue() ? Filter.objectClassPresent()
                                                                               : ldapFilter;
                 final SearchRequest searchRequest = newSearchRequest(
-                        getBaseDN(), SearchScope.SINGLE_LEVEL, searchFilter, attributes);
+                        getBaseDn(), SearchScope.SINGLE_LEVEL, searchFilter, attributes);
 
                 // Add the page results control. We can support the page offset by
                 // reading the next offset pages, or offset x page size resources.
@@ -633,10 +634,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                          * The best solution is probably to process the primary search results in batches using
                          * the paged results control.
                          */
-                        final String id = nameStrategy.getResourceId(connection, entry);
+                        final String id = namingStrategy.getResourceId(connection, entry);
                         final String revision = getRevisionFromEntry(entry);
-                        attributeMapper.read(connection, new JsonPointer(), entry)
-                                       .thenOnResult(new ResultHandler<JsonValue>() {
+                        propertyMapper.read(connection, new JsonPointer(), entry)
+                                      .thenOnResult(new ResultHandler<JsonValue>() {
                                            @Override
                                            public void handleResult(final JsonValue result) {
                                                synchronized (sequenceLock) {
@@ -755,13 +756,13 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                             final SearchResultEntry entry) {
                         try {
                             // Fail-fast if there is a version mismatch.
-                            ensureMVCCVersionMatches(entry, request.getRevision());
+                            ensureMvccVersionMatches(entry, request.getRevision());
 
                             // Create the modify request.
                             final ModifyRequest modifyRequest = newModifyRequest(entry.getName());
                             if (config.readOnUpdatePolicy() == CONTROLS) {
                                 final String[] attributes =
-                                        getLDAPAttributes(connection, request.getFields());
+                                        getLdapAttributes(connection, request.getFields());
                                 modifyRequest.addControl(
                                         PostReadRequestControl.newControl(false, attributes));
                             }
@@ -772,9 +773,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                             addAssertionControl(modifyRequest, request.getRevision());
 
                             // Determine the set of changes that need to be performed.
-                            return attributeMapper.update(
+                            return propertyMapper.update(
                                     connection, new JsonPointer(), entry, request.getContent())
-                                    .thenAsync(new AsyncFunction<
+                                                 .thenAsync(new AsyncFunction<
                                             List<Modification>, ResourceResponse, ResourceException>() {
                                         @Override
                                         public Promise<ResourceResponse, ResourceException> apply(
@@ -802,22 +803,22 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     }
 
     private Promise<ResourceResponse, ResourceException> adaptEntry(final Connection connection, final Entry entry) {
-        final String actualResourceId = nameStrategy.getResourceId(connection, entry);
+        final String actualResourceId = namingStrategy.getResourceId(connection, entry);
         final String revision = getRevisionFromEntry(entry);
-        return attributeMapper.read(connection, new JsonPointer(), entry)
-                              .then(new Function<JsonValue, ResourceResponse, ResourceException>() {
+        return propertyMapper.read(connection, new JsonPointer(), entry)
+                             .then(new Function<JsonValue, ResourceResponse, ResourceException>() {
                                   @Override
                                   public ResourceResponse apply(final JsonValue value) {
-                                      return Responses.newResourceResponse(
+                                      return newResourceResponse(
                                               actualResourceId, revision, new JsonValue(value));
                                   }
-                              });
+                             });
     }
 
     private void addAssertionControl(final ChangeRecord request, final String expectedRevision)
             throws ResourceException {
         if (expectedRevision != null) {
-            ensureMVCCSupported();
+            ensureMvccSupported();
             request.addControl(AssertionRequestControl.newControl(true, Filter.equality(
                     etagAttribute.toString(), expectedRevision)));
         }
@@ -826,8 +827,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
     private Promise<DN, ResourceException> doUpdateFunction(final Connection connection, final String resourceId,
             final String revision) {
         final String ldapAttribute = (etagAttribute != null && revision != null) ? etagAttribute.toString() : "1.1";
-        final SearchRequest searchRequest = nameStrategy.createSearchRequest(connection, getBaseDN(), resourceId)
-                .addAttribute(ldapAttribute);
+        final SearchRequest searchRequest = namingStrategy.createSearchRequest(connection, getBaseDn(), resourceId)
+                                                          .addAttribute(ldapAttribute);
         if (searchRequest.getScope().equals(SearchScope.BASE_OBJECT)) {
             // There's no point in doing a search because we already know the DN.
             return Promises.newResultPromise(searchRequest.getName());
@@ -839,7 +840,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     public Promise<DN, ResourceException> apply(SearchResultEntry entry) throws ResourceException {
                         try {
                             // Fail-fast if there is a version mismatch.
-                            ensureMVCCVersionMatches(entry, revision);
+                            ensureMvccVersionMatches(entry, revision);
                             // Perform update operation.
                             return Promises.newResultPromise(entry.getName());
                         } catch (final Exception e) {
@@ -854,15 +855,15 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                 });
     }
 
-    private void ensureMVCCSupported() throws NotSupportedException {
+    private void ensureMvccSupported() throws NotSupportedException {
         if (etagAttribute == null) {
             throw newNotSupportedException(ERR_MVCC_NOT_SUPPORTED.get());
         }
     }
 
-    private void ensureMVCCVersionMatches(final Entry entry, final String expectedRevision) throws ResourceException {
+    private void ensureMvccVersionMatches(final Entry entry, final String expectedRevision) throws ResourceException {
         if (expectedRevision != null) {
-            ensureMVCCSupported();
+            ensureMvccSupported();
             final String actualRevision = entry.parseAttribute(etagAttribute).asString();
             if (actualRevision == null) {
                 throw new PreconditionFailedException(ERR_MVCC_NO_VERSION_INFORMATION.get(expectedRevision).toString());
@@ -873,8 +874,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         }
     }
 
-    private DN getBaseDN() {
-        return baseDN;
+    private DN getBaseDn() {
+        return baseDn;
     }
 
     /**
@@ -888,25 +889,25 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
      * @return The set of LDAP attributes associated with the resource
      *         attributes.
      */
-    private String[] getLDAPAttributes(final Connection connection, final Collection<JsonPointer> requestedAttributes) {
-        // Get all the LDAP attributes required by the attribute mappers.
+    private String[] getLdapAttributes(final Connection connection, final Collection<JsonPointer> requestedAttributes) {
+        // Get all the LDAP attributes required by the property mappers.
         final Set<String> requestedLDAPAttributes;
         if (requestedAttributes.isEmpty()) {
             // Full read.
             requestedLDAPAttributes = new LinkedHashSet<>();
-            attributeMapper.getLDAPAttributes(connection, new JsonPointer(), new JsonPointer(),
-                    requestedLDAPAttributes);
+            propertyMapper.getLdapAttributes(connection, new JsonPointer(), new JsonPointer(),
+                                             requestedLDAPAttributes);
         } else {
             // Partial read.
             requestedLDAPAttributes = new LinkedHashSet<>(requestedAttributes.size());
             for (final JsonPointer requestedAttribute : requestedAttributes) {
-                attributeMapper.getLDAPAttributes(connection, new JsonPointer(), requestedAttribute,
-                        requestedLDAPAttributes);
+                propertyMapper.getLdapAttributes(connection, new JsonPointer(), requestedAttribute,
+                                                 requestedLDAPAttributes);
             }
         }
 
         // Get the LDAP attributes required by the Etag and name stategies.
-        nameStrategy.getLDAPAttributes(connection, requestedLDAPAttributes);
+        namingStrategy.getLdapAttributes(connection, requestedLDAPAttributes);
         if (etagAttribute != null) {
             requestedLDAPAttributes.add(etagAttribute.toString());
         }
@@ -947,7 +948,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     return adaptEntry(connection, entry);
                 } else {
                     return Promises.newResultPromise(
-                            Responses.newResourceResponse(null, null, new JsonValue(Collections.emptyMap())));
+                            newResourceResponse(null, null, new JsonValue(Collections.emptyMap())));
                 }
             }
         };
@@ -955,8 +956,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
     private SearchRequest searchRequest(
             final Connection connection, final String resourceId, final List<JsonPointer> requestedAttributes) {
-        final String[] attributes = getLDAPAttributes(connection, requestedAttributes);
-        return nameStrategy.createSearchRequest(connection, getBaseDN(), resourceId).addAttribute(attributes);
+        final String[] attributes = getLdapAttributes(connection, requestedAttributes);
+        return namingStrategy.createSearchRequest(connection, getBaseDn(), resourceId).addAttribute(attributes);
     }
 
     private static final class Exceptions {

@@ -81,7 +81,7 @@ import org.forgerock.util.Reject;
 import org.forgerock.util.time.Duration;
 
 /** Provides core factory methods and builders for constructing LDAP resource collections. */
-public final class Rest2LDAP {
+public final class Rest2Ldap {
     /** Indicates whether LDAP client connections should use SSL or StartTLS. */
     private enum ConnectionSecurity {
         NONE, SSL, STARTTLS
@@ -108,9 +108,9 @@ public final class Rest2LDAP {
         private final List<Attribute> additionalLDAPAttributes = new LinkedList<>();
         private DN baseDN; // TODO: support template variables.
         private AttributeDescription etagAttribute;
-        private NameStrategy nameStrategy;
+        private NamingStrategy namingStrategy;
         private ReadOnUpdatePolicy readOnUpdatePolicy = CONTROLS;
-        private AttributeMapper rootMapper;
+        private PropertyMapper rootMapper;
         private Schema schema = Schema.getDefaultSchema();
         private boolean usePermissiveModify;
         private boolean useSubtreeDelete;
@@ -185,9 +185,9 @@ public final class Rest2LDAP {
             if (rootMapper == null) {
                 throw new IllegalStateException(ERR_CONFIG_NO_MAPPINGS_PROVIDED.get().toString());
             }
-            return new LDAPCollectionResourceProvider(baseDN, rootMapper, nameStrategy, etagAttribute,
-                    new Config(readOnUpdatePolicy, useSubtreeDelete, usePermissiveModify, schema),
-                    additionalLDAPAttributes);
+            return new SubResourceImpl(baseDN, rootMapper, namingStrategy, etagAttribute,
+                                       new Config(readOnUpdatePolicy, useSubtreeDelete, usePermissiveModify, schema),
+                                       additionalLDAPAttributes);
         }
 
         /**
@@ -260,14 +260,14 @@ public final class Rest2LDAP {
         }
 
         /**
-         * Sets the attribute mapper which should be used for mapping JSON
+         * Sets the property mapper which should be used for mapping JSON
          * resources to and from LDAP entries.
          *
          * @param mapper
-         *            The attribute mapper.
+         *            The property mapper.
          * @return A reference to this LDAP resource collection builder.
          */
-        public Builder mapper(final AttributeMapper mapper) {
+        public Builder mapper(final PropertyMapper mapper) {
             this.rootMapper = mapper;
             return this;
         }
@@ -319,7 +319,7 @@ public final class Rest2LDAP {
          * @return A reference to this LDAP resource collection builder.
          */
         public Builder useClientDNNaming(final AttributeType attribute) {
-            this.nameStrategy = new DNNameStrategy(attribute);
+            this.namingStrategy = new DNNamingStrategy(attribute);
             return this;
         }
 
@@ -366,7 +366,7 @@ public final class Rest2LDAP {
          */
         public Builder useClientNaming(final AttributeType dnAttribute,
                 final AttributeDescription idAttribute) {
-            this.nameStrategy = new AttributeNameStrategy(dnAttribute, idAttribute, false);
+            this.namingStrategy = new AttributeNamingStrategy(dnAttribute, idAttribute, false);
             return this;
         }
 
@@ -507,7 +507,7 @@ public final class Rest2LDAP {
          */
         public Builder useServerNaming(final AttributeType dnAttribute,
                 final AttributeDescription idAttribute) {
-            this.nameStrategy = new AttributeNameStrategy(dnAttribute, idAttribute, true);
+            this.namingStrategy = new AttributeNamingStrategy(dnAttribute, idAttribute, true);
             return this;
         }
 
@@ -555,15 +555,15 @@ public final class Rest2LDAP {
             return schema.getAttributeType(attribute);
         }
 
-        private AttributeMapper configureMapper(final JsonValue mapper) {
+        private PropertyMapper configureMapper(final JsonValue mapper) {
             if (mapper.isDefined("constant")) {
                 return constant(mapper.get("constant").getObject());
             } else if (mapper.isDefined("simple")) {
                 final JsonValue config = mapper.get("simple");
-                final SimpleAttributeMapper s =
+                final SimplePropertyMapper s =
                         simple(ad(config.get("ldapAttribute").required().asString()));
                 if (config.isDefined("defaultJSONValue")) {
-                    s.defaultJSONValue(config.get("defaultJSONValue").getObject());
+                    s.defaultJsonValue(config.get("defaultJSONValue").getObject());
                 }
                 if (config.get("isBinary").defaultTo(false).asBoolean()) {
                     s.isBinary();
@@ -583,8 +583,8 @@ public final class Rest2LDAP {
                 final DN baseDN = DN.valueOf(config.get("baseDN").required().asString(), schema);
                 final AttributeDescription primaryKey =
                         ad(config.get("primaryKey").required().asString());
-                final AttributeMapper m = configureMapper(config.get("mapper").required());
-                final ReferenceAttributeMapper r = reference(ldapAttribute, baseDN, primaryKey, m);
+                final PropertyMapper m = configureMapper(config.get("mapper").required());
+                final ReferencePropertyMapper r = reference(ldapAttribute, baseDN, primaryKey, m);
                 if (config.get("isRequired").defaultTo(false).asBoolean()) {
                     r.isRequired();
                 }
@@ -604,8 +604,8 @@ public final class Rest2LDAP {
             }
         }
 
-        private ObjectAttributeMapper configureObjectMapper(final JsonValue mapper) {
-            final ObjectAttributeMapper object = object();
+        private ObjectPropertyMapper configureObjectMapper(final JsonValue mapper) {
+            final ObjectPropertyMapper object = object();
             for (final String attribute : mapper.keys()) {
                 object.attribute(attribute, configureMapper(mapper.get(attribute)));
             }
@@ -635,13 +635,13 @@ public final class Rest2LDAP {
         }
     }
 
-    private static final class AttributeNameStrategy extends NameStrategy {
+    private static final class AttributeNamingStrategy extends NamingStrategy {
         private final AttributeDescription dnAttribute;
         private final AttributeDescription idAttribute;
         private final boolean isServerProvided;
 
-        private AttributeNameStrategy(final AttributeType dnAttribute,
-                final AttributeDescription idAttribute, final boolean isServerProvided) {
+        private AttributeNamingStrategy(final AttributeType dnAttribute,
+                                        final AttributeDescription idAttribute, final boolean isServerProvided) {
             this.dnAttribute = AttributeDescription.create(dnAttribute);
             if (this.dnAttribute.equals(idAttribute)) {
                 throw newLocalizedIllegalArgumentException(ERR_CONFIG_NAMING_STRATEGY_DN_AND_ID_NOT_DIFFERENT.get());
@@ -657,7 +657,7 @@ public final class Rest2LDAP {
         }
 
         @Override
-        void getLDAPAttributes(final Connection connection, final Set<String> ldapAttributes) {
+        void getLdapAttributes(final Connection connection, final Set<String> ldapAttributes) {
             ldapAttributes.add(idAttribute.toString());
         }
 
@@ -682,10 +682,10 @@ public final class Rest2LDAP {
         }
     }
 
-    private static final class DNNameStrategy extends NameStrategy {
+    private static final class DNNamingStrategy extends NamingStrategy {
         private final AttributeDescription attribute;
 
-        private DNNameStrategy(final AttributeType attribute) {
+        private DNNamingStrategy(final AttributeType attribute) {
             this.attribute = AttributeDescription.create(attribute);
         }
 
@@ -696,7 +696,7 @@ public final class Rest2LDAP {
         }
 
         @Override
-        void getLDAPAttributes(final Connection connection, final Set<String> ldapAttributes) {
+        void getLdapAttributes(final Connection connection, final Set<String> ldapAttributes) {
             ldapAttributes.add(attribute.toString());
         }
 
@@ -844,29 +844,29 @@ public final class Rest2LDAP {
     }
 
     /**
-     * Returns an attribute mapper which maps a single JSON attribute to a JSON
+     * Returns an property mapper which maps a single JSON attribute to a JSON
      * constant.
      *
      * @param value
      *            The constant JSON value (a Boolean, Number, String, Map, or
      *            List).
-     * @return The attribute mapper.
+     * @return The property mapper.
      */
-    public static AttributeMapper constant(final Object value) {
-        return new JSONConstantAttributeMapper(value);
+    public static PropertyMapper constant(final Object value) {
+        return new JsonConstantPropertyMapper(value);
     }
 
     /**
-     * Returns an attribute mapper which maps JSON objects to LDAP attributes.
+     * Returns an property mapper which maps JSON objects to LDAP attributes.
      *
-     * @return The attribute mapper.
+     * @return The property mapper.
      */
-    public static ObjectAttributeMapper object() {
-        return new ObjectAttributeMapper();
+    public static ObjectPropertyMapper object() {
+        return new ObjectPropertyMapper();
     }
 
     /**
-     * Returns an attribute mapper which provides a mapping from a JSON value to
+     * Returns an property mapper which provides a mapping from a JSON value to
      * a single DN valued LDAP attribute.
      *
      * @param attribute
@@ -877,17 +877,18 @@ public final class Rest2LDAP {
      *            The search primary key LDAP attribute to use for performing
      *            reverse lookups.
      * @param mapper
-     *            An attribute mapper which will be used to map LDAP attributes
+     *            An property mapper which will be used to map LDAP attributes
      *            in the referenced entry.
-     * @return The attribute mapper.
+     * @return The property mapper.
      */
-    public static ReferenceAttributeMapper reference(final AttributeDescription attribute,
-            final DN baseDN, final AttributeDescription primaryKey, final AttributeMapper mapper) {
-        return new ReferenceAttributeMapper(Schema.getDefaultSchema(), attribute, baseDN, primaryKey, mapper);
+    public static ReferencePropertyMapper reference(final AttributeDescription attribute,
+                                                    final DN baseDN, final AttributeDescription primaryKey,
+                                                    final PropertyMapper mapper) {
+        return new ReferencePropertyMapper(Schema.getDefaultSchema(), attribute, baseDN, primaryKey, mapper);
     }
 
     /**
-     * Returns an attribute mapper which provides a mapping from a JSON value to
+     * Returns an property mapper which provides a mapping from a JSON value to
      * a single DN valued LDAP attribute.
      *
      * @param attribute
@@ -898,37 +899,37 @@ public final class Rest2LDAP {
      *            The search primary key LDAP attribute to use for performing
      *            reverse lookups.
      * @param mapper
-     *            An attribute mapper which will be used to map LDAP attributes
+     *            An property mapper which will be used to map LDAP attributes
      *            in the referenced entry.
-     * @return The attribute mapper.
+     * @return The property mapper.
      */
-    public static ReferenceAttributeMapper reference(final String attribute, final String baseDN,
-            final String primaryKey, final AttributeMapper mapper) {
+    public static ReferencePropertyMapper reference(final String attribute, final String baseDN,
+                                                    final String primaryKey, final PropertyMapper mapper) {
         return reference(AttributeDescription.valueOf(attribute), DN.valueOf(baseDN),
                 AttributeDescription.valueOf(primaryKey), mapper);
     }
 
     /**
-     * Returns an attribute mapper which provides a simple mapping from a JSON
+     * Returns an property mapper which provides a simple mapping from a JSON
      * value to a single LDAP attribute.
      *
      * @param attribute
      *            The LDAP attribute to be mapped.
-     * @return The attribute mapper.
+     * @return The property mapper.
      */
-    public static SimpleAttributeMapper simple(final AttributeDescription attribute) {
-        return new SimpleAttributeMapper(attribute);
+    public static SimplePropertyMapper simple(final AttributeDescription attribute) {
+        return new SimplePropertyMapper(attribute);
     }
 
     /**
-     * Returns an attribute mapper which provides a simple mapping from a JSON
+     * Returns an property mapper which provides a simple mapping from a JSON
      * value to a single LDAP attribute.
      *
      * @param attribute
      *            The LDAP attribute to be mapped.
-     * @return The attribute mapper.
+     * @return The property mapper.
      */
-    public static SimpleAttributeMapper simple(final String attribute) {
+    public static SimplePropertyMapper simple(final String attribute) {
         return simple(AttributeDescription.valueOf(attribute));
     }
 
@@ -1056,7 +1057,7 @@ public final class Rest2LDAP {
         }
     }
 
-    private Rest2LDAP() {
+    private Rest2Ldap() {
         // Prevent instantiation.
     }
 }
