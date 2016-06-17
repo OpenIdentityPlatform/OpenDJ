@@ -19,6 +19,6 @@ setlocal
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.ManageAccount"
 set SCRIPT_NAME=manage-account
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
+call "%~dp0\..\lib\_client-script.bat" %*
 
 

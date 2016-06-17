@@ -19,6 +19,6 @@ setlocal
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.VerifyIndex"
 set SCRIPT_NAME=verify-index
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
+call "%~dp0\..\lib\_server-script.bat" %*
 
 

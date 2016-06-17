@@ -17,17 +17,17 @@ rem Portions Copyright 2011-2012 ForgeRock AS.
 
 setlocal
 
-for %%i in (%~sf0) do set NON_ESCAPED=%%~dPsi..
+set NON_ESCAPED=%~dp0..
 
 FOR /F "tokens=1-2* delims=%%" %%1 IN ("%NON_ESCAPED%") DO (
 if NOT "%%2" == "" goto invalidPath)
 
-for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set DIR_HOME=%~dp0..
 set INSTALL_ROOT=%DIR_HOME%
 
 set INSTANCE_DIR=
 if exist "%INSTALL_ROOT%\instance.loc" (
-  set /p INSTANCE_DIR=<%INSTALL_ROOT%\instance.loc
+  set /p INSTANCE_DIR=<"%INSTALL_ROOT%\instance.loc"
 ) else (
 set INSTANCE_DIR=.
 )

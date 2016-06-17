@@ -21,7 +21,7 @@ set PATH=%SystemRoot%
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME=stop-ds
-for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set DIR_HOME=%~dp0..
 
 rem We keep this values to reset the environment before calling start-ds.
 set ORIGINAL_JAVA_ARGS=%OPENDJ_JAVA_ARGS%
@@ -32,16 +32,16 @@ set INSTALL_ROOT=%DIR_HOME%
 
 set INSTANCE_DIR=
 if exist "%INSTALL_ROOT%\instance.loc" (
-  set /p INSTANCE_DIR=<%INSTALL_ROOT%\instance.loc
+  set /p INSTANCE_DIR=<"%INSTALL_ROOT%\instance.loc"
 ) else (
 set INSTANCE_DIR=.
 )
 set CUR_DIR=%CD%
-cd /d%INSTALL_ROOT%
-cd /d%INSTANCE_DIR%
+cd /d %INSTALL_ROOT%
+cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
-cd /d%CUR_DIR%
-set TEMP_LOG="%TEMP%\logs\"
+cd /d %CUR_DIR%
+set TEMP_LOG=%TEMP%\logs\
 
 if NOT EXIST "%INSTANCE_ROOT%\logs\" (
   if NOT EXIST "%TEMP_LOG%" (

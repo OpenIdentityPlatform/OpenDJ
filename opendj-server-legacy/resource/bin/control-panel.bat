@@ -16,12 +16,12 @@ rem Copyright 2006-2009 Sun Microsystems, Inc.
 rem Portions Copyright 2011-2012 ForgeRock AS.
 
 setlocal
-for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set DIR_HOME=%~dp0..
 set INSTALL_ROOT=%DIR_HOME%
 
 set INSTANCE_DIR=
 if exist "%INSTALL_ROOT%\instance.loc" (
-  set /p INSTANCE_DIR=<%INSTALL_ROOT%\instance.loc
+  set /p INSTANCE_DIR=<"%INSTALL_ROOT%\instance.loc"
 ) else (
 set INSTANCE_DIR=.
 )

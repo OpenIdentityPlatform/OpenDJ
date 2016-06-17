@@ -19,6 +19,6 @@ setlocal
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.RebuildIndex"
 set SCRIPT_NAME=rebuild-index
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
+call "%~dp0\..\lib\_server-script.bat" %*
 
 

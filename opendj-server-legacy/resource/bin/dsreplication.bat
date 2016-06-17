@@ -32,4 +32,4 @@ set SCRIPT_NAME=dsreplication
 goto callScript
 
 :callScript
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
+call "%~dp0\..\lib\_server-script.bat" %*

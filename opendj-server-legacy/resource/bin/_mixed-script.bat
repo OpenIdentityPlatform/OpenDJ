@@ -19,12 +19,12 @@ rem This script is used to invoke various server-side processes.  It should not
 rem be invoked directly by end users.
 
 setlocal
-for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set DIR_HOME=%~dp0..
 set INSTALL_ROOT=%DIR_HOME%
 
 set INSTANCE_DIR=
 if exist "%INSTALL_ROOT%\instance.loc" (
-  set /p INSTANCE_DIR=<%INSTALL_ROOT%\instance.loc
+  set /p INSTANCE_DIR=<"%INSTALL_ROOT%\instance.loc"
 ) else (
 set INSTANCE_DIR=.
 )

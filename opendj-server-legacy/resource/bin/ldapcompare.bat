@@ -19,5 +19,5 @@ setlocal
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.LDAPCompare"
 set SCRIPT_NAME=ldapcompare
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
+call "%~dp0\..\lib\_client-script.bat" %*
 

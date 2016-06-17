@@ -32,11 +32,11 @@ goto end
 
 :setInstanceRoot
 setlocal
-for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set DIR_HOME=%~dp0..
 set INSTALL_ROOT=%DIR_HOME%
 set INSTANCE_DIR=
 if exist "%INSTALL_ROOT%\instance.loc" (
-  set /p INSTANCE_DIR=<%INSTALL_ROOT%\instance.loc
+  set /p INSTANCE_DIR=<"%INSTALL_ROOT%\instance.loc"
 ) else (
 set INSTANCE_DIR=.
 )
@@ -52,8 +52,8 @@ rem Configure the appropriate CLASSPATH for client, using java.util.logging logg
 if "%SET_CLASSPATH_DONE%" == "true" goto end
 rem get the absolute paths before building the classpath
 rem it also helps comparing the two paths
-FOR /F %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
-FOR /F %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
+FOR /F "delims=" %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
+FOR /F "delims=" %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
 call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\bootstrap-client.jar
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%" goto setClassPathDone
@@ -67,8 +67,8 @@ rem Configure the appropriate CLASSPATH for server, using Opend DJ logger.
 if "%SET_CLASSPATH_DONE%" == "true" goto end
 rem get the absolute paths before building the classpath
 rem it also helps comparing the two paths
-FOR /F %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
-FOR /F %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
+FOR /F "delims=" %%i IN ("%INSTALL_ROOT%")  DO set INSTALL_ROOT=%%~dpnxi
+FOR /F "delims=" %%i IN ("%INSTANCE_ROOT%") DO set INSTANCE_ROOT=%%~dpnxi
 call "%INSTALL_ROOT%\lib\setcp.bat" %INSTALL_ROOT%\lib\bootstrap.jar
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
 if "%INSTALL_ROOT%" == "%INSTANCE_ROOT%" goto setClassPathWithOpenDJLoggerDone

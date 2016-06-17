@@ -19,5 +19,5 @@ setlocal
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.BackUpDB"
 set SCRIPT_NAME=backup
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_mixed-script.bat" %*
+call "%~dp0\..\lib\_mixed-script.bat" %*
 

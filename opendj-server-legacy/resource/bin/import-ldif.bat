@@ -19,5 +19,5 @@ setlocal
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.ImportLDIF"
 set SCRIPT_NAME=import-ldif
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_mixed-script.bat" %*
+call "%~dp0\..\lib\_mixed-script.bat" %*
 
