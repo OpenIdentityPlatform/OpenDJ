@@ -75,18 +75,20 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         CATEGORY_DESCRIPTIONS.put("ACCESS_CONTROL", CATEGORY_ACCESS_CONTROL.get());
         CATEGORY_DESCRIPTIONS.put("ADMIN", CATEGORY_ADMIN.get());
         CATEGORY_DESCRIPTIONS.put("ADMIN_TOOL", CATEGORY_ADMIN_TOOL.get());
+        CATEGORY_DESCRIPTIONS.put("AUDIT", CATEGORY_AUDIT.get());
         CATEGORY_DESCRIPTIONS.put("BACKEND", CATEGORY_BACKEND.get());
         CATEGORY_DESCRIPTIONS.put("CONFIG", CATEGORY_CONFIG.get());
         CATEGORY_DESCRIPTIONS.put("CORE", CATEGORY_CORE.get());
         CATEGORY_DESCRIPTIONS.put("DSCONFIG", CATEGORY_DSCONFIG.get());
         CATEGORY_DESCRIPTIONS.put("EXTENSIONS", CATEGORY_EXTENSIONS.get());
-        CATEGORY_DESCRIPTIONS.put("JEB", CATEGORY_JEB.get());
+        CATEGORY_DESCRIPTIONS.put("JVM", CATEGORY_JVM.get());
         CATEGORY_DESCRIPTIONS.put("LOG", CATEGORY_LOG.get());
         CATEGORY_DESCRIPTIONS.put("PLUGIN", CATEGORY_PLUGIN.get());
         CATEGORY_DESCRIPTIONS.put("PROTOCOL", CATEGORY_PROTOCOL.get());
         CATEGORY_DESCRIPTIONS.put("QUICKSETUP", CATEGORY_QUICKSETUP.get());
         CATEGORY_DESCRIPTIONS.put("RUNTIME_INFORMATION", CATEGORY_RUNTIME_INFORMATION.get());
         CATEGORY_DESCRIPTIONS.put("SCHEMA", CATEGORY_SCHEMA.get());
+        CATEGORY_DESCRIPTIONS.put("SDK", CATEGORY_SDK.get());
         CATEGORY_DESCRIPTIONS.put("SYNC", CATEGORY_SYNC.get());
         CATEGORY_DESCRIPTIONS.put("TASK", CATEGORY_TASK.get());
         CATEGORY_DESCRIPTIONS.put("THIRD_PARTY", CATEGORY_THIRD_PARTY.get());
@@ -309,7 +311,10 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         map.put("intro", LOG_REF_INTRO.get());
         List<Map<String, Object>> categories = new LinkedList<>();
         for (String category : messageFileNames) {
-            categories.add(getCategoryMap(category));
+            Map<String, Object> categoryMap = getCategoryMap(category);
+            if (!categoryMap.isEmpty()) {   // Empty: no messages to document
+                categories.add(getCategoryMap(category));
+            }
         }
         map.put("categories", categories);
         File file = new File(outputDirectory, "log-message-reference.xml");
@@ -356,6 +361,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     }
 
     private InputStream loadPropertiesFromJar(final String category) throws IOException {
+        getLog().debug("category: " + category);
         final JarFile jarFile = new JarFile(
                 Paths.get(project.getBuild().getDirectory(), "opendj", "lib", "opendj.jar").toString());
         return jarFile.getInputStream(jarFile.getJarEntry(

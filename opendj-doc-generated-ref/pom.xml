@@ -127,28 +127,29 @@
                         <configuration>
                             <outputDirectory>${project.build.directory}/docbkx-sources/shared</outputDirectory>
                             <messageFileNames>
-                                <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml file -->
+                                <!--
+                                  For each .properties with messages of at least error severity,
+                                  generate a section in the log message reference listing the messages.
+                                -->
+                                <messageFileName>access_control</messageFileName>
                                 <messageFileName>admin</messageFileName>
+                                <messageFileName>admin_tool</messageFileName>
                                 <messageFileName>backend</messageFileName>
                                 <messageFileName>config</messageFileName>
                                 <messageFileName>core</messageFileName>
                                 <messageFileName>extension</messageFileName>
+                                <messageFileName>external</messageFileName>
                                 <messageFileName>logger</messageFileName>
                                 <messageFileName>plugin</messageFileName>
                                 <messageFileName>protocol</messageFileName>
+                                <messageFileName>quickSetup</messageFileName>
                                 <messageFileName>replication</messageFileName>
+                                <messageFileName>runtime</messageFileName>
                                 <messageFileName>schema</messageFileName>
                                 <messageFileName>task</messageFileName>
                                 <messageFileName>tool</messageFileName>
                                 <messageFileName>utility</messageFileName>
-
-                                <!-- Ignore following message files as we document only serious errors. -->
-                                <!-- <messageFileName>access_control</messageFileName> -->
-                                <!-- <messageFileName>admin_tool</messageFileName> -->
-                                <!-- <messageFileName>external</messageFileName> -->
-                                <!-- <messageFileName>quicksetup.properties</messageFileName> -->
-                                <!-- <messageFileName>runtime_information.properties</messageFileName> -->
-                                <!-- <messageFileName>version.properties</messageFileName> -->
+                                <messageFileName>version</messageFileName>
                             </messageFileNames>
                         </configuration>
                     </execution>
