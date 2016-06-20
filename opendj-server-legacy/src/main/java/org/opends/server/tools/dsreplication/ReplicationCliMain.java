@@ -132,6 +132,7 @@ import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tools.dsreplication.EnableReplicationUserData.EnableReplicationServerData;
 import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.ServerArgs;
@@ -357,6 +358,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     try
     {

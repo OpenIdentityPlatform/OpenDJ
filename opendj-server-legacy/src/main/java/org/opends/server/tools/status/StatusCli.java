@@ -76,6 +76,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
@@ -162,6 +163,7 @@ public class StatusCli extends ConsoleApplication
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     try {
       ControlPanelLog.initLogFileHandler(
