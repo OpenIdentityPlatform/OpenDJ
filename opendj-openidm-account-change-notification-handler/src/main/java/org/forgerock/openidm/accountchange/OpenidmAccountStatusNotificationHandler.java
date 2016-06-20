@@ -259,16 +259,14 @@ public class OpenidmAccountStatusNotificationHandler
         String newLogFileName = configuration.getLogFile();
         if (!logFileName.equals(newLogFileName)) {
             configChangeResult.setAdminActionRequired(true);
-            configChangeResult.addMessage(INFO_OPENIDM_PWSYNC_LOGFILE_CHANGE_REQUIRES_RESTART.get(logFileName,
-                    newLogFileName));
+            configChangeResult.addMessage(
+                    INFO_OPENIDM_PWSYNC_LOGFILE_CHANGE_REQUIRES_RESTART.get(logFileName, newLogFileName));
         }
 
         if ((currentConfig.getUpdateInterval() == 0) != (configuration.getUpdateInterval() == 0)) {
             configChangeResult.setAdminActionRequired(true);
-            configChangeResult
-                    .addMessage(INFO_OPENIDM_PWSYNC_UPDATE_INTERVAL_CHANGE_REQUIRES_RESTART.get(
-                            Long.toString(currentConfig.getUpdateInterval()),
-                            Long.toString(configuration.getUpdateInterval())));
+            configChangeResult.addMessage(INFO_OPENIDM_PWSYNC_UPDATE_INTERVAL_CHANGE_REQUIRES_RESTART.get(
+                    currentConfig.getUpdateInterval(), configuration.getUpdateInterval()));
         } else {
             interval = configuration.getUpdateInterval();
         }
@@ -353,8 +351,8 @@ public class OpenidmAccountStatusNotificationHandler
         DN trustMgrDN = configuration.getTrustManagerProviderDN();
         TrustManagerProvider<?> trustManagerProvider = DirectoryServer.getTrustManagerProvider(trustMgrDN);
         if (logger.isTraceEnabled()) {
-            logger.trace("Trust Manager: %s, Server certificate subject: %s", trustMgrDN.toString(),
-                    configuration.getCertificateSubjectDN().toString());
+            logger.trace("Trust Manager: %s, Server certificate subject: %s",
+                    trustMgrDN, configuration.getCertificateSubjectDN());
         }
         return trustManagerProvider.getTrustManagers();
     }
@@ -408,27 +406,24 @@ public class OpenidmAccountStatusNotificationHandler
             logger.trace("Received notification for user: " + notification.getUserDN());
         }
         OpenidmAccountStatusNotificationHandlerCfg config = currentConfig;
-        HashMap<String, List<String>> returnedData = new HashMap<String, List<String>>();
+        HashMap<String, List<String>> returnedData = new HashMap<>();
 
         String userDN = String.valueOf(notification.getUserDN());
         Entry userEntry = notification.getUserEntry();
 
         Set<AttributeType> notificationAttrs = config.getAttributeType();
         for (AttributeType t : notificationAttrs) {
-            List<Attribute> attrList = userEntry.getAttribute(t);
-            if (attrList != null) {
-                for (Attribute a : attrList) {
-                    ArrayList<String> attrVals = new ArrayList<String>();
-                    String attrName = a.getAttributeDescription().getAttributeType().getNameOrOID();
-                    for (ByteString v : a) {
-                        if (logger.isTraceEnabled()) {
-                            logger.trace("Adding end user attribute value " + v + " from attr " + attrName
-                                    + "to notification");
-                        }
-                        attrVals.add(v.toString());
+            for (Attribute a : userEntry.getAttribute(t)) {
+                List<String> attrVals = new ArrayList<>();
+                String attrName = a.getAttributeDescription().getAttributeType().getNameOrOID();
+                for (ByteString v : a) {
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Adding end user attribute value " + v + " from attr " + attrName
+                                + "to notification");
                     }
-                    returnedData.put(attrName, attrVals);
+                    attrVals.add(v.toString());
                 }
+                returnedData.put(attrName, attrVals);
             }
         }
 
@@ -437,8 +432,8 @@ public class OpenidmAccountStatusNotificationHandler
             return;
         }
         List<String> newPasswords = notification.getNotificationProperties().get(NEW_PASSWORD);
-        processOpenIDMNotification(notifType == PASSWORD_CHANGED ? PWD_CHANGED : PWD_RESET, userDN, newPasswords,
-                returnedData);
+        byte passwordEvent = notifType == PASSWORD_CHANGED ? PWD_CHANGED : PWD_RESET;
+        processOpenIDMNotification(passwordEvent, userDN, newPasswords, returnedData);
 
         if (logger.isTraceEnabled()) {
             logger.trace("Finished to process the notification to IDM for user: " + notification.getUserDN());
@@ -454,7 +449,7 @@ public class OpenidmAccountStatusNotificationHandler
      *             if encryption fails
      */
     private Map<String, Object> buildPatchForPasswords(final List<String> newPasswords) throws JsonCryptoException {
-        final Map<String, Object> patchFields = new HashMap<String, Object>();
+        final Map<String, Object> patchFields = new HashMap<>();
         JsonValue crypto = new JsonCrypto(encryptor.getType(), encryptor.encrypt(new JsonValue(newPasswords.get(0))))
                 .toJsonValue();
 
@@ -505,7 +500,7 @@ public class OpenidmAccountStatusNotificationHandler
                 if (logger.isTraceEnabled()) {
                     logger.trace("Pushing modification to local storage for user: %s", userDN);
                 }
-                Map<String, Object> request = new HashMap<String, Object>(2);
+                Map<String, Object> request = new HashMap<>(2);
                 request.put("queryParameter", queryParameters);
                 request.put("patch", passwordsPatch);
                 try {
@@ -617,7 +612,7 @@ public class OpenidmAccountStatusNotificationHandler
         }
         form.appendRequestQuery(request);
 
-        List<Object> finalPatch = new ArrayList<Object>(1);
+        List<Object> finalPatch = new ArrayList<>(1);
         finalPatch.add(passwordsPatch);
         request.getEntity().setJson(finalPatch);
         return request;
@@ -669,9 +664,7 @@ public class OpenidmAccountStatusNotificationHandler
         return interval * 1000;
     }
 
-    /**
-     * Starts a background thread to process locally stored changes asynchronously.
-     */
+    /** Starts a background thread to process locally stored changes asynchronously. */
     private void initializeBackGroundProcessing() {
         if (backgroundThread == null) {
             DirectoryServer.registerShutdownListener(this);
@@ -696,14 +689,11 @@ public class OpenidmAccountStatusNotificationHandler
      * Wakes up after sleeping for a configurable interval and sends all changes stored locally to OpenIDM.
      */
     private class BackGroundThread extends DirectoryThread {
-
         BackGroundThread() {
             super(THREADNAME);
         }
 
-        /**
-         * Run method for the background thread.
-         */
+        /** Run method for the background thread. */
         @SuppressWarnings("unchecked")
         @Override
         public void run() {
