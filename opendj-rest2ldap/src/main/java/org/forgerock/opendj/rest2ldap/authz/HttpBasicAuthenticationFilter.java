@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.asErrorResponse;
 import static org.forgerock.util.Reject.checkNotNull;
 
@@ -77,7 +78,7 @@ final class HttpBasicAuthenticationFilter implements Filter {
                     @Override
                     public Promise<? extends Response, ? extends NeverThrowsException> apply(LdapException exception) {
                         return asErrorResponse(exception instanceof EntryNotFoundException
-                                ? LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS, exception.getMessage())
+                                ? LdapException.newLdapException(ResultCode.INVALID_CREDENTIALS)
                                 : exception);
                     }
                 });
