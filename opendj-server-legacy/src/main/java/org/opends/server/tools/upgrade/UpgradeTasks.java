@@ -1405,9 +1405,21 @@ public final class UpgradeTasks
   {
     return new AbstractUpgradeTask()
     {
+      private boolean shouldRunTask;
+
+      @Override
+      public void prepare(UpgradeContext context) throws ClientException
+      {
+        shouldRunTask = concatenatedSchemaFile.exists();
+      }
+
       @Override
       public void perform(UpgradeContext context) throws ClientException
       {
+        if (!shouldRunTask)
+        {
+          return;
+        }
         final ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, getSummary(), 0);
 
         final File configFile = new File(configSchemaDirectory, "02-config.ldif");
