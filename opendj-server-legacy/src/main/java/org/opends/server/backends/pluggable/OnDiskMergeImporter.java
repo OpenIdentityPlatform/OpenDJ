@@ -201,6 +201,7 @@ final class OnDiskMergeImporter
           // Try to force the JVM to close mmap()ed file so that they can be deleted.
           // (see http://bugs.java.com/view_bug.do?bug_id=4715154)
           System.gc();
+          Runtime.getRuntime().runFinalization();
         }
         recursiveDelete(tempDir);
       }
