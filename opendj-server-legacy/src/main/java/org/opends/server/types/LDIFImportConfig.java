@@ -190,9 +190,8 @@ public final class LDIFImportConfig extends OperationConfig
   private BufferedReader getBufferedReader(Reader reader) {
     if (reader instanceof BufferedReader) {
       return (BufferedReader)reader;
-    } else {
-      return new BufferedReader(reader);
     }
+    return new BufferedReader(reader);
   }
 
   /**

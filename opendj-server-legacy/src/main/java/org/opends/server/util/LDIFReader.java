@@ -476,8 +476,7 @@ public class LDIFReader implements Closeable
         }
         else
         {
-          LocalizableMessage message =
-                  ERR_LDIF_INVALID_LEADING_SPACE.get(lineNumber, line);
+          LocalizableMessage message = ERR_LDIF_INVALID_LEADING_SPACE.get(lineNumber, line);
           logToRejectWriter(lines, message);
           throw new LDIFException(message, lineNumber, false);
         }
@@ -535,9 +534,7 @@ public class LDIFReader implements Closeable
     int colonPos = line.indexOf(":");
     if (colonPos <= 0)
     {
-      LocalizableMessage message =
-              ERR_LDIF_NO_ATTR_NAME.get(lastEntryLineNumber, line);
-
+      LocalizableMessage message = ERR_LDIF_NO_ATTR_NAME.get(lastEntryLineNumber, line);
       logToRejectWriter(lines, message);
       throw new LDIFException(message, lastEntryLineNumber, true);
     }
@@ -550,9 +547,7 @@ public class LDIFReader implements Closeable
     }
     else if (! attrName.equals("dn"))
     {
-      LocalizableMessage message =
-              ERR_LDIF_NO_DN.get(lastEntryLineNumber, line);
-
+      LocalizableMessage message = ERR_LDIF_NO_DN.get(lastEntryLineNumber, line);
       logToRejectWriter(lines, message);
       throw new LDIFException(message, lastEntryLineNumber, true);
     }
@@ -566,20 +561,25 @@ public class LDIFReader implements Closeable
       return DN.rootDN();
     }
 
-    if (line.charAt(colonPos+1) == ':')
+    String dn = readValue(line, colonPos, lines);
+    return decodeDN(dn, lines, line);
+  }
+
+  private String readValue(StringBuilder line, int colonPos, List<StringBuilder> lines) throws LDIFException
+  {
+    if (line.charAt(colonPos + 1) == ':')
     {
-      // The DN is base64-encoded.  Find the first non-blank character and
-      // take the rest of the line, base64-decode it, and parse it as a DN.
+      // The value is base64-encoded. Find the first non-blank character
+      // and take the rest of the line, and base64-decode it.
       int pos = findFirstNonSpaceCharPosition(line, colonPos + 2);
-      String dnStr = base64Decode(line.substring(pos), lines, line);
-      return decodeDN(dnStr, lines, line);
+      return base64Decode(line.substring(pos), lines, line);
     }
     else
     {
-      // The rest of the value should be the DN.  Skip over any spaces and
-      // attempt to decode the rest of the line as the DN.
+      // The rest of the value should be the value. Skip over any spaces
+      // and attempt to decode the rest of the line as a string.
       int pos = findFirstNonSpaceCharPosition(line, colonPos + 1);
-      return decodeDN(line.substring(pos), lines, line);
+      return line.substring(pos);
     }
   }
 
@@ -686,22 +686,8 @@ public class LDIFReader implements Closeable
       throw new LDIFException(message, lastEntryLineNumber, false );
     }
 
-    if (line.charAt(colonPos+1) == ':')
-    {
-      // The change type is base64-encoded.  Find the first non-blank character
-      // and take the rest of the line, and base64-decode it.
-      int pos = findFirstNonSpaceCharPosition(line, colonPos + 2);
-      return base64Decode(line.substring(pos), lines, line);
-    }
-    else
-    {
-      // The rest of the value should be the changetype. Skip over any spaces
-      // and attempt to decode the rest of the line as the changetype string.
-      int pos = findFirstNonSpaceCharPosition(line, colonPos + 1);
-      return line.substring(pos);
-    }
+    return readValue(line, colonPos, lines);
   }
-
 
   /**
    * Decodes the provided line as an LDIF attribute and adds it to the
@@ -826,9 +812,9 @@ public class LDIFReader implements Closeable
         {
           if (!a.add(attributeValue) && checkSchema)
           {
-              LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTR.get(
-                  entryDN, lastEntryLineNumber, attrDescStr, value);
-              logToRejectWriter(lines, message);
+            LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTR.get(
+                entryDN, lastEntryLineNumber, attrDescStr, value);
+            logToRejectWriter(lines, message);
             throw new LDIFException(message, lastEntryLineNumber, true);
           }
           if (attrType.isSingleValue() && a.size() > 1 && checkSchema)
