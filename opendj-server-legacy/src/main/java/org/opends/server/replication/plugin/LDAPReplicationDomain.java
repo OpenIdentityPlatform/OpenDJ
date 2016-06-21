@@ -334,7 +334,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private final InternalClientConnection conn = getRootConnection();
   private final AtomicBoolean shutdown = new AtomicBoolean();
   private volatile boolean disabled;
-  private volatile boolean stateSavingDisabled;
 
   /**
    * This list is used to temporary store operations that needs to be replayed
@@ -444,9 +443,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           synchronized (this)
           {
             wait(1000);
-            if (!disabled && !stateSavingDisabled)
+            if (!disabled && !ieRunning())
             {
-              // save the ServerState
               state.save();
             }
           }
@@ -3513,9 +3511,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    */
   private void preBackendImport(Backend<?> backend) throws DirectoryException
   {
-    // Stop saving state
-    stateSavingDisabled = true;
-
     // Prevent the processing of the backend finalisation event as the import will disable the attached backend
     ignoreBackendInitializationEvent = true;
 
@@ -3574,8 +3569,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       // Process import
       preBackendImport(backend);
       backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
-
-      stateSavingDisabled = false;
     }
     catch(Exception e)
     {
