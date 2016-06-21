@@ -800,7 +800,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       for (ByteString v : a)
       {
         AttributeType type = newSchema.parseAttributeType(v.toString());
-        removeAttributeType(type, newSchema, modifiedSchemaFiles);
+        removeAttributeType(type, newSchema, mods, pos, modifiedSchemaFiles);
       }
     }
     else if (at.equals(objectClassesType))
@@ -1108,8 +1108,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided attribute type from the server
    *                              schema.
    */
-  private void removeAttributeType(AttributeType attributeType, Schema schema, Set<String> modifiedSchemaFiles)
-          throws DirectoryException
+  private void removeAttributeType(AttributeType attributeType, Schema schema, List<Modification> modifications,
+      int currentPosition, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     // See if the specified attribute type is actually defined in the server
     // schema.  If not, then fail.
@@ -1119,6 +1119,42 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(
           attributeType.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    }
+
+    // See if there is another modification later to add the attribute type back
+    // into the schema. If so, then it's a replace and we should ignore the
+    // remove because adding it back will handle the replace.
+    for (int i = currentPosition + 1; i < modifications.size(); i++)
+    {
+      Modification m = modifications.get(i);
+      Attribute a = m.getAttribute();
+
+      if (m.getModificationType() != ModificationType.ADD
+          || !a.getAttributeDescription().getAttributeType().equals(attributeTypesType))
+      {
+        continue;
+      }
+
+      for (ByteString v : a)
+      {
+        String oid;
+        try
+        {
+          oid = Schema.parseOID(v.toString(), ERR_PARSING_ATTRIBUTE_TYPE_OID);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
+          throw de;
+        }
+
+        if (attributeType.getOID().equals(oid))
+        {
+          // We found a match where the attribute type is added back later,
+          // so we don't need to do anything else here.
+          return;
+        }
+      }
     }
 
     // Make sure that the attribute type isn't used as the superior type for

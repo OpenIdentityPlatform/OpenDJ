@@ -25,6 +25,7 @@ import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.copy;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
+import static org.opends.server.types.Schema.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
@@ -1431,11 +1432,12 @@ public final class UpgradeTasks
 
         if (!configCsvCharAT.isPlaceHolder() && concatenatedCsvCharAT.isPlaceHolder())
         {
+          final String csvCharAttrTypeDefinition = configCsvCharAT.toString().trim();
           try (BufferedWriter writer = Files.newBufferedWriter(concatenatedSchemaFile.toPath(), UTF_8, APPEND))
           {
             writer.append(CoreSchema.getAttributeTypesAttributeType().getNameOrOID());
             writer.append(": ");
-            writer.append(configCsvCharAT.toString().trim());
+            writer.append(addSchemaFileToElementDefinitionIfAbsent(csvCharAttrTypeDefinition, "02-config.ldif"));
             writer.newLine();
           }
           catch (IOException e)
