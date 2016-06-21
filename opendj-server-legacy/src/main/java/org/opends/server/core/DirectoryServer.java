@@ -5575,8 +5575,7 @@ public final class DirectoryServer
     outputStream.write(PRINTABLE_VERSION_STRING.getBytes());
 
     // Print extensions' extra information
-    String extensionInformation =
-         ConfigurationFramework.getInstance().printExtensionInformation();
+    String extensionInformation = ConfigurationFramework.printExtensionInformation(getServerRoot(), getInstanceRoot());
     if ( extensionInformation != null ) {
       outputStream.write(extensionInformation.getBytes());
     }
@@ -6505,8 +6504,7 @@ public final class DirectoryServer
     System.out.println(SetupUtils.BUILD_JVM_VENDOR+separator+BUILD_JVM_VENDOR);
 
     // Print extensions' extra information
-    String extensionInformation =
-                  ConfigurationFramework.getInstance().printExtensionInformation();
+    String extensionInformation = ConfigurationFramework.printExtensionInformation(getServerRoot(), getInstanceRoot());
     if ( extensionInformation != null ) {
       System.out.print(extensionInformation);
     }

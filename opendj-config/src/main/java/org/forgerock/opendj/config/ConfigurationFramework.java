@@ -143,6 +143,134 @@ public final class ConfigurationFramework {
         return INSTANCE;
     }
 
+    /**
+     * Prints out all information about extensions.
+     *
+     * @param installPath
+     *            The path where application binaries are located.
+     * @param instancePath
+     *            The path where application data are located.
+     *
+     * @return A string representing all information about extensions;
+     *         <code>null</code> if there is no information available.
+     */
+    public static String printExtensionInformation(final String installPath, final String instancePath) {
+        final File extensionsPath = buildExtensionPath(installPath);
+
+        final List<File> extensions = new ArrayList<>();
+
+        if (extensionsPath.exists() && extensionsPath.isDirectory()) {
+            extensions.addAll(listFiles(extensionsPath));
+        }
+
+        File instanceExtensionsPath = buildExtensionPath(instancePath);
+        if (!extensionsPath.getAbsolutePath().equals(instanceExtensionsPath.getAbsolutePath())) {
+            extensions.addAll(listFiles(instanceExtensionsPath));
+        }
+
+        if (extensions.isEmpty()) {
+            return null;
+        }
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(baos);
+        // prints:
+        // --
+        // Name Build number Revision number
+        ps.printf("--%s           %-20s %-20s %-20s%s", EOL, "Name", "Build number",
+                  "Revision number", EOL);
+
+        for (final File extension : extensions) {
+            printExtensionDetails(ps, extension);
+        }
+
+        return baos.toString();
+    }
+
+    private static File buildExtensionPath(String directory)  {
+        File libDir = new File(directory, LIB_DIR);
+        try {
+            return new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
+        } catch (Exception e) {
+            return new File(libDir, EXTENSIONS_DIR);
+        }
+    }
+
+    private static List<File> listFiles(File path) {
+        if (path.exists() && path.isDirectory()) {
+
+            return Arrays.asList(path.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File pathname) {
+                    // only files with names ending with ".jar"
+                    return pathname.isFile() && pathname.getName().endsWith(".jar");
+                }
+            }));
+        }
+        return Collections.emptyList();
+    }
+
+    private static void printExtensionDetails(PrintStream ps, File extension) {
+        // retrieve MANIFEST entry and display name, build number and revision number
+        try (JarFile jarFile = new JarFile(extension)) {
+            JarEntry entry = jarFile.getJarEntry(MANIFEST_RELATIVE_PATH);
+            if (entry == null) {
+                return;
+            }
+
+            String[] information = getBuildInformation(jarFile);
+
+            ps.append("Extension: ");
+            boolean addBlank = false;
+            for (String name : information) {
+                if (addBlank) {
+                    ps.append(" ");
+                } else {
+                    addBlank = true;
+                }
+                ps.printf("%-20s", name);
+            }
+            ps.append(EOL);
+        } catch (Exception e) {
+            // ignore extra information for this extension
+        }
+    }
+
+    /**
+     * Returns a String array with the following information : <br>
+     * index 0: the name of the extension. <br>
+     * index 1: the build number of the extension. <br>
+     * index 2: the revision number of the extension.
+     *
+     * @param extension
+     *            the jar file of the extension
+     * @return a String array containing the name, the build number and the revision number
+     *            of the extension given in argument
+     * @throws java.io.IOException
+     *             thrown if the jar file has been closed.
+     */
+    private static String[] getBuildInformation(final JarFile extension) throws IOException {
+        final String[] result = new String[3];
+
+        // retrieve MANIFEST entry and display name, version and revision
+        final Manifest manifest = extension.getManifest();
+
+        if (manifest != null) {
+            final Attributes attributes = manifest.getMainAttributes();
+
+            int index = 0;
+            for (final String name : BUILD_INFORMATION_ATTRIBUTE_NAMES) {
+                String value = attributes.getValue(name);
+                if (value == null) {
+                    value = "<unknown>";
+                }
+                result[index++] = value;
+            }
+        }
+
+        return result;
+    }
+
     /** Set of registered Jar files. */
     private Set<File> jarFiles = new HashSet<>();
 
@@ -287,71 +415,6 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Prints out all information about extensions.
-     *
-     * @return A string representing all information about extensions;
-     *         <code>null</code> if there is no information available.
-     */
-    public String printExtensionInformation() {
-        final File extensionsPath = buildExtensionPath(installPath);
-
-        final List<File> extensions = new ArrayList<>();
-
-        if (extensionsPath.exists() && extensionsPath.isDirectory()) {
-            extensions.addAll(listFiles(extensionsPath));
-        }
-
-        File instanceExtensionsPath = buildExtensionPath(instancePath);
-        if (!extensionsPath.getAbsolutePath().equals(instanceExtensionsPath.getAbsolutePath())) {
-            extensions.addAll(listFiles(instanceExtensionsPath));
-        }
-
-        if (extensions.isEmpty()) {
-            return null;
-        }
-
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final PrintStream ps = new PrintStream(baos);
-        // prints:
-        // --
-        // Name Build number Revision number
-        ps.printf("--%s           %-20s %-20s %-20s%s", EOL, "Name", "Build number",
-            "Revision number", EOL);
-
-        for (final File extension : extensions) {
-            printExtensionDetails(ps, extension);
-        }
-
-        return baos.toString();
-    }
-
-    private void printExtensionDetails(PrintStream ps, File extension) {
-        // retrieve MANIFEST entry and display name, build number and revision number
-        try (JarFile jarFile = new JarFile(extension)) {
-            JarEntry entry = jarFile.getJarEntry(MANIFEST_RELATIVE_PATH);
-            if (entry == null) {
-                return;
-            }
-
-            String[] information = getBuildInformation(jarFile);
-
-            ps.append("Extension: ");
-            boolean addBlank = false;
-            for (String name : information) {
-                if (addBlank) {
-                    ps.append(" ");
-                } else {
-                    addBlank = true;
-                }
-                ps.printf("%-20s", name);
-            }
-            ps.append(EOL);
-        } catch (Exception e) {
-            // ignore extra information for this extension
-        }
-    }
-
-    /**
      * Reloads the configuration framework.
      *
      * @throws ConfigException
@@ -418,41 +481,6 @@ public final class ConfigurationFramework {
         }
     }
 
-    /**
-     * Returns a String array with the following information : <br>
-     * index 0: the name of the extension. <br>
-     * index 1: the build number of the extension. <br>
-     * index 2: the revision number of the extension.
-     *
-     * @param extension
-     *            the jar file of the extension
-     * @return a String array containing the name, the build number and the revision number
-     *            of the extension given in argument
-     * @throws java.io.IOException
-     *             thrown if the jar file has been closed.
-     */
-    private String[] getBuildInformation(final JarFile extension) throws IOException {
-        final String[] result = new String[3];
-
-        // retrieve MANIFEST entry and display name, version and revision
-        final Manifest manifest = extension.getManifest();
-
-        if (manifest != null) {
-            final Attributes attributes = manifest.getMainAttributes();
-
-            int index = 0;
-            for (final String name : BUILD_INFORMATION_ATTRIBUTE_NAMES) {
-                String value = attributes.getValue(name);
-                if (value == null) {
-                    value = "<unknown>";
-                }
-                result[index++] = value;
-            }
-        }
-
-        return result;
-    }
-
     private void initialize0() throws ConfigException {
         if (parent != null) {
             loader = new MyURLClassLoader(parent);
@@ -474,15 +502,6 @@ public final class ConfigurationFramework {
 
         if (!installExtensionsPath.getAbsolutePath().equals(instanceExtensionsPath.getAbsolutePath())) {
             initializeAllExtensions(instanceExtensionsPath);
-        }
-    }
-
-    private File buildExtensionPath(String directory)  {
-        File libDir = new File(directory, LIB_DIR);
-        try {
-            return new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
-        } catch (Exception e) {
-            return new File(libDir, EXTENSIONS_DIR);
         }
     }
 
@@ -521,20 +540,6 @@ public final class ConfigurationFramework {
                 extensionsPath, stackTraceToSingleLineString(e, true));
             throw new ConfigException(message, e);
         }
-    }
-
-    private List<File> listFiles(File path) {
-        if (path.exists() && path.isDirectory()) {
-
-            return Arrays.asList(path.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File pathname) {
-                    // only files with names ending with ".jar"
-                    return pathname.isFile() && pathname.getName().endsWith(".jar");
-                }
-            }));
-        }
-        return Collections.emptyList();
     }
 
     /**
