@@ -11,7 +11,22 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
+ * Portions Copyright 2014 The Apache Software Foundation
  * Copyright 2015-2016 ForgeRock AS.
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.opends.server.backends.pluggable;
 
@@ -27,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -2783,18 +2799,83 @@ final class OnDiskMergeImporter
     @Override
     public void close()
     {
+      boolean allMemoryBufferFreed = true;
+      for (final MemoryBuffer memoryBuffer : pool)
+      {
+        allMemoryBufferFreed &= memoryBuffer.free();
+      }
       pool.clear();
+      if (!allMemoryBufferFreed)
+      {
+        // Some DirectByteBuffer were not freed because the cleaner method has failed/is not supported.
+        // Do a best effort at freeing these buffers by requesting a GC.
+        System.gc();
+      }
     }
 
     /** Buffer wrapping a ByteBuffer. */
     @NotThreadSafe
     static final class MemoryBuffer
     {
+      private static final boolean CLEAN_SUPPORTED;
+      private static final Method directBufferCleanerMethod;
+      private static final Method directBufferCleanerCleanMethod;
+
+      static
+      {
+        Method tmpDirectBufferCleanerMethod = null;
+        Method tmpDirectBufferCleanerCleanMethod = null;
+        boolean tmpCleanSupported;
+        try
+        {
+          tmpDirectBufferCleanerMethod = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner");
+          tmpDirectBufferCleanerMethod.setAccessible(true);
+          tmpDirectBufferCleanerCleanMethod = Class.forName("sun.misc.Cleaner").getMethod("clean");
+          tmpDirectBufferCleanerCleanMethod.setAccessible(true);
+          tmpCleanSupported = true;
+        }
+        catch (Exception e)
+        {
+          tmpCleanSupported = false;
+        }
+        CLEAN_SUPPORTED = tmpCleanSupported;
+        directBufferCleanerMethod = tmpDirectBufferCleanerMethod;
+        directBufferCleanerCleanMethod = tmpDirectBufferCleanerCleanMethod;
+      }
+
       private final ByteBuffer buffer;
 
       MemoryBuffer(final ByteBuffer byteBuffer)
       {
         this.buffer = byteBuffer;
+      }
+
+      boolean free()
+      {
+        if (!buffer.isDirect())
+        {
+          // Heap buffers will be GC'd.
+          return true;
+        }
+        if (CLEAN_SUPPORTED)
+        {
+          try
+          {
+            /**
+             * DirectByteBuffers are garbage collected by using a phantom reference and a reference queue. Every once a
+             * while, the JVM checks the reference queue and cleans the DirectByteBuffers. However, as this doesn't
+             * happen immediately after discarding all references to a DirectByteBuffer, it's easy to OutOfMemoryError
+             * yourself using DirectByteBuffers. Here we explicitly calls the Cleaner method of the DirectByteBuffer.
+             */
+            directBufferCleanerCleanMethod.invoke(directBufferCleanerMethod.invoke(buffer));
+            return true;
+          }
+          catch (Exception ignored)
+          {
+            // silently ignore exception
+          }
+        }
+        return false;
       }
 
       void writeInt(final int position, final int value)
