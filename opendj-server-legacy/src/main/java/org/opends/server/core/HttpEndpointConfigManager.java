@@ -320,7 +320,7 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
       return endpointAuthzMechanisms;
     }
 
-    private void rebindStartedApplications(DN authorizationFilterDN)
+    private void rebindStartedApplications(DN authorizationFilterDN, ConfigChangeResult ccr)
     {
       final RootCfg rootConfiguration = serverContext.getRootConfig();
       for (String endpointName : rootConfiguration.listHTTPEndpoints())
@@ -341,7 +341,8 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
         }
         catch (ConfigException e)
         {
-          LOGGER.error(ERR_CONFIG_HTTPENDPOINT_UNABLE_TO_START.get(endpointName, stackTraceToSingleLineString(e)), e);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_CONFIG_HTTPENDPOINT_UNABLE_TO_START.get(endpointName, stackTraceToSingleLineString(e)));
           continue;
         }
       }
@@ -357,9 +358,15 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
     @Override
     public ConfigChangeResult applyConfigurationDelete(HTTPAuthorizationMechanismCfg configuration)
     {
+      doConfigurationDelete(configuration);
+      final ConfigChangeResult ccr = new ConfigChangeResult();
+      rebindStartedApplications(configuration.dn(), ccr);
+      return ccr;
+    }
+
+    private void doConfigurationDelete(HTTPAuthorizationMechanismCfg configuration)
+    {
       authzFilters.remove(configuration.dn());
-      rebindStartedApplications(configuration.dn());
-      return new ConfigChangeResult();
     }
 
     @Override
@@ -388,7 +395,7 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
       try
       {
         authzFilters.put(configuration.dn(), authzFilterFactory.newInstance(configuration));
-        rebindStartedApplications(configuration.dn());
+        rebindStartedApplications(configuration.dn(), ccr);
       }
       catch (InitializationException ie)
       {
@@ -410,11 +417,7 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
     @Override
     public ConfigChangeResult applyConfigurationChange(HTTPAuthorizationMechanismCfg configuration)
     {
-      final ConfigChangeResult deleteResult = applyConfigurationDelete(configuration);
-      if (deleteResult.getResultCode().isExceptional() || !configuration.isEnabled())
-      {
-        return deleteResult;
-      }
+      doConfigurationDelete(configuration);
       return applyConfigurationAdd(configuration);
     }
   }
