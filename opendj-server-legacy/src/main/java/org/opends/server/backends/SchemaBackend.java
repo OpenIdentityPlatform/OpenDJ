@@ -799,24 +799,24 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       for (ByteString v : a)
       {
-        AttributeType type = newSchema.parseAttributeType(v.toString());
-        removeAttributeType(type, newSchema, mods, pos, modifiedSchemaFiles);
+        String oid = Schema.parseAttributeTypeOID(v.toString());
+        removeAttributeType(oid, newSchema, mods, pos, modifiedSchemaFiles);
       }
     }
     else if (at.equals(objectClassesType))
     {
       for (ByteString v : a)
       {
-        ObjectClass oc = newSchema.parseObjectClass(v.toString());
-        removeObjectClass(oc, newSchema, mods, pos, modifiedSchemaFiles);
+        String oid = Schema.parseObjectClassOID(v.toString());
+        removeObjectClass(oid, newSchema, mods, pos, modifiedSchemaFiles);
       }
     }
     else if (at.equals(nameFormsType))
     {
       for (ByteString v : a)
       {
-        NameForm nf = newSchema.parseNameForm(v.toString());
-        removeNameForm(nf, newSchema, mods, pos, modifiedSchemaFiles);
+        String oid = Schema.parseNameFormOID(v.toString());
+        removeNameForm(oid, newSchema, mods, pos, modifiedSchemaFiles);
       }
     }
     else if (at.equals(ditContentRulesType))
@@ -831,8 +831,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       for (ByteString v : a)
       {
-        DITStructureRule dsr = newSchema.parseDITStructureRule(v.toString());
-        removeDITStructureRule(dsr, newSchema, mods, pos, modifiedSchemaFiles);
+        int ruleID = Schema.parseRuleID(v.toString());
+        removeDITStructureRule(ruleID, newSchema, mods, pos, modifiedSchemaFiles);
       }
     }
     else if (at.equals(matchingRuleUsesType))
@@ -1092,7 +1092,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * elements that depend on the attribute type before allowing it to be
    * removed.
    *
-   * @param  attributeType        The attribute type to remove from the server
+   * @param  atOID                The attribute type OID to remove from the server
    *                              schema.
    * @param  schema               The schema from which the attribute type
    *                              should be removed.
@@ -1108,16 +1108,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided attribute type from the server
    *                              schema.
    */
-  private void removeAttributeType(AttributeType attributeType, Schema schema, List<Modification> modifications,
+  private void removeAttributeType(String atOID, Schema schema, List<Modification> modifications,
       int currentPosition, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     // See if the specified attribute type is actually defined in the server
     // schema.  If not, then fail.
-    AttributeType removeType = schema.getAttributeType(attributeType.getOID());
-    if (removeType.isPlaceHolder() || !removeType.equals(attributeType))
+    AttributeType removeType = schema.getAttributeType(atOID);
+    if (removeType.isPlaceHolder() || !removeType.getOID().equals(atOID))
     {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(
-          attributeType.getNameOrOID());
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(atOID);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -1140,7 +1139,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         String oid;
         try
         {
-          oid = Schema.parseOID(v.toString(), ERR_PARSING_ATTRIBUTE_TYPE_OID);
+          oid = Schema.parseAttributeTypeOID(v.toString());
         }
         catch (DirectoryException de)
         {
@@ -1148,7 +1147,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throw de;
         }
 
-        if (attributeType.getOID().equals(oid))
+        if (atOID.equals(oid))
         {
           // We found a match where the attribute type is added back later,
           // so we don't need to do anything else here.
@@ -1324,7 +1323,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * then this method will ensure that there are no other schema elements that
    * depend on the objectclass before allowing it to be removed.
    *
-   * @param  objectClass          The objectclass to remove from the server
+   * @param  ocOID                The objectclass OID to remove from the server
    *                              schema.
    * @param  schema               The schema from which the objectclass should
    *                              be removed.
@@ -1340,7 +1339,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided objectclass from the server
    *                              schema.
    */
-  private void removeObjectClass(ObjectClass objectClass, Schema schema,
+  private void removeObjectClass(String ocOID, Schema schema,
                                  List<Modification> modifications,
                                  int currentPosition,
                                  Set<String> modifiedSchemaFiles)
@@ -1348,11 +1347,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     // See if the specified objectclass is actually defined in the server
     // schema.  If not, then fail.
-    ObjectClass removeClass = schema.getObjectClass(objectClass.getOID());
-    if (removeClass.isPlaceHolder() || !removeClass.equals(objectClass))
+    ObjectClass removeClass = schema.getObjectClass(ocOID);
+    if (removeClass.isPlaceHolder() || !removeClass.getOID().equals(ocOID))
     {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(
-          objectClass.getNameOrOID());
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(ocOID);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -1375,7 +1373,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         String oid;
         try
         {
-          oid = Schema.parseOID(v.toString(), ERR_PARSING_OBJECTCLASS_OID);
+          oid = Schema.parseObjectClassOID(v.toString());
         }
         catch (DirectoryException de)
         {
@@ -1383,7 +1381,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throw de;
         }
 
-        if (objectClass.getOID().equals(oid))
+        if (ocOID.equals(oid))
         {
           // We found a match where the objectClass is added back later, so we
           // don't need to do anything else here.
@@ -1518,7 +1516,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * this method will ensure that there are no other schema elements that depend
    * on the name form before allowing it to be removed.
    *
-   * @param  nameForm             The name form to remove from the server
+   * @param  nfOID                The name form OID to remove from the server
    *                              schema.
    * @param  schema               The schema from which the name form should be
    *                              be removed.
@@ -1533,19 +1531,19 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * @throws  DirectoryException  If a problem occurs while attempting to remove
    *                              the provided name form from the server schema.
    */
-  private void removeNameForm(NameForm nameForm, Schema schema,
+  private void removeNameForm(String nfOID, Schema schema,
                               List<Modification> modifications,
                               int currentPosition,
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    if (!schema.hasNameForm(nameForm.getOID()))
+    if (!schema.hasNameForm(nfOID))
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(nameForm.getNameOrOID()));
+          ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(nfOID));
     }
 
-    NameForm removeNF = schema.getNameForm(nameForm.getOID());
+    NameForm removeNF = schema.getNameForm(nfOID);
 
     // See if there is another modification later to add the name form back
     // into the schema.  If so, then it's a replace and we should ignore the
@@ -1578,7 +1576,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                          ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
         }
 
-        if (nameForm.getOID().equals(nf.getOID()))
+        if (nfOID.equals(nf.getOID()))
         {
           // We found a match where the name form is added back later, so we
           // don't need to do anything else here.
@@ -1870,7 +1868,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * definition, then this method will ensure that there are no other schema
    * elements that depend on the rule before allowing it to be removed.
    *
-   * @param  ditStructureRule     The DIT structure rule to remove from the
+   * @param  ruleID               The DIT structure rule ID to remove from the
    *                              server schema.
    * @param  schema               The schema from which the DIT structure rule
    *                              should be removed.
@@ -1886,7 +1884,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided DIT structure rule from the
    *                              server schema.
    */
-  private void removeDITStructureRule(DITStructureRule ditStructureRule,
+  private void removeDITStructureRule(Integer ruleID,
                                       Schema schema,
                                       List<Modification> modifications,
                                       int currentPosition,
@@ -1895,12 +1893,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   {
     // See if the specified DIT structure rule is actually defined in the server
     // schema.  If not, then fail.
-    DITStructureRule removeDSR =
-         schema.getDITStructureRule(ditStructureRule.getRuleID());
-    if (removeDSR == null || !removeDSR.equals(ditStructureRule))
+    DITStructureRule removeDSR = schema.getDITStructureRule(ruleID);
+    if (removeDSR == null || !removeDSR.getRuleID().equals(ruleID))
     {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR.get(
-          ditStructureRule.getNameOrRuleID());
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR.get(ruleID);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
@@ -1921,7 +1917,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       for (ByteString v : a)
       {
         DITStructureRule dsr = schema.parseDITStructureRule(v.toString());
-        if (ditStructureRule.getRuleID() == dsr.getRuleID())
+        if (ruleID == dsr.getRuleID())
         {
           // We found a match where the DIT structure rule is added back later,
           // so we don't need to do anything else here.
@@ -2091,7 +2087,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addLdapSyntaxDescription(final String definition, Schema schema, Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    String oid = Schema.parseOID(definition, ERR_PARSING_LDAP_SYNTAX_OID);
+    String oid = Schema.parseSyntaxOID(definition);
 
     // We allow only unimplemented syntaxes to be substituted.
     if (schema.hasSyntax(oid))
@@ -2136,7 +2132,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * part of the ldapsyntaxes attribute. A virtual value is not searched and
      * hence never deleted.
      */
-    String oid = Schema.parseOID(definition, ERR_PARSING_LDAP_SYNTAX_OID);
+    String oid = Schema.parseSyntaxOID(definition);
 
     Syntax removeLS = schema.getSyntax(oid);
     if (removeLS == null)

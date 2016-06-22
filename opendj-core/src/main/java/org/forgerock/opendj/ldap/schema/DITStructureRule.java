@@ -346,7 +346,7 @@ public final class DITStructureRule extends AbstractSchemaElement {
     /**
      * Retrieves the rule ID for this DIT structure rule.
      *
-     * @return The rule ID for this DIT structure rule.
+     * @return The rule ID for this DIT structure rule (never {@code null}).
      */
     public Integer getRuleID() {
         return ruleID;

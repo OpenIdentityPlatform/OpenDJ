@@ -519,51 +519,99 @@ public final class Schema
     }
   }
 
-  private String parseObjectClassOID(String definition) throws DirectoryException
+  /**
+   * Returns the OID from the provided object class definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a object class, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseObjectClassOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ERR_PARSING_OBJECTCLASS_OID);
   }
 
-  private String parseAttributeTypeOID(String definition) throws DirectoryException
+  /**
+   * Returns the OID from the provided attribute type definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of an attribute type, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseAttributeTypeOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ERR_PARSING_ATTRIBUTE_TYPE_OID);
   }
 
-  private String parseMatchingRuleUseOID(String definition) throws DirectoryException
+  private static String parseMatchingRuleUseOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ERR_PARSING_MATCHING_RULE_USE_OID);
   }
 
-  private String parseNameFormOID(String definition) throws DirectoryException
+  /**
+   * Returns the OID from the provided name form definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a name form, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseNameFormOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ERR_PARSING_NAME_FORM_OID);
   }
 
-  private String parseDITContentRuleOID(String definition) throws DirectoryException
+  private static String parseDITContentRuleOID(String definition) throws DirectoryException
   {
     return parseOID(definition, ERR_PARSING_DIT_CONTENT_RULE_OID);
   }
 
-  private int parseRuleID(String definition) throws DirectoryException
+  /**
+   * Returns the ruleID from the provided dit structure rule definition, assuming the definition is
+   * valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a dit structure rule, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static int parseRuleID(String definition) throws DirectoryException
   {
     // Reuse code of parseOID, even though this is not an OID
     return Integer.parseInt(parseOID(definition, ERR_PARSING_DIT_STRUCTURE_RULE_RULEID));
   }
 
   /**
-   * Returns the OID from the provided schema element definition, assuming the
-   * definition is valid.
+   * Returns the OID from the provided syntax definition, assuming the definition is valid.
    * <p>
    * This method does not perform any check.
    *
    * @param definition
-   *          The definition of a schema element, assumed to be valid
-   * @param parsingErrorMsg the message to use if a problem occurs while parsing the definition
+   *          The definition of a syntax, assumed to be valid
    * @return the OID, which is never {@code null}
    * @throws DirectoryException
    *           If a problem occurs while parsing the definition
    */
-  public static String parseOID(String definition, Arg1<Object> parsingErrorMsg) throws DirectoryException
+  public static String parseSyntaxOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ERR_PARSING_LDAP_SYNTAX_OID);
+  }
+
+  private static String parseOID(String definition, Arg1<Object> parsingErrorMsg) throws DirectoryException
   {
     try
     {
