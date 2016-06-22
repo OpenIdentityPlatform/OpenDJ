@@ -159,8 +159,10 @@ final class SubResourceImpl {
             final Action action = asEnum(request.getAction(), Action.class);
             if (resource.hasSupportedAction(action)) {
                 switch (action) {
-                case PASSWORDMODIFY:
-                    return passwordModify(context, resourceId, request);
+                case RESET_PASSWORD:
+                    return resetPassword(context, resourceId, request);
+                case MODIFY_PASSWORD:
+                    return modifyPassword(context, resourceId, request);
                 }
             }
         } catch (final IllegalArgumentException ignored) {
@@ -170,7 +172,41 @@ final class SubResourceImpl {
 
     }
 
-    private Promise<ActionResponse, ResourceException> passwordModify(
+    private Promise<ActionResponse, ResourceException> resetPassword(
+            final Context context, final String resourceId, final ActionRequest request) {
+        if (!context.containsContext(ClientContext.class)
+                || !context.asContext(ClientContext.class).isSecure()) {
+            return newResourceException(FORBIDDEN, ERR_PASSWORD_RESET_SECURE_CONNECTION.get().toString()).asPromise();
+        }
+        if (!context.containsContext(SecurityContext.class)
+                || context.asContext(SecurityContext.class).getAuthenticationId() == null) {
+            return newResourceException(FORBIDDEN, ERR_PASSWORD_RESET_USER_AUTHENTICATED.get().toString()).asPromise();
+        }
+
+        final Connection connection = connectionFrom(context);
+        return resolveResourceDnAndType(context, connection, resourceId, null)
+                .thenAsync(new AsyncFunction<RoutingContext, PasswordModifyExtendedResult, ResourceException>() {
+                    @Override
+                    public Promise<PasswordModifyExtendedResult, ResourceException> apply(RoutingContext dnAndType) {
+                        final PasswordModifyExtendedRequest pwdModifyRequest =
+                                newPasswordModifyExtendedRequest().setUserIdentity("dn: " + dnAndType.getDn());
+                        return connection.extendedRequestAsync(pwdModifyRequest)
+                                         .thenCatchAsync(adaptLdapException(PasswordModifyExtendedResult.class));
+                    }
+                }).thenAsync(new AsyncFunction<PasswordModifyExtendedResult, ActionResponse, ResourceException>() {
+                    @Override
+                    public Promise<ActionResponse, ResourceException> apply(PasswordModifyExtendedResult r) {
+                        final JsonValue result = new JsonValue(new LinkedHashMap<>());
+                        final byte[] generatedPwd = r.getGeneratedPassword();
+                        if (generatedPwd != null) {
+                            result.put("generatedPassword", valueOfBytes(generatedPwd).toString());
+                        }
+                        return newActionResponse(result).asPromise();
+                    }
+                });
+    }
+
+    private Promise<ActionResponse, ResourceException> modifyPassword(
             final Context context, final String resourceId, final ActionRequest request) {
         if (!context.containsContext(ClientContext.class)
                 || !context.asContext(ClientContext.class).isSecure()) {
@@ -185,8 +221,8 @@ final class SubResourceImpl {
         final String oldPassword;
         final String newPassword;
         try {
-            oldPassword = jsonContent.get("oldPassword").asString();
-            newPassword = jsonContent.get("newPassword").asString();
+            oldPassword = jsonContent.get("oldPassword").required().asString();
+            newPassword = jsonContent.get("newPassword").required().asString();
         } catch (JsonValueException e) {
             final LocalizableMessage msg = ERR_PASSWORD_MODIFY_REQUEST_IS_INVALID.get();
             final ResourceException ex = newBadRequestException(msg, e);
@@ -209,12 +245,8 @@ final class SubResourceImpl {
                 }).thenAsync(new AsyncFunction<PasswordModifyExtendedResult, ActionResponse, ResourceException>() {
                     @Override
                     public Promise<ActionResponse, ResourceException> apply(PasswordModifyExtendedResult r) {
-                        final JsonValue result = new JsonValue(new LinkedHashMap<>());
-                        final byte[] generatedPwd = r.getGeneratedPassword();
-                        if (generatedPwd != null) {
-                            result.put("generatedPassword", valueOfBytes(generatedPwd).toString());
-                        }
-                        return newActionResponse(result).asPromise();
+                        // Empty response.
+                        return newActionResponse(new JsonValue(new LinkedHashMap<>(0))).asPromise();
                     }
                 });
     }

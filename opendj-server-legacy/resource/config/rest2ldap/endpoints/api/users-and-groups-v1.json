@@ -74,7 +74,7 @@
         "frapi:opendj:rest2ldap:user:1.0": {
             "superType": "frapi:opendj:rest2ldap:object:1.0",
             "objectClasses": [ "person", "organizationalPerson", "inetOrgPerson" ],
-            "supportedActions": [ "passwordModify" ],
+            "supportedActions": [ "modifyPassword", "resetPassword" ],
             "properties": {
                 "_id": {
                     "type": "simple",

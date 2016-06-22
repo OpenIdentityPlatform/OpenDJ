@@ -21,15 +21,14 @@ package org.forgerock.opendj.rest2ldap;
  * supported.
  */
 public enum Action {
-    // Notes:
-    //
-    // - actions are likely to become an extension point in future versions of Rest2Ldap, in which case this enum
-    //   will need to be converted into a regular class or interface,
-    //
-    // - the actions are named so that they can be parsed easily from JSON.
+    // Note: actions are likely to become an extension point in future versions of Rest2Ldap, in which case this enum
+    // will need to be converted into a regular class or interface,
 
-    /** An action that allows users to change or reset their password. */
-    PASSWORDMODIFY("passwordModify");
+    /** An action that allows users to change their password. */
+    MODIFY_PASSWORD("modifyPassword"),
+
+    /** An action that allows users to reset their password. */
+    RESET_PASSWORD("resetPassword");
 
     private final String actionId;
 
