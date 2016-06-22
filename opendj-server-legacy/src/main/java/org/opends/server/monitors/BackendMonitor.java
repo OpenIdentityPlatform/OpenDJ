@@ -19,7 +19,6 @@ package org.opends.server.monitors;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -91,7 +90,7 @@ public class BackendMonitor
 
     MonitorData attrs = new MonitorData(6);
     attrs.add(ATTR_MONITOR_BACKEND_ID, backend.getBackendID());
-    attrs.add(ATTR_MONITOR_BACKEND_BASE_DN, Arrays.asList(baseDNs));
+    attrs.add(ATTR_MONITOR_BACKEND_BASE_DN, baseDNs);
     attrs.add(ATTR_MONITOR_BACKEND_IS_PRIVATE, backend.isPrivateBackend());
     attrs.add(ATTR_MONITOR_BACKEND_ENTRY_COUNT, backend.getEntryCount());
     attrs.add(ATTR_MONITOR_BASE_DN_ENTRY_COUNT, getBackendEntryCounts(baseDNs));
