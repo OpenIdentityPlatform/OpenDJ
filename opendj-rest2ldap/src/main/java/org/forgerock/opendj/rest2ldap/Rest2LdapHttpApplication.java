@@ -303,12 +303,12 @@ public class Rest2LdapHttpApplication implements HttpApplication {
             final JsonValue openAm = configuration.get("openam");
             return new OpenAmAccessTokenResolver(newHttpClientHandler(openAm),
                                                  TimeService.SYSTEM,
-                                                 openAm.get("endpointURL").required().asString());
+                                                 openAm.get("endpointUrl").required().asString());
         case CTS:
             final JsonValue cts = configuration.get("cts").required();
             return newCtsAccessTokenResolver(
                 getConnectionFactory(cts.get("ldapConnectionFactory").defaultTo(DEFAULT_ROOT_FACTORY).asString()),
-                                     cts.get("baseDN").required().asString());
+                                     cts.get("baseDn").required().asString());
         case FILE:
             return newFileAccessTokenResolver(configuration.get("file").get("folderPath").required().asString());
         default:
@@ -320,7 +320,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
 
     private AccessTokenResolver parseRfc7662Resolver(final JsonValue configuration) throws HttpApplicationException {
         final JsonValue rfc7662 = configuration.get("rfc7662").required();
-        final String introspectionEndPointURL = rfc7662.get("endpointURL").required().asString();
+        final String introspectionEndPointURL = rfc7662.get("endpointUrl").required().asString();
         try {
             return newRfc7662AccessTokenResolver(newHttpClientHandler(rfc7662),
                                                  new URI(introspectionEndPointURL),
@@ -448,7 +448,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     private AuthenticationStrategy buildSimpleBindStrategy(final JsonValue config) {
         return newSimpleBindStrategy(getConnectionFactory(config.get("ldapConnectionFactory")
                                                                 .defaultTo(DEFAULT_BIND_FACTORY).asString()),
-                                     parseUserNameTemplate(config.get("bindDNTemplate").defaultTo("%s")),
+                                     parseUserNameTemplate(config.get("bindDnTemplate").defaultTo("%s")),
                                      schema);
     }
 
@@ -461,10 +461,10 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     private AuthenticationStrategy buildSearchThenBindStrategy(JsonValue config) {
         return newSearchThenBindStrategy(
                 getConnectionFactory(
-                        config.get("searchLDAPConnectionFactory").defaultTo(DEFAULT_ROOT_FACTORY).asString()),
+                        config.get("searchLdapConnectionFactory").defaultTo(DEFAULT_ROOT_FACTORY).asString()),
                 getConnectionFactory(
-                        config.get("bindLDAPConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
-                DN.valueOf(config.get("baseDN").required().asString(), schema),
+                        config.get("bindLdapConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
+                DN.valueOf(config.get("baseDn").required().asString(), schema),
                 SearchScope.valueOf(config.get("scope").required().asString().toLowerCase()),
                 parseUserNameTemplate(config.get("filterTemplate").required()));
     }

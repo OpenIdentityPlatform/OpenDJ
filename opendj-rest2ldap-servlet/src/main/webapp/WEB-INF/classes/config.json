@@ -23,18 +23,17 @@
         // the request against the access-token resolver endpoint. Acceptable values are:
         //
         // "jvm"      - use the JVM's default keystore for retrieving certificates. (default)
-        // "keystore" - use the named key store file for retrieving certificates.
+        // "file"     - use a file-based key store for retrieving certificates.
         // "pkcs11"   - use a PKCS#11 token for retrieving certificates.
         "keyManager": "jvm",
 
         // Keystore based key manager configuration (see above).
-        "keyStoreFile": "/path/to/keystore",
-        "keyStorePasswordFile": "/path/to/pinfile",
-        "keyStoreFormat": "JKS",
-        "keyStoreProvider": "",
+        "fileBasedKeyManagerType": "JKS",
+        "fileBasedKeyManagerFile": "/path/to/keystore",
+        "fileBasedKeyManagerPasswordFile": "/path/to/pinfile",
 
         // PKCS11 based key manager configuration
-        "pkcs11PasswordFile": "/path/to/pinfile"
+        "pkcs11KeyManagerPasswordFile": "/path/to/pinfile"
     },
 
     // The array of connection factories which will be used by the Rest2LDAP
@@ -64,12 +63,12 @@
             "heartBeatTimeoutMilliSeconds": 500,
 
             // The preferred load-balancing pool.
-            "primaryLDAPServers": [{
+            "primaryLdapServers": [{
                 "hostname": "localhost",
                 "port": 1389
             }],
             // The fail-over load-balancing pool (optional).
-            "secondaryLDAPServers": [
+            "secondaryLdapServers": [
                 // Empty.
             ]
         },
@@ -87,7 +86,7 @@
             // to allow the user configured here to perform proxied authorization.
             "authentication": {
                 "simple": {
-                    "bindDN": "cn=directory manager",
+                    "bindDn": "cn=directory manager",
                     "bindPassword": "password"
                 }
             }
@@ -127,7 +126,7 @@
                 // The Bind DN Template containing a single {username} which will be replaced by the authenticating
                 // user's name. (i.e: uid={username},ou=People,dc=example,dc=com)
                 // If missing, "{username}" is used.
-                "bindDNTemplate": "uid={username},ou=People,dc=example,dc=com"
+                "bindDnTemplate": "uid={username},ou=People,dc=example,dc=com"
             },
 
             // Bind to the LDAP server using a SASL Plain request
@@ -145,15 +144,15 @@
             "search": {
                 // Connection factory used to perform the search operation.
                 // If missing, "root" factory will be used.
-                "searchLDAPConnectionFactory": "root",
+                "searchLdapConnectionFactory": "root",
 
                 // Connection factory used to perform the bind operation.
                 // If missing, "bind" factory will be used.
-                "bindLDAPConnectionFactory": "bind",
+                "bindLdapConnectionFactory": "bind",
 
                 // The {username} filter format parameters will be substituted with the client-provided username,
                 // using LDAP filter string character escaping.
-                "baseDN": "ou=people,dc=example,dc=com",
+                "baseDn": "ou=people,dc=example,dc=com",
                 "scope": "sub", // Or "one".
                 "filterTemplate": "(&(uid={username})(objectClass=inetOrgPerson))"
             }
@@ -199,7 +198,7 @@
             "openam": {
                 // Defines the OpenAM endpoint URL where the request should be sent.
                 // This attribute is required and must have a string syntax.
-                "endpointURL": "http://openam.example.com:8080/openam/oauth2/tokeninfo",
+                "endpointUrl": "http://openam.example.com:8080/openam/oauth2/tokeninfo",
 
                 // This alias points at an existing certificate that is used for SSL authentication for secure
                 // communication between this gateway and the OpenAM access-token resolver.
@@ -224,7 +223,7 @@
             "rfc7662": {
                 // Defines the token introspection endpoint URL where the request should be sent.
                 // This attribute is required and must have a string syntax.
-                "endpointURL": "http://openam.example.com:8080/openam/oauth2/myrealm/introspect",
+                "endpointUrl": "http://openam.example.com:8080/openam/oauth2/myrealm/introspect",
 
                 // This alias points at an existing certificate that is used for SSL authentication for secure
                 // communication between this gateway and the introspection access-token resolver.
@@ -263,7 +262,7 @@
 
                 // The access token base DN.
                 // This attribute is required and must have a string syntax.
-                "baseDN": "ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com",
+                "baseDn": "ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com",
 
                 // The default authzIdTemplate demonstrates how an authorization DN may be constructed
                 // from the "userName" field in the following example CTS access token entry:

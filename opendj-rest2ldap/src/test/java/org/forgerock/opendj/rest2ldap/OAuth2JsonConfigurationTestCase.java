@@ -86,7 +86,7 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
                                 + "'requiredScopes': ['read', 'write', 'dolphin'],"
                                 + "'resolver': 'openam',"
                                 + "'openam': {"
-                                + "    'endpointURL': 'http://www.example.com/token-info',"
+                                + "    'endpointUrl': 'http://www.example.com/token-info',"
                                 + "    'authzIdTemplate': 'userName: ou={/user/id},dc=example,dc=com'"
                                 + "},"
                                 + "'accessTokenCache': {'enabled': true, 'cacheExpiration': '42'}}",
@@ -97,7 +97,7 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
                                 + "'requiredScopes': ['read', 'write', 'dolphin'],"
                                 + "'resolver': 'openam',"
                                 + "'openam': {"
-                                + "    'endpointURL': 'http://www.example.com/token-info',"
+                                + "    'endpointUrl': 'http://www.example.com/token-info',"
                                 + "    'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'"
                                 + "},"
                                 + "'accessTokenCache': {'enabled': true, 'cacheExpiration': '42'}}",
@@ -119,7 +119,7 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
                     + "'requiredScopes': [],"
                     + "'resolver': 'openam',"
                     + "'openam': {"
-                    + "    'endpointURL': 'http://www.example.com/token-info',"
+                    + "    'endpointUrl': 'http://www.example.com/token-info',"
                     + "    'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'"
                     + "}}";
         fakeApp.buildOAuth2Filter(parseJson(config));
@@ -216,7 +216,7 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
         return new Object[][] {
                 {
                         "{'resolver': 'rfc7662',"
-                                + "'rfc7662': { 'endpointURL': 'http:/example.com/introspect',"
+                                + "'rfc7662': { 'endpointUrl': 'http:/example.com/introspect',"
                                 + "             'clientId': 'client_app_id',"
                                 + "             'clientSecret': 'client_app_secret',"
                                 + "             'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'}}"
@@ -224,12 +224,12 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
                 {
                         "{'resolver': 'openam',"
                                 + "'openam': { "
-                                + "    'endpointURL': 'http:/example.com/tokeninfo',"
+                                + "    'endpointUrl': 'http:/example.com/tokeninfo',"
                                 + "    'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'}}"
                 },
                 {
                         "{'resolver': 'cts',"
-                                + "'cts': { 'baseDN': 'coreTokenId={token},dc=com',"
+                                + "'cts': { 'baseDn': 'coreTokenId={token},dc=com',"
                                 + "         'authzIdTemplate': 'dn: ou={/user/id},dc=example,dc=com'}}"
                 },
                 {

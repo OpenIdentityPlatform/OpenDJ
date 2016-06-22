@@ -356,25 +356,7 @@ public final class Rest2LdapJsonConfigurator {
     }
 
     private static WritabilityPolicy parseWritability(final JsonValue mapper) {
-        if (mapper.isDefined("writability")) {
-            final String writability = mapper.get("writability").asString();
-            if (writability.equalsIgnoreCase("readOnly")) {
-                return WritabilityPolicy.READ_ONLY;
-            } else if (writability.equalsIgnoreCase("readOnlyDiscardWrites")) {
-                return WritabilityPolicy.READ_ONLY_DISCARD_WRITES;
-            } else if (writability.equalsIgnoreCase("createOnly")) {
-                return WritabilityPolicy.CREATE_ONLY;
-            } else if (writability.equalsIgnoreCase("createOnlyDiscardWrites")) {
-                return WritabilityPolicy.CREATE_ONLY_DISCARD_WRITES;
-            } else if (writability.equalsIgnoreCase("readWrite")) {
-                return WritabilityPolicy.READ_WRITE;
-            } else {
-                throw newJsonValueException(mapper, ERR_CONFIG_UNKNOWN_WRITABILITY.get(writability,
-                            "readOnly, readOnlyDiscardWrites, createOnly, createOnlyDiscardWrites, readWrite"));
-            }
-        } else {
-            return WritabilityPolicy.READ_WRITE;
-        }
+        return mapper.get("writability").defaultTo("readWrite").as(enumConstant(WritabilityPolicy.class));
     }
 
     /** Indicates whether LDAP client connections should use SSL or StartTLS. */
@@ -384,7 +366,7 @@ public final class Rest2LdapJsonConfigurator {
     private enum TrustManagerType { TRUSTALL, JVM, FILE }
 
     /** Specifies the type of key-store to use when performing SSL client authentication. */
-    private enum KeyManagerType { JVM, KEYSTORE, PKCS11 }
+    private enum KeyManagerType { JVM, FILE, PKCS11 }
 
     /**
      * Configures a {@link X509KeyManager} using the provided JSON configuration.
@@ -410,20 +392,18 @@ public final class Rest2LdapJsonConfigurator {
         switch (keyManagerType) {
         case JVM:
             return useJvmDefaultKeyStore();
-        case KEYSTORE:
-            final String fileName = config.get("keyStoreFile").required().asString();
-            final String passwordFile = config.get("keyStorePasswordFile").asString();
+        case FILE:
+            final String fileName = config.get("fileBasedKeyManagerFile").required().asString();
+            final String passwordFile = config.get("fileBasedKeyManagerPasswordFile").asString();
             final String password = passwordFile != null
-                    ? readPasswordFromFile(passwordFile)
-                    : config.get("keyStorePassword").asString();
-            final String format = config.get("keyStoreFormat").asString();
-            final String provider = config.get("keyStoreProvider").asString();
-            return useKeyStoreFile(fileName, password != null ? password.toCharArray() : null, format, provider);
+                    ? readPasswordFromFile(passwordFile) : config.get("fileBasedKeyManagerPassword").asString();
+            final String type = config.get("fileBasedKeyManagerType").asString();
+            final String provider = config.get("fileBasedKeyManagerProvider").asString();
+            return useKeyStoreFile(fileName, password != null ? password.toCharArray() : null, type, provider);
         case PKCS11:
-            final String pkcs11PasswordFile = config.get("pkcs11PasswordFile").asString();
+            final String pkcs11PasswordFile = config.get("pkcs11KeyManagerPasswordFile").asString();
             return usePKCS11Token(pkcs11PasswordFile != null
-                                          ? readPasswordFromFile(pkcs11PasswordFile).toCharArray()
-                                          : null);
+                                          ? readPasswordFromFile(pkcs11PasswordFile).toCharArray() : null);
         default:
             throw new IllegalArgumentException("Unsupported key-manager type: " + keyManagerType);
         }
@@ -555,7 +535,7 @@ public final class Rest2LdapJsonConfigurator {
             if (authn.isDefined("simple")) {
                 final JsonValue simple = authn.get("simple");
                 final BindRequest bindRequest =
-                        Requests.newSimpleBindRequest(simple.get("bindDN").required().asString(),
+                        Requests.newSimpleBindRequest(simple.get("bindDn").required().asString(),
                                                       simple.get("bindPassword").required().asString().toCharArray());
                 options.set(AUTHN_BIND_REQUEST, bindRequest);
             } else {
@@ -585,14 +565,14 @@ public final class Rest2LdapJsonConfigurator {
         }
 
         // Parse primary data center.
-        final JsonValue primaryLdapServers = configuration.get("primaryLDAPServers");
+        final JsonValue primaryLdapServers = configuration.get("primaryLdapServers");
         if (!primaryLdapServers.isList() || primaryLdapServers.size() == 0) {
-            throw new IllegalArgumentException("No primaryLDAPServers");
+            throw new IllegalArgumentException("No primaryLdapServers");
         }
         final ConnectionFactory primary = parseLdapServers(primaryLdapServers, connectionPoolSize, options);
 
         // Parse secondary data center(s).
-        final JsonValue secondaryLdapServers = configuration.get("secondaryLDAPServers");
+        final JsonValue secondaryLdapServers = configuration.get("secondaryLdapServers");
         ConnectionFactory secondary = null;
         if (secondaryLdapServers.isList()) {
             if (secondaryLdapServers.size() > 0) {
