@@ -17,6 +17,7 @@ package org.opends.admin.ads.util;
 
 import static org.forgerock.opendj.config.client.ldap.LDAPManagementContext.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.util.time.Duration.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
@@ -40,7 +41,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
-import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.util.Options;
 import org.opends.admin.ads.util.PreferredConnection.Type;
@@ -174,15 +175,10 @@ public class ConnectionWrapper implements Closeable
       options.set(SSL_CONTEXT, getSSLContext(trustManager, keyManager))
              .set(SSL_USE_STARTTLS, isStartTls);
     }
-    if (bindDn != null && bindPwd != null)
-    {
-      options.set(AUTHN_BIND_REQUEST, Requests.newSimpleBindRequest(bindDn, bindPwd.toCharArray()));
-    }
-    else
-    {
-      final String traceString = "Anonymous ConnectionWrapper: tried connecting with bindDN=" + bindDn;
-      options.set(AUTHN_BIND_REQUEST, Requests.newAnonymousSASLBindRequest(traceString));
-    }
+    SimpleBindRequest request = bindDn != null && bindPwd != null
+        ? newSimpleBindRequest(bindDn, bindPwd.toCharArray())
+        : newSimpleBindRequest(); // anonymous bind
+    options.set(AUTHN_BIND_REQUEST, request);
     return options;
   }
 
