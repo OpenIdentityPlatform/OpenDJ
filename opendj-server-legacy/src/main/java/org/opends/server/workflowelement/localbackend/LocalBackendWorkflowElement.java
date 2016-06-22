@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -903,12 +902,40 @@ public class LocalBackendWorkflowElement
     {
       return registeredLocalBackends.get(entryDN);
     }
-    Map.Entry<DN, LocalBackendWorkflowElement> backendWorkflow = registeredLocalBackends.floorEntry(entryDN);
-    if (backendWorkflow.getKey().isSuperiorOrEqualTo(entryDN))
+    /*
+     * Try to minimize the number of lookups in the Map to find the backend containing the entry.
+     * If the DN contains many RDNs it is faster to iterate through the list of registered backends,
+     * otherwise iterating through the parents requires less lookups. It also avoids some attacks
+     * where we would spend time going through the list of all parents to finally decide the
+     * baseDN is absent.
+     */
+    if (entryDN.size() <= registeredLocalBackends.size())
     {
-      return backendWorkflow.getValue();
+      while (!entryDN.isRootDN())
+      {
+        final LocalBackendWorkflowElement workflow = registeredLocalBackends.get(entryDN);
+        if (workflow != null)
+        {
+          return workflow;
+        }
+        entryDN = entryDN.parent();
+      }
+      return null;
     }
-    return null;
+    else
+    {
+      LocalBackendWorkflowElement workflow = null;
+      int currentSize = 0;
+      for (DN backendDN : registeredLocalBackends.keySet())
+      {
+        if (entryDN.isSubordinateOrEqualTo(backendDN) && backendDN.size() > currentSize)
+        {
+          workflow = registeredLocalBackends.get(backendDN);
+          currentSize = backendDN.size();
+        }
+      }
+      return workflow;
+    }
   }
 
   /**

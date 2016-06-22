@@ -145,6 +145,37 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
     }
   }
 
+  @Test
+  public void testParentBackendSelection() throws Exception
+  {
+    String parentID = "parent";
+    String childID1 = "child1";
+    String strangerID = "stranger";
+    String parent = "dc=abc";
+    String child1 = "dc=example,dc=abc";
+    String child2 = "dc=example2,dc=abc";
+    String stranger = "dc=abc1";
+
+    try
+    {
+      TestCaseUtils.clearDataBackends();
+      TestCaseUtils.initializeMemoryBackend(parentID, parent, true);
+      TestCaseUtils.initializeMemoryBackend(childID1, child1, true);
+      TestCaseUtils.initializeMemoryBackend(strangerID, stranger, true);
+
+      assertEquals(getMatchedDN("cn=user," + parent), DN.valueOf(parent));
+      assertEquals(getMatchedDN("cn=user," + child1), DN.valueOf(child1));
+      assertEquals(getMatchedDN("cn=user," + child2), DN.valueOf(parent));
+      assertEquals(getMatchedDN("cn=user," + stranger), DN.valueOf(stranger));
+    }
+    finally
+    {
+      TestCaseUtils.clearMemoryBackend(parentID);
+      TestCaseUtils.clearMemoryBackend(childID1);
+      TestCaseUtils.clearMemoryBackend(strangerID);
+    }
+  }
+
   /**
    * This test checks that the workflow takes into account the subordinate
    * naming context defined in the RootDSEBackend.
@@ -258,9 +289,18 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
   private void modifyAttribute(String baseDN, ModificationType modType, String attrName, String attrValue)
       throws Exception
   {
-    ModifyRequest modifyRequest = Requests.newModifyRequest(baseDN)
-        .addModification(modType, attrName, attrValue);
-    ModifyOperation modifyOperation = getRootConnection().processModify(modifyRequest);
+    ModifyOperation modifyOperation = getModifyOperation(baseDN, modType, attrName, attrValue);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private DN getMatchedDN(String entryDN)
+  {
+    return getModifyOperation(entryDN, ADD, "sn", "dummy").getMatchedDN();
+  }
+
+  private ModifyOperation getModifyOperation(String baseDN, ModificationType modType, String attrName, String attrValue)
+  {
+    ModifyRequest modifyRequest = Requests.newModifyRequest(baseDN).addModification(modType, attrName, attrValue);
+    return getRootConnection().processModify(modifyRequest);
   }
 }
