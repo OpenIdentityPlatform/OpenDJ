@@ -17,6 +17,8 @@ package org.opends.server.loggers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 /**
  * Provides mapping from class names to simple category names used for logging.
@@ -32,64 +34,85 @@ public class LoggingCategoryNames
    * most case, package name is sufficient to map to a category name. It is
    * valid if several entries point to the same category name.
    */
-  private static final Map<String, String> NAMES = new HashMap<>();
+  private static final Map<String, String> RESOURCE_NAMES = new HashMap<>();
+  private static final NavigableMap<String, String> SOURCE_CLASSES = new TreeMap<>();
   private static final String DEFAULT_CATEGORY = "NONE";
   static
   {
     // The category used for messages associated with the core server.
-    NAMES.put("org.opends.messages.core", "CORE");
-    NAMES.put("org.opends.messages.runtime", "JVM");
-    NAMES.put("com.forgerock.opendj.ldap", "SDK");
+    RESOURCE_NAMES.put("org.opends.messages.core", "CORE");
+    SOURCE_CLASSES.put("org.opends.server.core", "CORE");
+    RESOURCE_NAMES.put("org.opends.messages.runtime", "JVM");
+    SOURCE_CLASSES.put("org.opends.server.util.RuntimeInformation", "JVM");
+    RESOURCE_NAMES.put("com.forgerock.opendj.ldap", "SDK");
+    SOURCE_CLASSES.put("org.forgerock.opendj.ldap", "SDK");
 
     // The category used for messages associated with server extensions
     // (e.g. extended operations, SASL mechanisms, password storage, schemes, password validators, etc.).
-    NAMES.put("org.opends.messages.extension", "EXTENSIONS");
+    RESOURCE_NAMES.put("org.opends.messages.extension", "EXTENSIONS");
+    SOURCE_CLASSES.put("org.opends.server.extensions", "EXTENSIONS");
 
     // The category used for messages associated with
     // connection and protocol handling (e.g., ASN.1 and LDAP).
-    NAMES.put("org.opends.messages.protocol", "PROTOCOL");
+    RESOURCE_NAMES.put("org.opends.messages.protocol", "PROTOCOL");
+    SOURCE_CLASSES.put("org.opends.server.protocol", "PROTOCOL");
+    SOURCE_CLASSES.put("org.forgerock.opendj.io", "PROTOCOL");
 
     // The category used for messages associated with configuration handling.
-    NAMES.put("org.opends.messages.config", "CONFIG");
+    RESOURCE_NAMES.put("org.opends.messages.config", "CONFIG");
+    SOURCE_CLASSES.put("org.opends.server.config", "CONFIG");
 
     // The category used for messages associated with the server loggers.
-    NAMES.put("org.opends.messages.logger", "LOG");
+    RESOURCE_NAMES.put("org.opends.messages.logger", "LOG");
+    SOURCE_CLASSES.put("org.opends.server.loggers", "LOG");
 
     // The category used for messages associated with the general server utilities.
-    NAMES.put("org.opends.messages.utility", "UTIL");
+    RESOURCE_NAMES.put("org.opends.messages.utility", "UTIL");
+    SOURCE_CLASSES.put("org.opends.server.util", "UTIL");
 
     // The category used for messages associated with the server schema elements.
-    NAMES.put("org.opends.messages.schema", "SCHEMA");
+    RESOURCE_NAMES.put("org.opends.messages.schema", "SCHEMA");
+    SOURCE_CLASSES.put("org.opends.server.schema", "SCHEMA");
+    SOURCE_CLASSES.put("org.forgerock.opendj.ldap.schema", "SCHEMA");
 
     // The category that will be used for messages associated with plugin processing.
-    NAMES.put("org.opends.messages.plugin", "PLUGIN");
+    RESOURCE_NAMES.put("org.opends.messages.plugin", "PLUGIN");
+    SOURCE_CLASSES.put("org.opends.server.plugins", "PLUGIN");
 
     // The category used for messages associated with generic backends.
-    NAMES.put("org.opends.messages.backend", "BACKEND");
+    RESOURCE_NAMES.put("org.opends.messages.backend", "BACKEND");
+    SOURCE_CLASSES.put("org.opends.server.backends", "BACKEND");
 
     // The category used for messages associated with tools
-    NAMES.put("org.opends.messages.tool", "TOOLS");
+    RESOURCE_NAMES.put("org.opends.messages.tool", "TOOLS");
+    SOURCE_CLASSES.put("org.opends.server.tools", "TOOLS");
 
     // The category used for messages associated with tasks
-    NAMES.put("org.opends.messages.task", "TASK");
+    RESOURCE_NAMES.put("org.opends.messages.task", "TASK");
+    SOURCE_CLASSES.put("org.opends.server.tasks", "TASK");
 
     // The category used for messages associated with Access Control
-    NAMES.put("org.opends.messages.access_control", "ACCESS_CONTROL");
+    RESOURCE_NAMES.put("org.opends.messages.access_control", "ACCESS_CONTROL");
+    SOURCE_CLASSES.put("org.opends.server.authorization", "ACCESS_CONTROL");
 
     // The category used for messages associated with the administration framework.
-    NAMES.put("org.opends.messages.admin", "ADMIN");
+    RESOURCE_NAMES.put("org.opends.messages.admin", "ADMIN");
+    SOURCE_CLASSES.put("org.opends.server.admin", "ADMIN");
 
     // The category used for messages associated with the Synchronization
-    NAMES.put("org.opends.server.replication", "SYNC");
+    RESOURCE_NAMES.put("org.opends.server.replication", "SYNC");
 
     // The category used for messages associated with quicksetup tools
-    NAMES.put("org.opends.messages.quickSetup", "QUICKSETUP");
+    RESOURCE_NAMES.put("org.opends.messages.quickSetup", "QUICKSETUP");
+    SOURCE_CLASSES.put("org.opends.quicksetup", "QUICKSETUP");
 
-    // The category used for messages associated with the tool like the offline installer and unintaller.
-    NAMES.put("org.opends.messages.admin_tool", "ADMIN_TOOL");
+    // The category used for messages associated with the tool like the offline installer and un-installer.
+    RESOURCE_NAMES.put("org.opends.messages.admin_tool", "ADMIN_TOOL");
+    SOURCE_CLASSES.put("org.opends.guitools.uninstaller", "ADMIN_TOOL");
+    SOURCE_CLASSES.put("org.opends.admin.ads", "ADMIN_TOOL");
 
     // The category used for messages associated with common audit.
-    NAMES.put("org.forgerock.audit", "AUDIT");
+    RESOURCE_NAMES.put("org.forgerock.audit", "AUDIT");
   }
 
   /**
@@ -125,7 +148,16 @@ public class LoggingCategoryNames
     {
       return fallbackCategory == null ? DEFAULT_CATEGORY : fallbackCategory;
     }
-    final String category = NAMES.get(className);
-    return category != null ? category : className;
+    final String category = RESOURCE_NAMES.get(className);
+    if (category == null)
+    {
+      final Map.Entry<String, String> entry = SOURCE_CLASSES.floorEntry(className);
+      if (entry != null && className.startsWith(entry.getKey()))
+      {
+        return entry.getValue();
+      }
+      return className;
+    }
+    return category;
   }
 }
