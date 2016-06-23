@@ -15,7 +15,7 @@
  */
 package org.opends.server.protocols.http.authz;
 
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newFileAccessTokenResolver;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newFileAccessTokenResolver;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_OAUTH2_NON_EXISTING_DIRECTORY;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 

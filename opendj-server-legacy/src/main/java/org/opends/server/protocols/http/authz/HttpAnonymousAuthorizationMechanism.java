@@ -15,7 +15,7 @@
  */
 package org.opends.server.protocols.http.authz;
 
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newConditionalDirectConnectionFilter;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newConditionalDirectConnectionFilter;
 import static org.forgerock.opendj.adapter.server3x.Adapters.*;
 
 import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.ConditionalFilter;

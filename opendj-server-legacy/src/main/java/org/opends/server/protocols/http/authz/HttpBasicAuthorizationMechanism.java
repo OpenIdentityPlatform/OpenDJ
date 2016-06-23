@@ -21,7 +21,7 @@ import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.ResultCode.INVALID_CREDENTIALS;
 import static org.forgerock.opendj.ldap.ResultCode.OPERATIONS_ERROR;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newConditionalHttpBasicAuthenticationFilter;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newConditionalHttpBasicAuthenticationFilter;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.newConditionalFilter;
 import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.httpBasicExtractor;
 import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.newCustomHeaderExtractor;

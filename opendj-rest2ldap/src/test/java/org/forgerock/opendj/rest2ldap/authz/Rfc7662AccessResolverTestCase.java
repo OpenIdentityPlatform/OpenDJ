@@ -16,7 +16,7 @@
 package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newRfc7662AccessTokenResolver;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newRfc7662AccessTokenResolver;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;

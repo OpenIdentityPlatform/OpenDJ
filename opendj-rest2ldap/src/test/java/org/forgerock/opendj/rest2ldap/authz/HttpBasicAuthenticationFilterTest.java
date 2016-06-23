@@ -16,7 +16,7 @@
 package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newConditionalHttpBasicAuthenticationFilter;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newConditionalHttpBasicAuthenticationFilter;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;

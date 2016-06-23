@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.newSuccessfulLdapPromise;
 import static org.forgerock.opendj.rest2ldap.TestUtils.toValidJson;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newCtsAccessTokenResolver;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newCtsAccessTokenResolver;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

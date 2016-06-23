@@ -26,10 +26,10 @@ import static org.forgerock.opendj.ldap.KeyManagers.useSingleCertificate;
 import static org.forgerock.opendj.rest2ldap.Rest2LdapJsonConfigurator.*;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
-import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSASLPlainStrategy;
+import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSaslPlainStrategy;
 import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSearchThenBindStrategy;
 import static org.forgerock.opendj.rest2ldap.authz.AuthenticationStrategies.newSimpleBindStrategy;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.*;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.*;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.newConditionalFilter;
 import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.httpBasicExtractor;
 import static org.forgerock.opendj.rest2ldap.authz.CredentialExtractors.newCustomHeaderExtractor;
@@ -453,7 +453,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     }
 
     private AuthenticationStrategy buildSaslBindStrategy(JsonValue config) {
-        return newSASLPlainStrategy(
+        return newSaslPlainStrategy(
                 getConnectionFactory(config.get("ldapConnectionFactory").defaultTo(DEFAULT_BIND_FACTORY).asString()),
                 schema, parseUserNameTemplate(config.get(AUTHZID_TEMPLATE).defaultTo("u:%s")));
     }

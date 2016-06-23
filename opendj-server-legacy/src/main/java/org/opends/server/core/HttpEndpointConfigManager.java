@@ -16,7 +16,7 @@
 package org.opends.server.core;
 
 import static org.forgerock.http.routing.RouteMatchers.requestUriMatcher;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newAuthorizationFilter;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newAuthorizationFilter;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_HTTPENDPOINT_CONFLICTING_AUTHZ_DN;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_HTTPENDPOINT_INITIALIZATION_FAILED;

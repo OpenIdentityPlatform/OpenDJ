@@ -16,7 +16,7 @@
 package org.opends.server.protocols.http.authz;
 
 import static org.forgerock.opendj.adapter.server3x.Adapters.newRootConnectionFactory;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newCtsAccessTokenResolver;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newCtsAccessTokenResolver;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_AUTHZ_REFERENCED_DN_DOESNT_EXISTS;
 
 import org.forgerock.openig.oauth2.AccessTokenResolver;

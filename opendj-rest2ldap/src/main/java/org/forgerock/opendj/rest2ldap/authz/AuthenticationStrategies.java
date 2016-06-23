@@ -91,8 +91,8 @@ public final class AuthenticationStrategies {
      * @throws NullPointerException
      *             If a parameter is null
      */
-    public static AuthenticationStrategy newSASLPlainStrategy(ConnectionFactory connectionFactory, Schema schema,
-            String authcIdTemplate) {
+    public static AuthenticationStrategy newSaslPlainStrategy(ConnectionFactory connectionFactory, Schema schema,
+                                                              String authcIdTemplate) {
         return new SaslPlainStrategy(connectionFactory, schema, authcIdTemplate);
     }
 }

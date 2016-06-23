@@ -33,7 +33,7 @@ import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.json.JsonValue;
-import org.forgerock.opendj.rest2ldap.authz.Authorizations;
+import org.forgerock.opendj.rest2ldap.authz.Authorization;
 import org.forgerock.opendj.rest2ldap.authz.ConditionalFilters;
 import org.forgerock.services.context.AttributesContext;
 import org.forgerock.services.context.Context;
@@ -52,7 +52,7 @@ import org.testng.annotations.Test;
 
 @Test
 @SuppressWarnings("javadoc")
-public final class AuthorizationsTestCase extends ForgeRockTestCase {
+public final class AuthorizationTestCase extends ForgeRockTestCase {
 
     private static final String TEST_TOKEN = "2YotnFZFEjr1zCsicMWpAA";
 
@@ -90,7 +90,7 @@ public final class AuthorizationsTestCase extends ForgeRockTestCase {
         newContextChain();
         prepareResolverResponse();
 
-        final ConditionalFilters.ConditionalFilter filter = Authorizations.newConditionalOAuth2ResourceServerFilter(
+        final ConditionalFilters.ConditionalFilter filter = Authorization.newConditionalOAuth2ResourceServerFilter(
                 "realm",
                 new HashSet<>(Arrays.asList("read", "write", "dolphin")),
                 resolver,

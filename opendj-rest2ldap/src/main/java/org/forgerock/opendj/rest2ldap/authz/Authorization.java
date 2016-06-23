@@ -53,7 +53,7 @@ import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.TimeService;
 
 /** Factory methods to create {@link Filter} performing authentication and authorizations. */
-public final class Authorizations {
+public final class Authorization {
 
     private static final String OAUTH2_AUTHORIZATION_HEADER = "Authorization";
 
@@ -275,7 +275,7 @@ public final class Authorizations {
         };
     }
 
-    private Authorizations() {
+    private Authorization() {
         // Prevent instantiation.
     }
 }

@@ -15,7 +15,7 @@
  */
 package org.opends.server.protocols.http.authz;
 
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newRfc7662AccessTokenResolver;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newRfc7662AccessTokenResolver;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_OAUTH2_CONFIG_ERROR;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_OAUTH2_INVALID_URL;
 

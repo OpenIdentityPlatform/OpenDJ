@@ -20,7 +20,7 @@ import static org.forgerock.http.handler.HttpClientHandler.OPTION_KEY_MANAGERS;
 import static org.forgerock.http.handler.HttpClientHandler.OPTION_SSL_CIPHER_SUITES;
 import static org.forgerock.http.handler.HttpClientHandler.OPTION_SSL_ENABLED_PROTOCOLS;
 import static org.forgerock.http.handler.HttpClientHandler.OPTION_TRUST_MANAGERS;
-import static org.forgerock.opendj.rest2ldap.authz.Authorizations.newConditionalOAuth2ResourceServerFilter;
+import static org.forgerock.opendj.rest2ldap.authz.Authorization.newConditionalOAuth2ResourceServerFilter;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.newConditionalFilter;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_OAUTH2_INVALID_JSON_POINTER;
 import static org.opends.server.core.DirectoryServer.getCryptoManager;
