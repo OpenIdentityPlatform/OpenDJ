@@ -20,13 +20,11 @@ import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -144,7 +142,7 @@ public final class ConfigurationFramework {
     }
 
     /**
-     * Prints out all information about extensions.
+     * Returns a string representing all information about extensions.
      *
      * @param installPath
      *            The path where application binaries are located.
@@ -154,8 +152,8 @@ public final class ConfigurationFramework {
      * @return A string representing all information about extensions;
      *         <code>null</code> if there is no information available.
      */
-    public static String printExtensionInformation(final String installPath, final String instancePath) {
-        final File extensionsPath = buildExtensionPath(installPath);
+    public static String getPrintableExtensionInformation(final String installPath, final String instancePath) {
+        final File extensionsPath = buildExtensionDir(installPath);
 
         final List<File> extensions = new ArrayList<>();
 
@@ -163,7 +161,7 @@ public final class ConfigurationFramework {
             extensions.addAll(listFiles(extensionsPath));
         }
 
-        File instanceExtensionsPath = buildExtensionPath(instancePath);
+        File instanceExtensionsPath = buildExtensionDir(instancePath);
         if (!extensionsPath.getAbsolutePath().equals(instanceExtensionsPath.getAbsolutePath())) {
             extensions.addAll(listFiles(instanceExtensionsPath));
         }
@@ -172,33 +170,36 @@ public final class ConfigurationFramework {
             return null;
         }
 
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final PrintStream ps = new PrintStream(baos);
-        // prints:
-        // --
-        // Name Build number Revision number
-        ps.printf("--%s           %-20s %-20s %-20s%s", EOL, "Name", "Build number",
-                  "Revision number", EOL);
+        final StringBuilder sb = new StringBuilder();
+        printExtensionDetailsHeader(sb);
 
         for (final File extension : extensions) {
-            printExtensionDetails(ps, extension);
+            printExtensionDetails(sb, extension);
         }
 
-        return baos.toString();
+        return sb.toString();
     }
 
-    private static File buildExtensionPath(String directory)  {
-        File libDir = new File(directory, LIB_DIR);
+    private static void printExtensionDetailsHeader(final StringBuilder sb) {
+        // Leave space at start of the line for "Extension:"
+        sb.append("--")
+            .append(EOL)
+            .append("           Name                 Build number         Revision number")
+            .append(EOL);
+    }
+
+    private static File buildExtensionDir(String directory)  {
+        final File libDir = new File(directory, LIB_DIR);
+        final File extensionDir = new File(libDir, EXTENSIONS_DIR);
         try {
-            return new File(libDir, EXTENSIONS_DIR).getCanonicalFile();
+            return extensionDir.getCanonicalFile();
         } catch (Exception e) {
-            return new File(libDir, EXTENSIONS_DIR);
+            return extensionDir;
         }
     }
 
     private static List<File> listFiles(File path) {
         if (path.exists() && path.isDirectory()) {
-
             return Arrays.asList(path.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File pathname) {
@@ -210,7 +211,7 @@ public final class ConfigurationFramework {
         return Collections.emptyList();
     }
 
-    private static void printExtensionDetails(PrintStream ps, File extension) {
+    private static void printExtensionDetails(final StringBuilder sb, final File extension) {
         // retrieve MANIFEST entry and display name, build number and revision number
         try (JarFile jarFile = new JarFile(extension)) {
             JarEntry entry = jarFile.getJarEntry(MANIFEST_RELATIVE_PATH);
@@ -219,19 +220,12 @@ public final class ConfigurationFramework {
             }
 
             String[] information = getBuildInformation(jarFile);
-
-            ps.append("Extension: ");
-            boolean addBlank = false;
-            for (String name : information) {
-                if (addBlank) {
-                    ps.append(" ");
-                } else {
-                    addBlank = true;
-                }
-                ps.printf("%-20s", name);
+            sb.append("Extension:");
+            for (final String name : information) {
+                sb.append(" ").append(String.format("%-20s", name));
             }
-            ps.append(EOL);
-        } catch (Exception e) {
+            sb.append(EOL);
+        } catch (final IOException ignored) {
             // ignore extra information for this extension
         }
     }
@@ -252,9 +246,7 @@ public final class ConfigurationFramework {
     private static String[] getBuildInformation(final JarFile extension) throws IOException {
         final String[] result = new String[3];
 
-        // retrieve MANIFEST entry and display name, version and revision
         final Manifest manifest = extension.getManifest();
-
         if (manifest != null) {
             final Attributes attributes = manifest.getMainAttributes();
 
@@ -495,8 +487,8 @@ public final class ConfigurationFramework {
         // configuration definition classes in that they contain.
         // First load the extension from the install directory, then
         // from the instance directory.
-        File installExtensionsPath  = buildExtensionPath(installPath);
-        File instanceExtensionsPath = buildExtensionPath(instancePath);
+        File installExtensionsPath  = buildExtensionDir(installPath);
+        File instanceExtensionsPath = buildExtensionDir(instancePath);
 
         initializeAllExtensions(installExtensionsPath);
 
