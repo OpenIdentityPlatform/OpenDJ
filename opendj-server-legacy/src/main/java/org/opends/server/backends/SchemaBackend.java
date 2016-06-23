@@ -623,18 +623,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
-    // Make sure that the authenticated user has the necessary UPDATE_SCHEMA
-    // privilege.
+    // Make sure that the authenticated user has the necessary UPDATE_SCHEMA privilege.
     ClientConnection clientConnection = modifyOperation.getClientConnection();
-    if (! clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA,
-                                        modifyOperation))
+    if (!clientConnection.hasPrivilege(Privilege.UPDATE_SCHEMA, modifyOperation))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_INSUFFICIENT_PRIVILEGES.get();
-      throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                                   message);
+      throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS, message);
     }
 
-    ArrayList<Modification> mods = new ArrayList<>(modifyOperation.getModifications());
+    List<Modification> mods = new ArrayList<>(modifyOperation.getModifications());
     if (mods.isEmpty())
     {
       // There aren't any modifications, so we don't need to do anything.
@@ -643,7 +640,23 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     Schema newSchema = DirectoryServer.getSchema().duplicate();
     TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
+    applyModifications(newSchema, mods, modifiedSchemaFiles, modifyOperation.isSynchronizationOperation());
+    updateSchemaFiles(newSchema, modifiedSchemaFiles);
+    DirectoryServer.setSchema(newSchema);
 
+    DN authzDN = modifyOperation.getAuthorizationDN();
+    if (authzDN == null)
+    {
+      authzDN = DN.rootDN();
+    }
+
+    modifiersName = ByteString.valueOfUtf8(authzDN.toString());
+    modifyTimestamp = createGeneralizedTimeValue(System.currentTimeMillis());
+  }
+
+  private void applyModifications(Schema newSchema, List<Modification> mods, Set<String> modifiedSchemaFiles,
+      boolean isSynchronizationOperation) throws DirectoryException
+  {
     int pos = -1;
     for (Modification m : mods)
     {
@@ -666,8 +679,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           break;
 
         case REPLACE:
-          if (!m.isInternal()
-              && !modifyOperation.isSynchronizationOperation())
+          if (!m.isInternal() && !isSynchronizationOperation)
           {
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                 ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(m.getModificationType()));
@@ -686,26 +698,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           break;
 
         default:
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
               ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(m.getModificationType()));
       }
     }
-
-    // If we've gotten here, then everything looks OK, re-write all the
-    // modified Schema Files.
-    updateSchemaFiles(newSchema, modifiedSchemaFiles);
-
-    // Finally set DirectoryServer to use the new Schema.
-    DirectoryServer.setSchema(newSchema);
-
-    DN authzDN = modifyOperation.getAuthorizationDN();
-    if (authzDN == null)
-    {
-      authzDN = DN.rootDN();
-    }
-
-    modifiersName = ByteString.valueOfUtf8(authzDN.toString());
-    modifyTimestamp = createGeneralizedTimeValue(System.currentTimeMillis());
   }
 
   private void addAttribute(Schema newSchema, Attribute a, Set<String> modifiedSchemaFiles) throws DirectoryException
