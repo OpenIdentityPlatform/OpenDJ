@@ -36,7 +36,16 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.DITContentRule;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.NameForm;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder.SchemaBuilderHook;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.schema.AttributeType.Builder;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -47,6 +56,7 @@ import org.opends.server.types.Schema.SchemaUpdater;
 import static org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 
 /**
  * This class defines a utility that will be used to manage the interaction with
@@ -357,7 +367,7 @@ public class SchemaConfigManager
       // immediately overwrite these definitions which are already defined in the SDK core schema
       final boolean overwriteCoreSchemaDefinitions =
           CORE_SCHEMA_FILE.equals(schemaFile) || RFC_3112_SCHEMA_FILE.equals(schemaFile);
-      updateSchema(schema, schemaEntry, overwriteCoreSchemaDefinitions);
+      updateSchema(schema, schemaFile, schemaEntry, overwriteCoreSchemaDefinitions);
     }
     catch (DirectoryException e)
     {
@@ -369,7 +379,7 @@ public class SchemaConfigManager
         logger.warn(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE, schemaFile, e.getMessageObject());
         try
         {
-          updateSchema(schema, schemaEntry, true);
+          updateSchema(schema, schemaFile, schemaEntry, true);
         }
         catch (DirectoryException e2)
         {
@@ -439,15 +449,48 @@ public class SchemaConfigManager
     }
   }
 
-  private static void updateSchema(Schema schema, final Entry schemaEntry, final boolean overwrite)
-      throws DirectoryException
+    private static void updateSchema(Schema schema, final String schemaFile, final Entry schemaEntry,
+            final boolean overwrite) throws DirectoryException
   {
     schema.updateSchema(new SchemaUpdater()
     {
       @Override
       public org.forgerock.opendj.ldap.schema.Schema update(SchemaBuilder builder)
       {
-        return builder.addSchema(schemaEntry, overwrite).toSchema();
+        return builder.addSchema(schemaEntry, overwrite, new SchemaBuilderHook() {
+            @Override
+            public void beforeAddSyntax(Syntax.Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+            @Override
+            public void beforeAddObjectClass(ObjectClass.Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+            @Override
+            public void beforeAddNameForm(NameForm.Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+            @Override
+            public void beforeAddMatchingRuleUse(MatchingRuleUse.Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+            @Override
+            public void beforeAddMatchingRule(MatchingRule.Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+            @Override
+            public void beforeAddDitStructureRule(DITStructureRule.Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+            @Override
+            public void beforeAddDitContentRule(DITContentRule.Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+            @Override
+            public void beforeAddAttribute(Builder builder) {
+                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+            }
+        }).toSchema();
       }
     });
   }
