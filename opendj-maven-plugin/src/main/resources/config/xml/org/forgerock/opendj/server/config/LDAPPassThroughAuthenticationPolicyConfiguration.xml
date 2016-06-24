@@ -384,9 +384,6 @@
       An example use-case for this property would be to use a different attribute type
       on the mapped search. For example, mapped-attribute could be set to "uid" and
       filter-template to "(samAccountName=%s)".
-
-      You can also use the filter to restrict search results.
-      For example: "(&amp;(uid=%s)(objectclass=student))"
     </adm:description>
     <adm:default-behavior>
       <adm:undefined/>
