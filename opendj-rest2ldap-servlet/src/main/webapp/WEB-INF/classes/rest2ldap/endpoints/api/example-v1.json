@@ -1,34 +1,32 @@
 {
-    // This file defines an example Rest2Ldap API mapping exposing a multi-tenant deployment exposing users,
-    // POSIX users, and groups, as follows:
+    // This file defines an example Rest2Ldap API mapping exposing users, POSIX users, and groups, as follows:
     //
-    // /api/{tenant}/users/{uid} - users for a given tenant, e.g. "/api/example/users/bjensen"
-    // /api/{tenant}/groups/{cn} - groups for a given tenant, e.g. "/api/example/groups/administrators"
+    // /api/users/{uid} - users beneath ou=people,dc=example,dc=com, e.g. "/api/users/bjensen"
+    // /api/groups/{cn} - groups beneath ou=groups,dc=example,dc=com, e.g. "/api/groups/administrators"
     //
     "version": "1.0",
 
     // This section defines all of the resources, their inheritance, and relationships.
     "resourceTypes": {
         // This resource represents the entry point into the user/group API. It only defines sub-resources and
-        // does not have any properties itself. The URL and DN templates include a template variable allowing
-        // this API to support multi-tenancy. Multiple template variables are permitted.
-        "users-and-groups-v1": {
+        // does not have any properties itself. Template variables are permitted within the URL and DN templates.
+        "example-v1": {
             "subResources": {
-                "{tenant}/users": {
+                "users": {
                     "type": "collection",
-                    "dnTemplate": "ou=people,dc={tenant},dc=com",
+                    "dnTemplate": "ou=people,dc=example,dc=com",
                     "resource": "frapi:opendj:rest2ldap:user:1.0",
                     "namingStrategy": {
                         "type": "clientDnNaming",
                         "dnAttribute": "uid"
                     }
                 },
-                "{tenant}/groups": {
+                "groups": {
                     "type": "collection",
-                    "dnTemplate": "ou=groups,dc={tenant},dc=com",
+                    "dnTemplate": "ou=groups,dc=example,dc=com",
                     "resource": "frapi:opendj:rest2ldap:group:1.0",
                     "namingStrategy": {
-                        "type": "clientDNNaming",
+                        "type": "clientDnNaming",
                         "dnAttribute": "cn"
                     }
                 }
