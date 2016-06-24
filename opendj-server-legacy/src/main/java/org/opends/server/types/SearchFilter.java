@@ -1107,6 +1107,10 @@ public final class SearchFilter
       return new SearchFilter(filterType, null, notComponent, null,
                               null, null, null, null, null, false);
     }
+    else if ((filterType == FilterType.AND || filterType == FilterType.OR) && filterComponents.size() == 1)
+    {
+      return filterComponents.get(0);
+    }
     else
     {
       return new SearchFilter(filterType, filterComponents, null,

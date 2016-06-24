@@ -1866,7 +1866,13 @@ public class LDAPFilter
     }
     else
     {
-      subComps = new ArrayList<>(filterComponents.size());
+      int compSize = filterComponents.size();
+      if (compSize == 1)
+      {
+        // the filter can be simplified to the single component
+        return filterComponents.get(0).toSearchFilter();
+      }
+      subComps = new ArrayList<>(compSize);
       for (RawFilter f : filterComponents)
       {
         subComps.add(f.toSearchFilter());

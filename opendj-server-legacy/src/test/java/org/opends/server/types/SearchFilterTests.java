@@ -83,8 +83,9 @@ public class SearchFilterTests extends DirectoryServerTestCase {
             {"(!(sn=test))", "(!(sn=test))"},
             {"(|(sn=test)(sn=test2))", "(|(sn=test)(sn=test2))"},
 
-            {"(&(sn=test))", "(&(sn=test))"},
-            {"(|(sn=test))", "(|(sn=test))"},
+            {"(&(sn=test))", "(sn=test)"},
+            {"(|(sn=test))", "(sn=test)"},
+            {"(&(objectclass=person)(|(sn=test)))", "(&(objectClass=person)(sn=test))"},
     };
   }
 
@@ -861,8 +862,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
   private static final Object[][] TEST_EQUALS_PARAMS = new Object[][]{
           // These have duplicates, and their String representation should even reflect that.
-          {"(&(sn=Smith))", "(&(sn=Smith)(sn=Smith))", true, true},
-          {"(|(sn=Smith))", "(|(sn=Smith)(sn=Smith))", true, true},
+          {"(&(sn=Smith))", "(sn=Smith)", true, true},
+          {"(|(sn=Smith))", "(sn=Smith)", true, true},
 
           // These are reordered, so they are equivalent, but their String representations will differ
           {"(&(sn=Smith)(sn<=Aus))", "(&(sn<=Aus)(sn=Smith))", true, false},
