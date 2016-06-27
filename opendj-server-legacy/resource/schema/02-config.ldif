@@ -3943,6 +3943,12 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.184
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.185
+  NAME 'ds-cfg-import-offheap-memory-size'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -5865,7 +5871,8 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.22
         ds-cfg-confidentiality-enabled $
         ds-cfg-cipher-transformation $
         ds-cfg-cipher-key-length $
-        ds-cfg-index-filter-analyzer-max-filters )
+        ds-cfg-index-filter-analyzer-max-filters $
+        ds-cfg-import-offheap-memory-size )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.23
   NAME 'ds-cfg-pdb-backend'

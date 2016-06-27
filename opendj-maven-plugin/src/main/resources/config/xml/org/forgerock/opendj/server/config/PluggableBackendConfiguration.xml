@@ -375,4 +375,22 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="import-offheap-memory-size" advanced="true">
+    <adm:synopsis>
+      Specifies the amount of off-heap memory dedicated to the online operation (import-ldif, rebuild-index).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>Use only heap memory.</adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+        <adm:size lower-limit="0 MB" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-import-offheap-memory-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

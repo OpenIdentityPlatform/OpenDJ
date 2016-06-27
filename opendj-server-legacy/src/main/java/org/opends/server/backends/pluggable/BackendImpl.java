@@ -654,7 +654,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
       rootContainer = newRootContainer(AccessMode.READ_WRITE);
       rootContainer.getStorage().close();
-      return getImportStrategy(serverContext, rootContainer).importLDIF(importConfig);
+      return getImportStrategy(rootContainer).importLDIF(importConfig);
     }
     catch (StorageRuntimeException e)
     {
@@ -696,9 +696,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  private ImportStrategy getImportStrategy(ServerContext serverContext, RootContainer rootContainer)
+  private ImportStrategy getImportStrategy(RootContainer rootContainer)
   {
-    return new OnDiskMergeImporter.StrategyImpl(serverContext, rootContainer, cfg);
+    return new OnDiskMergeImporter.StrategyImpl(rootContainer, cfg);
   }
 
   @Override
@@ -769,7 +769,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       {
         rootContainer = newRootContainer(AccessMode.READ_WRITE);
       }
-      getImportStrategy(serverContext, rootContainer).rebuildIndex(rebuildConfig);
+      getImportStrategy(rootContainer).rebuildIndex(rebuildConfig);
     }
     catch (ConfigException ce)
     {
