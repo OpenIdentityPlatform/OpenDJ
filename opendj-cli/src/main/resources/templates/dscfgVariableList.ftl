@@ -11,7 +11,7 @@
  # Header, with the fields enclosed by brackets [] replaced by your own identifying
  # information: "Portions Copyright [year] [name of copyright owner]".
  #
- # Copyright 2015 ForgeRock AS.
+ # Copyright 2015-2016 ForgeRock AS.
  #-->
 <variablelist>
 
@@ -26,7 +26,7 @@
           <term>${property.descTitle}</term>
           <listitem>
             <para>
-              ${property.description}
+              ${property.description?xml}
             </para>
           </listitem>
         </varlistentry>

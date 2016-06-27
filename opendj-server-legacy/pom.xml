@@ -203,7 +203,7 @@
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
-      <version>2.3.21</version>
+      <version>${freemarker.version}</version>
       <scope>test</scope>
     </dependency>
 
