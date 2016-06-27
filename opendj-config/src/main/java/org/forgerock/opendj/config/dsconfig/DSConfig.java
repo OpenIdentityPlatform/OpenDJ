@@ -52,6 +52,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -785,7 +787,7 @@ public final class DSConfig extends ConsoleApplication {
      * @return Zero to indicate that the program completed successfully, or non-zero to indicate that an error occurred.
      */
     public static int main(String[] args, OutputStream outStream, OutputStream errStream) {
-        disableConfigurationFrameworkConsoleLogging();
+        disableLogging();
         final DSConfig app = new DSConfig(outStream, errStream);
         app.sessionStartTime = System.currentTimeMillis();
 
@@ -806,8 +808,9 @@ public final class DSConfig extends ConsoleApplication {
      * Prevent configuration framework to log on the console.
      * @see OPENDJ-3140 for more details.
      */
-    private static void disableConfigurationFrameworkConsoleLogging() {
-        Logger.getLogger("com.forgerock.opendj.ldap.config.config").setUseParentHandlers(false);
+    private static void disableLogging() {
+        LogManager.getLogManager().reset();
+        Logger.getLogger("").setLevel(Level.OFF);
     }
 
     /** The factory which the application should use to retrieve its management context. */
