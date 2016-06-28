@@ -17,9 +17,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static java.util.Arrays.*;
-
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Collection;
@@ -475,17 +473,25 @@ public final class DITStructureRule extends AbstractSchemaElement {
             failValidation(invalidSchemaElements, warnings, message);
             return false;
         }
+        if (!isObsolete() && nameForm.isObsolete()) {
+            warnings.add(WARN_DIT_SR_HAS_OBSOLETE_NAME_FORM.get(getNameOrRuleID(), nameFormOID));
+        }
 
         if (!superiorRuleIDs.isEmpty()) {
             superiorRules = new HashSet<>(superiorRuleIDs.size());
             for (final Integer id : superiorRuleIDs) {
+                DITStructureRule ditStructureRule;
                 try {
-                    superiorRules.add(schema.getDITStructureRule(id));
+                    ditStructureRule = schema.getDITStructureRule(id);
+                    superiorRules.add(ditStructureRule);
                 } catch (final UnknownSchemaElementException e) {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(getNameOrRuleID(), id);
                     failValidation(invalidSchemaElements, warnings, message);
                     return false;
+                }
+                if (!isObsolete() && ditStructureRule.isObsolete()) {
+                    warnings.add(WARN_DIT_SR_HAS_OBSOLETE_SUPERIOR_RULE.get(getNameOrRuleID(), nameFormOID));
                 }
             }
         }

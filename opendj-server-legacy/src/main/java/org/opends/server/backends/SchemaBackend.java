@@ -1685,28 +1685,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    // Make sure that the new DIT structure rule doesn't reference an undefined
-    // name form or superior DIT structure rule.
-    NameForm nameForm = ditStructureRule.getNameForm();
-    if (nameForm.isObsolete())
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_NAME_FORM.get(
-          ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    // If there are any superior rules, then make sure none of them are marked
-    // OBSOLETE.
-    for (DITStructureRule dsr : ditStructureRule.getSuperiorRules())
-    {
-      if (dsr.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DSR_OBSOLETE_SUPERIOR_RULE.get(
-            ditStructureRule.getNameOrRuleID(), dsr.getNameOrRuleID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
     // If there is no existing rule, then we're adding a new DIT structure rule.
     // Otherwise, we're replacing an existing one.
     if (existingDSR == null)
