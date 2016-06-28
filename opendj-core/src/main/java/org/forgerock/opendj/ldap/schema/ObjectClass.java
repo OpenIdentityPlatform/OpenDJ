@@ -886,6 +886,10 @@ public final class ObjectClass extends AbstractSchemaElement {
                     return false;
                 }
 
+                if (!isObsolete() && superiorClass.isObsolete()) {
+                    warnings.add(WARN_OBJECTCLASS_HAS_OBSOLETE_SUPERIOR_CLASS.get(getNameOrOID(), superClassOid));
+                }
+
                 // Make sure that the inheritance configuration is acceptable.
                 final ObjectClassType superiorType = superiorClass.getObjectClassType();
                 final ObjectClassType type = getObjectClassType();
@@ -1015,6 +1019,10 @@ public final class ObjectClass extends AbstractSchemaElement {
                         failValidation(invalidSchemaElements, warnings, message);
                         return false;
                     }
+                    if (!isObsolete() && attributeType.isObsolete()) {
+                        warnings.add(WARN_OBJECTCLASS_HAS_OBSOLETE_REQUIRED_ATTR.get(getNameOrOID(),
+                                requiredAttribute));
+                    }
                     declaredRequiredAttributes.add(attributeType);
                 }
                 if (requiredAttributes == Collections.EMPTY_SET) {
@@ -1038,6 +1046,10 @@ public final class ObjectClass extends AbstractSchemaElement {
                                         getNameOrOID(), optionalAttribute);
                         failValidation(invalidSchemaElements, warnings, message);
                         return false;
+                    }
+                    if (!isObsolete() && attributeType.isObsolete()) {
+                        warnings.add(WARN_OBJECTCLASS_HAS_OBSOLETE_OPTIONAL_ATTR.get(getNameOrOID(),
+                                optionalAttribute));
                     }
                     declaredOptionalAttributes.add(attributeType);
                 }

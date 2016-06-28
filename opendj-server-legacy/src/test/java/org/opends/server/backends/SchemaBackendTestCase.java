@@ -1497,7 +1497,8 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SUP testAddOCObsoleteSuperiorSup STRUCTURAL MUST cn " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
+    // object class is obsolete so having an obsolete superior is OK
+    runModify(argsNotPermissive(), ldif, SUCCESS);
   }
 
   /**

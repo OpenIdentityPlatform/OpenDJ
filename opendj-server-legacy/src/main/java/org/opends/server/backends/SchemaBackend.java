@@ -1244,57 +1244,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Make sure that the new objectclass doesn't reference an undefined
-    // superior class, or an undefined required or optional attribute type,
-    // and that none of them are OBSOLETE.
-    for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
-    {
-      if (! schema.hasObjectClass(superiorClass.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_UNDEFINED_SUPERIOR_OBJECTCLASS.get(
-            objectClass.getNameOrOID(), superiorClass.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (superiorClass.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_OBJECTCLASS.get(
-            objectClass.getNameOrOID(), superiorClass.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
-    for (AttributeType at : objectClass.getDeclaredRequiredAttributes())
-    {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_REQUIRED_ATTR.get(
-            objectClass.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_REQUIRED_ATTR.get(
-            objectClass.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
-    for (AttributeType at : objectClass.getDeclaredOptionalAttributes())
-    {
-      if (! schema.hasAttributeType(at.getOID()))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_UNDEFINED_OPTIONAL_ATTR.get(
-            objectClass.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      else if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_OC_OBSOLETE_OPTIONAL_ATTR.get(
-            objectClass.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
     // If there is no existing class, then we're adding a new objectclass.
     // Otherwise, we're replacing an existing one.
     if (existingClass.isPlaceHolder())
