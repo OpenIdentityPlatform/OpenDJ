@@ -2162,7 +2162,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testaddnameformwithobsoleteoc";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -2811,7 +2811,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "AUX testAddDITContentRuleObsoleteAuxOCAuxiliary " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**

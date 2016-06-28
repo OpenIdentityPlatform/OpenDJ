@@ -1562,57 +1562,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    ObjectClass structuralClass = ditContentRule.getStructuralClass();
-
-    // Make sure that the new DIT content rule doesn't reference an obsolete
-    // object class or attribute
-    if (structuralClass.isObsolete())
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE.get(
-          ditContentRule.getNameOrOID(), structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    for (ObjectClass oc : ditContentRule.getAuxiliaryClasses())
-    {
-      if (oc.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC.get(
-            ditContentRule.getNameOrOID(), oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
-    for (AttributeType at : ditContentRule.getRequiredAttributes())
-    {
-      if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR.get(
-            ditContentRule.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
-    for (AttributeType at : ditContentRule.getOptionalAttributes())
-    {
-      if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR.get(
-            ditContentRule.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
-    for (AttributeType at : ditContentRule.getProhibitedAttributes())
-    {
-      if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR.get(
-            ditContentRule.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
     // If there is no existing rule, then we're adding a new DIT content rule.
     // Otherwise, we're replacing an existing one.
     if (existingDCR == null)

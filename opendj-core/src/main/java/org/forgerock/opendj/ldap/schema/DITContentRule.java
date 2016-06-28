@@ -18,7 +18,6 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static java.util.Arrays.*;
-
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
 import java.util.Collection;
@@ -784,6 +783,9 @@ public final class DITContentRule extends AbstractSchemaElement {
                                         .getObjectClassType().toString());
                 warnings.add(message);
             }
+            if (!isObsolete() && structuralClass.isObsolete()) {
+                warnings.add(WARN_DIT_CR_HAS_OBSOLETE_STRUCTURAL_CLASS.get(getNameOrOID(), structuralClassOID));
+            }
         }
 
         if (!auxiliaryClassOIDs.isEmpty()) {
@@ -806,23 +808,29 @@ public final class DITContentRule extends AbstractSchemaElement {
                                             .toString());
                     throw new SchemaException(message);
                 }
+                if (!isObsolete() && objectClass.isObsolete()) {
+                    warnings.add(WARN_DIT_CR_HAS_OBSOLETE_AUXILIARY_CLASS.get(getNameOrOID(), oid));
+                }
                 auxiliaryClasses.add(objectClass);
             }
         }
 
         if (!requiredAttributeOIDs.isEmpty()) {
             requiredAttributes =
-                getAttributeTypes(schema, requiredAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR1);
+                getAttributeTypes(schema, requiredAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR1,
+                        warnings, WARN_DIT_CR_HAS_OBSOLETE_REQUIRED_ATTR);
         }
 
         if (!optionalAttributeOIDs.isEmpty()) {
             optionalAttributes =
-                getAttributeTypes(schema, optionalAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR1);
+                getAttributeTypes(schema, optionalAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR1,
+                        warnings, WARN_DIT_CR_HAS_OBSOLETE_OPTIONAL_ATTR);
         }
 
         if (!prohibitedAttributeOIDs.isEmpty()) {
             prohibitedAttributes =
-                getAttributeTypes(schema, prohibitedAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR1);
+                getAttributeTypes(schema, prohibitedAttributeOIDs, ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR1,
+                        warnings, WARN_DIT_CR_HAS_OBSOLETE_PROHIBITED_ATTR);
         }
 
         // Make sure that none of the prohibited attributes is required by
@@ -851,16 +859,23 @@ public final class DITContentRule extends AbstractSchemaElement {
         requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
     }
 
-    private Set<AttributeType> getAttributeTypes(final Schema schema, Set<String> oids, Arg2<Object, Object> errorMsg)
+    private Set<AttributeType> getAttributeTypes(final Schema schema, Set<String> oids,
+            Arg2<Object, Object> unkwownElementErrorMsg, final List<LocalizableMessage> warnings,
+            Arg2<Object, Object> obsoleteElementWarningMsg)
             throws SchemaException {
         Set<AttributeType> attrTypes = new HashSet<>(oids.size());
         for (final String oid : oids) {
+            AttributeType attributeType;
             try {
-                attrTypes.add(schema.getAttributeType(oid));
+                attributeType = schema.getAttributeType(oid);
+                attrTypes.add(attributeType);
             } catch (final UnknownSchemaElementException e) {
                 // This isn't good because it means that the DIT content rule
                 // requires an attribute type that we don't know anything about.
-                throw new SchemaException(errorMsg.get(getNameOrOID(), oid), e);
+                throw new SchemaException(unkwownElementErrorMsg.get(getNameOrOID(), oid), e);
+            }
+            if (!isObsolete() && attributeType.isObsolete()) {
+                warnings.add(obsoleteElementWarningMsg.get(getNameOrOID(), oid));
             }
         }
         return attrTypes;
