@@ -16,10 +16,7 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL1;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR1;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS1;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -591,7 +588,7 @@ public final class NameForm extends AbstractSchemaElement {
         }
     }
 
-    void validate(final Schema schema) throws SchemaException {
+    void validate(final Schema schema, final List<LocalizableMessage> warnings) throws SchemaException {
         try {
             structuralClass = schema.getObjectClass(structuralClassOID);
         } catch (final UnknownSchemaElementException e) {
@@ -607,29 +604,41 @@ public final class NameForm extends AbstractSchemaElement {
                             structuralClass.getNameOrOID(), structuralClass.getObjectClassType());
             throw new SchemaException(message);
         }
+        if (!isObsolete() && structuralClass.isObsolete()) {
+            warnings.add(WARN_NAME_FORM_HAS_OBSOLETE_STRUCTURAL_CLASS.get(getNameOrOID(), structuralClassOID));
+        }
 
         requiredAttributes =
-              getAttributeTypes(schema, requiredAttributeOIDs, ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1);
+              getAttributeTypes(schema, requiredAttributeOIDs, ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1,
+                      warnings, WARN_NAME_FORM_HAS_OBSOLETE_REQUIRED_ATTR);
 
         if (!optionalAttributeOIDs.isEmpty()) {
             optionalAttributes =
-                    getAttributeTypes(schema, optionalAttributeOIDs, ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR1);
+                    getAttributeTypes(schema, optionalAttributeOIDs, ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR1,
+                            warnings, WARN_NAME_FORM_HAS_OBSOLETE_OPTIONAL_ATTR);
         }
 
         optionalAttributes = Collections.unmodifiableSet(optionalAttributes);
         requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
     }
 
-    private Set<AttributeType> getAttributeTypes(final Schema schema, Set<String> oids, Arg2<Object, Object> errorMsg)
+    private Set<AttributeType> getAttributeTypes(final Schema schema, Set<String> oids,
+            Arg2<Object, Object> unknownElementErrorMsg, final List<LocalizableMessage> warnings,
+            Arg2<Object, Object> obsoleteElementMsg)
             throws SchemaException {
         Set<AttributeType> attrTypes = new HashSet<>(oids.size());
         for (final String oid : oids) {
+            AttributeType attributeType;
             try {
-                attrTypes.add(schema.getAttributeType(oid));
+                attributeType = schema.getAttributeType(oid);
+                attrTypes.add(attributeType);
             } catch (final UnknownSchemaElementException e) {
                 // This isn't good because it means that the name form requires
                 // an attribute type that we don't know anything about.
-                throw new SchemaException(errorMsg.get(getNameOrOID(), oid), e);
+                throw new SchemaException(unknownElementErrorMsg.get(getNameOrOID(), oid), e);
+            }
+            if (!isObsolete() && attributeType.isObsolete()) {
+                warnings.add(obsoleteElementMsg.get(getNameOrOID(), oid));
             }
         }
         return attrTypes;

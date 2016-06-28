@@ -2714,7 +2714,7 @@ public final class SchemaBuilder {
         for (final NameForm form : numericOID2NameForms.values().toArray(
                 new NameForm[numericOID2NameForms.values().size()])) {
             try {
-                form.validate(schema);
+                form.validate(schema, warnings);
 
                 // build the objectClass2NameForms map
                 final String ocOID = form.getStructuralClass().getOID();

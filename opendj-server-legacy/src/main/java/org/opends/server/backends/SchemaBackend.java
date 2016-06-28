@@ -1405,36 +1405,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                            Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // Make sure that the new name form doesn't reference an objectclass
-    // or attributes that are marked OBSOLETE.
-    ObjectClass structuralClass = nameForm.getStructuralClass();
-    if (structuralClass.isObsolete())
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OC_OBSOLETE.get(
-          nameForm.getNameOrOID(), structuralClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    for (AttributeType at : nameForm.getRequiredAttributes())
-    {
-      if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_REQUIRED_ATTR.get(
-            nameForm.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
-    for (AttributeType at : nameForm.getOptionalAttributes())
-    {
-      if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_NF_OBSOLETE_OPTIONAL_ATTR.get(
-            nameForm.getNameOrOID(), at.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-      }
-    }
-
     // If there is no existing class, then we're adding a new name form.
     // Otherwise, we're replacing an existing one.
     if (!schema.hasNameForm(nameForm.getNameOrOID()))
