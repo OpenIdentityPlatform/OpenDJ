@@ -328,6 +328,19 @@ public class SchemaConfigManager
     return Collections.emptyList();
   }
 
+  private static List<Modification> createAddModifications(Entry entry, AttributeType... attrTypes)
+  {
+    List<Modification> mods = new ArrayList<>(entry.getAttributeCount());
+    for (AttributeType attrType : attrTypes)
+    {
+      for (Attribute a : entry.getAllAttributes(AttributeDescription.create(attrType)))
+      {
+        mods.add(new Modification(ModificationType.ADD, Converters.toAttribute(a)));
+      }
+    }
+    return mods;
+  }
+
   /**
    * Loads the contents of the specified schema file into the provided schema.
    *
@@ -460,52 +473,47 @@ public class SchemaConfigManager
         return builder.addSchema(schemaEntry, overwrite, new SchemaBuilderHook() {
             @Override
             public void beforeAddSyntax(Syntax.Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
             @Override
             public void beforeAddObjectClass(ObjectClass.Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
             @Override
             public void beforeAddNameForm(NameForm.Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
             @Override
             public void beforeAddMatchingRuleUse(MatchingRuleUse.Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
             @Override
             public void beforeAddMatchingRule(MatchingRule.Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
             @Override
             public void beforeAddDitStructureRule(DITStructureRule.Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
             @Override
             public void beforeAddDitContentRule(DITContentRule.Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
             @Override
             public void beforeAddAttribute(Builder builder) {
-                builder.extraProperties(SCHEMA_PROPERTY_FILENAME, Collections.singletonList(schemaFile));
+                builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME)
+                       .extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
             }
         }).toSchema();
       }
     });
-  }
-
-  private static List<Modification> createAddModifications(Entry entry, AttributeType... attrTypes)
-  {
-    List<Modification> mods = new ArrayList<>(entry.getAttributeCount());
-    for (AttributeType attrType : attrTypes)
-    {
-      for (Attribute a : entry.getAllAttributes(AttributeDescription.create(attrType)))
-      {
-        mods.add(new Modification(ModificationType.ADD, Converters.toAttribute(a)));
-      }
-    }
-    return mods;
   }
 
   private static void reportError(boolean failOnError, Exception e,
