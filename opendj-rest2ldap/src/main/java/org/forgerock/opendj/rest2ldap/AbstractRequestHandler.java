@@ -25,6 +25,7 @@ import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ReadRequest;
+import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
@@ -34,51 +35,63 @@ import org.forgerock.util.promise.Promise;
 
 /**
  * An abstract base class from which request handlers may be easily implemented. The default implementation of each
- * method is to return the {@link ResourceException} passed in during construction.
+ * method is to invoke the {@link #handleRequest(Context, Request)} method.
  */
-abstract class AbstractRequestHandler implements RequestHandler {
-    private final ResourceException defaultErrorResponse;
-
-    AbstractRequestHandler(final ResourceException defaultErrorResponse) {
-        this.defaultErrorResponse = defaultErrorResponse;
+public abstract class AbstractRequestHandler implements RequestHandler {
+    /** Creates a new {@code AbstractRequestHandler}. */
+    protected AbstractRequestHandler() {
+        // Nothing to do.
     }
 
     @Override
     public Promise<ActionResponse, ResourceException> handleAction(final Context context, final ActionRequest request) {
-        return defaultErrorResponse.asPromise();
+        return handleRequest(context, request);
     }
 
     @Override
     public Promise<ResourceResponse, ResourceException> handleCreate(final Context context,
                                                                      final CreateRequest request) {
-        return defaultErrorResponse.asPromise();
+        return handleRequest(context, request);
     }
 
     @Override
     public Promise<ResourceResponse, ResourceException> handleDelete(final Context context,
                                                                      final DeleteRequest request) {
-        return defaultErrorResponse.asPromise();
+        return handleRequest(context, request);
     }
 
     @Override
     public Promise<ResourceResponse, ResourceException> handlePatch(final Context context, final PatchRequest request) {
-        return defaultErrorResponse.asPromise();
+        return handleRequest(context, request);
     }
 
     @Override
     public Promise<QueryResponse, ResourceException> handleQuery(final Context context, final QueryRequest request,
                                                                  final QueryResourceHandler handler) {
-        return defaultErrorResponse.asPromise();
+        return handleRequest(context, request);
     }
 
     @Override
     public Promise<ResourceResponse, ResourceException> handleRead(final Context context, final ReadRequest request) {
-        return defaultErrorResponse.asPromise();
+        return handleRequest(context, request);
     }
 
     @Override
     public Promise<ResourceResponse, ResourceException> handleUpdate(final Context context,
                                                                      final UpdateRequest request) {
-        return defaultErrorResponse.asPromise();
+        return handleRequest(context, request);
     }
+
+    /**
+     * Implement this method in order to provide a default behavior when processing requests.
+     *
+     * @param <V>
+     *         The type of response.
+     * @param context
+     *         The request context.
+     * @param request
+     *         The request.
+     * @return A {@code Promise} containing the result of the operation.
+     */
+    protected abstract <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request);
 }

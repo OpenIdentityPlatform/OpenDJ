@@ -23,6 +23,7 @@ import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ReadRequest;
+import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
@@ -36,7 +37,6 @@ final class ReadOnlyRequestHandler extends AbstractRequestHandler {
     private final RequestHandler delegate;
 
     ReadOnlyRequestHandler(final RequestHandler delegate) {
-        super(new BadRequestException(ERR_READ_ONLY_ENDPOINT.get().toString()));
         this.delegate = delegate;
     }
 
@@ -50,5 +50,10 @@ final class ReadOnlyRequestHandler extends AbstractRequestHandler {
     public Promise<ResourceResponse, ResourceException> handleRead(
             final Context context, final ReadRequest request) {
         return delegate.handleRead(context, request);
+    }
+
+    @Override
+    protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request) {
+        return new BadRequestException(ERR_READ_ONLY_ENDPOINT.get().toString()).asPromise();
     }
 }

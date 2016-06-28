@@ -40,6 +40,7 @@ import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.*;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.Utils.newJsonValueException;
+import static org.forgerock.util.Utils.joinAsString;
 import static org.forgerock.util.time.Duration.duration;
 
 import java.io.BufferedReader;
@@ -64,14 +65,19 @@ import javax.net.ssl.X509KeyManager;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
+import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.Router;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Options;
+import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
 
 /** Provides core factory methods and builders for constructing Rest2Ldap endpoints from JSON configuration. */
@@ -209,7 +215,6 @@ public final class Rest2LdapJsonConfigurator {
      */
     public static Router configureEndpoint(final File endpointDirectory, final Options options) throws IOException {
         final Router versionRouter = new Router();
-
         final File[] endpointVersions = endpointDirectory.listFiles(new FileFilter() {
             @Override
             public boolean accept(final File pathname) {
@@ -221,6 +226,8 @@ public final class Rest2LdapJsonConfigurator {
             throw new LocalizedIllegalArgumentException(ERR_INVALID_ENDPOINT_DIRECTORY.get(endpointDirectory));
         }
 
+        final List<String> supportedVersions = new ArrayList<>();
+        boolean hasWildCardVersion = false;
         for (final File endpointVersion : endpointVersions) {
             final JsonValue mappingConfig = readJson(endpointVersion);
             final String version = mappingConfig.get("version").defaultTo("*").asString();
@@ -234,13 +241,24 @@ public final class Rest2LdapJsonConfigurator {
 
             if (version.equals("*")) {
                 versionRouter.setDefaultRoute(handler);
+                hasWildCardVersion = true;
             } else {
                 versionRouter.addRoute(version(version), handler);
+                supportedVersions.add(version);
             }
-
             logger.debug(INFO_REST2LDAP_CREATING_ENDPOINT.get(endpointDirectory.getName(), version));
         }
-
+        if (!hasWildCardVersion) {
+            versionRouter.setDefaultRoute(new AbstractRequestHandler() {
+                @Override
+                protected <V> Promise<V, ResourceException> handleRequest(Context context, Request request) {
+                    final String message = ERR_BAD_API_RESOURCE_VERSION.get(request.getResourceVersion(),
+                                                                            joinAsString(", ", supportedVersions))
+                                                                       .toString();
+                    return new BadRequestException(message).asPromise();
+                }
+            });
+        }
         return versionRouter;
     }
 

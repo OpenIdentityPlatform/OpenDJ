@@ -35,6 +35,7 @@ import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ReadRequest;
+import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
@@ -148,10 +149,6 @@ public final class SubResourceSingleton extends SubResource {
      * both a singleton and also a collection of {child}.
      */
     private final class InstanceHandler extends AbstractRequestHandler {
-        private InstanceHandler() {
-            super(new BadRequestException(ERR_UNSUPPORTED_REQUEST_AGAINST_SINGLETON.get().toString()));
-        }
-
         @Override
         public Promise<ActionResponse, ResourceException> handleAction(final Context context,
                                                                        final ActionRequest request) {
@@ -198,6 +195,11 @@ public final class SubResourceSingleton extends SubResource {
         public Promise<ResourceResponse, ResourceException> handleUpdate(final Context context,
                                                                          final UpdateRequest request) {
             return singleton(context).update(context, null, request);
+        }
+
+        @Override
+        protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request) {
+            return new BadRequestException(ERR_UNSUPPORTED_REQUEST_AGAINST_SINGLETON.get().toString()).asPromise();
         }
 
         private <T> Function<ResourceException, T, ResourceException> convert404To400() {

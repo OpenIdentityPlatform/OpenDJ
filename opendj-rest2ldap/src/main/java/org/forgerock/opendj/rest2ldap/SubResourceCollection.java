@@ -41,6 +41,7 @@ import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ReadRequest;
+import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
@@ -356,10 +357,6 @@ public final class SubResourceCollection extends SubResource {
      * URL template /collection/{id} then this handler processes requests against /collection.
      */
     private final class CollectionHandler extends AbstractRequestHandler {
-        private CollectionHandler() {
-            super(new BadRequestException(ERR_UNSUPPORTED_REQUEST_AGAINST_COLLECTION.get().toString()));
-        }
-
         @Override
         public Promise<ActionResponse, ResourceException> handleAction(final Context context,
                                                                        final ActionRequest request) {
@@ -376,6 +373,11 @@ public final class SubResourceCollection extends SubResource {
         public Promise<QueryResponse, ResourceException> handleQuery(final Context context, final QueryRequest request,
                                                                      final QueryResourceHandler handler) {
             return collection(context).query(context, request, handler);
+        }
+
+        @Override
+        protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request) {
+            return new BadRequestException(ERR_UNSUPPORTED_REQUEST_AGAINST_COLLECTION.get().toString()).asPromise();
         }
     }
 

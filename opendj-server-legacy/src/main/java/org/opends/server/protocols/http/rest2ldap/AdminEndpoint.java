@@ -16,6 +16,10 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
+import static org.forgerock.http.handler.Handlers.chainOf;
+import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
+import static org.forgerock.http.routing.RouteMatchers.resourceApiVersionContextFilter;
+import static org.forgerock.http.routing.Version.version;
 import static org.forgerock.json.resource.http.CrestHttp.newHttpHandler;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
@@ -24,6 +28,7 @@ import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.CREATE_ONLY;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_ONLY;
 import static org.forgerock.opendj.rest2ldap.WritabilityPolicy.READ_WRITE;
 import static org.forgerock.util.Options.defaultOptions;
+import static org.opends.messages.ConfigMessages.ERR_BAD_ADMIN_API_RESOURCE_VERSION;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,8 +40,13 @@ import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.io.Buffer;
+import org.forgerock.http.routing.Version;
 import org.forgerock.json.JsonPointer;
+import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
+import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.Router;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.AggregationPropertyDefinition;
 import org.forgerock.opendj.config.DefaultBehaviorProvider;
@@ -55,6 +65,7 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.rest2ldap.AbstractRequestHandler;
 import org.forgerock.opendj.rest2ldap.ReferencePropertyMapper;
 import org.forgerock.opendj.rest2ldap.Resource;
 import org.forgerock.opendj.rest2ldap.Rest2Ldap;
@@ -64,9 +75,11 @@ import org.forgerock.opendj.rest2ldap.SubResourceSingleton;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.forgerock.opendj.server.config.server.AdminEndpointCfg;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Factory;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.Promise;
 import org.opends.server.api.HttpEndpoint;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
@@ -76,6 +89,7 @@ import org.opends.server.types.InitializationException;
  */
 public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
 {
+  private static final Version ADMIN_API_VERSION = version("1.0");
   private static final String TYPE_PROPERTY = "_schema";
   private static final String ADMIN_API = "admin-api";
   private static final String MONITOR = "monitor";
@@ -165,7 +179,20 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
 
       final Rest2Ldap rest2Ldap = rest2Ldap(defaultOptions(), resources.values());
       final RequestHandler handler = rest2Ldap.newRequestHandlerFor(ADMIN_API);
-      return newHttpHandler(handler);
+      final Router versionRouter = new Router();
+      versionRouter.addRoute(ADMIN_API_VERSION, handler);
+      versionRouter.setDefaultRoute(new AbstractRequestHandler()
+      {
+        @Override
+        protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request)
+        {
+          final String message = ERR_BAD_ADMIN_API_RESOURCE_VERSION.get(request.getResourceVersion(), ADMIN_API_VERSION)
+                                                                   .toString();
+          return new BadRequestException(message).asPromise();
+        }
+      });
+      return chainOf(newHttpHandler(versionRouter),
+                     resourceApiVersionContextFilter(newResourceApiVersionBehaviourManager()));
     }
 
     private Resource buildResource(final AbstractManagedObjectDefinition<?, ?> mod)
