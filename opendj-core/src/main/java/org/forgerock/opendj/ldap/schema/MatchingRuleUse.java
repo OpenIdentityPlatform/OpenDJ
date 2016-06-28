@@ -17,9 +17,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static java.util.Arrays.*;
-
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Collection;
@@ -464,7 +462,7 @@ public final class MatchingRuleUse extends AbstractSchemaElement {
         }
     }
 
-    void validate(final Schema schema) throws SchemaException {
+    void validate(final Schema schema, final List<LocalizableMessage> warnings) throws SchemaException {
         try {
             matchingRule = schema.getMatchingRule(oid);
         } catch (final UnknownSchemaElementException e) {
@@ -474,15 +472,23 @@ public final class MatchingRuleUse extends AbstractSchemaElement {
                     ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE1.get(getNameOrOID(), oid);
             throw new SchemaException(message, e);
         }
+        if (!isObsolete() && matchingRule.isObsolete()) {
+            warnings.add(WARN_MATCHING_RULE_USE_HAS_OBSOLETE_MATCHING_RULE.get(getNameOrOID(), oid));
+        }
 
         attributes = new HashSet<>(attributeOIDs.size());
         for (final String attribute : attributeOIDs) {
+            AttributeType attributeType;
             try {
-                attributes.add(schema.getAttributeType(attribute));
+                attributeType = schema.getAttributeType(attribute);
+                attributes.add(attributeType);
             } catch (final UnknownSchemaElementException e) {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR1.get(getNameOrOID(), attribute);
                 throw new SchemaException(message, e);
+            }
+            if (!isObsolete() && attributeType.isObsolete()) {
+                warnings.add(WARN_MATCHING_RULE_USE_HAS_OBSOLETE_ATTR.get(getNameOrOID(), attribute));
             }
         }
         attributes = Collections.unmodifiableSet(attributes);

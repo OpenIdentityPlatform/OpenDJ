@@ -2704,7 +2704,7 @@ public final class SchemaBuilder {
         for (final MatchingRuleUse use : numericOID2MatchingRuleUses.values().toArray(
                 new MatchingRuleUse[numericOID2MatchingRuleUses.values().size()])) {
             try {
-                use.validate(schema);
+                use.validate(schema, warnings);
             } catch (final SchemaException e) {
                 removeMatchingRuleUse(use);
                 warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(), e.getMessageObject()));

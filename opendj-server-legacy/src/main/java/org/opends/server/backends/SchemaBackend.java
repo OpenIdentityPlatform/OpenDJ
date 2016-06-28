@@ -67,7 +67,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -1827,25 +1826,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
               matchingRuleUse.getNameOrOID(), existingMRU.getNameOrOID(), mru.getNameOrOID());
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
         }
-      }
-    }
-
-    // Obsolete matching rule and attribute types are not checked by the SDK
-    MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
-    if (matchingRule.isObsolete())
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_MR.get(
-          matchingRuleUse.getNameOrOID(), matchingRule.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    for (AttributeType at : matchingRuleUse.getAttributes())
-    {
-      if (at.isObsolete())
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR.get(
-            matchingRuleUse.getNameOrOID(), matchingRule.getNameOrOID());
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
 

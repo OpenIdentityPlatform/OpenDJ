@@ -11,11 +11,11 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_DESCRIPTION;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_NAME;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_OID;
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.testng.annotations.Test;
 
 /**
@@ -472,7 +473,10 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
         sb.addMatchingRule(definition, true);
 
         Schema schema = sb.toSchema();
-        assertThat(schema.getWarnings()).isEmpty();
+        // MR is OBSOLETE so expect warnings in the schema about this
+        for (LocalizableMessage warning : schema.getWarnings()) {
+            assertThat(warning.toString()).contains("OBSOLETE");
+        }
         assertThat(schema.getMatchingRules()).isNotEmpty();
         final MatchingRule mr = schema.getMatchingRule("objectIdentifierMatch");
         assertThat(mr.getOID()).isEqualTo("2.5.13.0");
