@@ -100,7 +100,8 @@ public class LoggingCategoryNames
     SOURCE_CLASSES.put("org.opends.server.admin", "ADMIN");
 
     // The category used for messages associated with the Synchronization
-    RESOURCE_NAMES.put("org.opends.server.replication", "SYNC");
+    RESOURCE_NAMES.put("org.opends.messages.replication", "SYNC");
+    SOURCE_CLASSES.put("org.opends.server.replication", "SYNC");
 
     // The category used for messages associated with quicksetup tools
     RESOURCE_NAMES.put("org.opends.messages.quickSetup", "QUICKSETUP");
