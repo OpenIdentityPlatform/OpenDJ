@@ -140,7 +140,7 @@ Copyright: Copyright 2011-2016 ForgeRock AS.
            Portions Copyright 2012-2014 Manuel Gaupp
            Portions Copyright 2014 Emidio Stani & Andrea Stani
 
-Version: openig-toolkit.jar (4.5.0)
+Version: openig-toolkit.jar (5.0.0)
 Copyright: Copyright 2016 ForgeRock AS.
 
 ==================

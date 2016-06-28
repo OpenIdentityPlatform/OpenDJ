@@ -67,7 +67,7 @@ Copyright: Copyright 2013-2015 ForgeRock AS.
 Version: opendj-rest2ldap.jar (4.0.0)
 Copyright: Copyright 2012-2016 ForgeRock AS.
 
-Version: openig-toolkit.jar (4.5.0)
+Version: openig-toolkit.jar (5.0.0)
 Copyright: Copyright 2016 ForgeRock AS.
 
 ==================
