@@ -282,10 +282,10 @@ As between Initial Developer and the Contributors, each party is responsible for
 Apache Software License, Version 2.0
 ***************************************************************************
 
-Version: commons-codec (1.9)
+Version: commons-codec.jar (1.9.0)
 Copyright: Copyright 2002-2013 The Apache Software Foundation
 
-Version: commons-logging (1.2)
+Version: commons-logging.jar (1.2.0)
 Copyright: Copyright 2003-2014 The Apache Software Foundation
 
 Version: httpasyncclient.jar (4.1)
@@ -413,7 +413,7 @@ limitations under the License.
 The MIT License (MIT)
 ***************************************************************************
 
-Version: jul-to-slf4j (1.7.12)
+Version: jul-to-slf4j.jar (1.7.12)
 Copyright: Copyright (c) 2004-2011 QOS.ch. All rights reserved.
 
 Version: slf4j-api.jar (1.7.12)
