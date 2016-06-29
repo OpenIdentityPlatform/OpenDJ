@@ -283,7 +283,7 @@ public final class Upgrade
             rebuildIndexesNamed(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
                 "ds-sync-hist")));
 
-    /** See OPENDJ-1284 */
+    /* See OPENDJ-1284 */
     register("2.8.0", // userCertificate OID / cACertificate OID
         newAttributeTypes(INFO_UPGRADE_TASK_10133_1_SUMMARY.get(),
         "00-core.ldif", "2.5.4.36", "2.5.4.37"),
@@ -299,11 +299,11 @@ public final class Upgrade
         "ds-cfg-enabled: true"));
 
 
-    /** See OPENDJ-1295 */
+    /* See OPENDJ-1295 */
     register("2.8.0",
         copySchemaFile("03-pwpolicyextension.ldif"));
 
-    /** See OPENDJ-1490 and OPENDJ-1454 */
+    /* See OPENDJ-1490 and OPENDJ-1454 */
     register("2.8.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_10733_1_SUMMARY.get(),
         "dn: ds-cfg-backend-id=replicationChanges,cn=Backends,cn=config"),
@@ -316,14 +316,14 @@ public final class Upgrade
             + "(version 3.0; acl \"Replication backend access\"; "
             + "deny (all) userdn=\"ldap:///anyone\";)"));
 
-    /** See OPENDJ-1351 */
+    /* See OPENDJ-1351 */
     register("2.8.0",
         modifyConfigEntry(INFO_UPGRADE_TASK_10820_SUMMARY.get(),
         "(objectClass=ds-cfg-root-dn)",
         "add: ds-cfg-default-root-privilege-name",
         "ds-cfg-default-root-privilege-name: changelog-read"));
 
-    /** See OPENDJ-1580 */
+    /* See OPENDJ-1580 */
     register("2.8.0",
         addConfigEntry(INFO_UPGRADE_TASK_10908_SUMMARY.get(),
             "dn: cn=PKCS5S2,cn=Password Storage Schemes,cn=config",
@@ -335,7 +335,7 @@ public final class Upgrade
             "ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme",
             "ds-cfg-enabled: true"));
 
-    /** See OPENDJ-1322 and OPENDJ-1067 */
+    /* See OPENDJ-1322 and OPENDJ-1067 */
     register("2.8.0",
         rerunJavaPropertiesTool(INFO_UPGRADE_TASK_9206_SUMMARY.get()));
 
@@ -373,7 +373,7 @@ public final class Upgrade
              "add:ds-cfg-override-severity",
              "ds-cfg-override-severity: SYNC=INFO,ERROR,WARNING,NOTICE"));
 
-    /** See OPENDJ-1545 */
+    /* See OPENDJ-1545 */
     register("2.8.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_11237_1_SUMMARY.get(),
             "dn: cn=Network Groups,cn=config"),
@@ -388,23 +388,23 @@ public final class Upgrade
         deleteConfigEntry(INFO_UPGRADE_TASK_11339_SUMMARY.get(),
             "dn: cn=Extensions,cn=config"));
 
-    /** See OPENDJ-1701 */
+    /* See OPENDJ-1701 */
     register("2.8.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_11476_SUMMARY.get(),
             "dn: cn=File System,cn=Entry Caches,cn=config"));
 
-    /** See OPENDJ-1869 */
+    /* See OPENDJ-1869 */
     register("2.8.0",
         modifyConfigEntry(INFO_UPGRADE_TASK_12226_SUMMARY.get(),
             "(objectclass=ds-cfg-root-config)",
             "delete: ds-cfg-entry-cache-preload"));
 
-    /** See OPENDJ-2054 */
+    /* See OPENDJ-2054 */
     register("2.8.0",
         deleteFile(new File(binDirectory, "dsframework")),
         deleteFile(new File(batDirectory, "dsframework.bat")));
 
-    /** If the upgraded version is a non OEM one, migrates local-db backends to JE Backend, see OPENDJ-2364 **/
+    /* If the upgraded version is a non OEM one, migrates local-db backends to JE Backend, see OPENDJ-2364 **/
     register("3.0.0",
         conditionalUpgradeTasks(
           new UpgradeCondition() {
@@ -456,7 +456,7 @@ public final class Upgrade
         )
     );
 
-    /** If the upgraded version is OEM, migrates local-db backends to PDB, see OPENDJ-2364 **/
+    /* If the upgraded version is OEM, migrates local-db backends to PDB, see OPENDJ-2364 **/
     register("3.0.0",
       conditionalUpgradeTasks(
         new UpgradeCondition() {
@@ -500,12 +500,12 @@ public final class Upgrade
       )
     );
 
-    /** Remove dbtest tool (replaced by backendstat in 3.0.0) - see OPENDJ-1791 **/
+    /* Remove dbtest tool (replaced by backendstat in 3.0.0) - see OPENDJ-1791 **/
     register("3.0.0",
             deleteFile(new File(binDirectory, "dbtest")),
             deleteFile(new File(batDirectory, "dbtest.bat")));
 
-    /**
+    /*
      * Rebuild all indexes when upgrading to 3.0.0.
      *
      * 1) matching rules have changed in 2.8.0 and again in 3.0.0- see OPENDJ-1637
@@ -514,11 +514,11 @@ public final class Upgrade
     register("3.0.0",
             rebuildAllIndexes(INFO_UPGRADE_TASK_11260_SUMMARY.get()));
 
-    /** See OPENDJ-1742 */
+    /* See OPENDJ-1742 */
     register("3.0.0",
         clearReplicationDbDirectory());
 
-    /** See OPENDJ-2435 */
+    /* See OPENDJ-2435 */
     register("3.5.0",
         addConfigEntry(INFO_UPGRADE_TASK_BCRYPT_SCHEME_SUMMARY.get(),
             "dn: cn=Bcrypt,cn=Password Storage Schemes,cn=config",
@@ -530,7 +530,7 @@ public final class Upgrade
             "ds-cfg-java-class: org.opends.server.extensions.BcryptPasswordStorageScheme",
             "ds-cfg-enabled: true"));
 
-    /** See OPENDJ-2683 */
+    /* See OPENDJ-2683 */
     register("3.5.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_REMOVE_MATCHING_RULES.get(),
         "cn=Auth Password Exact Equality Matching Rule,cn=Matching Rules,cn=config",
@@ -577,7 +577,7 @@ public final class Upgrade
         "cn=UUID Ordering Matching Rule,cn=Matching Rules,cn=config",
         "cn=Word Equality Matching Rule,cn=Matching Rules,cn=config"));
 
-    /** see OPENDJ-2730 */
+    /* see OPENDJ-2730 */
     register("3.5.0", removeOldJarFiles());
 
     register("3.5.0",
@@ -739,7 +739,7 @@ public final class Upgrade
         addConfigFile("rest2ldap")
     );
 
-    /** All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
+    /* All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(
         performOEMMigrationIfNeeded(),
         copySchemaFile("02-config.ldif"),
@@ -1063,7 +1063,7 @@ public final class Upgrade
       throw new ClientException(ReturnCode.SUCCESS, message);
     }
 
-    // The upgrade only supports version >= 2.4.5.
+    // Exclude upgrade from very old versions.
     if (context.getFromVersion().compareTo(UPGRADE_SUPPORTS_VERSION_FROM) < 0)
     {
       final LocalizableMessage message =

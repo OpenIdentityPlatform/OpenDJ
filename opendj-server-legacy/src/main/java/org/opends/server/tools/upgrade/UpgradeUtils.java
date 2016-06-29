@@ -119,7 +119,7 @@ final class UpgradeUtils
     final String path = getInstallPath(classPaths);
     if (path == null)
     {
-      return installPath;
+      return null;
     }
 
     /*
@@ -332,9 +332,8 @@ final class UpgradeUtils
       final Filter filter, final ChangeOperationType changeType,
       final String... ldifLines) throws IOException
   {
-    final File original = configFile;
     final File copyConfig =
-        File.createTempFile("copyConfig", ".tmp", original.getParentFile());
+        File.createTempFile("copyConfig", ".tmp", configFile.getParentFile());
 
     int changeCount = 0;
     final Schema schema = getUpgradeSchema();
@@ -416,7 +415,7 @@ final class UpgradeUtils
       if (changeType == ADD && !entryAlreadyExist)
       {
         writer.writeEntry(Requests.newAddRequest(ldifLines));
-        logger.debug(LocalizableMessage.raw("Entry successfully added %s in %s", ldifDN, original.getAbsolutePath()));
+        logger.debug(LocalizableMessage.raw("Entry successfully added %s in %s", ldifDN, configFile.getAbsolutePath()));
         changeCount++;
       }
     }
@@ -437,7 +436,7 @@ final class UpgradeUtils
     catch (IOException e)
     {
       logger.error(LocalizableMessage.raw(e.getMessage()));
-      deleteRecursively(original);
+      deleteRecursively(configFile);
       throw e;
     }
   }
@@ -531,7 +530,7 @@ final class UpgradeUtils
     return changeCount;
   }
 
-  private static Entry readFirstEntryFromTemplate(final File destination) throws DecodeException, IOException
+  private static Entry readFirstEntryFromTemplate(final File destination) throws IOException
   {
     try (LDIFEntryReader r = new LDIFEntryReader(new FileInputStream(destination)))
     {

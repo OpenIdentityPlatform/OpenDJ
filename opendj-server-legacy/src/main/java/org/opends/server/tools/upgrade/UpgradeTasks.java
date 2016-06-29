@@ -78,7 +78,7 @@ import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
 
 /** Factory methods for create new upgrade tasks. */
-public final class UpgradeTasks
+final class UpgradeTasks
 {
   /** Logger for the upgrade. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -108,7 +108,7 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all
    *         configuration entries matching the provided filter.
    */
-  public static UpgradeTask addConfigEntry(final LocalizableMessage summary,
+  static UpgradeTask addConfigEntry(final LocalizableMessage summary,
       final String... ldif)
   {
     return updateConfigEntry(summary, null, ChangeOperationType.ADD, ldif);
@@ -123,7 +123,7 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all
    *         configuration entries matching the provided filter.
    */
-  public static UpgradeTask addConfigEntry(final String... ldif)
+  static UpgradeTask addConfigEntry(final String... ldif)
   {
     return new AbstractUpgradeTask()
     {
@@ -160,7 +160,7 @@ public final class UpgradeTasks
    *         config / schema folder. If the file already exists, it's
    *         overwritten.
    */
-  public static UpgradeTask copySchemaFile(final String fileName)
+  static UpgradeTask copySchemaFile(final String fileName)
   {
     return new AbstractUpgradeTask()
     {
@@ -210,7 +210,7 @@ public final class UpgradeTasks
    * @return A task which copy the the file placed in parameter within the
    *         config folder. If the file already exists, it's overwritten.
    */
-  public static UpgradeTask addConfigFile(final String fileName)
+  static UpgradeTask addConfigFile(final String fileName)
   {
     return new AbstractUpgradeTask()
     {
@@ -256,7 +256,7 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all configuration entries matching
    *         the provided filter.
    */
-  public static UpgradeTask deleteConfigEntry(final LocalizableMessage summary, final String... dnsInLDIF)
+  static UpgradeTask deleteConfigEntry(final LocalizableMessage summary, final String... dnsInLDIF)
   {
     return updateConfigEntry(summary, null, ChangeOperationType.DELETE, dnsInLDIF);
   }
@@ -274,7 +274,7 @@ public final class UpgradeTasks
    * @return A new upgrade task which applies an LDIF record to all
    *         configuration entries matching the provided filter.
    */
-  public static UpgradeTask modifyConfigEntry(final LocalizableMessage summary,
+  static UpgradeTask modifyConfigEntry(final LocalizableMessage summary,
       final String filter, final String... ldif)
   {
     return updateConfigEntry(summary, filter, ChangeOperationType.MODIFY, ldif);
@@ -307,7 +307,7 @@ public final class UpgradeTasks
    *         previously in the configuration template files, reads the
    *         definition and adds it onto the file specified in {@code fileName}
    */
-  public static UpgradeTask newAttributeTypes(final LocalizableMessage summary,
+  static UpgradeTask newAttributeTypes(final LocalizableMessage summary,
       final String fileName, final String... attributeOids)
   {
     return new AbstractUpgradeTask()
@@ -410,7 +410,7 @@ public final class UpgradeTasks
    *          The summary of the task.
    * @return An upgrade task which runs dsjavaproperties.
    */
-  public static UpgradeTask rerunJavaPropertiesTool(final LocalizableMessage summary)
+  static UpgradeTask rerunJavaPropertiesTool(final LocalizableMessage summary)
   {
     return new AbstractUpgradeTask()
     {
@@ -455,7 +455,7 @@ public final class UpgradeTasks
    * @return An upgrade task which will only be invoked if the current version
    *         is more recent than the provided version.
    */
-  public static UpgradeTask regressionInVersion(final String versionString, final UpgradeTask... tasks)
+  static UpgradeTask regressionInVersion(final String versionString, final UpgradeTask... tasks)
   {
     final BuildVersion version = BuildVersion.valueOf(versionString);
     return conditionalUpgradeTasks(new UpgradeCondition()
@@ -596,7 +596,7 @@ public final class UpgradeTasks
    *          The summary of this upgrade task.
    * @return An Upgrade task which rebuild all the indexes.
    */
-  public static UpgradeTask rebuildAllIndexes(final LocalizableMessage summary)
+  static UpgradeTask rebuildAllIndexes(final LocalizableMessage summary)
   {
     return new AbstractUpgradeTask()
     {
@@ -650,7 +650,7 @@ public final class UpgradeTasks
    *          The indexes to rebuild.
    * @return The rebuild index task.
    */
-  public static UpgradeTask rebuildIndexesNamed(final LocalizableMessage summary, final String... indexNames)
+  static UpgradeTask rebuildIndexesNamed(final LocalizableMessage summary, final String... indexNames)
   {
     return new AbstractUpgradeTask()
     {
@@ -702,7 +702,7 @@ public final class UpgradeTasks
    *
    * @return The post upgrade rebuild indexes task.
    */
-  public static UpgradeTask postUpgradeRebuildIndexes()
+  static UpgradeTask postUpgradeRebuildIndexes()
   {
     return new AbstractUpgradeTask()
     {
@@ -795,7 +795,7 @@ public final class UpgradeTasks
    *         new schema.ldif.rev which is needed after schema customization for
    *         starting correctly the server.
    */
-  public static UpgradeTask updateConfigUpgradeFolder()
+  static UpgradeTask updateConfigUpgradeFolder()
   {
     return new AbstractUpgradeTask()
     {
@@ -891,7 +891,7 @@ public final class UpgradeTasks
    *          The file to be removed.
    * @return An upgrade task which removes the specified file from the file-system.
    */
-  public static UpgradeTask deleteFile(final File file)
+  static UpgradeTask deleteFile(final File file)
   {
     return new AbstractUpgradeTask()
     {
@@ -926,7 +926,7 @@ public final class UpgradeTasks
    *
    * @return An upgrade task which is responsible for preparing local-db backend JE databases.
    */
-  public static UpgradeTask migrateLocalDBBackendsToJEBackends() {
+  static UpgradeTask migrateLocalDBBackendsToJEBackends() {
     return new AbstractUpgradeTask() {
       /** Properties of JE backends to be migrated. */
       class Backend {
@@ -1435,8 +1435,9 @@ public final class UpgradeTasks
    * but not in the concatenated schema then append its definition to the concatenated schema,
    * omitting the trailing spaces.
    *
+   * See OPENDJ-3081
+   *
    * @return The relevant upgrade task
-   * @see OPENDJ-3081
    */
   static UpgradeTask restoreCsvDelimiterAttributeTypeInConcatenatedSchemaFile()
   {
