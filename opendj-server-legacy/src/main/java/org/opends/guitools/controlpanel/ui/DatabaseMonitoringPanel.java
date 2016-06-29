@@ -36,6 +36,7 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import org.forgerock.opendj.ldap.Attribute;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor.PluggableType;
 import org.opends.guitools.controlpanel.datamodel.DatabaseMonitoringTableModel;
@@ -229,9 +230,9 @@ class DatabaseMonitoringPanel extends GeneralMonitoringPanel
     Set<String> attrNames = new HashSet<>();
     if (backend.getMonitoringEntry() != null)
     {
-      Set<String> allNames = backend.getMonitoringEntry().getAttributeNames();
-      for (String attrName : allNames)
+      for (Attribute attribute : backend.getMonitoringEntry().getAllAttributes())
       {
+        String attrName = attribute.getAttributeDescriptionAsString();
         if (!attrName.equalsIgnoreCase(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME)
             && !attrName.equalsIgnoreCase(ServerConstants.ATTR_COMMON_NAME))
         {

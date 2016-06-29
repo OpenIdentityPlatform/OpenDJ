@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
@@ -37,7 +38,6 @@ import org.opends.server.types.Schema;
 import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
-import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
@@ -63,11 +63,11 @@ public class ServerDescriptor
   private boolean isSchemaEnabled;
   private Schema schema;
 
-  private CustomSearchResult rootMonitor;
-  private CustomSearchResult jvmMemoryUsage;
-  private CustomSearchResult systemInformation;
-  private CustomSearchResult entryCaches;
-  private CustomSearchResult workQueue;
+  private SearchResultEntry rootMonitor;
+  private SearchResultEntry jvmMemoryUsage;
+  private SearchResultEntry systemInformation;
+  private SearchResultEntry entryCaches;
+  private SearchResultEntry workQueue;
 
   private Set<TaskEntry> taskEntries = new HashSet<>();
 
@@ -508,12 +508,12 @@ public class ServerDescriptor
     {
       return OperatingSystem.isWindows();
     }
-    CustomSearchResult sr = getSystemInformationMonitor();
+    SearchResultEntry sr = getSystemInformationMonitor();
     if (sr == null)
     {
       return false;
     }
-    String os = getFirstValueAsString(sr, "operatingSystem");
+    String os = sr.getAttribute("operatingSystem").firstValueAsString();
     return os != null && OperatingSystem.WINDOWS.equals(OperatingSystem.forName(os));
   }
 
@@ -692,7 +692,7 @@ public class ServerDescriptor
    * Sets the monitoring entry for the entry caches.
    * @param entryCaches the monitoring entry for the entry caches.
    */
-  public void setEntryCachesMonitor(CustomSearchResult entryCaches)
+  public void setEntryCachesMonitor(SearchResultEntry entryCaches)
   {
     this.entryCaches = entryCaches;
   }
@@ -701,7 +701,7 @@ public class ServerDescriptor
    * Sets the monitoring entry for the JVM memory usage.
    * @param jvmMemoryUsage the monitoring entry for the JVM memory usage.
    */
-  public void setJvmMemoryUsageMonitor(CustomSearchResult jvmMemoryUsage)
+  public void setJvmMemoryUsageMonitor(SearchResultEntry jvmMemoryUsage)
   {
     this.jvmMemoryUsage = jvmMemoryUsage;
   }
@@ -710,20 +710,20 @@ public class ServerDescriptor
    * Sets the root entry of the monitoring tree.
    * @param rootMonitor the root entry of the monitoring tree.
    */
-  public void setRootMonitor(CustomSearchResult rootMonitor)
+  public void setRootMonitor(SearchResultEntry rootMonitor)
   {
     this.rootMonitor = rootMonitor;
     runningTime = computeRunningTime(rootMonitor);
   }
 
-  private long computeRunningTime(CustomSearchResult rootMonitor)
+  private long computeRunningTime(SearchResultEntry rootMonitor)
   {
     if (rootMonitor != null)
     {
       try
       {
-        String start = getFirstValueAsString(rootMonitor, START_DATE.getAttributeName());
-        String current = getFirstValueAsString(rootMonitor, CURRENT_DATE.getAttributeName());
+        String start = rootMonitor.getAttribute(START_DATE.getAttributeName()).firstValueAsString();
+        String current = rootMonitor.getAttribute(CURRENT_DATE.getAttributeName()).firstValueAsString();
         Date startTime = ConfigFromDirContext.utcParser.parse(start);
         Date currentTime = ConfigFromDirContext.utcParser.parse(current);
         return currentTime.getTime() - startTime.getTime();
@@ -750,7 +750,7 @@ public class ServerDescriptor
    * Sets the monitoring entry for the system information.
    * @param systemInformation entry for the system information.
    */
-  public void setSystemInformationMonitor(CustomSearchResult systemInformation)
+  public void setSystemInformationMonitor(SearchResultEntry systemInformation)
   {
     this.systemInformation = systemInformation;
   }
@@ -759,7 +759,7 @@ public class ServerDescriptor
    * Sets the monitoring entry of the work queue.
    * @param workQueue entry of the work queue.
    */
-  public void setWorkQueueMonitor(CustomSearchResult workQueue)
+  public void setWorkQueueMonitor(SearchResultEntry workQueue)
   {
     this.workQueue = workQueue;
   }
@@ -768,7 +768,7 @@ public class ServerDescriptor
    * Returns the monitoring entry for the entry caches.
    * @return the monitoring entry for the entry caches.
    */
-  public CustomSearchResult getEntryCachesMonitor()
+  public SearchResultEntry getEntryCachesMonitor()
   {
     return entryCaches;
   }
@@ -777,7 +777,7 @@ public class ServerDescriptor
    * Returns the monitoring entry for the JVM memory usage.
    * @return the monitoring entry for the JVM memory usage.
    */
-  public CustomSearchResult getJvmMemoryUsageMonitor()
+  public SearchResultEntry getJvmMemoryUsageMonitor()
   {
     return jvmMemoryUsage;
   }
@@ -786,7 +786,7 @@ public class ServerDescriptor
    * Returns the root entry of the monitoring tree.
    * @return the root entry of the monitoring tree.
    */
-  public CustomSearchResult getRootMonitor()
+  public SearchResultEntry getRootMonitor()
   {
     return rootMonitor;
   }
@@ -795,7 +795,7 @@ public class ServerDescriptor
    * Returns the monitoring entry for the system information.
    * @return the monitoring entry for the system information.
    */
-  public CustomSearchResult getSystemInformationMonitor()
+  public SearchResultEntry getSystemInformationMonitor()
   {
     return systemInformation;
   }
@@ -804,7 +804,7 @@ public class ServerDescriptor
    * Returns the monitoring entry for the work queue.
    * @return the monitoring entry for the work queue.
    */
-  public CustomSearchResult getWorkQueueMonitor()
+  public SearchResultEntry getWorkQueueMonitor()
   {
     return workQueue;
   }

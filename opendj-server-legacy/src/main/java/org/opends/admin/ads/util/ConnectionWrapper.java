@@ -38,6 +38,7 @@ import javax.net.ssl.TrustManager;
 
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
@@ -63,6 +64,8 @@ public class ConnectionWrapper implements Closeable
   private final Connection connection;
   private final InitialLdapContext ldapContext;
   private final HostPort hostPort;
+  private DN bindDn;
+  private String bindPwd;
   private final int connectTimeout;
   private final TrustManager trustManager;
   private final KeyManager keyManager;
@@ -152,6 +155,8 @@ public class ConnectionWrapper implements Closeable
       int connectTimeout, TrustManager trustManager, KeyManager keyManager) throws NamingException
   {
     this.hostPort = hostPort;
+    this.bindDn = DN.valueOf(bindDn);
+    this.bindPwd = bindPwd;
     this.connectTimeout = connectTimeout;
     this.trustManager = trustManager;
     this.keyManager = keyManager;
@@ -194,6 +199,36 @@ public class ConnectionWrapper implements Closeable
     {
       throw new NamingException("Unable to perform SSL initialization:" + e.getMessage());
     }
+  }
+
+  /**
+   * Returns the bind DN used by this connection.
+   *
+   * @return the bind DN used by this connection.
+   */
+  public DN getBindDn()
+  {
+    return bindDn;
+  }
+
+  /**
+   * Returns the bind password used by this connection.
+   *
+   * @return the bind password used by this connection.
+   */
+  public String getBindPassword()
+  {
+    return bindPwd;
+  }
+
+  /**
+   * Returns the LDAP URL used by the InitialLdapContext.
+   *
+   * @return the LDAP URL used by the InitialLdapContext.
+   */
+  public String getLdapUrl()
+  {
+    return ConnectionUtils.getLdapUrl(ldapContext);
   }
 
   private InitialLdapContext createAdministrativeContext(Options options, String bindDn, String bindPwd)

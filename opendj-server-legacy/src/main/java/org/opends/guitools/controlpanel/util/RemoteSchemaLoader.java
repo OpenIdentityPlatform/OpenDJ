@@ -16,37 +16,41 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.config.ConfigConstants.ATTR_ATTRIBUTE_TYPES;
+import static org.opends.server.config.ConfigConstants.ATTR_LDAP_SYNTAXES;
+import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
+import java.util.Iterator;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.opends.guitools.controlpanel.browser.BrowserController;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
 import org.opends.server.schema.AciSyntax;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SubtreeSpecificationSyntax;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Schema;
+import org.opends.server.types.Schema.SchemaUpdater;
 
 /** Class used to retrieve the schema from the schema files. */
 public class RemoteSchemaLoader extends SchemaLoader
@@ -68,52 +72,42 @@ public class RemoteSchemaLoader extends SchemaLoader
   /**
    * Reads the schema.
    *
-   * @param ctx
+   * @param connWrapper
    *          the connection to be used to load the schema.
-   * @throws NamingException
+   * @throws LdapException
    *           if an error occurs reading the schema.
    * @throws DirectoryException
    *           if an error occurs parsing the schema.
    * @throws InitializationException
    *           if an error occurs finding the base schema.
    * @throws ConfigException
-   *           if an error occurs loading the configuration required to use the
-   *           schema classes.
+   *           if an error occurs loading the configuration required to use the schema classes.
    */
-  public void readSchema(InitialLdapContext ctx) throws NamingException, DirectoryException, InitializationException,
-      ConfigException
+  public void readSchema(ConnectionWrapper connWrapper) throws LdapException, DirectoryException,
+      InitializationException, ConfigException
   {
-    final String[] schemaAttrs = { ConfigConstants.ATTR_LDAP_SYNTAXES_LC, ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC,
-      ConfigConstants.ATTR_OBJECTCLASSES_LC };
-    final SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    searchControls.setReturningAttributes(schemaAttrs);
-    final NamingEnumeration<SearchResult> srs = ctx.search(
-        ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, BrowserController.ALL_OBJECTS_FILTER, searchControls);
-    SearchResult sr = null;
-    try
-    {
-      while (srs.hasMore())
-      {
-        sr = srs.next();
-      }
-    }
-    finally
-    {
-      srs.close();
-    }
-
-    final CustomSearchResult csr = new CustomSearchResult(sr, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
     schema = getBaseSchema();
     // Add missing matching rules and attribute syntaxes to base schema to allow read of remote server schema
     // (see OPENDJ-1122 for more details)
     addMissingSyntaxesToBaseSchema(new AciSyntax(), new SubtreeSpecificationSyntax());
     addMissingMatchingRuleToBaseSchema("1.3.6.1.4.1.26027.1.4.4", "historicalCsnOrderingMatch",
         "1.3.6.1.4.1.1466.115.121.1.40", new HistoricalCsnOrderingMatchingRuleImpl());
-    for (final String str : schemaAttrs)
+
+    final SearchRequest request = newSearchRequest(
+        DN.valueOf(DN_DEFAULT_SCHEMA_ROOT), BASE_OBJECT, Filter.alwaysTrue(),
+        ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES, ATTR_OBJECTCLASSES);
+    final SearchResultEntry entry = connWrapper.getConnection().searchSingleEntry(request);
+
+    removeNonOpenDjOrOpenDsSyntaxes(entry);
+    schema.updateSchema(new SchemaUpdater()
     {
-      registerSchemaAttr(csr, str);
-    }
+      @Override
+      public org.forgerock.opendj.ldap.schema.Schema update(SchemaBuilder builder)
+      {
+        builder.addSchema(entry, true);
+        return builder.toSchema();
+      }
+    });
   }
 
   private void addMissingSyntaxesToBaseSchema(final AttributeSyntax<?>... syntaxes)
@@ -143,83 +137,33 @@ public class RemoteSchemaLoader extends SchemaLoader
     }
     else
     {
-      matchingRule = new SchemaBuilder(schemaNG).buildMatchingRule(oid)
-                                                                .names(name)
-                                                                .syntaxOID(syntaxOID)
-                                                                .implementation(impl)
-                                                                .addToSchema().toSchema().getMatchingRule(oid);
+      matchingRule = new SchemaBuilder(schemaNG)
+          .buildMatchingRule(oid)
+            .names(name)
+            .syntaxOID(syntaxOID)
+            .implementation(impl)
+          .addToSchema()
+          .toSchema()
+          .getMatchingRule(oid);
     }
     schema.registerMatchingRules(Arrays.asList(matchingRule), true);
   }
 
-  private void registerSchemaAttr(final CustomSearchResult csr, final String schemaAttr) throws DirectoryException
+  private void removeNonOpenDjOrOpenDsSyntaxes(final SearchResultEntry entry) throws DirectoryException
   {
-    final Set<Object> remainingAttrs = new HashSet<>(csr.getAttributeValues(schemaAttr));
-    if (schemaAttr.equals(ConfigConstants.ATTR_LDAP_SYNTAXES_LC))
+    Attribute attribute = entry.getAttribute(AttributeDescription.create(getLDAPSyntaxesAttributeType()));
+    if (attribute != null)
     {
-      registerSyntaxDefinitions(remainingAttrs);
-      return;
-    }
-
-    while (!remainingAttrs.isEmpty())
-    {
-      DirectoryException lastException = null;
-      final Set<Object> registered = new HashSet<>();
-      for (final Object definition : remainingAttrs)
+      for (Iterator<ByteString> it = attribute.iterator(); it.hasNext();)
       {
-        final String definitionStr = toString(definition);
-        try
+        final String definition = it.next().toString();
+        if (!definition.contains(OID_OPENDS_SERVER_BASE)
+            && !definition.contains(OID_OPENDJ_BASE))
         {
-          switch (schemaAttr)
-          {
-          case ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC:
-            schema.registerAttributeType(definitionStr, null, true);
-            break;
-          case ConfigConstants.ATTR_OBJECTCLASSES_LC:
-            schema.registerObjectClass(definitionStr, null, true);
-            break;
-          }
-          registered.add(definition);
-        }
-        catch (DirectoryException de)
-        {
-          lastException = de;
-        }
-      }
-      if (registered.isEmpty())
-      {
-        throw lastException;
-      }
-      remainingAttrs.removeAll(registered);
-    }
-  }
-
-  private void registerSyntaxDefinitions(Set<Object> definitions) throws DirectoryException
-  {
-    for (final Object definition : definitions)
-    {
-      final String definitionStr = toString(definition);
-      if (definition.toString().contains(SchemaConstants.OID_OPENDS_SERVER_BASE))
-      {
-        try
-        {
-          schema.registerSyntax(definitionStr, true);
-        }
-        catch (DirectoryException e)
-        {
-          // Filter error code to ignore exceptions raised on description syntaxes.
-          if (e.getResultCode() != ResultCode.UNWILLING_TO_PERFORM)
-          {
-            throw e;
-          }
+          it.remove();
         }
       }
     }
-  }
-
-  private String toString(final Object definition)
-  {
-    return new ByteStringBuilder().appendObject(definition).toString();
   }
 
   /**

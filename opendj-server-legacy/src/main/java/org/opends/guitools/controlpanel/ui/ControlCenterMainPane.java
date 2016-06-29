@@ -32,13 +32,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigChangeListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The main panel of the control panel.  It contains a split pane.  On the left
@@ -177,9 +177,8 @@ public class ControlCenterMainPane extends JPanel
       {
         try
         {
-         String bindDN = ConnectionUtils.getBindDN(
-             statusPane.getInfo().getConnection().getLdapContext());
-         lAuthenticatedAs.setText(
+          DN bindDN = statusPane.getInfo().getConnection().getBindDn();
+          lAuthenticatedAs.setText(
              INFO_CTRL_PANEL_AUTHENTICATED_AS.get(bindDN).toString());
         }
         catch (Throwable t)

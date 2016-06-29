@@ -24,14 +24,13 @@ import javax.swing.Box;
 import javax.swing.JLabel;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.guitools.controlpanel.util.Utilities;
 
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
-import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.BackendMessages.*;
 
@@ -127,12 +126,12 @@ class RootMonitoringPanel extends GeneralMonitoringPanel
     {
       server = getInfo().getServerDescriptor();
     }
-    CustomSearchResult csr = null;
+    SearchResultEntry sr = null;
     if (server != null)
     {
-      csr = server.getRootMonitor();
+      sr = server.getRootMonitor();
     }
-    if (csr != null)
+    if (sr != null)
     {
       JLabel[] ls =
       {
@@ -150,13 +149,13 @@ class RootMonitoringPanel extends GeneralMonitoringPanel
       };
       for (int i=0; i<ls.length; i++)
       {
-        ls[i].setText(getMonitoringValue(attrs[i], csr));
+        ls[i].setText(getMonitoringValue(attrs[i], sr));
       }
       version.setText(server.getOpenDSVersion());
       try
       {
-        String start = getFirstValueAsString(csr, START_DATE.getAttributeName());
-        String current = getFirstValueAsString(csr, CURRENT_DATE.getAttributeName());
+        String start = sr.getAttribute(START_DATE.getAttributeName()).firstValueAsString();
+        String current = sr.getAttribute(CURRENT_DATE.getAttributeName()).firstValueAsString();
         Date startTime = ConfigFromDirContext.utcParser.parse(start);
         Date currentTime = ConfigFromDirContext.utcParser.parse(current);
 

@@ -24,14 +24,13 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.JLabel;
 
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.CollectionUtils;
 
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
-import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 /** The panel displaying the entry caches monitor panel. */
@@ -123,18 +122,18 @@ class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
     {
       server = getInfo().getServerDescriptor();
     }
-    CustomSearchResult csr = null;
+    SearchResultEntry sr = null;
     if (server != null)
     {
-      csr = server.getEntryCachesMonitor();
+      sr = server.getEntryCachesMonitor();
     }
-    if (csr != null)
+    if (sr != null)
     {
-      updateMonitoringInfo(ngOperations, monitoringLabels, csr);
+      updateMonitoringInfo(ngOperations, monitoringLabels, sr);
       int index = 0;
       for (MonitoringAttributes attr : ngOperations)
       {
-        if (getFirstValueAsString(csr, attr.getAttributeName()) == null)
+        if (sr.getAttribute(attr.getAttributeName()).firstValueAsString() == null)
         {
           monitoringLabels.get(index).setVisible(false);
           labels.get(index).setVisible(false);

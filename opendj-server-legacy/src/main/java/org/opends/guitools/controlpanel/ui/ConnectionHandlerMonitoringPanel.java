@@ -53,6 +53,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
@@ -60,7 +61,6 @@ import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.Pr
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.State;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlersMonitoringTableModel;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -199,7 +199,7 @@ class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
     {
       Set<InetAddress> addresses = new HashSet<>();
       addresses.add(InetAddress.getLocalHost());
-      Set<CustomSearchResult> emptySet = Collections.emptySet();
+      Set<SearchResultEntry> emptySet = Collections.emptySet();
       for (String name : names)
       {
         fakeData.add(new ConnectionHandlerDescriptor(

@@ -16,6 +16,10 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -26,10 +30,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import static org.opends.guitools.controlpanel.util.Utilities.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.util.CollectionUtils.*;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
 /** The table model used to display all the database monitoring information. */
 public class DatabaseMonitoringTableModel extends SortableTableModel implements Comparator<BackendDescriptor>
@@ -112,8 +113,8 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
   @Override
   public int compare(BackendDescriptor desc1, BackendDescriptor desc2)
   {
-    CustomSearchResult monitor1 = desc1.getMonitoringEntry();
-    CustomSearchResult monitor2 = desc2.getMonitoringEntry();
+    SearchResultEntry monitor1 = desc1.getMonitoringEntry();
+    SearchResultEntry monitor2 = desc2.getMonitoringEntry();
 
     ArrayList<Integer> possibleResults = newArrayList(getName(desc1).compareTo(getName(desc2)));
     computeMonitoringPossibleResults(monitor1, monitor2, possibleResults, attributes);
@@ -286,7 +287,7 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
    * @return the monitoring entry associated with the provided backend.  Returns
    * <CODE>null</CODE> if there is no monitoring entry associated.
    */
-  private CustomSearchResult getMonitoringEntry(BackendDescriptor backend)
+  private SearchResultEntry getMonitoringEntry(BackendDescriptor backend)
   {
     return backend.getMonitoringEntry();
   }
@@ -296,18 +297,11 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
     String[] line = new String[attributes.size() + 1];
     line[0] = getName(backend);
     int i = 1;
-    CustomSearchResult monitoringEntry = getMonitoringEntry(backend);
+    SearchResultEntry monitoringEntry = getMonitoringEntry(backend);
     for (String attr : attributes)
     {
-      String o = getFirstValueAsString(monitoringEntry, attr);
-      if (o != null)
-      {
-        line[i] = o;
-      }
-      else
-      {
-        line[i] = NO_VALUE_SET.toString();
-      }
+      String o = monitoringEntry.getAttribute(attr).firstValueAsString();
+      line[i] = o != null ? o : NO_VALUE_SET.toString();
       i++;
     }
     return line;

@@ -26,6 +26,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
 
 /**
@@ -34,7 +35,7 @@ import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
  */
 public class ConnectionHandlerDescriptor
 {
-  private Set<CustomSearchResult> monitoringEntries = Collections.emptySet();
+  private Set<SearchResultEntry> monitoringEntries = Collections.emptySet();
 
   /** Enumeration used to represent the state of the listener. */
   public enum State
@@ -120,7 +121,7 @@ public class ConnectionHandlerDescriptor
    */
   public ConnectionHandlerDescriptor(Collection<InetAddress> addresses,
       int port, Protocol protocol, State state, String name,
-      Set<CustomSearchResult> monitoringEntries)
+      Set<SearchResultEntry> monitoringEntries)
   {
     this.addresses.addAll(addresses);
     this.port = port;
@@ -171,7 +172,7 @@ public class ConnectionHandlerDescriptor
    * Returns the monitoring entries.
    * @return the monitoring entries.
    */
-  public Set<CustomSearchResult> getMonitoringEntries()
+  public Set<SearchResultEntry> getMonitoringEntries()
   {
     return monitoringEntries;
   }
@@ -180,7 +181,7 @@ public class ConnectionHandlerDescriptor
    * Sets the monitoring entries.
    * @param monitoringEntries the monitoring entries.
    */
-  public void setMonitoringEntries(Set<CustomSearchResult> monitoringEntries)
+  public void setMonitoringEntries(Set<SearchResultEntry> monitoringEntries)
   {
     this.monitoringEntries = Collections.unmodifiableSet(monitoringEntries);
   }

@@ -16,9 +16,13 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
+import static org.opends.server.config.ConfigConstants.*;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -29,22 +33,23 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapName;
-
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.server.config.client.AdministrationConnectorCfgClient;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
@@ -67,18 +72,15 @@ import org.forgerock.opendj.server.config.client.RootDNCfgClient;
 import org.forgerock.opendj.server.config.client.RootDNUserCfgClient;
 import org.forgerock.opendj.server.config.client.SNMPConnectionHandlerCfgClient;
 import org.forgerock.opendj.server.config.client.TaskBackendCfgClient;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.OpenDsException;
@@ -96,16 +98,16 @@ public class ConfigFromDirContext extends ConfigReader
   private static final String DATABASE_PDB_MONITORING_ENTRY_SUFFIX = " PDB Database";
   private static final String SYNC_PROVIDER_NAME = "Multimaster Synchronization";
 
-  private CustomSearchResult rootMonitor;
-  private CustomSearchResult jvmMemoryUsage;
-  private CustomSearchResult systemInformation;
-  private CustomSearchResult entryCaches;
-  private CustomSearchResult workQueue;
-  private CustomSearchResult versionMonitor;
+  private SearchResultEntry rootMonitor;
+  private SearchResultEntry jvmMemoryUsage;
+  private SearchResultEntry systemInformation;
+  private SearchResultEntry entryCaches;
+  private SearchResultEntry workQueue;
+  private SearchResultEntry versionMonitor;
 
   private boolean isLocal = true;
 
-  private final Map<String, CustomSearchResult> hmConnectionHandlersMonitor = new HashMap<>();
+  private final Map<String, SearchResultEntry> hmConnectionHandlersMonitor = new HashMap<>();
 
   /** The monitor root entry DN. */
   private DN monitorDN = DN.rootDN();
@@ -150,7 +152,7 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @return the monitoring entry for the entry caches.
    */
-  public CustomSearchResult getEntryCaches()
+  public SearchResultEntry getEntryCaches()
   {
     return entryCaches;
   }
@@ -160,7 +162,7 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @return the monitoring entry for the JVM memory usage.
    */
-  public CustomSearchResult getJvmMemoryUsage()
+  public SearchResultEntry getJvmMemoryUsage()
   {
     return jvmMemoryUsage;
   }
@@ -170,7 +172,7 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @return the root entry of the monitoring tree.
    */
-  public CustomSearchResult getRootMonitor()
+  public SearchResultEntry getRootMonitor()
   {
     return rootMonitor;
   }
@@ -180,7 +182,7 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @return the version entry of the monitoring tree.
    */
-  public CustomSearchResult getVersionMonitor()
+  public SearchResultEntry getVersionMonitor()
   {
     return versionMonitor;
   }
@@ -190,7 +192,7 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @return the monitoring entry for the system information.
    */
-  public CustomSearchResult getSystemInformation()
+  public SearchResultEntry getSystemInformation()
   {
     return systemInformation;
   }
@@ -200,7 +202,7 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @return the monitoring entry for the work queue.
    */
-  public CustomSearchResult getWorkQueue()
+  public SearchResultEntry getWorkQueue()
   {
     return workQueue;
   }
@@ -254,7 +256,7 @@ public class ConfigFromDirContext extends ConfigReader
 
     hmConnectionHandlersMonitor.clear();
 
-    readSchemaIfNeeded(connWrapper.getLdapContext(), errors);
+    readSchemaIfNeeded(connWrapper, errors);
 
     try
     {
@@ -274,7 +276,7 @@ public class ConfigFromDirContext extends ConfigReader
     backends = Collections.unmodifiableSet(backendDescriptors);
     try
     {
-      updateMonitorInformation(connWrapper.getLdapContext(), errors);
+      updateMonitorInformation(connWrapper, errors);
     }
     catch (Throwable t)
     {
@@ -284,7 +286,7 @@ public class ConfigFromDirContext extends ConfigReader
 
     try
     {
-      updateTaskInformation(connWrapper.getLdapContext(), errors, tasks);
+      updateTaskInformation(connWrapper, errors, tasks);
     }
     catch (Throwable t)
     {
@@ -305,13 +307,13 @@ public class ConfigFromDirContext extends ConfigReader
     exceptions = Collections.unmodifiableList(errors);
   }
 
-  private void readSchemaIfNeeded(final InitialLdapContext context, final List<Exception> errors)
+  private void readSchemaIfNeeded(final ConnectionWrapper connWrapper, final List<Exception> errors)
   {
     if (mustReadSchema())
     {
       try
       {
-        readSchema(context);
+        readSchema(connWrapper);
         if (getSchema() != null)
         {
           // Update the schema: so that when we call the server code the
@@ -553,7 +555,7 @@ public class ConfigFromDirContext extends ConfigReader
           ConnectionHandlerDescriptor.Protocol protocol =
             isReplicationSecure ? ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE
                                 : ConnectionHandlerDescriptor.Protocol.REPLICATION;
-          Set<CustomSearchResult> emptySet = Collections.emptySet();
+          Set<SearchResultEntry> emptySet = Collections.emptySet();
           ConnectionHandlerDescriptor connHandler = new ConnectionHandlerDescriptor(
               new HashSet<InetAddress>(), replicationPort, protocol, ConnectionHandlerDescriptor.State.ENABLED,
                 SYNC_PROVIDER_NAME, emptySet);
@@ -624,12 +626,12 @@ public class ConfigFromDirContext extends ConfigReader
   /**
    * Reads the schema from the files.
    *
-   * @param ctx
+   * @param connWrapper
    *          the connection to be used to load the schema.
    * @throws OpenDsException
    *           if an error occurs reading the schema.
    */
-  private void readSchema(InitialLdapContext ctx) throws OpenDsException
+  private void readSchema(ConnectionWrapper connWrapper) throws OpenDsException
   {
     try
     {
@@ -640,17 +642,17 @@ public class ConfigFromDirContext extends ConfigReader
       else
       {
         RemoteSchemaLoader loader = new RemoteSchemaLoader();
-        loader.readSchema(ctx);
+        loader.readSchema(connWrapper);
         schema = loader.getSchema();
       }
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
-      throw new OnlineUpdateException(ERR_READING_SCHEMA_LDAP.get(ne), ne);
+      throw new OnlineUpdateException(ERR_READING_SCHEMA_LDAP.get(e), e);
     }
-    catch (ConfigException ce)
+    catch (ConfigException e)
     {
-      throw new org.opends.server.config.ConfigException(ce.getMessageObject(), ce);
+      throw new org.opends.server.config.ConfigException(e.getMessageObject(), e);
     }
   }
 
@@ -660,55 +662,55 @@ public class ConfigFromDirContext extends ConfigReader
    *
    * @param sr
    *          the search result.
-   * @param searchBaseDN
-   *          the base search.
-   * @throws NamingException
+   * @throws LdapException
    *           if there is an error retrieving the values of the search result.
    */
-  private void handleMonitoringSearchResult(SearchResult sr, String searchBaseDN) throws NamingException
+  private void handleMonitoringSearchResult(SearchResultEntry sr) throws LdapException
   {
     if (javaVersion == null)
     {
-      javaVersion = ConnectionUtils.getFirstValue(sr, "javaVersion");
+      Attribute attr = sr.getAttribute("javaVersion");
+      javaVersion = attr != null ? attr.firstValueAsString() : null;
     }
 
     if (numberConnections == -1)
     {
-      String v = ConnectionUtils.getFirstValue(sr, "currentConnections");
-      if (v != null)
+      Integer nb = sr.getAttribute("currentConnections").parse().asInteger();
+      if (nb != null)
       {
-        numberConnections = Integer.parseInt(v);
+        numberConnections = nb;
       }
     }
 
-    String dn = ConnectionUtils.getFirstValue(sr, "domain-name");
-    String replicaId = ConnectionUtils.getFirstValue(sr, "server-id");
-    String missingChanges = ConnectionUtils.getFirstValue(sr, "missing-changes");
+    Attribute dnAttr = sr.getAttribute("domain-name");
+    Attribute replicaIdAttr = sr.getAttribute("server-id");
+    Attribute missingChanges = sr.getAttribute("missing-changes");
 
-    if (dn != null  && replicaId != null && missingChanges != null)
+    if (dnAttr != null && replicaIdAttr != null && missingChanges != null)
     {
+      DN dn = dnAttr.parse().asDN();
+      Integer replicaId = replicaIdAttr.parse().asInteger();
       for (BackendDescriptor backend : backends)
       {
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
           try
           {
-            if (baseDN.getDn().equals(DN.valueOf(dn)) &&
-                Integer.toString(baseDN.getReplicaID()).equals(replicaId))
+            if (baseDN.getDn().equals(dn) && Objects.equals(baseDN.getReplicaID(), replicaId))
             {
               try
               {
                 baseDN.setAgeOfOldestMissingChange(
-                    Long.valueOf(ConnectionUtils.getFirstValue(sr, "approx-older-change-not-synchronized-millis")));
+                    sr.getAttribute("approx-older-change-not-synchronized-millis").parse().asLong());
               }
-              catch (Throwable ignored)
+              catch (NullPointerException | LocalizedIllegalArgumentException ignored)
               {
               }
               try
               {
-                baseDN.setMissingChanges(Integer.valueOf(missingChanges));
+                baseDN.setMissingChanges(missingChanges.parse().asInteger());
               }
-              catch (Throwable ignored)
+              catch (NullPointerException | LocalizedIllegalArgumentException ignored)
               {
               }
             }
@@ -721,45 +723,40 @@ public class ConfigFromDirContext extends ConfigReader
     }
     else
     {
-      CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
-      String backendID = ConnectionUtils.getFirstValue(sr, "ds-backend-id");
-      String entryCount = ConnectionUtils.getFirstValue(sr, "ds-backend-entry-count");
-      Set<String> baseDnEntries = ConnectionUtils.getValues(sr, "ds-base-dn-entry-count");
-      if (backendID != null && (entryCount != null || baseDnEntries != null))
+      Attribute backendIdAttr = sr.getAttribute("ds-backend-id");
+      Attribute entryCount = sr.getAttribute("ds-backend-entry-count");
+      Attribute baseDnEntriesAttr = sr.getAttribute("ds-base-dn-entry-count");
+      if (backendIdAttr != null && (entryCount != null || !baseDnEntriesAttr.isEmpty()))
       {
+        String backendID = backendIdAttr.firstValueAsString();
+        Set<String> baseDnEntries = baseDnEntriesAttr.parse().asSetOfString();
         for (BackendDescriptor backend : backends)
         {
           if (backend.getBackendID().equalsIgnoreCase(backendID))
           {
             if (entryCount != null)
             {
-              backend.setEntries(Integer.parseInt(entryCount));
+              backend.setEntries(entryCount.parse().asInteger());
             }
-            if (baseDnEntries != null)
+            for (String s : baseDnEntries)
             {
-              for (String s : baseDnEntries)
+              int index = s.indexOf(" ");
+              if (index != -1)
               {
-                int index = s.indexOf(" ");
-                if (index != -1)
+                DN dn = DN.valueOf(s.substring(index + 1));
+                for (BaseDNDescriptor baseDN : backend.getBaseDns())
                 {
-                  for (BaseDNDescriptor baseDN : backend.getBaseDns())
+                  if (dn.equals(baseDN.getDn()))
                   {
-                    dn = s.substring(index +1);
-
-                    if (Utilities.areDnsEqual(dn,
-                        baseDN.getDn().toString()))
+                    try
                     {
-                      try
-                      {
-                        baseDN.setEntries(
-                            Integer.parseInt(s.substring(0, index)));
-                      }
-                      catch (Throwable t)
-                      {
-                        /* Ignore */
-                      }
-                      break;
+                      baseDN.setEntries(Integer.parseInt(s.substring(0, index)));
                     }
+                    catch (Throwable t)
+                    {
+                      /* Ignore */
+                    }
+                    break;
                   }
                 }
               }
@@ -770,7 +767,7 @@ public class ConfigFromDirContext extends ConfigReader
       else
       {
         // Check if it is the DB monitor entry
-        String cn = ConnectionUtils.getFirstValue(sr, "cn");
+        String cn = sr.getAttribute("cn").firstValueAsString();
         String monitorBackendID = null;
         BackendDescriptor.PluggableType pluggableType = BackendDescriptor.PluggableType.UNKNOWN;
         if (cn != null && cn.endsWith(DATABASE_JE_MONITORING_ENTRY_SUFFIX))
@@ -790,46 +787,46 @@ public class ConfigFromDirContext extends ConfigReader
             if (backend.getBackendID().equalsIgnoreCase(monitorBackendID))
             {
               backend.setPluggableType(pluggableType);
-              backend.setMonitoringEntry(csr);
+              backend.setMonitoringEntry(sr);
             }
           }
         }
       }
       try
       {
-        if (rootMonitor == null && isRootMonitor(csr))
+        if (rootMonitor == null && isRootMonitor(sr))
         {
-          rootMonitor = csr;
+          rootMonitor = sr;
         }
-        else if (entryCaches == null && isEntryCaches(csr))
+        else if (entryCaches == null && isEntryCaches(sr))
         {
-          entryCaches = csr;
+          entryCaches = sr;
         }
-        else if (workQueue == null && isWorkQueue(csr))
+        else if (workQueue == null && isWorkQueue(sr))
         {
-          workQueue = csr;
+          workQueue = sr;
         }
-        else if (jvmMemoryUsage == null && isJvmMemoryUsage(csr))
+        else if (jvmMemoryUsage == null && isJvmMemoryUsage(sr))
         {
-          jvmMemoryUsage = csr;
+          jvmMemoryUsage = sr;
         }
-        else if (systemInformation == null && isSystemInformation(csr))
+        else if (systemInformation == null && isSystemInformation(sr))
         {
-          systemInformation = csr;
+          systemInformation = sr;
         }
-        else if (versionMonitor == null && isVersionMonitor(csr))
+        else if (versionMonitor == null && isVersionMonitor(sr))
         {
-          versionMonitor = csr;
+          versionMonitor = sr;
         }
-        else if (isConnectionHandler(csr))
+        else if (isConnectionHandler(sr))
         {
           String statistics = " Statistics";
-          String cn = ConnectionUtils.getFirstValue(sr, "cn");
+          String cn = sr.getAttribute("cn").firstValueAsString();
           if (cn.endsWith(statistics))
           {
             // Assume it is a connection handler
             String name = cn.substring(0, cn.length() - statistics.length());
-            hmConnectionHandlersMonitor.put(getKey(name), csr);
+            hmConnectionHandlersMonitor.put(getKey(name), sr);
           }
         }
       }
@@ -841,70 +838,49 @@ public class ConfigFromDirContext extends ConfigReader
   }
 
   /**
-   * Takes the provided search result and updates the task information
-   * accordingly.
+   * Takes the provided search result and updates the task information accordingly.
    *
    * @param sr
    *          the search result.
-   * @param searchBaseDN
-   *          the base search.
    * @param taskEntries
    *          the collection of TaskEntries to be updated.
    * @param ex
    *          the list of exceptions to be updated if an error occurs.
-   * @throws NamingException
-   *           if there is an error retrieving the values of the search result.
    */
-  private void handleTaskSearchResult(SearchResult sr, String searchBaseDN, Collection<TaskEntry> taskEntries,
-      List<Exception> ex) throws NamingException
+  private void handleTaskSearchResult(SearchResultEntry sr, Collection<TaskEntry> taskEntries, List<Exception> ex)
   {
-    CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
     try
     {
-      if (isTaskEntry(csr))
+      if (isTaskEntry(sr))
       {
-        taskEntries.add(new TaskEntry(csr.getEntry()));
+        taskEntries.add(new TaskEntry(Converters.to(sr)));
       }
     }
-    catch (OpenDsException ode)
+    catch (RuntimeException e)
     {
-      ex.add(ode);
+      ex.add(e);
     }
   }
 
-  private void updateMonitorInformation(InitialLdapContext ctx,
-      List<Exception> ex)
+  private void updateMonitorInformation(ConnectionWrapper connWrapper, List<Exception> ex)
   {
     // Read monitoring information: since it is computed, it is faster
     // to get everything in just one request.
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(getMonitoringAttributes());
-    String filter = "(objectclass=*)";
+    SearchRequest request = newSearchRequest("cn=monitor", WHOLE_SUBTREE, "(objectclass=*)", getMonitoringAttributes());
 
-    try
+    try (ConnectionEntryReader monitorEntries = connWrapper.getConnection().search(request))
     {
-      LdapName jndiName = new LdapName("cn=monitor");
-      NamingEnumeration<SearchResult> monitorEntries = ctx.search(jndiName, filter, ctls);
       javaVersion = null;
       numberConnections = -1;
 
-      try
+      while (monitorEntries.hasNext())
       {
-        while (monitorEntries.hasMore())
-        {
-          SearchResult sr = monitorEntries.next();
-          handleMonitoringSearchResult(sr, "cn=monitor");
-        }
-      }
-      finally
-      {
-        monitorEntries.close();
+        handleMonitoringSearchResult(monitorEntries.readEntry());
       }
     }
-    catch (NamingException ne)
+    catch (IOException e)
     {
-      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
+      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(e.getMessage()), e));
     }
   }
 
@@ -912,7 +888,7 @@ public class ConfigFromDirContext extends ConfigReader
    * Updates the provided list of TaskEntry with the task entries found in a
    * server.
    *
-   * @param ctx
+   * @param connWrapper
    *          the connection to the server.
    * @param ex
    *          the list of exceptions encountered while retrieving the task
@@ -920,35 +896,23 @@ public class ConfigFromDirContext extends ConfigReader
    * @param ts
    *          the list of task entries to be updated.
    */
-  public void updateTaskInformation(InitialLdapContext ctx, List<Exception> ex, Collection<TaskEntry> ts)
+  public void updateTaskInformation(ConnectionWrapper connWrapper, List<Exception> ex, Collection<TaskEntry> ts)
   {
     // Read monitoring information: since it is computed, it is faster
     // to get everything in just one request.
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(getMonitoringAttributes());
-    String filter = "(objectclass=ds-task)";
-
-    try
+    SearchRequest request =
+        newSearchRequest(DN_TASK_ROOT, WHOLE_SUBTREE, "(objectclass=ds-task)", getMonitoringAttributes());
+    try (ConnectionEntryReader taskEntries = connWrapper.getConnection().search(request))
     {
-      LdapName jndiName = new LdapName(ConfigConstants.DN_TASK_ROOT);
-      NamingEnumeration<SearchResult> taskEntries = ctx.search(jndiName, filter, ctls);
-      try
+      while (taskEntries.hasNext())
       {
-        while (taskEntries.hasMore())
-        {
-          SearchResult sr = taskEntries.next();
-          handleTaskSearchResult(sr, ConfigConstants.DN_TASK_ROOT, ts, ex);
-        }
-      }
-      finally
-      {
-        taskEntries.close();
+        SearchResultEntry sr = taskEntries.readEntry();
+        handleTaskSearchResult(sr, ts, ex);
       }
     }
-    catch (NamingException ne)
+    catch (IOException e)
     {
-      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(ne.getMessage()), ne));
+      ex.add(new OnlineUpdateException(ERR_READING_CONFIG_LDAP.get(e.getMessage()), e));
     }
   }
 
@@ -1024,7 +988,7 @@ public class ConfigFromDirContext extends ConfigReader
       protocol = ConnectionHandlerDescriptor.Protocol.OTHER;
       port = -1;
     }
-    Set<CustomSearchResult> emptySet = Collections.emptySet();
+    Set<SearchResultEntry> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state, name, emptySet);
   }
 
@@ -1047,51 +1011,51 @@ public class ConfigFromDirContext extends ConfigReader
     addAll(addresses, adminConnector.getListenAddress());
     int port = adminConnector.getListenPort();
 
-    Set<CustomSearchResult> emptySet = Collections.emptySet();
+    Set<SearchResultEntry> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(
         addresses, port, protocol, state, INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(), emptySet);
   }
 
-  private boolean isRootMonitor(CustomSearchResult csr) throws OpenDsException
+  private boolean isRootMonitor(SearchResultEntry sr) throws OpenDsException
   {
-    return monitorDN.equals(DN.valueOf(csr.getDN()));
+    return monitorDN.equals(sr.getName());
   }
 
-  private boolean isVersionMonitor(CustomSearchResult csr) throws OpenDsException
+  private boolean isVersionMonitor(SearchResultEntry sr) throws OpenDsException
   {
-    return versionDN.equals(DN.valueOf(csr.getDN()));
+    return versionDN.equals(sr.getName());
   }
 
-  private boolean isSystemInformation(CustomSearchResult csr) throws OpenDsException
+  private boolean isSystemInformation(SearchResultEntry sr) throws OpenDsException
   {
-    return systemInformationDN.equals(DN.valueOf(csr.getDN()));
+    return systemInformationDN.equals(sr.getName());
   }
 
-  private boolean isJvmMemoryUsage(CustomSearchResult csr) throws OpenDsException
+  private boolean isJvmMemoryUsage(SearchResultEntry sr) throws OpenDsException
   {
-    return jvmMemoryUsageDN.equals(DN.valueOf(csr.getDN()));
+    return jvmMemoryUsageDN.equals(sr.getName());
   }
 
-  private boolean isWorkQueue(CustomSearchResult csr) throws OpenDsException
+  private boolean isWorkQueue(SearchResultEntry sr) throws OpenDsException
   {
-    return workQueueDN.equals(DN.valueOf(csr.getDN()));
+    return workQueueDN.equals(sr.getName());
   }
 
-  private boolean isEntryCaches(CustomSearchResult csr) throws OpenDsException
+  private boolean isEntryCaches(SearchResultEntry sr) throws OpenDsException
   {
-    return entryCachesDN.equals(DN.valueOf(csr.getDN()));
+    return entryCachesDN.equals(sr.getName());
   }
 
-  private boolean isConnectionHandler(CustomSearchResult csr) throws OpenDsException
+  private boolean isConnectionHandler(SearchResultEntry sr) throws OpenDsException
   {
-    DN dn = DN.valueOf(csr.getDN());
+    DN dn = sr.getName();
     DN parent = dn.parent();
     if (parent != null && parent.equals(monitorDN))
     {
-      List<?> vs = csr.getAttributeValues("cn");
-      if (vs != null && !vs.isEmpty())
+      Set<String> vs = sr.getAttribute("cn").parse().asSetOfString();
+      if (!vs.isEmpty())
       {
-        String cn = (String) vs.iterator().next();
+        String cn = vs.iterator().next();
         String statistics = " Statistics";
         if (cn.endsWith(statistics))
         {
@@ -1102,17 +1066,13 @@ public class ConfigFromDirContext extends ConfigReader
     return false;
   }
 
-  private static boolean isTaskEntry(CustomSearchResult csr) throws OpenDsException
+  private static boolean isTaskEntry(SearchResultEntry sr)
   {
-    List<Object> vs = csr.getAttributeValues("objectclass");
-    if (vs != null && !vs.isEmpty())
+    for (String oc : sr.getAttribute("objectclass").parse().asSetOfString())
     {
-      for (Object oc : vs)
+      if (oc.equalsIgnoreCase("ds-task"))
       {
-        if (oc.toString().equalsIgnoreCase("ds-task"))
-        {
-          return true;
-        }
+        return true;
       }
     }
     return false;
@@ -1131,9 +1091,9 @@ public class ConfigFromDirContext extends ConfigReader
     return value.toLowerCase();
   }
 
-  private Set<CustomSearchResult>getMonitoringEntries(ConnectionHandlerDescriptor ch)
+  private Set<SearchResultEntry> getMonitoringEntries(ConnectionHandlerDescriptor ch)
   {
-    Set<CustomSearchResult> monitorEntries = new HashSet<>();
+    Set<SearchResultEntry> monitorEntries = new HashSet<>();
     if (ch.getState() == ConnectionHandlerDescriptor.State.ENABLED)
     {
       for (String key : hmConnectionHandlersMonitor.keySet())

@@ -32,15 +32,8 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
-import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
-import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
-import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
-import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
-import org.opends.guitools.controlpanel.task.OfflineUpdateException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
@@ -63,8 +56,15 @@ import org.forgerock.opendj.server.config.server.RootDNCfg;
 import org.forgerock.opendj.server.config.server.RootDNUserCfg;
 import org.forgerock.opendj.server.config.server.SNMPConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.TaskBackendCfg;
+import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
+import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
+import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
+import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
+import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
+import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -362,7 +362,7 @@ public class ConfigFromFile extends ConfigReader
           final ConnectionHandlerDescriptor.Protocol protocol =
               isReplicationSecure ? ConnectionHandlerDescriptor.Protocol.REPLICATION_SECURE
                   : ConnectionHandlerDescriptor.Protocol.REPLICATION;
-          final Set<CustomSearchResult> emptySet = Collections.emptySet();
+          final Set<SearchResultEntry> emptySet = Collections.emptySet();
           final ConnectionHandlerDescriptor connHandler =
               new ConnectionHandlerDescriptor(new HashSet<InetAddress>(), replicationPort, protocol,
                   ConnectionHandlerDescriptor.State.ENABLED, "Multimaster Synchronization", emptySet);
@@ -498,7 +498,7 @@ public class ConfigFromFile extends ConfigReader
       protocol = ConnectionHandlerDescriptor.Protocol.OTHER;
       port = -1;
     }
-    final Set<CustomSearchResult> emptySet = Collections.emptySet();
+    final Set<SearchResultEntry> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state, name, emptySet);
   }
 
@@ -520,7 +520,7 @@ public class ConfigFromFile extends ConfigReader
 
     addAll(addresses, adminConnector.getListenAddress());
     final int port = adminConnector.getListenPort();
-    final Set<CustomSearchResult> emptySet = Collections.emptySet();
+    final Set<SearchResultEntry> emptySet = Collections.emptySet();
     return new ConnectionHandlerDescriptor(addresses, port, protocol, state,
         INFO_CTRL_PANEL_CONN_HANDLER_ADMINISTRATION.get().toString(), emptySet);
   }

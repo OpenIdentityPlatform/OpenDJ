@@ -19,6 +19,9 @@ package org.opends.guitools.controlpanel.util;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
+import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
@@ -45,6 +48,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -93,8 +97,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -2266,12 +2274,34 @@ public class Utilities
   }
 
   /**
+   * Ping the specified connection. This method sends a search request on the root entry of the DIT
+   * and forward the corresponding exception (if any).
+   *
+   * @param connWrapper
+   *          the connection to be "pinged".
+   * @throws NamingException
+   *           if the ping could not be performed.
+   */
+  public static void ping(ConnectionWrapper connWrapper) throws NamingException
+  {
+    SearchRequest request = newSearchRequest("", BASE_OBJECT, "objectClass=*", "1.1")
+        .setSizeLimit(0)
+        .setTimeLimit(0)
+        .setDereferenceAliasesPolicy(NEVER);
+    connWrapper.getConnection().search(request);
+  }
+
+  /**
    * Deletes a configuration subtree using the provided configuration handler.
-   * @param confHandler the configuration handler to be used to delete the
-   * subtree.
-   * @param dn the DN of the subtree to be deleted.
-   * @throws OpenDsException if an error occurs.
-   * @throws ConfigException if an error occurs.
+   *
+   * @param confHandler
+   *          the configuration handler to be used to delete the subtree.
+   * @param dn
+   *          the DN of the subtree to be deleted.
+   * @throws OpenDsException
+   *           if an error occurs.
+   * @throws ConfigException
+   *           if an error occurs.
    */
   public static void deleteConfigSubtree(ConfigurationHandler confHandler, DN dn)
   throws OpenDsException, ConfigException
@@ -2392,29 +2422,26 @@ public class Utilities
     }
   }
 
-  private static Object getFirstMonitoringValue(CustomSearchResult sr, String attrName)
+  private static Object getFirstMonitoringValue(Attribute attribute)
   {
-    if (sr != null)
+    Iterator<ByteString> it = attribute.iterator();
+    if (it.hasNext())
     {
-      List<Object> values = sr.getAttributeValues(attrName);
-      if (values != null && !values.isEmpty())
+      try
       {
-        Object o = values.iterator().next();
+        return attribute.parse().asLong();
+      }
+      catch (Throwable t1)
+      {
+        ByteString v = it.next();
         try
         {
-          return Long.parseLong(o.toString());
+          return Double.parseDouble(v.toString());
         }
-        catch (Throwable t1)
+        catch (Throwable t2)
         {
-          try
-          {
-            return Double.parseDouble(o.toString());
-          }
-          catch (Throwable t2)
-          {
-            // Cannot convert it, just return it
-            return o;
-          }
+          // Cannot convert it, just return it
+          return v;
         }
       }
     }
@@ -2455,10 +2482,9 @@ public class Utilities
    * @param monitoringEntry the monitoring entry.
    * @return the monitoring value in a String form to be displayed to the user.
    */
-  public static String getMonitoringValue(MonitoringAttributes attr,
-      CustomSearchResult monitoringEntry)
+  public static String getMonitoringValue(MonitoringAttributes attr, SearchResultEntry monitoringEntry)
   {
-    String monitoringValue = getFirstValueAsString(monitoringEntry, attr.getAttributeName());
+    String monitoringValue = monitoringEntry.getAttribute(attr.getAttributeName()).firstValueAsString();
     if (monitoringValue == null)
     {
       return NO_VALUE_SET.toString();
@@ -2515,15 +2541,14 @@ public class Utilities
    * @return {@code true} if the provided monitoring value represents the non implemented label,
    *         {@code false} otherwise.
    */
-  private static boolean isNotImplemented(MonitoringAttributes attr,
-      CustomSearchResult monitoringEntry)
+  private static boolean isNotImplemented(MonitoringAttributes attr, SearchResultEntry monitoringEntry)
   {
-    String monitoringValue = getFirstValueAsString(monitoringEntry, attr.getAttributeName());
+    Attribute monitoringValue = monitoringEntry.getAttribute(attr.getAttributeName());
     if (attr.isNumeric() && monitoringValue != null)
     {
       try
       {
-        Long.parseLong(monitoringValue);
+        monitoringValue.parse().asLong();
         return false;
       }
       catch (Throwable t)
@@ -2642,8 +2667,8 @@ public class Utilities
    * @param attrNames
    *          the names for which to compute possible comparison results
    */
-  public static void computeMonitoringPossibleResults(CustomSearchResult monitor1, CustomSearchResult monitor2,
-      ArrayList<Integer> possibleResults, Collection<String> attrNames)
+  public static void computeMonitoringPossibleResults(SearchResultEntry monitor1, SearchResultEntry monitor2,
+      List<Integer> possibleResults, Collection<String> attrNames)
   {
     for (String attrName : attrNames)
     {
@@ -2665,8 +2690,8 @@ public class Utilities
       }
       else
       {
-        Object v1 = getFirstValue(monitor1, attrName);
-        Object v2 = getFirstValue(monitor2, attrName);
+        Object v1 = getFirstMonitoringValue(monitor1.getAttribute(attrName));
+        Object v2 = getFirstMonitoringValue(monitor2.getAttribute(attrName));
         if (v1 == null)
         {
           if (v2 == null)
@@ -2737,18 +2762,6 @@ public class Utilities
       }
       possibleResults.add(possibleResult);
     }
-  }
-
-  private static Object getFirstValue(CustomSearchResult monitor, String attrName)
-  {
-    for (String attr : monitor.getAttributeNames())
-    {
-      if (attr.equalsIgnoreCase(attrName))
-      {
-        return getFirstMonitoringValue(monitor, attrName);
-      }
-    }
-    return null;
   }
 
   /**

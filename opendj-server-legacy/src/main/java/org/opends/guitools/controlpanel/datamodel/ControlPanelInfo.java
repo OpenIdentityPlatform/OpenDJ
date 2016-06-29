@@ -16,12 +16,12 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.admin.ads.util.PreferredConnection.Type.*;
-import static org.opends.guitools.controlpanel.util.Utilities.*;
-import static org.opends.server.tools.ConfigureWindowsService.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
+import static org.opends.server.tools.ConfigureWindowsService.*;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -298,11 +298,10 @@ public class ControlPanelInfo
     this.connWrapper = connWrapper;
     if (connWrapper != null)
     {
-      InitialLdapContext ctx = connWrapper.getLdapContext();
-      lastWorkingBindDN = ConnectionUtils.getBindDN(ctx);
-      lastWorkingBindPwd = ConnectionUtils.getBindPassword(ctx);
+      lastWorkingBindDN = connWrapper.getBindDn().toString();
+      lastWorkingBindPwd = connWrapper.getBindPassword();
       lastRemoteHostName = connWrapper.getHostPort().getHost();
-      lastRemoteAdministrationURL = ConnectionUtils.getLdapUrl(ctx);
+      lastRemoteAdministrationURL = connWrapper.getLdapUrl();
     }
   }
 
@@ -498,7 +497,7 @@ public class ControlPanelInfo
         Utilities.initializeConfigurationFramework();
         reader = newRemoteConfigReader();
 
-        boolean connectionWorks = checkConnections(connWrapper.getLdapContext(), userDataCtx);
+        boolean connectionWorks = checkConnections(connWrapper, userDataCtx);
         if (!connectionWorks)
         {
           if (isLocal)
@@ -532,13 +531,13 @@ public class ControlPanelInfo
           desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
           desc.setSystemInformationMonitor(rCtx.getSystemInformation());
           desc.setWorkQueueMonitor(rCtx.getWorkQueue());
-          desc.setOpenDSVersion(getFirstValueAsString(rCtx.getVersionMonitor(), "fullVersion"));
-          String installPath = getFirstValueAsString(rCtx.getSystemInformation(), "installPath");
+          desc.setOpenDSVersion(rCtx.getVersionMonitor().getAttribute("fullVersion").firstValueAsString());
+          String installPath = rCtx.getSystemInformation().getAttribute("installPath").firstValueAsString();
           if (installPath != null)
           {
             desc.setInstallPath(installPath);
           }
-          String instancePath = getFirstValueAsString(rCtx.getSystemInformation(), "instancePath");
+          String instancePath = rCtx.getSystemInformation().getAttribute("instancePath").firstValueAsString();
           if (instancePath != null)
           {
             desc.setInstancePath(instancePath);
@@ -1195,7 +1194,7 @@ public class ControlPanelInfo
     return adminPort1 == adminPort2;
   }
 
-  private boolean checkConnections(InitialLdapContext ctx, InitialLdapContext userCtx)
+  private boolean checkConnections(ConnectionWrapper conn, InitialLdapContext userCtx)
   {
     // Check the connection
     int nMaxErrors = 5;
@@ -1203,7 +1202,7 @@ public class ControlPanelInfo
     {
       try
       {
-        Utilities.pingDirContext(ctx);
+        Utilities.ping(conn);
         if (userCtx != null)
         {
           Utilities.pingDirContext(userCtx);

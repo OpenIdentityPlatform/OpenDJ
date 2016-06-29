@@ -2015,7 +2015,7 @@ public class ReplicationCliMain extends ConsoleApplication
     List<TaskEntry> taskEntries = new ArrayList<>();
     List<Exception> exceptions = new ArrayList<>();
     ConfigFromDirContext cfg = new ConfigFromDirContext();
-    cfg.updateTaskInformation(conn.getLdapContext(), exceptions, taskEntries);
+    cfg.updateTaskInformation(conn, exceptions, taskEntries);
     for (Exception ode : exceptions)
     {
       logger.warn(LocalizableMessage.raw("Error retrieving task entries: "+ode, ode));
@@ -5839,8 +5839,8 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      String bindDn = getBindDN(conn.getLdapContext());
-      String pwd = getBindPassword(conn.getLdapContext());
+      String bindDn = conn.getBindDn().toString();
+      String pwd = conn.getBindPassword();
       for (ServerDescriptor s : serversToUpdate)
       {
         removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
@@ -5850,11 +5850,10 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (disableReplicationServer)
       {
-        // Disable replication server
         disableReplicationServer(conn);
         replicationServerDisabled = true;
-        // Wait to be sure that changes are taken into account and reset the
-        // contents of the ADS.
+        // Wait to be sure that changes are taken into account
+        // and reset the contents of the ADS.
         sleepCatchInterrupt(5000);
       }
     }

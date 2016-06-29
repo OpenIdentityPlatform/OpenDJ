@@ -28,11 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -45,13 +41,14 @@ import javax.swing.SwingUtilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ControlPanelArgumentParser;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
@@ -62,7 +59,6 @@ import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.monitors.VersionMonitorProvider;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.DynamicConstants;
@@ -70,8 +66,9 @@ import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
-import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.monitors.VersionMonitorProvider.*;
@@ -552,7 +549,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               usedUrl = ConnectionUtils.getLDAPUrl(hostPort, true);
               conn = new ConnectionWrapper(hostPort, LDAPS, dn.getText(), String.valueOf(pwd.getPassword()),
                   info.getConnectTimeout(), info.getTrustManager());
-              checkVersion(conn.getLdapContext());
+              checkVersion(conn);
             }
 
             StaticUtils.sleep(500);
@@ -867,45 +864,22 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     t.start();
   }
 
-  private void checkVersion(InitialLdapContext ctx) throws OpenDsException
+  private void checkVersion(ConnectionWrapper conn) throws OpenDsException
   {
     LocalizableMessage msg = null;
     try
     {
       // Search for the version on the remote server.
-      SearchControls searchControls = new SearchControls();
-      searchControls.setSearchScope(
-      SearchControls.OBJECT_SCOPE);
-      searchControls.setReturningAttributes(
-      new String[] {
-          VersionMonitorProvider.ATTR_PRODUCT_NAME,
-          VersionMonitorProvider.ATTR_MAJOR_VERSION,
-          VersionMonitorProvider.ATTR_POINT_VERSION,
-          VersionMonitorProvider.ATTR_MINOR_VERSION
-          });
-      NamingEnumeration<SearchResult> en =
-        ctx.search("cn=Version,cn=monitor", "objectclass=*", searchControls);
-      SearchResult sr = null;
-      try
-      {
-        while (en.hasMore())
-        {
-          sr = en.next();
-        }
-      }
-      finally
-      {
-        en.close();
-      }
+      SearchRequest request = newSearchRequest(
+          "cn=Version,cn=monitor", BASE_OBJECT, "objectclass=*",
+          ATTR_PRODUCT_NAME, ATTR_MAJOR_VERSION, ATTR_POINT_VERSION, ATTR_MINOR_VERSION);
+      SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
 
-      CustomSearchResult csr = new CustomSearchResult(sr, "cn=Version,cn=monitor");
-
-      String hostName = ConnectionUtils.getHostName(ctx);
-
-      String productName = getFirstValueAsString(csr, ATTR_PRODUCT_NAME);
-      String major = getFirstValueAsString(csr, ATTR_MAJOR_VERSION);
-      String point = getFirstValueAsString(csr, ATTR_POINT_VERSION);
-      String minor = getFirstValueAsString(csr, ATTR_MINOR_VERSION);
+      String hostName = conn.getHostPort().getHost();
+      String productName = sr.getAttribute(ATTR_PRODUCT_NAME).firstValueAsString();
+      String major = sr.getAttribute(ATTR_MAJOR_VERSION).firstValueAsString();
+      String point = sr.getAttribute(ATTR_POINT_VERSION).firstValueAsString();
+      String minor = sr.getAttribute(ATTR_MINOR_VERSION).firstValueAsString();
       // Be strict, control panel is only compatible with exactly the same version
       if (!productName.equalsIgnoreCase(DynamicConstants.PRODUCT_NAME))
       {

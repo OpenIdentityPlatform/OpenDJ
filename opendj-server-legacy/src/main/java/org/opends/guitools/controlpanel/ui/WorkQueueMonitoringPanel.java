@@ -26,8 +26,8 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.JLabel;
 
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.CollectionUtils;
@@ -118,14 +118,14 @@ import org.opends.server.util.CollectionUtils;
     {
       server = getInfo().getServerDescriptor();
     }
-    CustomSearchResult csr = null;
+    SearchResultEntry sr = null;
     if (server != null)
     {
-      csr = server.getWorkQueueMonitor();
+      sr = server.getWorkQueueMonitor();
     }
-    if (csr != null)
+    if (sr != null)
     {
-      updateMonitoringInfo(attributes, monitoringLabels, csr);
+      updateMonitoringInfo(attributes, monitoringLabels, sr);
     }
     else
     {

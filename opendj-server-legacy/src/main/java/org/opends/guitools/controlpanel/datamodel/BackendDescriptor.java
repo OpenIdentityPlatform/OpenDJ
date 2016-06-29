@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.ADSContext;
 
 /** The class that describes the backend configuration. */
@@ -33,7 +34,7 @@ public class BackendDescriptor
   private int entries;
   private final boolean isConfigBackend;
   private final boolean isEnabled;
-  private CustomSearchResult monitoringEntry;
+  private SearchResultEntry monitoringEntry;
   private final Type type;
   private PluggableType pluggableType;
   private int hashCode;
@@ -164,7 +165,7 @@ public class BackendDescriptor
    * Returns the monitoring entry information.
    * @return the monitoring entry information.
    */
-  public CustomSearchResult getMonitoringEntry()
+  public SearchResultEntry getMonitoringEntry()
   {
     return monitoringEntry;
   }
@@ -268,11 +269,11 @@ public class BackendDescriptor
 
   /**
    * Sets the monitoring entry corresponding to this backend.
-   * @param monitoringEntry the monitoring entry corresponding to this backend.
+   * @param sr the monitoring entry corresponding to this backend.
    */
-  public void setMonitoringEntry(CustomSearchResult monitoringEntry)
+  public void setMonitoringEntry(SearchResultEntry sr)
   {
-    this.monitoringEntry = monitoringEntry;
+    this.monitoringEntry = sr;
   }
 
   /**

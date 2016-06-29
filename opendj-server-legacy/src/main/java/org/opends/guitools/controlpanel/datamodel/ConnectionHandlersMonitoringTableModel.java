@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.messages.AdminToolMessages.*;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,10 +25,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor.Protocol;
-
-import static org.opends.guitools.controlpanel.util.Utilities.*;
-import static org.opends.messages.AdminToolMessages.*;
 
 /** The table model used to display the monitoring information of connection handlers. */
 public class ConnectionHandlersMonitoringTableModel extends
@@ -101,7 +101,7 @@ AddressConnectionHandlerDescriptor>
   }
 
   @Override
-  protected CustomSearchResult getMonitoringEntry(
+  protected SearchResultEntry getMonitoringEntry(
       AddressConnectionHandlerDescriptor ach)
   {
     return ach.getMonitoringEntry();
@@ -140,12 +140,11 @@ AddressConnectionHandlerDescriptor>
     return sb.toString();
   }
 
-  private CustomSearchResult getMonitoringEntry(InetAddress address,
-      ConnectionHandlerDescriptor cch)
+  private SearchResultEntry getMonitoringEntry(InetAddress address, ConnectionHandlerDescriptor cch)
   {
-    for (CustomSearchResult sr : cch.getMonitoringEntries())
+    for (SearchResultEntry sr : cch.getMonitoringEntries())
     {
-      String cn = getFirstValueAsString(sr, "cn");
+      String cn = sr.getAttribute("cn").firstValueAsString();
       if (cn != null)
       {
         if (address == null)
@@ -176,7 +175,7 @@ class AddressConnectionHandlerDescriptor
 {
   private final ConnectionHandlerDescriptor ch;
   private final InetAddress address;
-  private final CustomSearchResult monitoringEntry;
+  private final SearchResultEntry monitoringEntry;
   private final int hashCode;
 
   /**
@@ -188,7 +187,7 @@ class AddressConnectionHandlerDescriptor
   public AddressConnectionHandlerDescriptor(
       ConnectionHandlerDescriptor ch,
       InetAddress address,
-      CustomSearchResult monitoringEntry)
+      SearchResultEntry monitoringEntry)
   {
     this.ch = ch;
     this.address = address;
@@ -226,7 +225,7 @@ class AddressConnectionHandlerDescriptor
    * Returns the monitoring entry.
    * @return the monitoring entry.
    */
-  public CustomSearchResult getMonitoringEntry()
+  public SearchResultEntry getMonitoringEntry()
   {
     return monitoringEntry;
   }

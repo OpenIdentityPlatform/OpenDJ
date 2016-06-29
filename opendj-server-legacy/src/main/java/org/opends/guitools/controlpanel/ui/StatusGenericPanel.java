@@ -67,6 +67,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -76,7 +78,6 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ScheduleType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -95,7 +96,6 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.server.schema.SchemaConstants;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -2096,7 +2096,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    *          the monitoring entry.
    * @return the monitoring value in a String form to be displayed to the user.
    */
-  public static String getMonitoringValue(final MonitoringAttributes attr, final CustomSearchResult monitoringEntry)
+  public static String getMonitoringValue(final MonitoringAttributes attr, final SearchResultEntry monitoringEntry)
   {
     return Utilities.getMonitoringValue(attr, monitoringEntry);
   }
@@ -2112,7 +2112,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    *          the monitoring entry containing the information to be displayed.
    */
   protected void updateMonitoringInfo(final List<? extends MonitoringAttributes> monitoringAttrs,
-      final List<JLabel> monitoringLabels, final CustomSearchResult monitoringEntry)
+      final List<JLabel> monitoringLabels, final SearchResultEntry monitoringEntry)
   {
     for (int i = 0; i < monitoringAttrs.size(); i++)
     {

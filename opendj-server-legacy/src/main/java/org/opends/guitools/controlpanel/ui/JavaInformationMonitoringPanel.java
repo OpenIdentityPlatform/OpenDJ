@@ -21,7 +21,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -35,14 +34,14 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.JTextComponent;
 
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.CollectionUtils;
 
-import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -276,8 +275,8 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
     {
       server = getInfo().getServerDescriptor();
     }
-    CustomSearchResult csrSystem = null;
-    CustomSearchResult csrMemory = null;
+    SearchResultEntry csrSystem = null;
+    SearchResultEntry csrMemory = null;
     if (server != null)
     {
       csrSystem = server.getSystemInformationMonitor();
@@ -326,10 +325,10 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
     {
       if (memoryAttributes.isEmpty())
       {
-        Set<String> allNames = csrMemory.getAttributeNames();
         SortedSet<String> sortedNames = new TreeSet<>();
-        for (String attrName : allNames)
+        for (Attribute attribute : csrMemory.getAllAttributes())
         {
+          String attrName = attribute.getAttributeDescriptionAsString();
           if (!OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attrName)
               && !ATTR_COMMON_NAME.equalsIgnoreCase(attrName))
           {
@@ -368,7 +367,7 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
 
       for (int i=0; i<memoryAttributes.size() ; i++)
       {
-        String value = getFirstValueAsString(csrMemory, memoryAttributes.get(i));
+        String value = csrMemory.getAttribute(memoryAttributes.get(i)).firstValueAsString();
         if (value != null)
         {
           memoryLabels.get(i).setText(value);

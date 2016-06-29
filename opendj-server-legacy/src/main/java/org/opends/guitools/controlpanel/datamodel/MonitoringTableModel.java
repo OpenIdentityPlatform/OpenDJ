@@ -16,6 +16,9 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.messages.AdminToolMessages.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -26,10 +29,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.util.Utilities;
-
-import static org.opends.guitools.controlpanel.util.Utilities.*;
-import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * The abstract table model used to display all the network groups.
@@ -290,18 +291,17 @@ abstract class MonitoringTableModel<T, P> extends SortableTableModel implements 
    * @return the monitoring entry associated with the provided object.  Returns
    * <CODE>null</CODE> if there is no monitoring entry associated.
    */
-  protected abstract CustomSearchResult getMonitoringEntry(P o);
+  protected abstract SearchResultEntry getMonitoringEntry(P o);
 
   private String[] getLine(P o)
   {
     String[] line = new String[columnNames.length];
     line[0] = getName(o);
     int i = 1;
-    CustomSearchResult monitoringEntry = getMonitoringEntry(o);
+    SearchResultEntry monitoringEntry = getMonitoringEntry(o);
     for (MonitoringAttributes attribute : attributes)
     {
-      line[i] = Utilities.getMonitoringValue(
-          attribute, monitoringEntry);
+      line[i] = Utilities.getMonitoringValue(attribute, monitoringEntry);
       if (showAverages && attribute.canHaveAverage())
       {
         i++;
@@ -355,8 +355,8 @@ abstract class MonitoringTableModel<T, P> extends SortableTableModel implements 
    * @return a list of integer with all the values of two monitoring entries
    * compared.
    */
-  protected ArrayList<Integer> getMonitoringPossibleResults(
-      CustomSearchResult monitor1, CustomSearchResult monitor2)
+  protected List<Integer> getMonitoringPossibleResults(
+      SearchResultEntry monitor1, SearchResultEntry monitor2)
   {
     final List<String> attrs = new ArrayList<>();
     for (MonitoringAttributes operation : getAttributes())

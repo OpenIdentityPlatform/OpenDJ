@@ -399,45 +399,6 @@ public final class Schema
   }
 
   /**
-   * Registers an attribute type from its provided definition.
-   *
-   * @param definition
-   *          The definition of the attribute type
-   * @param schemaFile
-   *          The schema file where this definition belongs,
-   *          maybe {@code null}
-   * @param overwrite
-   *          Indicates whether to overwrite the attribute
-   *          type if it already exists based on OID or name
-   * @throws DirectoryException
-   *            If an error occurs
-   */
-  public void registerAttributeType(final String definition, final String schemaFile, final boolean overwrite)
-      throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-      switchSchema(new SchemaBuilder(schemaNG)
-          .addAttributeType(defWithFile, overwrite)
-          .toSchema());
-    }
-    catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
-    {
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
-    }
-    catch (LocalizedIllegalArgumentException e)
-    {
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
-  }
-
-  /**
    * Registers the provided attribute type definition with this schema.
    *
    * @param attributeType
@@ -751,44 +712,6 @@ public final class Schema
     else
     {
       b.addToSchema();
-    }
-  }
-
-  /**
-   * Registers an object class from its provided definition.
-   *
-   * @param definition
-   *          The definition of the object class
-   * @param schemaFile
-   *          The schema file where this definition belongs, may be {@code null}
-   * @param overwriteExisting
-   *          Indicates whether to overwrite the object class
-   *          if it already exists based on OID or name
-   * @throws DirectoryException
-   *            If an error occurs
-   */
-  public void registerObjectClass(String definition, String schemaFile, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    exclusiveLock.lock();
-    try
-    {
-      String defWithFile = getDefinitionWithSchemaFile(definition, schemaFile);
-      switchSchema(new SchemaBuilder(schemaNG)
-          .addObjectClass(defWithFile, overwriteExisting)
-          .toSchema());
-    }
-    catch (ConflictingSchemaElementException | UnknownSchemaElementException e)
-    {
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
-    }
-    catch (LocalizedIllegalArgumentException e)
-    {
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
-    }
-    finally
-    {
-      exclusiveLock.unlock();
     }
   }
 
@@ -1132,11 +1055,6 @@ public final class Schema
     {
       exclusiveLock.unlock();
     }
-  }
-
-  private String getDefinitionWithSchemaFile(String definition, String schemaFile)
-  {
-    return schemaFile != null ? addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile) : definition;
   }
 
   /**
