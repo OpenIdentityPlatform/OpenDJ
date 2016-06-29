@@ -24,10 +24,10 @@ import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
 import javax.naming.TimeLimitExceededException;
-import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ServerDescriptor;
@@ -53,7 +53,7 @@ public class ServerLoader extends Thread
   private ServerDescriptor serverDescriptor;
   private final ApplicationTrustManager trustManager;
   private final int timeout;
-  private final String dn;
+  private final DN dn;
   private final String pwd;
   private final LinkedHashSet<PreferredConnection> preferredLDAPURLs;
   private final TopologyCacheFilter filter;
@@ -77,8 +77,7 @@ public class ServerLoader extends Thread
    * to retrieve all the information.
    */
   public ServerLoader(Map<ServerProperty,Object> serverProperties,
-      String dn, String pwd, ApplicationTrustManager trustManager,
-      int timeout,
+      DN dn, String pwd, ApplicationTrustManager trustManager, int timeout,
       Set<PreferredConnection> preferredLDAPURLs,
       TopologyCacheFilter filter)
   {
@@ -215,7 +214,8 @@ public class ServerLoader extends Thread
     for (PreferredConnection connection : getLDAPURLsByPreference())
     {
       lastLdapUrl = connection.getLDAPURL();
-      ConnectionWrapper conn = new ConnectionWrapper(lastLdapUrl, connection.getType(), dn, pwd, timeout, trustManager);
+      ConnectionWrapper conn =
+          new ConnectionWrapper(lastLdapUrl, connection.getType(), dn.toString(), pwd, timeout, trustManager);
       if (conn.getLdapContext() != null)
       {
         return conn;
@@ -345,10 +345,8 @@ public class ServerLoader extends Thread
   {
     try
     {
-      LdapName theDn = new LdapName(dn);
-      LdapName containerDn =
-        new LdapName(ADSContext.getAdministratorContainerDN());
-      return theDn.startsWith(containerDn);
+      DN containerDn = DN.valueOf(ADSContext.getAdministratorContainerDN());
+      return dn.isSubordinateOrEqualTo(containerDn);
     }
     catch (Throwable t)
     {

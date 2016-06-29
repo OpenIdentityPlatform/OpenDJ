@@ -70,6 +70,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ADSContext;
@@ -4139,7 +4140,8 @@ public class Installer extends GuiApplication
       }
       server.setAdsProperties(adsProperties);
     }
-    return getRemoteConnection(server, auth.getDn(), auth.getPwd(), getConnectTimeout(), getPreferredConnections());
+    return getRemoteConnection(server, DN.valueOf(auth.getDn()), auth.getPwd(), getConnectTimeout(),
+        getPreferredConnections());
   }
 
   /**

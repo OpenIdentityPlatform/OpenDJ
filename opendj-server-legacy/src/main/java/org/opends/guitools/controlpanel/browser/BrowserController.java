@@ -176,7 +176,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * issues).  We also pass the server descriptor corresponding to the
    * connections to have a proper rendering of the root node.
    * @param server the server descriptor.
-   * @param ctxConfiguration the connection to be used to retrieve the data in
+   * @param connConfiguration the connection to be used to retrieve the data in
    * the configuration base DNs.
    * @param ctxUserData the connection to be used to retrieve the data in the
    * user base DNs.
@@ -184,16 +184,15 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public void setConnections(
       ServerDescriptor server,
-      ConnectionWrapper ctxConfiguration,
+      ConnectionWrapper connConfiguration,
       InitialLdapContext ctxUserData) throws NamingException {
     String rootNodeName;
-    if (ctxConfiguration != null)
+    if (connConfiguration != null)
     {
-      this.connConfig = ctxConfiguration;
-      this.ctxConfiguration = connConfig.getLdapContext();
+      this.connConfig = connConfiguration;
       this.ctxUserData = ctxUserData;
 
-      this.ctxConfiguration.setRequestControls(getConfigurationRequestControls());
+      connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
       this.ctxUserData.setRequestControls(getRequestControls());
       rootNodeName = new HostPort(server.getHostname(), connConfig.getHostPort().getPort()).toString();
     }
@@ -210,7 +209,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the connection for accessing the directory configuration.
    */
   public InitialLdapContext getConfigurationConnection() {
-    return ctxConfiguration;
+    return connConfig.getLdapContext();
   }
 
   /**
@@ -418,7 +417,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     this.followReferrals = followReferrals;
     stopRefresh();
     removeAllChildNodes(rootNode, true /* Keep suffixes */);
-    ctxConfiguration.setRequestControls(getConfigurationRequestControls());
+    connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
     ctxUserData.setRequestControls(getRequestControls());
     connectionPool.setRequestControls(getRequestControls());
     startRefresh(null);
@@ -446,7 +445,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     stopRefresh();
     removeAllChildNodes(rootNode, true /* Keep suffixes */);
     this.sorted = sorted;
-    ctxConfiguration.setRequestControls(getConfigurationRequestControls());
+    connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
     ctxUserData.setRequestControls(getRequestControls());
     connectionPool.setRequestControls(getRequestControls());
     startRefresh(null);
@@ -939,7 +938,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       boolean isConfigurationNode) throws NamingException
   {
     if (node == rootNode) {
-      return ctxConfiguration;
+      return connConfig.getLdapContext();
     }
 
     final BasicNode parent = (BasicNode) node.getParent();
@@ -947,7 +946,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     {
       return findConnectionForDisplayedEntry(parent, isConfigurationNode);
     }
-    return isConfigurationNode ? ctxConfiguration : ctxUserData;
+    return isConfigurationNode ? connConfig.getLdapContext() : ctxUserData;
   }
 
   /**
@@ -1019,7 +1018,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param ctx the connection to be released.
    */
   void releaseLDAPConnection(InitialLdapContext ctx) {
-    if (ctx != this.ctxConfiguration && ctx != this.ctxUserData)
+    if (ctx != connConfig.getLdapContext() && ctx != this.ctxUserData)
     {
       // Thus it comes from the connection pool
       connectionPool.releaseConnection(ctx);
@@ -1034,7 +1033,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   LDAPURL findUrlForLocalEntry(BasicNode node) {
     if (node == rootNode) {
-      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", isSSL(ctxConfiguration));
+      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", isSSL(connConfig.getLdapContext()));
     }
     final BasicNode parent = (BasicNode) node.getParent();
     if (parent != null)
@@ -1042,7 +1041,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       final LDAPURL parentUrl = findUrlForDisplayedEntry(parent);
       return LDAPConnectionPool.makeLDAPUrl(parentUrl, node.getDN());
     }
-    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), isSSL(ctxConfiguration));
+    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), isSSL(connConfig.getLdapContext()));
   }
 
 

@@ -74,7 +74,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -1189,16 +1189,16 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
       {
         try
         {
-          InitialLdapContext ctx = getInfo().getConnection().getLdapContext();
+          ConnectionWrapper conn = getInfo().getConnection();
           InitialLdapContext ctx1 = controller.getConfigurationConnection();
-          boolean setConnection = ctx != ctx1;
+          boolean setConnection = conn.getLdapContext() != ctx1;
           updateNumSubordinateHacker(desc);
           if (setConnection)
           {
             if (getInfo().getUserDataDirContext() == null)
             {
               InitialLdapContext ctxUserData =
-                  createUserDataDirContext(ConnectionUtils.getBindDN(ctx), ConnectionUtils.getBindPassword(ctx));
+                  createUserDataDirContext(conn.getBindDn().toString(), conn.getBindPassword());
               getInfo().setUserDataDirContext(ctxUserData);
             }
             final NamingException[] fNe = { null };
@@ -1427,7 +1427,8 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
         throw ne;
       }
 
-      ApplicationTrustManager.Cause cause = getInfo().getTrustManager().getLastRefusedCause();
+      ApplicationTrustManager trustManager = getInfo().getTrustManager();
+      ApplicationTrustManager.Cause cause = trustManager.getLastRefusedCause();
 
       logger.info(LocalizableMessage.raw("Certificate exception cause: " + cause));
       UserDataCertificateException.Type excType = null;
@@ -1457,8 +1458,8 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           p = -1;
         }
         final UserDataCertificateException udce = new UserDataCertificateException(
-            null, INFO_CERTIFICATE_EXCEPTION.get(h, p), ne, h, p, getInfo().getTrustManager().getLastRefusedChain(),
-            getInfo().getTrustManager().getLastRefusedAuthType(), excType);
+            null, INFO_CERTIFICATE_EXCEPTION.get(h, p), ne, h, p, trustManager.getLastRefusedChain(),
+            trustManager.getLastRefusedAuthType(), excType);
 
         if (SwingUtilities.isEventDispatchThread())
         {

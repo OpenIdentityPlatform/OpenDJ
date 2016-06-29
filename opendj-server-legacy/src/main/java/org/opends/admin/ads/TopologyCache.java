@@ -34,6 +34,7 @@ import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -57,7 +58,7 @@ public class TopologyCache
   private final ADSContext adsContext;
   private final ApplicationTrustManager trustManager;
   private final int timeout;
-  private final String bindDN;
+  private final DN bindDN;
   private final String bindPwd;
   private final Set<ServerDescriptor> servers = new HashSet<>();
   private final Set<SuffixDescriptor> suffixes = new HashSet<>();
@@ -83,8 +84,9 @@ public class TopologyCache
     this.adsContext = adsContext;
     this.trustManager = trustManager;
     this.timeout = timeout;
-    bindDN = ConnectionUtils.getBindDN(adsContext.getDirContext());
-    bindPwd = ConnectionUtils.getBindPassword(adsContext.getDirContext());
+    ConnectionWrapper conn = adsContext.getConnection();
+    bindDN = conn.getBindDn();
+    bindPwd = conn.getBindPassword();
   }
 
   /**
@@ -357,8 +359,7 @@ public class TopologyCache
   {
     return new ServerLoader(serverProperties, bindDN, bindPwd,
         trustManager == null ? null : trustManager.createCopy(),
-        timeout,
-        getPreferredConnections(), getFilter());
+        timeout, getPreferredConnections(), getFilter());
   }
 
   /**

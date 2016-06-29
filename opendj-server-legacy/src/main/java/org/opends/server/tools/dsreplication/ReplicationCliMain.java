@@ -5839,7 +5839,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      String bindDn = conn.getBindDn().toString();
+      DN bindDn = conn.getBindDn();
       String pwd = conn.getBindPassword();
       for (ServerDescriptor s : serversToUpdate)
       {
@@ -7526,7 +7526,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * configuration.
    */
   private void removeReferencesInServer(ServerDescriptor server,
-      String replicationServer, String bindDn, String pwd,
+      String replicationServer, DN bindDn, String pwd,
       Collection<String> baseDNs, boolean updateReplicationServers,
       Set<PreferredConnection> cnx)
   throws ReplicationCliException
@@ -9507,8 +9507,9 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private ConnectionWrapper getConnection(TopologyCache cache, ServerDescriptor server) throws NamingException
   {
-    String dn = getBindDN(cache.getAdsContext().getDirContext());
-    String pwd = getBindPassword(cache.getAdsContext().getDirContext());
+    ConnectionWrapper conn = cache.getAdsContext().getConnection();
+    DN dn = conn.getBindDn();
+    String pwd = conn.getBindPassword();
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);

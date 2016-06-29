@@ -32,6 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
@@ -603,7 +604,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return the InitialLdapContext to the remote server.
    * @throws ApplicationException if something goes wrong.
    */
-  protected ConnectionWrapper getRemoteConnection(ServerDescriptor server, String dn, String pwd, int timeout,
+  protected ConnectionWrapper getRemoteConnection(ServerDescriptor server, DN dn, String pwd, int timeout,
       Set<PreferredConnection> cnx) throws ApplicationException
   {
     Map<ADSContext.ServerProperty, Object> adsProperties =

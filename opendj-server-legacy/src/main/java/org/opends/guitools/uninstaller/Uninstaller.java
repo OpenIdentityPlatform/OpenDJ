@@ -44,6 +44,7 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
@@ -1829,7 +1830,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     logger.info(LocalizableMessage.raw("Updating references in: " + server.getHostPort(true)));
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_REMOVING_REFERENCES.get(server.getHostPort(true))));
 
-    String dn = ADSContext.getAdministratorDN(uData.getAdminUID());
+    DN dn = DN.valueOf(ADSContext.getAdministratorDN(uData.getAdminUID()));
     String pwd = uData.getAdminPwd();
     try (ConnectionWrapper connWrapper =
         getRemoteConnection(server, dn, pwd, getConnectTimeout(), new LinkedHashSet<PreferredConnection>()))
