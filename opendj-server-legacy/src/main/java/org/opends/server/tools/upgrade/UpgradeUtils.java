@@ -78,16 +78,13 @@ final class UpgradeUtils
   /** The {@code config/schema} folder of the current instance. */
   static final File configSchemaDirectory = new File(configDirectory, SCHEMA_PATH_RELATIVE);
   /** The {@code config/upgrade} folder of the current instance. */
-  static final File configUpgradeDirectory = new File(configDirectory, "upgrade");
+  private static final File configUpgradeDirectory = new File(configDirectory, "upgrade");
   /** The {@code template} folder of the current installation. */
   private static final File templateDirectory = new File(getInstallationPath(), TEMPLATE_RELATIVE_PATH);
   /** The {@code template/config} folder of the current installation. */
   static final File templateConfigDirectory = new File(templateDirectory, CONFIG_PATH_RELATIVE);
   /** The {@code template/config/schema} folder of the current installation. */
   static final File templateConfigSchemaDirectory = new File(templateConfigDirectory, SCHEMA_PATH_RELATIVE);
-  /** The {@code config/snmp/security} folder of the current instance. */
-  static final File configSnmpSecurityDirectory = new File(
-      configDirectory + File.separator + SNMP_PATH_RELATIVE + File.separator + SECURITY_PATH_RELATIVE);
   /** The {@code lib} folder of the current installation. */
   static final File libDirectory = new File(getInstallationPath(), LIB_RELATIVE_PATH);
   /** The {@code bin} folder of the current installation. */

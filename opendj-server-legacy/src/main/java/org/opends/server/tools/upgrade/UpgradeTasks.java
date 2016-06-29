@@ -830,61 +830,6 @@ final class UpgradeTasks
   }
 
   /**
-   * Renames the SNMP security config file if it exists. Since 2.5.0.7466 this
-   * file has been renamed.
-   *
-   * @param summary
-   *          The summary of this upgrade task.
-   * @return An upgrade task which renames the old SNMP security config file if
-   *         it exists.
-   */
-  public static UpgradeTask renameSnmpSecurityConfig(final LocalizableMessage summary)
-  {
-    return new AbstractUpgradeTask()
-    {
-      @Override
-      public void perform(final UpgradeContext context) throws ClientException
-      {
-        /*
-         * Snmp config file contains old name in old version(like 2.4.5), in
-         * order to make sure the process will still work after upgrade, we need
-         * to rename it - only if it exists.
-         */
-        final File snmpDir = UpgradeUtils.configSnmpSecurityDirectory;
-        if (snmpDir.exists())
-        {
-          ProgressNotificationCallback pnc = new ProgressNotificationCallback(INFORMATION, summary, 0);
-          try
-          {
-            final File oldSnmpConfig = new File(snmpDir, "opends-snmp.security");
-            if (oldSnmpConfig.exists())
-            {
-              context.notifyProgress(pnc.setProgress(20));
-              logger.debug(summary);
-
-              final File snmpConfig = new File(snmpDir, "opendj-snmp.security");
-              FileManager.rename(oldSnmpConfig, snmpConfig);
-
-              context.notifyProgress(pnc.setProgress(100));
-            }
-          }
-          catch (final Exception ex)
-          {
-            LocalizableMessage msg = ERR_UPGRADE_RENAME_SNMP_SECURITY_CONFIG_FILE.get(ex.getMessage());
-            throw unexpectedException(context, pnc, msg);
-          }
-        }
-      }
-
-      @Override
-      public String toString()
-      {
-        return String.valueOf(summary);
-      }
-    };
-  }
-
-  /**
    * Removes the specified file from the file-system.
    *
    * @param file
