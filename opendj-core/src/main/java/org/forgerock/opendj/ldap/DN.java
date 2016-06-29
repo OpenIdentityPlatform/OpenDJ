@@ -20,9 +20,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.WeakHashMap;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
@@ -68,13 +68,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     private static final int DN_CACHE_SIZE = 32;
 
-    private static final ThreadLocal<WeakHashMap<Schema, Map<String, DN>>> CACHE =
-            new ThreadLocal<WeakHashMap<Schema, Map<String, DN>>>() {
+    private static final ThreadLocal<Map<String, DN>> CACHE = new ThreadLocal<Map<String, DN>>() {
+        @SuppressWarnings("serial")
+        @Override
+        protected Map<String, DN> initialValue() {
+            return new LinkedHashMap<String, DN>(DN_CACHE_SIZE, 0.75f, true) {
                 @Override
-                protected WeakHashMap<Schema, Map<String, DN>> initialValue() {
-                    return new WeakHashMap<>();
+                protected boolean removeEldestEntry(Entry<String, DN> eldest) {
+                    return size() > DN_CACHE_SIZE;
                 }
             };
+        }
+    };
 
     /**
      * Returns the LDAP string representation of the provided DN attribute value
@@ -230,9 +235,9 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         }
 
         // First check if DN is already cached.
-        final Map<String, DN> cache = getCache(schema);
+        final Map<String, DN> cache = CACHE.get();
         final DN cachedDN = cache.get(dn);
-        if (cachedDN != null) {
+        if (cachedDN != null && cachedDN.schema == schema) {
             return cachedDN;
         }
 
@@ -305,23 +310,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             }
         }
         return new DN(schema, parent, rdn);
-    }
-
-    @SuppressWarnings("serial")
-    private static Map<String, DN> getCache(final Schema schema) {
-        final WeakHashMap<Schema, Map<String, DN>> threadLocalMap = CACHE.get();
-        Map<String, DN> schemaLocalMap = threadLocalMap.get(schema);
-
-        if (schemaLocalMap == null) {
-            schemaLocalMap = new LinkedHashMap<String, DN>(DN_CACHE_SIZE, 0.75f, true) {
-                @Override
-                protected boolean removeEldestEntry(final Map.Entry<String, DN> e) {
-                    return size() > DN_CACHE_SIZE;
-                }
-            };
-            threadLocalMap.put(schema, schemaLocalMap);
-        }
-        return schemaLocalMap;
     }
 
     private final RDN rdn;

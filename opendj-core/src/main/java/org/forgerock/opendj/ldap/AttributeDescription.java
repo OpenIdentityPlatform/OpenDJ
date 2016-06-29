@@ -26,13 +26,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.WeakHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.ASCIICharProp;
@@ -334,12 +334,19 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
     }
 
-    private static final ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>> CACHE =
-            new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>() {
-
+    private static final ThreadLocal<Map<String, Pair<Schema, AttributeDescription>>> CACHE =
+            new ThreadLocal<Map<String, Pair<Schema, AttributeDescription>>>() {
+                @SuppressWarnings("serial")
                 @Override
-                protected WeakHashMap<Schema, Map<String, AttributeDescription>> initialValue() {
-                    return new WeakHashMap<>();
+                protected Map<String, Pair<Schema, AttributeDescription>> initialValue() {
+                    return new LinkedHashMap<String, Pair<Schema, AttributeDescription>>(
+                            ATTRIBUTE_DESCRIPTION_CACHE_SIZE, 0.75f, true) {
+                        @Override
+                        protected boolean removeEldestEntry(
+                                final Map.Entry<String, Pair<Schema, AttributeDescription>> eldest) {
+                            return size() > ATTRIBUTE_DESCRIPTION_CACHE_SIZE;
+                        }
+                    };
                 }
             };
 
@@ -767,38 +774,22 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeDescription} or {@code schema} was
      *             {@code null}.
      */
-    @SuppressWarnings("serial")
     public static AttributeDescription valueOf(final String attributeDescription,
             final Schema schema) {
         Reject.ifNull(attributeDescription, schema);
 
         // First look up the attribute description in the cache.
-        final WeakHashMap<Schema, Map<String, AttributeDescription>> threadLocalMap = CACHE.get();
-        Map<String, AttributeDescription> schemaLocalMap = threadLocalMap.get(schema);
-
-        AttributeDescription ad = null;
-        if (schemaLocalMap == null) {
-            schemaLocalMap =
-                    new LinkedHashMap<String, AttributeDescription>(
-                            ATTRIBUTE_DESCRIPTION_CACHE_SIZE, 0.75f, true) {
-                        @Override
-                        protected boolean removeEldestEntry(
-                                final Map.Entry<String, AttributeDescription> eldest) {
-                            return size() > ATTRIBUTE_DESCRIPTION_CACHE_SIZE;
-                        }
-                    };
-            threadLocalMap.put(schema, schemaLocalMap);
-        } else {
-            ad = schemaLocalMap.get(attributeDescription);
+        final Map<String, Pair<Schema, AttributeDescription>> threadLocalCache = CACHE.get();
+        Pair<Schema, AttributeDescription> ad = threadLocalCache.get(attributeDescription);
+        // WARNING: When we'll support multiple schema, this schema equality check will be a problem
+        // for heavily used core attributes like "cn" which will be inherited in any sub-schema.
+        // See OPENDJ-3191
+        if (ad == null || ad.getFirst() != schema) {
+            // Cache miss: decode and cache.
+            ad = Pair.of(schema, valueOf0(attributeDescription, schema));
+            threadLocalCache.put(attributeDescription, ad);
         }
-
-        // Cache miss: decode and cache.
-        if (ad == null) {
-            ad = valueOf0(attributeDescription, schema);
-            schemaLocalMap.put(attributeDescription, ad);
-        }
-
-        return ad;
+        return ad.getSecond();
     }
 
     private static int skipTrailingWhiteSpace(final String attributeDescription, int i,
