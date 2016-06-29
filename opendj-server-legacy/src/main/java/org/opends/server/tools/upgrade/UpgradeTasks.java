@@ -23,7 +23,7 @@ import static javax.security.auth.callback.TextOutputCallback.*;
 
 import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.upgrade.FileManager.copy;
+import static org.opends.server.tools.upgrade.FileManager.copyRecursively;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
 import static org.opends.server.types.Schema.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -115,6 +115,42 @@ public final class UpgradeTasks
   }
 
   /**
+   * Returns a new upgrade task which adds a config entry to the underlying
+   * config file. No summary message will be output.
+   *
+   * @param ldif
+   *          The LDIF record which will be applied to matching entries.
+   * @return A new upgrade task which applies an LDIF record to all
+   *         configuration entries matching the provided filter.
+   */
+  public static UpgradeTask addConfigEntry(final String... ldif)
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException
+      {
+        try
+        {
+          final int changeCount = updateConfigFile(configFile, null, ChangeOperationType.ADD, ldif);
+          displayChangeCount(configFile, changeCount);
+        }
+        catch (final Exception e)
+        {
+          countErrors++;
+          throw new ClientException(ReturnCode.ERROR_UNEXPECTED, LocalizableMessage.raw(e.getMessage()));
+        }
+      }
+
+      @Override
+      public String toString()
+      {
+        return "Add entry " + ldif[0];
+      }
+    };
+  }
+
+  /**
    * This task copies the file placed in parameter within the config / schema
    * folder. If the file already exists, it's overwritten.
    *
@@ -147,7 +183,7 @@ public final class UpgradeTasks
             throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE
                 .get(schemaFileTemplate.getPath()).toString());
           }
-          copy(schemaFileTemplate, configSchemaDirectory, true);
+          copyRecursively(schemaFileTemplate, configSchemaDirectory, true);
           context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)
@@ -192,7 +228,7 @@ public final class UpgradeTasks
         {
           context.notifyProgress(pnc.setProgress(20));
 
-          copy(configFile, configDirectory, true);
+          copyRecursively(configFile, configDirectory, true);
           context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)

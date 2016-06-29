@@ -81,7 +81,7 @@ class FileManager
   }
 
   /**
-   * Copies everything below the specified file.
+   * Recursively copies everything below the specified file/directory.
    *
    * @param objectFile
    *          the file to be copied.
@@ -89,16 +89,12 @@ class FileManager
    *          the directory to copy the file to
    * @param overwrite
    *          overwrite destination files.
-   * @return File representing the destination
    * @throws IOException
    *           if something goes wrong.
    */
-  public static File copy(File objectFile, File destDir, boolean overwrite)
-      throws IOException
+  public static void copyRecursively(File objectFile, File destDir, boolean overwrite) throws IOException
   {
-    CopyOperation co = new CopyOperation(objectFile, destDir, overwrite);
-    co.apply();
-    return co.getDestination();
+    operateRecursively(new CopyOperation(objectFile, destDir, overwrite), null);
   }
 
   private static void operateRecursively(FileOperation op, FileFilter filter)

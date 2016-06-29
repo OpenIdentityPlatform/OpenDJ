@@ -591,6 +591,154 @@ public final class Upgrade
     register("3.5.0",
         restoreCsvDelimiterAttributeTypeInConcatenatedSchemaFile());
 
+    register("3.5.0",
+        requireConfirmation(INFO_UPGRADE_TASK_CONFIRM_DISABLING_HTTP_CONNECTION_HANDLER.get(), YES,
+            modifyConfigEntry(INFO_UPGRADE_TASK_DISABLING_HTTP_CONNECTION_HANDLER.get(),
+                    "(objectclass=ds-cfg-http-connection-handler)",
+                    "replace: ds-cfg-enabled",
+                    "ds-cfg-enabled: false",
+                    "-",
+                    "delete: ds-cfg-authentication-required",
+                    "-",
+                    "delete: ds-cfg-config-file",
+                    "-"
+            )
+        ),
+        addConfigEntry(INFO_UPGRADE_TASK_ADDING_DEFAULT_HTTP_ENDPOINTS_AND_AUTH.get(),
+                "dn: cn=HTTP Endpoints,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-branch",
+                "cn: HTTP Endpoints"
+        ),
+        addConfigEntry(
+                "dn: ds-cfg-base-path=/api,cn=HTTP Endpoints,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-endpoint",
+                "objectClass: ds-cfg-rest2ldap-endpoint",
+                "ds-cfg-enabled: true",
+                "ds-cfg-java-class: org.opends.server.protocols.http.rest2ldap.Rest2LdapEndpoint",
+                "ds-cfg-base-path: /api",
+                "ds-cfg-config-directory: config/rest2ldap/endpoints/api",
+                "ds-cfg-http-authorization-mechanism: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config"
+        ),
+        addConfigEntry(
+                "dn: ds-cfg-base-path=/admin,cn=HTTP Endpoints,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-endpoint",
+                "objectClass: ds-cfg-admin-endpoint",
+                "ds-cfg-enabled: true",
+                "ds-cfg-base-path: /admin",
+                "ds-cfg-java-class: org.opends.server.protocols.http.rest2ldap.AdminEndpoint",
+                "ds-cfg-http-authorization-mechanism: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config"
+        ),
+        addConfigEntry(
+                "dn: cn=HTTP Authorization Mechanisms,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-branch",
+                "cn: HTTP Authorizations"
+        ),
+        addConfigEntry(
+                "dn: cn=HTTP Anonymous,cn=HTTP Authorization Mechanisms,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-authorization-mechanism",
+                "objectClass: ds-cfg-http-anonymous-authorization-mechanism",
+                "cn: HTTP Anonymous",
+                "ds-cfg-enabled: true",
+                "ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpAnonymousAuthorizationMechanism"
+        ),
+        addConfigEntry(
+                "dn: cn=HTTP Basic,cn=HTTP Authorization Mechanisms,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-authorization-mechanism",
+                "objectClass: ds-cfg-http-basic-authorization-mechanism",
+                "cn: HTTP Basic",
+                "ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpBasicAuthorizationMechanism",
+                "ds-cfg-enabled: true",
+                "ds-cfg-http-basic-alt-authentication-enabled: true",
+                "ds-cfg-http-basic-alt-username-header: X-OpenIDM-Username",
+                "ds-cfg-http-basic-alt-password-header: X-OpenIDM-Password",
+                "ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config"
+        ),
+        addConfigEntry(
+                "dn: cn=HTTP OAuth2 CTS,cn=HTTP Authorization Mechanisms,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-cts-authorization-mechanism",
+                "cn: HTTP OAuth2 CTS",
+                "ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2CtsAuthorizationMechanism",
+                "ds-cfg-enabled: false",
+                "ds-cfg-cts-base-dn: ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com",
+                "ds-cfg-oauth2-authzid-json-pointer: userName/0",
+                "ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config",
+                "ds-cfg-oauth2-required-scope: read",
+                "ds-cfg-oauth2-required-scope: write",
+                "ds-cfg-oauth2-required-scope: uid",
+                "ds-cfg-oauth2-access-token-cache-enabled: false",
+                "ds-cfg-oauth2-access-token-cache-expiration: 300s"
+        ),
+        addConfigEntry(
+                "dn: cn=HTTP OAuth2 OpenAM,cn=HTTP Authorization Mechanisms,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-openam-authorization-mechanism",
+                "cn: HTTP OAuth2 OpenAM",
+                "ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2OpenAmAuthorizationMechanism",
+                "ds-cfg-enabled: false",
+                "ds-cfg-openam-token-info-url: http://openam.example.com:8080/openam/oauth2/tokeninfo",
+                "ds-cfg-oauth2-authzid-json-pointer: uid",
+                "ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config",
+                "ds-cfg-oauth2-required-scope: read",
+                "ds-cfg-oauth2-required-scope: write",
+                "ds-cfg-oauth2-required-scope: uid",
+                "ds-cfg-oauth2-access-token-cache-enabled: false",
+                "ds-cfg-oauth2-access-token-cache-expiration: 300s"
+        ),
+        addConfigEntry(
+                "dn: cn=HTTP OAuth2 Token Introspection (RFC7662),cn=HTTP Authorization Mechanisms,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-token-introspection-authorization-mechanism",
+                "cn: HTTP OAuth2 Token Introspection (RFC7662)",
+                "ds-cfg-java-class: "
+                        + "org.opends.server.protocols.http.authz.HttpOAuth2TokenIntrospectionAuthorizationMechanism",
+                "ds-cfg-enabled: false",
+                "ds-cfg-oauth2-token-introspection-url: "
+                        + "http://openam.example.com:8080/openam/oauth2/myrealm/introspect",
+                "ds-cfg-oauth2-token-introspection-client-id: directoryserver",
+                "ds-cfg-oauth2-token-introspection-client-secret: secret",
+                "ds-cfg-oauth2-authzid-json-pointer: sub",
+                "ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config",
+                "ds-cfg-oauth2-required-scope: read",
+                "ds-cfg-oauth2-required-scope: write",
+                "ds-cfg-oauth2-required-scope: uid",
+                "ds-cfg-oauth2-access-token-cache-enabled: false",
+                "ds-cfg-oauth2-access-token-cache-expiration: 300s"
+        ),
+        addConfigEntry(
+                "dn: cn=HTTP OAuth2 File,cn=HTTP Authorization Mechanisms,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-http-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-authorization-mechanism",
+                "objectClass: ds-cfg-http-oauth2-file-authorization-mechanism",
+                "cn: HTTP OAuth2 File",
+                "ds-cfg-java-class: org.opends.server.protocols.http.authz.HttpOAuth2FileAuthorizationMechanism",
+                "ds-cfg-enabled: false",
+                "ds-cfg-oauth2-access-token-directory: oauth2-demo/",
+                "ds-cfg-oauth2-authzid-json-pointer: uid",
+                "ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config",
+                "ds-cfg-oauth2-required-scope: read",
+                "ds-cfg-oauth2-required-scope: write",
+                "ds-cfg-oauth2-required-scope: uid",
+                "ds-cfg-oauth2-access-token-cache-enabled: false",
+                "ds-cfg-oauth2-access-token-cache-expiration: 300s"
+        ),
+        /* Recursively copies.*/
+        addConfigFile("rest2ldap")
+    );
+
     /** All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(
         performOEMMigrationIfNeeded(),
