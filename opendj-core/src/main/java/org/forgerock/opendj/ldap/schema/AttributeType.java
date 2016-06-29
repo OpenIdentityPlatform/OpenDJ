@@ -17,11 +17,9 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static java.util.Arrays.*;
-
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
@@ -976,6 +974,10 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
                 failValidation(invalidSchemaElements, warnings, message);
                 return false;
             }
+
+            if (!isObsolete() && superiorType.isObsolete()) {
+                warnings.add(WARN_ATTR_TYPE_HAS_OBSOLETE_SUPERIOR_TYPE.get(getNameOrOID(), oid));
+            }
         }
 
         if (syntaxOID != null) {
@@ -1015,6 +1017,7 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
             // Use default for syntax
             equalityMatchingRule = getSyntax().getEqualityMatchingRule();
         }
+        checkMatchingRuleIsNotObsolete(equalityMatchingRule, warnings);
 
         if (orderingMatchingRuleOID != null) {
             // Use explicitly defined matching rule first.
@@ -1034,6 +1037,7 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
             // Use default for syntax
             orderingMatchingRule = getSyntax().getOrderingMatchingRule();
         }
+        checkMatchingRuleIsNotObsolete(orderingMatchingRule, warnings);
 
         if (substringMatchingRuleOID != null) {
             // Use explicitly defined matching rule first.
@@ -1054,6 +1058,7 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
             // Use default for syntax
             substringMatchingRule = getSyntax().getSubstringMatchingRule();
         }
+        checkMatchingRuleIsNotObsolete(substringMatchingRule, warnings);
 
         if (approximateMatchingRuleOID != null) {
             // Use explicitly defined matching rule first.
@@ -1074,6 +1079,7 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
             // Use default for syntax
             approximateMatchingRule = getSyntax().getApproximateMatchingRule();
         }
+        checkMatchingRuleIsNotObsolete(approximateMatchingRule, warnings);
 
         // If the attribute type is COLLECTIVE, then it must have a usage of
         // userApplications.
@@ -1092,6 +1098,12 @@ public final class AttributeType extends AbstractSchemaElement implements Compar
         }
 
         return isValid = true;
+    }
+
+    private void checkMatchingRuleIsNotObsolete(MatchingRule rule, final List<LocalizableMessage> warnings) {
+        if (!isObsolete() && rule != null && rule.isObsolete()) {
+            warnings.add(WARN_ATTR_TYPE_HAS_OBSOLETE_MR.get(getNameOrOID(), rule.getOID()));
+        }
     }
 
     private void failValidation(final List<AttributeType> invalidSchemaElements,

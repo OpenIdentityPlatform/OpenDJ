@@ -995,22 +995,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Make sure that the new attribute type doesn't reference an
-    // OBSOLETE superior attribute type.
-    AttributeType superiorType = attributeType.getSuperiorType();
-    if (superiorType != null && superiorType.isObsolete())
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_OBSOLETE_SUPERIOR_ATTRIBUTE_TYPE.get(
-          attributeType.getNameOrOID(), superiorType.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
-    }
-
-    // Make sure that none of the associated matching rules are marked OBSOLETE.
-    throwIfObsoleteMatchingRule(attributeType, attributeType.getEqualityMatchingRule());
-    throwIfObsoleteMatchingRule(attributeType, attributeType.getOrderingMatchingRule());
-    throwIfObsoleteMatchingRule(attributeType, attributeType.getSubstringMatchingRule());
-    throwIfObsoleteMatchingRule(attributeType, attributeType.getApproximateMatchingRule());
-
     // If there is no existing type, then we're adding a new attribute.
     // Otherwise, we're replacing an existing one.
     if (existingType.isPlaceHolder())
@@ -1022,15 +1006,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, attributeType, existingType);
       schema.replaceAttributeType(attributeType, existingType, schemaFile);
-    }
-  }
-
-  private void throwIfObsoleteMatchingRule(AttributeType attributeType, MatchingRule mr) throws DirectoryException
-  {
-    if (mr != null && mr.isObsolete())
-    {
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-          ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(attributeType.getNameOrOID(), mr.getNameOrOID()));
     }
   }
 

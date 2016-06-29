@@ -16,13 +16,16 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.testng.Assert;
@@ -76,8 +79,16 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
                 + " USAGE dSAOperation NO-USER-MODIFICATION )", false);
 
         schema = builder.toSchema();
-        if (!schema.getWarnings().isEmpty()) {
-            throw new Exception("Base schema not valid!");
+        // Attribute type 1.2.2 is obsolete
+        ensureSchemaHasOnlyOneObsoleteWarning(schema);
+    }
+
+    private void ensureSchemaHasOnlyOneObsoleteWarning(Schema aSchema) {
+        Collection<LocalizableMessage> schemaWarnings = aSchema.getWarnings();
+        if (schemaWarnings.isEmpty()) {
+            fail("Expected one warning for the obsolete attribute type 1.2.2");
+        } else if (schemaWarnings.size() != 1 || !schemaWarnings.iterator().next().toString().contains("OBSOLETE")) {
+            fail("Base schema is not valid, it contains unexpected schema warnings. Warnings=" + schemaWarnings);
         }
     }
 
@@ -96,7 +107,8 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
         builder.addAttributeType("(1.2.8.5 NAME 'testtype' DESC 'full type' " + " SUP '1.2.5' "
                 + " EQUALITY 'caseIgnoreMatch' "
                 + " SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' USAGE dSAOperation )", false);
-        Assert.assertTrue(builder.toSchema().getWarnings().isEmpty());
+        Schema finalSchema = builder.toSchema();
+        ensureSchemaHasOnlyOneObsoleteWarning(finalSchema);
     }
 
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
