@@ -189,7 +189,7 @@ final class OnDiskMergeImporter
           ? getDefaultNumberOfThread()
           : importConfig.getThreadCount();
       final int nbBuffersPerThread = 2 * getIndexCount();
-      try(final BufferPool bufferPool = newBufferPool(maxThreadCount, nbBuffersPerThread)) 
+      try(final BufferPool bufferPool = newBufferPool(maxThreadCount, nbBuffersPerThread))
       {
         final int threadCount = bufferPool.size() / nbBuffersPerThread;
         logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
