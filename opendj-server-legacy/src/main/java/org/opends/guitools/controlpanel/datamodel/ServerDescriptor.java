@@ -32,6 +32,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.quicksetup.UserData;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Schema;
 
@@ -607,8 +608,8 @@ public class ServerDescriptor
         && attr1.isOperational() == attr2.isOperational()
         && attr1.isSingleValue() == attr2.isSingleValue()
         && areEqual(attr1.getApproximateMatchingRule(), attr2.getApproximateMatchingRule())
-        && areEqual(new SomeSchemaElement(attr1).getDefinitionWithFileName(),
-            new SomeSchemaElement(attr2).getDefinitionWithFileName())
+        && areEqual(new ServerSchemaElement(attr1).getDefinitionWithFileName(),
+            new ServerSchemaElement(attr2).getDefinitionWithFileName())
         && areEqual(attr1.getDescription(), attr2.getDescription())
         && areEqual(attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule())
         && areEqual(attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule())

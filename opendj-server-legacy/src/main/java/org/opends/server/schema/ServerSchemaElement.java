@@ -48,6 +48,16 @@ public class ServerSchemaElement
   }
 
   /**
+   * Returns this schema element.
+   *
+   * @return this schema element
+   */
+  public SchemaElement asSchemaElement()
+  {
+    return this.element;
+  }
+
+  /**
    * Retrieves the definition string used to create this schema element
    * and including the X-SCHEMA-FILE extension.
    *

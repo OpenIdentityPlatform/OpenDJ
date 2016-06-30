@@ -49,10 +49,10 @@ import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
-import org.opends.guitools.controlpanel.datamodel.SomeSchemaElement;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.Schema;
 
 /** Panel that appears when the user defines a new index. */
@@ -125,7 +125,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       TreeSet<String> customAttrNames = new TreeSet<>();
       for (AttributeType attr : schema.getAttributeTypes())
       {
-        SomeSchemaElement element = new SomeSchemaElement(attr);
+        ServerSchemaElement element = new ServerSchemaElement(attr);
         String name = attr.getNameOrOID();
         if (!indexExists(backend, name))
         {

@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.SomeSchemaElement;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -149,7 +148,7 @@ public class ModifyAttributeTask extends Task
     else if (oldAttribute.equals(attrToDelete.getSuperiorType()))
     {
       // get a new attribute with the new superior type
-      return SomeSchemaElement.changeSuperiorType(attrToDelete, newAttribute);
+      return Utilities.updateAttributeTypeWithNewSuperiorType(attrToDelete, newAttribute);
     }
     else
     {

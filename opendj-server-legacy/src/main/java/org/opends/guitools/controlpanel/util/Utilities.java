@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.util;
 
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-
 import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -105,6 +104,9 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ControlPanel;
@@ -114,7 +116,6 @@ import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
-import org.opends.guitools.controlpanel.datamodel.SomeSchemaElement;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.event.ClickTooltipDisplayer;
@@ -127,9 +128,12 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.SchemaUtils;
@@ -1991,7 +1995,7 @@ public class Utilities
    * @return {@code true} if the provided schema element is part of the standard,
    *         {@code false} otherwise.
    */
-  public static boolean isStandard(SomeSchemaElement fileElement)
+  public static boolean isStandard(ServerSchemaElement fileElement)
   {
     final String fileName = fileElement.getSchemaFile();
     if (fileName != null)
@@ -2013,7 +2017,7 @@ public class Utilities
    * @return {@code true} if the provided schema element is part of the configuration,
    *         {@code false} otherwise.
    */
-  public static boolean isConfiguration(SomeSchemaElement fileElement)
+  public static boolean isConfiguration(ServerSchemaElement fileElement)
   {
     String fileName = fileElement.getSchemaFile();
     if (fileName != null)
@@ -2803,6 +2807,151 @@ public class Utilities
         throw new RuntimeException(message.toString(), e);
       }
     }
+  }
+
+  /**
+   * Test whether provided schema element is an attribute type.
+   *
+   * @param element
+   *            Element to check.
+   * @return {@code true} iff element is an attribute type.
+   */
+  public static boolean isAttributeType(ServerSchemaElement element)
+  {
+    return element.asSchemaElement() instanceof AttributeType;
+  }
+
+  /**
+   * Returns the name of configuration attribute corresponding to the provided element.
+   *
+   * @param element
+   *            Either an attribute type or an object class.
+   *            Using any other schema element will return invalid result.
+   * @return Either "attributeTypes" or "objectClasses"
+   */
+  public static String getAttributeConfigName(ServerSchemaElement element)
+  {
+    return isAttributeType(element) ? ConfigConstants.ATTR_ATTRIBUTE_TYPES : ConfigConstants.ATTR_OBJECTCLASSES;
+  }
+
+  /**
+   * Returns the name or OID of provided element.
+   *
+   * @param element
+   *            Either an attribute type or an object class.
+   *            Using any other schema element will yield an exception.
+   * @return Either "attributeTypes" or "objectClasses"
+   */
+  public static String getElementNameOrOID(ServerSchemaElement element)
+  {
+    SchemaElement elem = element.asSchemaElement();
+    if (elem instanceof AttributeType)
+    {
+      return ((AttributeType) elem).getNameOrOID();
+    }
+    return ((ObjectClass) elem).getNameOrOID();
+  }
+
+  /**
+   * Returns the OID of provided element.
+   *
+   * @param element
+   *            Either an attribute type or an object class.
+   *            Using any other schema element will yield an exception.
+   * @return Either "attributeTypes" or "objectClasses"
+   */
+  public static String getElementOID(ServerSchemaElement element)
+  {
+    SchemaElement elem = element.asSchemaElement();
+    if (elem instanceof AttributeType)
+    {
+      return ((AttributeType) elem).getOID();
+    }
+    return ((ObjectClass) elem).getOID();
+  }
+
+  /**
+   * Return a new attribute type with the provided new superior type.
+   *
+   * @param attributeType
+   *            Initial attribute type.
+   * @param newSuperiorType
+   *            new superior type to use.
+   * @return the new attribute type
+   */
+  public static AttributeType updateAttributeTypeWithNewSuperiorType(AttributeType attributeType,
+      AttributeType newSuperiorType)
+  {
+    String superiorTypeOID = newSuperiorType != null ? newSuperiorType.getNameOrOID() : null;
+    return new SchemaBuilder()
+      .buildAttributeType(attributeType)
+      .superiorType(superiorTypeOID)
+      .addToSchemaOverwrite()
+      .toSchema()
+      .getAttributeType(attributeType.getNameOrOID());
+  }
+
+  /**
+   * Updates an extra property of provided schema element with a single value.
+   *
+   * @param serverContext
+   *          the server context
+   * @param element
+   *            Either an attribute type or an object class.
+   *            Using any other schema element will yield an exception.
+   * @param property
+   *          the property to set
+   * @param value
+   *          the value to set
+   * @return the updated schema element
+   */
+  public static ServerSchemaElement updateSchemaElementExtraPropertySingleValue(ServerContext serverContext,
+      ServerSchemaElement element, String property, String value)
+  {
+    List<String> values = value != null ? Arrays.asList(value) : null;
+    return updateSchemaElementExtraPropertyMultiplesValues(serverContext, element, property, values);
+  }
+
+  /**
+   * Updates an extra property of provided schema element with several values.
+   *
+   * @param serverContext
+   *          the server context
+   * @param element
+   *            Either an attribute type or an object class.
+   *            Using any other schema element will yield an exception.
+   * @param property
+   *          the property to set
+   * @param values
+   *          the list of values to set
+   * @return the updated schema element
+   */
+  public static ServerSchemaElement updateSchemaElementExtraPropertyMultiplesValues(ServerContext serverContext,
+      ServerSchemaElement element, String property, List<String> values)
+  {
+    org.forgerock.opendj.ldap.schema.Schema schemaNG = serverContext != null ?
+        serverContext.getSchemaNG() : org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema();
+    SchemaBuilder schemaBuilder = new SchemaBuilder(schemaNG);
+    SchemaElement elem = element.asSchemaElement();
+    if (elem instanceof AttributeType)
+    {
+       AttributeType attr = (AttributeType) elem;
+      AttributeType.Builder builder =
+          schemaBuilder.buildAttributeType(attr).removeExtraProperty(property, (String) null);
+      if (values != null  && !values.isEmpty())
+      {
+        builder.extraProperties(property, values);
+      }
+      return new ServerSchemaElement(builder.addToSchemaOverwrite().toSchema().getAttributeType(attr.getNameOrOID()));
+    }
+    // It is an object class
+    ObjectClass oc = (ObjectClass) elem;
+    ObjectClass.Builder builder = schemaBuilder.buildObjectClass(oc).removeExtraProperty(property, (String) null);
+    if (values != null && !values.isEmpty())
+    {
+      builder.extraProperties(property, values);
+    }
+    return new ServerSchemaElement(builder.addToSchemaOverwrite().toSchema().getObjectClass(oc.getNameOrOID()));
   }
 
 }

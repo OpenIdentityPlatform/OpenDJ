@@ -71,7 +71,6 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
-import org.opends.guitools.controlpanel.datamodel.SomeSchemaElement;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
@@ -84,6 +83,7 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -526,7 +526,7 @@ class CustomAttributePanel extends SchemaElementPanel
     lastAliases.addAll(someAliases);
     this.aliases.setText(Utilities.getStringFromCollection(someAliases, ", "));
 
-    SomeSchemaElement element = new SomeSchemaElement(attr);
+    ServerSchemaElement element = new ServerSchemaElement(attr);
     String sOrigin = element.getOrigin();
     if (sOrigin == null)
     {

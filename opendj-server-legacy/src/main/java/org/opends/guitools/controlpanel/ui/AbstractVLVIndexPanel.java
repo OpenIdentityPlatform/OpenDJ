@@ -69,7 +69,6 @@ import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.IndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
-import org.opends.guitools.controlpanel.datamodel.SomeSchemaElement;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
@@ -81,6 +80,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
@@ -320,7 +320,7 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
         for (AttributeType attr : schema.getAttributeTypes())
         {
-          SomeSchemaElement element = new SomeSchemaElement(attr);
+          ServerSchemaElement element = new ServerSchemaElement(attr);
           String name = attr.getNameOrOID();
           if (!isDefined(name))
           {
