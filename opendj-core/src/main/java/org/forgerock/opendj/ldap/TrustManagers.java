@@ -19,30 +19,48 @@ package org.forgerock.opendj.ldap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
+import java.util.Set;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import javax.security.auth.x500.X500Principal;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Reject;
+
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_CERT_NO_MATCH_IP;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_CERT_NO_MATCH_DNS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_CERT_NO_MATCH_ALLOTHERS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_CERT_NO_MATCH_SUBJECT;
+
 
 /** This class contains methods for creating common types of trust manager. */
 public final class TrustManagers {
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
-     * An X509TrustManager which rejects certificate chains whose subject DN
-     * does not match a specified host name.
+     * An X509TrustManager which rejects certificate chains whose subject alternative names do not match the specified
+     * host name or IP address. The check may fall back to checking a hostname in the left-most CN of the certificate
+     * subject for backwards compatibility.
      */
     private static final class CheckHostName implements X509TrustManager {
 
@@ -75,15 +93,191 @@ public final class TrustManagers {
         }
 
         /**
-         * Checks whether a host name matches the provided pattern. It accepts
-         * the use of wildcards in the pattern, e.g. {@code *.example.com}.
+         * Look in the SubjectAlternativeName for DNS names (wildcards are allowed) and IP addresses, and potentially
+         * fall back to checking CN in the subjectDN.
+         * <p>
+         * If DNS names and IP addresses do not match, and other SubjectAlternativeNames are present and critical, do
+         * not fall back checking CN.
+         * </p>
+         * <p>
+         * If DNS names and IP addresses do not match and the SubjectAlternativeNames are non-critical, fall back to
+         * checking CN.
+         * </p>
+         * @param chain X.509 certificate chain from the server
+         */
+        private void verifyHostName(final X509Certificate[] chain) throws CertificateException {
+            final X500Principal principal = chain[0].getSubjectX500Principal();
+            try {
+                final List<String> dnsNamePatterns = new ArrayList<>(0);
+                final List<String> ipAddresses = new ArrayList<>(0);
+                final List<Object> allOthers = new ArrayList<>(0);
+                getSanGeneralNames(chain[0], dnsNamePatterns, ipAddresses, allOthers);
+                final boolean sanIsCritical = getSanCriticality(chain[0]);
+
+                final InetAddress hostAddress = toIpAddress(hostName);
+                if (hostAddress != null) {
+                    if (verifyIpAddresses(hostAddress, ipAddresses, principal, sanIsCritical)) {
+                        return;
+                    }
+                } else {
+                    if (verifyDnsNamePatterns(hostName, dnsNamePatterns, principal, sanIsCritical)) {
+                        return;
+                    }
+                }
+                if (!allOthers.isEmpty() && sanIsCritical) {
+                    throw new CertificateException(ERR_CERT_NO_MATCH_ALLOTHERS.get(principal, hostName).toString());
+                }
+
+                final DN dn = DN.valueOf(principal.getName(), Schema.getCoreSchema());
+                final String certSubjectHostName = getLowestCommonName(dn);
+                /* Backwards compatibility: check wildcards in cn */
+                if (hostNameMatchesPattern(hostName, certSubjectHostName)) {
+                    return;
+                }
+                throw new CertificateException(ERR_CERT_NO_MATCH_SUBJECT.get(principal, hostName).toString());
+            } catch (final CertificateException e) {
+                logger.warn(LocalizableMessage.raw("Certificate verification problem for: " + principal), e);
+                throw e;
+            }
+        }
+
+        /**
+         * Collect the general names from a certificate's SubjectAlternativeName extension.
+         *
+         * General Names can contain: dnsNames, ipAddresses, rfc822Names, x400Addresses, directoryNames, ediPartyNames,
+         * uniformResourceIdentifiers, registeredIDs (OID), or otherNames (anything). See
+         * {@link X509Certificate#getSubjectAlternativeNames()} for details on how these values are encoded. We separate
+         * the dnsNames and ipAddresses (which we can try to match) from everything else (which we do not try to match.)
+         *
+         * @param subject  certificate
+         * @param dnsNames  list where the dnsNames will be added (may be empty)
+         * @param ipAddresses  list where the ipAddresses will be added (may be empty)
+         * @param allOthers  list where all other general names will be added (may be empty)
+         */
+        private void getSanGeneralNames(X509Certificate subject,
+                                        List<String> dnsNames, List<String> ipAddresses,
+                                        List<Object> allOthers) {
+            try {
+                Collection<List<?>> sans = subject.getSubjectAlternativeNames();
+                if (sans == null) {
+                    return;
+                }
+                for (List<?> san : sans) {
+                    switch ((Integer) san.get(0)) {
+                    case 2:
+                        dnsNames.add((String) san.get(1));
+                        break;
+                    case 7:
+                        ipAddresses.add((String) san.get(1));
+                        break;
+                    default:
+                        allOthers.add(san.get(1));
+                        break;
+                    }
+                }
+            } catch (CertificateParsingException e) {
+                /* do nothing */
+            }
+        }
+
+        /**
+         * Get the ASN.1 criticality of the SubjectAlternativeName extension.
+         *
+         * @param subject X509Certificate to check
+         * @return {@code true} if a subject alt name was found and was marked critical, {@code false} otherwise.
+         */
+        private boolean getSanCriticality(X509Certificate subject) {
+            Set<String> critSet = subject.getCriticalExtensionOIDs();
+            return critSet != null && critSet.contains("2.5.29.17");
+        }
+
+        /**
+         * Convert to an IP address without performing a DNS lookup.
+         *
+         * @param hostName  either an IP address string, or a host name
+         * @return {@code InetAddress} if hostName was an IPv4 or IPv6 address, or {@code null}
+         */
+        private static InetAddress toIpAddress(String hostName) {
+            try {
+                if (InetAddressValidator.isValid(hostName)) {
+                    return InetAddress.getByName(hostName);
+                }
+            } catch (UnknownHostException e) {
+                /* do nothing */
+            }
+            return null;
+        }
+
+        /**
+         * Verify an IP address in the list of IP addresses.
+         *
+         * @param hostAddress  IP address from the user
+         * @param ipAddresses  List of IP addresses from the certificate (may be empty)
+         * @param principal  Subject name from the certificate
+         * @param failureIsCritical  Should a verification failure throw a {@link CertificateException}
+         * @return {@code true} if the address is verified, {@code false} if the address was not verified.
+         * @throws CertificateException  if verification fails and {@code failureIsCritical} is {@code true}.
+         */
+        private boolean verifyIpAddresses(InetAddress hostAddress, List<String> ipAddresses, X500Principal principal,
+                                          boolean failureIsCritical) throws CertificateException {
+            if (!ipAddresses.isEmpty()) {
+                for (String address : ipAddresses) {
+                    try {
+                        if (InetAddress.getByName(address).equals(hostAddress)) {
+                            return true;
+                        }
+                    } catch (UnknownHostException e) {
+                        // do nothing
+                    }
+                }
+                if (failureIsCritical) {
+                    // RFC 5280 mentions:
+                            /* If the subject field
+                             * contains an empty sequence, then the issuing CA MUST include a
+                             * subjectAltName extension that is marked as critical.  When including
+                             * the subjectAltName extension in a certificate that has a non-empty
+                             * subject distinguished name, conforming CAs SHOULD mark the
+                             * subjectAltName extension as non-critical.
+                             */
+                    // Since SAN is critical, the subject is empty, so we cannot perform the next check anyway
+                    throw new CertificateException(ERR_CERT_NO_MATCH_IP.get(principal, hostName).toString());
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Verify a hostname in the list of DNS name patterns.
+         *
+         * @param hostName  Host name from the user
+         * @param dnsNamePatterns  List of DNS name patterns from the certificate (may be empty)
+         * @param principal  Subject name from the certificate
+         * @param failureIsCritical  Should a verification failure throw a {@link CertificateException}
+         * @return {@code true} if the address is verified, {@code false} if the address was not verified.
+         * @throws CertificateException  If verification fails and {@code failureIsCritical} is {@code true}
+         */
+        private boolean verifyDnsNamePatterns(String hostName, List<String> dnsNamePatterns, X500Principal principal,
+                              boolean failureIsCritical) throws CertificateException {
+            for (String namePattern : dnsNamePatterns) {
+                if (hostNameMatchesPattern(hostName, namePattern)) {
+                    return true;
+                }
+            }
+            if (failureIsCritical) {
+                throw new CertificateException(ERR_CERT_NO_MATCH_DNS.get(principal, hostName).toString());
+            }
+            return false;
+        }
+
+        /**
+         * Checks whether a host name matches the provided pattern. It accepts the use of wildcards in the pattern,
+         * e.g. {@code *.example.com}.
          *
          * @param hostName
          *            The host name.
          * @param pattern
-         *            The host name pattern, which may contain wild cards.
-         * @return {@code true} if the host name matched the pattern, otherwise
-         *         {@code false}.
+         *            The host name pattern, which may contain wildcards.
+         * @return {@code true} if the host name matched the pattern, otherwise {@code false}.
          */
         private boolean hostNameMatchesPattern(final String hostName, final String pattern) {
             final String[] nameElements = hostName.split("\\.");
@@ -100,24 +294,22 @@ public final class TrustManagers {
             return hostMatch;
         }
 
-        private void verifyHostName(final X509Certificate[] chain) {
-            try {
-                // TODO: NPE if root DN.
-                final DN dn =
-                        DN.valueOf(chain[0].getSubjectX500Principal().getName(), Schema
-                                .getCoreSchema());
-                final String certSubjectHostName =
-                        dn.iterator().next().iterator().next().getAttributeValue().toString();
-                if (!hostNameMatchesPattern(hostName, certSubjectHostName)) {
-                    throw new CertificateException(
-                            "The host name contained in the certificate chain subject DN \'"
-                                    + chain[0].getSubjectX500Principal()
-                                    + "' does not match the host name \'" + hostName + "'");
+        /**
+         * Find the lowest (left-most) cn in the DN, and return its value.
+         *
+         * @param subject the DN being searched
+         * @return the cn value, or {@code null} if no cn was found
+         */
+        private String getLowestCommonName(DN subject) {
+            AttributeType cn = Schema.getDefaultSchema().getAttributeType("cn");
+            for (RDN rdn : subject) {
+                for (AVA ava : rdn) {
+                    if (ava.getAttributeType().equals(cn)) {
+                        return ava.getAttributeValue().toString();
+                    }
                 }
-            } catch (final Throwable t) {
-                LOG.log(Level.WARNING, "Error parsing subject dn: "
-                        + chain[0].getSubjectX500Principal(), t);
             }
+            return null;
         }
     }
 
@@ -155,16 +347,14 @@ public final class TrustManagers {
                 try {
                     c.checkValidity(currentDate);
                 } catch (final CertificateExpiredException e) {
-                    LOG.log(Level.WARNING, "Refusing to trust security" + " certificate \""
-                            + c.getSubjectDN().getName() + "\" because it" + " expired on "
-                            + String.valueOf(c.getNotAfter()));
-
+                    logger.warn(LocalizableMessage.raw(
+                            "Refusing to trust security certificate \'%s\' because it expired on %s",
+                            c.getSubjectDN().getName(), String.valueOf(c.getNotAfter())));
                     throw e;
                 } catch (final CertificateNotYetValidException e) {
-                    LOG.log(Level.WARNING, "Refusing to trust security" + " certificate \""
-                            + c.getSubjectDN().getName() + "\" because it" + " is not valid until "
-                            + String.valueOf(c.getNotBefore()));
-
+                    logger.warn(LocalizableMessage.raw(
+                            "Refusing to trust security  certificate \'%s\' because it is not valid until %s",
+                            c.getSubjectDN().getName(), String.valueOf(c.getNotBefore())));
                     throw e;
                 }
             }
@@ -226,23 +416,29 @@ public final class TrustManagers {
         }
     }
 
-    private static final Logger LOG = Logger.getLogger(TrustManagers.class.getName());
-
     /**
-     * Wraps the provided {@code X509TrustManager} by adding additional
-     * validation which rejects certificate chains whose subject DN does not
-     * match the specified host name pattern. The pattern may contain
-     * wild-cards, for example {@code *.example.com}.
+     * Wraps the provided {@code X509TrustManager} by adding additional validation which rejects certificate chains
+     * whose subject alternative names do not match the specified host name or IP address. The check may fall back to
+     * checking a hostname in the left-most CN of the subjectDN for backwards compatibility.
+     *
+     * If the {@code hostName} is an IP address, only the {@code ipAddresses} field of the subject alternative name
+     * will be checked. Similarly if {@code hostName} is not an IP address, only the {@code dnsNames} of the subject
+     * alternative name will be checked.
+     *
+     * Host names can be matched using wild cards, for example {@code *.example.com}.
+     *
+     * If a critical subject alternative name doesn't match, verification will not fall back to checking the subjectDN
+     * and will <b>fail</b>. If a critical subject alternative name doesn't match and it contains other kinds of general
+     * names that cannot be checked verification will also <b>fail</b>.
      *
      * @param hostName
-     *            A host name which the RDN value contained in
-     *            certificate subject DNs must match.
+     *            The IP address or hostname used to connect to the LDAP server which will be matched against the
+     *            subject alternative name and possibly the subjectDN as described above.
      * @param trustManager
      *            The trust manager to be wrapped.
      * @return The wrapped trust manager.
      * @throws NullPointerException
-     *             If {@code trustManager} or {@code hostNamePattern} was
-     *             {@code null}.
+     *             If {@code trustManager} or {@code hostName} was {@code null}.
      */
     public static X509TrustManager checkHostName(final String hostName,
             final X509TrustManager trustManager) {
