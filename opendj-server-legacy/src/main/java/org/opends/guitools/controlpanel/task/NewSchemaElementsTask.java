@@ -16,11 +16,11 @@
  */
 package org.opends.guitools.controlpanel.task;
 
-
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.server.schema.ServerSchemaElement.getSchemaFile;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,13 +43,13 @@ import javax.swing.SwingUtilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -169,10 +169,10 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  private List<String> getElementsNameOrOID(final Collection<ServerSchemaElement> schemaElements)
+  private List<String> getElementsNameOrOID(final Collection<SchemaElement> schemaElements)
   {
     final List<String> nameOrOIDs = new ArrayList<>();
-    for (ServerSchemaElement schemaElement : schemaElements)
+    for (SchemaElement schemaElement : schemaElements)
     {
       nameOrOIDs.add(getElementNameOrOID(schemaElement));
     }
@@ -245,8 +245,8 @@ public class NewSchemaElementsTask extends Task
   private void updateSchemaOffline() throws OpenDsException
   {
     // Group the changes in the same schema file.
-    final Map<String, List<ServerSchemaElement>> mapAttrs = copy(attributeTypesToSchemaElements(attrsToAdd));
-    final Map<String, List<ServerSchemaElement>> mapClasses = copy(objectClassesToSchemaElements(ocsToAdd));
+    final Map<String, List<SchemaElement>> mapAttrs = copy(attributeTypesToSchemaElements(attrsToAdd));
+    final Map<String, List<SchemaElement>> mapClasses = copy(objectClassesToSchemaElements(ocsToAdd));
     final Set<String> allFileNames = new LinkedHashSet<>(mapAttrs.keySet());
     allFileNames.addAll(mapClasses.keySet());
 
@@ -264,23 +264,23 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  private List<ServerSchemaElement> get(Map<String, List<ServerSchemaElement>> hmElems, String fileName)
+  private List<SchemaElement> get(Map<String, List<SchemaElement>> hmElems, String fileName)
   {
-    List<ServerSchemaElement> elems = hmElems.get(fileName);
-    return elems != null ? elems : Collections.<ServerSchemaElement> emptyList();
+    List<SchemaElement> elems = hmElems.get(fileName);
+    return elems != null ? elems : Collections.<SchemaElement> emptyList();
   }
 
-  private Map<String, List<ServerSchemaElement>> copy(Set<ServerSchemaElement> elemsToAdd)
+  private Map<String, List<SchemaElement>> copy(Set<SchemaElement> elemsToAdd)
   {
-    Map<String, List<ServerSchemaElement>> hmElems = new LinkedHashMap<>();
-    for (ServerSchemaElement elem : elemsToAdd)
+    Map<String, List<SchemaElement>> hmElems = new LinkedHashMap<>();
+    for (SchemaElement elem : elemsToAdd)
     {
-      String fileName = elem.getSchemaFile();
+      String fileName = getSchemaFile(elem);
       if (fileName == null)
       {
         fileName = "";
       }
-      List<ServerSchemaElement> elems = hmElems.get(fileName);
+      List<SchemaElement> elems = hmElems.get(fileName);
       if (elems == null)
       {
         elems = new ArrayList<>();
@@ -293,17 +293,17 @@ public class NewSchemaElementsTask extends Task
 
   private void addAttributeOnline(final AttributeType attribute) throws OpenDsException
   {
-    addSchemaElementOnline(new ServerSchemaElement(attribute),
+    addSchemaElementOnline(attribute,
         INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(attribute.getNameOrOID()));
   }
 
   private void addObjectClassOnline(final ObjectClass objectClass) throws OpenDsException
   {
-    addSchemaElementOnline(new ServerSchemaElement(objectClass),
+    addSchemaElementOnline(objectClass,
         INFO_CTRL_PANEL_CREATING_OBJECTCLASS_PROGRESS.get(objectClass.getNameOrOID()));
   }
 
-  private void addSchemaElementOnline(final ServerSchemaElement schemaElement, final LocalizableMessage progressMsg)
+  private void addSchemaElementOnline(final SchemaElement schemaElement, final LocalizableMessage progressMsg)
       throws OpenDsException
   {
     SwingUtilities.invokeLater(new Runnable()
@@ -340,48 +340,48 @@ public class NewSchemaElementsTask extends Task
   }
 
   /** Returns the definition for provided element without the file name. */
-  private String getValueOffline(ServerSchemaElement element)
+  private String getValueOffline(SchemaElement element)
   {
     return updateSchemaElementExtraPropertySingleValue(null, element, ServerConstants.SCHEMA_PROPERTY_FILENAME, null)
         .toString();
   }
 
-  private Set<ServerSchemaElement> objectClassesToSchemaElements(final Collection<ObjectClass> classes)
+  private Set<SchemaElement> objectClassesToSchemaElements(final Collection<ObjectClass> classes)
   {
-    Set<ServerSchemaElement> elements = new HashSet<>();
+    Set<SchemaElement> elements = new HashSet<>();
     for (ObjectClass objectClass : classes)
     {
-      elements.add(new ServerSchemaElement(objectClass));
+      elements.add(objectClass);
     }
     return elements;
   }
 
-  private Set<ServerSchemaElement> attributeTypesToSchemaElements(final Collection<AttributeType> types)
+  private Set<SchemaElement> attributeTypesToSchemaElements(final Collection<AttributeType> types)
   {
-    Set<ServerSchemaElement> elements = new HashSet<>();
+    Set<SchemaElement> elements = new HashSet<>();
     for (AttributeType type : types)
     {
-      elements.add(new ServerSchemaElement(type));
+      elements.add(type);
     }
     return elements;
   }
 
-  private List<AttributeType> schemaElementsToAttributeTypes(final Collection<ServerSchemaElement> elements)
+  private List<AttributeType> schemaElementsToAttributeTypes(final Collection<SchemaElement> elements)
   {
     List<AttributeType> types = new ArrayList<>();
-    for (ServerSchemaElement element : elements)
+    for (SchemaElement element : elements)
     {
-      types.add((AttributeType) element.asSchemaElement());
+      types.add((AttributeType) element);
     }
     return types;
   }
 
-  private List<ObjectClass> schemaElementsToObjectClasses(final Collection<ServerSchemaElement> elements)
+  private List<ObjectClass> schemaElementsToObjectClasses(final Collection<SchemaElement> elements)
   {
     List<ObjectClass> classes = new ArrayList<>();
-    for (ServerSchemaElement element : elements)
+    for (SchemaElement element : elements)
     {
-      classes.add((ObjectClass) element.asSchemaElement());
+      classes.add((ObjectClass) element);
     }
     return classes;
   }
@@ -411,7 +411,7 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  private void printEquivalentCommandLineToAddOnline(ServerSchemaElement element)
+  private void printEquivalentCommandLineToAddOnline(SchemaElement element)
   {
     List<String> args = new ArrayList<>();
     args.add("-a");
@@ -437,8 +437,8 @@ public class NewSchemaElementsTask extends Task
   private void updateSchemaOffline(
       String file, final List<AttributeType> attributes, final List<ObjectClass> objectClasses) throws OpenDsException
   {
-    final List<ServerSchemaElement> schemaElements =
-        new ArrayList<ServerSchemaElement>(attributeTypesToSchemaElements(attributes));
+    final List<SchemaElement> schemaElements =
+        new ArrayList<SchemaElement>(attributeTypesToSchemaElements(attributes));
     schemaElements.addAll(objectClassesToSchemaElements(objectClasses));
     if (file == null)
     {
@@ -489,7 +489,7 @@ public class NewSchemaElementsTask extends Task
       updateSchemaUndefinedFile(fileName, schemaElements);
     }
 
-    for (ServerSchemaElement schemaElement : schemaElements)
+    for (SchemaElement schemaElement : schemaElements)
     {
       notifyConfigurationElementCreated(schemaElement);
     }
@@ -504,7 +504,7 @@ public class NewSchemaElementsTask extends Task
   }
 
   private String equivalentCommandToAddOffline(
-      String schemaFile, boolean isSchemaFileDefined, List<ServerSchemaElement> schemaElements)
+      String schemaFile, boolean isSchemaFileDefined, List<SchemaElement> schemaElements)
   {
     List<String> names = getElementsNameOrOID(schemaElements);
 
@@ -526,7 +526,7 @@ public class NewSchemaElementsTask extends Task
       }
     }
 
-    for (ServerSchemaElement element : schemaElements)
+    for (SchemaElement element : schemaElements)
     {
       sb.append(getAttributeConfigName(element)).append(": ").append(getValueOffline(element)).append("<br>");
     }
@@ -586,7 +586,7 @@ public class NewSchemaElementsTask extends Task
    * @throws OpenDsException
    *           if an error occurs updating the schema file.
    */
-  private void updateSchemaFile(String schemaFile, List<ServerSchemaElement> schemaElements)
+  private void updateSchemaFile(String schemaFile, List<SchemaElement> schemaElements)
       throws OpenDsException
   {
     try (final LDIFExportConfig exportConfig = new LDIFExportConfig(schemaFile, ExistingFileBehavior.OVERWRITE))
@@ -608,23 +608,23 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  private void addElementsToEntry(List<ServerSchemaElement> schemaElements, Entry schemaEntry)
+  private void addElementsToEntry(List<SchemaElement> schemaElements, Entry schemaEntry)
       throws DirectoryException
   {
-    for (ServerSchemaElement element : schemaElements)
+    for (SchemaElement element : schemaElements)
     {
       Attribute attr = Attributes.create(getAttributeConfigName(element), getValueOffline(element));
       schemaEntry.applyModification(new Modification(ADD, attr));
     }
   }
 
-  private void updateSchemaUndefinedFile(String schemaFile, List<ServerSchemaElement> schemaElements)
+  private void updateSchemaUndefinedFile(String schemaFile, List<SchemaElement> schemaElements)
       throws OfflineUpdateException
   {
     try (LDIFExportConfig exportConfig = new LDIFExportConfig(schemaFile, ExistingFileBehavior.FAIL))
     {
       List<String> lines = getSchemaEntryLines();
-      for (final ServerSchemaElement element : schemaElements)
+      for (final SchemaElement element : schemaElements)
       {
         lines.add(getAttributeConfigName(element) + ": " + getValueOffline(element));
       }

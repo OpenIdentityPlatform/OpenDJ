@@ -222,15 +222,13 @@ public class DeleteSchemaElementsTask extends Task
     int numberDeleted = 0;
     for (ObjectClass objectClass : ocsToDelete)
     {
-      final ServerSchemaElement element = new ServerSchemaElement(objectClass);
-      deleteSchemaElement(element, numberDeleted, totalNumber, INFO_CTRL_PANEL_DELETING_OBJECTCLASS);
+      deleteSchemaElement(objectClass, numberDeleted, totalNumber, INFO_CTRL_PANEL_DELETING_OBJECTCLASS);
       numberDeleted++;
     }
 
     for (AttributeType attribute : attrsToDelete)
     {
-      final ServerSchemaElement element = new ServerSchemaElement(attribute);
-      deleteSchemaElement(element, numberDeleted, totalNumber, INFO_CTRL_PANEL_DELETING_ATTRIBUTE);
+      deleteSchemaElement(attribute, numberDeleted, totalNumber, INFO_CTRL_PANEL_DELETING_ATTRIBUTE);
       numberDeleted++;
     }
 
@@ -256,7 +254,7 @@ public class DeleteSchemaElementsTask extends Task
     }
   }
 
-  private void deleteSchemaElement(final ServerSchemaElement element, final int numberDeleted, final int totalNumber,
+  private void deleteSchemaElement(final SchemaElement element, final int numberDeleted, final int totalNumber,
       final Arg1<Object> deletingElementMsg) throws OnlineUpdateException, OpenDsException
   {
     SwingUtilities.invokeLater(new Runnable()
@@ -317,7 +315,7 @@ public class DeleteSchemaElementsTask extends Task
    * @param schemaElement the schema element to be deleted.
    * @throws OpenDsException if an error occurs.
    */
-  private void updateSchemaFile(ServerSchemaElement schemaElement) throws OpenDsException
+  private void updateSchemaFile(SchemaElement schemaElement) throws OpenDsException
   {
     String schemaFile = getSchemaFile(schemaElement);
 
@@ -348,9 +346,9 @@ public class DeleteSchemaElementsTask extends Task
    * @param element the schema element.
    * @return the schema file for a given schema element.
    */
-  private String getSchemaFile(ServerSchemaElement element)
+  private String getSchemaFile(SchemaElement element)
   {
-    String schemaFile = element.getSchemaFile();
+    String schemaFile = ServerSchemaElement.getSchemaFile(element);
     if (schemaFile == null)
     {
       schemaFile = ConfigConstants.FILE_USER_SCHEMA_ELEMENTS;
@@ -370,7 +368,7 @@ public class DeleteSchemaElementsTask extends Task
    * @param element the schema element.
    * @return the value in the schema file for the provided element.
    */
-  private String getSchemaFileAttributeValue(ServerSchemaElement element)
+  private String getSchemaFileAttributeValue(SchemaElement element)
   {
     return element.toString();
   }
@@ -380,7 +378,7 @@ public class DeleteSchemaElementsTask extends Task
    * progress dialog.
    * @param element the schema element to be deleted.
    */
-  private void printEquivalentCommandToDelete(ServerSchemaElement element)
+  private void printEquivalentCommandToDelete(SchemaElement element)
   {
     String schemaFile = getSchemaFile(element);
     String attrName = getAttributeConfigName(element);
@@ -413,7 +411,7 @@ public class DeleteSchemaElementsTask extends Task
     getProgressDialog().appendProgressHtml(Utilities.applyFont(msg, ColorAndFontConstants.progressFont));
   }
 
-  private LocalizableMessage getEquivalentCommandOfflineMsg(ServerSchemaElement element, String schemaFile)
+  private LocalizableMessage getEquivalentCommandOfflineMsg(SchemaElement element, String schemaFile)
   {
     String nameOrOID = getElementNameOrOID(element);
     if (isAttributeType(element))
@@ -423,7 +421,7 @@ public class DeleteSchemaElementsTask extends Task
     return INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_DELETE_OBJECTCLASS_OFFLINE.get(nameOrOID, schemaFile);
   }
 
-  private LocalizableMessage getEquivalentCommandOnlineMsg(ServerSchemaElement element)
+  private LocalizableMessage getEquivalentCommandOnlineMsg(SchemaElement element)
   {
     String nameOrOID = getElementNameOrOID(element);
     if (isAttributeType(element))
@@ -446,8 +444,7 @@ public class DeleteSchemaElementsTask extends Task
     }
     if (isSuperior)
     {
-       // get a new attribute without the superior type
-       return updateAttributeTypeWithNewSuperiorType(attrToDelete, null);
+       return getNewAttributeTypeWithNewSuperiorType(attrToDelete, null);
     }
     else
     {

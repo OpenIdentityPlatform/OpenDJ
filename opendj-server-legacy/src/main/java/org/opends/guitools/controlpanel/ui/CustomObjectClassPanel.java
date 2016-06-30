@@ -17,7 +17,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.types.CommonSchemaElements.*;
+import static org.opends.server.schema.ServerSchemaElement.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.SchemaUtils.*;
 
@@ -80,7 +80,6 @@ import org.opends.guitools.controlpanel.ui.components.SuperiorObjectClassesEdito
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -500,7 +499,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     lastAliases.addAll(aliases);
     this.aliases.setText(Utilities.getStringFromCollection(aliases, ", "));
 
-    String sOrigin = new ServerSchemaElement(oc).getOrigin();
+    String sOrigin = getOrigin(oc);
     if (sOrigin == null)
     {
       sOrigin = "";

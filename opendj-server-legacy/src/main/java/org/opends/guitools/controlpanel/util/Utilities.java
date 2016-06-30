@@ -25,6 +25,7 @@ import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.quicksetup.Installation.*;
+import static org.opends.server.schema.ServerSchemaElement.*;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -133,7 +134,6 @@ import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.SchemaUtils;
@@ -1995,14 +1995,14 @@ public class Utilities
    * @return {@code true} if the provided schema element is part of the standard,
    *         {@code false} otherwise.
    */
-  public static boolean isStandard(ServerSchemaElement fileElement)
+  public static boolean isStandard(SchemaElement fileElement)
   {
-    final String fileName = fileElement.getSchemaFile();
+    final String fileName = getSchemaFile(fileElement);
     if (fileName != null)
     {
       return standardSchemaFileNames.contains(fileName) || fileName.toLowerCase().contains("-rfc");
     }
-    String xOrigin = fileElement.getOrigin();
+    String xOrigin = getOrigin(fileElement);
     if (xOrigin != null)
     {
       return standardSchemaOrigins.contains(xOrigin) || xOrigin.startsWith("RFC ") || xOrigin.startsWith("draft-");
@@ -2017,14 +2017,14 @@ public class Utilities
    * @return {@code true} if the provided schema element is part of the configuration,
    *         {@code false} otherwise.
    */
-  public static boolean isConfiguration(ServerSchemaElement fileElement)
+  public static boolean isConfiguration(SchemaElement fileElement)
   {
-    String fileName = fileElement.getSchemaFile();
+    String fileName = getSchemaFile(fileElement);
     if (fileName != null)
     {
       return configurationSchemaFileNames.contains(fileName);
     }
-    String xOrigin = fileElement.getOrigin();
+    String xOrigin = getOrigin(fileElement);
     if (xOrigin != null)
     {
       return configurationSchemaOrigins.contains(xOrigin);
@@ -2816,9 +2816,9 @@ public class Utilities
    *            Element to check.
    * @return {@code true} iff element is an attribute type.
    */
-  public static boolean isAttributeType(ServerSchemaElement element)
+  public static boolean isAttributeType(SchemaElement element)
   {
-    return element.asSchemaElement() instanceof AttributeType;
+    return element instanceof AttributeType;
   }
 
   /**
@@ -2829,7 +2829,7 @@ public class Utilities
    *            Using any other schema element will return invalid result.
    * @return Either "attributeTypes" or "objectClasses"
    */
-  public static String getAttributeConfigName(ServerSchemaElement element)
+  public static String getAttributeConfigName(SchemaElement element)
   {
     return isAttributeType(element) ? ConfigConstants.ATTR_ATTRIBUTE_TYPES : ConfigConstants.ATTR_OBJECTCLASSES;
   }
@@ -2842,14 +2842,17 @@ public class Utilities
    *            Using any other schema element will yield an exception.
    * @return Either "attributeTypes" or "objectClasses"
    */
-  public static String getElementNameOrOID(ServerSchemaElement element)
+  public static String getElementNameOrOID(SchemaElement element)
   {
-    SchemaElement elem = element.asSchemaElement();
-    if (elem instanceof AttributeType)
+    if (element instanceof AttributeType)
     {
-      return ((AttributeType) elem).getNameOrOID();
+      return ((AttributeType) element).getNameOrOID();
     }
-    return ((ObjectClass) elem).getNameOrOID();
+    else if (element instanceof ObjectClass)
+    {
+      return ((ObjectClass) element).getNameOrOID();
+    }
+    throw new RuntimeException("getElementNameOrOID() not implemented for element of type " + element.getClass());
   }
 
   /**
@@ -2860,14 +2863,17 @@ public class Utilities
    *            Using any other schema element will yield an exception.
    * @return Either "attributeTypes" or "objectClasses"
    */
-  public static String getElementOID(ServerSchemaElement element)
+  public static String getElementOID(SchemaElement element)
   {
-    SchemaElement elem = element.asSchemaElement();
-    if (elem instanceof AttributeType)
+    if (element instanceof AttributeType)
     {
-      return ((AttributeType) elem).getOID();
+      return ((AttributeType) element).getOID();
     }
-    return ((ObjectClass) elem).getOID();
+    else if (element instanceof ObjectClass)
+    {
+      return ((ObjectClass) element).getOID();
+    }
+    throw new RuntimeException("getElementOID() not implemented for element of type " + element.getClass());
   }
 
   /**
@@ -2879,7 +2885,7 @@ public class Utilities
    *            new superior type to use.
    * @return the new attribute type
    */
-  public static AttributeType updateAttributeTypeWithNewSuperiorType(AttributeType attributeType,
+  public static AttributeType getNewAttributeTypeWithNewSuperiorType(AttributeType attributeType,
       AttributeType newSuperiorType)
   {
     String superiorTypeOID = newSuperiorType != null ? newSuperiorType.getNameOrOID() : null;
@@ -2905,8 +2911,8 @@ public class Utilities
    *          the value to set
    * @return the updated schema element
    */
-  public static ServerSchemaElement updateSchemaElementExtraPropertySingleValue(ServerContext serverContext,
-      ServerSchemaElement element, String property, String value)
+  public static SchemaElement updateSchemaElementExtraPropertySingleValue(ServerContext serverContext,
+      SchemaElement element, String property, String value)
   {
     List<String> values = value != null ? Arrays.asList(value) : null;
     return updateSchemaElementExtraPropertyMultiplesValues(serverContext, element, property, values);
@@ -2926,32 +2932,34 @@ public class Utilities
    *          the list of values to set
    * @return the updated schema element
    */
-  public static ServerSchemaElement updateSchemaElementExtraPropertyMultiplesValues(ServerContext serverContext,
-      ServerSchemaElement element, String property, List<String> values)
+  public static SchemaElement updateSchemaElementExtraPropertyMultiplesValues(ServerContext serverContext,
+      SchemaElement element, String property, List<String> values)
   {
     org.forgerock.opendj.ldap.schema.Schema schemaNG = serverContext != null ?
         serverContext.getSchemaNG() : org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema();
     SchemaBuilder schemaBuilder = new SchemaBuilder(schemaNG);
-    SchemaElement elem = element.asSchemaElement();
-    if (elem instanceof AttributeType)
+    if (element instanceof AttributeType)
     {
-       AttributeType attr = (AttributeType) elem;
+      AttributeType attr = (AttributeType) element;
       AttributeType.Builder builder =
           schemaBuilder.buildAttributeType(attr).removeExtraProperty(property, (String) null);
       if (values != null  && !values.isEmpty())
       {
         builder.extraProperties(property, values);
       }
-      return new ServerSchemaElement(builder.addToSchemaOverwrite().toSchema().getAttributeType(attr.getNameOrOID()));
+      return builder.addToSchemaOverwrite().toSchema().getAttributeType(attr.getNameOrOID());
     }
-    // It is an object class
-    ObjectClass oc = (ObjectClass) elem;
-    ObjectClass.Builder builder = schemaBuilder.buildObjectClass(oc).removeExtraProperty(property, (String) null);
-    if (values != null && !values.isEmpty())
+    else if (element instanceof ObjectClass)
     {
-      builder.extraProperties(property, values);
+      ObjectClass oc = (ObjectClass) element;
+      ObjectClass.Builder builder = schemaBuilder.buildObjectClass(oc).removeExtraProperty(property, (String) null);
+      if (values != null && !values.isEmpty())
+      {
+        builder.extraProperties(property, values);
+      }
+      return builder.addToSchemaOverwrite().toSchema().getObjectClass(oc.getNameOrOID());
     }
-    return new ServerSchemaElement(builder.addToSchemaOverwrite().toSchema().getObjectClass(oc.getNameOrOID()));
+    throw new RuntimeException("updateSchemaElementExtraPropertyMultiplesValues() not implemented for element of type "
+        + element.getClass());
   }
-
 }

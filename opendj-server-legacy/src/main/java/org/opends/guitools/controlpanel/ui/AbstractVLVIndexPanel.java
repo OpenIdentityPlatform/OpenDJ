@@ -80,7 +80,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
@@ -320,15 +319,14 @@ abstract class AbstractVLVIndexPanel extends StatusGenericPanel
 
         for (AttributeType attr : schema.getAttributeTypes())
         {
-          ServerSchemaElement element = new ServerSchemaElement(attr);
           String name = attr.getNameOrOID();
           if (!isDefined(name))
           {
-            if (Utilities.isStandard(element))
+            if (Utilities.isStandard(attr))
             {
               standardAttrNames.add(name);
             }
-            else if (Utilities.isConfiguration(element))
+            else if (Utilities.isConfiguration(attr))
             {
               configurationAttrNames.add(name);
             }

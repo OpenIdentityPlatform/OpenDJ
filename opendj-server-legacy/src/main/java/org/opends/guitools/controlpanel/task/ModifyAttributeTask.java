@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.task;
 
+import static org.opends.guitools.controlpanel.util.Utilities.getNewAttributeTypeWithNewSuperiorType;
+
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.SchemaUtils.*;
@@ -148,7 +150,7 @@ public class ModifyAttributeTask extends Task
     else if (oldAttribute.equals(attrToDelete.getSuperiorType()))
     {
       // get a new attribute with the new superior type
-      return Utilities.updateAttributeTypeWithNewSuperiorType(attrToDelete, newAttribute);
+      return getNewAttributeTypeWithNewSuperiorType(attrToDelete, newAttribute);
     }
     else
     {

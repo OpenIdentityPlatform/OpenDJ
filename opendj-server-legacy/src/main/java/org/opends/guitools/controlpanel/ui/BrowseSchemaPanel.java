@@ -16,8 +16,6 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.guitools.controlpanel.util.Utilities.getElementNameOrOID;
-
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -71,6 +69,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -141,7 +140,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
 
   private JPopupMenu popup;
 
-  private ServerSchemaElement lastCreatedElement;
+  private SchemaElement lastCreatedElement;
 
   private final CategoryTreeNode attributes = new CategoryTreeNode(INFO_CTRL_PANEL_ATTRIBUTES_CATEGORY_NODE.get());
   private final CategoryTreeNode objectClasses =
@@ -671,14 +670,13 @@ class BrowseSchemaPanel extends StatusGenericPanel
     {
       if (mustAdd(oc))
       {
-        ServerSchemaElement element = new ServerSchemaElement(oc);
         String name = oc.getNameOrOID();
-        if (Utilities.isStandard(element))
+        if (Utilities.isStandard(oc))
         {
           standardOcNames.add(name);
           hmStandardOcs.put(name, new StandardObjectClassTreeNode(name, oc));
         }
-        else if (Utilities.isConfiguration(element))
+        else if (Utilities.isConfiguration(oc))
         {
           configurationOcNames.add(name);
           hmConfigurationOcs.put(name, new ConfigurationObjectClassTreeNode(name, oc));
@@ -699,16 +697,15 @@ class BrowseSchemaPanel extends StatusGenericPanel
     Map<String, CustomAttributeTreeNode> hmCustomAttrs = new HashMap<>();
     for (AttributeType attr : lastSchema.getAttributeTypes())
     {
-      ServerSchemaElement element = new ServerSchemaElement(attr);
       if (mustAdd(attr))
       {
         String name = attr.getNameOrOID();
-        if (Utilities.isStandard(element))
+        if (Utilities.isStandard(attr))
         {
           standardAttrNames.add(name);
           hmStandardAttrs.put(name, new StandardAttributeTreeNode(name, attr));
         }
-        else if (Utilities.isConfiguration(element))
+        else if (Utilities.isConfiguration(attr))
         {
           configurationAttrNames.add(name);
           hmConfigurationAttrs.put(name, new ConfigurationAttributeTreeNode(name, attr));
@@ -872,7 +869,7 @@ class BrowseSchemaPanel extends StatusGenericPanel
             if (lastCreatedElement != null)
             {
               if (node instanceof CustomObjectClassTreeNode
-                  && name.equals(getElementNameOrOID(lastCreatedElement)))
+                  && name.equals(Utilities.getElementNameOrOID(lastCreatedElement)))
               {
                 newSelectionPath = new TreePath(node.getPath());
                 lastCreatedElement = null;
@@ -1464,9 +1461,9 @@ class BrowseSchemaPanel extends StatusGenericPanel
   private void configurationElementCreated(ConfigurationElementCreatedEvent ev)
   {
     Object o = ev.getConfigurationObject();
-    if (o instanceof ServerSchemaElement)
+    if (o instanceof SchemaElement)
     {
-      lastCreatedElement = (ServerSchemaElement) o;
+      lastCreatedElement = (SchemaElement) o;
     }
   }
 

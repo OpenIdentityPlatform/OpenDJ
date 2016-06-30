@@ -15,89 +15,58 @@
  */
 package org.opends.server.schema;
 
-import static org.opends.server.types.Schema.*;
+import static org.opends.server.types.Schema.addSchemaFileToElementDefinitionIfAbsent;
+import static org.opends.messages.SchemaMessages.ERR_ATTR_SYNTAX_ILLEGAL_X_SCHEMA_FILE;
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 
 import java.util.List;
-import java.util.Map;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.util.ServerConstants;
 
 /**
- * Provides common operations for server schema elements.
+ * Utility class that provides common operations over schema elements in a server context.
  */
 public class ServerSchemaElement
 {
 
-  /** The underlying schema element. */
-  private final SchemaElement element;
+  private ServerSchemaElement()
+  {
+    // prevent instantiation
+  }
 
   /**
-   * Creates an element.
+   * Retrieves the definition string used to create the provided schema element and including the
+   * X-SCHEMA-FILE extension.
    *
    * @param element
-   *            The schema element to wrap.
+   *            The schema element.
+   * @return The definition string used to create the schema element including the X-SCHEMA-FILE
+   *         extension.
    */
-  public ServerSchemaElement(SchemaElement element)
-  {
-    this.element = element;
-  }
-
-  /**
-   * Returns this schema element.
-   *
-   * @return this schema element
-   */
-  public SchemaElement asSchemaElement()
-  {
-    return this.element;
-  }
-
-  /**
-   * Retrieves the definition string used to create this schema element
-   * and including the X-SCHEMA-FILE extension.
-   *
-   * @return The definition string used to create this attribute
-   *         type including the X-SCHEMA-FILE extension.
-   */
-  public String getDefinitionWithFileName()
+  public static String getDefinitionWithFileName(SchemaElement element)
   {
     final String definition = element.toString();
-    return addSchemaFileToElementDefinitionIfAbsent(definition, getSchemaFile());
+    return addSchemaFileToElementDefinitionIfAbsent(definition, getSchemaFile(element));
   }
 
   /**
-   * Returns the description of this schema element.
+   * Returns the single value of the provided extra property for the provided schema element.
    *
-   * @return The description of this schema element, or the empty string if it does not have a description.
-   */
-  public String getDescription()
-  {
-    return element.getDescription();
-  }
-
-  /**
-   * Returns a map of extra properties of this schema element.
-   *
-   * @return An unmodifiable map containing all of the extra properties associated with this schema element.
-   */
-  public Map<String, List<String>> getExtraProperties()
-  {
-    return element.getExtraProperties();
-  }
-
-  /**
-   * Returns the single value of the provided extra property.
-   *
+   * @param element
+   *            The schema element.
    * @param property
    *            The name of property to retrieve.
-   * @return the single value of the property
+   * @return the single value of the extra property
    */
-  public String getExtraPropertyAsSingleValue(String property)
+  public static String getExtraPropertyAsSingleValue(SchemaElement element, String property)
   {
     List<String> values = element.getExtraProperties().get(property);
     return values != null && !values.isEmpty() ? values.get(0) : null;
@@ -106,21 +75,25 @@ public class ServerSchemaElement
   /**
    * Returns the origin of the provided schema element.
    *
-   * @return the origin of the provided schema element.
+   * @param element
+   *            The schema element.
+   * @return the origin of the schema element as defined in the extra properties.
    */
-  public String getOrigin()
+  public static String getOrigin(SchemaElement element)
   {
-    return getExtraPropertyAsSingleValue(ServerConstants.SCHEMA_PROPERTY_ORIGIN);
+    return getExtraPropertyAsSingleValue(element, ServerConstants.SCHEMA_PROPERTY_ORIGIN);
   }
 
   /**
    * Returns the schema file of the provided schema element.
    *
-   * @return the schema file of the provided schema element.
+   * @param element
+   *            The schema element.
+   * @return the schema file of schema element.
    */
-  public String getSchemaFile()
+  public static String getSchemaFile(SchemaElement element)
   {
-    return getExtraPropertyAsSingleValue(ServerConstants.SCHEMA_PROPERTY_FILENAME);
+    return getExtraPropertyAsSingleValue(element, ServerConstants.SCHEMA_PROPERTY_FILENAME);
   }
 
   /**

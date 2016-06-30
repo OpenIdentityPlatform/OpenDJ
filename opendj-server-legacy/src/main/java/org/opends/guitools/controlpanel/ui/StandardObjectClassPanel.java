@@ -18,6 +18,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.schema.ServerSchemaElement.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.awt.Component;
@@ -44,6 +45,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
@@ -239,11 +241,11 @@ public class StandardObjectClassPanel extends SchemaElementPanel
    * @param element the schema element.
    * @return the message describing the schema element origin (file, RFC, etc.).
    */
-  static LocalizableMessage getOrigin(ServerSchemaElement element)
+  static LocalizableMessage getOrigin(SchemaElement element)
   {
     LocalizableMessageBuilder returnValue = new LocalizableMessageBuilder();
-    String fileName = element.getSchemaFile();
-    String xOrigin = element.getOrigin();
+    String fileName = getSchemaFile(element);
+    String xOrigin = ServerSchemaElement.getOrigin(element);
     if (xOrigin != null)
     {
       returnValue.append(xOrigin);
@@ -287,7 +289,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     name.setText(n);
     parent.setText(getSuperiorText(oc));
     oid.setText(oc.getOID());
-    origin.setText(getOrigin(new ServerSchemaElement(oc)).toString());
+    origin.setText(getOrigin(oc).toString());
     n = oc.getDescription();
     if (n == null)
     {

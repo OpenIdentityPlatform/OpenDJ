@@ -32,14 +32,13 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.quicksetup.UserData;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
-import static org.opends.server.types.CommonSchemaElements.*;
+import static org.opends.server.schema.ServerSchemaElement.*;
 
 /**
  * This is just a class used to provide a data model describing what the
@@ -608,8 +607,7 @@ public class ServerDescriptor
         && attr1.isOperational() == attr2.isOperational()
         && attr1.isSingleValue() == attr2.isSingleValue()
         && areEqual(attr1.getApproximateMatchingRule(), attr2.getApproximateMatchingRule())
-        && areEqual(new ServerSchemaElement(attr1).getDefinitionWithFileName(),
-            new ServerSchemaElement(attr2).getDefinitionWithFileName())
+        && areEqual(getDefinitionWithFileName(attr1), getDefinitionWithFileName(attr2))
         && areEqual(attr1.getDescription(), attr2.getDescription())
         && areEqual(attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule())
         && areEqual(attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule())

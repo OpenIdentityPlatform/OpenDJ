@@ -24,7 +24,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
-import static org.opends.server.types.CommonSchemaElements.*;
+import static org.opends.server.schema.ServerSchemaElement.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;

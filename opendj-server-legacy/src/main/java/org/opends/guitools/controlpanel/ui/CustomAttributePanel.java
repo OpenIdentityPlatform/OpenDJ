@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.schema.ServerSchemaElement.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Component;
@@ -83,7 +84,6 @@ import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -526,15 +526,14 @@ class CustomAttributePanel extends SchemaElementPanel
     lastAliases.addAll(someAliases);
     this.aliases.setText(Utilities.getStringFromCollection(someAliases, ", "));
 
-    ServerSchemaElement element = new ServerSchemaElement(attr);
-    String sOrigin = element.getOrigin();
+    String sOrigin = getOrigin(attr);
     if (sOrigin == null)
     {
       sOrigin = "";
     }
     origin.setText(sOrigin);
 
-    String sFile = element.getSchemaFile();
+    String sFile = getSchemaFile(attr);
     if (sFile == null)
     {
       sFile = "";
