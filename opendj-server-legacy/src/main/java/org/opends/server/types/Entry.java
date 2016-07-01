@@ -27,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -53,11 +54,11 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.util.Utils;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SubentryManager;
 import org.opends.server.types.SubEntry.CollectiveConflictBehavior;
 import org.opends.server.util.LDIFException;
@@ -66,6 +67,7 @@ import org.opends.server.util.LDIFWriter;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -229,8 +231,8 @@ public class Entry
    * @param  objectClass  The objectclass for which to make the
    *                      determination.
    *
-   * @return  <CODE>true</CODE> if this entry has the specified
-   *          objectclass, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this entry has the specified
+   *          objectclass, or {@code false} if not.
    */
   public boolean hasObjectClass(ObjectClass objectClass)
   {
@@ -243,7 +245,7 @@ public class Entry
    * Retrieves the structural objectclass for this entry.
    *
    * @return  The structural objectclass for this entry, or
-   *          <CODE>null</CODE> if there is none for some reason.  If
+   *          {@code null} if there is none for some reason.  If
    *          there are multiple structural classes in the entry, then
    *          the first will be returned.
    */
@@ -359,7 +361,7 @@ public class Entry
    * this entry.  The returned attribute must not be altered.
    *
    * @return  An attribute holding the objectclass information for
-   *          this entry, or <CODE>null</CODE> if it does not have any
+   *          this entry, or {@code null} if it does not have any
    *          objectclass information.
    */
   public Attribute getObjectClassAttribute()
@@ -388,8 +390,8 @@ public class Entry
    *
    * @param attributeType
    *          The attribute type for which to make the determination.
-   * @return <CODE>true</CODE> if this entry contains the specified
-   *         attribute, or <CODE>false</CODE> if not.
+   * @return {@code true} if this entry contains the specified
+   *         attribute, or {@code false} if not.
    */
   public boolean hasAttribute(AttributeType attributeType)
   {
@@ -406,8 +408,8 @@ public class Entry
    *                             attributes of the attribute type
    *                             being retrieved.
    *
-   * @return  <CODE>true</CODE> if this entry contains the specified
-   *          attribute, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this entry contains the specified
+   *          attribute, or {@code false} if not.
    */
   public boolean hasAttribute(AttributeType attributeType,
                               boolean includeSubordinates)
@@ -425,8 +427,8 @@ public class Entry
    *
    * @param attributeDescription
    *          The attribute description for which to make the determination.
-   * @return <CODE>true</CODE> if this entry contains the specified
-   *         attribute, or <CODE>false</CODE> if not.
+   * @return {@code true} if this entry contains the specified
+   *         attribute, or {@code false} if not.
    */
   public boolean hasAttribute(AttributeDescription attributeDescription)
   {
@@ -441,7 +443,7 @@ public class Entry
    *          The attribute description for which to make the determination.
    * @param includeSubordinates
    *          Whether to include any subordinate attributes of the attribute type being retrieved.
-   * @return <CODE>true</CODE> if this entry contains the specified attribute, or <CODE>false</CODE>
+   * @return {@code true} if this entry contains the specified attribute, or {@code false}
    *         if not.
    */
   public boolean hasAttribute(AttributeDescription attributeDescription, boolean includeSubordinates)
@@ -759,8 +761,8 @@ public class Entry
    *
    * @param attributeType
    *          The attribute type for which to make the determination.
-   * @return <CODE>true</CODE> if this entry contains the specified
-   *         user attribute, or <CODE>false</CODE> if not.
+   * @return {@code true} if this entry contains the specified
+   *         user attribute, or {@code false} if not.
    */
   public boolean hasUserAttribute(AttributeType attributeType)
   {
@@ -812,13 +814,12 @@ public class Entry
    */
   private void onlyKeepAttributesWithAllOptions(List<Attribute> attributes, AttributeDescription attributeDescription)
   {
-    Iterator<Attribute> iterator = attributes.iterator();
-    while (iterator.hasNext())
+    for (Iterator<Attribute> it = attributes.iterator(); it.hasNext();)
     {
-      Attribute a = iterator.next();
+      Attribute a = it.next();
       if (!a.getAttributeDescription().isSubTypeOf(attributeDescription))
       {
-        iterator.remove();
+        it.remove();
       }
     }
   }
@@ -830,8 +831,8 @@ public class Entry
    * @param  attributeType  The attribute type for which to make the
    *                        determination.
    *
-   * @return  <CODE>true</CODE> if this entry contains the specified
-   *          operational attribute, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this entry contains the specified
+   *          operational attribute, or {@code false} if not.
    */
   public boolean hasOperationalAttribute(AttributeType attributeType)
   {
@@ -900,14 +901,13 @@ public class Entry
    * @param  attributeList  The set of attributes to add for the given
    *                        type.
    */
-  public void putAttribute(AttributeType attributeType,
-                           List<Attribute> attributeList)
+  public void putAttribute(AttributeType attributeType, List<Attribute> attributeList)
   {
     attachment = null;
 
 
-    // See if there is already a set of attributes with the specified
-    // type.  If so, then overwrite it.
+    // See if there is already a set of attributes with the specified type.
+    // If so, then overwrite it.
     List<Attribute> attrList = userAttributes.get(attributeType);
     if (attrList != null)
     {
@@ -1052,8 +1052,8 @@ public class Entry
    * @param attributeType
    *          The attribute type for the attribute to remove from this
    *          entry.
-   * @return <CODE>true</CODE> if the attribute was found and
-   *         removed, or <CODE>false</CODE> if it was not present in
+   * @return {@code true} if the attribute was found and
+   *         removed, or {@code false} if it was not present in
    *         the entry.
    */
   public boolean removeAttribute(AttributeType attributeType)
@@ -1087,16 +1087,15 @@ public class Entry
    * @param missingValues
    *          A list to which any values contained in the provided
    *          attribute but not present in the entry will be added.
-   * @return <CODE>true</CODE> if the attribute type was present and
+   * @return {@code true} if the attribute type was present and
    *         the specified values that were present were removed, or
-   *         <CODE>false</CODE> if the attribute type was not
+   *         {@code false} if the attribute type was not
    *         present in the entry. If the attribute type was present
    *         but only contained some of the values in the provided
-   *         attribute, then this method will return <CODE>true</CODE>
+   *         attribute, then this method will return {@code true}
    *         but will add those values to the provided list.
    */
-  public boolean removeAttribute(Attribute attribute,
-      List<ByteString> missingValues)
+  public boolean removeAttribute(Attribute attribute, List<ByteString> missingValues)
   {
     attachment = null;
 
@@ -1104,40 +1103,48 @@ public class Entry
     AttributeType attrType = attrDesc.getAttributeType();
     if (attrType.isObjectClass())
     {
-      if (attribute.isEmpty())
-      {
-        objectClasses.clear();
-        return true;
-      }
-
-      boolean allSuccessful = true;
-
-      MatchingRule rule = attrType.getEqualityMatchingRule();
-      for (ByteString v : attribute)
-      {
-        String ocName = toLowerName(rule, v);
-
-        boolean matchFound = false;
-        for (ObjectClass oc : objectClasses.keySet())
-        {
-          if (oc.hasNameOrOID(ocName))
-          {
-            matchFound = true;
-            objectClasses.remove(oc);
-            break;
-          }
-        }
-
-        if (!matchFound)
-        {
-          allSuccessful = false;
-          missingValues.add(v);
-        }
-      }
-
-      return allSuccessful;
+      return removeObjectClassAttribute(attribute, missingValues);
     }
 
+    return removeNonObjectClassAttribute(attribute, missingValues);
+  }
+
+  private boolean removeObjectClassAttribute(Attribute attribute, List<ByteString> missingValues)
+  {
+    AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
+    if (attribute.isEmpty())
+    {
+      objectClasses.clear();
+      return true;
+    }
+
+    boolean allSuccessful = true;
+
+    MatchingRule rule = attrType.getEqualityMatchingRule();
+    for (ByteString v : attribute)
+    {
+      String ocName = toLowerName(rule, v);
+
+      for (ObjectClass oc : objectClasses.keySet())
+      {
+        if (oc.hasNameOrOID(ocName))
+        {
+          objectClasses.remove(oc);
+          return true;
+        }
+      }
+
+      allSuccessful = false;
+      missingValues.add(v);
+    }
+
+    return allSuccessful;
+  }
+
+  private boolean removeNonObjectClassAttribute(Attribute attribute, List<ByteString> missingValues)
+  {
+    AttributeDescription attrDesc = attribute.getAttributeDescription();
+    AttributeType attrType = attrDesc.getAttributeType();
     List<Attribute> attributes = getAttributes(attrType);
     if (attributes == null)
     {
@@ -1150,15 +1157,15 @@ public class Entry
     }
 
     // There are already attributes with the same attribute type.
-    for (int i = 0; i < attributes.size(); i++)
+    for (ListIterator<Attribute> it = attributes.listIterator(); it.hasNext();)
     {
-      Attribute a = attributes.get(i);
+      Attribute a = it.next();
       if (a.getAttributeDescription().equals(attrDesc))
       {
         if (attribute.isEmpty())
         {
           // Remove the entire attribute.
-          attributes.remove(i);
+          it.remove();
         }
         else
         {
@@ -1175,11 +1182,11 @@ public class Entry
           // Remove / replace the attribute as necessary.
           if (!builder.isEmpty())
           {
-            attributes.set(i, builder.toAttribute());
+            it.set(builder.toAttribute());
           }
           else
           {
-            attributes.remove(i);
+            it.remove();
           }
         }
 
@@ -2154,8 +2161,8 @@ public class Entry
    *                           should be appended if a problem is
    *                           found.
    *
-   * @return  <CODE>true</CODE> if this entry conforms to the provided
-   *          DIT structure rule, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this entry conforms to the provided
+   *          DIT structure rule, or {@code false} if not.
    */
   private boolean validateDITStructureRule(DITStructureRule dsr,
                        ObjectClass structuralClass, Entry parentEntry,
@@ -2179,16 +2186,7 @@ public class Entry
       }
     }
 
-    boolean matchFound = false;
-    for (DITStructureRule dsr2 : dsr.getSuperiorRules())
-    {
-      if (dsr2.getNameForm().getStructuralClass().equals(oc))
-      {
-        matchFound = true;
-      }
-    }
-
-    if (! matchFound)
+    if (!containsSuperiorRuleWithObjectClass(dsr, oc))
     {
       LocalizableMessage message =
               ERR_ENTRY_SCHEMA_DSR_DISALLOWED_SUPERIOR_OC.get(
@@ -2211,13 +2209,24 @@ public class Entry
     return true;
   }
 
+  private boolean containsSuperiorRuleWithObjectClass(DITStructureRule dsr, ObjectClass oc)
+  {
+    for (DITStructureRule superior : dsr.getSuperiorRules())
+    {
+      if (superior.getNameForm().getStructuralClass().equals(oc))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
 
   /**
    * Retrieves the attachment for this entry.
    *
-   * @return  The attachment for this entry, or <CODE>null</CODE> if
-   *          there is none.
+   * @return  The attachment for this entry, or {@code null} if there is none.
    */
   public Object getAttachment()
   {
@@ -2230,9 +2239,8 @@ public class Entry
    * Specifies the attachment for this entry.  This will replace any
    * existing attachment that might be defined.
    *
-   * @param  attachment  The attachment for this entry, or
-   *                     <CODE>null</CODE> if there should not be an
-   *                     attachment.
+   * @param  attachment  The attachment for this entry,
+   *                     or {@code null} if there should not be an attachment.
    */
   public void setAttachment(Object attachment)
   {
@@ -2349,12 +2357,12 @@ public class Entry
           // Ensure that there is only one attribute with the same type and options.
           // This is not very efficient but will occur very rarely.
           boolean found = false;
-          for (int i = 0; i < targetList.size(); i++)
+          for (ListIterator<Attribute> it = targetList.listIterator(); it.hasNext();)
           {
-            Attribute otherAttribute = targetList.get(i);
+            Attribute otherAttribute = it.next();
             if (otherAttribute.getAttributeDescription().equals(a.getAttributeDescription()))
             {
-              targetList.set(i, Attributes.merge(a, otherAttribute));
+              it.set(Attributes.merge(a, otherAttribute));
               found = true;
             }
           }
@@ -2383,8 +2391,8 @@ public class Entry
    * Indicates whether this entry meets the criteria to consider it a referral
    * (e.g., it contains the "referral" objectclass and a "ref" attribute).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
-   *          consider it a referral, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this entry meets the criteria to
+   *          consider it a referral, or {@code false} if not.
    */
   public boolean isReferral()
   {
@@ -2451,11 +2459,10 @@ public class Entry
   /**
    * Retrieves the set of referral URLs that are included in this
    * referral entry.  This should only be called if
-   * <CODE>isReferral()</CODE> returns <CODE>true</CODE>.
+   * {@link #isReferral()} returns {@code true}.
    *
    * @return  The set of referral URLs that are included in this entry
-   *          if it is a referral, or <CODE>null</CODE> if it is not a
-   *          referral.
+   *          if it is a referral, or {@code null} if it is not a referral.
    */
   public Set<String> getReferralURLs()
   {
@@ -2496,8 +2503,8 @@ public class Entry
    * alias (e.g., it contains the "aliasObject" objectclass and a
    * "alias" attribute).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
-   *          consider it an alias, or <CODE>false</CODE> if not.
+   * @return  {@code true} if this entry meets the criteria to
+   *          consider it an alias, or {@code false} if not.
    */
   public boolean isAlias()
   {
@@ -2509,10 +2516,10 @@ public class Entry
   /**
    * Retrieves the DN of the entry referenced by this alias entry.
    * This should only be called if <CODE>isAlias()</CODE> returns
-   * <CODE>true</CODE>.
+   * {@code true}.
    *
    * @return  The DN of the entry referenced by this alias entry, or
-   *          <CODE>null</CODE> if it is not an alias.
+   *          {@code null} if it is not an alias.
    *
    * @throws  DirectoryException  If there is an aliasedObjectName
    *                              attribute but its value cannot be
@@ -2560,8 +2567,8 @@ public class Entry
    * Indicates whether this entry meets the criteria to consider it an
    * LDAP subentry (i.e., it contains the "ldapSubentry" objectclass).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
-   *          consider it an LDAP subentry, or <CODE>false</CODE> if
+   * @return  {@code true} if this entry meets the criteria to
+   *          consider it an LDAP subentry, or {@code false} if
    *          not.
    */
   public boolean isLDAPSubentry()
@@ -2598,7 +2605,7 @@ public class Entry
    * an RFC 3672 LDAP subentry (i.e., it contains the "subentry"
    * objectclass).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   * @return  {@code true} if this entry meets the criteria to
    *          consider it an RFC 3672 LDAP subentry, or <CODE>false
    *          </CODE> if not.
    */
@@ -2614,9 +2621,9 @@ public class Entry
    * RFC 3671 LDAP collective attributes subentry (i.e., it contains
    * the "collectiveAttributeSubentry" objectclass).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   * @return  {@code true} if this entry meets the criteria to
    *          consider it an RFC 3671 LDAP collective attributes
-   *          subentry, or <CODE>false</CODE> if not.
+   *          subentry, or {@code false} if not.
    */
   public boolean isCollectiveAttributeSubentry()
   {
@@ -2630,9 +2637,9 @@ public class Entry
    * inherited collective attributes subentry (i.e., it contains
    * the "inheritedCollectiveAttributeSubentry" objectclass).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   * @return  {@code true} if this entry meets the criteria to
    *          consider it an inherited collective attributes
-   *          subentry, or <CODE>false</CODE> if not.
+   *          subentry, or {@code false} if not.
    */
   public boolean isInheritedCollectiveAttributeSubentry()
   {
@@ -2646,9 +2653,9 @@ public class Entry
    * from DN collective attributes subentry (i.e., it contains the
    * "inheritedFromDNCollectiveAttributeSubentry" objectclass).
    *
-   * @return <CODE>true</CODE> if this entry meets the criteria to consider it
+   * @return {@code true} if this entry meets the criteria to consider it
    *         an inherited from DN collective attributes subentry, or
-   *         <CODE>false</CODE> if not.
+   *         {@code false} if not.
    */
   public boolean isInheritedFromDNCollectiveAttributeSubentry()
   {
@@ -2663,9 +2670,9 @@ public class Entry
    * it contains the "inheritedFromRDNCollectiveAttributeSubentry"
    * objectclass).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   * @return  {@code true} if this entry meets the criteria to
    *          consider it an inherited from RDN collective attributes
-   *          subentry, or <CODE>false</CODE> if not.
+   *          subentry, or {@code false} if not.
    */
   public boolean isInheritedFromRDNCollectiveAttributeSubentry()
   {
@@ -2679,9 +2686,9 @@ public class Entry
    * LDAP password policy subentry (i.e., it contains the "pwdPolicy"
    * objectclass of LDAP Password Policy Internet-Draft).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   * @return  {@code true} if this entry meets the criteria to
    *          consider it a LDAP Password Policy Internet-Draft
-   *          subentry, or <CODE>false</CODE> if not.
+   *          subentry, or {@code false} if not.
    */
   public boolean isPasswordPolicySubentry()
   {
@@ -2698,8 +2705,8 @@ public class Entry
    * @param  scope   The search scope for which to make the
    *                 determination.
    *
-   * @return  <CODE>true</CODE> if this entry is within the given
-   *          base and scope, or <CODE>false</CODE> if it is not.
+   * @return  {@code true} if this entry is within the given
+   *          base and scope, or {@code false} if it is not.
    */
   public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
   {
@@ -3268,9 +3275,7 @@ public class Entry
         int configLength = entryBuffer.readBERLength();
 
         // Next is the encoded configuration itself.
-        config =
-            EntryEncodeConfig.decode(entryBuffer, configLength,
-                compressedSchema);
+        config = EntryEncodeConfig.decode(entryBuffer, configLength, compressedSchema);
       }
       else
       {
@@ -3323,8 +3328,7 @@ public class Entry
     {
       logger.traceException(e);
 
-      LocalizableMessage message =
-          ERR_ENTRY_DECODE_EXCEPTION.get(getExceptionMessage(e));
+      LocalizableMessage message = ERR_ENTRY_DECODE_EXCEPTION.get(getExceptionMessage(e));
       throw new DirectoryException(
                      DirectoryServer.getServerErrorResultCode(),
                      message, e);
@@ -3577,8 +3581,8 @@ public class Entry
    * @param  exportConfig  The configuration that specifies how the
    *                       entry should be written.
    *
-   * @return  <CODE>true</CODE> if the entry is actually written, or
-   *          <CODE>false</CODE> if it is not for some reason.
+   * @return  {@code true} if the entry is actually written, or
+   *          {@code false} if it is not for some reason.
    *
    * @throws  IOException  If a problem occurs while writing the
    *                       information.
@@ -3611,11 +3615,8 @@ public class Entry
     // Invoke LDIF export plugins on the entry if appropriate.
     if (exportConfig.invokeExportPlugins())
     {
-      PluginConfigManager pluginConfigManager =
-           DirectoryServer.getPluginConfigManager();
       PluginResult.ImportLDIF pluginResult =
-           pluginConfigManager.invokeLDIFExportPlugins(exportConfig,
-                                                    this);
+           getPluginConfigManager().invokeLDIFExportPlugins(exportConfig, this);
       if (! pluginResult.continueProcessing())
       {
         return false;
@@ -3724,8 +3725,7 @@ public class Entry
    * @param exportConfig
    *          configures the export to LDIF
    * @param writer
-   *          The writer to which the data should be written. It must not be
-   *          <CODE>null</CODE>.
+   *          The writer to which the data should be written. It must not be {@code null}.
    * @param wrapLines
    *          Indicates whether to wrap long lines.
    * @param wrapColumn
@@ -3774,8 +3774,7 @@ public class Entry
    *          if true, only writes the type information, else writes the type
    *          information and values for the attribute.
    * @param writer
-   *          The writer to which the data should be written. It must not be
-   *          <CODE>null</CODE>.
+   *          The writer to which the data should be written. It must not be {@code null}.
    * @param wrapLines
    *          Indicates whether to wrap long lines.
    * @param wrapColumn
@@ -3846,7 +3845,7 @@ public class Entry
    * Computes the hashCode for the list of attributes list.
    *
    * @param attributesLists
-   *          the attributes for which to commpute the hashCode
+   *          the attributes for which to compute the hashCode
    * @return the hashCode for the list of attributes list.
    */
   private int hashCode(Collection<List<Attribute>> attributesLists)
@@ -4019,19 +4018,7 @@ public class Entry
     buffer.append("Entry(dn=\"");
     buffer.append(dn);
     buffer.append("\",objectClasses={");
-
-    Iterator<String> iterator = objectClasses.values().iterator();
-    if (iterator.hasNext())
-    {
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(",");
-        buffer.append(iterator.next());
-      }
-    }
-
+    Utils.joinAsString(buffer, ",", objectClasses.values());
     buffer.append("},userAttrs={");
     appendAttributes(buffer, userAttributes.values());
     buffer.append("},operationalAttrs={");
@@ -4067,18 +4054,7 @@ public class Entry
         buffer.append(a.getAttributeDescription());
 
         buffer.append("={");
-        Iterator<ByteString> valueIterator = a.iterator();
-        if (valueIterator.hasNext())
-        {
-          buffer.append(valueIterator.next());
-
-          while (valueIterator.hasNext())
-          {
-            buffer.append(",");
-            buffer.append(valueIterator.next());
-          }
-        }
-
+        Utils.joinAsString(buffer, ",", a);
         buffer.append("}");
       }
     }
@@ -4088,14 +4064,14 @@ public class Entry
 
   /**
    * Retrieves the requested attribute element for the specified
-   * attribute type and options or <code>null</code> if this entry
+   * attribute type and options or {@code null} if this entry
    * does not contain an attribute with the specified attribute type
    * and options.
    *
    * @param attributeDescription
    *          The attribute description to retrieve.
    * @return The requested attribute element for the specified
-   *         attribute type and options, or <code>null</code> if the
+   *         attribute type and options, or {@code null} if the
    *         specified attribute type is not present in this entry
    *         with the provided set of options.
    */
@@ -4128,7 +4104,7 @@ public class Entry
    * @param duplicateValues
    *          A list to which any duplicate values will be added.
    * @param replace
-   *          <code>true</code> if the attribute should replace any
+   *          {@code true} if the attribute should replace any
    *          existing attribute.
    */
   private void setAttribute(Attribute attribute,
@@ -4136,46 +4112,57 @@ public class Entry
   {
     attachment = null;
 
-    AttributeDescription attrDesc = attribute.getAttributeDescription();
-    AttributeType attrType = attrDesc.getAttributeType();
-    if (attrType.isObjectClass())
+    if (attribute.getAttributeDescription().getAttributeType().isObjectClass())
     {
-      // We will not do any validation of the object classes - this is
-      // left to the caller.
+      setObjectClassAttribute(attribute, duplicateValues, replace);
+    }
+    else
+    {
+      setNonObjectClassAttribute(attribute, duplicateValues, replace);
+    }
+  }
+
+  private void setObjectClassAttribute(Attribute attribute, List<ByteString> duplicateValues, boolean replace)
+  {
+    AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
+    // We will not do any validation of the object classes - this is
+    // left to the caller.
+    if (replace)
+    {
+      objectClasses.clear();
+    }
+
+    MatchingRule rule = attrType.getEqualityMatchingRule();
+    for (ByteString v : attribute)
+    {
+      String name = v.toString();
+      String lowerName = toLowerName(rule, v);
+
+      // Create a default object class if necessary.
+      ObjectClass oc = DirectoryServer.getSchema().getObjectClass(lowerName);
+
       if (replace)
       {
-        objectClasses.clear();
+        objectClasses.put(oc, name);
       }
-
-      MatchingRule rule = attrType.getEqualityMatchingRule();
-      for (ByteString v : attribute)
+      else
       {
-        String name = v.toString();
-        String lowerName = toLowerName(rule, v);
-
-        // Create a default object class if necessary.
-        ObjectClass oc = DirectoryServer.getSchema().getObjectClass(lowerName);
-
-        if (replace)
+        if (objectClasses.containsKey(oc))
         {
-          objectClasses.put(oc, name);
+          duplicateValues.add(v);
         }
         else
         {
-          if (objectClasses.containsKey(oc))
-          {
-            duplicateValues.add(v);
-          }
-          else
-          {
-            objectClasses.put(oc, name);
-          }
+          objectClasses.put(oc, name);
         }
       }
-
-      return;
     }
+  }
 
+  private void setNonObjectClassAttribute(Attribute attribute, List<ByteString> duplicateValues, boolean replace)
+  {
+    AttributeDescription attrDesc = attribute.getAttributeDescription();
+    AttributeType attrType = attrDesc.getAttributeType();
     List<Attribute> attributes = getAttributes(attrType);
     if (attributes == null)
     {
@@ -4191,20 +4178,20 @@ public class Entry
     }
 
     // There are already attributes with the same attribute type.
-    for (int i = 0; i < attributes.size(); i++)
+    for (ListIterator<Attribute> it = attributes.listIterator(); it.hasNext();)
     {
-      Attribute a = attributes.get(i);
+      Attribute a = it.next();
       if (a.getAttributeDescription().equals(attrDesc))
       {
         if (replace)
         {
           if (!attribute.isEmpty())
           {
-            attributes.set(i, attribute);
+            it.set(attribute);
           }
           else
           {
-            attributes.remove(i);
+            it.remove();
 
             if (attributes.isEmpty())
             {
@@ -4222,7 +4209,7 @@ public class Entry
               duplicateValues.add(v);
             }
           }
-          attributes.set(i, builder.toAttribute());
+          it.set(builder.toAttribute());
         }
         return;
       }
@@ -4530,16 +4517,16 @@ public class Entry
         // 2) The attribute has both a real and virtual component.
         //
         boolean found = false;
-        for (int i = 0; i < attrList.size(); i++)
+        for (ListIterator<Attribute> it = attrList.listIterator(); it.hasNext();)
         {
-          Attribute otherAttribute = attrList.get(i);
+          Attribute otherAttribute = it.next();
           if (otherAttribute.getAttributeDescription().equals(subAttrDesc))
           {
             // Assume that wildcards appear first in an attribute
             // list with more specific attribute names afterwards:
             // let the attribute name and options from the later
             // attribute take preference.
-            attrList.set(i, Attributes.merge(attribute, otherAttribute));
+            it.set(Attributes.merge(attribute, otherAttribute));
             found = true;
           }
         }
