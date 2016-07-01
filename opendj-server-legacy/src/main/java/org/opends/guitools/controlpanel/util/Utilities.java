@@ -2490,12 +2490,14 @@ public class Utilities
    */
   public static String getMonitoringValue(MonitoringAttributes attr, SearchResultEntry monitoringEntry)
   {
-    String monitoringValue = monitoringEntry.getAttribute(attr.getAttributeName()).firstValueAsString();
-    if (monitoringValue == null)
+    Attribute monitoringAttr = monitoringEntry.getAttribute(attr.getAttributeName());
+    if (monitoringAttr == null)
     {
       return NO_VALUE_SET.toString();
     }
-    else if (isNotImplemented(attr, monitoringEntry))
+
+    String monitoringValue = monitoringAttr.firstValueAsString();
+    if (isNotImplemented(attr, monitoringEntry))
     {
       return NOT_IMPLEMENTED.toString();
     }
