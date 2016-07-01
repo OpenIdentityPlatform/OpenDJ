@@ -23,10 +23,10 @@ import static com.forgerock.opendj.util.OperatingSystem.*;
 import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.quicksetup.Installation.*;
+import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.SchemaUtils.*;
 
 import java.awt.Color;
@@ -58,11 +58,7 @@ import java.util.regex.Pattern;
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -111,6 +107,7 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -2141,7 +2138,7 @@ public class Utilities
   }
 
   /**
-   * Returns the InitialLdapContext to connect to the administration connector
+   * Returns the connection to connect to the administration connector
    * of the server using the information in the ControlCenterInfo object (which
    * provides the host and administration connector port to be used) and some
    * LDAP credentials.
@@ -2150,13 +2147,15 @@ public class Utilities
    * @param controlInfo the object which provides the connection parameters.
    * @param bindDN the base DN to be used to bind.
    * @param pwd the password to be used to bind.
-   * @return the InitialLdapContext connected to the server.
+   * @return the connection to the server.
    * @throws NamingException if there was a problem connecting to the server
+   * or the provided credentials do not have enough rights.
+   * @throws IOException if there was a problem connecting to the server
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
   public static ConnectionWrapper getAdminDirContext(ControlPanelInfo controlInfo, String bindDN, String pwd)
-      throws NamingException, ConfigReadException
+      throws NamingException, IOException, ConfigReadException
   {
     String usedUrl = controlInfo.getAdminConnectorURL();
     if (usedUrl == null)
@@ -2168,115 +2167,87 @@ public class Utilities
     // Search for the config to check that it is the directory manager.
     ConnectionWrapper conn = new ConnectionWrapper(
         usedUrl, LDAPS, bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
-    checkCanReadConfig(conn.getLdapContext());
+    checkCanReadConfig(conn);
     return conn;
   }
 
 
   /**
-   * Returns the InitialLdapContext to connect to the server using the
+   * Returns the connection to connect to the server using the
    * information in the ControlCenterInfo object (which provides the host, port
    * and protocol to be used) and some LDAP credentials.  It also tests that
    * the provided credentials have enough rights to read the configuration.
    * @param controlInfo the object which provides the connection parameters.
    * @param bindDN the base DN to be used to bind.
    * @param pwd the password to be used to bind.
-   * @return the InitialLdapContext connected to the server.
+   * @return the connection to the server.
    * @throws NamingException if there was a problem connecting to the server
+   * or the provided credentials do not have enough rights.
+   * @throws IOException if there was a problem connecting to the server
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
-  public static InitialLdapContext getUserDataDirContext(
-      ControlPanelInfo controlInfo,
-      String bindDN, String pwd) throws NamingException, ConfigReadException
+  public static ConnectionWrapper getUserDataDirContext(ControlPanelInfo controlInfo,
+      String bindDN, String pwd) throws NamingException, IOException, ConfigReadException
   {
-    InitialLdapContext ctx;
-    String usedUrl;
+    ConnectionWrapper conn;
     if (controlInfo.connectUsingStartTLS())
     {
-      usedUrl = controlInfo.getStartTLSURL();
+      String usedUrl = controlInfo.getStartTLSURL();
       if (usedUrl == null)
       {
         throw new ConfigReadException(
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
-      ctx = Utils.createStartTLSContext(usedUrl,
-          bindDN, pwd, controlInfo.getConnectTimeout(), null,
-          controlInfo.getTrustManager(), null);
+      conn = new ConnectionWrapper(usedUrl, START_TLS,
+          bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
     }
     else if (controlInfo.connectUsingLDAPS())
     {
-      usedUrl = controlInfo.getLDAPSURL();
+      String usedUrl = controlInfo.getLDAPSURL();
       if (usedUrl == null)
       {
         throw new ConfigReadException(
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
-      ctx = createLdapsContext(usedUrl,
-          bindDN, pwd, controlInfo.getConnectTimeout(), null,
-          controlInfo.getTrustManager(), null);
+      conn = new ConnectionWrapper(usedUrl, LDAPS,
+          bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
     }
     else
     {
-      usedUrl = controlInfo.getLDAPURL();
+      String usedUrl = controlInfo.getLDAPURL();
       if (usedUrl == null)
       {
         throw new ConfigReadException(
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
-      ctx = createLdapContext(usedUrl,
-          bindDN, pwd, controlInfo.getConnectTimeout(), null);
+      conn = new ConnectionWrapper(usedUrl, LDAP,
+          bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
     }
 
-    checkCanReadConfig(ctx);
-    return ctx;
+    checkCanReadConfig(conn);
+    return conn;
   }
 
   /**
    * Checks that the provided connection can read cn=config.
-   * @param ctx the connection to be tested.
-   * @throws NamingException if an error occurs while reading cn=config.
+   *
+   * @param conn
+   *          the connection to be tested.
+   * @throws IOException
+   *           if an error occurs while reading cn=config.
    */
-  private static void checkCanReadConfig(InitialLdapContext ctx)
-  throws NamingException
+  private static void checkCanReadConfig(ConnectionWrapper conn) throws IOException
   {
     // Search for the config to check that it is the directory manager.
-    SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    searchControls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
-    NamingEnumeration<SearchResult> sr =
-      ctx.search("cn=config", "objectclass=*", searchControls);
-    try
+    SearchRequest request = newSearchRequest("cn=config", BASE_OBJECT, "objectclass=*", NO_ATTRIBUTES);
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      while (sr.hasMore())
+      while (entryReader.hasNext())
       {
-        sr.next();
+        entryReader.readEntry();
       }
     }
-    finally
-    {
-      sr.close();
-    }
-  }
-
-  /**
-   * Ping the specified InitialLdapContext.
-   * This method sends a search request on the root entry of the DIT
-   * and forward the corresponding exception (if any).
-   * @param ctx the InitialLdapContext to be "pinged".
-   * @throws NamingException if the ping could not be performed.
-   */
-  public static void pingDirContext(InitialLdapContext ctx)
-  throws NamingException {
-    SearchControls sc = new SearchControls(
-        SearchControls.OBJECT_SCOPE,
-        0, // count limit
-        0, // time limit
-        new String[0], // No attributes
-        false, // Don't return bound object
-        false // Don't dereference link
-    );
-    ctx.search("", "objectClass=*", sc);
   }
 
   /**
@@ -2290,7 +2261,7 @@ public class Utilities
    */
   public static void ping(ConnectionWrapper connWrapper) throws NamingException
   {
-    SearchRequest request = newSearchRequest("", BASE_OBJECT, "objectClass=*", "1.1")
+    SearchRequest request = newSearchRequest("", BASE_OBJECT, "objectClass=*", NO_ATTRIBUTES)
         .setSizeLimit(0)
         .setTimeLimit(0)
         .setDereferenceAliasesPolicy(NEVER);

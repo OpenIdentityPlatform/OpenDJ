@@ -23,8 +23,8 @@ import java.util.Set;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
 import org.opends.guitools.controlpanel.event.EntryReadEvent;
@@ -38,7 +38,7 @@ import org.opends.guitools.controlpanel.event.EntryReadListener;
 public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
 {
   private final String dn;
-  private final InitialLdapContext ctx;
+  private final ConnectionWrapper conn;
   private final Set<EntryReadListener> listeners = new HashSet<>();
   private boolean isOver;
   private boolean notifyListeners;
@@ -46,12 +46,12 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   /**
    * Constructor of the entry reader.
    * @param dn the DN of the entry.
-   * @param ctx the connection to the server.
+   * @param conn the connection to the server.
    */
-  public LDAPEntryReader(String dn, InitialLdapContext ctx)
+  public LDAPEntryReader(String dn, ConnectionWrapper conn)
   {
     this.dn = dn;
-    this.ctx = ctx;
+    this.conn = conn;
     this.notifyListeners = true;
   }
 
@@ -69,7 +69,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
       controls.setSearchScope(SearchControls.OBJECT_SCOPE);
       final String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
 
-      en = ctx.search(Utilities.getJNDIName(dn), filter, controls);
+      en = conn.getLdapContext().search(Utilities.getJNDIName(dn), filter, controls);
 
       SearchResult sr = null;
       while (en.hasMore())

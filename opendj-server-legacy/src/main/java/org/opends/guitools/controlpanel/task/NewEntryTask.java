@@ -28,12 +28,13 @@ import java.util.TreeSet;
 
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -44,7 +45,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 
 /** The task launched when we must create an entry. */
@@ -157,16 +157,16 @@ public class NewEntryTask extends Task
 
     try
     {
-      InitialLdapContext ctx;
+      ConnectionWrapper conn;
 
       if (parentNode != null)
       {
-        ctx = controller.findConnectionForDisplayedEntry(parentNode);
+        conn = controller.findConnectionForDisplayedEntry(parentNode);
         useAdminCtx = controller.isConfigurationNode(parentNode);
       }
       else
       {
-        ctx = getInfo().getConnection().getLdapContext();
+        conn = getInfo().getConnection();
         useAdminCtx = true;
       }
       BasicAttributes attrs = new BasicAttributes();
@@ -206,7 +206,7 @@ public class NewEntryTask extends Task
         }
       });
 
-      ctx.createSubcontext(Utilities.getJNDIName(newEntry.getName().toString()),
+      conn.getLdapContext().createSubcontext(Utilities.getJNDIName(newEntry.getName().toString()),
           attrs);
 
       SwingUtilities.invokeLater(new Runnable()

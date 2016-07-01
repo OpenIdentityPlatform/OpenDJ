@@ -148,7 +148,7 @@ public class ServerLoader extends Thread
     try (ConnectionWrapper conn = createConnectionWrapper())
     {
       connCreated = true;
-      serverDescriptor = ServerDescriptor.createStandalone(conn.getLdapContext(), filter);
+      serverDescriptor = ServerDescriptor.createStandalone(conn, filter);
       serverDescriptor.setAdsProperties(serverProperties);
       serverDescriptor.updateAdsPropertiesWithServerProperties();
     }

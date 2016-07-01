@@ -25,23 +25,23 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
-import org.opends.admin.ads.ADSContext.ServerProperty;
-import org.opends.admin.ads.ADSContextException.ErrorType;
-import org.opends.admin.ads.util.ConnectionWrapper;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.LDIFBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
 import org.forgerock.opendj.server.config.meta.LDIFBackendCfgDefn;
+import org.opends.admin.ads.ADSContext.ServerProperty;
+import org.opends.admin.ads.ADSContextException.ErrorType;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.types.CryptoManagerException;
-import org.forgerock.opendj.ldap.DN;
 
 /**
  * This is the only class in the org.opends.admin.ads package that uses the
@@ -61,7 +61,7 @@ class ADSContextHelper
 
   /**
    * Creates the Administration Suffix.
-   * @param ctx the DirContext to be used.
+   * @param conn the connection to be used.
    * @param backendName the name of the backend where the administration
    * suffix is stored.
    * @throws ADSContextException if the administration suffix could not be
@@ -120,7 +120,7 @@ class ADSContextHelper
   expected); add an instance key public-key certificate entry for the key
   certificate; and associate the certificate entry with the server entry via
   the key ID attribute.
-  @param ctx the InitialLdapContext on the server we want to update.
+  @param conn the connection on the server we want to update.
   @param serverProperties Properties of the server being registered to which
   the instance key entry belongs.
   @param serverEntryDn The server's ADS entry DN.
@@ -128,7 +128,7 @@ class ADSContextHelper
   problem getting the instance public key certificate ID.
    */
   void registerInstanceKeyCertificate(
-      InitialLdapContext ctx, Map<ServerProperty, Object> serverProperties,
+      ConnectionWrapper conn, Map<ServerProperty, Object> serverProperties,
       LdapName serverEntryDn)
   throws ADSContextException {
     assert serverProperties.containsKey(
@@ -162,8 +162,7 @@ class ADSContextHelper
     NamingEnumeration<SearchResult> results = null;
     try
     {
-      results = ctx.search(ADSContext.getInstanceKeysContainerDN(), keyAttrs,
-         attrIDs);
+      results = conn.getLdapContext().search(ADSContext.getInstanceKeysContainerDN(), keyAttrs, attrIDs);
       boolean found = false;
       while (results.hasMore()) {
         final Attribute keyIdAttr =
@@ -194,14 +193,14 @@ class ADSContextHelper
         final LdapName keyDn = new LdapName(
             ServerProperty.INSTANCE_KEY_ID.getAttributeName() + "=" + Rdn.escapeValue(keyID)
                 + "," + ADSContext.getInstanceKeysContainerDN());
-        ctx.createSubcontext(keyDn, keyAttrs).close();
+        conn.getLdapContext().createSubcontext(keyDn, keyAttrs).close();
       }
 
       if (serverEntryDn != null)
       {
         /* associate server entry with certificate entry via key ID attribute */
-        ctx.modifyAttributes(serverEntryDn,
-          InitialLdapContext.REPLACE_ATTRIBUTE,
+        conn.getLdapContext().modifyAttributes(serverEntryDn,
+          DirContext.REPLACE_ATTRIBUTE,
           new BasicAttributes(ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
       }
     }

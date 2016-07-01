@@ -325,17 +325,17 @@ public class StatusCli extends ConsoleApplication
           if (!controlInfo.getServerDescriptor().getExceptions().isEmpty()) {
             return ReturnCode.ERROR_INITIALIZING_SERVER.get();
           }
-        } catch (NamingException ne) {
+        } catch (NamingException |IOException e) {
           // This should not happen but this is useful information to
           // diagnose the error.
           println();
-          println(INFO_ERROR_READING_SERVER_CONFIGURATION.get(ne));
+          println(INFO_ERROR_READING_SERVER_CONFIGURATION.get(e));
           return ReturnCode.ERROR_INITIALIZING_SERVER.get();
-        } catch (ConfigReadException cre) {
+        } catch (ConfigReadException e) {
           // This should not happen but this is useful information to
           // diagnose the error.
           println();
-          println(cre.getMessageObject());
+          println(e.getMessageObject());
           return ReturnCode.ERROR_INITIALIZING_SERVER.get();
         }
       } else {

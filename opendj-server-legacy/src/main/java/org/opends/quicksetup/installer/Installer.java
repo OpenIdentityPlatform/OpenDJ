@@ -61,7 +61,6 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.Rdn;
 import javax.swing.JPanel;
 
@@ -2061,7 +2060,7 @@ public class Installer extends GuiApplication
           knownReplicationServerIds,
           knownServerIds);
       localTimeMeasureTime = System.currentTimeMillis();
-      localTime = Utils.getServerClock(conn.getLdapContext());
+      localTime = Utils.getServerClock(conn);
       localServerDisplay = conn.getHostPort();
     }
     catch (NamingException ne)
@@ -2154,7 +2153,7 @@ public class Installer extends GuiApplication
               conn, remoteReplicationServers, replicationPort, enableSecureReplication,
               knownReplicationServerIds, knownServerIds);
           long remoteTimeMeasureTime = System.currentTimeMillis();
-          long remoteTime = Utils.getServerClock(conn.getLdapContext());
+          long remoteTime = Utils.getServerClock(conn);
           if (localTime != -1
               && remoteTime != -1
               && Math.abs(localTime - remoteTime - localTimeMeasureTime + remoteTimeMeasureTime) >
@@ -2472,7 +2471,7 @@ public class Installer extends GuiApplication
         filter.setSearchMonitoringInformation(false);
         filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
         filter.addBaseDNToSearch(Constants.SCHEMA_DN);
-        ServerDescriptor s = createStandalone(remoteConn.getLdapContext(), filter);
+        ServerDescriptor s = createStandalone(remoteConn, filter);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
           String dn = replica.getSuffix().getDN();
@@ -2541,7 +2540,7 @@ public class Installer extends GuiApplication
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
             filter.addBaseDNToSearch(dn);
-            ServerDescriptor s = createStandalone(remoteConn.getLdapContext(), filter);
+            ServerDescriptor s = createStandalone(remoteConn, filter);
             for (ReplicaDescriptor r : s.getReplicas())
             {
               if (areDnsEqual(r.getSuffix().getDN(), dn))
@@ -2578,7 +2577,7 @@ public class Installer extends GuiApplication
             logger.info(LocalizableMessage.raw("Calling initializeSuffix with base DN: " + dn));
             logger.info(LocalizableMessage.raw("Try number: " + (6 - nTries)));
             logger.info(LocalizableMessage.raw("replicationId of source replica: " + replicationId));
-            initializeSuffix(conn.getLdapContext(), replicationId, dn, !isADS && !isSchema, hostPort);
+            initializeSuffix(conn, replicationId, dn, !isADS && !isSchema, hostPort);
             initDone = true;
           }
           catch (PeerNotFoundException pnfe)
@@ -2654,7 +2653,7 @@ public class Installer extends GuiApplication
           TopologyCacheFilter filter = new TopologyCacheFilter();
           filter.setSearchMonitoringInformation(false);
           filter.setSearchBaseDNInformation(false);
-          ServerDescriptor server = createStandalone(remoteConn.getLdapContext(), filter);
+          ServerDescriptor server = createStandalone(remoteConn, filter);
           server.updateAdsPropertiesWithServerProperties();
           adsContext.registerServer(server.getAdsProperties());
           createdRemoteAds = true;
@@ -2682,7 +2681,7 @@ public class Installer extends GuiApplication
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
       filter.setSearchBaseDNInformation(false);
-      ServerDescriptor server = createStandalone(localConn.getLdapContext(), filter);
+      ServerDescriptor server = createStandalone(localConn, filter);
       server.updateAdsPropertiesWithServerProperties();
       if (0 == adsContext.registerOrUpdateServer(server.getAdsProperties()))
       {
@@ -2697,7 +2696,7 @@ public class Installer extends GuiApplication
       }
       if (isRemoteServer)
       {
-        seedAdsTrustStore(localConn.getLdapContext(), adsContext.getTrustedCertificates());
+        seedAdsTrustStore(localConn, adsContext.getTrustedCertificates());
       }
       if (isVerbose())
       {
@@ -3475,7 +3474,7 @@ public class Installer extends GuiApplication
       }
       else
       {
-        updateUserDataWithSuffixesInServer(conn.getLdapContext());
+        updateUserDataWithSuffixesInServer(conn);
       }
     }
     catch (UserDataException ude)
@@ -3952,9 +3951,9 @@ public class Installer extends GuiApplication
 
   /**
    * Update the UserInstallData object with the contents of the server to which
-   * we are connected with the provided InitialLdapContext.
+   * we are connected with the provided connection.
    */
-  private void updateUserDataWithSuffixesInServer(InitialLdapContext ctx) throws NamingException
+  private void updateUserDataWithSuffixesInServer(ConnectionWrapper conn) throws NamingException
   {
     SuffixesToReplicateOptions suf = getUserData().getSuffixesToReplicateOptions();
     SuffixesToReplicateOptions.Type type;
@@ -3968,7 +3967,7 @@ public class Installer extends GuiApplication
       type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
     }
 
-    ServerDescriptor s = createStandalone(ctx, new TopologyCacheFilter());
+    ServerDescriptor s = createStandalone(conn, new TopologyCacheFilter());
     Set<ReplicaDescriptor> replicas = s.getReplicas();
     for (ReplicaDescriptor replica : replicas)
     {
@@ -4108,7 +4107,7 @@ public class Installer extends GuiApplication
    *
    * @param server
    *          the object describing the server.
-   * @return the InitialLdapContext to the remote server.
+   * @return the connection to the remote server.
    * @throws ApplicationException
    *           if something goes wrong.
    */
@@ -4148,7 +4147,7 @@ public class Installer extends GuiApplication
    * Initializes a suffix with the contents of a replica that has a given
    * replication id.
    *
-   * @param ctx
+   * @param conn
    *          the connection to the server whose suffix we want to initialize.
    * @param replicaId
    *          the replication ID of the replica we want to use to initialize the
@@ -4165,7 +4164,7 @@ public class Installer extends GuiApplication
    * @throws PeerNotFoundException
    *           if the replication mechanism cannot find a peer.
    */
-  public void initializeSuffix(InitialLdapContext ctx, int replicaId, String suffixDn, boolean displayProgress,
+  public void initializeSuffix(ConnectionWrapper conn, int replicaId, String suffixDn, boolean displayProgress,
       HostPort sourceServerDisplay) throws ApplicationException, PeerNotFoundException
   {
     boolean taskCreated = false;
@@ -4189,7 +4188,7 @@ public class Installer extends GuiApplication
       attrs.put("ds-task-id", id);
       try
       {
-        DirContext dirCtx = ctx.createSubcontext(dn, attrs);
+        DirContext dirCtx = conn.getLdapContext().createSubcontext(dn, attrs);
         taskCreated = true;
         logger.info(LocalizableMessage.raw("created task entry: " + attrs));
         dirCtx.close();
@@ -4236,7 +4235,7 @@ public class Installer extends GuiApplication
       }
       try
       {
-        NamingEnumeration<SearchResult> res = ctx.search(dn, filter, searchControls);
+        NamingEnumeration<SearchResult> res = conn.getLdapContext().search(dn, filter, searchControls);
         SearchResult sr = null;
         try
         {
@@ -4405,7 +4404,7 @@ public class Installer extends GuiApplication
             .get(sourceServerDisplay), ne), ne);
       }
     }
-    resetGenerationId(ctx, suffixDn, sourceServerDisplay);
+    resetGenerationId(conn, suffixDn, sourceServerDisplay);
   }
 
   /**
@@ -4425,7 +4424,7 @@ public class Installer extends GuiApplication
     return getUserData().getHostName() + ":" + getUserData().getReplicationOptions().getReplicationPort();
   }
 
-  private void resetGenerationId(InitialLdapContext ctx, String suffixDn, HostPort sourceServerDisplay)
+  private void resetGenerationId(ConnectionWrapper conn, String suffixDn, HostPort sourceServerDisplay)
       throws ApplicationException
   {
     boolean taskCreated = false;
@@ -4448,7 +4447,7 @@ public class Installer extends GuiApplication
       attrs.put("ds-task-id", id);
       try
       {
-        DirContext dirCtx = ctx.createSubcontext(dn, attrs);
+        DirContext dirCtx = conn.getLdapContext().createSubcontext(dn, attrs);
         taskCreated = true;
         logger.info(LocalizableMessage.raw("created task entry: " + attrs));
         dirCtx.close();
@@ -4475,7 +4474,7 @@ public class Installer extends GuiApplication
       StaticUtils.sleep(500);
       try
       {
-        NamingEnumeration<SearchResult> res = ctx.search(dn, filter, searchControls);
+        NamingEnumeration<SearchResult> res = conn.getLdapContext().search(dn, filter, searchControls);
         SearchResult sr = null;
         try
         {

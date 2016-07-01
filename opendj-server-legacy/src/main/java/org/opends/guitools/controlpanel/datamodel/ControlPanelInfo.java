@@ -24,6 +24,7 @@ import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.server.tools.ConfigureWindowsService.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,14 +35,12 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.browser.LDAPConnectionPool;
@@ -82,7 +81,7 @@ public class ControlPanelInfo
 
   private final Set<Task> tasks = new HashSet<>();
   private ConnectionWrapper connWrapper;
-  private InitialLdapContext userDataCtx;
+  private ConnectionWrapper userDataConn;
   private final LDAPConnectionPool connectionPool = new LDAPConnectionPool();
   /** Used by the browsers. */
   private final IconPool iconPool = new IconPool();
@@ -319,36 +318,31 @@ public class ControlPanelInfo
   /**
    * Sets the dir context to be used by the ControlPanelInfo to retrieve
    * user data.
-   * @param ctx the connection.
+   * @param conn the connection.
    * @throws NamingException if there is a problem updating the connection pool.
    */
-  public void setUserDataDirContext(InitialLdapContext ctx)
-  throws NamingException
+  public void setUserDataDirContext(ConnectionWrapper conn) throws NamingException
   {
-    if (userDataCtx != null)
+    if (userDataConn != null)
     {
-      unregisterConnection(connectionPool, ctx);
+      unregisterConnection(connectionPool, conn);
     }
-    this.userDataCtx = ctx;
-    if (ctx != null)
+    this.userDataConn = conn;
+    if (conn != null)
     {
-      InitialLdapContext cloneLdc =
-        ConnectionUtils.cloneInitialLdapContext(userDataCtx,
-            getConnectTimeout(),
-            getTrustManager(), null);
-      connectionPool.registerConnection(cloneLdc);
+      ConnectionWrapper cloneConn = cloneConnectionWrapper(userDataConn, getConnectTimeout(), getTrustManager(), null);
+      connectionPool.registerConnection(cloneConn);
     }
   }
 
   /**
-   * Returns the dir context to be used by the ControlPanelInfo to retrieve
-   * user data.
-   * @return the dir context to be used by the ControlPanelInfo to retrieve
-   * user data.
+   * Returns the connection to be used by the ControlPanelInfo to retrieve user data.
+   *
+   * @return the connection to be used by the ControlPanelInfo to retrieve user data.
    */
-  public InitialLdapContext getUserDataDirContext()
+  public ConnectionWrapper getUserDataDirContext()
   {
-    return userDataCtx;
+    return userDataConn;
   }
 
   /**
@@ -436,11 +430,11 @@ public class ControlPanelInfo
       {
         StaticUtils.close(connWrapper);
         connWrapper = null;
-        if (userDataCtx != null)
+        if (userDataConn != null)
         {
           unregisterConnection(connectionPool, null);
-          StaticUtils.close(userDataCtx);
-          userDataCtx = null;
+          StaticUtils.close(userDataConn);
+          userDataConn = null;
         }
       }
       if (isLocal)
@@ -474,7 +468,7 @@ public class ControlPanelInfo
                 getConnectTimeout(), getTrustManager());
           }
         }
-        catch (ConfigReadException | NamingException cre)
+        catch (ConfigReadException | NamingException | IOException ignored)
         {
           // Ignore: we will ask the user for credentials.
         }
@@ -497,7 +491,7 @@ public class ControlPanelInfo
         Utilities.initializeConfigurationFramework();
         reader = newRemoteConfigReader();
 
-        boolean connectionWorks = checkConnections(connWrapper, userDataCtx);
+        boolean connectionWorks = checkConnections(connWrapper, userDataConn);
         if (!connectionWorks)
         {
           if (isLocal)
@@ -511,9 +505,9 @@ public class ControlPanelInfo
           }
           StaticUtils.close(connWrapper);
           this.connWrapper = null;
-          unregisterConnection(connectionPool, connWrapper.getLdapContext());
-          StaticUtils.close(userDataCtx);
-          userDataCtx = null;
+          unregisterConnection(connectionPool, connWrapper);
+          StaticUtils.close(userDataConn);
+          userDataConn = null;
         }
       }
 
@@ -610,13 +604,13 @@ public class ControlPanelInfo
     return status;
   }
 
-  private void unregisterConnection(LDAPConnectionPool connectionPool, InitialLdapContext userDataCtx)
+  private void unregisterConnection(LDAPConnectionPool connectionPool, ConnectionWrapper userDataConn)
   {
-    if (connectionPool.isConnectionRegistered(userDataCtx))
+    if (connectionPool.isConnectionRegistered(userDataConn))
     {
       try
       {
-        connectionPool.unregisterConnection(userDataCtx);
+        connectionPool.unregisterConnection(userDataConn);
       }
       catch (Throwable t)
       {
@@ -1194,7 +1188,7 @@ public class ControlPanelInfo
     return adminPort1 == adminPort2;
   }
 
-  private boolean checkConnections(ConnectionWrapper conn, InitialLdapContext userCtx)
+  private boolean checkConnections(ConnectionWrapper conn, ConnectionWrapper userConn)
   {
     // Check the connection
     int nMaxErrors = 5;
@@ -1203,9 +1197,9 @@ public class ControlPanelInfo
       try
       {
         Utilities.ping(conn);
-        if (userCtx != null)
+        if (userConn != null)
         {
-          Utilities.pingDirContext(userCtx);
+          Utilities.ping(userConn);
         }
         return true;
       }

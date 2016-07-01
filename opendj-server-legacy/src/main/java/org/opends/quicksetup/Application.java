@@ -14,7 +14,6 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2012-2016 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
 import static com.forgerock.opendj.cli.Utils.*;
@@ -601,7 +600,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Use {@code 0} to express no timeout.
    * @param cnx the ordered list of preferred connections to connect to the
    * server.
-   * @return the InitialLdapContext to the remote server.
+   * @return the connection to the remote server.
    * @throws ApplicationException if something goes wrong.
    */
   protected ConnectionWrapper getRemoteConnection(ServerDescriptor server, DN dn, String pwd, int timeout,

@@ -29,9 +29,11 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -39,10 +41,8 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.LDAPPasswordModify;
-import org.forgerock.opendj.ldap.DN;
 
 /** The task called when we want to reset the password of the user. */
 public class ResetUserPasswordTask extends Task
@@ -85,11 +85,10 @@ public class ResetUserPasswordTask extends Task
 
     try
     {
-      InitialLdapContext ctx =
-        controller.findConnectionForDisplayedEntry(node);
-      if (ctx != null && isBoundAs(dn, ctx))
+      ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+      if (conn != null && isBoundAs(dn, conn))
       {
-        currentPassword = ConnectionUtils.getBindPassword(ctx).toCharArray();
+        currentPassword = conn.getBindPassword().toCharArray();
       }
     }
     catch (Throwable t)
@@ -202,7 +201,7 @@ public class ResetUserPasswordTask extends Task
               String.valueOf(newPassword));
           if (getInfo().getUserDataDirContext() != null)
           {
-            getInfo().getUserDataDirContext().addToEnvironment(
+            getInfo().getUserDataDirContext().getLdapContext().addToEnvironment(
                 Context.SECURITY_CREDENTIALS,
                 String.valueOf(newPassword));
           }
@@ -223,17 +222,16 @@ public class ResetUserPasswordTask extends Task
    * particular DN (we might be binding using a value specified in
    * ds-cfg-alternate-bind-dn).
    * @param dn the DN.
-   * @param ctx the connection that we are using to modify the password.
+   * @param conn the connection that we are using to modify the password.
    * @return <CODE>true</CODE> if we are bound using the provided entry.
    */
-  private boolean isBoundAs(DN dn, InitialLdapContext ctx)
+  private boolean isBoundAs(DN dn, ConnectionWrapper conn)
   {
     boolean isBoundAs = false;
     DN bindDN = DN.rootDN();
     try
     {
-      String b = ConnectionUtils.getBindDN(ctx);
-      bindDN = DN.valueOf(b);
+      bindDN = conn.getBindDn();
       isBoundAs = dn.equals(bindDN);
     }
     catch (Throwable t)
@@ -251,7 +249,7 @@ public class ResetUserPasswordTask extends Task
         String attrName = ConfigConstants.ATTR_ROOTDN_ALTERNATE_BIND_DN;
         ctls.setReturningAttributes(new String[] {attrName});
         NamingEnumeration<SearchResult> entries =
-          ctx.search(Utilities.getJNDIName(dn.toString()), filter, ctls);
+            conn.getLdapContext().search(Utilities.getJNDIName(dn.toString()), filter, ctls);
 
         try
         {

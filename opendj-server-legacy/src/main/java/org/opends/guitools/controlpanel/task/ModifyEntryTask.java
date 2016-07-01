@@ -32,7 +32,6 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
@@ -43,6 +42,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -205,7 +205,7 @@ public class ModifyEntryTask extends Task
     try
     {
       BasicNode node = (BasicNode)treePath.getLastPathComponent();
-      InitialLdapContext ctx = controller.findConnectionForDisplayedEntry(node);
+      ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
       useAdminCtx = controller.isConfigurationNode(node);
       if (!mustRename)
       {
@@ -228,7 +228,7 @@ public class ModifyEntryTask extends Task
             }
           });
 
-          ctx.modifyAttributes(Utilities.getJNDIName(oldEntry.getDN()), mods);
+          conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(oldEntry.getDN()), mods);
 
           SwingUtilities.invokeLater(new Runnable()
           {
@@ -248,7 +248,7 @@ public class ModifyEntryTask extends Task
       }
       else
       {
-        modifyAndRename(ctx, oldDn, oldEntry, newEntry, modifications);
+        modifyAndRename(conn, oldDn, oldEntry, newEntry, modifications);
       }
       state = State.FINISHED_SUCCESSFULLY;
     }
@@ -314,7 +314,7 @@ public class ModifyEntryTask extends Task
 
   /**
    * Modifies and renames the entry.
-   * @param ctx the connection to the server.
+   * @param conn the connection to the server.
    * @param oldDN the oldDN of the entry.
    * @param originalEntry the original entry.
    * @param newEntry the new entry.
@@ -323,7 +323,7 @@ public class ModifyEntryTask extends Task
    * @throws CannotRenameException if we cannot perform the modification.
    * @throws NamingException if an error performing the modification occurs.
    */
-  private void modifyAndRename(DirContext ctx, final DN oldDN,
+  private void modifyAndRename(ConnectionWrapper conn, final DN oldDN,
   CustomSearchResult originalEntry, final Entry newEntry,
   final ArrayList<ModificationItem> originalMods)
   throws CannotRenameException, NamingException
@@ -353,7 +353,7 @@ public class ModifyEntryTask extends Task
       }
     });
 
-    ctx.rename(Utilities.getJNDIName(oldDn.toString()),
+    conn.getLdapContext().rename(Utilities.getJNDIName(oldDn.toString()),
         Utilities.getJNDIName(newEntry.getName().toString()));
 
     final TreePath[] newPath = {null};
@@ -392,7 +392,7 @@ public class ModifyEntryTask extends Task
         }
       });
 
-      ctx.modifyAttributes(Utilities.getJNDIName(newEntry.getName().toString()), mods);
+      conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(newEntry.getName().toString()), mods);
 
       SwingUtilities.invokeLater(new Runnable()
       {

@@ -16,6 +16,9 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.awt.Font;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -34,7 +37,6 @@ import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.ManageReferralControl;
 import javax.naming.ldap.SortControl;
 import javax.naming.ldap.SortKey;
@@ -65,9 +67,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
-
-import static org.opends.admin.ads.util.ConnectionUtils.isSSL;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This is the main class of the LDAP entry browser.  It is in charge of
@@ -108,8 +107,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private String displayAttribute;
   private final boolean showAttributeName;
   private ConnectionWrapper connConfig;
-  private InitialLdapContext ctxConfiguration;
-  private InitialLdapContext ctxUserData;
+  private ConnectionWrapper connUserData;
   private boolean followReferrals;
   private boolean sorted;
   private boolean showContainerOnly;
@@ -178,22 +176,22 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param server the server descriptor.
    * @param connConfiguration the connection to be used to retrieve the data in
    * the configuration base DNs.
-   * @param ctxUserData the connection to be used to retrieve the data in the
+   * @param connUserData the connection to be used to retrieve the data in the
    * user base DNs.
    * @throws NamingException if an error occurs.
    */
   public void setConnections(
       ServerDescriptor server,
       ConnectionWrapper connConfiguration,
-      InitialLdapContext ctxUserData) throws NamingException {
+      ConnectionWrapper connUserData) throws NamingException {
     String rootNodeName;
     if (connConfiguration != null)
     {
       this.connConfig = connConfiguration;
-      this.ctxUserData = ctxUserData;
+      this.connUserData = connUserData;
 
       connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
-      this.ctxUserData.setRequestControls(getRequestControls());
+      connUserData.getLdapContext().setRequestControls(getRequestControls());
       rootNodeName = new HostPort(server.getHostname(), connConfig.getHostPort().getPort()).toString();
     }
     else {
@@ -208,16 +206,16 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Return the connection for accessing the directory configuration.
    * @return the connection for accessing the directory configuration.
    */
-  public InitialLdapContext getConfigurationConnection() {
-    return connConfig.getLdapContext();
+  public ConnectionWrapper getConfigurationConnection() {
+    return connConfig;
   }
 
   /**
    * Return the connection for accessing the directory user data.
    * @return the connection for accessing the directory user data.
    */
-  public InitialLdapContext getUserDataConnection() {
-    return ctxUserData;
+  public ConnectionWrapper getUserDataConnection() {
+    return connUserData;
   }
 
 
@@ -418,7 +416,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     stopRefresh();
     removeAllChildNodes(rootNode, true /* Keep suffixes */);
     connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
-    ctxUserData.setRequestControls(getRequestControls());
+    connUserData.getLdapContext().setRequestControls(getRequestControls());
     connectionPool.setRequestControls(getRequestControls());
     startRefresh(null);
   }
@@ -446,7 +444,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     removeAllChildNodes(rootNode, true /* Keep suffixes */);
     this.sorted = sorted;
     connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
-    ctxUserData.setRequestControls(getRequestControls());
+    connUserData.getLdapContext().setRequestControls(getRequestControls());
     connectionPool.setRequestControls(getRequestControls());
     startRefresh(null);
   }
@@ -922,7 +920,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @throws NamingException if there is an error retrieving the connection.
    * @return the LDAP connection to reading the base entry of a node.
    */
-  InitialLdapContext findConnectionForLocalEntry(BasicNode node)
+  ConnectionWrapper findConnectionForLocalEntry(BasicNode node)
   throws NamingException {
     return findConnectionForLocalEntry(node, isConfigurationNode(node));
   }
@@ -934,11 +932,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @throws NamingException if there is an error retrieving the connection.
    * @return the LDAP connection to reading the base entry of a node.
    */
-  private InitialLdapContext findConnectionForLocalEntry(BasicNode node,
+  private ConnectionWrapper findConnectionForLocalEntry(BasicNode node,
       boolean isConfigurationNode) throws NamingException
   {
     if (node == rootNode) {
-      return connConfig.getLdapContext();
+      return connConfig;
     }
 
     final BasicNode parent = (BasicNode) node.getParent();
@@ -946,7 +944,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     {
       return findConnectionForDisplayedEntry(parent, isConfigurationNode);
     }
-    return isConfigurationNode ? connConfig.getLdapContext() : ctxUserData;
+    return isConfigurationNode ? connConfig : connUserData;
   }
 
   /**
@@ -987,7 +985,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the LDAP connection to search the displayed entry.
    * @throws NamingException if there is an error retrieving the connection.
    */
-  public InitialLdapContext findConnectionForDisplayedEntry(BasicNode node)
+  public ConnectionWrapper findConnectionForDisplayedEntry(BasicNode node)
   throws NamingException {
     return findConnectionForDisplayedEntry(node, isConfigurationNode(node));
   }
@@ -1001,7 +999,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the LDAP connection to search the displayed entry.
    * @throws NamingException if there is an error retrieving the connection.
    */
-  private InitialLdapContext findConnectionForDisplayedEntry(BasicNode node,
+  private ConnectionWrapper findConnectionForDisplayedEntry(BasicNode node,
       boolean isConfigurationNode) throws NamingException {
     if (followReferrals && node.getRemoteUrl() != null)
     {
@@ -1015,13 +1013,13 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /**
    * Release a connection returned by selectConnectionForChildEntries() or
    * selectConnectionForBaseEntry().
-   * @param ctx the connection to be released.
+   * @param conn the connection to be released.
    */
-  void releaseLDAPConnection(InitialLdapContext ctx) {
-    if (ctx != connConfig.getLdapContext() && ctx != this.ctxUserData)
+  void releaseLDAPConnection(ConnectionWrapper conn) {
+    if (conn != connConfig && conn != connUserData)
     {
       // Thus it comes from the connection pool
-      connectionPool.releaseConnection(ctx);
+      connectionPool.releaseConnection(conn);
     }
   }
 

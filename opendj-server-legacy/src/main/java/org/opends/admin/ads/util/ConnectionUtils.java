@@ -31,7 +31,6 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
@@ -212,7 +211,7 @@ public class ConnectionUtils
   /**
    * Clones the provided InitialLdapContext and returns a connection using
    * the same parameters.
-   * @param ctx the connection to be cloned.
+   * @param conn the connection to be cloned.
    * @param timeout the timeout to establish the connection in milliseconds.
    * Use {@code 0} to express no timeout.
    * @param trustManager the trust manager to be used to connect.
@@ -220,41 +219,28 @@ public class ConnectionUtils
    * @return the new InitialLdapContext connected to the server.
    * @throws NamingException if there was an error creating the new connection.
    */
-  public static InitialLdapContext cloneInitialLdapContext(
-      final InitialLdapContext ctx, int timeout, TrustManager trustManager,
+  public static ConnectionWrapper cloneConnectionWrapper(
+      final ConnectionWrapper conn, int timeout, TrustManager trustManager,
       KeyManager keyManager) throws NamingException
   {
-    Hashtable<?, ?> env = ctx.getEnvironment();
-    Control[] ctls = ctx.getConnectControls();
-    Control[] newCtls = null;
-    if (ctls != null)
-    {
-      newCtls = new Control[ctls.length];
-      System.arraycopy(ctls, 0, newCtls, 0, ctls.length);
-    }
-    /* Contains the DirContext and the Exception if any */
     final Object[] pair = new Object[] {null, null};
-    final Hashtable<?, ?> fEnv = env;
     final TrustManager fTrustManager = trustManager;
-    final KeyManager   fKeyManager   = keyManager;
-    final Control[] fNewCtls = newCtls;
-
+    final KeyManager fKeyManager = keyManager;
     Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
         try {
-          if (isSSL(ctx) || isStartTLS(ctx))
+          if (conn.isSSL() || conn.isStartTLS())
           {
-            TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
-                fKeyManager);
+            TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager, fKeyManager);
           }
-          pair[0] = new InitialLdapContext(fEnv, fNewCtls);
+          pair[0] = new ConnectionWrapper(conn);
         } catch (NamingException | RuntimeException ne) {
           pair[1] = ne;
         }
       }
     });
-    return getInitialLdapContext(t, pair, timeout);
+    return ConnectionUtils.<ConnectionWrapper> getConnection(t, pair, timeout);
   }
 
   /**
@@ -540,6 +526,11 @@ public class ConnectionUtils
   private static InitialLdapContext getInitialLdapContext(Thread t,
       Object[] pair, int timeout) throws NamingException
   {
+    return ConnectionUtils.<InitialLdapContext> getConnection(t, pair, timeout);
+  }
+
+  private static <T> T getConnection(Thread t, Object[] pair, int timeout) throws NamingException
+  {
     try
     {
       if (timeout > 0)
@@ -601,7 +592,7 @@ public class ConnectionUtils
             (Throwable) pair[1]);
       }
     }
-    return (InitialLdapContext) pair[0];
+    return (T) pair[0];
   }
 
   /**

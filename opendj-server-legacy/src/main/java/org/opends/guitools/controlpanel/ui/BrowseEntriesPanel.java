@@ -44,7 +44,6 @@ import java.util.LinkedHashSet;
 
 import javax.naming.InterruptedNamingException;
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -66,6 +65,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.NodeRefresher;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -528,9 +528,8 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       {
         try
         {
-          InitialLdapContext ctx =
-            controller.findConnectionForDisplayedEntry(node);
-          LDAPEntryReader reader = new LDAPEntryReader(dn, ctx);
+          ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+          LDAPEntryReader reader = new LDAPEntryReader(dn, conn);
           reader.addEntryReadListener(entryPane);
           // Required to update the browser controller properly if the entry is
           // deleted.

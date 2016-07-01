@@ -34,12 +34,11 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
-import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedEvent;
@@ -699,29 +698,23 @@ public abstract class Task
   protected List<String> getConnectionCommandLineArguments(
       boolean useAdminConnector, boolean addConnectionTypeParameters)
   {
-    ArrayList<String> args = new ArrayList<>();
-    InitialLdapContext ctx;
+    ConnectionWrapper conn = useAdminConnector
+        ? getInfo().getConnection()
+        : getInfo().getUserDataDirContext();
 
-    if (useAdminConnector)
+    List<String> args = new ArrayList<>();
+    if (isServerRunning() && conn != null)
     {
-      ctx = getInfo().getConnection().getLdapContext();
-    }
-    else
-    {
-      ctx = getInfo().getUserDataDirContext();
-    }
-    if (isServerRunning() && ctx != null)
-    {
-      HostPort hostPort = ConnectionUtils.getHostPort(ctx);
+      HostPort hostPort = conn.getHostPort();
       String hostName = localHostName;
       if (hostName == null || !getInfo().getServerDescriptor().isLocal())
       {
         hostName = hostPort.getHost();
       }
-      boolean isSSL = ConnectionUtils.isSSL(ctx);
-      boolean isStartTLS = ConnectionUtils.isStartTLS(ctx);
-      String bindDN = ConnectionUtils.getBindDN(ctx);
-      String bindPwd = ConnectionUtils.getBindPassword(ctx);
+      boolean isSSL = conn.isSSL();
+      boolean isStartTLS = conn.isStartTLS();
+      String bindDN = conn.getBindDn().toString();
+      String bindPwd = conn.getBindPassword();
       args.add("--hostName");
       args.add(hostName);
       args.add("--port");

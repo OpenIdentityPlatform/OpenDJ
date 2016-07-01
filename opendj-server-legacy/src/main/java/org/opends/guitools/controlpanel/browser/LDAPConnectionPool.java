@@ -16,25 +16,25 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.Control;
-import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.KeyManager;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
 
 import com.forgerock.opendj.cli.CliConstants;
-
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 
 /**
  * An LDAPConnectionPool is a pool of LDAPConnection.
@@ -77,22 +77,21 @@ public class LDAPConnectionPool {
   /**
    * Returns <CODE>true</CODE> if the connection passed is registered in the
    * connection pool, <CODE>false</CODE> otherwise.
-   * @param ctx the connection.
+   * @param conn the connection.
    * @return <CODE>true</CODE> if the connection passed is registered in the
    * connection pool, <CODE>false</CODE> otherwise.
    */
-  public boolean isConnectionRegistered(InitialLdapContext ctx) {
+  public boolean isConnectionRegistered(ConnectionWrapper conn) {
     for (String key : connectionTable.keySet())
     {
       ConnectionRecord cr = connectionTable.get(key);
-      HostPort hostPort = getHostPort(ctx);
-      HostPort crHostPort = getHostPort(cr.ctx);
-      if (cr.ctx != null
-          && hostPort.equals(crHostPort)
-          && getBindDN(cr.ctx).equals(getBindDN(ctx))
-          && getBindPassword(cr.ctx).equals(getBindPassword(ctx))
-          && isSSL(cr.ctx) == isSSL(ctx)
-          && isStartTLS(cr.ctx) == isStartTLS(ctx)) {
+      if (cr.conn != null
+          && conn.getHostPort().equals(cr.conn.getHostPort())
+          && cr.conn.getBindDn().equals(conn.getBindDn())
+          && cr.conn.getBindPassword().equals(conn.getBindPassword())
+          && cr.conn.isSSL() == conn.isSSL()
+          && cr.conn.isStartTLS() == conn.isStartTLS())
+      {
         return true;
       }
     }
@@ -101,14 +100,14 @@ public class LDAPConnectionPool {
 
   /**
    * Registers a connection in this connection pool.
-   * @param ctx the connection to be registered.
+   * @param conn the connection to be registered.
    */
-  public void registerConnection(InitialLdapContext ctx) {
-    registerAuth(ctx);
-    LDAPURL url = makeLDAPUrl(ctx);
+  public void registerConnection(ConnectionWrapper conn) {
+    registerAuth(conn);
+    LDAPURL url = makeLDAPUrl(conn);
     String key = makeKeyFromLDAPUrl(url);
     ConnectionRecord cr = new ConnectionRecord();
-    cr.ctx = ctx;
+    cr.conn = conn;
     cr.counter = 1;
     cr.disconnectAfterUse = false;
     connectionTable.put(key, cr);
@@ -116,13 +115,16 @@ public class LDAPConnectionPool {
 
   /**
    * Unregisters a connection from this connection pool.
-   * @param ctx the connection to be unregistered.
-   * @throws NamingException if there is a problem unregistering the connection.
+   *
+   * @param conn
+   *          the connection to be unregistered.
+   * @throws NamingException
+   *           if there is a problem unregistering the connection.
    */
-  public void unregisterConnection(InitialLdapContext ctx)
+  public void unregisterConnection(ConnectionWrapper conn)
   throws NamingException
   {
-    LDAPURL url = makeLDAPUrl(ctx);
+    LDAPURL url = makeLDAPUrl(conn);
     unRegisterAuth(url);
     String key = makeKeyFromLDAPUrl(url);
     connectionTable.remove(key);
@@ -154,7 +156,7 @@ public class LDAPConnectionPool {
    * @return a connection to the provided LDAP URL.
    * @throws NamingException if there was an error connecting.
    */
-  public InitialLdapContext getConnection(LDAPURL ldapUrl)
+  public ConnectionWrapper getConnection(LDAPURL ldapUrl)
   throws NamingException {
     String key = makeKeyFromLDAPUrl(ldapUrl);
     ConnectionRecord cr;
@@ -163,7 +165,7 @@ public class LDAPConnectionPool {
       cr = connectionTable.get(key);
       if (cr == null) {
         cr = new ConnectionRecord();
-        cr.ctx = null;
+        cr.conn = null;
         cr.counter = 1;
         cr.disconnectAfterUse = false;
         connectionTable.put(key, cr);
@@ -175,7 +177,7 @@ public class LDAPConnectionPool {
 
     synchronized(cr) {
       try {
-        if (cr.ctx == null) {
+        if (cr.conn == null) {
           boolean registerAuth = false;
           AuthRecord authRecord = authTable.get(key);
           if (authRecord == null)
@@ -184,8 +186,8 @@ public class LDAPConnectionPool {
             authRecord = authTable.values().iterator().next();
             registerAuth = true;
           }
-          cr.ctx = createLDAPConnection(ldapUrl, authRecord);
-          cr.ctx.setRequestControls(requestControls);
+          cr.conn = createLDAPConnection(ldapUrl, authRecord);
+          cr.conn.getLdapContext().setRequestControls(requestControls);
           if (registerAuth)
           {
             authTable.put(key, authRecord);
@@ -203,7 +205,7 @@ public class LDAPConnectionPool {
       }
     }
 
-    return cr.ctx;
+    return cr.conn;
   }
 
   /**
@@ -218,28 +220,28 @@ public class LDAPConnectionPool {
     requestControls = ctls;
     for (ConnectionRecord cr : connectionTable.values())
     {
-      if (cr.ctx != null)
+      if (cr.conn != null)
       {
-        cr.ctx.setRequestControls(requestControls);
+        cr.conn.getLdapContext().setRequestControls(requestControls);
       }
     }
   }
 
 
   /**
-   * Release an LDAPConnection created by getConnection().
-   * The connection should be considered as virtually disconnected
-   * and not be used anymore.
-   * @param ctx the connection to be released.
+   * Release an LDAPConnection created by getConnection(). The connection should be considered as
+   * virtually disconnected and not be used anymore.
+   *
+   * @param conn
+   *          the connection to be released.
    */
-  public synchronized void releaseConnection(InitialLdapContext ctx) {
-
+  public synchronized void releaseConnection(ConnectionWrapper conn) {
     String targetKey = null;
     ConnectionRecord targetRecord = null;
     synchronized(this) {
       for (String key : connectionTable.keySet()) {
         ConnectionRecord cr = connectionTable.get(key);
-        if (cr.ctx == ctx) {
+        if (cr.conn == conn) {
           targetKey = key;
           targetRecord = cr;
           if (targetKey != null)
@@ -279,7 +281,7 @@ public class LDAPConnectionPool {
    * provided authentication (for testing purposes).
    * @throws NamingException if an error occurs connecting.
    */
-  private void registerAuth(LDAPURL ldapUrl, String dn, String pw,
+  private void registerAuth(LDAPURL ldapUrl, DN dn, String pw,
       boolean connect) throws NamingException {
 
     String key = makeKeyFromLDAPUrl(ldapUrl);
@@ -288,8 +290,7 @@ public class LDAPConnectionPool {
     ar.password = pw;
 
     if (connect) {
-      InitialLdapContext ctx = createLDAPConnection(ldapUrl, ar);
-      ctx.close();
+      createLDAPConnection(ldapUrl, ar).close();
     }
 
     synchronized(this) {
@@ -313,13 +314,12 @@ public class LDAPConnectionPool {
    * Register authentication data from an existing connection.
    * This routine recreates the LDAP URL corresponding to
    * the connection and passes it to registerAuth(LDAPURL).
-   * @param ctx the connection that we retrieve the authentication information
-   * from.
+   * @param conn the connection that we retrieve the authentication information from.
    */
-  private void registerAuth(InitialLdapContext ctx) {
-    LDAPURL url = makeLDAPUrl(ctx);
+  private void registerAuth(ConnectionWrapper conn) {
+    LDAPURL url = makeLDAPUrl(conn);
     try {
-      registerAuth(url, getBindDN(ctx), getBindPassword(ctx), false);
+      registerAuth(url, conn.getBindDn(), conn.getBindPassword(), false);
     }
     catch (NamingException x) {
       throw new RuntimeException("Bug");
@@ -331,8 +331,7 @@ public class LDAPConnectionPool {
    * Unregister authentication data.
    * If for the given url there's a connection, try to bind as anonymous.
    * If unbind fails throw NamingException.
-   * @param ldapUrl the url associated with the authentication to be
-   * unregistered.
+   * @param ldapUrl the url associated with the authentication to be unregistered.
    * @throws NamingException if the unbind fails.
    */
   private void unRegisterAuth(LDAPURL ldapUrl) throws NamingException {
@@ -351,14 +350,7 @@ public class LDAPConnectionPool {
   {
     String key = makeKeyFromRecord(cr);
     connectionTable.remove(key);
-    try
-    {
-      cr.ctx.close();
-    }
-    catch (NamingException x)
-    {
-      // Bizarre. However it's not really a problem here.
-    }
+    cr.conn.close();
   }
 
   /** Notifies the listeners that a referral authentication change happened. */
@@ -387,8 +379,8 @@ public class LDAPConnectionPool {
    * @return the key to be used in Maps for the provided connection record.
    */
   private static String makeKeyFromRecord(ConnectionRecord rec) {
-    String protocol = ConnectionUtils.isSSL(rec.ctx) ? "LDAPS" : "LDAP";
-    return protocol + ":" + getHostPort(rec.ctx);
+    String protocol = rec.conn.isSSL() ? "LDAPS" : "LDAP";
+    return protocol + ":" + rec.conn.getHostPort();
   }
 
   /**
@@ -399,21 +391,12 @@ public class LDAPConnectionPool {
    * @return a connection.
    * @throws NamingException if an error occurs when connecting.
    */
-  private InitialLdapContext createLDAPConnection(LDAPURL ldapUrl,
-      AuthRecord ar) throws NamingException
+  private ConnectionWrapper createLDAPConnection(LDAPURL ldapUrl, AuthRecord ar) throws NamingException
   {
-    // Take the base DN out of the URL and only keep the protocol, host and port
-    ldapUrl = new LDAPURL(ldapUrl.getScheme(), ldapUrl.getHost(),
-          ldapUrl.getPort(), (DN)null, null, null, null, null);
-
-    if (isSecureLDAPUrl(ldapUrl))
-    {
-      return ConnectionUtils.createLdapsContext(ldapUrl.toString(), ar.dn,
-          ar.password, getConnectTimeout(), null,
-          getTrustManager(), getKeyManager());
-    }
-    return ConnectionUtils.createLdapContext(ldapUrl.toString(), ar.dn,
-        ar.password, getConnectTimeout(), null);
+    final HostPort hostPort = new HostPort(ldapUrl.getHost(), ldapUrl.getPort());
+    final Type connectiontype = isSecureLDAPUrl(ldapUrl) ? LDAPS : LDAP;
+    return new ConnectionWrapper(hostPort, connectiontype, ar.dn.toString(), ar.password,
+        getConnectTimeout(), getTrustManager(), getKeyManager());
   }
 
   /**
@@ -474,8 +457,8 @@ public class LDAPConnectionPool {
     return !LDAPURL.DEFAULT_SCHEME.equalsIgnoreCase(url.getScheme());
   }
 
-  private LDAPURL makeLDAPUrl(InitialLdapContext ctx) {
-    return makeLDAPUrl(ConnectionUtils.getHostPort(ctx), "", isSSL(ctx));
+  private LDAPURL makeLDAPUrl(ConnectionWrapper conn) {
+    return makeLDAPUrl(conn.getHostPort(), "", conn.isSSL());
   }
 
   /**
@@ -521,13 +504,13 @@ public class LDAPConnectionPool {
 
 /** A structure representing authentication data. */
 class AuthRecord {
-  String dn;
+  DN dn;
   String password;
 }
 
 /** A structure representing an active connection. */
 class ConnectionRecord {
-  InitialLdapContext ctx;
+  ConnectionWrapper conn;
   int counter;
   boolean disconnectAfterUse;
 }

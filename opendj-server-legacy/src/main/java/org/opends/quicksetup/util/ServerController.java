@@ -20,18 +20,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.quicksetup.*;
+import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.admin.ads.util.PreferredConnection.Type;
+import org.opends.quicksetup.Application;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Configuration;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
 
@@ -39,8 +44,8 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 /** Class used to manipulate an OpenDS server. */
 public class ServerController {
@@ -298,13 +303,13 @@ public class ServerController {
 
   /**
    * This methods starts the server.
-   * @param verify boolean indicating whether this method will attempt to
+   * @param verifyCanConnect boolean indicating whether this method will attempt to
    * connect to the server after starting to verify that it is listening.
    * @param suppressOutput indicating that ouput to standard output streams
    * from the server should be suppressed.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  private void startServer(boolean verify, boolean suppressOutput)
+  private void startServer(boolean verifyCanConnect, boolean suppressOutput)
   throws ApplicationException
   {
     if (suppressOutput && !StandardOutputSuppressor.isSuppressed()) {
@@ -324,173 +329,14 @@ public class ServerController {
         mb.append(application.getLineBreak());
         application.notifyListeners(mb.toMessage());
       }
-      logger.info(LocalizableMessage.raw("starting server"));
 
-      ArrayList<String> argList = new ArrayList<>();
-      argList.add(Utils.getScriptPath(
-          Utils.getPath(installation.getServerStartCommandFile())));
-      argList.add("--timeout");
-      argList.add("0");
-      String[] args = new String[argList.size()];
-      argList.toArray(args);
-      ProcessBuilder pb = new ProcessBuilder(args);
-      pb.directory(installation.getBinariesDirectory());
-      Map<String, String> env = pb.environment();
-      env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
-      env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
-
-      // Upgrader's classpath contains jars located in the temporary
-      // directory that we don't want locked by the directory server
-      // when it starts.  Since we're just calling the start-ds script
-      // it will figure out the correct classpath for the server.
-      env.remove("CLASSPATH");
       try
       {
-        String startedId = getStartedId();
-        Process process = pb.start();
+        startServerViaAnotherProcess();
 
-        BufferedReader err =
-          new BufferedReader(new InputStreamReader(process.getErrorStream()));
-        BufferedReader out =
-          new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-        StartReader errReader = new StartReader(err, startedId, true);
-        StartReader outputReader = new StartReader(out, startedId, false);
-
-        int returnValue = process.waitFor();
-
-        logger.info(LocalizableMessage.raw("start-ds return value: "+returnValue));
-
-        if (returnValue != 0)
+        if (verifyCanConnect)
         {
-          throw new ApplicationException(ReturnCode.START_ERROR,
-              INFO_ERROR_STARTING_SERVER_CODE.get(returnValue),
-              null);
-        }
-        if (outputReader.isFinished())
-        {
-          logger.info(LocalizableMessage.raw("Output reader finished."));
-        }
-        if (errReader.isFinished())
-        {
-          logger.info(LocalizableMessage.raw("Error reader finished."));
-        }
-        if (!outputReader.startedIdFound() && !errReader.startedIdFound())
-        {
-          logger.warn(LocalizableMessage.raw("Started ID could not be found"));
-        }
-
-        // Check if something wrong occurred reading the starting of the server
-        ApplicationException ex = errReader.getException();
-        if (ex == null)
-        {
-          ex = outputReader.getException();
-        }
-        if (ex != null)
-        {
-          // This is meaningless right now since we throw
-          // the exception below, but in case we change out
-          // minds later or add the ability to return exceptions
-          // in the output only instead of throwing...
-          throw ex;
-        } else if (verify)
-        {
-          /*
-           * There are no exceptions from the readers and they are marked as
-           * finished. So it seems that everything went fine.
-           *
-           * However we can have issues with the firewalls or do not have rights
-           * to connect or since the startup process is asynchronous we will
-           * have to wait for the databases and the listeners to initialize.
-           * Just check if we can connect to the server.
-           * Try 30 times with an interval of 3 seconds between try.
-           */
-          boolean connected = false;
-          Configuration config = installation.getCurrentConfiguration();
-          int port = config.getAdminConnectorPort();
-
-          // See if the application has prompted for credentials.  If
-          // not we'll just try to connect anonymously.
-          String userDn = null;
-          String userPw = null;
-          if (application != null) {
-            userDn = application.getUserData().getDirectoryManagerDn();
-            userPw = application.getUserData().getDirectoryManagerPwd();
-          }
-          if (userDn == null || userPw == null) {
-            userDn = null;
-            userPw = null;
-          }
-
-          InitialLdapContext ctx = null;
-          for (int i=0; i<50 && !connected; i++)
-          {
-            String hostName = null;
-            if (application != null)
-            {
-              hostName = application.getUserData().getHostName();
-            }
-            if (hostName == null)
-            {
-              hostName = "localhost";
-            }
-
-            int dig = i % 10;
-
-            if ((dig == 3 || dig == 4) && !"localhost".equals(hostName))
-            {
-              // Try with local host. This might be necessary in certain
-              // network configurations.
-              hostName = "localhost";
-            }
-
-            if (dig == 5 || dig == 6)
-            {
-              // Try with 0.0.0.0. This might be necessary in certain
-              // network configurations.
-              hostName = "0.0.0.0";
-            }
-
-            hostName = getHostNameForLdapUrl(hostName);
-            String ldapUrl = "ldaps://"+hostName+":" + port;
-            try
-            {
-              int timeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
-              if (application != null && application.getUserData() != null)
-              {
-                timeout = application.getUserData().getConnectTimeout();
-              }
-              ctx = createLdapsContext(ldapUrl, userDn, userPw, timeout,
-                  null, null, null);
-              connected = true;
-            }
-            catch (NamingException ne)
-            {
-              logger.warn(LocalizableMessage.raw("Could not connect to server: "+ne, ne));
-            }
-            finally
-            {
-              StaticUtils.close(ctx);
-            }
-            if (!connected)
-            {
-              try
-              {
-                Thread.sleep(3000);
-              }
-              catch (Throwable t)
-              {
-                 // do nothing
-              }
-            }
-          }
-          if (!connected)
-          {
-            final LocalizableMessage msg = isWindows()
-                ? INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(port)
-                : INFO_ERROR_STARTING_SERVER_IN_UNIX.get(port);
-            throw new ApplicationException(ReturnCode.START_ERROR, msg, null);
-          }
+          verifyCanConnect();
         }
       } catch (IOException | InterruptedException ioe)
       {
@@ -511,6 +357,172 @@ public class ServerController {
         }
       }
     }
+  }
+
+  private void startServerViaAnotherProcess() throws IOException, InterruptedException, ApplicationException
+  {
+    logger.info(LocalizableMessage.raw("starting server"));
+
+    List<String> argList = newArrayList(
+        Utils.getScriptPath(Utils.getPath(installation.getServerStartCommandFile())),
+        "--timeout", "0");
+
+    ProcessBuilder pb = new ProcessBuilder(argList.toArray(new String[argList.size()]));
+    pb.directory(installation.getBinariesDirectory());
+    Map<String, String> env = pb.environment();
+    env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
+    env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
+
+    // Upgrader's classpath contains jars located in the temporary
+    // directory that we don't want locked by the directory server
+    // when it starts. Since we're just calling the start-ds script
+    // it will figure out the correct classpath for the server.
+    env.remove("CLASSPATH");
+
+    String startedId = getStartedId();
+    Process process = pb.start();
+
+    BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+    BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+    StartReader errReader = new StartReader(err, startedId, true);
+    StartReader outputReader = new StartReader(out, startedId, false);
+
+    int returnValue = process.waitFor();
+
+    logger.info(LocalizableMessage.raw("start-ds return value: " + returnValue));
+
+    if (returnValue != 0)
+    {
+      throw new ApplicationException(ReturnCode.START_ERROR, INFO_ERROR_STARTING_SERVER_CODE.get(returnValue), null);
+    }
+    if (outputReader.isFinished())
+    {
+      logger.info(LocalizableMessage.raw("Output reader finished."));
+    }
+    if (errReader.isFinished())
+    {
+      logger.info(LocalizableMessage.raw("Error reader finished."));
+    }
+    if (!outputReader.startedIdFound() && !errReader.startedIdFound())
+    {
+      logger.warn(LocalizableMessage.raw("Started ID could not be found"));
+    }
+
+    // Check if something wrong occurred reading the starting of the server
+    ApplicationException ex = errReader.getException();
+    if (ex == null)
+    {
+      ex = outputReader.getException();
+    }
+    if (ex != null)
+    {
+      // This is meaningless right now since we throw
+      // the exception below, but in case we change out
+      // minds later or add the ability to return exceptions
+      // in the output only instead of throwing...
+      throw ex;
+    }
+  }
+
+  private void verifyCanConnect() throws IOException, ApplicationException
+  {
+    /*
+     * There are no exceptions from the readers and they are marked as
+     * finished. So it seems that everything went fine.
+     *
+     * However we can have issues with the firewalls or do not have rights
+     * to connect or since the startup process is asynchronous we will
+     * have to wait for the databases and the listeners to initialize.
+     * Just check if we can connect to the server.
+     * Try 30 times with an interval of 3 seconds between try.
+     */
+    boolean connected = false;
+    Configuration config = installation.getCurrentConfiguration();
+    int port = config.getAdminConnectorPort();
+
+    // See if the application has prompted for credentials.  If
+    // not we'll just try to connect anonymously.
+    String userDn = null;
+    String userPw = null;
+    if (application != null) {
+      userDn = application.getUserData().getDirectoryManagerDn();
+      userPw = application.getUserData().getDirectoryManagerPwd();
+    }
+    if (userDn == null || userPw == null) {
+      userDn = null;
+      userPw = null;
+    }
+
+    for (int i=0; i<50 && !connected; i++)
+    {
+      String hostName = getHostName(i);
+      String ldapUrl = "ldaps://"+hostName+":" + port;
+      try
+      {
+        int timeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
+        if (application != null && application.getUserData() != null)
+        {
+          timeout = application.getUserData().getConnectTimeout();
+        }
+        try (ConnectionWrapper conn = new ConnectionWrapper(ldapUrl, Type.LDAPS, userDn, userPw, timeout, null))
+        {
+          return;
+        }
+      }
+      catch (NamingException ne)
+      {
+        logger.warn(LocalizableMessage.raw("Could not connect to server: "+ne, ne));
+      }
+
+      try
+      {
+        // not connected yet
+        Thread.sleep(3000);
+      }
+      catch (Throwable t)
+      {
+        // do nothing
+      }
+    }
+
+    // Could not connect
+    final LocalizableMessage msg = isWindows()
+        ? INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(port)
+        : INFO_ERROR_STARTING_SERVER_IN_UNIX.get(port);
+    throw new ApplicationException(ReturnCode.START_ERROR, msg, null);
+  }
+
+  private String getHostName(int i)
+  {
+    String hostName = null;
+    if (application != null)
+    {
+      hostName = application.getUserData().getHostName();
+    }
+    if (hostName == null)
+    {
+      hostName = "localhost";
+    }
+
+    int dig = i % 10;
+
+    if ((dig == 3 || dig == 4) && !"localhost".equals(hostName))
+    {
+      // Try with local host. This might be necessary in certain
+      // network configurations.
+      hostName = "localhost";
+    }
+
+    if (dig == 5 || dig == 6)
+    {
+      // Try with 0.0.0.0. This might be necessary in certain
+      // network configurations.
+      hostName = "0.0.0.0";
+    }
+
+    hostName = getHostNameForLdapUrl(hostName);
+    return hostName;
   }
 
   /**

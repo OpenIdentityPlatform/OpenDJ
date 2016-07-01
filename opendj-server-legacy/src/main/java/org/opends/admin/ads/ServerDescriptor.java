@@ -37,13 +37,12 @@ import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.HostPort;
@@ -635,37 +634,32 @@ public class ServerDescriptor
 
   /**
    * Creates a ServerDescriptor object based on the configuration that we read
-   * using the provided InitialLdapContext.
-   * @param ctx the InitialLdapContext that will be used to read the
-   * configuration of the server.
+   * using the provided connection.
+   * @param conn the connection that will be used to read the configuration of the server.
    * @param filter the topology cache filter describing the information that
    * must be retrieved.
-   * @return a ServerDescriptor object that corresponds to the read
-   * configuration.
-   * @throws NamingException if a problem occurred reading the server
-   * configuration.
+   * @return a ServerDescriptor object that corresponds to the read configuration.
+   * @throws NamingException if a problem occurred reading the server configuration.
    */
-  public static ServerDescriptor createStandalone(InitialLdapContext ctx,
-      TopologyCacheFilter filter)
+  public static ServerDescriptor createStandalone(ConnectionWrapper conn, TopologyCacheFilter filter)
   throws NamingException
   {
     ServerDescriptor desc = new ServerDescriptor();
 
-    updateLdapConfiguration(desc, ctx);
-    updateAdminConnectorConfiguration(desc, ctx);
-    updateJmxConfiguration(desc, ctx);
-    updateReplicas(desc, ctx, filter);
-    updateReplication(desc, ctx, filter);
-    updatePublicKeyCertificate(desc, ctx);
-    updateMiscellaneous(desc, ctx);
+    updateLdapConfiguration(desc, conn);
+    updateAdminConnectorConfiguration(desc, conn);
+    updateJmxConfiguration(desc, conn);
+    updateReplicas(desc, conn, filter);
+    updateReplication(desc, conn, filter);
+    updatePublicKeyCertificate(desc, conn);
+    updateMiscellaneous(desc, conn);
 
-    desc.serverProperties.put(ServerProperty.HOST_NAME,
-        ConnectionUtils.getHostName(ctx));
+    desc.serverProperties.put(ServerProperty.HOST_NAME, conn.getHostPort().getHost());
 
     return desc;
   }
 
-  private static void updateLdapConfiguration(ServerDescriptor desc, InitialLdapContext ctx)
+  private static void updateLdapConfiguration(ServerDescriptor desc, ConnectionWrapper conn)
       throws NamingException
   {
     SearchControls ctls = new SearchControls();
@@ -683,7 +677,7 @@ public class ServerDescriptor
 
     LdapName jndiName = new LdapName("cn=config");
     NamingEnumeration<SearchResult> listeners =
-      ctx.search(jndiName, filter, ctls);
+      conn.getLdapContext().search(jndiName, filter, ctls);
 
     try
     {
@@ -733,7 +727,7 @@ public class ServerDescriptor
     }
   }
 
-  private static void updateAdminConnectorConfiguration(ServerDescriptor desc, InitialLdapContext ctx)
+  private static void updateAdminConnectorConfiguration(ServerDescriptor desc, ConnectionWrapper conn)
       throws NamingException
   {
     SearchControls ctls = new SearchControls();
@@ -747,7 +741,7 @@ public class ServerDescriptor
 
     LdapName jndiName = new LdapName("cn=config");
     NamingEnumeration<SearchResult> listeners =
-      ctx.search(jndiName, filter, ctls);
+      conn.getLdapContext().search(jndiName, filter, ctls);
 
     try
     {
@@ -778,7 +772,7 @@ public class ServerDescriptor
     }
   }
 
-  private static void updateJmxConfiguration(ServerDescriptor desc, InitialLdapContext ctx) throws NamingException
+  private static void updateJmxConfiguration(ServerDescriptor desc, ConnectionWrapper conn) throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -794,7 +788,7 @@ public class ServerDescriptor
 
     LdapName jndiName = new LdapName("cn=config");
     NamingEnumeration<SearchResult> listeners =
-      ctx.search(jndiName, filter, ctls);
+      conn.getLdapContext().search(jndiName, filter, ctls);
 
     ArrayList<Integer> jmxPorts = new ArrayList<>();
     ArrayList<Integer> jmxsPorts = new ArrayList<>();
@@ -839,7 +833,7 @@ public class ServerDescriptor
   }
 
   private static void updateReplicas(ServerDescriptor desc,
-      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+      ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
   throws NamingException
   {
     if (!cacheFilter.searchBaseDNInformation())
@@ -858,7 +852,7 @@ public class ServerDescriptor
 
     LdapName jndiName = new LdapName("cn=config");
     NamingEnumeration<SearchResult> databases =
-      ctx.search(jndiName, filter, ctls);
+      conn.getLdapContext().search(jndiName, filter, ctls);
 
     try
     {
@@ -875,7 +869,7 @@ public class ServerDescriptor
           Set<String> entries;
           if (cacheFilter.searchMonitoringInformation())
           {
-            entries = getBaseDNEntryCount(ctx, id);
+            entries = getBaseDNEntryCount(conn, id);
           }
           else
           {
@@ -950,7 +944,7 @@ public class ServerDescriptor
   }
 
   private static void updateReplication(ServerDescriptor desc,
-      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
+      ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
   throws NamingException
   {
     boolean replicationEnabled = false;
@@ -968,7 +962,7 @@ public class ServerDescriptor
 
     try
     {
-      syncProviders = ctx.search(jndiName, filter, ctls);
+      syncProviders = conn.getLdapContext().search(jndiName, filter, ctls);
 
       while(syncProviders.hasMore())
       {
@@ -1015,7 +1009,7 @@ public class ServerDescriptor
       syncProviders = null;
       try
       {
-        syncProviders = ctx.search(jndiName, filter, ctls);
+        syncProviders = conn.getLdapContext().search(jndiName, filter, ctls);
 
         while(syncProviders.hasMore())
         {
@@ -1077,7 +1071,7 @@ public class ServerDescriptor
     NamingEnumeration<SearchResult> entries = null;
     try
     {
-      entries = ctx.search(jndiName, filter, ctls);
+      entries = conn.getLdapContext().search(jndiName, filter, ctls);
 
       while (entries.hasMore())
       {
@@ -1127,7 +1121,7 @@ public class ServerDescriptor
 
       jndiName = new LdapName("cn=Crypto Manager,cn=config");
 
-      entries = ctx.search(jndiName, filter, ctls);
+      entries = conn.getLdapContext().search(jndiName, filter, ctls);
 
       try
       {
@@ -1157,11 +1151,11 @@ public class ServerDescriptor
    ADS.
    @param desc The map to update with the instance key-pair public-key
    certificate.
-   @param ctx The bound server instance.
+   @param conn The connection to the server.
    @throws NamingException if unable to retrieve certificate from bound
    instance.
    */
-  private static void updatePublicKeyCertificate(ServerDescriptor desc, InitialLdapContext ctx) throws NamingException
+  private static void updatePublicKeyCertificate(ServerDescriptor desc, ConnectionWrapper conn) throws NamingException
   {
     /* TODO: this DN is declared in some core constants file. Create a constants
        file for the installer and import it into the core. */
@@ -1176,7 +1170,7 @@ public class ServerDescriptor
         searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
         final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
         searchControls.setReturningAttributes(attrIDs);
-        final SearchResult certEntry = ctx.search(dn,
+        final SearchResult certEntry = conn.getLdapContext().search(dn,
                    "(objectclass=ds-cfg-instance-key)", searchControls).next();
         final Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
         if (null != certAttr) {
@@ -1195,7 +1189,7 @@ public class ServerDescriptor
           oc.add("top");
           oc.add("ds-cfg-self-signed-cert-request");
           attrs.put(oc);
-          ctx.createSubcontext(dn, attrs).close();
+          conn.getLdapContext().createSubcontext(dn, attrs).close();
         }
         else {
           throw x;
@@ -1204,7 +1198,7 @@ public class ServerDescriptor
     }
   }
 
-  private static void updateMiscellaneous(ServerDescriptor desc, InitialLdapContext ctx) throws NamingException
+  private static void updateMiscellaneous(ServerDescriptor desc, ConnectionWrapper conn) throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
@@ -1216,7 +1210,7 @@ public class ServerDescriptor
 
     LdapName jndiName = new LdapName("cn=schema");
     NamingEnumeration<SearchResult> listeners =
-      ctx.search(jndiName, filter, ctls);
+      conn.getLdapContext().search(jndiName, filter, ctls);
 
     try
     {
@@ -1241,7 +1235,7 @@ public class ServerDescriptor
    certificates. This trust is necessary at least to initialize replication,
    which uses the trusted certificate entries in the ads-truststore for server
    authentication.
-   @param ctx The bound instance.
+   @param conn The connection to the server.
    @param keyEntryMap The set of valid (i.e., not tagged as compromised)
    instance key-pair public-key certificate entries in ADS represented as a map
    from keyID to public-key certificate (binary).
@@ -1249,7 +1243,7 @@ public class ServerDescriptor
    ads-truststore via LDAP.
    */
   public static void seedAdsTrustStore(
-          InitialLdapContext ctx,
+          ConnectionWrapper conn,
           Map<String, byte[]> keyEntryMap)
           throws NamingException
   {
@@ -1270,24 +1264,24 @@ public class ServerDescriptor
                       getAttributeName() + ";binary", keyEntry.getValue()));
       final LdapName keyDn = new LdapName(rdnAttr.getID() + "=" + Rdn.escapeValue(rdnAttr.get()) + "," + TRUSTSTORE_DN);
       try {
-        ctx.createSubcontext(keyDn, keyAttrs).close();
+        conn.getLdapContext().createSubcontext(keyDn, keyAttrs).close();
       }
       catch(NameAlreadyBoundException x){
-        ctx.destroySubcontext(keyDn);
-        ctx.createSubcontext(keyDn, keyAttrs).close();
+        conn.getLdapContext().destroySubcontext(keyDn);
+        conn.getLdapContext().createSubcontext(keyDn, keyAttrs).close();
       }
     }
   }
 
   /**
    * Returns the values of the ds-base-dn-entry count attributes for the given
-   * backend monitor entry using the provided InitialLdapContext.
-   * @param ctx the InitialLdapContext to use to update the configuration.
+   * backend monitor entry using the provided connection.
+   * @param conn the connection to use to update the configuration.
    * @param backendID the id of the backend.
    * @return the values of the ds-base-dn-entry count attribute.
    * @throws NamingException if there was an error.
    */
-  private static Set<String> getBaseDNEntryCount(InitialLdapContext ctx,
+  private static Set<String> getBaseDNEntryCount(ConnectionWrapper conn,
       String backendID) throws NamingException
   {
     LinkedHashSet<String> v = new LinkedHashSet<>();
@@ -1301,7 +1295,7 @@ public class ServerDescriptor
 
     LdapName jndiName = new LdapName("cn=monitor");
     NamingEnumeration<SearchResult> listeners =
-      ctx.search(jndiName, filter, ctls);
+      conn.getLdapContext().search(jndiName, filter, ctls);
 
     try
     {

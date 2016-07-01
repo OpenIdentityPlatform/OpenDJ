@@ -32,6 +32,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -45,7 +46,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -147,7 +147,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
   private JLabel lNumberOfEntries;
   private JLabel lNoMatchFound;
 
-  private InitialLdapContext createdUserDataCtx;
+  private ConnectionWrapper createdUserDataConn;
   /** The tree pane contained in this panel. */
   protected TreePanel treePane;
   /** The browser controller used to update the LDAP entry tree. */
@@ -1190,16 +1190,16 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
         try
         {
           ConnectionWrapper conn = getInfo().getConnection();
-          InitialLdapContext ctx1 = controller.getConfigurationConnection();
-          boolean setConnection = conn.getLdapContext() != ctx1;
+          ConnectionWrapper conn1 = controller.getConfigurationConnection();
+          boolean setConnection = conn != conn1;
           updateNumSubordinateHacker(desc);
           if (setConnection)
           {
             if (getInfo().getUserDataDirContext() == null)
             {
-              InitialLdapContext ctxUserData =
+              ConnectionWrapper connUserData =
                   createUserDataDirContext(conn.getBindDn().toString(), conn.getBindPassword());
-              getInfo().setUserDataDirContext(ctxUserData);
+              getInfo().setUserDataDirContext(connUserData);
             }
             final NamingException[] fNe = { null };
             Runnable runnable = new Runnable()
@@ -1240,16 +1240,16 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           }
           displayNodes = true;
         }
-        catch (NamingException ne)
+        catch (IOException | NamingException e)
         {
           errorTitle = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_DETAILS.get();
-          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(ne);
+          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(e);
           displayErrorPane = true;
         }
-        catch (ConfigReadException cre)
+        catch (ConfigReadException e)
         {
           errorTitle = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_DETAILS.get();
-          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(cre.getMessageObject());
+          errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(e.getMessageObject());
           displayErrorPane = true;
         }
       }
@@ -1412,13 +1412,13 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    * @throws ConfigReadException
    *           if an error occurs reading the configuration.
    */
-  private InitialLdapContext createUserDataDirContext(final String bindDN, final String bindPassword)
-      throws NamingException, ConfigReadException
+  private ConnectionWrapper createUserDataDirContext(final String bindDN, final String bindPassword)
+      throws NamingException, IOException, ConfigReadException
   {
-    createdUserDataCtx = null;
+    createdUserDataConn = null;
     try
     {
-      createdUserDataCtx = Utilities.getUserDataDirContext(getInfo(), bindDN, bindPassword);
+      createdUserDataConn = Utilities.getUserDataDirContext(getInfo(), bindDN, bindPassword);
     }
     catch (NamingException ne)
     {
@@ -1469,6 +1469,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
         {
           final ConfigReadException[] fcre = { null };
           final NamingException[] fne = { null };
+          final IOException[] fioe = { null };
           try
           {
             SwingUtilities.invokeAndWait(new Runnable()
@@ -1488,6 +1489,10 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
                 {
                   fne[0] = ne;
                 }
+                catch (IOException ioe)
+                {
+                  fioe[0] = ioe;
+                }
               }
             });
           }
@@ -1503,10 +1508,14 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           {
             throw fne[0];
           }
+          if (fioe[0] != null)
+          {
+            throw fioe[0];
+          }
         }
       }
     }
-    return createdUserDataCtx;
+    return createdUserDataConn;
   }
 
   /**
@@ -1521,7 +1530,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    *          the bind password.
    */
   private void handleCertificateException(UserDataCertificateException ce, String bindDN, String bindPassword)
-      throws NamingException, ConfigReadException
+      throws NamingException, IOException, ConfigReadException
   {
     CertificateDialog dlg = new CertificateDialog(null, ce);
     dlg.pack();
@@ -1537,7 +1546,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host " + host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
-        createdUserDataCtx = createUserDataDirContext(bindDN, bindPassword);
+        createdUserDataConn = createUserDataDirContext(bindDN, bindPassword);
       }
       else
       {

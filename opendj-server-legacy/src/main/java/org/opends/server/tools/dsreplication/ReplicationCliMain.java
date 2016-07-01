@@ -3593,11 +3593,11 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private Type getConnectionType(final ConnectionWrapper conn)
   {
-    if (isSSL(conn.getLdapContext()))
+    if (conn.isSSL())
     {
       return LDAPS;
     }
-    else if (isStartTLS(conn.getLdapContext()))
+    else if (conn.isStartTLS())
     {
       return START_TLS;
     }
@@ -3696,8 +3696,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
-      ServerDescriptor server1 = ServerDescriptor.createStandalone(conn1.getLdapContext(), filter);
-      ServerDescriptor server2 = ServerDescriptor.createStandalone(conn2.getLdapContext(), filter);
+      ServerDescriptor server1 = ServerDescriptor.createStandalone(conn1, filter);
+      ServerDescriptor server2 = ServerDescriptor.createStandalone(conn2, filter);
 
       for (ReplicaDescriptor rep1 : server1.getReplicas())
       {
@@ -3814,7 +3814,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     try
     {
-      ServerDescriptor server = ServerDescriptor.createStandalone(conn.getLdapContext(), filter);
+      ServerDescriptor server = ServerDescriptor.createStandalone(conn, filter);
       suffixes.addAll(server.getReplicas());
     }
     catch (Throwable t)
@@ -3975,8 +3975,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void printSuccessfullyEnabled(ConnectionWrapper conn1, ConnectionWrapper conn2)
   {
-    long time1 = getServerClock(conn1.getLdapContext());
-    long time2 = getServerClock(conn2.getLdapContext());
+    long time1 = getServerClock(conn1);
+    long time2 = getServerClock(conn2);
     if (time1 != -1
         && time2 != -1
         && Math.abs(time1 - time2) > Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000)
@@ -5196,7 +5196,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ServerDescriptor.seedAdsTrustStore(connDestination.getLdapContext(), adsCtxSource.getTrustedCertificates());
+        ServerDescriptor.seedAdsTrustStore(connDestination, adsCtxSource.getTrustedCertificates());
       }
       catch (Throwable t)
       {
@@ -5491,7 +5491,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      return ServerDescriptor.createStandalone(conn.getLdapContext(), filter);
+      return ServerDescriptor.createStandalone(conn, filter);
     }
     catch (NamingException ne)
     {
@@ -6974,7 +6974,7 @@ public class ReplicationCliMain extends ConsoleApplication
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
       filter.addBaseDNToSearch(baseDN);
-      ServerDescriptor source = ServerDescriptor.createStandalone(connSource.getLdapContext(), filter);
+      ServerDescriptor source = ServerDescriptor.createStandalone(connSource, filter);
       for (ReplicaDescriptor replica : source.getReplicas())
       {
         if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
@@ -7019,7 +7019,7 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         installer.initializeSuffix(
-            connDestination.getLdapContext(), replicationId, baseDN, displayProgress, connSource.getHostPort());
+            connDestination, replicationId, baseDN, displayProgress, connSource.getHostPort());
         initDone = true;
       }
       catch (PeerNotFoundException pnfe)
@@ -9062,7 +9062,7 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error loading topology cache in "
-          + getLdapUrl(conn.getLdapContext()) + ": " + t, t));
+          + conn.getLdapUrl() + ": " + t, t));
     }
     return null;
   }
@@ -9382,7 +9382,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 server.getHostPort(true)+" with certificates of "+ adsCtxSource.getHostPort()));
             try (ConnectionWrapper conn = getConnection(cacheDestination, server))
             {
-              ServerDescriptor.seedAdsTrustStore(conn.getLdapContext(), adsCtxSource.getTrustedCertificates());
+              ServerDescriptor.seedAdsTrustStore(conn, adsCtxSource.getTrustedCertificates());
             }
           }
         }

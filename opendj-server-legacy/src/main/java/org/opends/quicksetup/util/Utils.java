@@ -76,6 +76,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.SecurityOptions;
@@ -956,11 +957,11 @@ public class Utils
   /**
    * Returns the current time of a server in milliseconds.
    *
-   * @param ctx
+   * @param conn
    *          the connection to the server.
    * @return the current time of a server in milliseconds.
    */
-  public static long getServerClock(InitialLdapContext ctx)
+  public static long getServerClock(ConnectionWrapper conn)
   {
     long time = -1;
     SearchControls ctls = new SearchControls();
@@ -971,7 +972,7 @@ public class Utils
     try
     {
       LdapName jndiName = new LdapName("cn=monitor");
-      NamingEnumeration<?> listeners = ctx.search(jndiName, filter, ctls);
+      NamingEnumeration<?> listeners = conn.getLdapContext().search(jndiName, filter, ctls);
 
       try
       {

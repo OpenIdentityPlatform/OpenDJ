@@ -1901,8 +1901,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   }
 
   /**
-   * This method updates the replication in the remote server using the
-   * provided InitialLdapContext.
+   * This method updates the replication in the remote server using the provided connection.
    * It also tries to delete the server registration entry from the remote ADS
    * servers if the serverADSProperties object passed is not null.
    * @param connWrapper the connection to the remote server where we want to remove

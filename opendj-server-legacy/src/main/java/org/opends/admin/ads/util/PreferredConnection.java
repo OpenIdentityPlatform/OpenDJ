@@ -19,8 +19,6 @@ package org.opends.admin.ads.util;
 import java.util.Collections;
 import java.util.Set;
 
-import javax.naming.ldap.InitialLdapContext;
-
 /**
  * A simple class that is used to be able to specify which URL and connection
  * type to use when we connect to a server.
@@ -95,20 +93,19 @@ public class PreferredConnection
 
   /**
    * Commodity method that returns a PreferredConnection object with the
-   * information on a given InitialLdapContext.
+   * information on a given connection.
    * @param conn the connection we retrieve the information from.
    * @return a preferred connection object.
    */
   private static PreferredConnection getPreferredConnection(ConnectionWrapper conn)
   {
-    InitialLdapContext ctx = conn.getLdapContext();
-    String ldapUrl = ConnectionUtils.getLdapUrl(ctx);
+    String ldapUrl = conn.getLdapUrl();
     PreferredConnection.Type type;
-    if (ConnectionUtils.isStartTLS(ctx))
+    if (conn.isStartTLS())
     {
       type = PreferredConnection.Type.START_TLS;
     }
-    else if (ConnectionUtils.isSSL(ctx))
+    else if (conn.isSSL())
     {
       type = PreferredConnection.Type.LDAPS;
     }
@@ -121,7 +118,7 @@ public class PreferredConnection
 
   /**
    * Commodity method that generates a list of preferred connection (of just
-   * one) with the information on a given InitialLdapContext.
+   * one) with the information on a given connection.
    * @param conn the connection we retrieve the information from.
    * @return a list containing the preferred connection object.
    */

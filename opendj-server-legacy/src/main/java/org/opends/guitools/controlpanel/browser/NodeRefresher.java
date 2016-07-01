@@ -16,8 +16,6 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
-import static org.opends.admin.ads.util.ConnectionUtils.getHostPort;
-import static org.opends.admin.ads.util.ConnectionUtils.isSSL;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
@@ -31,7 +29,6 @@ import javax.naming.NamingException;
 import javax.naming.SizeLimitExceededException;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
@@ -41,6 +38,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
 import org.opends.server.schema.SchemaConstants;
@@ -304,18 +302,23 @@ public class NodeRefresher extends AbstractNodeTask {
 
   /**
    * Performs the search in the case the user specified a custom filter.
-   * @param node the parent node we perform the search from.
-   * @param ctx the connection to be used.
-   * @throws NamingException if a problem occurred.
+   *
+   * @param node
+   *          the parent node we perform the search from.
+   * @param conn
+   *          the connection to be used.
+   * @throws NamingException
+   *           if a problem occurred.
    */
-  private void searchForCustomFilter(BasicNode node, InitialLdapContext ctx)
+  private void searchForCustomFilter(BasicNode node, ConnectionWrapper conn)
   throws NamingException
   {
     SearchControls ctls = controller.getBasicSearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
     ctls.setCountLimit(1);
-    NamingEnumeration<SearchResult> s = ctx.search(new LdapName(node.getDN()),
+    NamingEnumeration<SearchResult> s =
+        conn.getLdapContext().search(new LdapName(node.getDN()),
               controller.getFilter(),
               ctls);
     try
@@ -347,17 +350,17 @@ public class NodeRefresher extends AbstractNodeTask {
   /**
    * Performs the search in the case the user specified a custom filter.
    * @param dn the parent DN we perform the search from.
-   * @param ctx the connection to be used.
+   * @param conn the connection to be used.
    * @throws NamingException if a problem occurred.
    */
-  private void searchForCustomFilter(String dn, InitialLdapContext ctx)
+  private void searchForCustomFilter(String dn, ConnectionWrapper conn)
   throws NamingException
   {
     SearchControls ctls = controller.getBasicSearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(new String[]{});
     ctls.setCountLimit(1);
-    NamingEnumeration<SearchResult> s = ctx.search(new LdapName(dn),
+    NamingEnumeration<SearchResult> s = conn.getLdapContext().search(new LdapName(dn),
               controller.getFilter(),
               ctls);
     try
@@ -389,15 +392,15 @@ public class NodeRefresher extends AbstractNodeTask {
   /** Read the local entry associated to the current node. */
   private void runReadLocalEntry() throws SearchAbandonException {
     BasicNode node = getNode();
-    InitialLdapContext ctx = null;
+    ConnectionWrapper conn = null;
     try {
-      ctx = controller.findConnectionForLocalEntry(node);
+      conn = controller.findConnectionForLocalEntry(node);
 
-      if (ctx != null) {
+      if (conn != null) {
         if (useCustomFilter())
         {
           // Check that the entry verifies the filter
-          searchForCustomFilter(node, ctx);
+          searchForCustomFilter(node, conn);
         }
 
         SearchControls ctls = controller.getBasicSearchControls();
@@ -405,7 +408,7 @@ public class NodeRefresher extends AbstractNodeTask {
         ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
 
         NamingEnumeration<SearchResult> s =
-                ctx.search(new LdapName(node.getDN()),
+            conn.getLdapContext().search(new LdapName(node.getDN()),
                 controller.getObjectSearchFilter(),
                 ctls);
         try
@@ -433,8 +436,8 @@ public class NodeRefresher extends AbstractNodeTask {
         throwAbandonIfNeeded(x);
     }
     finally {
-      if (ctx != null) {
-        controller.releaseLDAPConnection(ctx);
+      if (conn != null) {
+        controller.releaseLDAPConnection(conn);
       }
     }
   }
@@ -483,19 +486,19 @@ public class NodeRefresher extends AbstractNodeTask {
     int i = 0;
     while (i < referral.length && entry == null)
     {
-      InitialLdapContext ctx = null;
+      ConnectionWrapper conn = null;
       try {
         url = LDAPURL.decode(referral[i], false);
         if (url.getHost() == null)
         {
           // Use the local server connection.
-          ctx = controller.getUserDataConnection();
-          HostPort hostPort = getHostPort(ctx);
+          conn = controller.getUserDataConnection();
+          HostPort hostPort = conn.getHostPort();
           url.setHost(hostPort.getHost());
           url.setPort(hostPort.getPort());
-          url.setScheme(isSSL(ctx) ? "ldaps" : "ldap");
+          url.setScheme(conn.isSSL() ? "ldaps" : "ldap");
         }
-        ctx = connectionPool.getConnection(url);
+        conn = connectionPool.getConnection(url);
         remoteDn = url.getRawBaseDN();
         if (remoteDn == null || "".equals(remoteDn))
         {
@@ -515,7 +518,7 @@ public class NodeRefresher extends AbstractNodeTask {
         if (useCustomFilter() && url.getScope() == SearchScope.BASE_OBJECT)
         {
           // Check that the entry verifies the filter
-          searchForCustomFilter(remoteDn, ctx);
+          searchForCustomFilter(remoteDn, conn);
         }
 
         int scope = getJNDIScope(url);
@@ -525,7 +528,7 @@ public class NodeRefresher extends AbstractNodeTask {
         ctls.setReturningAttributes(controller.getAttrsForBlackSearch());
         ctls.setSearchScope(scope);
         ctls.setCountLimit(1);
-        NamingEnumeration<SearchResult> sr = ctx.search(remoteDn,
+        NamingEnumeration<SearchResult> sr = conn.getLdapContext().search(remoteDn,
             filter,
             ctls);
         try
@@ -573,8 +576,8 @@ public class NodeRefresher extends AbstractNodeTask {
         lastExceptionArg = referral[i];
       }
       finally {
-        if (ctx != null) {
-          connectionPool.releaseConnection(ctx);
+        if (conn != null) {
+          connectionPool.releaseConnection(conn);
         }
       }
       i = i + 1;
@@ -645,7 +648,7 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private void runDetectChildrenManually() throws SearchAbandonException {
     BasicNode parentNode = getNode();
-    InitialLdapContext ctx = null;
+    ConnectionWrapper conn = null;
     NamingEnumeration<SearchResult> searchResults = null;
 
     try {
@@ -664,8 +667,8 @@ public class NodeRefresher extends AbstractNodeTask {
         ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
       }
       // Send an LDAP search
-      ctx = controller.findConnectionForDisplayedEntry(parentNode);
-      searchResults = ctx.search(
+      conn = controller.findConnectionForDisplayedEntry(parentNode);
+      searchResults = conn.getLdapContext().search(
           new LdapName(controller.findBaseDNForChildEntries(parentNode)),
           controller.getChildSearchFilter(),
           ctls);
@@ -689,8 +692,8 @@ public class NodeRefresher extends AbstractNodeTask {
       throwAbandonIfNeeded(x);
     }
     finally {
-      if (ctx != null) {
-        controller.releaseLDAPConnection(ctx);
+      if (conn != null) {
+        controller.releaseLDAPConnection(conn);
       }
       if (searchResults != null)
       {
@@ -729,7 +732,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * @throws SearchAbandonException if an error occurs.
    */
   private void runSearchChildren() throws SearchAbandonException {
-    InitialLdapContext ctx = null;
+    ConnectionWrapper conn = null;
     BasicNode parentNode = getNode();
     parentNode.setSizeLimitReached(false);
 
@@ -745,7 +748,7 @@ public class NodeRefresher extends AbstractNodeTask {
         ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       }
       ctls.setReturningAttributes(controller.getAttrsForRedSearch());
-      ctx = controller.findConnectionForDisplayedEntry(parentNode);
+      conn = controller.findConnectionForDisplayedEntry(parentNode);
       String parentDn = controller.findBaseDNForChildEntries(parentNode);
       int parentComponents;
       try
@@ -758,7 +761,7 @@ public class NodeRefresher extends AbstractNodeTask {
         throw new RuntimeException("Error decoding dn: "+parentDn+" . "+t,
             t);
       }
-      NamingEnumeration<SearchResult> entries = ctx.search(
+      NamingEnumeration<SearchResult> entries = conn.getLdapContext().search(
             new LdapName(parentDn),
                 controller.getChildSearchFilter(),
                 ctls);
@@ -838,8 +841,7 @@ public class NodeRefresher extends AbstractNodeTask {
               }
               if (mustAddParent)
               {
-                SearchResult parentResult = searchManuallyEntry(ctx,
-                    parentToAddDN.toString());
+                SearchResult parentResult = searchManuallyEntry(conn, parentToAddDN.toString());
                 childEntries.add(parentResult);
               }
             }
@@ -874,9 +876,9 @@ public class NodeRefresher extends AbstractNodeTask {
       throwAbandonIfNeeded(x);
     }
     finally {
-      if (ctx != null)
+      if (conn != null)
       {
-        controller.releaseLDAPConnection(ctx);
+        controller.releaseLDAPConnection(conn);
       }
     }
   }
@@ -904,18 +906,18 @@ public class NodeRefresher extends AbstractNodeTask {
   /**
    * Returns the entry for the given dn.
    * The code assumes that the request controls are set in the connection.
-   * @param ctx the connection to be used.
+   * @param conn the connection to be used.
    * @param dn the DN of the entry to be searched.
    * @throws NamingException if an error occurs.
    */
-  private SearchResult searchManuallyEntry(InitialLdapContext ctx, String dn)
+  private SearchResult searchManuallyEntry(ConnectionWrapper conn, String dn)
   throws NamingException
   {
     // Send an LDAP search
     SearchControls ctls = controller.getBasicSearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(controller.getAttrsForRedSearch());
-    NamingEnumeration<SearchResult> entries = ctx.search(
+    NamingEnumeration<SearchResult> entries = conn.getLdapContext().search(
           new LdapName(dn),
               controller.getObjectSearchFilter(),
               ctls);
@@ -1118,10 +1120,10 @@ public class NodeRefresher extends AbstractNodeTask {
       if (dn2.isSuperiorOrEqualTo(dn1))
       {
         HostPort urlHostPort = new HostPort(url.getHost(), url.getPort());
-        checkSucceeded = urlHostPort.equals(getHostPort(controller.getConfigurationConnection()));
+        checkSucceeded = urlHostPort.equals(controller.getConfigurationConnection().getHostPort());
         if (checkSucceeded)
         {
-          checkSucceeded = urlHostPort.equals(getHostPort(controller.getUserDataConnection()));
+          checkSucceeded = urlHostPort.equals(controller.getUserDataConnection().getHostPort());
         }
       }
     }

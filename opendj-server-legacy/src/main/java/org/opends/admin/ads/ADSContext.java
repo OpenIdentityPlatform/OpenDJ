@@ -274,7 +274,6 @@ public class ADSContext
   }
 
   /** The context used to retrieve information. */
-  private final InitialLdapContext dirContext;
   private final ConnectionWrapper connectionWrapper;
 
   /**
@@ -286,7 +285,6 @@ public class ADSContext
   public ADSContext(ConnectionWrapper connectionWrapper)
   {
     this.connectionWrapper = connectionWrapper;
-    this.dirContext = connectionWrapper.getLdapContext();
   }
 
   /**
@@ -296,7 +294,7 @@ public class ADSContext
    */
   public InitialLdapContext getDirContext()
   {
-    return dirContext;
+    return connectionWrapper.getLdapContext();
   }
 
   /**
@@ -339,7 +337,7 @@ public class ADSContext
       {
         createContainerEntry(getServerContainerDN());
       }
-      dirContext.createSubcontext(dn, attrs).close();
+      connectionWrapper.getLdapContext().createSubcontext(dn, attrs).close();
       if (serverProperties.containsKey(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
       {
         registerInstanceKeyCertificate(serverProperties, dn);
@@ -409,12 +407,12 @@ public class ADSContext
         Map<ServerProperty, Object> newServerProps = new HashMap<>(serverProperties);
         newServerProps.put(ServerProperty.ID, newServerId);
         LdapName newDn = makeDNFromServerProperties(newServerProps);
-        dirContext.rename(dn, newDn);
+        connectionWrapper.getLdapContext().rename(dn, newDn);
         dn = newDn;
         serverProperties.put(ServerProperty.ID, newServerId);
       }
       BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties, false);
-      dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
+      connectionWrapper.getLdapContext().modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
       if (serverProperties.containsKey(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
       {
         registerInstanceKeyCertificate(serverProperties, dn);
@@ -464,7 +462,7 @@ public class ADSContext
         }
       }
 
-      dirContext.destroySubcontext(dn);
+      connectionWrapper.getLdapContext().destroySubcontext(dn);
     }
     catch (NameNotFoundException x)
     {
@@ -487,7 +485,7 @@ public class ADSContext
         String memberAttrName = ServerGroupProperty.MEMBERS.getAttributeName();
         String filter = "(" + memberAttrName + "=cn=" + serverID + ")";
         sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-        ne = dirContext.search(getServerGroupContainerDN(), filter, sc);
+        ne = connectionWrapper.getLdapContext().search(getServerGroupContainerDN(), filter, sc);
         while (ne.hasMore())
         {
           SearchResult sr = ne.next();
@@ -530,11 +528,11 @@ public class ADSContext
           newAttrs.put(newAttr);
           if (newAttr.size() > 0)
           {
-            dirContext.modifyAttributes(groupDn, DirContext.REPLACE_ATTRIBUTE, newAttrs);
+            connectionWrapper.getLdapContext().modifyAttributes(groupDn, DirContext.REPLACE_ATTRIBUTE, newAttrs);
           }
           else
           {
-            dirContext.modifyAttributes(groupDn, DirContext.REMOVE_ATTRIBUTE, newAttrs);
+            connectionWrapper.getLdapContext().modifyAttributes(groupDn, DirContext.REMOVE_ATTRIBUTE, newAttrs);
           }
         }
       }
@@ -708,7 +706,7 @@ public class ADSContext
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      ne = dirContext.search(getServerContainerDN(), "(objectclass=*)", sc);
+      ne = connectionWrapper.getLdapContext().search(getServerContainerDN(), "(objectclass=*)", sc);
       while (ne.hasMore())
       {
         SearchResult sr = ne.next();
@@ -724,7 +722,8 @@ public class ADSContext
             final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
             sc1.setReturningAttributes(attrIDs);
 
-            ne2 = dirContext.search(getInstanceKeysContainerDN(), "(ds-cfg-key-id=" + keyId + ")", sc);
+            ne2 = connectionWrapper.getLdapContext().search(
+                getInstanceKeysContainerDN(), "(ds-cfg-key-id=" + keyId + ")", sc);
             boolean found = false;
             while (ne2.hasMore())
             {
@@ -789,7 +788,7 @@ public class ADSContext
     attrs.put(oc);
     try
     {
-      DirContext ctx = dirContext.createSubcontext(dn, attrs);
+      DirContext ctx = connectionWrapper.getLdapContext().createSubcontext(dn, attrs);
       ctx.close();
     }
     catch (NameAlreadyBoundException x)
@@ -826,7 +825,7 @@ public class ADSContext
         {
           // Rename to entry
           LdapName newDN = nameFromDN("cn=" + Rdn.escapeValue(newGroupId) + "," + getServerGroupContainerDN());
-          dirContext.rename(dn, newDN);
+          connectionWrapper.getLdapContext().rename(dn, newDN);
           dn = newDN;
         }
 
@@ -840,7 +839,7 @@ public class ADSContext
 
       BasicAttributes attrs = makeAttrsFromServerGroupProperties(serverGroupProperties);
       // attribute modification
-      dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
+      connectionWrapper.getLdapContext().modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE, attrs);
     }
     catch (NameNotFoundException x)
     {
@@ -871,7 +870,7 @@ public class ADSContext
     {
       SearchControls sc = new SearchControls();
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      ne = dirContext.search(getServerGroupContainerDN(), "(objectclass=*)", sc);
+      ne = connectionWrapper.getLdapContext().search(getServerGroupContainerDN(), "(objectclass=*)", sc);
       while (ne.hasMore())
       {
         SearchResult sr = ne.next();
@@ -914,7 +913,7 @@ public class ADSContext
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       String[] attList = { "cn", "userpassword", "ds-privilege-name", "description" };
       sc.setReturningAttributes(attList);
-      ne = dirContext.search(getAdministratorContainerDN(), "(objectclass=*)", sc);
+      ne = connectionWrapper.getLdapContext().search(getAdministratorContainerDN(), "(objectclass=*)", sc);
       while (ne.hasMore())
       {
         SearchResult sr = ne.next();
@@ -1019,7 +1018,7 @@ public class ADSContext
     try
     {
       Control[] controls = new Control[] { new SubtreeDeleteControl() };
-      LdapContext tmpContext = dirContext.newInstance(controls);
+      LdapContext tmpContext = connectionWrapper.getLdapContext().newInstance(controls);
       try
       {
         for (String dn : dns)
@@ -1102,7 +1101,7 @@ public class ADSContext
 
     try
     {
-      DirContext ctx = dirContext.createSubcontext(dnCentralAdmin, attrs);
+      DirContext ctx = connectionWrapper.getLdapContext().createSubcontext(dnCentralAdmin, attrs);
       ctx.close();
     }
     catch (NameAlreadyBoundException x)
@@ -1133,7 +1132,7 @@ public class ADSContext
 
     try
     {
-      dirContext.destroySubcontext(dnCentralAdmin);
+      connectionWrapper.getLdapContext().destroySubcontext(dnCentralAdmin);
     }
     catch (NameNotFoundException | NotContextException x)
     {
@@ -2112,7 +2111,7 @@ public class ADSContext
       throws ADSContextException
   {
     ADSContextHelper helper = new ADSContextHelper();
-    helper.registerInstanceKeyCertificate(dirContext, serverProperties, serverEntryDn);
+    helper.registerInstanceKeyCertificate(connectionWrapper, serverProperties, serverEntryDn);
   }
 
   /**
@@ -2145,7 +2144,8 @@ public class ADSContext
           { ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
             ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName() + ";binary" };
       searchControls.setReturningAttributes(attrIDs);
-      NamingEnumeration<SearchResult> keyEntries = dirContext.search(baseDN, searchFilter, searchControls);
+      NamingEnumeration<SearchResult> keyEntries =
+          connectionWrapper.getLdapContext().search(baseDN, searchFilter, searchControls);
       try
       {
         while (keyEntries.hasMore())

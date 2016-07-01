@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
@@ -39,6 +38,7 @@ import javax.swing.event.DocumentListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
@@ -445,9 +445,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       @Override
       public CustomSearchResult processBackgroundTask() throws Throwable
       {
-        InitialLdapContext ctx =
-          controller.findConnectionForDisplayedEntry(node);
-        LDAPEntryReader reader = new LDAPEntryReader(node.getDN(), ctx);
+        ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+        LDAPEntryReader reader = new LDAPEntryReader(node.getDN(), conn);
         sleepIfRequired(700, t1);
         return reader.processBackgroundTask();
       }
