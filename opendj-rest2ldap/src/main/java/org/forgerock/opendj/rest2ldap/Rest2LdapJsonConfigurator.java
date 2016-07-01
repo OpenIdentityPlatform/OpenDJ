@@ -18,6 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
 import static org.forgerock.http.routing.RoutingMode.STARTS_WITH;
 import static org.forgerock.http.routing.Version.version;
 import static org.forgerock.http.util.Json.readJsonLenient;
@@ -25,6 +26,7 @@ import static org.forgerock.json.JsonValueFunctions.enumConstant;
 import static org.forgerock.json.JsonValueFunctions.pointer;
 import static org.forgerock.json.JsonValueFunctions.setOf;
 import static org.forgerock.json.resource.RouteMatchers.requestUriMatcher;
+import static org.forgerock.json.resource.RouteMatchers.resourceApiVersionContextFilter;
 import static org.forgerock.opendj.ldap.Connections.LOAD_BALANCER_MONITORING_INTERVAL;
 import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
 import static org.forgerock.opendj.ldap.Connections.newFailoverLoadBalancer;
@@ -62,10 +64,12 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 
+import org.forgerock.http.routing.ResourceApiVersionBehaviourManager;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.FilterChain;
 import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
@@ -193,14 +197,14 @@ public final class Rest2LdapJsonConfigurator {
         }
 
         for (final File endpoint : endpoints) {
-            final Router router = configureEndpoint(endpoint, options);
-            pathRouter.addRoute(requestUriMatcher(STARTS_WITH, endpoint.getName()), router);
+            final RequestHandler endpointHandler = configureEndpoint(endpoint, options);
+            pathRouter.addRoute(requestUriMatcher(STARTS_WITH, endpoint.getName()), endpointHandler);
         }
         return pathRouter;
     }
 
     /**
-     * Creates a new CREST {@link Router} representing a single endpoint whose configuration is defined in the
+     * Creates a new CREST {@link RequestHandler} representing a single endpoint whose configuration is defined in the
      * provided {@code endpointDirectory} parameter. The directory should contain a separate file for each supported
      * version of the REST endpoint. The name of the file, excluding the suffix, identifies the resource definition
      * which acts as the entry point into the endpoint.
@@ -208,12 +212,11 @@ public final class Rest2LdapJsonConfigurator {
      * @param endpointDirectory The directory containing the endpoint's resource definitions, e.g.
      *                          rest2ldap/routes/api would contain definitions for the "api" endpoint.
      * @param options The Rest2Ldap configuration options.
-     * @return A new CREST {@link Router} configured using the provided options and endpoint mappings.
+     * @return A new CREST {@link RequestHandler} configured using the provided options and endpoint mappings.
      * @throws IOException If the endpoint configuration cannot be read.
-     * @throws IllegalArgumentException
-     *         If the configuration is invalid.
+     * @throws IllegalArgumentException If the configuration is invalid.
      */
-    public static Router configureEndpoint(final File endpointDirectory, final Options options) throws IOException {
+    public static RequestHandler configureEndpoint(File endpointDirectory, Options options) throws IOException {
         final Router versionRouter = new Router();
         final File[] endpointVersions = endpointDirectory.listFiles(new FileFilter() {
             @Override
@@ -259,7 +262,11 @@ public final class Rest2LdapJsonConfigurator {
                 }
             });
         }
-        return versionRouter;
+
+        // FIXME: Disable the warning header for now due to CREST-389 / CREST-390.
+        final ResourceApiVersionBehaviourManager behaviourManager = newResourceApiVersionBehaviourManager();
+        behaviourManager.setWarningEnabled(false);
+        return new FilterChain(versionRouter, resourceApiVersionContextFilter(behaviourManager));
     }
 
     static JsonValue readJson(final File resource) throws IOException {

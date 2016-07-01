@@ -16,10 +16,9 @@
 
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.http.handler.Handlers.chainOf;
 import static org.forgerock.http.handler.HttpClientHandler.OPTION_KEY_MANAGERS;
 import static org.forgerock.http.handler.HttpClientHandler.OPTION_TRUST_MANAGERS;
-import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
-import static org.forgerock.http.routing.RouteMatchers.resourceApiVersionContextFilter;
 import static org.forgerock.json.JsonValueFunctions.duration;
 import static org.forgerock.json.JsonValueFunctions.enumConstant;
 import static org.forgerock.json.JsonValueFunctions.setOf;
@@ -61,7 +60,6 @@ import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.filter.Filters;
-import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.handler.HttpClientHandler;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Headers;
@@ -201,10 +199,9 @@ public class Rest2LdapHttpApplication implements HttpApplication {
             configureSecurity(config.get("security"));
             configureConnectionFactories(config.get("ldapConnectionFactories"));
             final Filter authorizationFilter = buildAuthorizationFilter(config.get("authorization").required());
-            return Handlers.chainOf(newHttpHandler(configureRest2Ldap(configDirectory)),
-                                    new ErrorLoggerFilter(),
-                                    authorizationFilter,
-                                    resourceApiVersionContextFilter(newResourceApiVersionBehaviourManager()));
+            return chainOf(newHttpHandler(configureRest2Ldap(configDirectory)),
+                           new ErrorLoggerFilter(),
+                           authorizationFilter);
         } catch (final Exception e) {
             final LocalizableMessage errorMsg = ERR_FAIL_PARSE_CONFIGURATION.get(e.getLocalizedMessage());
             logger.error(errorMsg, e);

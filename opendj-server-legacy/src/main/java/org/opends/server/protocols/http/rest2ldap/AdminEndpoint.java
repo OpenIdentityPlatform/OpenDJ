@@ -16,10 +16,9 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
-import static org.forgerock.http.handler.Handlers.chainOf;
 import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
-import static org.forgerock.http.routing.RouteMatchers.resourceApiVersionContextFilter;
 import static org.forgerock.http.routing.Version.version;
+import static org.forgerock.json.resource.RouteMatchers.resourceApiVersionContextFilter;
 import static org.forgerock.json.resource.http.CrestHttp.newHttpHandler;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
@@ -40,9 +39,11 @@ import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.io.Buffer;
+import org.forgerock.http.routing.ResourceApiVersionBehaviourManager;
 import org.forgerock.http.routing.Version;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.FilterChain;
 import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
@@ -191,8 +192,11 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
           return new BadRequestException(message).asPromise();
         }
       });
-      return chainOf(newHttpHandler(versionRouter),
-                     resourceApiVersionContextFilter(newResourceApiVersionBehaviourManager()));
+
+      // FIXME: Disable the warning header for now due to CREST-389 / CREST-390.
+      final ResourceApiVersionBehaviourManager behaviourManager = newResourceApiVersionBehaviourManager();
+      behaviourManager.setWarningEnabled(false);
+      return newHttpHandler(new FilterChain(versionRouter, resourceApiVersionContextFilter(behaviourManager)));
     }
 
     private Resource buildResource(final AbstractManagedObjectDefinition<?, ?> mod)

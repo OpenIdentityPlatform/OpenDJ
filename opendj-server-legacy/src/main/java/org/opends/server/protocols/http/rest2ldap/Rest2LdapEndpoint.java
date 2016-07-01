@@ -15,9 +15,6 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
-import static org.forgerock.http.handler.Handlers.chainOf;
-import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
-import static org.forgerock.http.routing.RouteMatchers.resourceApiVersionContextFilter;
 import static org.forgerock.json.resource.http.CrestHttp.newHttpHandler;
 import static org.forgerock.opendj.rest2ldap.Rest2LdapJsonConfigurator.configureEndpoint;
 import static org.forgerock.util.Options.defaultOptions;
@@ -79,8 +76,7 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
       final File endpointConfig = getFileForPath(configuration.getConfigDirectory(), serverContext);
       try
       {
-        return chainOf(newHttpHandler(configureEndpoint(endpointConfig, defaultOptions())),
-                       resourceApiVersionContextFilter(newResourceApiVersionBehaviourManager()));
+        return newHttpHandler(configureEndpoint(endpointConfig, defaultOptions()));
       }
       catch (IOException e)
       {
