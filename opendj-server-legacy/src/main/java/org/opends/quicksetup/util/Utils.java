@@ -43,7 +43,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -59,10 +58,7 @@ import javax.naming.NamingSecurityException;
 import javax.naming.NoPermissionException;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -643,45 +639,6 @@ public class Utils
   public static boolean isCli()
   {
     return "true".equals(System.getProperty(Constants.CLI_JAVA_PROPERTY));
-  }
-
-  /**
-   * Creates an LDAP+StartTLS connection and returns the corresponding
-   * LdapContext. This method first creates an LdapContext with anonymous bind.
-   * Then it requests a StartTlsRequest extended operation. The StartTlsResponse
-   * is setup with the specified hostname verifier. Negotiation is done using a
-   * TrustSocketFactory so that the specified TrustManager gets called during
-   * the SSL handshake. If trust manager is null, certificates are not checked
-   * during SSL handshake.
-   *
-   * @param ldapsURL
-   *          the target *LDAPS* URL.
-   * @param dn
-   *          passed as Context.SECURITY_PRINCIPAL if not null.
-   * @param pwd
-   *          passed as Context.SECURITY_CREDENTIALS if not null.
-   * @param timeout
-   *          passed as com.sun.jndi.ldap.connect.timeout if > 0.
-   * @param env
-   *          null or additional environment properties.
-   * @param trustManager
-   *          null or the trust manager to be invoked during SSL. negociation.
-   * @param verifier
-   *          null or the hostname verifier to be setup in the StartTlsResponse.
-   * @return the established connection with the given parameters.
-   * @throws NamingException
-   *           the exception thrown when instantiating InitialLdapContext.
-   * @see javax.naming.Context
-   * @see javax.naming.ldap.InitialLdapContext
-   * @see javax.naming.ldap.StartTlsRequest
-   * @see javax.naming.ldap.StartTlsResponse
-   * @see org.opends.admin.ads.util.TrustedSocketFactory
-   */
-
-  public static InitialLdapContext createStartTLSContext(String ldapsURL, String dn, String pwd, int timeout,
-      Hashtable<String, String> env, TrustManager trustManager, HostnameVerifier verifier) throws NamingException
-  {
-    return ConnectionUtils.createStartTLSContext(ldapsURL, dn, pwd, timeout, env, trustManager, null, verifier);
   }
 
   /**

@@ -18,7 +18,6 @@ package org.opends.admin.ads.util;
 
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -88,7 +87,7 @@ public class ConnectionUtils
    * @see javax.naming.Context
    * @see javax.naming.ldap.InitialLdapContext
    */
-  public static InitialLdapContext createLdapContext(String ldapURL, String dn,
+  static InitialLdapContext createLdapContext(String ldapURL, String dn,
       String pwd, int timeout, Hashtable<String, String> env)
       throws NamingException
   {
@@ -163,7 +162,7 @@ public class ConnectionUtils
    * @see javax.naming.ldap.InitialLdapContext
    * @see TrustedSocketFactory
    */
-  public static InitialLdapContext createLdapsContext(String ldapsURL,
+  static InitialLdapContext createLdapsContext(String ldapsURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
       TrustManager trustManager, KeyManager keyManager) throws NamingException {
     env = copy(env);
@@ -276,8 +275,7 @@ public class ConnectionUtils
    * @see javax.naming.ldap.StartTlsResponse
    * @see TrustedSocketFactory
    */
-
-  public static InitialLdapContext createStartTLSContext(String ldapURL,
+  static InitialLdapContext createStartTLSContext(String ldapURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
       TrustManager trustManager, KeyManager keyManager,
       HostnameVerifier verifier)
@@ -363,62 +361,9 @@ public class ConnectionUtils
    * @param ctx the context to analyze.
    * @return the LDAP URL used in the provided InitialLdapContext.
    */
-  public static String getLdapUrl(InitialLdapContext ctx)
+  static String getLdapUrl(InitialLdapContext ctx)
   {
     return getEnvProperty(ctx, Context.PROVIDER_URL);
-  }
-
-  /**
-   * Returns the host name used in the provided InitialLdapContext.
-   * @param ctx the context to analyze.
-   * @return the host name used in the provided InitialLdapContext.
-   */
-  public static String getHostName(InitialLdapContext ctx)
-  {
-    HostPort hp = getHostPort(ctx);
-    return hp != null ? hp.getHost() : null;
-  }
-
-  /**
-   * Returns the host port representation of the server to which this
-   * context is connected.
-   * @param ctx the context to analyze.
-   * @return the host port representation of the server to which this
-   * context is connected.
-   */
-  public static HostPort getHostPort(InitialLdapContext ctx)
-  {
-    try
-    {
-      URI ldapURL = new URI(getLdapUrl(ctx));
-      return new HostPort(ldapURL.getHost(), ldapURL.getPort());
-    }
-    catch (Throwable t)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Error getting host: "+t, t));
-      return null;
-    }
-  }
-
-  /**
-   * Returns the bind DN used in the provided InitialLdapContext.
-   * @param ctx the context to analyze.
-   * @return the bind DN used in the provided InitialLdapContext.
-   */
-  public static String getBindDN(InitialLdapContext ctx)
-  {
-    return getEnvProperty(ctx, Context.SECURITY_PRINCIPAL);
-  }
-
-  /**
-   * Returns the password used in the provided InitialLdapContext.
-   * @param ctx the context to analyze.
-   * @return the password used in the provided InitialLdapContext.
-   */
-  public static String getBindPassword(InitialLdapContext ctx)
-  {
-    return getEnvProperty(ctx, Context.SECURITY_CREDENTIALS);
   }
 
   private static String getEnvProperty(InitialLdapContext ctx, String property) {
@@ -432,32 +377,12 @@ public class ConnectionUtils
   }
 
   /**
-   * Tells whether we are using SSL in the provided InitialLdapContext.
-   * @param ctx the context to analyze.
-   * @return <CODE>true</CODE> if we are using SSL and <CODE>false</CODE>
-   * otherwise.
-   */
-  public static boolean isSSL(InitialLdapContext ctx)
-  {
-    try
-    {
-      return getLdapUrl(ctx).toLowerCase().startsWith("ldaps");
-    }
-    catch (Throwable t)
-    {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Error getting if is SSL "+t, t));
-      return false;
-    }
-  }
-
-  /**
    * Tells whether we are using StartTLS in the provided InitialLdapContext.
    * @param ctx the context to analyze.
    * @return <CODE>true</CODE> if we are using StartTLS and <CODE>false</CODE>
    * otherwise.
    */
-  public static boolean isStartTLS(InitialLdapContext ctx)
+  static boolean isStartTLS(InitialLdapContext ctx)
   {
     return "true".equalsIgnoreCase(getEnvProperty(ctx, STARTTLS_PROPERTY));
   }

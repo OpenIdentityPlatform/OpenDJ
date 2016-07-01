@@ -36,6 +36,8 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
@@ -60,6 +62,8 @@ import org.opends.server.util.StaticUtils;
  */
 public class ConnectionWrapper implements Closeable
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   private final LDAPConnectionFactory connectionFactory;
   private final Connection connection;
   private final InitialLdapContext ldapContext;
@@ -263,7 +267,18 @@ public class ConnectionWrapper implements Closeable
    */
   public boolean isSSL()
   {
-    return ConnectionUtils.isSSL(ldapContext);
+    // FIXME the code down below is what the code was doing in the control-panel / dsreplication
+    // We might as well just return this.connectionType == LDAPS;
+    try
+    {
+      return ConnectionUtils.getLdapUrl(ldapContext).toLowerCase().startsWith("ldaps");
+    }
+    catch (Throwable t)
+    {
+      // This is really strange. Seems like a bug somewhere.
+      logger.warn(LocalizableMessage.raw("Error getting if is SSL " + t, t));
+      return false;
+    }
   }
 
   /**
@@ -273,6 +288,8 @@ public class ConnectionWrapper implements Closeable
    */
   public boolean isStartTLS()
   {
+    // FIXME the code down below is what the code was doing in the control-panel / dsreplication
+    // We might as well just return this.connectionType == START_TLS;
     return ConnectionUtils.isStartTLS(ldapContext);
   }
 
@@ -324,6 +341,29 @@ public class ConnectionWrapper implements Closeable
   public Connection getConnection()
   {
     return connection;
+  }
+
+  /**
+   * Returns the connection type used by this connection wrapper.
+   *
+   * @return the connection type used by this connection wrapper
+   */
+  public PreferredConnection.Type getConnectionType()
+  {
+    // FIXME the code down below is what the code was doing in the control-panel / dsreplication
+    // We might as well just return this.connectionType;
+    if (isSSL())
+    {
+      return LDAPS;
+    }
+    else if (isStartTLS())
+    {
+      return START_TLS;
+    }
+    else
+    {
+      return LDAP;
+    }
   }
 
   /**

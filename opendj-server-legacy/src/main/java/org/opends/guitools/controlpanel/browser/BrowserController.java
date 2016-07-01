@@ -16,7 +16,6 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.awt.Font;
@@ -1031,7 +1030,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   LDAPURL findUrlForLocalEntry(BasicNode node) {
     if (node == rootNode) {
-      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", isSSL(connConfig.getLdapContext()));
+      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", connConfig.isSSL());
     }
     final BasicNode parent = (BasicNode) node.getParent();
     if (parent != null)
@@ -1039,7 +1038,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       final LDAPURL parentUrl = findUrlForDisplayedEntry(parent);
       return LDAPConnectionPool.makeLDAPUrl(parentUrl, node.getDN());
     }
-    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), isSSL(connConfig.getLdapContext()));
+    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), connConfig.isSSL());
   }
 
 

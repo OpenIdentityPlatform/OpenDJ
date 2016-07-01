@@ -99,21 +99,7 @@ public class PreferredConnection
    */
   private static PreferredConnection getPreferredConnection(ConnectionWrapper conn)
   {
-    String ldapUrl = conn.getLdapUrl();
-    PreferredConnection.Type type;
-    if (conn.isStartTLS())
-    {
-      type = PreferredConnection.Type.START_TLS;
-    }
-    else if (conn.isSSL())
-    {
-      type = PreferredConnection.Type.LDAPS;
-    }
-    else
-    {
-      type = PreferredConnection.Type.LDAP;
-    }
-    return new PreferredConnection(ldapUrl, type);
+    return new PreferredConnection(conn.getLdapUrl(), conn.getConnectionType());
   }
 
   /**

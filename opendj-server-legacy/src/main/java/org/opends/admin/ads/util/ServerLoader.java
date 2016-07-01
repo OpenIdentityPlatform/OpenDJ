@@ -16,6 +16,8 @@
  */
 package org.opends.admin.ads.util;
 
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
+
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -379,17 +381,17 @@ public class ServerLoader extends Thread
         ldapUrls.add(connection);
       }
       else if (url.equalsIgnoreCase(ldapsUrl) &&
-          connection.getType() == PreferredConnection.Type.LDAPS)
+          connection.getType() == LDAPS)
       {
         ldapUrls.add(connection);
       }
       else if (url.equalsIgnoreCase(startTLSUrl) &&
-          connection.getType() == PreferredConnection.Type.START_TLS)
+          connection.getType() == START_TLS)
       {
         ldapUrls.add(connection);
       }
       else if (url.equalsIgnoreCase(ldapUrl) &&
-          connection.getType() == PreferredConnection.Type.LDAP)
+          connection.getType() == LDAP)
       {
         ldapUrls.add(connection);
       }
@@ -397,19 +399,19 @@ public class ServerLoader extends Thread
 
     if (adminConnectorUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(adminConnectorUrl, PreferredConnection.Type.LDAPS));
+      ldapUrls.add(new PreferredConnection(adminConnectorUrl, LDAPS));
     }
     if (ldapsUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(ldapsUrl, PreferredConnection.Type.LDAPS));
+      ldapUrls.add(new PreferredConnection(ldapsUrl, LDAPS));
     }
     if (startTLSUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(startTLSUrl, PreferredConnection.Type.START_TLS));
+      ldapUrls.add(new PreferredConnection(startTLSUrl, START_TLS));
     }
     if (ldapUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(ldapUrl, PreferredConnection.Type.LDAP));
+      ldapUrls.add(new PreferredConnection(ldapUrl, LDAP));
     }
     return ldapUrls;
   }

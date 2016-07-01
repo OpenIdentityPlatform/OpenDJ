@@ -3418,7 +3418,7 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean triedWithUserProvidedAdmin = false;
     final ConnectionWrapper conn1 = conn.get();
     HostPort hostPort = conn1.getHostPort();
-    Type connectionType = getConnectionType(conn1);
+    Type connectionType = conn1.getConnectionType();
     if (getTrustManager(ci) == null)
     {
       // This is required when the user did  connect to the server using SSL or
@@ -3589,22 +3589,6 @@ public class ReplicationCliMain extends ConsoleApplication
           ERROR_READING_TOPOLOGY_CACHE, tce);
     }
     return !cancelled;
-  }
-
-  private Type getConnectionType(final ConnectionWrapper conn)
-  {
-    if (conn.isSSL())
-    {
-      return LDAPS;
-    }
-    else if (conn.isStartTLS())
-    {
-      return START_TLS;
-    }
-    else
-    {
-      return LDAP;
-    }
   }
 
   /**
