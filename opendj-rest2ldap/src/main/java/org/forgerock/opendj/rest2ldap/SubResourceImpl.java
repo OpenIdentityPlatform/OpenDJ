@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
@@ -223,10 +222,7 @@ final class SubResourceImpl {
             oldPassword = jsonContent.get("oldPassword").required().asString();
             newPassword = jsonContent.get("newPassword").required().asString();
         } catch (JsonValueException e) {
-            final LocalizableMessage msg = ERR_PASSWORD_MODIFY_REQUEST_IS_INVALID.get();
-            final ResourceException ex = newBadRequestException(msg, e);
-            logger.error(msg, e);
-            return ex.asPromise();
+            return newBadRequestException(ERR_PASSWORD_MODIFY_REQUEST_IS_INVALID.get(), e).asPromise();
         }
 
         final Connection connection = connectionFrom(context);
