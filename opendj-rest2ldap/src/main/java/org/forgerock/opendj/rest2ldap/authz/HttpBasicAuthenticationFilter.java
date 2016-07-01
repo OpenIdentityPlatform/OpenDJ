@@ -15,7 +15,6 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
-import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.asErrorResponse;
 import static org.forgerock.util.Reject.checkNotNull;
 
