@@ -18,7 +18,7 @@ package org.opends.server.backends;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.schema.ServerSchemaElement.*;
+import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -150,7 +150,7 @@ public class NullBackend extends Backend<BackendCfg>
     String nulOCName = "nullbackendobject";
     ObjectClass nulOC = DirectoryServer.getSchema().getObjectClass(nulOCName);
     try {
-      DirectoryServer.getSchema().registerObjectClass(nulOC, getSchemaFile(nulOC), false);
+      DirectoryServer.getSchema().registerObjectClass(nulOC, getElementSchemaFile(nulOC), false);
     } catch (DirectoryException de) {
       logger.traceException(de);
       throw new InitializationException(de.getMessageObject());

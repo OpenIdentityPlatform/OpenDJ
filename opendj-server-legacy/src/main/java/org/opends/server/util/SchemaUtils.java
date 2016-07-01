@@ -15,15 +15,21 @@
  */
 package org.opends.server.util;
 
+import static org.opends.server.types.Schema.addSchemaFileToElementDefinitionIfAbsent;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_USER_PASSWORD_OID;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaElement;
+import org.opends.server.core.ServerContext;
 
 /** Utility methods related to schema. */
 public class SchemaUtils
@@ -67,6 +73,60 @@ public class SchemaUtils
   }
 
   /**
+   * Retrieves the definition string used to create the provided schema element and including the
+   * X-SCHEMA-FILE extension.
+   *
+   * @param element
+   *            The schema element.
+   * @return The definition string used to create the schema element including the X-SCHEMA-FILE
+   *         extension.
+   */
+  public static String getElementDefinitionWithFileName(SchemaElement element)
+  {
+    final String definition = element.toString();
+    return addSchemaFileToElementDefinitionIfAbsent(definition, SchemaUtils.getElementSchemaFile(element));
+  }
+
+  /**
+   * Returns the origin of the provided schema element.
+   *
+   * @param element
+   *            The schema element.
+   * @return the origin of the schema element as defined in the extra properties.
+   */
+  public static String getElementOrigin(SchemaElement element)
+  {
+    return getElementPropertyAsSingleValue(element, ServerConstants.SCHEMA_PROPERTY_ORIGIN);
+  }
+
+  /**
+   * Returns the single value of the provided extra property for the provided schema element.
+   *
+   * @param element
+   *            The schema element.
+   * @param property
+   *            The name of property to retrieve.
+   * @return the single value of the extra property
+   */
+  public static String getElementPropertyAsSingleValue(SchemaElement element, String property)
+  {
+    List<String> values = element.getExtraProperties().get(property);
+    return values != null && !values.isEmpty() ? values.get(0) : null;
+  }
+
+  /**
+   * Returns the schema file of the provided schema element.
+   *
+   * @param element
+   *            The schema element.
+   * @return the schema file of schema element.
+   */
+  public static String getElementSchemaFile(SchemaElement element)
+  {
+    return getElementPropertyAsSingleValue(element, ServerConstants.SCHEMA_PROPERTY_FILENAME);
+  }
+
+  /**
    * Returns a new collection with the result of calling {@link ObjectClass#getNameOrOID()} on each
    * element of the provided collection.
    *
@@ -100,5 +160,33 @@ public class SchemaUtils
       results.add(attrType.getNameOrOID());
     }
     return results;
+  }
+
+  /**
+   * Returns the new updated attribute type with the provided extra property and its values.
+   *
+   * @param serverContext
+   *          the server context
+   * @param attributeType
+   *          attribute type to update
+   * @param property
+   *          the property to set
+   * @param values
+   *          the values to set
+   * @return the new updated attribute type
+   */
+  public static AttributeType getNewAttributeTypeWithProperty(ServerContext serverContext, AttributeType attributeType,
+      String property, String...values)
+  {
+    SchemaBuilder schemaBuilder =
+         new SchemaBuilder(serverContext != null ? serverContext.getSchemaNG() : Schema.getDefaultSchema());
+    AttributeType.Builder builder =
+        schemaBuilder.buildAttributeType(attributeType).removeExtraProperty(property, (String) null);
+    if (values != null && values.length > 0)
+    {
+      builder.extraProperties(property, values);
+      return builder.addToSchemaOverwrite().toSchema().getAttributeType(attributeType.getNameOrOID());
+    }
+    return attributeType;
   }
 }

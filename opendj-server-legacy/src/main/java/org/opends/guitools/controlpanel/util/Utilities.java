@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
+
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
@@ -25,7 +27,7 @@ import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.quicksetup.Installation.*;
-import static org.opends.server.schema.ServerSchemaElement.*;
+import static org.opends.server.util.SchemaUtils.*;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -1997,12 +1999,12 @@ public class Utilities
    */
   public static boolean isStandard(SchemaElement fileElement)
   {
-    final String fileName = getSchemaFile(fileElement);
+    final String fileName = getElementSchemaFile(fileElement);
     if (fileName != null)
     {
       return standardSchemaFileNames.contains(fileName) || fileName.toLowerCase().contains("-rfc");
     }
-    String xOrigin = getOrigin(fileElement);
+    String xOrigin = getElementOrigin(fileElement);
     if (xOrigin != null)
     {
       return standardSchemaOrigins.contains(xOrigin) || xOrigin.startsWith("RFC ") || xOrigin.startsWith("draft-");
@@ -2019,12 +2021,12 @@ public class Utilities
    */
   public static boolean isConfiguration(SchemaElement fileElement)
   {
-    String fileName = getSchemaFile(fileElement);
+    String fileName = getElementSchemaFile(fileElement);
     if (fileName != null)
     {
       return configurationSchemaFileNames.contains(fileName);
     }
-    String xOrigin = getOrigin(fileElement);
+    String xOrigin = getElementOrigin(fileElement);
     if (xOrigin != null)
     {
       return configurationSchemaOrigins.contains(xOrigin);

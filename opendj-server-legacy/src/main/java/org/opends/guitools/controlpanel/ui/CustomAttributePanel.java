@@ -16,10 +16,12 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+
+import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.schema.ServerSchemaElement.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.SchemaUtils.getElementOrigin;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -526,14 +528,14 @@ class CustomAttributePanel extends SchemaElementPanel
     lastAliases.addAll(someAliases);
     this.aliases.setText(Utilities.getStringFromCollection(someAliases, ", "));
 
-    String sOrigin = getOrigin(attr);
+    String sOrigin = getElementOrigin(attr);
     if (sOrigin == null)
     {
       sOrigin = "";
     }
     origin.setText(sOrigin);
 
-    String sFile = getSchemaFile(attr);
+    String sFile = getElementSchemaFile(attr);
     if (sFile == null)
     {
       sFile = "";

@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.server.util.SchemaUtils.getElementDefinitionWithFileName;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +40,6 @@ import org.opends.server.types.Schema;
 import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
-import static org.opends.server.schema.ServerSchemaElement.*;
 
 /**
  * This is just a class used to provide a data model describing what the
@@ -607,7 +608,7 @@ public class ServerDescriptor
         && attr1.isOperational() == attr2.isOperational()
         && attr1.isSingleValue() == attr2.isSingleValue()
         && areEqual(attr1.getApproximateMatchingRule(), attr2.getApproximateMatchingRule())
-        && areEqual(getDefinitionWithFileName(attr1), getDefinitionWithFileName(attr2))
+        && areEqual(getElementDefinitionWithFileName(attr1), getElementDefinitionWithFileName(attr2))
         && areEqual(attr1.getDescription(), attr2.getDescription())
         && areEqual(attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule())
         && areEqual(attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule())
@@ -631,7 +632,7 @@ public class ServerDescriptor
   private static boolean areObjectClassesEqual(ObjectClass oc1, ObjectClass oc2)
   {
     return oc1.getOID().equals(oc2.getOID())
-        && areEqual(getDefinitionWithFileName(oc1), getDefinitionWithFileName(oc2))
+        && areEqual(getElementDefinitionWithFileName(oc1), getElementDefinitionWithFileName(oc2))
         && areEqual(oc1.getDescription(), oc2.getDescription())
         && areEqual(oc1.getObjectClassType(), oc2.getObjectClassType())
         && areEqual(oc1.getDeclaredOptionalAttributes(), oc2.getDeclaredOptionalAttributes())

@@ -52,7 +52,6 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
@@ -348,7 +347,7 @@ public class DeleteSchemaElementsTask extends Task
    */
   private String getSchemaFile(SchemaElement element)
   {
-    String schemaFile = ServerSchemaElement.getSchemaFile(element);
+    String schemaFile = getElementSchemaFile(element);
     if (schemaFile == null)
     {
       schemaFile = ConfigConstants.FILE_USER_SCHEMA_ELEMENTS;

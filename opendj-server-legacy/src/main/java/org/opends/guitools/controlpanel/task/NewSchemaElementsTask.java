@@ -20,7 +20,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
-import static org.opends.server.schema.ServerSchemaElement.getSchemaFile;
+import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -275,7 +275,7 @@ public class NewSchemaElementsTask extends Task
     Map<String, List<SchemaElement>> hmElems = new LinkedHashMap<>();
     for (SchemaElement elem : elemsToAdd)
     {
-      String fileName = getSchemaFile(elem);
+      String fileName = getElementSchemaFile(elem);
       if (fileName == null)
       {
         fileName = "";

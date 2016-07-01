@@ -16,8 +16,9 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+
+import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.schema.ServerSchemaElement.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.SchemaUtils.*;
 
@@ -499,14 +500,14 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     lastAliases.addAll(aliases);
     this.aliases.setText(Utilities.getStringFromCollection(aliases, ", "));
 
-    String sOrigin = getOrigin(oc);
+    String sOrigin = getElementOrigin(oc);
     if (sOrigin == null)
     {
       sOrigin = "";
     }
     origin.setText(sOrigin);
 
-    String sFile = getSchemaFile(oc);
+    String sFile = getElementSchemaFile(oc);
     if (sFile == null)
     {
       sFile = "";

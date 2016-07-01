@@ -24,9 +24,9 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
-import static org.opends.server.schema.ServerSchemaElement.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.SchemaUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -573,7 +573,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     for (SchemaElement element : elements)
     {
       /* Add the file name to the description of the element if this was requested by the caller. */
-      String value = includeSchemaFile ? getDefinitionWithFileName(element) : element.toString();
+      String value = includeSchemaFile ? getElementDefinitionWithFileName(element) : element.toString();
       if (stripSyntaxMinimumUpperBound && value.indexOf('{') != -1)
       {
         // Strip the minimum upper bound value from the attribute value.
@@ -1015,7 +1015,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   private String addNewSchemaElement(Set<String> modifiedSchemaFiles, SchemaElement elem)
   {
-    String schemaFile = getSchemaFile(elem);
+    String schemaFile = getElementSchemaFile(elem);
     String finalFile = schemaFile != null ? schemaFile : FILE_USER_SCHEMA_ELEMENTS;
     modifiedSchemaFiles.add(finalFile);
     return schemaFile == null ? finalFile : null;
@@ -1028,8 +1028,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private String replaceExistingSchemaElement(Set<String> modifiedSchemaFiles, SchemaElement newElem,
       SchemaElement existingElem)
   {
-    String newSchemaFile = getSchemaFile(newElem);
-    String oldSchemaFile = getSchemaFile(existingElem);
+    String newSchemaFile = getElementSchemaFile(newElem);
+    String oldSchemaFile = getElementSchemaFile(existingElem);
     if (newSchemaFile == null)
     {
       if (oldSchemaFile == null)
@@ -1166,7 +1166,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // If we've gotten here, then it's OK to remove the attribute type from the schema.
     schema.deregisterAttributeType(removeType);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeType));
+    addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeType));
   }
 
   /**
@@ -1356,7 +1356,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // If we've gotten here, then it's OK to remove the objectclass from the schema.
     schema.deregisterObjectClass(removeClass);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeClass));
+    addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeClass));
   }
 
   /**
@@ -1485,7 +1485,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Now remove the name form from the schema.
     schema.deregisterNameForm(removeNF);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeNF));
+    addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeNF));
   }
 
   /**
@@ -1592,7 +1592,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
     schema.deregisterDITContentRule(removeDCR);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeDCR));
+    addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeDCR));
   }
 
   /**
@@ -1756,7 +1756,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // If we've gotten here, then it's OK to remove the DIT structure rule from the schema.
     schema.deregisterDITStructureRule(removeDSR);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeDSR));
+    addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeDSR));
   }
 
   /**
@@ -1862,7 +1862,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
     schema.deregisterMatchingRuleUse(removeMRU);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeMRU));
+    addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeMRU));
   }
 
   /**
@@ -1901,19 +1901,19 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       String def = Schema.addSchemaFileToElementDefinitionIfAbsent(definition, FILE_USER_SCHEMA_ELEMENTS);
       schema.registerSyntax(def, false);
 
-      modifiedSchemaFiles.add(getSchemaFile(schema.getSyntax(oid)));
+      modifiedSchemaFiles.add(getElementSchemaFile(schema.getSyntax(oid)));
     }
     else
     {
       schema.deregisterSyntax(existingLS);
 
-      String oldSchemaFile = getSchemaFile(existingLS);
+      String oldSchemaFile = getElementSchemaFile(existingLS);
       String schemaFile = oldSchemaFile != null && oldSchemaFile.length() > 0 ?
           oldSchemaFile : FILE_USER_SCHEMA_ELEMENTS;
       String def = Schema.addSchemaFileToElementDefinitionIfAbsent(definition, schemaFile);
       schema.registerSyntax(def, false);
 
-      String newSchemaFile = getSchemaFile(schema.getSyntax(oid));
+      String newSchemaFile = getElementSchemaFile(schema.getSyntax(oid));
       addIfNotNull(modifiedSchemaFiles, oldSchemaFile);
       addIfNotNull(modifiedSchemaFiles, newSchemaFile);
     }
@@ -1940,7 +1940,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     schema.deregisterSyntax(removeLS);
-    addIfNotNull(modifiedSchemaFiles, getSchemaFile(removeLS));
+    addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeLS));
   }
 
   /**
@@ -2092,7 +2092,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Set<ByteString> values = new LinkedHashSet<>();
     for (SchemaElement schemaElement : schemaElements)
     {
-      if (schemaFile.equals(getSchemaFile(schemaElement)))
+      if (schemaFile.equals(getElementSchemaFile(schemaElement)))
       {
         values.add(ByteString.valueOfUtf8(schemaElement.toString()));
       }
@@ -2107,7 +2107,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Set<ByteString> values = new LinkedHashSet<>();
     for (AttributeType at : schema.getAttributeTypes())
     {
-      if (schemaFile.equals(getSchemaFile(at)))
+      if (schemaFile.equals(getElementSchemaFile(at)))
       {
         addAttrTypeToSchemaFile(schema, schemaFile, at, values, addedTypes, 0);
       }
@@ -2121,7 +2121,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Set<ByteString> values = new LinkedHashSet<>();
     for (ObjectClass oc : schema.getObjectClasses())
     {
-      if (schemaFile.equals(getSchemaFile(oc)))
+      if (schemaFile.equals(getElementSchemaFile(oc)))
       {
         addObjectClassToSchemaFile(schema, schemaFile, oc, values, addedClasses, 0);
       }
@@ -2136,7 +2136,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Set<ByteString> values = new LinkedHashSet<>();
     for (DITStructureRule dsr : schema.getDITStructureRules())
     {
-      if (schemaFile.equals(getSchemaFile(dsr)))
+      if (schemaFile.equals(getElementSchemaFile(dsr)))
       {
         addDITStructureRuleToSchemaFile(schema, schemaFile, dsr, values, addedDSRs, 0);
       }
@@ -2191,7 +2191,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     AttributeType superiorType = attributeType.getSuperiorType();
     if (superiorType != null &&
-        schemaFile.equals(getSchemaFile(attributeType)) &&
+        schemaFile.equals(getElementSchemaFile(attributeType)) &&
         !addedTypes.contains(superiorType))
     {
       addAttrTypeToSchemaFile(schema, schemaFile, superiorType, values,
@@ -2239,7 +2239,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
     {
-      if (schemaFile.equals(getSchemaFile(superiorClass)) &&
+      if (schemaFile.equals(getElementSchemaFile(superiorClass)) &&
           !addedClasses.contains(superiorClass))
       {
         addObjectClassToSchemaFile(schema, schemaFile, superiorClass, values,
@@ -2287,7 +2287,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     for (DITStructureRule dsr : ditStructureRule.getSuperiorRules())
     {
-      if (schemaFile.equals(getSchemaFile(dsr)) && !addedDSRs.contains(dsr))
+      if (schemaFile.equals(getElementSchemaFile(dsr)) && !addedDSRs.contains(dsr))
       {
         addDITStructureRuleToSchemaFile(schema, schemaFile, dsr, values,
                                         addedDSRs, depth+1);
@@ -2721,7 +2721,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       for (ByteString v : a)
       {
         AttributeType attrType = schema.parseAttributeType(v.toString());
-        String schemaFile = getSchemaFile(attrType);
+        String schemaFile = getElementSchemaFile(attrType);
         if (is02ConfigLdif(schemaFile))
         {
           continue;
@@ -2749,7 +2749,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // them from the new schema if they are not in the imported schema entry.
     for (AttributeType removeType : newSchema.getAttributeTypes())
     {
-      String schemaFile = getSchemaFile(removeType);
+      String schemaFile = getElementSchemaFile(removeType);
       if (is02ConfigLdif(schemaFile) || CORE_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
       {
         // Also never delete anything from the core schema file.
@@ -2772,7 +2772,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         // It IS important here to allow the unknown elements that could
         // appear in the new config schema.
         ObjectClass newObjectClass = newSchema.parseObjectClass(v.toString());
-        String schemaFile = getSchemaFile(newObjectClass);
+        String schemaFile = getElementSchemaFile(newObjectClass);
         if (is02ConfigLdif(schemaFile))
         {
           continue;
@@ -2800,7 +2800,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // them from the new schema if they are not in the imported schema entry.
     for (ObjectClass removeClass : newSchema.getObjectClasses())
     {
-      String schemaFile = getSchemaFile(removeClass);
+      String schemaFile = getElementSchemaFile(removeClass);
       if (is02ConfigLdif(schemaFile))
       {
         continue;

@@ -18,7 +18,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.schema.ServerSchemaElement.*;
+import static org.opends.server.util.SchemaUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.awt.Component;
@@ -50,7 +50,6 @@ import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.schema.ServerSchemaElement;
 import org.opends.server.types.Schema;
 
 /** The panel that displays a standard object class definition. */
@@ -244,8 +243,8 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   static LocalizableMessage getOrigin(SchemaElement element)
   {
     LocalizableMessageBuilder returnValue = new LocalizableMessageBuilder();
-    String fileName = getSchemaFile(element);
-    String xOrigin = ServerSchemaElement.getOrigin(element);
+    String fileName = getElementSchemaFile(element);
+    String xOrigin = getElementOrigin(element);
     if (xOrigin != null)
     {
       returnValue.append(xOrigin);
