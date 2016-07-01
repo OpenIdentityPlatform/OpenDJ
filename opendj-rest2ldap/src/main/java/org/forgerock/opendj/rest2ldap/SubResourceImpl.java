@@ -160,7 +160,7 @@ final class SubResourceImpl {
             if (resource.hasSupportedAction(action)) {
                 switch (action) {
                 case RESET_PASSWORD:
-                    return resetPassword(context, resourceId, request);
+                    return resetPassword(context, resourceId);
                 case MODIFY_PASSWORD:
                     return modifyPassword(context, resourceId, request);
                 }
@@ -172,8 +172,7 @@ final class SubResourceImpl {
 
     }
 
-    private Promise<ActionResponse, ResourceException> resetPassword(
-            final Context context, final String resourceId, final ActionRequest request) {
+    private Promise<ActionResponse, ResourceException> resetPassword(final Context context, final String resourceId) {
         if (!context.containsContext(ClientContext.class)
                 || !context.asContext(ClientContext.class).isSecure()) {
             return newResourceException(FORBIDDEN, ERR_PASSWORD_RESET_SECURE_CONNECTION.get().toString()).asPromise();
