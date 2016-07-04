@@ -16,6 +16,7 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_TYPES_DUPLICATED_NAME;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
@@ -55,17 +56,17 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
                         + "'user defined' ) X-SCHEMA-FILE '98sunEmp.ldif')", false);
 
         builder.buildAttributeType("1.2.3")
-               .names("testType")
+               .names("testType3")
                .superiorType("1.2.2")
                .syntax("1.3.6.1.4.1.1466.115.121.1.27")
                .collective(true)
                .usage(AttributeUsage.USER_APPLICATIONS)
                .addToSchema();
 
-        builder.addAttributeType("( 1.2.4 NAME 'testType' SUP 1.2.3 SINGLE-VALUE COLLECTIVE )", false);
+        builder.addAttributeType("( 1.2.4 NAME 'testType4' SUP 1.2.3 SINGLE-VALUE COLLECTIVE )", false);
 
         builder.buildAttributeType("1.2.5")
-               .names("testType", "testnamealias", "anothernamealias")
+               .names("testType5", "testnamealias5", "anothernamealias5")
                .equalityMatchingRule(EMR_CASE_IGNORE_LIST_OID)
                .substringMatchingRule(SMR_CASE_IGNORE_LIST_OID)
                .approximateMatchingRule(AMR_DOUBLE_METAPHONE_OID)
@@ -74,8 +75,8 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
                .usage(AttributeUsage.DSA_OPERATION)
                .addToSchema();
 
-        builder.addAttributeType("( 1.2.6 NAME ( 'testType' 'testnamealias' 'anothernamealias1' ) "
-                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SUP anothernamealias"
+        builder.addAttributeType("( 1.2.6 NAME ( 'testType6' 'testnamealias6' 'anothernamealias6' ) "
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SUP anothernamealias5"
                 + " USAGE dSAOperation NO-USER-MODIFICATION )", false);
 
         schema = builder.toSchema();
@@ -236,12 +237,12 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     public final void testConstructorPrimaryName() throws Exception {
         AttributeType d = schema.getAttributeType("1.2.3");
 
-        Assert.assertTrue(d.hasName("testType"));
+        Assert.assertTrue(d.hasName("testType3"));
         Assert.assertFalse(d.hasName("xxx"));
 
         d = schema.getAttributeType("1.2.4");
 
-        Assert.assertTrue(d.hasName("testType"));
+        Assert.assertTrue(d.hasName("testType4"));
         Assert.assertFalse(d.hasName("xxx"));
 
     }
@@ -269,15 +270,15 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     public final void testConstructorTypeNames() throws Exception {
         AttributeType d = schema.getAttributeType("1.2.5");
 
-        Assert.assertTrue(d.hasName("testType"));
-        Assert.assertTrue(d.hasName("testnamealias"));
-        Assert.assertTrue(d.hasName("anothernamealias"));
+        Assert.assertTrue(d.hasName("testType5"));
+        Assert.assertTrue(d.hasName("testnamealias5"));
+        Assert.assertTrue(d.hasName("anothernamealias5"));
 
         d = schema.getAttributeType("1.2.6");
 
-        Assert.assertTrue(d.hasName("testType"));
-        Assert.assertTrue(d.hasName("testnamealias"));
-        Assert.assertTrue(d.hasName("anothernamealias1"));
+        Assert.assertTrue(d.hasName("testType6"));
+        Assert.assertTrue(d.hasName("testnamealias6"));
+        Assert.assertTrue(d.hasName("anothernamealias6"));
     }
 
     /**
@@ -320,9 +321,9 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     @Test
     public final void testGetNameOrOIDReturnsPrimaryName() throws Exception {
         AttributeType d = schema.getAttributeType("1.2.3");
-        Assert.assertEquals(d.getNameOrOID(), "testType");
+        Assert.assertEquals(d.getNameOrOID(), "testType3");
         d = schema.getAttributeType("1.2.4");
-        Assert.assertEquals(d.getNameOrOID(), "testType");
+        Assert.assertEquals(d.getNameOrOID(), "testType4");
     }
 
     /**
@@ -335,15 +336,15 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     public final void testGetNormalizedNames() throws Exception {
         AttributeType d = schema.getAttributeType("1.2.5");
         Iterator<String> i = d.getNames().iterator();
-        Assert.assertEquals(i.next(), "testType");
-        Assert.assertEquals(i.next(), "testnamealias");
-        Assert.assertEquals(i.next(), "anothernamealias");
+        Assert.assertEquals(i.next(), "testType5");
+        Assert.assertEquals(i.next(), "testnamealias5");
+        Assert.assertEquals(i.next(), "anothernamealias5");
 
         d = schema.getAttributeType("1.2.6");
         i = d.getNames().iterator();
-        Assert.assertEquals(i.next(), "testType");
-        Assert.assertEquals(i.next(), "testnamealias");
-        Assert.assertEquals(i.next(), "anothernamealias1");
+        Assert.assertEquals(i.next(), "testType6");
+        Assert.assertEquals(i.next(), "testnamealias6");
+        Assert.assertEquals(i.next(), "anothernamealias6");
     }
 
     /**
@@ -385,12 +386,12 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     public final void testHasNameOrOID() throws Exception {
         AttributeType d = schema.getAttributeType("1.2.3");
 
-        Assert.assertTrue(d.hasNameOrOID("testType"));
+        Assert.assertTrue(d.hasNameOrOID("testType3"));
         Assert.assertTrue(d.hasNameOrOID("1.2.3"));
         Assert.assertFalse(d.hasNameOrOID("x.y.z"));
         d = schema.getAttributeType("1.2.4");
 
-        Assert.assertTrue(d.hasNameOrOID("testType"));
+        Assert.assertTrue(d.hasNameOrOID("testType4"));
         Assert.assertTrue(d.hasNameOrOID("1.2.4"));
         Assert.assertFalse(d.hasNameOrOID("x.y.z"));
     }
@@ -556,4 +557,14 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
         return builder.toSchema().getAttributeType("1.2.3");
     }
 
+    @Test
+    public void testDuplicateNamesGenerateWarnings() {
+        Schema dupSchema = new SchemaBuilder(schema).buildAttributeType("1.2.10")
+                .names("testType3")
+                .syntax("1.3.6.1.4.1.1466.115.121.1.27")
+                .addToSchema().toSchema();
+
+        assertThat(dupSchema.getWarnings()).contains(
+                WARN_ATTR_TYPES_DUPLICATED_NAME.get("1.2.3, 1.2.10", "testtype3", "testtype3", "1.2.3"));
+    }
 }

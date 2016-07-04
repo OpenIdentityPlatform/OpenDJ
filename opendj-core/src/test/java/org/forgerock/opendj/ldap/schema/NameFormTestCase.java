@@ -399,6 +399,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
         assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
 
         sb.buildNameForm(nf)
+            .removeAllNames() // mandatory to avoid duplicate names
             .names("Dolly")
             .oid("1.3.6.1.4.1.1466.115.121.1.36")
             .addToSchemaOverwrite();
@@ -411,7 +412,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
         i.next(); // Jump the first element (== nf)
         final NameForm dolly = i.next(); // Our new cloned NameForm.
         assertThat(dolly.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.36"); // With the new OID !
-        assertThat(dolly.getNames().size()).isEqualTo(2);
+        assertThat(dolly.getNames().size()).isEqualTo(1);
     }
 
     /**
@@ -548,7 +549,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
 
         final Schema schema = sb.toSchema();
         assertThat(schema.getWarnings()).isEmpty();
-        assertThat(schema.getNameFormsWithName("mycustomnameform")).isNotNull();
+        assertThat(schema.getNameForm("mycustomnameform")).isNotNull();
         for (final NameForm o : schema.getNameForms()) {
             assertThat(o.getNameOrOID()).isEqualTo("myCustomNameForm");
             assertThat(o.getOID()).isEqualTo("mycustomnameform-oid");
@@ -885,7 +886,8 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
         // @formatter:off.
         SchemaBuilder sb = new SchemaBuilder(Schema.getCoreSchema());
         Builder nfBuilder = new Builder(nf, sb)
-                    .names("Dolly")
+                    .removeAllNames() // mandatory to avoid duplicate names
+                    .names("MyCopiedNewForm", "Dolly")
                     .oid("1.3.6.1.4.1.1466.115.121.1.36")
                     .removeOptionalAttribute("uid")
                     .removeOptionalAttribute("nonExistentUid")

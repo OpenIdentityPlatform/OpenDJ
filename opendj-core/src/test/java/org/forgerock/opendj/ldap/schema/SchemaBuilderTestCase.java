@@ -110,10 +110,10 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     @Test
     public void attributeTypeSuperiorFailureChildThenParent() {
         final Schema schema =
-                new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
-                        "( childtype-oid NAME 'childtype' SUP parenttype )", false)
-                        .addAttributeType("( parenttype-oid NAME 'parenttype' SUP xxx )", false)
-                        .toSchema();
+                new SchemaBuilder(Schema.getCoreSchema())
+                    .addAttributeType("( childtype-oid NAME 'childtype' SUP parenttype )", false)
+                    .addAttributeType("( parenttype-oid NAME 'parenttype' SUP xxx )", false)
+                    .toSchema();
 
         try {
             schema.getAttributeType("childtype");
@@ -137,9 +137,10 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     @Test
     public void attributeTypeSuperiorFailureParentThenChild() {
         final Schema schema =
-                new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
-                        "( parenttype-oid NAME 'parenttype' SUP xxx )", false).addAttributeType(
-                        "( childtype-oid NAME 'childtype' SUP parenttype )", false).toSchema();
+                new SchemaBuilder(Schema.getCoreSchema())
+                    .addAttributeType("( parenttype-oid NAME 'parenttype' SUP xxx )", false)
+                    .addAttributeType("( childtype-oid NAME 'childtype' SUP parenttype )", false)
+                    .toSchema();
 
         try {
             schema.getAttributeType("childtype");
@@ -412,7 +413,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(schema.getAttributeType("myCustomAttribute").getUsage().toString()).isEqualTo(
                 "userApplications");
 
-        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
+        assertThat(schema.getObjectClass("myCustomObjClass").isPlaceHolder()).isFalse();
     }
 
     /**
@@ -990,7 +991,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(schema.getAttributeType("myCustomAttribute").getDescription())
                 .isEqualTo("A short description");
 
-        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
+        assertThat(schema.getObjectClass("myCustomObjClass").isPlaceHolder()).isFalse();
     }
 
     /**
@@ -1025,7 +1026,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 "userApplications");
         assertThat(schema.getAttributeType("myCustomAttribute").getDescription())
                 .isEqualTo("A short description");
-        assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
+        assertThat(schema.getObjectClass("myCustomObjClass").isPlaceHolder()).isFalse();
     }
 
     /**
@@ -1380,7 +1381,6 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         // @formatter:on
 
         assertThat(schema.getWarnings()).isEmpty();
-        assertThat(schema.getDITStructureRulesWithName("testAllowATRequiredByDCR")).isNotNull();
         assertThat(schema.getDITStructureRule(999014).getDescription()).isEqualTo(
                 "A short description");
         assertThat(schema.getDITStructureRule(999014).getNameOrRuleID()).isEqualTo(
@@ -1569,7 +1569,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         // @formatter:on
 
         assertThat(schema.getWarnings()).isEmpty();
-        assertThat(schema.getMatchingRuleUsesWithName("bitStringMatch")).isNotEmpty();
+        assertThat(schema.getMatchingRuleUse("bitStringMatch")).isNotNull();
         assertThat(schema.getMatchingRuleUses().size()).isEqualTo(1);
 
         for (MatchingRuleUse o : schema.getMatchingRuleUses()) {
@@ -1636,7 +1636,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         // @formatter:on
 
         assertThat(schema.getWarnings()).isEmpty();
-        assertThat(schema.getNameFormsWithName("testViolatesSingleValuedNameForm")).isNotNull();
+        assertThat(schema.getNameForm("testViolatesSingleValuedNameForm")).isNotNull();
         for (NameForm o : schema.getNameForms()) {
             assertThat(o.getNameOrOID()).isEqualTo("testViolatesSingleValuedNameForm");
             assertThat(o.getOID()).isEqualTo("testviolatessinglevaluednameform-oid");

@@ -18,7 +18,6 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-
 import static org.forgerock.opendj.ldap.AttributeDescription.*;
 
 import java.util.Collection;
@@ -81,21 +80,17 @@ public final class Schema {
 
         Collection<AttributeType> getAttributeTypes();
 
-        List<AttributeType> getAttributeTypesWithName(String name);
-
         DITContentRule getDITContentRule(ObjectClass structuralClass);
 
         DITContentRule getDITContentRule(String nameOrOid);
 
         Collection<DITContentRule> getDITContentRules();
 
-        Collection<DITContentRule> getDITContentRulesWithName(String name);
-
         DITStructureRule getDITStructureRule(int ruleID);
 
-        Collection<DITStructureRule> getDITStructureRules(NameForm nameForm);
+        DITStructureRule getDITStructureRule(String name);
 
-        Collection<DITStructureRule> getDITStructureRulesWithName(String name);
+        Collection<DITStructureRule> getDITStructureRules(NameForm nameForm);
 
         Collection<DITStructureRule> getDITStuctureRules();
 
@@ -103,15 +98,11 @@ public final class Schema {
 
         Collection<MatchingRule> getMatchingRules();
 
-        Collection<MatchingRule> getMatchingRulesWithName(String name);
-
         MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule);
 
         MatchingRuleUse getMatchingRuleUse(String nameOrOid);
 
         Collection<MatchingRuleUse> getMatchingRuleUses();
-
-        Collection<MatchingRuleUse> getMatchingRuleUsesWithName(String name);
 
         NameForm getNameForm(String nameOrOid);
 
@@ -119,13 +110,9 @@ public final class Schema {
 
         Collection<NameForm> getNameForms(ObjectClass structuralClass);
 
-        Collection<NameForm> getNameFormsWithName(String name);
-
         ObjectClass getObjectClass(String nameOrOid);
 
         Collection<ObjectClass> getObjectClasses();
-
-        Collection<ObjectClass> getObjectClassesWithName(String name);
 
         String getSchemaName();
 
@@ -207,11 +194,6 @@ public final class Schema {
         }
 
         @Override
-        public List<AttributeType> getAttributeTypesWithName(final String name) {
-            return strictImpl.getAttributeTypesWithName(name);
-        }
-
-        @Override
         public DITContentRule getDITContentRule(final ObjectClass structuralClass) {
             return strictImpl.getDITContentRule(structuralClass);
         }
@@ -227,23 +209,18 @@ public final class Schema {
         }
 
         @Override
-        public Collection<DITContentRule> getDITContentRulesWithName(final String name) {
-            return strictImpl.getDITContentRulesWithName(name);
-        }
-
-        @Override
         public DITStructureRule getDITStructureRule(final int ruleID) {
             return strictImpl.getDITStructureRule(ruleID);
         }
 
         @Override
-        public Collection<DITStructureRule> getDITStructureRules(final NameForm nameForm) {
-            return strictImpl.getDITStructureRules(nameForm);
+        public DITStructureRule getDITStructureRule(final String name) {
+            return strictImpl.getDITStructureRule(name);
         }
 
         @Override
-        public Collection<DITStructureRule> getDITStructureRulesWithName(final String name) {
-            return strictImpl.getDITStructureRulesWithName(name);
+        public Collection<DITStructureRule> getDITStructureRules(final NameForm nameForm) {
+            return strictImpl.getDITStructureRules(nameForm);
         }
 
         @Override
@@ -262,11 +239,6 @@ public final class Schema {
         }
 
         @Override
-        public Collection<MatchingRule> getMatchingRulesWithName(final String name) {
-            return strictImpl.getMatchingRulesWithName(name);
-        }
-
-        @Override
         public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule) {
             return strictImpl.getMatchingRuleUse(matchingRule);
         }
@@ -279,11 +251,6 @@ public final class Schema {
         @Override
         public Collection<MatchingRuleUse> getMatchingRuleUses() {
             return strictImpl.getMatchingRuleUses();
-        }
-
-        @Override
-        public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(final String name) {
-            return strictImpl.getMatchingRuleUsesWithName(name);
         }
 
         @Override
@@ -302,11 +269,6 @@ public final class Schema {
         }
 
         @Override
-        public Collection<NameForm> getNameFormsWithName(final String name) {
-            return strictImpl.getNameFormsWithName(name);
-        }
-
-        @Override
         public ObjectClass getObjectClass(final String nameOrOid) {
             ObjectClass result = strictImpl.getObjectClass0(nameOrOid);
             return result != null ? result : ObjectClass.newPlaceHolder(nameOrOid);
@@ -315,11 +277,6 @@ public final class Schema {
         @Override
         public Collection<ObjectClass> getObjectClasses() {
             return strictImpl.getObjectClasses();
-        }
-
-        @Override
-        public Collection<ObjectClass> getObjectClassesWithName(final String name) {
-            return strictImpl.getObjectClassesWithName(name);
         }
 
         @Override
@@ -514,16 +471,6 @@ public final class Schema {
         }
 
         @Override
-        public List<AttributeType> getAttributeTypesWithName(final String name) {
-            final List<AttributeType> attributes =
-                    name2AttributeTypes.get(StaticUtils.toLowerCase(name));
-            if (attributes != null) {
-                return attributes;
-            }
-            return Collections.emptyList();
-        }
-
-        @Override
         public DITContentRule getDITContentRule(final ObjectClass structuralClass) {
             return numericOID2ContentRules.get(structuralClass.getOID());
         }
@@ -535,11 +482,8 @@ public final class Schema {
                 return rule;
             }
             final List<DITContentRule> rules = name2ContentRules.get(StaticUtils.toLowerCase(nameOrOid));
-            if (rules != null) {
-                if (rules.size() == 1) {
-                    return rules.get(0);
-                }
-                throw new UnknownSchemaElementException(WARN_DCR_AMBIGUOUS.get(nameOrOid));
+            if (rules != null && rules.size() == 1) {
+                return rules.get(0);
             }
             throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN.get(nameOrOid));
         }
@@ -547,15 +491,6 @@ public final class Schema {
         @Override
         public Collection<DITContentRule> getDITContentRules() {
             return numericOID2ContentRules.values();
-        }
-
-        @Override
-        public Collection<DITContentRule> getDITContentRulesWithName(final String name) {
-            final List<DITContentRule> rules = name2ContentRules.get(StaticUtils.toLowerCase(name));
-            if (rules != null) {
-                return rules;
-            }
-            return Collections.emptyList();
         }
 
         @Override
@@ -578,13 +513,12 @@ public final class Schema {
         }
 
         @Override
-        public Collection<DITStructureRule> getDITStructureRulesWithName(final String name) {
-            final List<DITStructureRule> rules =
-                    name2StructureRules.get(StaticUtils.toLowerCase(name));
-            if (rules != null) {
-                return rules;
+        public DITStructureRule getDITStructureRule(final String name) {
+            List<DITStructureRule> rules = name2StructureRules.get(StaticUtils.toLowerCase(name));
+            if (rules != null && rules.size() == 1) {
+                return rules.get(0);
             }
-            return Collections.emptyList();
+            throw new UnknownSchemaElementException(WARN_DIT_SR_UNKNOWN.get(name));
         }
 
         @Override
@@ -599,11 +533,8 @@ public final class Schema {
                 return rule;
             }
             final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils.toLowerCase(nameOrOid));
-            if (rules != null) {
-                if (rules.size() == 1) {
-                    return rules.get(0);
-                }
-                throw new UnknownSchemaElementException(WARN_MR_AMBIGUOUS.get(nameOrOid));
+            if (rules != null && rules.size() == 1) {
+                return rules.get(0);
             }
             throw new UnknownSchemaElementException(WARN_MR_UNKNOWN.get(nameOrOid));
         }
@@ -614,32 +545,19 @@ public final class Schema {
         }
 
         @Override
-        public Collection<MatchingRule> getMatchingRulesWithName(final String name) {
-            final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils.toLowerCase(name));
-            if (rules != null) {
-                return rules;
-            }
-            return Collections.emptyList();
-        }
-
-        @Override
         public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule) {
             return numericOID2MatchingRuleUses.get(matchingRule.getOID());
         }
 
         @Override
         public MatchingRuleUse getMatchingRuleUse(final String nameOrOid) {
-            final MatchingRuleUse rule = numericOID2MatchingRuleUses.get(nameOrOid);
-            if (rule != null) {
-                return rule;
+            final MatchingRuleUse use = numericOID2MatchingRuleUses.get(nameOrOid);
+            if (use != null) {
+                return use;
             }
-            final List<MatchingRuleUse> uses =
-                    name2MatchingRuleUses.get(StaticUtils.toLowerCase(nameOrOid));
-            if (uses != null) {
-                if (uses.size() == 1) {
-                    return uses.get(0);
-                }
-                throw new UnknownSchemaElementException(WARN_MRU_AMBIGUOUS.get(nameOrOid));
+            final List<MatchingRuleUse> uses = name2MatchingRuleUses.get(StaticUtils.toLowerCase(nameOrOid));
+            if (uses != null && uses.size() == 1) {
+                return uses.get(0);
             }
             throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN.get(nameOrOid));
         }
@@ -650,27 +568,14 @@ public final class Schema {
         }
 
         @Override
-        public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(final String name) {
-            final List<MatchingRuleUse> rules =
-                    name2MatchingRuleUses.get(StaticUtils.toLowerCase(name));
-            if (rules != null) {
-                return rules;
-            }
-            return Collections.emptyList();
-        }
-
-        @Override
         public NameForm getNameForm(final String nameOrOid) {
             final NameForm form = numericOID2NameForms.get(nameOrOid);
             if (form != null) {
                 return form;
             }
             final List<NameForm> forms = name2NameForms.get(StaticUtils.toLowerCase(nameOrOid));
-            if (forms != null) {
-                if (forms.size() == 1) {
-                    return forms.get(0);
-                }
-                throw new UnknownSchemaElementException(WARN_NAMEFORM_AMBIGUOUS.get(nameOrOid));
+            if (forms != null && forms.size() == 1) {
+                return forms.get(0);
             }
             throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(nameOrOid));
         }
@@ -683,15 +588,6 @@ public final class Schema {
         @Override
         public Collection<NameForm> getNameForms(final ObjectClass structuralClass) {
             final List<NameForm> forms = objectClass2NameForms.get(structuralClass.getOID());
-            if (forms != null) {
-                return forms;
-            }
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<NameForm> getNameFormsWithName(final String name) {
-            final List<NameForm> forms = name2NameForms.get(StaticUtils.toLowerCase(name));
             if (forms != null) {
                 return forms;
             }
@@ -713,11 +609,8 @@ public final class Schema {
                 return oc;
             }
             final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils.toLowerCase(nameOrOid));
-            if (classes != null) {
-                if (classes.size() == 1) {
-                    return classes.get(0);
-                }
-                throw new UnknownSchemaElementException(WARN_OBJECTCLASS_AMBIGUOUS.get(nameOrOid));
+            if (classes != null && classes.size() == 1) {
+                return classes.get(0);
             }
             return null;
         }
@@ -725,15 +618,6 @@ public final class Schema {
         @Override
         public Collection<ObjectClass> getObjectClasses() {
             return numericOID2ObjectClasses.values();
-        }
-
-        @Override
-        public Collection<ObjectClass> getObjectClassesWithName(final String name) {
-            final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils.toLowerCase(name));
-            if (classes != null) {
-                return classes;
-            }
-            return Collections.emptyList();
         }
 
         @Override
@@ -762,21 +646,14 @@ public final class Schema {
 
         @Override
         public boolean hasAttributeType(final String nameOrOid) {
-            if (numericOID2AttributeTypes.containsKey(nameOrOid)) {
-                return true;
-            }
-            final List<AttributeType> attributes =
-                    name2AttributeTypes.get(StaticUtils.toLowerCase(nameOrOid));
-            return attributes != null && attributes.size() == 1;
+            return numericOID2AttributeTypes.containsKey(nameOrOid)
+                    || name2AttributeTypes.containsKey(StaticUtils.toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasDITContentRule(final String nameOrOid) {
-            if (numericOID2ContentRules.containsKey(nameOrOid)) {
-                return true;
-            }
-            final List<DITContentRule> rules = name2ContentRules.get(StaticUtils.toLowerCase(nameOrOid));
-            return rules != null && rules.size() == 1;
+            return numericOID2ContentRules.containsKey(nameOrOid)
+                    || name2ContentRules.containsKey(StaticUtils.toLowerCase(nameOrOid));
         }
 
         @Override
@@ -786,39 +663,26 @@ public final class Schema {
 
         @Override
         public boolean hasMatchingRule(final String nameOrOid) {
-            if (numericOID2MatchingRules.containsKey(nameOrOid)) {
-                return true;
-            }
-            final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils.toLowerCase(nameOrOid));
-            return rules != null && rules.size() == 1;
+            return numericOID2MatchingRules.containsKey(nameOrOid)
+                    || name2MatchingRules.containsKey(StaticUtils.toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasMatchingRuleUse(final String nameOrOid) {
-            if (numericOID2MatchingRuleUses.containsKey(nameOrOid)) {
-                return true;
-            }
-            final List<MatchingRuleUse> uses =
-                    name2MatchingRuleUses.get(StaticUtils.toLowerCase(nameOrOid));
-            return uses != null && uses.size() == 1;
+            return numericOID2MatchingRuleUses.containsKey(nameOrOid)
+                    || name2MatchingRuleUses.containsKey(StaticUtils.toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasNameForm(final String nameOrOid) {
-            if (numericOID2NameForms.containsKey(nameOrOid)) {
-                return true;
-            }
-            final List<NameForm> forms = name2NameForms.get(StaticUtils.toLowerCase(nameOrOid));
-            return forms != null && forms.size() == 1;
+            return numericOID2NameForms.containsKey(nameOrOid)
+                    || name2NameForms.containsKey(StaticUtils.toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasObjectClass(final String nameOrOid) {
-            if (numericOID2ObjectClasses.containsKey(nameOrOid)) {
-                return true;
-            }
-            final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils.toLowerCase(nameOrOid));
-            return classes != null && classes.size() == 1;
+            return numericOID2ObjectClasses.containsKey(nameOrOid)
+                    || name2ObjectClasses.containsKey(StaticUtils.toLowerCase(nameOrOid));
         }
 
         @Override
@@ -836,15 +700,8 @@ public final class Schema {
             if (type != null) {
                 return type;
             }
-            final List<AttributeType> attributes =
-                    name2AttributeTypes.get(StaticUtils.toLowerCase(nameOrOid));
-            if (attributes != null) {
-                if (attributes.size() == 1) {
-                    return attributes.get(0);
-                }
-                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_AMBIGUOUS.get(nameOrOid));
-            }
-            return null;
+            final List<AttributeType> attrs = name2AttributeTypes.get(StaticUtils.toLowerCase(nameOrOid));
+            return attrs != null && attrs.size() == 1 ? attrs.get(0) : null;
         }
     }
 
@@ -1117,7 +974,7 @@ public final class Schema {
      * @return The requested attribute type.
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested attribute type
-     *             was not found or if the provided name is ambiguous.
+     *             was not found.
      * @see AttributeType#isPlaceHolder()
      */
     public AttributeType getAttributeType(final String nameOrOid) {
@@ -1141,7 +998,7 @@ public final class Schema {
      * @return The requested attribute type.
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested attribute type
-     *             was not found or if the provided name is ambiguous.
+     *             was not found.
      * @see AttributeType#isPlaceHolder()
      */
     public AttributeType getAttributeType(final String nameOrOid, final Syntax syntax) {
@@ -1157,19 +1014,6 @@ public final class Schema {
      */
     public Collection<AttributeType> getAttributeTypes() {
         return impl.getAttributeTypes();
-    }
-
-    /**
-     * Returns an unmodifiable collection containing all of the attribute types
-     * having the specified name or numeric OID.
-     *
-     * @param name
-     *            The name of the attribute types to retrieve.
-     * @return An unmodifiable collection containing all of the attribute types
-     *         having the specified name or numeric OID.
-     */
-    public List<AttributeType> getAttributeTypesWithName(final String name) {
-        return impl.getAttributeTypesWithName(name);
     }
 
     /**
@@ -1193,7 +1037,7 @@ public final class Schema {
      * @return The requested DIT content rule.
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested DIT content rule
-     *             was not found or if the provided name is ambiguous.
+     *             was not found.
      */
     public DITContentRule getDITContentRule(final String nameOrOid) {
         return impl.getDITContentRule(nameOrOid);
@@ -1211,19 +1055,6 @@ public final class Schema {
     }
 
     /**
-     * Returns an unmodifiable collection containing all of the DIT content
-     * rules having the specified name or numeric OID.
-     *
-     * @param name
-     *            The name of the DIT content rules to retrieve.
-     * @return An unmodifiable collection containing all of the DIT content
-     *         rules having the specified name or numeric OID.
-     */
-    public Collection<DITContentRule> getDITContentRulesWithName(final String name) {
-        return impl.getDITContentRulesWithName(name);
-    }
-
-    /**
      * Returns the DIT structure rule with the specified name or numeric OID.
      *
      * @param ruleID
@@ -1238,6 +1069,20 @@ public final class Schema {
     }
 
     /**
+     * Returns the DIT structure rule with the specified name or numeric OID.
+     *
+     * @param nameOrOid
+     *            The name or OID of the DIT structure rule to retrieve.
+     * @return The requested DIT structure rule.
+     * @throws UnknownSchemaElementException
+     *             If this is a strict schema and the requested DIT structure rule
+     *             was not found.
+     */
+    public DITStructureRule getDITStructureRule(final String nameOrOid) {
+        return impl.getDITStructureRule(nameOrOid);
+    }
+
+    /**
      * Returns an unmodifiable collection containing all of the DIT structure
      * rules associated with the provided name form.
      *
@@ -1248,19 +1093,6 @@ public final class Schema {
      */
     public Collection<DITStructureRule> getDITStructureRules(final NameForm nameForm) {
         return impl.getDITStructureRules(nameForm);
-    }
-
-    /**
-     * Returns an unmodifiable collection containing all of the DIT structure
-     * rules having the specified name or numeric OID.
-     *
-     * @param name
-     *            The name of the DIT structure rules to retrieve.
-     * @return An unmodifiable collection containing all of the DIT structure
-     *         rules having the specified name or numeric OID.
-     */
-    public Collection<DITStructureRule> getDITStructureRulesWithName(final String name) {
-        return impl.getDITStructureRulesWithName(name);
     }
 
     /**
@@ -1282,7 +1114,7 @@ public final class Schema {
      * @return The requested matching rule.
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested matching rule
-     *             was not found or if the provided name is ambiguous.
+     *             was not found.
      */
     public MatchingRule getMatchingRule(final String nameOrOid) {
         return impl.getMatchingRule(nameOrOid);
@@ -1297,19 +1129,6 @@ public final class Schema {
      */
     public Collection<MatchingRule> getMatchingRules() {
         return impl.getMatchingRules();
-    }
-
-    /**
-     * Returns an unmodifiable collection containing all of the matching rules
-     * having the specified name or numeric OID.
-     *
-     * @param name
-     *            The name of the matching rules to retrieve.
-     * @return An unmodifiable collection containing all of the matching rules
-     *         having the specified name or numeric OID.
-     */
-    public Collection<MatchingRule> getMatchingRulesWithName(final String name) {
-        return impl.getMatchingRulesWithName(name);
     }
 
     /**
@@ -1333,7 +1152,7 @@ public final class Schema {
      * @return The requested matching rule use.
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested matching rule
-     *             use was not found or if the provided name is ambiguous.
+     *             use was not found.
      */
     public MatchingRuleUse getMatchingRuleUse(final String nameOrOid) {
         return impl.getMatchingRuleUse(nameOrOid);
@@ -1351,19 +1170,6 @@ public final class Schema {
     }
 
     /**
-     * Returns an unmodifiable collection containing all of the matching rule
-     * uses having the specified name or numeric OID.
-     *
-     * @param name
-     *            The name of the matching rule uses to retrieve.
-     * @return An unmodifiable collection containing all of the matching rule
-     *         uses having the specified name or numeric OID.
-     */
-    public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(final String name) {
-        return impl.getMatchingRuleUsesWithName(name);
-    }
-
-    /**
      * Returns the name form with the specified name or numeric OID.
      *
      * @param nameOrOid
@@ -1371,7 +1177,7 @@ public final class Schema {
      * @return The requested name form.
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested name form was
-     *             not found or if the provided name is ambiguous.
+     *             not found.
      */
     public NameForm getNameForm(final String nameOrOid) {
         return impl.getNameForm(nameOrOid);
@@ -1403,19 +1209,6 @@ public final class Schema {
     }
 
     /**
-     * Returns an unmodifiable collection containing all of the name forms
-     * having the specified name or numeric OID.
-     *
-     * @param name
-     *            The name of the name forms to retrieve.
-     * @return An unmodifiable collection containing all of the name forms
-     *         having the specified name or numeric OID.
-     */
-    public Collection<NameForm> getNameFormsWithName(final String name) {
-        return impl.getNameFormsWithName(name);
-    }
-
-    /**
      * Returns the object class with the specified name or numeric OID.
      * <p>
      * If the requested object class is not registered in this schema and this
@@ -1428,7 +1221,7 @@ public final class Schema {
      * @return The requested object class.
      * @throws UnknownSchemaElementException
      *             If this is a strict schema and the requested object class was
-     *             not found or if the provided name is ambiguous.
+     *             not found.
      * @see ObjectClass#isPlaceHolder()
      */
     public ObjectClass getObjectClass(final String nameOrOid) {
@@ -1444,19 +1237,6 @@ public final class Schema {
      */
     public Collection<ObjectClass> getObjectClasses() {
         return impl.getObjectClasses();
-    }
-
-    /**
-     * Returns an unmodifiable collection containing all of the object classes
-     * having the specified name or numeric OID.
-     *
-     * @param name
-     *            The name of the object classes to retrieve.
-     * @return An unmodifiable collection containing all of the object classes
-     *         having the specified name or numeric OID.
-     */
-    public Collection<ObjectClass> getObjectClassesWithName(final String name) {
-        return impl.getObjectClassesWithName(name);
     }
 
     /**

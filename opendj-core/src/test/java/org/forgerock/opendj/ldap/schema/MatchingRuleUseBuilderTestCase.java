@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -63,6 +63,7 @@ public class MatchingRuleUseBuilderTestCase extends AbstractSchemaTestCase {
 
         final Schema schemaCopy = builder.buildMatchingRuleUse(schema.getMatchingRuleUse(EMR_BIT_STRING_OID))
                 .oid(EMR_OCTET_STRING_OID)
+                .removeAllNames()
                 .names("Matching rule use test copy")
                 .attributes("2.5.4.53")
                 .addToSchema()
@@ -72,7 +73,7 @@ public class MatchingRuleUseBuilderTestCase extends AbstractSchemaTestCase {
         final MatchingRuleUse mru = schemaCopy.getMatchingRuleUse(EMR_OCTET_STRING_OID);
         assertThat(mru).isNotNull();
         assertThat(mru.getMatchingRuleOID()).isEqualTo(EMR_OCTET_STRING_OID);
-        assertThat(mru.getNames()).containsOnly("Matching rule use test", "Matching rule use test copy");
+        assertThat(mru.getNames()).containsOnly("Matching rule use test copy");
         assertThat(mru.getDescription()).isEqualTo("Matching rule use description");
         assertThat(mru.getAttributes()).containsOnly(schema.getAttributeType("2.5.4.40"),
                                                      schema.getAttributeType("2.5.4.53"));

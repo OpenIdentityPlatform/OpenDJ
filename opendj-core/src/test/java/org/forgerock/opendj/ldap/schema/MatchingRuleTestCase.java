@@ -512,6 +512,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
 
         // @formatter:off
         sb.buildMatchingRule(mr)
+            .removeAllNames() // mandatory to remove duplicate names
             .names("Dolly")
             .oid("2.5.13.0.1")
             .obsolete(true)

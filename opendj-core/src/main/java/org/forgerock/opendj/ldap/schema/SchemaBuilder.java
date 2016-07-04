@@ -18,7 +18,6 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static java.util.Collections.*;
-
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.schema.ObjectClass.*;
 import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
@@ -26,7 +25,6 @@ import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
@@ -2187,6 +2185,14 @@ public final class SchemaBuilder {
             defaultMatchingRule = Schema.getCoreSchema().getDefaultMatchingRule();
         }
 
+        removeDuplicateMatchingRulesNames();
+        removeDuplicateMatchingRuleUsesNames();
+        removeDuplicateAttributeTypesNames();
+        removeDuplicateObjectClassesNames();
+        removeDuplicateNameFormsNames();
+        removeDuplicateDITContentRulesNames();
+        removeDuplicateDITStructureRulesNames();
+
         final Schema schema =
                 new Schema.StrictImpl(localSchemaName, options,
                         defaultSyntax, defaultMatchingRule, numericOID2Syntaxes,
@@ -2768,6 +2774,140 @@ public final class SchemaBuilder {
                 nameForm2StructureRules.put(ocOID, rules);
             } else {
                 rules.add(rule);
+            }
+        }
+    }
+
+    private void removeDuplicateMatchingRulesNames() {
+        for (final java.util.Map.Entry<String, List<MatchingRule>> entry : name2MatchingRules.entrySet()) {
+            List<MatchingRule> rules = entry.getValue();
+            if (rules.size() > 1) {
+                StringBuilder oids = new StringBuilder();
+                for (MatchingRule attr : rules) {
+                    if (oids.length() > 0) {
+                        oids.append(", ");
+                    }
+                    oids.append(attr.getOID());
+                }
+                String name = entry.getKey();
+                warnings.add(WARN_MATCHING_RULES_DUPLICATED_NAME.get(oids, name, name, rules.get(0).getOID()));
+                // keep only the first value
+                rules.subList(1, rules.size()).clear();
+            }
+        }
+    }
+
+    private void removeDuplicateMatchingRuleUsesNames() {
+        for (final java.util.Map.Entry<String, List<MatchingRuleUse>> entry : name2MatchingRuleUses.entrySet()) {
+            List<MatchingRuleUse> uses = entry.getValue();
+            if (uses.size() > 1) {
+                StringBuilder oids = new StringBuilder();
+                for (MatchingRuleUse attr : uses) {
+                    if (oids.length() > 0) {
+                        oids.append(", ");
+                    }
+                    oids.append(attr.getMatchingRuleOID());
+                }
+                String name = entry.getKey();
+                warnings.add(WARN_MATCHING_RULE_USES_DUPLICATED_NAME.get(oids, name, name,
+                        uses.get(0).getMatchingRuleOID()));
+                // keep only the first value
+                uses.subList(1, uses.size()).clear();
+            }
+        }
+    }
+
+    private void removeDuplicateAttributeTypesNames() {
+        for (final java.util.Map.Entry<String, List<AttributeType>> entry : name2AttributeTypes.entrySet()) {
+            List<AttributeType> types = entry.getValue();
+            if (entry.getValue().size() > 1) {
+                StringBuilder oids = new StringBuilder();
+                for (AttributeType attr : types) {
+                    if (oids.length() > 0) {
+                        oids.append(", ");
+                    }
+                    oids.append(attr.getOID());
+                }
+                String name = entry.getKey();
+                warnings.add(WARN_ATTR_TYPES_DUPLICATED_NAME.get(oids, name, name, types.get(0).getOID()));
+                // keep only the first value
+                types.subList(1, types.size()).clear();
+            }
+        }
+    }
+
+    private void removeDuplicateObjectClassesNames() {
+        for (final java.util.Map.Entry<String, List<ObjectClass>> entry : name2ObjectClasses.entrySet()) {
+            List<ObjectClass> classes = entry.getValue();
+            if (entry.getValue().size() > 1) {
+                StringBuilder oids = new StringBuilder();
+                for (ObjectClass attr : classes) {
+                    if (oids.length() > 0) {
+                        oids.append(", ");
+                    }
+                    oids.append(attr.getOID());
+                }
+                String name = entry.getKey();
+                warnings.add(WARN_CLASSES_DUPLICATED_NAME.get(oids, name, name, classes.get(0).getOID()));
+                // keep only the first value
+                classes.subList(1, classes.size()).clear();
+            }
+        }
+    }
+
+    private void removeDuplicateNameFormsNames() {
+        for (final java.util.Map.Entry<String, List<NameForm>> entry : name2NameForms.entrySet()) {
+            List<NameForm> forms = entry.getValue();
+            if (entry.getValue().size() > 1) {
+                StringBuilder oids = new StringBuilder();
+                for (NameForm attr : forms) {
+                    if (oids.length() > 0) {
+                        oids.append(", ");
+                    }
+                    oids.append(attr.getOID());
+                }
+                String name = entry.getKey();
+                warnings.add(WARN_NAME_FORMS_DUPLICATED_NAME.get(oids, name, name, forms.get(0).getOID()));
+                // keep only the first value
+                forms.subList(1, forms.size()).clear();
+            }
+        }
+    }
+
+    private void removeDuplicateDITStructureRulesNames() {
+        for (final java.util.Map.Entry<String, List<DITStructureRule>> entry : name2StructureRules.entrySet()) {
+            List<DITStructureRule> rules = entry.getValue();
+            if (entry.getValue().size() > 1) {
+                StringBuilder ids = new StringBuilder();
+                for (DITStructureRule attr : rules) {
+                    if (ids.length() > 0) {
+                        ids.append(", ");
+                    }
+                    ids.append(attr.getRuleID());
+                }
+                String name = entry.getKey();
+                warnings.add(WARN_DIT_SR_DUPLICATED_NAME.get(ids, name, name, rules.get(0).getRuleID()));
+                // keep only the first value
+                rules.subList(1, rules.size()).clear();
+            }
+        }
+    }
+
+    private void removeDuplicateDITContentRulesNames() {
+        for (final java.util.Map.Entry<String, List<DITContentRule>> entry : name2ContentRules.entrySet()) {
+            List<DITContentRule> rules = entry.getValue();
+            if (entry.getValue().size() > 1) {
+                StringBuilder ids = new StringBuilder();
+                for (DITContentRule attr : rules) {
+                    if (ids.length() > 0) {
+                        ids.append(", ");
+                    }
+                    ids.append(attr.getStructuralClassOID());
+                }
+                String name = entry.getKey();
+                warnings.add(WARN_DIT_CR_DUPLICATED_NAME.get(ids, name, name, rules.get(0).getStructuralClassOID()));
+                // keep only the first value
+                rules.subList(1, rules.size()).clear();
             }
         }
     }

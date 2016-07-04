@@ -162,7 +162,8 @@ public class ObjectClassBuilderTestCase extends AbstractSchemaTestCase {
 
         sb.buildObjectClass(schema.getObjectClass("ObjectClassToDuplicate"))
                 .oid("1.1.1.43")
-                .names("Copy")
+                .removeAllNames() // mandatory to avoid duplicate names
+                .names("DuplicatedOC", "Copy")
                 .obsolete(true)
                 .addToSchemaOverwrite();
         final Schema schemaCopy = sb.toSchema();
@@ -173,7 +174,7 @@ public class ObjectClassBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(ocCopy.getOID()).isEqualTo("1.1.1.43");
         assertThat(ocCopy.getDescription()).isEqualTo("Object class to duplicate");
         assertThat(ocCopy.isObsolete()).isTrue();
-        assertThat(ocCopy.getNames()).containsOnly("ObjectClassToDuplicate", "Copy");
+        assertThat(ocCopy.getNames()).containsOnly("DuplicatedOC", "Copy");
         assertSchemaElementsContainsAll(ocCopy.getSuperiorClasses(), TOP_OBJECTCLASS_NAME);
         assertSchemaElementsContainsAll(ocCopy.getRequiredAttributes(), "name");
         assertThat(ocCopy.getOptionalAttributes()).isEmpty();

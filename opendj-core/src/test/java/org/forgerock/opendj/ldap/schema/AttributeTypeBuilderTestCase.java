@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -132,7 +132,8 @@ public class AttributeTypeBuilderTestCase extends AbstractSchemaTestCase {
 
         sb.buildAttributeType(schema.getAttributeType("AttributeTypeToDuplicate"))
                 .oid("1.1.1.43")
-                .names("Copy")
+                .removeAllNames() // mandatory to avoid duplicate names
+                .names("DuplicatedAttributeType", "Copy")
                 .obsolete(true)
                 .addToSchemaOverwrite();
         Schema schemaCopy = sb.toSchema();
@@ -143,7 +144,7 @@ public class AttributeTypeBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(atCopy.getOID()).isEqualTo("1.1.1.43");
         assertThat(atCopy.getDescription()).isEqualTo("Attribute type to duplicate");
         assertThat(atCopy.isObsolete()).isTrue();
-        assertThat(atCopy.getNames()).containsOnly("AttributeTypeToDuplicate", "Copy");
+        assertThat(atCopy.getNames()).containsOnly("DuplicatedAttributeType", "Copy");
         assertThat(atCopy.getExtraProperties()).isEmpty();
     }
 

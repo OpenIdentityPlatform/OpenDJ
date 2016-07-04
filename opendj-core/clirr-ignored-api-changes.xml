@@ -97,4 +97,46 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <differenceType>8001</differenceType>
     <justification>CompactDN has been migrated to server</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.List getAttributeTypesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getDITContentRulesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getDITStructureRulesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getMatchingRuleUsesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getMatchingRulesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getNameFormsWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getObjectClassesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
 </differences>
