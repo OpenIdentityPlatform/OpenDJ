@@ -25,8 +25,8 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.SchemaUtils.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -1126,44 +1126,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Make sure that the attribute type isn't used as the superior type for
-    // any other attributes.
-    for (AttributeType at : schema.getAttributeTypes())
-    {
-      AttributeType superiorType = at.getSuperiorType();
-      if (superiorType != null && superiorType.equals(removeType))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE.get(
-            removeType.getNameOrOID(), superiorType.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
-    // Make sure that the attribute type isn't used as a required, optional, or
-    // prohibited attribute type in any DIT content rule.
-    for (DITContentRule dcr : schema.getDITContentRules())
-    {
-      if (dcr.getRequiredAttributes().contains(removeType) ||
-          dcr.getOptionalAttributes().contains(removeType) ||
-          dcr.getProhibitedAttributes().contains(removeType))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_DCR.get(
-            removeType.getNameOrOID(), dcr.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
-    // Make sure that the attribute type isn't referenced by any matching rule use.
-    for (MatchingRuleUse mru : schema.getMatchingRuleUses())
-    {
-      if (mru.getAttributes().contains(removeType))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE.get(
-            removeType.getNameOrOID(), mru.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
     // If we've gotten here, then it's OK to remove the attribute type from the schema.
     schema.deregisterAttributeType(removeType);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeType));
@@ -1309,51 +1271,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Make sure that the objectclass isn't used as the superior class for any
-    // other objectclass.
-    for (ObjectClass oc : schema.getObjectClasses())
-    {
-      for(ObjectClass superiorClass : oc.getSuperiorClasses())
-      {
-        if (superiorClass.equals(removeClass))
-        {
-          LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS.get(
-              removeClass.getNameOrOID(), superiorClass.getNameOrOID());
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                  message);
-        }
-      }
-    }
-
-    // Make sure that the objectclass isn't used as the structural class for
-    // any name form.
-    Collection<NameForm> mappedForms = schema.getNameForm(removeClass);
-    if (!mappedForms.isEmpty())
-    {
-      StringBuilder buffer = new StringBuilder();
-      for(NameForm nf : mappedForms)
-      {
-        buffer.append(nf.getNameOrOID());
-        buffer.append("\t");
-      }
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_NF.get(
-          removeClass.getNameOrOID(), buffer);
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    // Make sure that the objectclass isn't used as a structural or auxiliary
-    // class for any DIT content rule.
-    for (DITContentRule dcr : schema.getDITContentRules())
-    {
-      if (dcr.getStructuralClass().equals(removeClass) ||
-          dcr.getAuxiliaryClasses().contains(removeClass))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_DCR.get(
-            removeClass.getNameOrOID(), dcr.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
     // If we've gotten here, then it's OK to remove the objectclass from the schema.
     schema.deregisterObjectClass(removeClass);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeClass));
@@ -1472,15 +1389,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           return;
         }
       }
-    }
-
-    // Make sure that the name form isn't referenced by any DIT structure rule.
-    Collection<DITStructureRule> ditRules = schema.getDITStructureRules(removeNF);
-    if (!ditRules.isEmpty())
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NF_IN_DSR.get(
-          removeNF.getNameOrOID(), ditRules.iterator().next().getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     // Now remove the name form from the schema.
@@ -1739,18 +1647,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           // so we don't need to do anything else here.
           return;
         }
-      }
-    }
-
-    // Make sure that the DIT structure rule isn't the superior for any other
-    // DIT structure rule.
-    for (DITStructureRule dsr : schema.getDITStructureRules())
-    {
-      if (dsr.getSuperiorRules().contains(removeDSR))
-      {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_DSR_SUPERIOR_RULE.get(
-            removeDSR.getNameOrRuleID(), dsr.getNameOrRuleID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
 

@@ -1041,7 +1041,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "name";
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1180,7 +1180,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String attrName = "testremoveattributetypereferencedbydcr";
     assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
   }
 
@@ -1223,7 +1223,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       String attrName = "testremoveatrefbymruat";
       assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
 
-      runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+      runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
 
       assertMatchingRuleUseExistsWithName(matchingRule, "testremoveatrefbymrumru");
 
@@ -1761,7 +1761,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "person";
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -1810,7 +1810,7 @@ public class SchemaBackendTestCase extends BackendTestCase
       assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
       runModify(argsPermissive(), addOCThenNF, SUCCESS);
 
-      runModify(argsPermissive(), deleteOC, UNWILLING_TO_PERFORM);
+      runModify(argsPermissive(), deleteOC, CONSTRAINT_VIOLATION);
       assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
     }
     finally
@@ -1853,7 +1853,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String ocName = "testremoveobjectclassreferencedbydcr";
     assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
@@ -2397,7 +2397,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     String nameFormName = "testremovenameformreferencedbydsrnf";
     assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
   }
 
@@ -3658,7 +3658,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     int ruleID = 999007;
     assertSchemaHasDITStructureRule(ruleID, false);
 
-    runModify(argsNotPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
     assertSchemaHasDITStructureRule(ruleID, true);
 
     ldif = toLdif(
