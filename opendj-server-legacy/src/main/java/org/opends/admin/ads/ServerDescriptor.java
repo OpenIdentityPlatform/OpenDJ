@@ -16,9 +16,12 @@
  */
 package org.opends.admin.ads;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.quicksetup.util.Utils.*;
+import static org.opends.server.util.CollectionUtils.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,21 +30,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NameAlreadyBoundException;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
@@ -179,8 +180,7 @@ public class ServerDescriptor
    */
   public boolean isReplicationEnabled()
   {
-    return Boolean.TRUE.equals(
-        serverProperties.get(ServerProperty.IS_REPLICATION_ENABLED));
+    return Boolean.TRUE.equals(serverProperties.get(ServerProperty.IS_REPLICATION_ENABLED));
   }
 
   /**
@@ -193,11 +193,7 @@ public class ServerDescriptor
    */
   public String getReplicationServerHostPort()
   {
-    if (isReplicationServer())
-    {
-      return getReplicationServer(getHostName(), getReplicationServerPort());
-    }
-    return null;
+    return isReplicationServer() ? getReplicationServer(getHostName(), getReplicationServerPort()) : null;
   }
 
   /**
@@ -208,11 +204,7 @@ public class ServerDescriptor
    */
   public int getReplicationServerId()
   {
-    if (isReplicationServer())
-    {
-      return (Integer) serverProperties.get(ServerProperty.REPLICATION_SERVER_ID);
-    }
-    return -1;
+    return isReplicationServer() ? (Integer) serverProperties.get(ServerProperty.REPLICATION_SERVER_ID) : -1;
   }
 
   /**
@@ -223,12 +215,7 @@ public class ServerDescriptor
    */
   public int getReplicationServerPort()
   {
-    if (isReplicationServer())
-    {
-      return (Integer) serverProperties.get(
-          ServerProperty.REPLICATION_SERVER_PORT);
-    }
-    return -1;
+    return isReplicationServer() ? (Integer) serverProperties.get(ServerProperty.REPLICATION_SERVER_PORT) : -1;
   }
 
   /**
@@ -413,20 +400,15 @@ public class ServerDescriptor
 
   private ADSContext.ServerProperty getPortProperty(ADSContext.ServerProperty prop)
   {
-    if (prop == ADSContext.ServerProperty.ADMIN_ENABLED)
+    switch (prop)
     {
+    case ADMIN_ENABLED:
       return ADSContext.ServerProperty.ADMIN_PORT;
-    }
-    else if (prop == ADSContext.ServerProperty.LDAPS_ENABLED)
-    {
+    case LDAPS_ENABLED:
       return ADSContext.ServerProperty.LDAPS_PORT;
-    }
-    else if (prop == ADSContext.ServerProperty.LDAP_ENABLED)
-    {
+    case LDAP_ENABLED:
       return ADSContext.ServerProperty.LDAP_PORT;
-    }
-    else
-    {
+    default:
       throw new IllegalStateException("Unexpected prop: "+prop);
     }
   }
@@ -639,10 +621,9 @@ public class ServerDescriptor
    * @param filter the topology cache filter describing the information that
    * must be retrieved.
    * @return a ServerDescriptor object that corresponds to the read configuration.
-   * @throws NamingException if a problem occurred reading the server configuration.
+   * @throws IOException if a problem occurred reading the server configuration.
    */
-  public static ServerDescriptor createStandalone(ConnectionWrapper conn, TopologyCacheFilter filter)
-  throws NamingException
+  public static ServerDescriptor createStandalone(ConnectionWrapper conn, TopologyCacheFilter filter) throws IOException
   {
     ServerDescriptor desc = new ServerDescriptor();
 
@@ -660,26 +641,18 @@ public class ServerDescriptor
   }
 
   private static void updateLdapConfiguration(ServerDescriptor desc, ConnectionWrapper conn)
-      throws NamingException
+      throws IOException
   {
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-cfg-enabled",
-            "ds-cfg-listen-address",
-            "ds-cfg-listen-port",
-            "ds-cfg-use-ssl",
-            "ds-cfg-allow-start-tls",
-            "objectclass"
-        });
     String filter = "(objectclass=ds-cfg-ldap-connection-handler)";
 
-    LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration<SearchResult> listeners =
-      conn.getLdapContext().search(jndiName, filter, ctls);
-
-    try
+    SearchRequest request = newSearchRequest("cn=config", WHOLE_SUBTREE, filter,
+        "ds-cfg-enabled",
+        "ds-cfg-listen-address",
+        "ds-cfg-listen-port",
+        "ds-cfg-use-ssl",
+        "ds-cfg-allow-start-tls",
+        "objectclass");
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
       ArrayList<Integer> ldapPorts = new ArrayList<>();
       ArrayList<Integer> ldapsPorts = new ArrayList<>();
@@ -691,22 +664,15 @@ public class ServerDescriptor
       desc.serverProperties.put(ServerProperty.LDAPS_PORT, ldapsPorts);
       desc.serverProperties.put(ServerProperty.LDAP_ENABLED, ldapEnabled);
       desc.serverProperties.put(ServerProperty.LDAPS_ENABLED, ldapsEnabled);
-      desc.serverProperties.put(ServerProperty.STARTTLS_ENABLED,
-          startTLSEnabled);
+      desc.serverProperties.put(ServerProperty.STARTTLS_ENABLED, startTLSEnabled);
 
-      while(listeners.hasMore())
+      while (entryReader.hasNext())
       {
-        SearchResult sr = listeners.next();
+        SearchResultEntry sr = entryReader.readEntry();
 
-        String port = getFirstValue(sr, "ds-cfg-listen-port");
-
-        boolean isSecure = "true".equalsIgnoreCase(
-            getFirstValue(sr, "ds-cfg-use-ssl"));
-
-        boolean enabled = "true".equalsIgnoreCase(
-            getFirstValue(sr, "ds-cfg-enabled"));
-        final Integer portNumber = Integer.valueOf(port);
-        if (isSecure)
+        Integer portNumber = asInteger(sr, "ds-cfg-listen-port");
+        boolean enabled = asBoolean(sr, "ds-cfg-enabled");
+        if (asBoolean(sr, "ds-cfg-use-ssl"))
         {
           ldapsPorts.add(portNumber);
           ldapsEnabled.add(enabled);
@@ -715,81 +681,36 @@ public class ServerDescriptor
         {
           ldapPorts.add(portNumber);
           ldapEnabled.add(enabled);
-          enabled = "true".equalsIgnoreCase(
-              getFirstValue(sr, "ds-cfg-allow-start-tls"));
-          startTLSEnabled.add(enabled);
+          startTLSEnabled.add(asBoolean(sr, "ds-cfg-allow-start-tls"));
         }
       }
-    }
-    finally
-    {
-      listeners.close();
     }
   }
 
   private static void updateAdminConnectorConfiguration(ServerDescriptor desc, ConnectionWrapper conn)
-      throws NamingException
+      throws IOException
   {
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-cfg-listen-port",
-            "objectclass"
-        });
-    String filter = "(objectclass=ds-cfg-administration-connector)";
+    SearchRequest request = newSearchRequest(
+        "cn=config", WHOLE_SUBTREE, "(objectclass=ds-cfg-administration-connector)",
+        "ds-cfg-listen-port", "objectclass");
+    SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
+    Integer adminConnectorPort = asInteger(sr, "ds-cfg-listen-port");
 
-    LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration<SearchResult> listeners =
-      conn.getLdapContext().search(jndiName, filter, ctls);
-
-    try
+    // Even if we have a single port, use an array to be consistent with
+    // other protocols.
+    ArrayList<Integer> adminPorts = new ArrayList<>();
+    ArrayList<Boolean> adminEnabled = new ArrayList<>();
+    if (adminConnectorPort != null)
     {
-      Integer adminConnectorPort = null;
-
-      // we should have a single administration connector
-      while (listeners.hasMore()) {
-        SearchResult sr = listeners.next();
-        String port = getFirstValue(sr, "ds-cfg-listen-port");
-        adminConnectorPort = Integer.valueOf(port);
-      }
-
-      // Even if we have a single port, use an array to be consistent with
-      // other protocols.
-      ArrayList<Integer> adminPorts = new ArrayList<>();
-      ArrayList<Boolean> adminEnabled = new ArrayList<>();
-      if (adminConnectorPort != null)
-      {
-        adminPorts.add(adminConnectorPort);
-        adminEnabled.add(Boolean.TRUE);
-      }
-      desc.serverProperties.put(ServerProperty.ADMIN_PORT, adminPorts);
-      desc.serverProperties.put(ServerProperty.ADMIN_ENABLED, adminEnabled);
+      adminPorts.add(adminConnectorPort);
+      adminEnabled.add(Boolean.TRUE);
     }
-    finally
-    {
-      listeners.close();
-    }
+    desc.serverProperties.put(ServerProperty.ADMIN_PORT, adminPorts);
+    desc.serverProperties.put(ServerProperty.ADMIN_ENABLED, adminEnabled);
   }
 
-  private static void updateJmxConfiguration(ServerDescriptor desc, ConnectionWrapper conn) throws NamingException
+  private static void updateJmxConfiguration(ServerDescriptor desc, ConnectionWrapper conn) throws IOException
   {
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-cfg-enabled",
-            "ds-cfg-listen-address",
-            "ds-cfg-listen-port",
-            "ds-cfg-use-ssl",
-            "objectclass"
-        });
-    String filter = "(objectclass=ds-cfg-jmx-connection-handler)";
-
-    LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration<SearchResult> listeners =
-      conn.getLdapContext().search(jndiName, filter, ctls);
-
     ArrayList<Integer> jmxPorts = new ArrayList<>();
     ArrayList<Integer> jmxsPorts = new ArrayList<>();
     ArrayList<Boolean> jmxEnabled = new ArrayList<>();
@@ -800,21 +721,22 @@ public class ServerDescriptor
     desc.serverProperties.put(ServerProperty.JMX_ENABLED, jmxEnabled);
     desc.serverProperties.put(ServerProperty.JMXS_ENABLED, jmxsEnabled);
 
-    try
+    String filter = "(objectclass=ds-cfg-jmx-connection-handler)";
+    SearchRequest request = newSearchRequest("cn=config", WHOLE_SUBTREE, filter,
+        "ds-cfg-enabled",
+        "ds-cfg-listen-address",
+        "ds-cfg-listen-port",
+        "ds-cfg-use-ssl",
+        "objectclass");
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      while(listeners.hasMore())
+      while (entryReader.hasNext())
       {
-        SearchResult sr = listeners.next();
+        SearchResultEntry sr = entryReader.readEntry();
 
-        String port = getFirstValue(sr, "ds-cfg-listen-port");
-
-        boolean isSecure = "true".equalsIgnoreCase(
-            getFirstValue(sr, "ds-cfg-use-ssl"));
-
-        boolean enabled = "true".equalsIgnoreCase(
-            getFirstValue(sr, "ds-cfg-enabled"));
-        Integer portNumber = Integer.valueOf(port);
-        if (isSecure)
+        Integer portNumber = asInteger(sr, "ds-cfg-listen-port");
+        boolean enabled = asBoolean(sr, "ds-cfg-enabled");
+        if (asBoolean(sr, "ds-cfg-use-ssl"))
         {
           jmxsPorts.add(portNumber);
           jmxsEnabled.add(enabled);
@@ -826,45 +748,30 @@ public class ServerDescriptor
         }
       }
     }
-    finally
-    {
-      listeners.close();
-    }
   }
 
-  private static void updateReplicas(ServerDescriptor desc,
-      ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
-  throws NamingException
+  private static void updateReplicas(ServerDescriptor desc, ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
+      throws IOException
   {
     if (!cacheFilter.searchBaseDNInformation())
     {
       return;
     }
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-cfg-base-dn",
-            "ds-cfg-backend-id",
-            ConfigConstants.ATTR_OBJECTCLASS
-        });
-    String filter = "(objectclass=ds-cfg-backend)";
 
-    LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration<SearchResult> databases =
-      conn.getLdapContext().search(jndiName, filter, ctls);
-
-    try
+    SearchRequest request = newSearchRequest("cn=config", WHOLE_SUBTREE, "(objectclass=ds-cfg-backend)",
+        "ds-cfg-base-dn",
+        "ds-cfg-backend-id",
+        ConfigConstants.ATTR_OBJECTCLASS);
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      while(databases.hasMore())
+      while (entryReader.hasNext())
       {
-        SearchResult sr = databases.next();
+        SearchResultEntry sr = entryReader.readEntry();
 
-        String id = getFirstValue(sr, "ds-cfg-backend-id");
-
+        String id = firstValueAsString(sr, "ds-cfg-backend-id");
         if (!isConfigBackend(id) || isSchemaBackend(id))
         {
-          Set<String> baseDns = getValues(sr, "ds-cfg-base-dn");
+          Set<DN> baseDns = asSetOfDN(sr, "ds-cfg-base-dn");
 
           Set<String> entries;
           if (cacheFilter.searchMonitoringInformation())
@@ -877,29 +784,29 @@ public class ServerDescriptor
           }
 
           Set<ReplicaDescriptor> replicas = desc.getReplicas();
-          for (String baseDn : baseDns)
+          for (DN baseDn : baseDns)
           {
             if (isAddReplica(cacheFilter, baseDn))
             {
-              SuffixDescriptor suffix = new SuffixDescriptor();
-              suffix.setDN(baseDn);
               ReplicaDescriptor replica = new ReplicaDescriptor();
               replica.setServer(desc);
-              replica.setObjectClasses(getValues(sr, ConfigConstants.ATTR_OBJECTCLASS));
+              replica.setObjectClasses(asSetOfString(sr, ConfigConstants.ATTR_OBJECTCLASS));
               replica.setBackendName(id);
               replicas.add(replica);
-              HashSet<ReplicaDescriptor> r = new HashSet<>();
-              r.add(replica);
-              suffix.setReplicas(r);
+
+              SuffixDescriptor suffix = new SuffixDescriptor();
+              suffix.setDN(baseDn);
+              suffix.setReplicas(newHashSet(replica));
               replica.setSuffix(suffix);
+
               int nEntries = -1;
               for (String s : entries)
               {
                 int index = s.indexOf(" ");
                 if (index != -1)
                 {
-                  String dn = s.substring(index + 1);
-                  if (areDnsEqual(baseDn, dn))
+                  DN dn = DN.valueOf(s.substring(index + 1));
+                  if (baseDn.equals(dn))
                   {
                     try
                     {
@@ -920,13 +827,9 @@ public class ServerDescriptor
         }
       }
     }
-    finally
-    {
-      databases.close();
-    }
   }
 
-  private static boolean isAddReplica(TopologyCacheFilter cacheFilter, String baseDn)
+  private static boolean isAddReplica(TopologyCacheFilter cacheFilter, DN baseDn)
   {
     if (cacheFilter.searchAllBaseDNs())
     {
@@ -935,7 +838,7 @@ public class ServerDescriptor
 
     for (String dn : cacheFilter.getBaseDNsToSearch())
     {
-      if (areDnsEqual(dn, baseDn))
+      if (DN.valueOf(dn).equals(baseDn))
       {
         return true;
       }
@@ -943,97 +846,47 @@ public class ServerDescriptor
     return false;
   }
 
-  private static void updateReplication(ServerDescriptor desc,
-      ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
-  throws NamingException
+  private static void updateReplication(ServerDescriptor desc, ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
+      throws IOException
   {
-    boolean replicationEnabled = false;
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-cfg-enabled"
-        });
-    String filter = "(objectclass=ds-cfg-synchronization-provider)";
-
-    LdapName jndiName = new LdapName(
-      "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
-    NamingEnumeration<SearchResult> syncProviders = null;
-
-    try
-    {
-      syncProviders = conn.getLdapContext().search(jndiName, filter, ctls);
-
-      while(syncProviders.hasMore())
-      {
-        SearchResult sr = syncProviders.next();
-
-        if ("true".equalsIgnoreCase(getFirstValue(sr,
-          "ds-cfg-enabled")))
-        {
-          replicationEnabled = true;
-        }
-      }
-    }
-    catch (NameNotFoundException nse)
-    {
-      /* ignore */
-    }
-    finally
-    {
-      if (syncProviders != null)
-      {
-        syncProviders.close();
-      }
-    }
-    desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
-        Boolean.valueOf(replicationEnabled));
+    SearchRequest request = newSearchRequest(
+        "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config",
+        WHOLE_SUBTREE,
+        "(objectclass=ds-cfg-synchronization-provider)",
+        "ds-cfg-enabled");
+    SearchResultEntry sre = conn.getConnection().searchSingleEntry(request);
+    Boolean replicationEnabled = asBoolean(sre, "ds-cfg-enabled");
+    desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED, replicationEnabled);
 
     Set<String> allReplicationServers = new LinkedHashSet<>();
 
     if (cacheFilter.searchBaseDNInformation())
     {
-      ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-      ctls.setReturningAttributes(
-          new String[] {
-              "ds-cfg-base-dn",
-              "ds-cfg-replication-server",
-              "ds-cfg-server-id"
-          });
-      filter = "(objectclass=ds-cfg-replication-domain)";
-
-      jndiName = new LdapName(
-      "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
-
-      syncProviders = null;
-      try
+      request = newSearchRequest(
+          "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config",
+          WHOLE_SUBTREE,
+          "(objectclass=ds-cfg-replication-domain)",
+          "ds-cfg-base-dn",
+          "ds-cfg-replication-server",
+          "ds-cfg-server-id"
+      );
+      try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
       {
-        syncProviders = conn.getLdapContext().search(jndiName, filter, ctls);
-
-        while(syncProviders.hasMore())
+        while (entryReader.hasNext())
         {
-          SearchResult sr = syncProviders.next();
+          SearchResultEntry sr = entryReader.readEntry();
 
-          int id = Integer.parseInt(
-              getFirstValue(sr, "ds-cfg-server-id"));
-          Set<String> replicationServers = getValues(sr,
-          "ds-cfg-replication-server");
-          Set<String> dns = getValues(sr, "ds-cfg-base-dn");
-          for (String dn : dns)
+          int id = asInteger(sr, "ds-cfg-server-id");
+          Set<String> replicationServers = asSetOfString(sr, "ds-cfg-replication-server");
+          Set<DN> dns = asSetOfDN(sr, "ds-cfg-base-dn");
+          for (DN dn : dns)
           {
             for (ReplicaDescriptor replica : desc.getReplicas())
             {
-              if (areDnsEqual(replica.getSuffix().getDN(), dn))
+              if (replica.getSuffix().getDnAsDn().equals(dn))
               {
                 replica.setReplicationId(id);
-                // Keep the values of the replication servers in lower case
-                // to make use of Sets as String simpler.
-                LinkedHashSet<String> repServers = new LinkedHashSet<>();
-                for (String s: replicationServers)
-                {
-                  repServers.add(s.toLowerCase());
-                }
+                LinkedHashSet<String> repServers = toLowercase(replicationServers);
                 replica.setReplicationServers(repServers);
                 allReplicationServers.addAll(repServers);
               }
@@ -1041,190 +894,138 @@ public class ServerDescriptor
           }
         }
       }
-      catch (NameNotFoundException nse)
-      {
-        /* ignore */
-      }
-      finally
-      {
-        if (syncProviders != null)
-        {
-          syncProviders.close();
-        }
-      }
     }
 
-    ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-    new String[] {
-      "ds-cfg-replication-port", "ds-cfg-replication-server",
-      "ds-cfg-replication-server-id"
-    });
-    filter = "(objectclass=ds-cfg-replication-server)";
+    desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER, Boolean.FALSE);
 
-    jndiName = new LdapName("cn=Multimaster "+
-        "Synchronization,cn=Synchronization Providers,cn=config");
-
-    desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER,
-        Boolean.FALSE);
-    NamingEnumeration<SearchResult> entries = null;
-    try
+    request = newSearchRequest(
+        "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config",
+        WHOLE_SUBTREE,
+        "(objectclass=ds-cfg-replication-server)",
+        "ds-cfg-replication-port",
+        "ds-cfg-replication-server",
+        "ds-cfg-replication-server-id"
+    );
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      entries = conn.getLdapContext().search(jndiName, filter, ctls);
-
-      while (entries.hasMore())
+      while (entryReader.hasNext())
       {
-        SearchResult sr = entries.next();
+        SearchResultEntry sr = entryReader.readEntry();
 
-        desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER,
-            Boolean.TRUE);
-        String v = getFirstValue(sr, "ds-cfg-replication-port");
-        desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_PORT,
-            Integer.parseInt(v));
-        v = getFirstValue(sr, "ds-cfg-replication-server-id");
-        desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_ID,
-            Integer.parseInt(v));
-        Set<String> values = getValues(sr, "ds-cfg-replication-server");
-        // Keep the values of the replication servers in lower case
-        // to make use of Sets as String simpler.
-        LinkedHashSet<String> repServers = new LinkedHashSet<>();
-        for (String s: values)
-        {
-          repServers.add(s.toLowerCase());
-        }
+        desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER, Boolean.TRUE);
+        Integer port = asInteger(sr, "ds-cfg-replication-port");
+        desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_PORT, port);
+        Integer serverId = asInteger(sr, "ds-cfg-replication-server-id");
+        desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_ID, serverId);
+        LinkedHashSet<String> repServers = toLowercase(asSetOfString(sr, "ds-cfg-replication-server"));
         allReplicationServers.addAll(repServers);
-        desc.serverProperties.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS,
-            allReplicationServers);
-      }
-    }
-    catch (NameNotFoundException nse)
-    {
-      /* ignore */
-    }
-    finally
-    {
-      if (entries != null)
-      {
-        entries.close();
+        desc.serverProperties.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS, allReplicationServers);
       }
     }
 
-    boolean replicationSecure = false;
-    if (replicationEnabled)
-    {
-      ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      ctls.setReturningAttributes(
-      new String[] {"ds-cfg-ssl-encryption"});
-      filter = "(objectclass=ds-cfg-crypto-manager)";
-
-      jndiName = new LdapName("cn=Crypto Manager,cn=config");
-
-      entries = conn.getLdapContext().search(jndiName, filter, ctls);
-
-      try
-      {
-        while (entries.hasMore())
-        {
-          SearchResult sr = entries.next();
-
-          String v = getFirstValue(sr, "ds-cfg-ssl-encryption");
-          replicationSecure = "true".equalsIgnoreCase(v);
-        }
-      }
-      finally
-      {
-        entries.close();
-      }
-    }
-    desc.serverProperties.put(ServerProperty.IS_REPLICATION_SECURE,
-        Boolean.valueOf(replicationSecure));
+    Boolean replicationSecure = isReplicationSecure(conn, replicationEnabled);
+    desc.serverProperties.put(ServerProperty.IS_REPLICATION_SECURE, replicationSecure);
   }
 
   /**
-   Updates the instance key public-key certificate value of this context from
-   the local truststore of the instance bound by this context. Any current
-   value of the certificate is overwritten. The intent of this method is to
-   retrieve the instance-key public-key certificate when this context is bound
-   to an instance, and cache it for later use in registering the instance into
-   ADS.
-   @param desc The map to update with the instance key-pair public-key
-   certificate.
-   @param conn The connection to the server.
-   @throws NamingException if unable to retrieve certificate from bound
-   instance.
+   * Keep the values of the replication servers in lower case to make use of Sets as String simpler.
    */
-  private static void updatePublicKeyCertificate(ServerDescriptor desc, ConnectionWrapper conn) throws NamingException
+  private static LinkedHashSet<String> toLowercase(Set<String> values)
+  {
+    LinkedHashSet<String> repServers = new LinkedHashSet<>();
+    for (String s: values)
+    {
+      repServers.add(s.toLowerCase());
+    }
+    return repServers;
+  }
+
+  private static boolean isReplicationSecure(ConnectionWrapper conn, boolean replicationEnabled) throws IOException
+  {
+    if (replicationEnabled)
+    {
+      SearchRequest request = newSearchRequest(
+          "cn=Crypto Manager,cn=config", BASE_OBJECT, "(objectclass=ds-cfg-crypto-manager)",
+          "ds-cfg-ssl-encryption");
+      try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
+      {
+        while (entryReader.hasNext())
+        {
+          SearchResultEntry sr = entryReader.readEntry();
+          return asBoolean(sr, "ds-cfg-ssl-encryption");
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Updates the instance key public-key certificate value of this context from the local truststore
+   * of the instance bound by this context. Any current value of the certificate is overwritten. The
+   * intent of this method is to retrieve the instance-key public-key certificate when this context
+   * is bound to an instance, and cache it for later use in registering the instance into ADS.
+   *
+   * @param desc
+   *          The map to update with the instance key-pair public-key certificate.
+   * @param connWrapper
+   *          The connection to the server.
+   * @throws LdapException
+   *           if unable to retrieve certificate from bound instance.
+   */
+  private static void updatePublicKeyCertificate(ServerDescriptor desc, ConnectionWrapper connWrapper)
+      throws LdapException
   {
     /* TODO: this DN is declared in some core constants file. Create a constants
        file for the installer and import it into the core. */
-    final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
-    final LdapName dn = new LdapName(dnStr);
+    String dn = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
+    Connection conn = connWrapper.getConnection();
     for (int i = 0; i < 2 ; ++i) {
       /* If the entry does not exist in the instance's truststore backend, add
          it (which induces the CryptoManager to create the public-key
          certificate attribute), then repeat the search. */
       try {
-        final SearchControls searchControls = new SearchControls();
-        searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-        final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
-        searchControls.setReturningAttributes(attrIDs);
-        final SearchResult certEntry = conn.getLdapContext().search(dn,
-                   "(objectclass=ds-cfg-instance-key)", searchControls).next();
-        final Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
+        SearchRequest request = newSearchRequest(
+            dn,
+            BASE_OBJECT,
+            "(objectclass=ds-cfg-instance-key)",
+            "ds-cfg-public-key-certificate;binary");
+        SearchResultEntry certEntry = conn.searchSingleEntry(request);
+        final Attribute certAttr = certEntry.getAttribute("ds-cfg-public-key-certificate;binary");
         if (null != certAttr) {
           /* attribute ds-cfg-public-key-certificate is a MUST in the schema */
           desc.serverProperties.put(
                   ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
-                  certAttr.get());
+                  certAttr.firstValue().toByteArray());
         }
         break;
       }
-      catch (NameNotFoundException x) {
-        if (0 == i) {
-          // Poke CryptoManager to initialize truststore. Note the special attribute in the request.
-          final Attributes attrs = new BasicAttributes();
-          final Attribute oc = new BasicAttribute("objectclass");
-          oc.add("top");
-          oc.add("ds-cfg-self-signed-cert-request");
-          attrs.put(oc);
-          conn.getLdapContext().createSubcontext(dn, attrs).close();
+      catch (LdapException e)
+      {
+        if (0 != i || e.getResult().getResultCode() != ResultCode.NO_SUCH_OBJECT)
+        {
+          throw e;
         }
-        else {
-          throw x;
-        }
+        // Poke CryptoManager to initialize truststore. Note the special attribute in the request.
+        AddRequest request = newAddRequest(dn)
+            .addAttribute("objectclass", "top", "ds-cfg-self-signed-cert-request");
+        conn.add(request);
       }
     }
   }
 
-  private static void updateMiscellaneous(ServerDescriptor desc, ConnectionWrapper conn) throws NamingException
+  private static void updateMiscellaneous(ServerDescriptor desc, ConnectionWrapper conn) throws IOException
   {
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-sync-generation-id"
-        });
     String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
-
-    LdapName jndiName = new LdapName("cn=schema");
-    NamingEnumeration<SearchResult> listeners =
-      conn.getLdapContext().search(jndiName, filter, ctls);
-
-    try
+    SearchRequest request = newSearchRequest("cn=schema", BASE_OBJECT, filter, "ds-sync-generation-id");
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      while(listeners.hasMore())
+      while (entryReader.hasNext())
       {
-        SearchResult sr = listeners.next();
+        SearchResultEntry sr = entryReader.readEntry();
 
         desc.serverProperties.put(ServerProperty.SCHEMA_GENERATION_ID,
-            getFirstValue(sr, "ds-sync-generation-id"));
+            firstValueAsString(sr, "ds-sync-generation-id"));
       }
-    }
-    finally
-    {
-      listeners.close();
     }
   }
 
@@ -1235,82 +1036,70 @@ public class ServerDescriptor
    certificates. This trust is necessary at least to initialize replication,
    which uses the trusted certificate entries in the ads-truststore for server
    authentication.
-   @param conn The connection to the server.
+   @param connWrapper The connection to the server.
    @param keyEntryMap The set of valid (i.e., not tagged as compromised)
    instance key-pair public-key certificate entries in ADS represented as a map
    from keyID to public-key certificate (binary).
-   @throws NamingException in case an error occurs while updating the instance's
+   @throws LdapException in case an error occurs while updating the instance's
    ads-truststore via LDAP.
    */
-  public static void seedAdsTrustStore(
-          ConnectionWrapper conn,
-          Map<String, byte[]> keyEntryMap)
-          throws NamingException
+  public static void seedAdsTrustStore(ConnectionWrapper connWrapper, Map<String, byte[]> keyEntryMap)
+      throws LdapException
   {
+    Connection conn = connWrapper.getConnection();
     /* TODO: this DN is declared in some core constants file. Create a
        constants file for the installer and import it into the core. */
-    final Attribute oc = new BasicAttribute("objectclass");
-    oc.add("top");
-    oc.add("ds-cfg-instance-key");
     for (Map.Entry<String, byte[]> keyEntry : keyEntryMap.entrySet()){
-      final BasicAttributes keyAttrs = new BasicAttributes();
-      keyAttrs.put(oc);
-      final Attribute rdnAttr = new BasicAttribute(
-              ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName(),
-              keyEntry.getKey());
-      keyAttrs.put(rdnAttr);
-      keyAttrs.put(new BasicAttribute(
-              ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.
-                      getAttributeName() + ";binary", keyEntry.getValue()));
-      final LdapName keyDn = new LdapName(rdnAttr.getID() + "=" + Rdn.escapeValue(rdnAttr.get()) + "," + TRUSTSTORE_DN);
-      try {
-        conn.getLdapContext().createSubcontext(keyDn, keyAttrs).close();
+      String instanceKeyId = ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName();
+      String instancePublicKeyCertificate =
+          ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName() + ";binary";
+      String dn = instanceKeyId + "=" + Rdn.escapeValue(keyEntry.getKey()) + "," + TRUSTSTORE_DN;
+      AddRequest request = newAddRequest(dn)
+          .addAttribute("objectclass", "top", "ds-cfg-instance-key")
+          .addAttribute(instanceKeyId, keyEntry.getKey())
+          .addAttribute(instancePublicKeyCertificate, keyEntry.getValue());
+      try
+      {
+        conn.add(request);
       }
-      catch(NameAlreadyBoundException x){
-        conn.getLdapContext().destroySubcontext(keyDn);
-        conn.getLdapContext().createSubcontext(keyDn, keyAttrs).close();
+      catch (LdapException e)
+      {
+        if (e.getResult().getResultCode() != ResultCode.ENTRY_ALREADY_EXISTS)
+        {
+          throw e;
+        }
+        conn.delete(dn);
+        conn.add(request);
       }
     }
   }
 
   /**
-   * Returns the values of the ds-base-dn-entry count attributes for the given
-   * backend monitor entry using the provided connection.
-   * @param conn the connection to use to update the configuration.
-   * @param backendID the id of the backend.
+   * Returns the values of the ds-base-dn-entry count attributes for the given backend monitor entry
+   * using the provided connection.
+   *
+   * @param conn
+   *          the connection to use to update the configuration.
+   * @param backendID
+   *          the id of the backend.
    * @return the values of the ds-base-dn-entry count attribute.
-   * @throws NamingException if there was an error.
+   * @throws IOException
+   *           if there was an error.
    */
-  private static Set<String> getBaseDNEntryCount(ConnectionWrapper conn,
-      String backendID) throws NamingException
+  private static Set<String> getBaseDNEntryCount(ConnectionWrapper conn, String backendID) throws IOException
   {
-    LinkedHashSet<String> v = new LinkedHashSet<>();
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            "ds-base-dn-entry-count"
-        });
-    String filter = "(ds-backend-id="+backendID+")";
-
-    LdapName jndiName = new LdapName("cn=monitor");
-    NamingEnumeration<SearchResult> listeners =
-      conn.getLdapContext().search(jndiName, filter, ctls);
-
-    try
+    LinkedHashSet<String> results = new LinkedHashSet<>();
+    SearchRequest request =
+        newSearchRequest("cn=monitor", SINGLE_LEVEL, "(ds-backend-id=" + backendID + ")", "ds-base-dn-entry-count");
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      while(listeners.hasMore())
+      while (entryReader.hasNext())
       {
-        SearchResult sr = listeners.next();
-
-        v.addAll(getValues(sr, "ds-base-dn-entry-count"));
+        SearchResultEntry sr = entryReader.readEntry();
+        results.addAll(asSetOfString(sr, "ds-base-dn-entry-count"));
       }
     }
-    finally
-    {
-      listeners.close();
-    }
-    return v;
+    return results;
   }
 
   /**

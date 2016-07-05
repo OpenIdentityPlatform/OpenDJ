@@ -64,6 +64,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ADSContext;
@@ -679,8 +681,41 @@ public class Utils
   }
 
   /**
-   * Returns the path of the installation of the directory server. Note that
-   * this method assumes that this code is being run locally.
+   * Returns a message object for the given IOException. The code assume that we are trying to
+   * connect to the local server.
+   *
+   * @param e
+   *          the IOException.
+   * @return a message object for the given IOException.
+   */
+  public static LocalizableMessage getMessageForException(IOException e)
+  {
+    final String detailedException = e.getLocalizedMessage();
+    if (isCertificateException(e))
+    {
+      return INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(detailedException);
+    }
+    else if (e instanceof org.forgerock.opendj.ldap.AuthenticationException)
+    {
+      return ERR_CANNOT_CONNECT_TO_LOCAL_AUTHENTICATION.get(detailedException);
+    }
+    else if (e instanceof AuthorizationException)
+    {
+      return ERR_CANNOT_CONNECT_TO_LOCAL_PERMISSIONS.get(detailedException);
+    }
+    else if (e instanceof ConnectionException)
+    {
+      return ERR_CANNOT_CONNECT_TO_LOCAL_COMMUNICATION.get(detailedException);
+    }
+    else
+    {
+      return ERR_CANNOT_CONNECT_TO_LOCAL_GENERIC.get(detailedException);
+    }
+  }
+
+  /**
+   * Returns the path of the installation of the directory server. Note that this method assumes
+   * that this code is being run locally.
    *
    * @return the path of the installation of the directory server.
    */
@@ -1761,7 +1796,7 @@ public class Utils
       Set<SuffixDescriptor> suffixes = suf.getSuffixes();
       for (SuffixDescriptor suffix : suffixes)
       {
-        baseDNs.add(suffix.getDN());
+        baseDNs.add(suffix.getDN().toString());
       }
     }
     return baseDNs;
@@ -1774,15 +1809,15 @@ public class Utils
     Set<SuffixDescriptor> suffixes = userData.getSuffixesToReplicateOptions().getSuffixes();
     AuthenticationData authData = userData.getReplicationOptions().getAuthenticationData();
     String ldapURL = ConnectionUtils.getLDAPUrl(authData.getHostPort(), authData.useSecureConnection());
+
+    suffixLoop:
     for (SuffixDescriptor suffix : suffixes)
     {
-      boolean found = false;
       for (ReplicaDescriptor replica : suffix.getReplicas())
       {
         if (ldapURL.equalsIgnoreCase(replica.getServer().getAdminConnectorURL()))
         {
           // This is the server we're configuring
-          found = true;
           Set<String> baseDNs = hm.get(replica.getServer());
           if (baseDNs == null)
           {
@@ -1790,31 +1825,25 @@ public class Utils
             hm.put(replica.getServer(), baseDNs);
           }
           baseDNs.add(suffix.getDN());
-          break;
+          continue suffixLoop;
         }
       }
-      if (!found)
+
+      for (ReplicaDescriptor replica : suffix.getReplicas())
       {
-        for (ReplicaDescriptor replica : suffix.getReplicas())
+        Set<String> baseDNs = hm.get(replica.getServer());
+        if (baseDNs != null)
         {
-          if (hm.keySet().contains(replica.getServer()))
-          {
-            hm.get(replica.getServer()).add(suffix.getDN());
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found)
-      {
-        // We haven't found the server yet, just take the first one
-        ReplicaDescriptor replica = suffix.getReplicas().iterator().next();
-        if (replica != null)
-        {
-          Set<String> baseDNs = new LinkedHashSet<>();
-          hm.put(replica.getServer(), baseDNs);
           baseDNs.add(suffix.getDN());
+          continue suffixLoop;
         }
+      }
+
+      // We haven't found the server yet, just take the first one
+      ReplicaDescriptor replica = suffix.getReplicas().iterator().next();
+      if (replica != null)
+      {
+        hm.put(replica.getServer(), newLinkedHashSet(suffix.getDN()));
       }
     }
     return hm;

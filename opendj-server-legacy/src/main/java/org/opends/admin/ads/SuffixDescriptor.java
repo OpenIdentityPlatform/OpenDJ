@@ -12,12 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.admin.ads;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * The object of this class represent a topology of replicas across servers that
@@ -26,7 +28,7 @@ import java.util.Set;
  */
 public class SuffixDescriptor
 {
-  private String suffixDN;
+  private DN suffixDN;
   private final Set<ReplicaDescriptor> replicas = new HashSet<>();
 
   /**
@@ -34,7 +36,17 @@ public class SuffixDescriptor
    *
    * @return the DN associated with this suffix descriptor.
    */
-  public String getDN()
+  public String getDN() // FIXME change return type to DN
+  {
+    return suffixDN.toString();
+  }
+
+  /**
+   * Returns the DN associated with this suffix descriptor.
+   *
+   * @return the DN associated with this suffix descriptor.
+   */
+  public DN getDnAsDn()
   {
     return suffixDN;
   }
@@ -45,7 +57,7 @@ public class SuffixDescriptor
    * @param suffixDN
    *          the DN associated with this suffix descriptor.
    */
-  public void setDN(String suffixDN)
+  public void setDN(DN suffixDN)
   {
     this.suffixDN = suffixDN;
   }
@@ -109,7 +121,6 @@ public class SuffixDescriptor
     {
       buf.append("-").append(replica.getServer().getId());
     }
-
     return buf.toString();
   }
 }

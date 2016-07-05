@@ -46,6 +46,8 @@ import javax.net.ssl.SSLHandshakeException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 
@@ -458,6 +460,30 @@ public final class Utils {
         } else if (ne instanceof NamingSecurityException) {
             return INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
         } else if (ne instanceof CommunicationException) {
+            return ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
+        } else {
+            return INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
+        }
+    }
+
+    /**
+     * Returns a message object for the given IOException.
+     *
+     * @param e
+     *            The IOException.
+     * @param hostPort
+     *            The hostPort representation of the server we were contacting when the IOException occurred.
+     * @return A message object for the given IOException.
+     */
+    public static LocalizableMessage getMessageForException(IOException e, String hostPort) {
+        String arg = e.getLocalizedMessage();
+        if (Utils.isCertificateException(e)) {
+            return INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(hostPort, arg);
+        } else if (e instanceof org.forgerock.opendj.ldap.AuthenticationException) {
+            return INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
+        } else if (e instanceof AuthorizationException) {
+            return INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+        } else if (e instanceof ConnectionException) {
             return ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
         } else {
             return INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);

@@ -1470,10 +1470,10 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         return;
       }
-      catch (NamingException ne)
+      catch (NamingException e)
       {
-        throw new ReplicationCliException(getThrowableMsg(ERR_READING_SERVER_TASK_PROGRESS.get(), ne),
-            ERROR_CONNECTING, ne);
+        throw new ReplicationCliException(getThrowableMsg(ERR_READING_SERVER_TASK_PROGRESS.get(), e),
+            ERROR_CONNECTING, e);
       }
     }
   }
@@ -1700,7 +1700,7 @@ public class ReplicationCliMain extends ConsoleApplication
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
       {
         SuffixDescriptor suffix = new SuffixDescriptor();
-        suffix.setDN(baseDN.getDn().toString());
+        suffix.setDN(baseDN.getDn());
 
         ReplicaDescriptor replica = new ReplicaDescriptor();
 
@@ -3723,8 +3723,8 @@ public class ReplicationCliMain extends ConsoleApplication
               suffixes.add(rep1SuffixDN);
             }
             break;
-            default:
-              throw new IllegalStateException("Unknown type: "+type);
+          default:
+            throw new IllegalStateException("Unknown type: " + type);
           }
         }
       }
@@ -5478,10 +5478,10 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       return ServerDescriptor.createStandalone(conn, filter);
     }
-    catch (NamingException ne)
+    catch (IOException e)
     {
       throw new ReplicationCliException(
-          getMessageForException(ne, conn.getHostPort().toString()), ERROR_READING_CONFIGURATION, ne);
+          getMessageForException(e, conn.getHostPort().toString()), ERROR_READING_CONFIGURATION, e);
     }
   }
 
@@ -6969,7 +6969,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
     }
-    catch (NamingException ne)
+    catch (IOException ne)
     {
       LocalizableMessage msg = getMessageForException(ne, connSource.getHostPort().toString());
       throw new ReplicationCliException(msg, ERROR_READING_CONFIGURATION, ne);

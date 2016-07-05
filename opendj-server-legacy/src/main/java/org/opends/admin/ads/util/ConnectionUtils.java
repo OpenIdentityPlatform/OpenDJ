@@ -39,6 +39,8 @@ import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.HostPort;
@@ -603,5 +605,84 @@ public class ConnectionUtils
       }
     }
     return values;
+  }
+
+  /**
+   * Returns the first attribute value in this attribute decoded as a UTF-8 string.
+   *
+   * @param sr
+   *          the search result entry
+   * @param attrDesc
+   *          the attribute description
+   * @return The first attribute value in this attribute decoded as a UTF-8 string.
+   */
+  public static String firstValueAsString(SearchResultEntry sr, String attrDesc)
+  {
+    org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
+    return (attr != null && !attr.isEmpty()) ? attr.firstValueAsString() : null;
+  }
+
+  /**
+   * Returns the first value decoded as an Integer, or {@code null} if the attribute does not
+   * contain any values.
+   *
+   * @param sr
+   *          the search result entry
+   * @param attrDesc
+   *          the attribute description
+   * @return The first value decoded as an Integer.
+   */
+  public static Integer asInteger(SearchResultEntry sr, String attrDesc)
+  {
+    org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
+    return attr != null ? attr.parse().asInteger() : null;
+  }
+
+  /**
+   * Returns the first value decoded as a Boolean, or {@code null} if the attribute does not contain
+   * any values.
+   *
+   * @param sr
+   *          the search result entry
+   * @param attrDesc
+   *          the attribute description
+   * @return The first value decoded as an Boolean.
+   */
+  public static Boolean asBoolean(SearchResultEntry sr, String attrDesc)
+  {
+    org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
+    return attr != null ? attr.parse().asBoolean() : null;
+  }
+
+  /**
+   * Returns the values decoded as a set of Strings.
+   *
+   * @param sr
+   *          the search result entry
+   * @param attrDesc
+   *          the attribute description
+   * @return The values decoded as a set of Strings. Never {@code null} and never contains
+   *         {@code null} values.
+   */
+  public static Set<String> asSetOfString(SearchResultEntry sr, String attrDesc)
+  {
+    org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
+    return attr != null ? attr.parse().asSetOfString() : null;
+  }
+
+  /**
+   * Returns the values decoded as a set of DNs.
+   *
+   * @param sr
+   *          the search result entry
+   * @param attrDesc
+   *          the attribute description
+   * @return The values decoded as a set of DNs. Never {@code null} and never contains {@code null}
+   *         values.
+   */
+  public static Set<DN> asSetOfDN(SearchResultEntry sr, String attrDesc)
+  {
+    org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
+    return attr != null ? attr.parse().asSetOfDN() : null;
   }
 }

@@ -1947,10 +1947,10 @@ public class Installer extends GuiApplication
             backendTypes.get(backendName).getBackend());
       }
     }
-    catch (NamingException ne)
+    catch (NamingException e)
     {
-      LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
-      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
+      LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), e);
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, failedMsg, e);
     }
   }
 
@@ -2487,18 +2487,10 @@ public class Installer extends GuiApplication
           }
         }
       }
-      catch (NamingException ne)
+      catch (IOException e)
       {
-        LocalizableMessage msg;
-        if (isCertificateException(ne))
-        {
-          msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(getHostPort(server), ne.toString(true));
-        }
-        else
-        {
-          msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(getHostPort(server), ne.toString(true));
-        }
-        throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
+        LocalizableMessage msg = Utils.getMessageForException(e);
+        throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, e);
       }
     }
 
@@ -2551,18 +2543,10 @@ public class Installer extends GuiApplication
               }
             }
           }
-          catch (NamingException ne)
+          catch (IOException e)
           {
-            LocalizableMessage msg;
-            if (isCertificateException(ne))
-            {
-              msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(getHostPort(server), ne.toString(true));
-            }
-            else
-            {
-              msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(getHostPort(server), ne.toString(true));
-            }
-            throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
+            LocalizableMessage msg = Utils.getMessageForException(e);
+            throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, e);
           }
         }
         if (replicationId == -1)
@@ -2740,6 +2724,19 @@ public class Installer extends GuiApplication
           }
         }
       }
+    }
+    catch (IOException e)
+    {
+      LocalizableMessage msg;
+      if (isRemoteServer)
+      {
+        msg = getMessageForException(e, auth.getHostPort().toString());
+      }
+      else
+      {
+        msg = Utils.getMessageForException(e);
+      }
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, e);
     }
     catch (NamingException ne)
     {
@@ -3955,7 +3952,7 @@ public class Installer extends GuiApplication
    * Update the UserInstallData object with the contents of the server to which
    * we are connected with the provided connection.
    */
-  private void updateUserDataWithSuffixesInServer(ConnectionWrapper conn) throws NamingException
+  private void updateUserDataWithSuffixesInServer(ConnectionWrapper conn) throws IOException
   {
     SuffixesToReplicateOptions suf = getUserData().getSuffixesToReplicateOptions();
     SuffixesToReplicateOptions.Type type;
