@@ -1341,7 +1341,7 @@ public final class DSConfig extends ConsoleApplication {
         if (displayEquivalentArgument.isPresent()) {
             println();
             // We assume that the app we are running is this one.
-            println(INFO_DSCFG_NON_INTERACTIVE.get(commandBuilder));
+            printlnNoWrap(INFO_DSCFG_NON_INTERACTIVE.get(commandBuilder));
         }
         if (equivalentCommandFileArgument.isPresent()) {
             String file = equivalentCommandFileArgument.getValue();
@@ -1422,13 +1422,7 @@ public final class DSConfig extends ConsoleApplication {
 
                 command += line;
                 command = command.trim();
-                // string between quotes support
-                command = replaceSpacesInQuotes(command);
-                // "\ " support
-                command = command.replace("\\ ", "##");
-
-                String displayCommand = command.replace("\\ ", " ");
-                println(LocalizableMessage.raw(displayCommand));
+                printlnNoWrap(LocalizableMessage.raw(command));
 
                 // Append initial arguments to the file line
                 final String[] allArgsArray = buildCommandArgs(initialArgs, command);
@@ -1448,20 +1442,54 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     private String[] buildCommandArgs(List<String> initialArgs, String batchCommand) {
-        final String[] commandArgs = toCommandArgs(batchCommand);
-        final int length = commandArgs.length + initialArgs.size();
+        final Collection<String> commandArgs = toCommandArgs(batchCommand);
+        final int length = commandArgs.size() + initialArgs.size();
         final List<String> allArguments = new ArrayList<>(length);
-        Collections.addAll(allArguments, commandArgs);
+        allArguments.addAll(commandArgs);
         allArguments.addAll(initialArgs);
         return allArguments.toArray(new String[length]);
     }
 
-    private String[] toCommandArgs(String command) {
-        String[] fileArguments = command.split("\\s+");
-        for (int ii = 0; ii < fileArguments.length; ii++) {
-            fileArguments[ii] = fileArguments[ii].replace("##", " ");
+    static Collection<String> toCommandArgs(String command) {
+        Collection<String> commandArgs = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < command.length(); i++) {
+            final char c = command.charAt(i);
+            switch (c) {
+            default:
+                builder.append(c);
+                break;
+            case '\\':
+                builder.append(command.charAt(++i));
+                break;
+            case '"':
+                if (inQuotes) {
+                    builder = newArgumentString(commandArgs, builder);
+                    inQuotes = false;
+                } else {
+                    inQuotes = true;
+                }
+                break;
+            case ' ':
+                if (inQuotes) {
+                    builder.append(c);
+                } else {
+                    builder = newArgumentString(commandArgs, builder);
+                }
+                break;
+            }
         }
-        return fileArguments;
+        newArgumentString(commandArgs, builder);
+        return commandArgs;
+    }
+
+    private static StringBuilder newArgumentString(Collection<String> commandArgs, StringBuilder stringBuilder) {
+        if (stringBuilder.length() > 0) {
+            commandArgs.add(stringBuilder.toString());
+            stringBuilder = new StringBuilder();
+        }
+        return stringBuilder;
     }
 
     private List<String> removeBatchArgs(String[] args) {
@@ -1486,24 +1514,5 @@ public final class DSConfig extends ConsoleApplication {
             }
         }
         return initialArgs;
-    }
-
-    /** Replace spaces in quotes by "\ ". */
-    private String replaceSpacesInQuotes(final String line) {
-        StringBuilder newLine = new StringBuilder();
-        boolean inQuotes = false;
-        for (int ii = 0; ii < line.length(); ii++) {
-            char ch = line.charAt(ii);
-            if (ch == '\"' || ch == '\'') {
-                inQuotes = !inQuotes;
-                continue;
-            }
-            if (inQuotes && ch == ' ') {
-                newLine.append("\\ ");
-            } else {
-                newLine.append(ch);
-            }
-        }
-        return newLine.toString();
     }
 }

@@ -281,6 +281,18 @@ public abstract class ConsoleApplication {
     }
 
     /**
+     * Displays a message to the output stream without wrapping.
+     *
+     * @param msg
+     *            The message.
+     */
+    public final void printlnNoWrap(final LocalizableMessage msg) {
+        if (!isQuiet()) {
+            out.println(msg);
+        }
+    }
+
+    /**
      * Prints a progress bar on the same output stream line if not in quiet mode.
      *
      * <pre>
