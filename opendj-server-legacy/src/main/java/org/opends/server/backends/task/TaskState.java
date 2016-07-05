@@ -16,14 +16,11 @@
  */
 package org.opends.server.backends.task;
 
-import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.TaskMessages.*;
 
+import org.forgerock.i18n.LocalizableMessage;
 
-/**
- * This enumeration defines the various states that a task can have during its
- * lifetime.
- */
+/** This enumeration defines the various states that a task can have during its lifetime. */
 public enum TaskState
 {
   /**
@@ -130,8 +127,8 @@ public enum TaskState
    *
    * @param  taskState  The task state for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the stask tate indicates that the task is
-   *          currently pending, or <CODE>false</CODE> otherwise.
+   * @return  {@code true} if the task state indicates that the task is
+   *          currently pending, or {@code false} otherwise.
    */
   public static boolean isPending(TaskState taskState)
   {
@@ -153,8 +150,8 @@ public enum TaskState
    *
    * @param  taskState  The task state for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the task state indicates that the task is
-   *          currently running, or <CODE>false</CODE> otherwise.
+   * @return  {@code true} if the task state indicates that the task is
+   *          currently running, or {@code false} otherwise.
    */
   public static boolean isRunning(TaskState taskState)
   {
@@ -174,8 +171,8 @@ public enum TaskState
    *
    * @param  taskState  The task state for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the task state indicates that the task
-   *          is recurring, or <CODE>false</CODE> otherwise.
+   * @return  {@code true} if the task state indicates that the task
+   *          is recurring, or {@code false} otherwise.
    */
   public static boolean isRecurring(TaskState taskState)
   {
@@ -197,9 +194,8 @@ public enum TaskState
    *
    * @param  taskState  The task state for which to make the determination.
    *
-   * @return  <CODE>false</CODE> if the task state indicates that the task has
-   *          not yet started or is currently running, or <CODE>true</CODE>
-   *          otherwise.
+   * @return  {@code false} if the task state indicates that the task has
+   *          not yet started or is currently running, or {@code true} otherwise
    */
   public static boolean isDone(TaskState taskState)
   {
@@ -223,9 +219,9 @@ public enum TaskState
    *
    * @param  taskState  The task state for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the task state indicates that the task
+   * @return  {@code true} if the task state indicates that the task
    *          completed successfully or with minor errors that still allowed it
-   *          to achieve its goal, or <CODE>false</CODE> otherwise.
+   *          to achieve its goal, or {@code false} otherwise.
    */
   public static boolean isSuccessful(TaskState taskState)
   {
@@ -248,9 +244,9 @@ public enum TaskState
    *
    * @param  taskState  The task state for which to make the determination.
    *
-   * @return  <CODE>true</CODE> if the task state indicates that the task
+   * @return  {@code true} if the task state indicates that the task
    *          was cancelled either before or during execution, or
-   *          <CODE>false</CODE> otherwise.
+   *          {@code false} otherwise.
    */
   public static boolean isCancelled(TaskState taskState)
   {
@@ -270,62 +266,38 @@ public enum TaskState
    * @param  s  The string value for which to retrieve the corresponding task
    *            state.
    *
-   * @return  The corresponding task state, or <CODE>null</CODE> if none could
+   * @return  The corresponding task state, or {@code null} if none could
    *          be associated with the provided string.
    */
   public static TaskState fromString(String s)
   {
-    String lowerString = s.toLowerCase();
-    if (lowerString.equals("unscheduled"))
+    switch (s.toLowerCase())
     {
+    case "unscheduled":
       return UNSCHEDULED;
-    }
-    else if (lowerString.equals("disabled"))
-    {
+    case "disabled":
       return DISABLED;
-    }
-    else if (lowerString.equals("waiting_on_start_time"))
-    {
+    case "waiting_on_start_time":
       return WAITING_ON_START_TIME;
-    }
-    else if (lowerString.equals("waiting_on_dependency"))
-    {
+    case "waiting_on_dependency":
       return WAITING_ON_DEPENDENCY;
-    }
-    else if (lowerString.equals("running"))
-    {
+    case "running":
       return RUNNING;
-    }
-    else if (lowerString.equals("recurring"))
-    {
+    case "recurring":
       return RECURRING;
-    }
-    else if (lowerString.equals("completed_successfully"))
-    {
+    case "completed_successfully":
       return COMPLETED_SUCCESSFULLY;
-    }
-    else if (lowerString.equals("completed_with_errors"))
-    {
+    case "completed_with_errors":
       return COMPLETED_WITH_ERRORS;
-    }
-    else if (lowerString.equals("stopped_by_shutdown"))
-    {
+    case "stopped_by_shutdown":
       return STOPPED_BY_SHUTDOWN;
-    }
-    else if (lowerString.equals("stopped_by_error"))
-    {
+    case "stopped_by_error":
       return STOPPED_BY_ERROR;
-    }
-    else if (lowerString.equals("stopped_by_administrator"))
-    {
+    case "stopped_by_administrator":
       return STOPPED_BY_ADMINISTRATOR;
-    }
-    else if (lowerString.equals("canceled_before_starting"))
-    {
+    case "canceled_before_starting":
       return CANCELED_BEFORE_STARTING;
-    }
-    else
-    {
+    default:
       return null;
     }
   }

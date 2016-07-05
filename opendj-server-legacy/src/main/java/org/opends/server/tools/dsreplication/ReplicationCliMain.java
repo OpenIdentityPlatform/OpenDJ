@@ -32,6 +32,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.quicksetup.util.Utils.*;
+import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -131,6 +132,7 @@ import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
+import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
@@ -1440,18 +1442,18 @@ public class ReplicationCliMain extends ConsoleApplication
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
-        InstallerHelper helper = new InstallerHelper();
-        String state = getFirstValue(sr, "ds-task-state");
 
-        if (helper.isDone(state) || helper.isStoppedByError(state))
+        String state = getFirstValue(sr, "ds-task-state");
+        TaskState taskState = TaskState.fromString(state);
+        if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
           LocalizableMessage errorMsg = ERR_UNEXPECTED_DURING_TASK_WITH_LOG.get(lastLogMsg, state, conn.getHostPort());
-          if (helper.isCompletedWithErrors(state))
+          if (taskState == COMPLETED_WITH_ERRORS)
           {
             logger.warn(LocalizableMessage.raw("Completed with error: " + errorMsg));
             errPrintln(errorMsg);
           }
-          else if (!helper.isSuccessful(state) || helper.isStoppedByError(state))
+          else if (!TaskState.isSuccessful(taskState) || taskState == STOPPED_BY_ERROR)
           {
             logger.warn(LocalizableMessage.raw("Error: " + errorMsg));
             throw new ReplicationCliException(errorMsg, ERROR_LAUNCHING_RESET_CHANGE_NUMBER, null);
@@ -1589,21 +1591,20 @@ public class ReplicationCliMain extends ConsoleApplication
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
-        InstallerHelper helper = new InstallerHelper();
-        String state = getFirstValue(sr, "ds-task-state");
 
-        if (helper.isDone(state) || helper.isStoppedByError(state))
+        String state = getFirstValue(sr, "ds-task-state");
+        TaskState taskState = TaskState.fromString(state);
+        if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
           isOver = true;
           LocalizableMessage errorMsg = getPurgeErrorMsg(lastLogMsg, state, conn);
 
-          if (helper.isCompletedWithErrors(state))
+          if (taskState == COMPLETED_WITH_ERRORS)
           {
             logger.warn(LocalizableMessage.raw("Completed with error: "+errorMsg));
             errPrintln(errorMsg);
           }
-          else if (!helper.isSuccessful(state) ||
-              helper.isStoppedByError(state))
+          else if (!TaskState.isSuccessful(taskState) || taskState == STOPPED_BY_ERROR)
           {
             logger.warn(LocalizableMessage.raw("Error: "+errorMsg));
             ReplicationCliReturnCode code = ERROR_LAUNCHING_PURGE_HISTORICAL;
@@ -7156,21 +7157,20 @@ public class ReplicationCliMain extends ConsoleApplication
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
-        InstallerHelper helper = new InstallerHelper();
         String state = getFirstValue(sr, "ds-task-state");
+        TaskState taskState = TaskState.fromString(state);
 
-        if (helper.isDone(state) || helper.isStoppedByError(state))
+        if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
           isOver = true;
           LocalizableMessage errorMsg = getPrePostErrorMsg(lastLogMsg, state, conn);
 
-          if (helper.isCompletedWithErrors(state))
+          if (TaskState.COMPLETED_WITH_ERRORS == taskState)
           {
             logger.warn(LocalizableMessage.raw("Completed with error: "+errorMsg));
             errPrintln(errorMsg);
           }
-          else if (!helper.isSuccessful(state) ||
-              helper.isStoppedByError(state))
+          else if (!TaskState.isSuccessful(taskState) || taskState == STOPPED_BY_ERROR)
           {
             logger.warn(LocalizableMessage.raw("Error: "+errorMsg));
             ReplicationCliReturnCode code = isPre?
@@ -7305,8 +7305,9 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         InstallerHelper helper = new InstallerHelper();
         String state = getFirstValue(sr, "ds-task-state");
+        TaskState taskState = TaskState.fromString(state);
 
-        if (helper.isDone(state) || helper.isStoppedByError(state))
+        if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
           isOver = true;
           logger.info(LocalizableMessage.raw("Last task entry: "+sr));
@@ -7318,7 +7319,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
 
           LocalizableMessage errorMsg = getInitializeAllErrorMsg(hostPort, lastLogMsg, state);
-          if (helper.isCompletedWithErrors(state))
+          if (TaskState.COMPLETED_WITH_ERRORS == taskState)
           {
             logger.warn(LocalizableMessage.raw("Processed errorMsg: "+errorMsg));
             if (displayProgress)
@@ -7326,8 +7327,7 @@ public class ReplicationCliMain extends ConsoleApplication
               errPrintln(errorMsg);
             }
           }
-          else if (!helper.isSuccessful(state) ||
-              helper.isStoppedByError(state))
+          else if (!TaskState.isSuccessful(taskState) || taskState == STOPPED_BY_ERROR)
           {
             logger.warn(LocalizableMessage.raw("Processed errorMsg: "+errorMsg));
             ClientException ce = new ClientException(

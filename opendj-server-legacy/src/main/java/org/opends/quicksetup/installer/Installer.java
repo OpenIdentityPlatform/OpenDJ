@@ -30,6 +30,7 @@ import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.installer.DataReplicationOptions.Type.*;
 import static org.opends.quicksetup.installer.InstallProgressStep.*;
 import static org.opends.quicksetup.util.Utils.*;
+import static org.opends.server.backends.task.TaskState.*;
 
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
@@ -123,6 +124,7 @@ import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.backends.task.TaskState;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.types.HostPort;
@@ -4334,8 +4336,9 @@ public class Installer extends GuiApplication
         }
         InstallerHelper helper = new InstallerHelper();
         String state = getFirstValue(sr, "ds-task-state");
+        TaskState taskState = TaskState.fromString(state);
 
-        if (helper.isDone(state) || helper.isStoppedByError(state))
+        if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
           isOver = true;
           LocalizableMessage errorMsg;
@@ -4358,14 +4361,14 @@ public class Installer extends GuiApplication
           }
 
           logger.warn(LocalizableMessage.raw("Processed errorMsg: " + errorMsg));
-          if (helper.isCompletedWithErrors(state))
+          if (taskState == COMPLETED_WITH_ERRORS)
           {
             if (displayProgress)
             {
               notifyListeners(getFormattedWarning(errorMsg));
             }
           }
-          else if (!helper.isSuccessful(state) || helper.isStoppedByError(state))
+          else if (!TaskState.isSuccessful(taskState) || taskState == STOPPED_BY_ERROR)
           {
             ApplicationException ae = new ApplicationException(ReturnCode.APPLICATION_ERROR, errorMsg, null);
             if (lastLogMsg == null || helper.isPeersNotFoundError(lastLogMsg))
@@ -4493,22 +4496,22 @@ public class Installer extends GuiApplication
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
-        InstallerHelper helper = new InstallerHelper();
-        String state = getFirstValue(sr, "ds-task-state");
 
-        if (helper.isDone(state) || helper.isStoppedByError(state))
+        String state = getFirstValue(sr, "ds-task-state");
+        TaskState taskState = TaskState.fromString(state);
+        if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
           isOver = true;
           LocalizableMessage errorMsg = lastLogMsg != null ?
               INFO_ERROR_DURING_INITIALIZATION_LOG.get(sourceServerDisplay, lastLogMsg, state, sourceServerDisplay)
             : INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(sourceServerDisplay, state, sourceServerDisplay);
 
-          if (helper.isCompletedWithErrors(state))
+          if (taskState == COMPLETED_WITH_ERRORS)
           {
             logger.warn(LocalizableMessage.raw("Completed with error: " + errorMsg));
             notifyListeners(getFormattedWarning(errorMsg));
           }
-          else if (!helper.isSuccessful(state) || helper.isStoppedByError(state))
+          else if (!TaskState.isSuccessful(taskState) || taskState == STOPPED_BY_ERROR)
           {
             logger.warn(LocalizableMessage.raw("Error: " + errorMsg));
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR, errorMsg, null);

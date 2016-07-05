@@ -75,7 +75,6 @@ import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.OutputReader;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
@@ -684,61 +683,6 @@ public class InstallerHelper {
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
           conn.getHostPort(), t), t);
     }
-  }
-
-  /**
-   * For the given state provided by a Task tells if the task is done or not.
-   *
-   * @param sState
-   *          the String representing the task state.
-   * @return <CODE>true</CODE> if the task is done and <CODE>false</CODE>
-   *         otherwise.
-   */
-  public boolean isDone(String sState)
-  {
-    return TaskState.isDone(TaskState.fromString(sState));
-  }
-
-  /**
-   * For the given state provided by a Task tells if the task is successful or
-   * not.
-   *
-   * @param sState
-   *          the String representing the task state.
-   * @return <CODE>true</CODE> if the task is successful and <CODE>false</CODE>
-   *         otherwise.
-   */
-  public boolean isSuccessful(String sState)
-  {
-    return TaskState.isSuccessful(TaskState.fromString(sState));
-  }
-
-  /**
-   * For the given state provided by a Task tells if the task is complete with
-   * errors or not.
-   *
-   * @param sState
-   *          the String representing the task state.
-   * @return <CODE>true</CODE> if the task is complete with errors and
-   *         <CODE>false</CODE> otherwise.
-   */
-  public boolean isCompletedWithErrors(String sState)
-  {
-    return TaskState.COMPLETED_WITH_ERRORS == TaskState.fromString(sState);
-  }
-
-  /**
-   * For the given state provided by a Task tells if the task is stopped by
-   * error or not.
-   *
-   * @param sState
-   *          the String representing the task state.
-   * @return <CODE>true</CODE> if the task is stopped by error and
-   *         <CODE>false</CODE> otherwise.
-   */
-  public boolean isStoppedByError(String sState)
-  {
-    return TaskState.STOPPED_BY_ERROR == TaskState.fromString(sState);
   }
 
   /**
