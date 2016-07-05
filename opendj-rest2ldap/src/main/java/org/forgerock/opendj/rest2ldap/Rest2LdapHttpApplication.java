@@ -38,18 +38,20 @@ import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.Utils.closeSilently;
 import static org.forgerock.util.Utils.joinAsString;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
@@ -120,6 +122,9 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     private final Map<String, ConnectionFactory> connectionFactories = new HashMap<>();
     /** Used for token caching. */
     private ScheduledExecutorService executorService;
+
+    /** Resources which have to be closed when this application is stopped. */
+    private final Collection<Closeable> closeableResources = new ArrayList<>();
 
     private TrustManager trustManager;
     private X509KeyManager keyManager;
@@ -193,7 +198,16 @@ public class Rest2LdapHttpApplication implements HttpApplication {
         try {
             logger.info(INFO_REST2LDAP_STARTING.get(configDirectory));
 
-            executorService = Executors.newSingleThreadScheduledExecutor();
+            final ScheduledThreadPoolExecutor scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+            scheduledExecutor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            scheduledExecutor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+            closeOnStop(new Closeable() {
+                @Override
+                public void close() throws IOException {
+                    scheduledExecutor.shutdown();
+                }
+            });
+            executorService = scheduledExecutor;
 
             final JsonValue config = readJson(new File(configDirectory, "config.json"));
             configureSecurity(config.get("security"));
@@ -225,8 +239,14 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     private void configureConnectionFactories(final JsonValue config) {
         connectionFactories.clear();
         for (String name : config.keys()) {
-            connectionFactories.put(name, configureConnectionFactory(config, name, trustManager, keyManager));
+            connectionFactories
+                .put(name, closeOnStop(configureConnectionFactory(config, name, trustManager, keyManager)));
         }
+    }
+
+    private <T extends Closeable> T closeOnStop(T resource) {
+        closeableResources.add(resource);
+        return resource;
     }
 
     @Override
@@ -237,14 +257,10 @@ public class Rest2LdapHttpApplication implements HttpApplication {
 
     @Override
     public void stop() {
-        for (ConnectionFactory factory : connectionFactories.values()) {
-            closeSilently(factory);
-        }
+        closeSilently(closeableResources);
+        closeableResources.clear();
         connectionFactories.clear();
-        if (executorService != null) {
-            executorService.shutdown();
-            executorService = null;
-        }
+        executorService = null;
     }
 
     private Filter buildAuthorizationFilter(final JsonValue config) throws HttpApplicationException {
@@ -342,7 +358,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
             httpOptions.set(OPTION_KEY_MANAGERS,
                     new KeyManager[] { keyAlias != null ? useSingleCertificate(keyAlias, keyManager) : keyManager });
         }
-        return new HttpClientHandler(httpOptions);
+        return closeOnStop(new HttpClientHandler(httpOptions));
     }
 
     private Duration parseCacheExpiration(final JsonValue expirationJson) {
