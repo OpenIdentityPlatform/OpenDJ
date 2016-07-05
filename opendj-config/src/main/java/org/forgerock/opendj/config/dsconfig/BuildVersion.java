@@ -17,6 +17,7 @@
 package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -76,8 +78,8 @@ class BuildVersion implements Comparable<BuildVersion> {
         try {
             final SearchResultEntry entry = connection.readEntry("", "fullVendorVersion");
             return valueOf(entry.getAttribute("fullVendorVersion").firstValueAsString());
-        } catch (LdapException e) {
-            throw new ConfigException(ERR_CONFIGVERSION_NOT_FOUND.get());
+        } catch (NullPointerException | NoSuchElementException |LdapException e) {
+            throw new ConfigException(ERR_CONFIGVERSION_NOT_FOUND.get(stackTraceToSingleLineString(e, false)));
         }
     }
 
