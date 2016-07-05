@@ -1953,13 +1953,13 @@ public final class SchemaBuilder {
 
         final AttributeType element = numericOID2AttributeTypes.get(nameOrOid);
         if (element != null) {
-            removeAttributeType(element);
+            removeAttributeType(element, null);
             return true;
         }
         final List<AttributeType> elements = name2AttributeTypes.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final AttributeType e : elements) {
-                removeAttributeType(e);
+                removeAttributeType(e, null);
             }
             return true;
         }
@@ -1978,13 +1978,13 @@ public final class SchemaBuilder {
 
         final DITContentRule element = numericOID2ContentRules.get(nameOrOid);
         if (element != null) {
-            removeDITContentRule(element);
+            removeDITContentRule(element, null);
             return true;
         }
         final List<DITContentRule> elements = name2ContentRules.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final DITContentRule e : elements) {
-                removeDITContentRule(e);
+                removeDITContentRule(e, null);
             }
             return true;
         }
@@ -2003,7 +2003,7 @@ public final class SchemaBuilder {
 
         final DITStructureRule element = id2StructureRules.get(ruleID);
         if (element != null) {
-            removeDITStructureRule(element);
+            removeDITStructureRule(element, null);
             return true;
         }
         return false;
@@ -2021,13 +2021,13 @@ public final class SchemaBuilder {
 
         final MatchingRule element = numericOID2MatchingRules.get(nameOrOid);
         if (element != null) {
-            removeMatchingRule(element);
+            removeMatchingRule(element, null);
             return true;
         }
         final List<MatchingRule> elements = name2MatchingRules.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final MatchingRule e : elements) {
-                removeMatchingRule(e);
+                removeMatchingRule(e, null);
             }
             return true;
         }
@@ -2046,13 +2046,13 @@ public final class SchemaBuilder {
 
         final MatchingRuleUse element = numericOID2MatchingRuleUses.get(nameOrOid);
         if (element != null) {
-            removeMatchingRuleUse(element);
+            removeMatchingRuleUse(element, null);
             return true;
         }
         final List<MatchingRuleUse> elements = name2MatchingRuleUses.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final MatchingRuleUse e : elements) {
-                removeMatchingRuleUse(e);
+                removeMatchingRuleUse(e, null);
             }
             return true;
         }
@@ -2071,13 +2071,13 @@ public final class SchemaBuilder {
 
         final NameForm element = numericOID2NameForms.get(nameOrOid);
         if (element != null) {
-            removeNameForm(element);
+            removeNameForm(element, null);
             return true;
         }
         final List<NameForm> elements = name2NameForms.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final NameForm e : elements) {
-                removeNameForm(e);
+                removeNameForm(e, null);
             }
             return true;
         }
@@ -2096,13 +2096,13 @@ public final class SchemaBuilder {
 
         final ObjectClass element = numericOID2ObjectClasses.get(nameOrOid);
         if (element != null) {
-            removeObjectClass(element);
+            removeObjectClass(element, null);
             return true;
         }
         final List<ObjectClass> elements = name2ObjectClasses.get(toLowerCase(nameOrOid));
         if (elements != null) {
             for (final ObjectClass e : elements) {
-                removeObjectClass(e);
+                removeObjectClass(e, null);
             }
             return true;
         }
@@ -2121,7 +2121,7 @@ public final class SchemaBuilder {
 
         final Syntax element = numericOID2Syntaxes.get(numericOID);
         if (element != null) {
-            removeSyntax(element);
+            removeSyntax(element, null);
             return true;
         }
         return false;
@@ -2143,6 +2143,29 @@ public final class SchemaBuilder {
     public <T> SchemaBuilder setOption(final Option<T> option, T value) {
         getOptions().set(option, value);
         return this;
+    }
+
+    private static final class NamesMapping {
+        final Map<String, MatchingRule> name2MatchingRules;
+        final Map<String, MatchingRuleUse> name2MatchingRuleUses;
+        final Map<String, AttributeType> name2AttributeTypes;
+        final Map<String, ObjectClass> name2ObjectClasses;
+        final Map<String, NameForm> name2NameForms;
+        final Map<String, DITContentRule> name2ContentRules;
+        final Map<String, DITStructureRule> name2StructureRules;
+
+        NamesMapping(Map<String, MatchingRule> name2MatchingRules, Map<String, MatchingRuleUse> name2MatchingRuleUses,
+                Map<String, AttributeType> name2AttributeTypes, Map<String, ObjectClass> name2ObjectClasses,
+                Map<String, NameForm> name2NameForms, Map<String, DITContentRule> name2ContentRules,
+                Map<String, DITStructureRule> name2StructureRules) {
+            this.name2MatchingRules = name2MatchingRules;
+            this.name2MatchingRuleUses = name2MatchingRuleUses;
+            this.name2AttributeTypes = name2AttributeTypes;
+            this.name2ObjectClasses = name2ObjectClasses;
+            this.name2NameForms = name2NameForms;
+            this.name2ContentRules = name2ContentRules;
+            this.name2StructureRules = name2StructureRules;
+        }
     }
 
     /**
@@ -2185,24 +2208,21 @@ public final class SchemaBuilder {
             defaultMatchingRule = Schema.getCoreSchema().getDefaultMatchingRule();
         }
 
-        removeDuplicateMatchingRulesNames();
-        removeDuplicateMatchingRuleUsesNames();
-        removeDuplicateAttributeTypesNames();
-        removeDuplicateObjectClassesNames();
-        removeDuplicateNameFormsNames();
-        removeDuplicateDITContentRulesNames();
-        removeDuplicateDITStructureRulesNames();
+        NamesMapping names = new NamesMapping(removeDuplicateMatchingRulesNames(),
+                removeDuplicateMatchingRuleUsesNames(), removeDuplicateAttributeTypesNames(),
+                removeDuplicateObjectClassesNames(), removeDuplicateNameFormsNames(),
+                removeDuplicateDITContentRulesNames(), removeDuplicateDITStructureRulesNames());
 
         final Schema schema =
                 new Schema.StrictImpl(localSchemaName, options,
                         defaultSyntax, defaultMatchingRule, numericOID2Syntaxes,
                         numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
-                        numericOID2ContentRules, id2StructureRules, name2MatchingRules,
-                        name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
-                        name2NameForms, name2ContentRules, name2StructureRules,
+                        numericOID2ContentRules, id2StructureRules, names.name2MatchingRules,
+                        names.name2MatchingRuleUses, names.name2AttributeTypes, names.name2ObjectClasses,
+                        names.name2NameForms, names.name2ContentRules, names.name2StructureRules,
                         objectClass2NameForms, nameForm2StructureRules, warnings).asStrictSchema();
-        validate(schema);
+        validate(schema, names);
 
         // Re-init this builder so that it can continue to be used afterwards.
         preLazyInitBuilder(schemaName, schema);
@@ -2220,7 +2240,7 @@ public final class SchemaBuilder {
                                 attribute.getOID(), conflictingAttribute.getNameOrOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeAttributeType(conflictingAttribute);
+            removeAttributeType(conflictingAttribute, null);
         }
 
         numericOID2AttributeTypes.put(attribute.getOID(), attribute);
@@ -2251,7 +2271,7 @@ public final class SchemaBuilder {
                                 .getStructuralClassOID(), conflictingRule.getNameOrOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeDITContentRule(conflictingRule);
+            removeDITContentRule(conflictingRule, null);
         }
 
         numericOID2ContentRules.put(rule.getStructuralClassOID(), rule);
@@ -2282,7 +2302,7 @@ public final class SchemaBuilder {
                                 rule.getRuleID(), conflictingRule.getNameOrRuleID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeDITStructureRule(conflictingRule);
+            removeDITStructureRule(conflictingRule, null);
         }
 
         id2StructureRules.put(rule.getRuleID(), rule);
@@ -2313,7 +2333,7 @@ public final class SchemaBuilder {
                                 .getMatchingRuleOID(), conflictingUse.getNameOrOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeMatchingRuleUse(conflictingUse);
+            removeMatchingRuleUse(conflictingUse, null);
         }
 
         numericOID2MatchingRuleUses.put(use.getMatchingRuleOID(), use);
@@ -2346,7 +2366,7 @@ public final class SchemaBuilder {
                                 conflictingRule.getNameOrOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeMatchingRule(conflictingRule);
+            removeMatchingRule(conflictingRule, null);
         }
 
         numericOID2MatchingRules.put(rule.getOID(), rule);
@@ -2376,7 +2396,7 @@ public final class SchemaBuilder {
                                 form.getOID(), conflictingForm.getNameOrOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeNameForm(conflictingForm);
+            removeNameForm(conflictingForm, null);
         }
 
         numericOID2NameForms.put(form.getOID(), form);
@@ -2406,7 +2426,7 @@ public final class SchemaBuilder {
                                 conflictingOC.getNameOrOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeObjectClass(conflictingOC);
+            removeObjectClass(conflictingOC, null);
         }
 
         numericOID2ObjectClasses.put(oc.getOID(), oc);
@@ -2475,7 +2495,7 @@ public final class SchemaBuilder {
                         syntax.getOID(), conflictingSyntax.getOID());
                 throw new ConflictingSchemaElementException(message);
             }
-            removeSyntax(conflictingSyntax);
+            removeSyntax(conflictingSyntax, null);
         }
 
         numericOID2Syntaxes.put(syntax.getOID(), syntax);
@@ -2545,7 +2565,7 @@ public final class SchemaBuilder {
         this.warnings = null;
     }
 
-    private void removeAttributeType(final AttributeType attributeType) {
+    private void removeAttributeType(final AttributeType attributeType, NamesMapping names) {
         numericOID2AttributeTypes.remove(attributeType.getOID());
         for (final String name : attributeType.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
@@ -2557,10 +2577,13 @@ public final class SchemaBuilder {
                     attributes.remove(attributeType);
                 }
             }
+            if (names != null) {
+                names.name2AttributeTypes.remove(lowerName);
+            }
         }
     }
 
-    private void removeDITContentRule(final DITContentRule rule) {
+    private void removeDITContentRule(final DITContentRule rule, NamesMapping names) {
         numericOID2ContentRules.remove(rule.getStructuralClassOID());
         for (final String name : rule.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
@@ -2572,10 +2595,13 @@ public final class SchemaBuilder {
                     rules.remove(rule);
                 }
             }
+            if (names != null) {
+                names.name2ContentRules.remove(lowerName);
+            }
         }
     }
 
-    private void removeDITStructureRule(final DITStructureRule rule) {
+    private void removeDITStructureRule(final DITStructureRule rule, NamesMapping names) {
         id2StructureRules.remove(rule.getRuleID());
         for (final String name : rule.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
@@ -2587,10 +2613,13 @@ public final class SchemaBuilder {
                     rules.remove(rule);
                 }
             }
+            if (names != null) {
+                names.name2StructureRules.remove(lowerName);
+            }
         }
     }
 
-    private void removeMatchingRule(final MatchingRule rule) {
+    private void removeMatchingRule(final MatchingRule rule, NamesMapping names) {
         numericOID2MatchingRules.remove(rule.getOID());
         for (final String name : rule.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
@@ -2602,10 +2631,13 @@ public final class SchemaBuilder {
                     rules.remove(rule);
                 }
             }
+            if (names != null) {
+                names.name2MatchingRules.remove(lowerName);
+            }
         }
     }
 
-    private void removeMatchingRuleUse(final MatchingRuleUse use) {
+    private void removeMatchingRuleUse(final MatchingRuleUse use, NamesMapping names) {
         numericOID2MatchingRuleUses.remove(use.getMatchingRuleOID());
         for (final String name : use.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
@@ -2617,10 +2649,13 @@ public final class SchemaBuilder {
                     uses.remove(use);
                 }
             }
+            if (names != null) {
+                names.name2MatchingRuleUses.remove(lowerName);
+            }
         }
     }
 
-    private void removeNameForm(final NameForm form) {
+    private void removeNameForm(final NameForm form, NamesMapping names) {
         numericOID2NameForms.remove(form.getOID());
         name2NameForms.remove(form.getOID());
         for (final String name : form.getNames()) {
@@ -2633,10 +2668,13 @@ public final class SchemaBuilder {
                     forms.remove(form);
                 }
             }
+            if (names != null) {
+                names.name2NameForms.remove(lowerName);
+            }
         }
     }
 
-    private void removeObjectClass(final ObjectClass oc) {
+    private void removeObjectClass(final ObjectClass oc, NamesMapping names) {
         numericOID2ObjectClasses.remove(oc.getOID());
         name2ObjectClasses.remove(oc.getOID());
         for (final String name : oc.getNames()) {
@@ -2649,10 +2687,13 @@ public final class SchemaBuilder {
                     classes.remove(oc);
                 }
             }
+            if (names != null) {
+                names.name2ObjectClasses.remove(lowerName);
+            }
         }
     }
 
-    private void removeSyntax(final Syntax syntax) {
+    private void removeSyntax(final Syntax syntax, NamesMapping names) {
         for (Map.Entry<String, List<String>> property : syntax.getExtraProperties().entrySet()) {
             if ("x-enum".equalsIgnoreCase(property.getKey())) {
                 removeMatchingRule(OMR_OID_GENERIC_ENUM + "." + syntax.getOID());
@@ -2662,14 +2703,14 @@ public final class SchemaBuilder {
         numericOID2Syntaxes.remove(syntax.getOID());
     }
 
-    private void validate(final Schema schema) {
+    private void validate(final Schema schema, NamesMapping names) {
         // Verify all references in all elements
         for (final Syntax syntax : numericOID2Syntaxes.values().toArray(
                 new Syntax[numericOID2Syntaxes.values().size()])) {
             try {
                 syntax.validate(schema, warnings);
             } catch (final SchemaException e) {
-                removeSyntax(syntax);
+                removeSyntax(syntax, names);
                 warnings.add(ERR_SYNTAX_VALIDATION_FAIL
                         .get(syntax.toString(), e.getMessageObject()));
             }
@@ -2680,7 +2721,7 @@ public final class SchemaBuilder {
             try {
                 rule.validate(schema, warnings);
             } catch (final SchemaException e) {
-                removeMatchingRule(rule);
+                removeMatchingRule(rule, names);
                 warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(), e.getMessageObject()));
             }
         }
@@ -2693,7 +2734,7 @@ public final class SchemaBuilder {
         }
 
         for (final AttributeType attributeType : invalidAttributeTypes) {
-            removeAttributeType(attributeType);
+            removeAttributeType(attributeType, names);
         }
 
         // Object classes need special processing because they have hierarchical
@@ -2704,7 +2745,7 @@ public final class SchemaBuilder {
         }
 
         for (final ObjectClass objectClass : invalidObjectClasses) {
-            removeObjectClass(objectClass);
+            removeObjectClass(objectClass, names);
         }
 
         for (final MatchingRuleUse use : numericOID2MatchingRuleUses.values().toArray(
@@ -2712,7 +2753,7 @@ public final class SchemaBuilder {
             try {
                 use.validate(schema, warnings);
             } catch (final SchemaException e) {
-                removeMatchingRuleUse(use);
+                removeMatchingRuleUse(use, names);
                 warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(), e.getMessageObject()));
             }
         }
@@ -2735,7 +2776,7 @@ public final class SchemaBuilder {
                     forms.add(form);
                 }
             } catch (final SchemaException e) {
-                removeNameForm(form);
+                removeNameForm(form, names);
                 warnings.add(ERR_NAMEFORM_VALIDATION_FAIL
                         .get(form.toString(), e.getMessageObject()));
             }
@@ -2746,7 +2787,7 @@ public final class SchemaBuilder {
             try {
                 rule.validate(schema, warnings);
             } catch (final SchemaException e) {
-                removeDITContentRule(rule);
+                removeDITContentRule(rule, names);
                 warnings.add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(), e.getMessageObject()));
             }
         }
@@ -2759,7 +2800,7 @@ public final class SchemaBuilder {
         }
 
         for (final DITStructureRule rule : invalidStructureRules) {
-            removeDITStructureRule(rule);
+            removeDITStructureRule(rule, names);
         }
 
         for (final DITStructureRule rule : id2StructureRules.values()) {
@@ -2778,8 +2819,9 @@ public final class SchemaBuilder {
         }
     }
 
-    private void removeDuplicateMatchingRulesNames() {
-        for (final java.util.Map.Entry<String, List<MatchingRule>> entry : name2MatchingRules.entrySet()) {
+    private Map<String, MatchingRule> removeDuplicateMatchingRulesNames() {
+        final Map<String, MatchingRule> names = newMap(name2MatchingRules.size());
+        for (final Map.Entry<String, List<MatchingRule>> entry : name2MatchingRules.entrySet()) {
             List<MatchingRule> rules = entry.getValue();
             if (rules.size() > 1) {
                 StringBuilder oids = new StringBuilder();
@@ -2791,14 +2833,17 @@ public final class SchemaBuilder {
                 }
                 String name = entry.getKey();
                 warnings.add(WARN_MATCHING_RULES_DUPLICATED_NAME.get(oids, name, name, rules.get(0).getOID()));
-                // keep only the first value
-                rules.subList(1, rules.size()).clear();
+            }
+            if (!rules.isEmpty()) {
+                names.put(entry.getKey(), rules.get(0));
             }
         }
+        return names;
     }
 
-    private void removeDuplicateMatchingRuleUsesNames() {
-        for (final java.util.Map.Entry<String, List<MatchingRuleUse>> entry : name2MatchingRuleUses.entrySet()) {
+    private Map<String, MatchingRuleUse> removeDuplicateMatchingRuleUsesNames() {
+        final Map<String, MatchingRuleUse> names = newMap(name2MatchingRuleUses.size());
+        for (final Map.Entry<String, List<MatchingRuleUse>> entry : name2MatchingRuleUses.entrySet()) {
             List<MatchingRuleUse> uses = entry.getValue();
             if (uses.size() > 1) {
                 StringBuilder oids = new StringBuilder();
@@ -2811,16 +2856,19 @@ public final class SchemaBuilder {
                 String name = entry.getKey();
                 warnings.add(WARN_MATCHING_RULE_USES_DUPLICATED_NAME.get(oids, name, name,
                         uses.get(0).getMatchingRuleOID()));
-                // keep only the first value
-                uses.subList(1, uses.size()).clear();
+            }
+            if (!uses.isEmpty()) {
+                names.put(entry.getKey(), uses.get(0));
             }
         }
+        return names;
     }
 
-    private void removeDuplicateAttributeTypesNames() {
-        for (final java.util.Map.Entry<String, List<AttributeType>> entry : name2AttributeTypes.entrySet()) {
+    private Map<String, AttributeType> removeDuplicateAttributeTypesNames() {
+        final Map<String, AttributeType> names = newMap(name2AttributeTypes.size());
+        for (final Map.Entry<String, List<AttributeType>> entry : name2AttributeTypes.entrySet()) {
             List<AttributeType> types = entry.getValue();
-            if (entry.getValue().size() > 1) {
+            if (types.size() > 1) {
                 StringBuilder oids = new StringBuilder();
                 for (AttributeType attr : types) {
                     if (oids.length() > 0) {
@@ -2830,16 +2878,19 @@ public final class SchemaBuilder {
                 }
                 String name = entry.getKey();
                 warnings.add(WARN_ATTR_TYPES_DUPLICATED_NAME.get(oids, name, name, types.get(0).getOID()));
-                // keep only the first value
-                types.subList(1, types.size()).clear();
+            }
+            if (!types.isEmpty()) {
+                names.put(entry.getKey(), types.get(0));
             }
         }
+        return names;
     }
 
-    private void removeDuplicateObjectClassesNames() {
-        for (final java.util.Map.Entry<String, List<ObjectClass>> entry : name2ObjectClasses.entrySet()) {
+    private Map<String, ObjectClass> removeDuplicateObjectClassesNames() {
+        final Map<String, ObjectClass> names = newMap(name2ObjectClasses.size());
+        for (final Map.Entry<String, List<ObjectClass>> entry : name2ObjectClasses.entrySet()) {
             List<ObjectClass> classes = entry.getValue();
-            if (entry.getValue().size() > 1) {
+            if (classes.size() > 1) {
                 StringBuilder oids = new StringBuilder();
                 for (ObjectClass attr : classes) {
                     if (oids.length() > 0) {
@@ -2849,16 +2900,19 @@ public final class SchemaBuilder {
                 }
                 String name = entry.getKey();
                 warnings.add(WARN_CLASSES_DUPLICATED_NAME.get(oids, name, name, classes.get(0).getOID()));
-                // keep only the first value
-                classes.subList(1, classes.size()).clear();
+            }
+            if (!classes.isEmpty()) {
+                names.put(entry.getKey(), classes.get(0));
             }
         }
+        return names;
     }
 
-    private void removeDuplicateNameFormsNames() {
-        for (final java.util.Map.Entry<String, List<NameForm>> entry : name2NameForms.entrySet()) {
+    private Map<String, NameForm> removeDuplicateNameFormsNames() {
+        final Map<String, NameForm> names = newMap(name2NameForms.size());
+        for (final Map.Entry<String, List<NameForm>> entry : name2NameForms.entrySet()) {
             List<NameForm> forms = entry.getValue();
-            if (entry.getValue().size() > 1) {
+            if (forms.size() > 1) {
                 StringBuilder oids = new StringBuilder();
                 for (NameForm attr : forms) {
                     if (oids.length() > 0) {
@@ -2868,16 +2922,19 @@ public final class SchemaBuilder {
                 }
                 String name = entry.getKey();
                 warnings.add(WARN_NAME_FORMS_DUPLICATED_NAME.get(oids, name, name, forms.get(0).getOID()));
-                // keep only the first value
-                forms.subList(1, forms.size()).clear();
+            }
+            if (!forms.isEmpty()) {
+                names.put(entry.getKey(), forms.get(0));
             }
         }
+        return names;
     }
 
-    private void removeDuplicateDITStructureRulesNames() {
-        for (final java.util.Map.Entry<String, List<DITStructureRule>> entry : name2StructureRules.entrySet()) {
+    private Map<String, DITStructureRule> removeDuplicateDITStructureRulesNames() {
+        final Map<String, DITStructureRule> names = newMap(name2StructureRules.size());
+        for (final Map.Entry<String, List<DITStructureRule>> entry : name2StructureRules.entrySet()) {
             List<DITStructureRule> rules = entry.getValue();
-            if (entry.getValue().size() > 1) {
+            if (rules.size() > 1) {
                 StringBuilder ids = new StringBuilder();
                 for (DITStructureRule attr : rules) {
                     if (ids.length() > 0) {
@@ -2887,16 +2944,19 @@ public final class SchemaBuilder {
                 }
                 String name = entry.getKey();
                 warnings.add(WARN_DIT_SR_DUPLICATED_NAME.get(ids, name, name, rules.get(0).getRuleID()));
-                // keep only the first value
-                rules.subList(1, rules.size()).clear();
+            }
+            if (!rules.isEmpty()) {
+                names.put(entry.getKey(), rules.get(0));
             }
         }
+        return names;
     }
 
-    private void removeDuplicateDITContentRulesNames() {
-        for (final java.util.Map.Entry<String, List<DITContentRule>> entry : name2ContentRules.entrySet()) {
+    private Map<String, DITContentRule> removeDuplicateDITContentRulesNames() {
+        final Map<String, DITContentRule> names = newMap(name2ContentRules.size());
+        for (final Map.Entry<String, List<DITContentRule>> entry : name2ContentRules.entrySet()) {
             List<DITContentRule> rules = entry.getValue();
-            if (entry.getValue().size() > 1) {
+            if (rules.size() > 1) {
                 StringBuilder ids = new StringBuilder();
                 for (DITContentRule attr : rules) {
                     if (ids.length() > 0) {
@@ -2906,9 +2966,15 @@ public final class SchemaBuilder {
                 }
                 String name = entry.getKey();
                 warnings.add(WARN_DIT_CR_DUPLICATED_NAME.get(ids, name, name, rules.get(0).getStructuralClassOID()));
-                // keep only the first value
-                rules.subList(1, rules.size()).clear();
+            }
+            if (!rules.isEmpty()) {
+                names.put(entry.getKey(), rules.get(0));
             }
         }
+        return names;
+    }
+
+    private <T extends SchemaElement> Map<String, T> newMap(int size) {
+        return new HashMap<String, T>((int) ((size) / 0.75 + 1));
     }
 }

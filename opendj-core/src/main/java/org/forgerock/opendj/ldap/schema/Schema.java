@@ -17,6 +17,8 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
+
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.AttributeDescription.*;
 
@@ -45,8 +47,6 @@ import org.forgerock.util.Function;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This class defines a data structure that holds information about the
@@ -354,13 +354,13 @@ public final class Schema {
 
     static final class StrictImpl implements Impl {
         private final Map<Integer, DITStructureRule> id2StructureRules;
-        private final Map<String, List<AttributeType>> name2AttributeTypes;
-        private final Map<String, List<DITContentRule>> name2ContentRules;
-        private final Map<String, List<MatchingRule>> name2MatchingRules;
-        private final Map<String, List<MatchingRuleUse>> name2MatchingRuleUses;
-        private final Map<String, List<NameForm>> name2NameForms;
-        private final Map<String, List<ObjectClass>> name2ObjectClasses;
-        private final Map<String, List<DITStructureRule>> name2StructureRules;
+        private final Map<String, AttributeType> name2AttributeTypes;
+        private final Map<String, DITContentRule> name2ContentRules;
+        private final Map<String, MatchingRule> name2MatchingRules;
+        private final Map<String, MatchingRuleUse> name2MatchingRuleUses;
+        private final Map<String, NameForm> name2NameForms;
+        private final Map<String, ObjectClass> name2ObjectClasses;
+        private final Map<String, DITStructureRule> name2StructureRules;
         private final Map<String, List<DITStructureRule>> nameForm2StructureRules;
         private final Map<String, AttributeType> numericOID2AttributeTypes;
         private final Map<String, DITContentRule> numericOID2ContentRules;
@@ -390,13 +390,13 @@ public final class Schema {
                 final Map<String, NameForm> numericOID2NameForms,
                 final Map<String, DITContentRule> numericOID2ContentRules,
                 final Map<Integer, DITStructureRule> id2StructureRules,
-                final Map<String, List<MatchingRule>> name2MatchingRules,
-                final Map<String, List<MatchingRuleUse>> name2MatchingRuleUses,
-                final Map<String, List<AttributeType>> name2AttributeTypes,
-                final Map<String, List<ObjectClass>> name2ObjectClasses,
-                final Map<String, List<NameForm>> name2NameForms,
-                final Map<String, List<DITContentRule>> name2ContentRules,
-                final Map<String, List<DITStructureRule>> name2StructureRules,
+                final Map<String, MatchingRule> name2MatchingRules,
+                final Map<String, MatchingRuleUse> name2MatchingRuleUses,
+                final Map<String, AttributeType> name2AttributeTypes,
+                final Map<String, ObjectClass> name2ObjectClasses,
+                final Map<String, NameForm> name2NameForms,
+                final Map<String, DITContentRule> name2ContentRules,
+                final Map<String, DITStructureRule> name2StructureRules,
                 final Map<String, List<NameForm>> objectClass2NameForms,
                 final Map<String, List<DITStructureRule>> nameForm2StructureRules,
                 final List<LocalizableMessage> warnings) {
@@ -481,9 +481,9 @@ public final class Schema {
             if (rule != null) {
                 return rule;
             }
-            final List<DITContentRule> rules = name2ContentRules.get(StaticUtils.toLowerCase(nameOrOid));
-            if (rules != null && rules.size() == 1) {
-                return rules.get(0);
+            final DITContentRule rule2 = name2ContentRules.get(toLowerCase(nameOrOid));
+            if (rule2 != null) {
+                return rule2;
             }
             throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN.get(nameOrOid));
         }
@@ -514,9 +514,9 @@ public final class Schema {
 
         @Override
         public DITStructureRule getDITStructureRule(final String name) {
-            List<DITStructureRule> rules = name2StructureRules.get(StaticUtils.toLowerCase(name));
-            if (rules != null && rules.size() == 1) {
-                return rules.get(0);
+            DITStructureRule rule = name2StructureRules.get(toLowerCase(name));
+            if (rule != null) {
+                return rule;
             }
             throw new UnknownSchemaElementException(WARN_DIT_SR_UNKNOWN.get(name));
         }
@@ -532,9 +532,9 @@ public final class Schema {
             if (rule != null) {
                 return rule;
             }
-            final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils.toLowerCase(nameOrOid));
-            if (rules != null && rules.size() == 1) {
-                return rules.get(0);
+            final MatchingRule rule2 = name2MatchingRules.get(toLowerCase(nameOrOid));
+            if (rule2 != null) {
+                return rule2;
             }
             throw new UnknownSchemaElementException(WARN_MR_UNKNOWN.get(nameOrOid));
         }
@@ -555,9 +555,9 @@ public final class Schema {
             if (use != null) {
                 return use;
             }
-            final List<MatchingRuleUse> uses = name2MatchingRuleUses.get(StaticUtils.toLowerCase(nameOrOid));
-            if (uses != null && uses.size() == 1) {
-                return uses.get(0);
+            final MatchingRuleUse use2 = name2MatchingRuleUses.get(toLowerCase(nameOrOid));
+            if (use2 != null) {
+                return use2;
             }
             throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN.get(nameOrOid));
         }
@@ -573,9 +573,9 @@ public final class Schema {
             if (form != null) {
                 return form;
             }
-            final List<NameForm> forms = name2NameForms.get(StaticUtils.toLowerCase(nameOrOid));
-            if (forms != null && forms.size() == 1) {
-                return forms.get(0);
+            final NameForm form2 = name2NameForms.get(toLowerCase(nameOrOid));
+            if (form2 != null) {
+                return form2;
             }
             throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(nameOrOid));
         }
@@ -608,9 +608,9 @@ public final class Schema {
             if (oc != null) {
                 return oc;
             }
-            final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils.toLowerCase(nameOrOid));
-            if (classes != null && classes.size() == 1) {
-                return classes.get(0);
+            final ObjectClass oc2 = name2ObjectClasses.get(toLowerCase(nameOrOid));
+            if (oc2 != null) {
+                return oc2;
             }
             return null;
         }
@@ -647,13 +647,13 @@ public final class Schema {
         @Override
         public boolean hasAttributeType(final String nameOrOid) {
             return numericOID2AttributeTypes.containsKey(nameOrOid)
-                    || name2AttributeTypes.containsKey(StaticUtils.toLowerCase(nameOrOid));
+                    || name2AttributeTypes.containsKey(toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasDITContentRule(final String nameOrOid) {
             return numericOID2ContentRules.containsKey(nameOrOid)
-                    || name2ContentRules.containsKey(StaticUtils.toLowerCase(nameOrOid));
+                    || name2ContentRules.containsKey(toLowerCase(nameOrOid));
         }
 
         @Override
@@ -664,25 +664,25 @@ public final class Schema {
         @Override
         public boolean hasMatchingRule(final String nameOrOid) {
             return numericOID2MatchingRules.containsKey(nameOrOid)
-                    || name2MatchingRules.containsKey(StaticUtils.toLowerCase(nameOrOid));
+                    || name2MatchingRules.containsKey(toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasMatchingRuleUse(final String nameOrOid) {
             return numericOID2MatchingRuleUses.containsKey(nameOrOid)
-                    || name2MatchingRuleUses.containsKey(StaticUtils.toLowerCase(nameOrOid));
+                    || name2MatchingRuleUses.containsKey(toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasNameForm(final String nameOrOid) {
             return numericOID2NameForms.containsKey(nameOrOid)
-                    || name2NameForms.containsKey(StaticUtils.toLowerCase(nameOrOid));
+                    || name2NameForms.containsKey(toLowerCase(nameOrOid));
         }
 
         @Override
         public boolean hasObjectClass(final String nameOrOid) {
             return numericOID2ObjectClasses.containsKey(nameOrOid)
-                    || name2ObjectClasses.containsKey(StaticUtils.toLowerCase(nameOrOid));
+                    || name2ObjectClasses.containsKey(toLowerCase(nameOrOid));
         }
 
         @Override
@@ -700,8 +700,7 @@ public final class Schema {
             if (type != null) {
                 return type;
             }
-            final List<AttributeType> attrs = name2AttributeTypes.get(StaticUtils.toLowerCase(nameOrOid));
-            return attrs != null && attrs.size() == 1 ? attrs.get(0) : null;
+            return name2AttributeTypes.get(toLowerCase(nameOrOid));
         }
     }
 
