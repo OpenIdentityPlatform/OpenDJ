@@ -237,6 +237,8 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     }
 
     private void configureConnectionFactories(final JsonValue config) {
+        // Make sure that the mandatory root connection factory exists (used to perform the proxy-authz operations).
+        config.get(DEFAULT_ROOT_FACTORY).required();
         connectionFactories.clear();
         for (String name : config.keys()) {
             connectionFactories
