@@ -131,7 +131,6 @@ import org.opends.server.types.DirectoryException;
  */
 public abstract class ReplicationDomain
 {
-
   /** Contains all the attributes included for the ECL (External Changelog). */
   @Immutable
   private static final class ECLIncludes
@@ -227,9 +226,7 @@ public abstract class ReplicationDomain
     }
   }
 
-  /**
-   * Current status for this replicated domain.
-   */
+  /** Current status for this replicated domain. */
   private ServerStatus status = ServerStatus.NOT_CONNECTED_STATUS;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -354,15 +351,10 @@ public abstract class ReplicationDomain
    */
   private Date lastStatusChangeDate = new Date();
 
-  /**
-   * The state maintained by the Concrete Class.
-   */
+  /** The state maintained by the Concrete Class. */
   private final ServerState state;
 
-  /**
-   * The generator that will be used to generate {@link CSN}
-   * for this domain.
-   */
+  /** The generator that will be used to generate {@link CSN} for this domain. */
   private final CSNGenerator generator;
 
   private final AtomicReference<ECLIncludes> eclIncludes = new AtomicReference<>(new ECLIncludes());
@@ -482,9 +474,7 @@ public abstract class ReplicationDomain
     setNewStatus(event);
   }
 
-  /**
-   * Called when first connection or disconnection detected.
-   */
+  /** Called when first connection or disconnection detected. */
   void toNotConnectedStatus()
   {
     // Go into not connected status
@@ -557,7 +547,7 @@ public abstract class ReplicationDomain
    *
    * @return the initWindow
    */
-  protected int getInitWindow()
+  private int getInitWindow()
   {
     return config.getInitializationWindowSize();
   }
@@ -685,7 +675,6 @@ public abstract class ReplicationDomain
     return broker.getRsInfos();
   }
 
-
   /**
    * Gets the server ID of the Replication Server to which the domain
    * is currently connected.
@@ -698,9 +687,7 @@ public abstract class ReplicationDomain
     return broker.getRsServerId();
   }
 
-  /**
-   * Increment the number of processed updates.
-   */
+  /** Increment the number of processed updates. */
   private void incProcessedUpdates()
   {
     numProcessedUpdates.incrementAndGet();
@@ -960,12 +947,9 @@ public abstract class ReplicationDomain
 
       AssuredMode updateAssuredMode = update.getAssuredMode();
 
-      if ( hasTimeout || hasReplayErrors || hasWrongStatus)
+      if (hasTimeout || hasReplayErrors || hasWrongStatus)
       {
-        /*
-        Some problems detected: message did not correctly reach every
-        requested servers. Log problem
-        */
+        // Some problems detected: message did not correctly reach every requested servers.
         logger.info(NOTE_DS_RECEIVED_ACK_ERROR, getBaseDN(), getServerId(), update, ack.errorsToString());
 
         List<Integer> failedServers = ack.getFailedServers();
@@ -1051,8 +1035,6 @@ public abstract class ReplicationDomain
     private final int serverIdToInitialize;
     private final int initWindow;
 
-
-
     /**
      * Constructor for the ExportThread.
      *
@@ -1070,11 +1052,6 @@ public abstract class ReplicationDomain
       this.initWindow = initWindow;
     }
 
-
-
-    /**
-     * Run method for this class.
-     */
     @Override
     public void run()
     {
@@ -1103,7 +1080,7 @@ public abstract class ReplicationDomain
   }
 
   /** This class contains the context related to an import or export launched on the domain. */
-  protected class ImportExportContext
+  protected static final class ImportExportContext
   {
     /** The private task that initiated the operation. */
     private Task initializeTask;
@@ -1132,9 +1109,7 @@ public abstract class ReplicationDomain
      */
     private int initNumLostConnections;
 
-    /**
-     * Request message sent when this server has the initializeFromRemote task.
-     */
+    /** Request message sent when this server has the initializeFromRemote task. */
     private InitializeRequestMsg initReqMsgSent;
 
     /**
@@ -1267,7 +1242,6 @@ public abstract class ReplicationDomain
       }
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -1370,7 +1344,6 @@ public abstract class ReplicationDomain
 
       return this.slowestServerId;
     }
-
   }
 
   /**
@@ -1649,7 +1622,6 @@ public abstract class ReplicationDomain
           getBaseDN(), getServerId(), serverToInitialize, cause);
     }
 
-
     if (exportRootException != null)
     {
       throw exportRootException;
@@ -1763,10 +1735,7 @@ public abstract class ReplicationDomain
         int serverId = it.next();
         if (ieCtx.failureList.contains(serverId))
         {
-          /*
-          this server has already been in error during initialization
-          don't wait for it
-          */
+          /* this server has already been in error during initialization don't wait for it */
           continue;
         }
 
@@ -2342,10 +2311,7 @@ public abstract class ReplicationDomain
           && initFromTask != null
           && ++ieCtx.attemptCnt < 2)
       {
-          /*
-          Worth a new attempt
-          since initFromTask is in this server, connection is ok
-          */
+          /* Worth a new attempt since initFromTask is in this server, connection is ok */
           try
           {
             /*
@@ -2354,10 +2320,7 @@ public abstract class ReplicationDomain
             */
             Thread.sleep(1000);
 
-            /*
-            Restart the whole import protocol exchange by sending again
-            the request
-            */
+            /* Restart the whole import protocol exchange by sending again the request */
             logger.info(NOTE_RESENDING_INIT_FROM_REMOTE_REQUEST,
                 ieCtx.getException().getLocalizedMessage());
 
@@ -2908,9 +2871,7 @@ public abstract class ReplicationDomain
     return lastStatusChangeDate;
   }
 
-  /**
-   * Resets the values of the monitoring counters.
-   */
+  /** Resets the values of the monitoring counters. */
   private void resetMonitoringCounters()
   {
     numProcessedUpdates = new AtomicInteger(0);
@@ -3044,9 +3005,8 @@ public abstract class ReplicationDomain
     synchronized (sessionLock)
     {
       /*
-      Stop the broker first in order to prevent the listener from
-      reconnecting - see OPENDJ-457.
-      */
+       * Stop the broker first in order to prevent the listener from reconnecting - see OPENDJ-457.
+       */
       if (broker != null)
       {
         broker.stop();
@@ -3176,8 +3136,6 @@ public abstract class ReplicationDomain
    * @return The number of objects in the replication domain.
    */
   public abstract long countEntries() throws DirectoryException;
-
-
 
   /**
    * This method should handle the processing of {@link UpdateMsg} receive from
@@ -3524,8 +3482,6 @@ public abstract class ReplicationDomain
     return current != updated;
   }
 
-
-
   /**
    * Get the attributes to include in each change for the ECL.
    *
@@ -3536,8 +3492,6 @@ public abstract class ReplicationDomain
     return eclIncludes.get().includedAttrsAllServers;
   }
 
-
-
   /**
    * Get the attributes to include in each delete change for the ECL.
    *
@@ -3547,8 +3501,6 @@ public abstract class ReplicationDomain
   {
     return eclIncludes.get().includedAttrsForDeletesAllServers;
   }
-
-
 
   /**
    * Get the attributes to include in each change for the ECL for a given
@@ -3562,8 +3514,6 @@ public abstract class ReplicationDomain
   {
     return eclIncludes.get().includedAttrsByServer.get(serverId);
   }
-
-
 
   /**
    * Get the attributes to include in each change for the ECL for a given
@@ -3646,7 +3596,6 @@ public abstract class ReplicationDomain
         && cfg.getAssuredSdLevel() != getAssuredSdLevel();
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
