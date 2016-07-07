@@ -16,22 +16,29 @@
  */
 package org.opends.admin.ads;
 
+import static org.forgerock.opendj.ldap.Filter.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+
+import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.server.config.client.LDIFBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
@@ -127,12 +134,9 @@ class ADSContextHelper
   @throws ADSContextException In case some JNDI operation fails or there is a
   problem getting the instance public key certificate ID.
    */
-  void registerInstanceKeyCertificate(
-      ConnectionWrapper conn, Map<ServerProperty, Object> serverProperties,
-      LdapName serverEntryDn)
-  throws ADSContextException {
-    assert serverProperties.containsKey(
-        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
+  void registerInstanceKeyCertificate(ConnectionWrapper conn, Map<ServerProperty, Object> serverProperties,
+      String serverEntryDn) throws ADSContextException
+  {
     if (! serverProperties.containsKey(
         ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)) {
       return;
@@ -141,35 +145,32 @@ class ADSContextHelper
     // the key ID might be supplied in serverProperties (although, I am unaware of any such case).
     String keyID = (String)serverProperties.get(ServerProperty.INSTANCE_KEY_ID);
 
-    /* these attributes are used both to search for an existing certificate
-   entry and, if one does not exist, add a new certificate entry */
-    final BasicAttributes keyAttrs = new BasicAttributes();
-    final Attribute oc = new BasicAttribute("objectclass");
-    oc.add("top"); oc.add("ds-cfg-instance-key");
-    keyAttrs.put(oc);
+    // These attributes are used both to search for an existing certificate entry and,
+    // if one does not exist, add a new certificate entry
+    Filter filter = equality("objectclass", "ds-cfg-instance-key");
     if (null != keyID) {
-      keyAttrs.put(new BasicAttribute(
-          ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
+      filter = and(
+          filter,
+          equality(ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
     }
-    keyAttrs.put(new BasicAttribute(
-        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName()
-        + ";binary",
-        serverProperties.get(
-            ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)));
+    filter = and(
+        filter,
+        equality(
+            ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName() + ";binary",
+            serverProperties.get(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)));
 
     /* search for public-key certificate entry in ADS DIT */
-    final String attrIDs[] = { "ds-cfg-key-id" };
-    NamingEnumeration<SearchResult> results = null;
-    try
+    DN dn = DN.valueOf(ADSContext.getInstanceKeysContainerDN());
+    SearchRequest searchRequest = newSearchRequest(dn, WHOLE_SUBTREE, filter, "ds-cfg-key-id");
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(searchRequest))
     {
-      results = conn.getLdapContext().search(ADSContext.getInstanceKeysContainerDN(), keyAttrs, attrIDs);
       boolean found = false;
-      while (results.hasMore()) {
-        final Attribute keyIdAttr =
-          results.next().getAttributes().get(attrIDs[0]);
+      while (entryReader.hasNext())
+      {
+        final Attribute keyIdAttr = entryReader.readEntry().getAttribute("ds-cfg-key-id");
         if (null != keyIdAttr) {
           /* attribute ds-cfg-key-id is the entry is a MUST in the schema */
-          keyID = (String)keyIdAttr.get();
+          keyID = keyIdAttr.firstValueAsString();
         }
         found = true;
       }
@@ -185,32 +186,45 @@ class ADSContextHelper
           keyID = CryptoManagerImpl.getInstanceKeyID(
               (byte[])serverProperties.get(
                   ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE));
-          keyAttrs.put(new BasicAttribute(
-              ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
         }
 
         /* add public-key certificate entry */
-        final LdapName keyDn = new LdapName(
-            ServerProperty.INSTANCE_KEY_ID.getAttributeName() + "=" + Rdn.escapeValue(keyID)
-                + "," + ADSContext.getInstanceKeysContainerDN());
-        conn.getLdapContext().createSubcontext(keyDn, keyAttrs).close();
+        String keyDn = ServerProperty.INSTANCE_KEY_ID.getAttributeName() + "=" + Rdn.escapeValue(keyID)
+            + "," + ADSContext.getInstanceKeysContainerDN();
+
+        AddRequest addRequest = newAddRequest(keyDn)
+            .addAttribute("objectclass", "top", "ds-cfg-instance-key");
+        if (null != keyID) {
+          addRequest.addAttribute(ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID);
+        }
+        addRequest
+            .addAttribute(
+                ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName() + ";binary",
+                serverProperties.get(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
+            .addAttribute(ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID);
+        throwIfNotSuccess(conn.getConnection().add(addRequest));
       }
 
       if (serverEntryDn != null)
       {
         /* associate server entry with certificate entry via key ID attribute */
-        conn.getLdapContext().modifyAttributes(serverEntryDn,
-          DirContext.REPLACE_ATTRIBUTE,
-          new BasicAttributes(ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
+        ModifyRequest request = newModifyRequest(serverEntryDn)
+            .addModification(REPLACE, ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID);
+        throwIfNotSuccess(conn.getConnection().modify(request));
       }
     }
-    catch (NamingException | CryptoManagerException ne)
+    catch (IOException | CryptoManagerException ne)
     {
       throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, ne);
     }
-    finally
+  }
+
+  private void throwIfNotSuccess(Result result) throws LdapException
+  {
+    ResultCode rc = result.getResultCode();
+    if (rc.isExceptional())
     {
-      handleCloseNamingEnumeration(results);
+      throw LdapException.newLdapException(result);
     }
   }
 
@@ -234,21 +248,5 @@ class ADSContextHelper
   public String getAttrCryptoKeyCompromisedTime()
   {
     return ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME;
-  }
-
-  private void handleCloseNamingEnumeration(NamingEnumeration<?> ne)
-  throws ADSContextException
-  {
-    if (ne != null)
-    {
-      try
-      {
-        ne.close();
-      }
-      catch (NamingException ex)
-      {
-        throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, ex);
-      }
-    }
   }
 }

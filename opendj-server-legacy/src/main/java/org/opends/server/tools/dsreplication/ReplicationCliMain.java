@@ -3821,17 +3821,13 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode enableReplication(EnableReplicationUserData uData)
   {
-    ConnectionWrapper conn1 = null;
-    ConnectionWrapper conn2 = null;
-    try
+    println();
+    print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
+
+    List<LocalizableMessage> errorMessages = new LinkedList<>();
+    try (ConnectionWrapper conn1 = createAdministrativeConnection(uData.getServer1(), errorMessages);
+        ConnectionWrapper conn2 = createAdministrativeConnection(uData.getServer2(), errorMessages))
     {
-      println();
-      print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
-
-      List<LocalizableMessage> errorMessages = new LinkedList<>();
-      conn1 = createAdministrativeConnection(uData.getServer1(), errorMessages);
-      conn2 = createAdministrativeConnection(uData.getServer2(), errorMessages);
-
       if (!errorMessages.isEmpty())
       {
         errPrintLn(errorMessages);
@@ -3886,10 +3882,6 @@ public class ReplicationCliMain extends ConsoleApplication
         logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         return rce.getErrorCode();
       }
-    }
-    finally
-    {
-      close(conn1, conn2);
     }
   }
 
@@ -4132,9 +4124,8 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private ReplicationCliReturnCode initializeReplication(SourceDestinationServerUserData uData)
   {
-    ConnectionWrapper connSource = createAdministrativeConnection(uData, uData.getSource());
-    ConnectionWrapper connDestination = createAdministrativeConnection(uData, uData.getDestination());
-    try
+    try (ConnectionWrapper connSource = createAdministrativeConnection(uData, uData.getSource());
+        ConnectionWrapper connDestination = createAdministrativeConnection(uData, uData.getDestination()))
     {
       if (connSource == null || connDestination == null)
       {
@@ -4174,10 +4165,6 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
       return returnValue;
-    }
-    finally
-    {
-      close(connDestination, connSource);
     }
   }
 
