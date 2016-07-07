@@ -29,6 +29,7 @@ import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.TimeUnit;
 
+import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
 import javax.naming.ldap.InitialLdapContext;
@@ -257,7 +258,21 @@ public class ConnectionWrapper implements Closeable
    */
   public String getLdapUrl()
   {
-    return ConnectionUtils.getLdapUrl(ldapContext);
+    return getEnvProperty(ldapContext, Context.PROVIDER_URL);
+  }
+
+  private static String getEnvProperty(InitialLdapContext ctx, String property)
+  {
+    try
+    {
+      return (String) ctx.getEnvironment().get(property);
+    }
+    catch (NamingException ne)
+    {
+      // This is really strange. Seems like a bug somewhere.
+      logger.warn(LocalizableMessage.raw("Naming exception getting environment of " + ctx, ne));
+      return null;
+    }
   }
 
   /**
@@ -267,18 +282,7 @@ public class ConnectionWrapper implements Closeable
    */
   public boolean isSSL()
   {
-    // FIXME the code down below is what the code was doing in the control-panel / dsreplication
-    // We might as well just return this.connectionType == LDAPS;
-    try
-    {
-      return ConnectionUtils.getLdapUrl(ldapContext).toLowerCase().startsWith("ldaps");
-    }
-    catch (Throwable t)
-    {
-      // This is really strange. Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Error getting if is SSL " + t, t));
-      return false;
-    }
+    return getConnectionType() == LDAPS;
   }
 
   /**
@@ -288,9 +292,7 @@ public class ConnectionWrapper implements Closeable
    */
   public boolean isStartTLS()
   {
-    // FIXME the code down below is what the code was doing in the control-panel / dsreplication
-    // We might as well just return this.connectionType == START_TLS;
-    return ConnectionUtils.isStartTLS(ldapContext);
+    return getConnectionType() == START_TLS;
   }
 
   private InitialLdapContext createAdministrativeContext(Options options) throws NamingException
@@ -350,20 +352,7 @@ public class ConnectionWrapper implements Closeable
    */
   public PreferredConnection.Type getConnectionType()
   {
-    // FIXME the code down below is what the code was doing in the control-panel / dsreplication
-    // We might as well just return this.connectionType;
-    if (isSSL())
-    {
-      return LDAPS;
-    }
-    else if (isStartTLS())
-    {
-      return START_TLS;
-    }
-    else
-    {
-      return LDAP;
-    }
+    return this.connectionType;
   }
 
   /**

@@ -86,11 +86,10 @@ public class LDAPConnectionPool {
     {
       ConnectionRecord cr = connectionTable.get(key);
       if (cr.conn != null
-          && conn.getHostPort().equals(cr.conn.getHostPort())
+          && cr.conn.getHostPort().equals(conn.getHostPort())
           && cr.conn.getBindDn().equals(conn.getBindDn())
           && cr.conn.getBindPassword().equals(conn.getBindPassword())
-          && cr.conn.isSSL() == conn.isSSL()
-          && cr.conn.isStartTLS() == conn.isStartTLS())
+          && cr.conn.getConnectionType() == conn.getConnectionType())
       {
         return true;
       }

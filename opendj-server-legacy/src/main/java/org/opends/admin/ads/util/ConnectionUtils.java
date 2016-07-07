@@ -359,39 +359,6 @@ public class ConnectionUtils
   }
 
   /**
-   * Returns the LDAP URL used in the provided InitialLdapContext.
-   * @param ctx the context to analyze.
-   * @return the LDAP URL used in the provided InitialLdapContext.
-   */
-  static String getLdapUrl(InitialLdapContext ctx)
-  {
-    return getEnvProperty(ctx, Context.PROVIDER_URL);
-  }
-
-  private static String getEnvProperty(InitialLdapContext ctx, String property) {
-    try {
-      return (String) ctx.getEnvironment().get(property);
-    } catch (NamingException ne) {
-      // This is really strange.  Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Naming exception getting environment of " + ctx, ne));
-      return null;
-    }
-  }
-
-  /**
-   * Tells whether we are using StartTLS in the provided InitialLdapContext.
-   * @param ctx the context to analyze.
-   * @return <CODE>true</CODE> if we are using StartTLS and <CODE>false</CODE>
-   * otherwise.
-   */
-  static boolean isStartTLS(InitialLdapContext ctx)
-  {
-    return "true".equalsIgnoreCase(getEnvProperty(ctx, STARTTLS_PROPERTY));
-  }
-
-
-
-  /**
    * Method used to know if we are connected as administrator in a server with a
    * given InitialLdapContext.
    * @param ctx the context.
