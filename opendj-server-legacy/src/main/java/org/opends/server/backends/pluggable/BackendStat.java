@@ -726,7 +726,7 @@ public class BackendStat
     }
 
     builder.print(new TextTablePrinter(out));
-    out.format(INFO_LABEL_BACKEND_TOOL_TOTAL.get(pluggableBackends.size()).toString());
+    out.print(INFO_LABEL_BACKEND_TOOL_TOTAL.get(pluggableBackends.size()).toString());
 
     return 0;
   }
@@ -745,7 +745,7 @@ public class BackendStat
       }
 
       builder.print(new TextTablePrinter(out));
-      out.format(INFO_LABEL_BACKEND_TOOL_TOTAL.get(entryContainers.size()).toString());
+      out.print(INFO_LABEL_BACKEND_TOOL_TOTAL.get(entryContainers.size()).toString());
 
       return 0;
     }
@@ -777,7 +777,7 @@ public class BackendStat
       }
 
       builder.print(new TextTablePrinter(out));
-      out.format(INFO_LABEL_BACKEND_TOOL_TOTAL.get(treeNames.size()).toString());
+      out.print(INFO_LABEL_BACKEND_TOOL_TOTAL.get(treeNames.size()).toString());
 
       return 0;
     }
@@ -862,7 +862,7 @@ public class BackendStat
       }
 
       builder.print(new TextTablePrinter(out));
-      out.format(INFO_LABEL_BACKEND_TOOL_TOTAL.get(count).toString());
+      out.print(INFO_LABEL_BACKEND_TOOL_TOTAL.get(count).toString());
 
       return 0;
     }
@@ -1075,11 +1075,11 @@ public class BackendStat
       }
 
       builder.print(new TextTablePrinter(out));
-      out.format(INFO_LABEL_BACKEND_TOOL_TOTAL.get(count).toString());
+      out.print(INFO_LABEL_BACKEND_TOOL_TOTAL.get(count).toString());
       for (Map.Entry<Index, StringBuilder> e : undefinedKeys.entrySet())
       {
-        out.format(INFO_LABEL_BACKEND_TOOL_INDEX.get(e.getKey().getName()).toString());
-        out.format(INFO_LABEL_BACKEND_TOOL_OVER_INDEX_LIMIT_KEYS.get(e.getValue()).toString());
+        out.print(INFO_LABEL_BACKEND_TOOL_INDEX.get(e.getKey().getName()).toString());
+        out.print(INFO_LABEL_BACKEND_TOOL_OVER_INDEX_LIMIT_KEYS.get(e.getValue()).toString());
       }
       return 0;
     }
@@ -1264,12 +1264,12 @@ public class BackendStat
   private void dumpActualTree(RootContainer rc, final TreeKeyValue target, final Options options) throws Exception
   {
     TreeStats treeStats =  cursorTreeToDump(rc, target, options);
-    out.format(INFO_LABEL_BACKEND_TOOL_TOTAL_RECORDS.get(treeStats.count).toString());
+    out.print(INFO_LABEL_BACKEND_TOOL_TOTAL_RECORDS.get(treeStats.count).toString());
     if (treeStats.count > 0)
     {
-      out.format(INFO_LABEL_BACKEND_TOOL_TOTAL_KEY_SIZE_AND_AVG.get(
+      out.print(INFO_LABEL_BACKEND_TOOL_TOTAL_KEY_SIZE_AND_AVG.get(
           treeStats.totalKeySize, treeStats.totalKeySize / treeStats.count).toString());
-      out.format(INFO_LABEL_BACKEND_TOOL_TOTAL_DATA_SIZE_AND_AVG.get(
+      out.print(INFO_LABEL_BACKEND_TOOL_TOTAL_DATA_SIZE_AND_AVG.get(
           treeStats.totalDataSize, treeStats.totalDataSize / treeStats.count).toString());
     }
   }
@@ -1347,9 +1347,9 @@ public class BackendStat
           }
           catch (Exception e)
           {
-            out.format(ERR_BACKEND_TOOL_CURSOR_AT_KEY_NUMBER.get(count, e.getCause()).toString());
+            out.print(ERR_BACKEND_TOOL_CURSOR_AT_KEY_NUMBER.get(count, e.getCause()).toString());
             e.printStackTrace(out);
-            out.format("%n");
+            out.println();
             throw e;
           }
           return new TreeStats(count, totalKeySize, totalDataSize);
@@ -1375,16 +1375,16 @@ public class BackendStat
   {
     if (options.get(DUMP_SINGLE_LINE))
     {
-      out.format(INFO_LABEL_BACKEND_TOOL_KEY_FORMAT.get(key.length()) + " ");
+      out.print(INFO_LABEL_BACKEND_TOOL_KEY_FORMAT.get(key.length()) + " ");
       toHexDumpSingleLine(out, key);
-      out.format(INFO_LABEL_BACKEND_TOOL_VALUE_FORMAT.get(value.length()) + " ");
+      out.print(INFO_LABEL_BACKEND_TOOL_VALUE_FORMAT.get(value.length()) + " ");
       toHexDumpSingleLine(out, value);
     }
     else
     {
-      out.format(INFO_LABEL_BACKEND_TOOL_KEY_FORMAT.get(key.length()) + "%n");
+      out.println(INFO_LABEL_BACKEND_TOOL_KEY_FORMAT.get(key.length()));
       toHexDumpWithAsciiCompact(key, options.get(DUMP_INDENT), out);
-      out.format(INFO_LABEL_BACKEND_TOOL_VALUE_FORMAT.get(value.length()) + "%n");
+      out.println(INFO_LABEL_BACKEND_TOOL_VALUE_FORMAT.get(value.length()));
       toHexDumpWithAsciiCompact(value, options.get(DUMP_INDENT), out);
     }
   }
@@ -1393,9 +1393,9 @@ public class BackendStat
   {
     for (int i = 0; i < data.length(); i++)
     {
-      out.format("%s", StaticUtils.byteToHex(data.byteAt(i)));
+      out.print(StaticUtils.byteToHex(data.byteAt(i)));
     }
-    out.format("%n");
+    out.println();
   }
 
   final void toHexDumpWithAsciiCompact(ByteString data, int indent, PrintStream out)
