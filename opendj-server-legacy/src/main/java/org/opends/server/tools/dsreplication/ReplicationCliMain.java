@@ -64,14 +64,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.LdapName;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -93,6 +86,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -145,6 +139,7 @@ import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tools.dsreplication.EnableReplicationUserData.EnableReplicationServerData;
 import org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.ServerArgs;
+import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.tools.tasks.TaskScheduleInteraction;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
@@ -152,6 +147,7 @@ import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.SetupUtils;
@@ -1349,29 +1345,29 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         argParser.setResetChangeNumber(newStartCN);
       }
-      SearchControls ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-      ctls.setReturningAttributes(
-          new String[] {
-              "changeNumber",
-              "replicationCSN",
-              "targetDN"
-          });
-      NamingEnumeration<SearchResult> listeners = connSource.getLdapContext().search(
-          new LdapName("cn=changelog"), "(changeNumber=" + newStartCN + ")", ctls);
-      if (!listeners.hasMore())
+
+      SearchResultEntry sr;
+      SearchRequest request=newSearchRequest("cn=changelog", WHOLE_SUBTREE, "(changeNumber=" + newStartCN + ")",
+          "changeNumber",
+          "replicationCSN",
+          "targetDN");
+      try (ConnectionEntryReader entryReader = connSource.getConnection().search(request))
       {
-        errPrintln(ERROR_RESET_CHANGE_NUMBER_UNKNOWN_NUMBER.get(newStartCN, uData.getSourceHostPort()));
-        return ERROR_UNKNOWN_CHANGE_NUMBER;
+        if (!entryReader.hasNext())
+        {
+          errPrintln(ERROR_RESET_CHANGE_NUMBER_UNKNOWN_NUMBER.get(newStartCN, uData.getSourceHostPort()));
+          return ERROR_UNKNOWN_CHANGE_NUMBER;
+        }
+        sr = entryReader.readEntry();
       }
-      SearchResult sr = listeners.next();
-      String newStartCSN = getFirstValue(sr, "replicationCSN");
+
+      String newStartCSN = firstValueAsString(sr, "replicationCSN");
       if (newStartCSN == null)
       {
         errPrintln(ERROR_RESET_CHANGE_NUMBER_NO_CSN_FOUND.get(newStartCN, uData.getSourceHostPort()));
         return ERROR_RESET_CHANGE_NUMBER_NO_CSN;
       }
-      String targetDN = getFirstValue(sr, "targetDN");
+      String targetDN = firstValueAsString(sr, "targetDN");
       DN targetBaseDN = DN.rootDN();
       try
       {
@@ -1406,7 +1402,7 @@ public class ReplicationCliMain extends ConsoleApplication
       waitUntilResetChangeNumberTaskEnds(connDest, taskDN);
       return SUCCESSFUL;
     }
-    catch (ReplicationCliException | NamingException | LdapException | NullPointerException e)
+    catch (ReplicationCliException | IOException | NullPointerException e)
     {
       errPrintln(ERROR_RESET_CHANGE_NUMBER_EXCEPTION.get(e.getLocalizedMessage()));
       return ERROR_RESET_CHANGE_NUMBER_PROBLEM;
@@ -1417,20 +1413,15 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     try
     {
-      SearchControls ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      ctls.setReturningAttributes(new String[] {"lastChangeNumber"});
-      NamingEnumeration<SearchResult> results = conn.getLdapContext().search(new LdapName(""), "objectclass=*", ctls);
-      if (results.hasMore()) {
-        return getFirstValue(results.next(), "lastChangeNumber");
-      }
+      SearchResultEntry sr =
+          conn.getConnection().searchSingleEntry("", BASE_OBJECT, "objectclass=*", "lastChangeNumber");
+      return firstValueAsString(sr, "lastChangeNumber");
     }
-    catch (NamingException e)
+    catch (LdapException e)
     {
       errPrintln(ERROR_RESET_CHANGE_NUMBER_EXCEPTION.get(e.getLocalizedMessage()));
+      return "";
     }
-
-    return "";
   }
 
   private void waitUntilResetChangeNumberTaskEnds(ConnectionWrapper conn, String taskDN)
@@ -1557,23 +1548,28 @@ public class ReplicationCliMain extends ConsoleApplication
     String taskID = null;
     while (!taskCreated)
     {
-      BasicAttributes attrs = PurgeHistoricalUserData.getTaskAttributes(uData);
-      dn = PurgeHistoricalUserData.getTaskDN(attrs);
-      taskID = PurgeHistoricalUserData.getTaskID(attrs);
+      List<RawAttribute> rawAttrs = TaskClient.getTaskAttributes(new PurgeHistoricalScheduleInformation(uData));
+      dn = TaskClient.getTaskDN(rawAttrs);
+      taskID = TaskClient.getTaskID(rawAttrs);
+
+      AddRequest request = newAddRequest(dn);
+      for (RawAttribute rawAttr : rawAttrs)
+      {
+        request.addAttribute(new LinkedAttribute(rawAttr.getAttributeType(), rawAttr.getValues()));
+      }
+
       try
       {
-        DirContext dirCtx = conn.getLdapContext().createSubcontext(dn, attrs);
+        conn.getConnection().add(request);
         taskCreated = true;
-        logger.info(LocalizableMessage.raw("created task entry: "+attrs));
-        dirCtx.close();
+        logger.info(LocalizableMessage.raw("created task entry: " + request));
       }
-      catch (NamingException ne)
+      catch (LdapException e)
       {
-        logger.error(LocalizableMessage.raw("Error creating task "+attrs, ne));
+        logger.error(LocalizableMessage.raw("Error creating task " + request, e));
         LocalizableMessage msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
         ReplicationCliReturnCode code = ERROR_LAUNCHING_PURGE_HISTORICAL;
-        throw new ReplicationCliException(
-            getThrowableMsg(msg, ne), code, ne);
+        throw new ReplicationCliException(getThrowableMsg(msg, e), code, e);
       }
     }
 
@@ -1585,21 +1581,21 @@ public class ReplicationCliMain extends ConsoleApplication
       sleepCatchInterrupt(500);
       try
       {
-        SearchResult sr = getFirstSearchResult(conn, dn,
+        SearchResultEntry sr = getFirstSearchResult(conn, dn,
             "ds-task-log-message",
             "ds-task-state",
             "ds-task-purge-conflicts-historical-purged-values-count",
             "ds-task-purge-conflicts-historical-purge-completed-in-time",
             "ds-task-purge-conflicts-historical-purge-completed-in-time",
             "ds-task-purge-conflicts-historical-last-purged-changenumber");
-        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        String logMsg = firstValueAsString(sr, "ds-task-log-message");
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
 
-        String state = getFirstValue(sr, "ds-task-state");
+        String state = firstValueAsString(sr, "ds-task-state");
         TaskState taskState = TaskState.fromString(state);
         if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
@@ -1619,15 +1615,14 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      catch (NameNotFoundException x)
+      catch (EntryNotFoundException x)
       {
         isOver = true;
       }
-      catch (NamingException ne)
+      catch (LdapException e)
       {
         LocalizableMessage msg = ERR_READING_SERVER_TASK_PROGRESS.get();
-        throw new ReplicationCliException(
-          getThrowableMsg(msg, ne), ERROR_CONNECTING, ne);
+        throw new ReplicationCliException(getThrowableMsg(msg, e), ERROR_CONNECTING, e);
       }
     }
 
@@ -1638,24 +1633,11 @@ public class ReplicationCliMain extends ConsoleApplication
     return returnCode;
   }
 
-  private SearchResult getFirstSearchResult(ConnectionWrapper conn, String dn, String... returnedAttributes)
-      throws NamingException
+  private SearchResultEntry getFirstSearchResult(ConnectionWrapper conn, String dn, String... returnedAttributes)
+      throws LdapException
   {
-    SearchControls searchControls = new SearchControls();
-    searchControls.setCountLimit(1);
-    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    searchControls.setReturningAttributes(returnedAttributes);
-    NamingEnumeration<SearchResult> res = conn.getLdapContext().search(dn, "objectclass=*", searchControls);
-    try
-    {
-      SearchResult sr = null;
-      sr = res.next();
-      return sr;
-    }
-    finally
-    {
-      res.close();
-    }
+    SearchRequest request = newSearchRequest(dn, BASE_OBJECT, "(objectclass=*)", returnedAttributes).setSizeLimit(1);
+    return conn.getConnection().searchSingleEntry(request);
   }
 
   private LocalizableMessage getPurgeErrorMsg(String lastLogMsg, String state, ConnectionWrapper conn)

@@ -35,9 +35,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NamingException;
-import javax.naming.ldap.Control;
-import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.Rdn;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -54,7 +51,9 @@ import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -959,36 +958,22 @@ public class ADSContext
       removeAdministrators ? getAdministratorContainerDN() : null };
     try
     {
-      Control[] controls = new Control[] { new SubtreeDeleteControl() };
-      LdapContext tmpContext = connectionWrapper.getLdapContext().newInstance(controls);
-      try
+      for (String dn : dns)
       {
-        for (String dn : dns)
+        if (dn != null)
         {
-          if (dn != null)
+          if (isExistingEntry(dn))
           {
-            if (isExistingEntry(dn))
-            {
-              tmpContext.destroySubcontext(dn);
-            }
+            DeleteRequest request = newDeleteRequest(dn)
+                .addControl(SubtreeDeleteRequestControl.newControl(true));
+            connectionWrapper.getConnection().delete(request);
           }
-        }
-      }
-      finally
-      {
-        try
-        {
-          tmpContext.close();
-        }
-        catch (Exception ex)
-        {
-          logger.warn(LocalizableMessage.raw("Error while closing LDAP connection after removing admin data", ex));
         }
       }
       // Recreate the container entries:
       createAdminDataContainers();
     }
-    catch (NamingException x)
+    catch (LdapException x)
     {
       throw new ADSContextException(ErrorType.ERROR_UNEXPECTED, x);
     }

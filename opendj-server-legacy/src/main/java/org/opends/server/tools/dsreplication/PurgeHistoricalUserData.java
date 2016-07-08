@@ -16,21 +16,11 @@
  */
 package org.opends.server.tools.dsreplication;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
-import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
 import org.opends.server.types.HostPort;
-import org.opends.server.types.RawAttribute;
 
 /** This class is used to store the information provided by the user to purge historical data. */
 public class PurgeHistoricalUserData extends MonoServerReplicationUserData
@@ -149,88 +139,5 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
     }
 
     uData.setMaximumDuration(argParser.getMaximumDurationOrDefault());
-  }
-
-  /**
-   * Commodity method that returns the list of basic task attributes required
-   * to launch a task corresponding to the provided user data.
-   * @param uData the user data describing the purge historical to be executed.
-   * @return the list of basic task attributes required
-   * to launch a task corresponding to the provided user data.
-   */
-  public static BasicAttributes getTaskAttributes(PurgeHistoricalUserData uData)
-  {
-    PurgeHistoricalScheduleInformation information =
-      new PurgeHistoricalScheduleInformation(uData);
-    return getAttributes(TaskClient.getTaskAttributes(information));
-  }
-
-  private static BasicAttributes getAttributes(ArrayList<RawAttribute> rawAttrs)
-  {
-    BasicAttributes attrs = new BasicAttributes();
-    for (RawAttribute rawAttr : rawAttrs)
-    {
-      BasicAttribute attr = new BasicAttribute(rawAttr.getAttributeType());
-      for (ByteString v : rawAttr.getValues())
-      {
-        attr.add(v.toString());
-      }
-      attrs.put(attr);
-    }
-    return attrs;
-  }
-
-  /**
-   * Returns the DN of the task corresponding to the provided list of
-   * attributes.  The code assumes that the attributes have been generated
-   * calling the method {@link #getTaskAttributes(PurgeHistoricalUserData)}.
-   * @param attrs the attributes of the task entry.
-   * @return the DN of the task entry.
-   */
-  public static String getTaskDN(BasicAttributes attrs)
-  {
-    ArrayList<RawAttribute> rawAttrs = getRawAttributes(attrs);
-    return TaskClient.getTaskDN(rawAttrs);
-  }
-
-  /**
-   * Returns the ID of the task corresponding to the provided list of
-   * attributes.  The code assumes that the attributes have been generated
-   * calling the method {@link #getTaskAttributes(PurgeHistoricalUserData)}.
-   * @param attrs the attributes of the task entry.
-   * @return the ID of the task entry.
-   */
-  public static String getTaskID(BasicAttributes attrs)
-  {
-    ArrayList<RawAttribute> rawAttrs = getRawAttributes(attrs);
-    return TaskClient.getTaskID(rawAttrs);
-  }
-
-  private static ArrayList<RawAttribute> getRawAttributes(BasicAttributes attrs)
-  {
-    try
-    {
-      ArrayList<RawAttribute> rawAttrs = new ArrayList<>();
-      NamingEnumeration<Attribute> nAtt = attrs.getAll();
-      while (nAtt.hasMore())
-      {
-        Attribute attr = nAtt.next();
-        NamingEnumeration<?> values = attr.getAll();
-        ArrayList<ByteString> rawValues = new ArrayList<>();
-        while (values.hasMore())
-        {
-          Object v = values.next();
-          rawValues.add(ByteString.valueOfUtf8(v.toString()));
-        }
-        RawAttribute rAttr = RawAttribute.create(attr.getID(), rawValues);
-        rawAttrs.add(rAttr);
-      }
-      return rawAttrs;
-    }
-    catch (NamingException ne)
-    {
-      // This is a bug.
-      throw new RuntimeException("Unexpected error: "+ne, ne);
-    }
   }
 }

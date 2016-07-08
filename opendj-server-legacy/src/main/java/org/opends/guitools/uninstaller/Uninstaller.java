@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.Context;
-import javax.naming.NamingException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -1471,16 +1469,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       getUninstallUserData().setAdminUID(loginDialog.getAdministratorUid());
       getUninstallUserData().setAdminPwd(loginDialog.getAdministratorPwd());
       final ConnectionWrapper connWrapper = loginDialog.getConnection();
-      try
-      {
-        getUninstallUserData().setLocalServerUrl(
-            (String)connWrapper.getLdapContext().getEnvironment().get(Context.PROVIDER_URL));
-      }
-      catch (NamingException ne)
-      {
-        logger.warn(LocalizableMessage.raw("Could not find local server: "+ne, ne));
-        getUninstallUserData().setLocalServerUrl("ldap://localhost:389");
-      }
+      getUninstallUserData().setLocalServerUrl(connWrapper.getLdapUrl());
       getUninstallUserData().setReplicationServer(
           loginDialog.getHostName() + ":" +
           conf.getReplicationServerPort());

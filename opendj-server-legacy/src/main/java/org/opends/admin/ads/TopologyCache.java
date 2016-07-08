@@ -16,6 +16,7 @@
  */
 package org.opends.admin.ads;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,19 +26,19 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
@@ -45,6 +46,8 @@ import org.opends.quicksetup.util.Utils;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -195,10 +198,10 @@ public class TopologyCache
           {
             updateReplicas(server, candidateReplicas, updatedReplicas);
           }
-          catch (NamingException ne)
+          catch (NamingException | IOException e)
           {
             server.setLastException(new TopologyCacheException(
-                TopologyCacheException.Type.GENERIC_READING_SERVER, ne));
+                TopologyCacheException.Type.GENERIC_READING_SERVER, e));
           }
           replicasToUpdate.removeAll(updatedReplicas);
         }
@@ -430,33 +433,23 @@ public class TopologyCache
   private void updateReplicas(ServerDescriptor replicationServer,
                               Collection<ReplicaDescriptor> candidateReplicas,
                               Collection<ReplicaDescriptor> updatedReplicas)
-      throws NamingException
+      throws NamingException, IOException
   {
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(
-        new String[]
-        {
-          "approx-older-change-not-synchronized-millis", "missing-changes",
-          "domain-name", "server-id"
-        });
-
-    NamingEnumeration<SearchResult> monitorEntries = null;
     ServerLoader loader = getServerLoader(replicationServer.getAdsProperties());
-    try (ConnectionWrapper conn = loader.createConnectionWrapper())
+    SearchRequest request=Requests.newSearchRequest("cn=monitor", WHOLE_SUBTREE, "(missing-changes=*)",
+        "approx-older-change-not-synchronized-millis", "missing-changes", "domain-name", "server-id");
+    try (ConnectionWrapper conn = loader.createConnectionWrapper();
+        ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      monitorEntries = conn.getLdapContext().search(
-          new LdapName("cn=monitor"), "(missing-changes=*)", ctls);
-
-      while (monitorEntries.hasMore())
+      while (entryReader.hasNext())
       {
-        SearchResult sr = monitorEntries.next();
+        SearchResultEntry sr = entryReader.readEntry();
 
-        String dn = ConnectionUtils.getFirstValue(sr, "domain-name");
+        String dn = firstValueAsString(sr, "domain-name");
         int replicaId = -1;
         try
         {
-          String sid = ConnectionUtils.getFirstValue(sr, "server-id");
+          Integer sid = asInteger(sr, "server-id");
           if (sid == null)
           {
             // This is not a replica, but a replication server. Skip it
@@ -466,8 +459,7 @@ public class TopologyCache
         }
         catch (Throwable t)
         {
-          logger.warn(LocalizableMessage.raw("Unexpected error reading replica ID: " + t,
-              t));
+          logger.warn(LocalizableMessage.raw("Unexpected error reading replica ID: " + t, t));
         }
 
         for (ReplicaDescriptor replica : candidateReplicas)
@@ -484,34 +476,19 @@ public class TopologyCache
         }
       }
     }
-    catch (NameNotFoundException nse)
+    catch (EntryNotFoundException e)
     {
-    }
-    finally
-    {
-      if (monitorEntries != null)
-      {
-        try
-        {
-          monitorEntries.close();
-        }
-        catch (Throwable t)
-        {
-          logger.warn(LocalizableMessage.raw(
-              "Unexpected error closing enumeration on monitor entries" + t, t));
-        }
-      }
     }
   }
 
-  private void setMissingChanges(ReplicaDescriptor replica, SearchResult sr) throws NamingException
+  private void setMissingChanges(ReplicaDescriptor replica, SearchResultEntry sr) throws NamingException
   {
-    String s = ConnectionUtils.getFirstValue(sr, "missing-changes");
-    if (s != null)
+    Integer value = asInteger(sr, "missing-changes");
+    if (value != null)
     {
       try
       {
-        replica.setMissingChanges(Integer.valueOf(s));
+        replica.setMissingChanges(value);
       }
       catch (Throwable t)
       {
@@ -521,9 +498,9 @@ public class TopologyCache
     }
   }
 
-  private void setAgeOfOldestMissingChange(ReplicaDescriptor replica, SearchResult sr) throws NamingException
+  private void setAgeOfOldestMissingChange(ReplicaDescriptor replica, SearchResultEntry sr) throws NamingException
   {
-    String s = ConnectionUtils.getFirstValue(sr, "approx-older-change-not-synchronized-millis");
+    String s = firstValueAsString(sr, "approx-older-change-not-synchronized-millis");
     if (s != null)
     {
       try
