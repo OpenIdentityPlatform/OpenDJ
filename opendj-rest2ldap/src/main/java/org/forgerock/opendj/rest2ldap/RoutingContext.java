@@ -24,13 +24,23 @@ import org.forgerock.services.context.Context;
  * A {@link Context} which communicates the current Rest2Ldap routing state to downstream handlers.
  */
 final class RoutingContext extends AbstractContext {
+    static RoutingContext newCollectionRoutingContext(Context parent, DN collectionDn, Resource resource) {
+        return new RoutingContext(parent, collectionDn, resource, true);
+    }
+
+    static RoutingContext newRoutingContext(Context parent, DN resourceDn, Resource resource) {
+        return new RoutingContext(parent, resourceDn, resource, false);
+    }
+
     private final DN dn;
     private final Resource resource;
+    private final boolean isCollection;
 
-    RoutingContext(final Context parent, final DN dn, final Resource resource) {
+    private RoutingContext(Context parent, DN dn, Resource resource, boolean isCollection) {
         super(parent, "routing context");
         this.dn = dn;
         this.resource = resource;
+        this.isCollection = isCollection;
     }
 
     DN getDn() {
@@ -39,5 +49,9 @@ final class RoutingContext extends AbstractContext {
 
     Resource getType() {
         return resource;
+    }
+
+    boolean isCollection() {
+        return isCollection;
     }
 }

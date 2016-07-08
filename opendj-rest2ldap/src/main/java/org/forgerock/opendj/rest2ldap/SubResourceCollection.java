@@ -25,6 +25,7 @@ import static org.forgerock.opendj.ldap.SearchScope.SINGLE_LEVEL;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+import static org.forgerock.opendj.rest2ldap.RoutingContext.newRoutingContext;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
@@ -234,7 +235,7 @@ public final class SubResourceCollection extends SubResource {
         final SearchRequest searchRequest = namingStrategy.createSearchRequest(dnFrom(context), idFrom(context));
         if (searchRequest.getScope().equals(BASE_OBJECT) && !resource.hasSubTypesWithSubResources()) {
             // There's no point in doing a search because we already know the DN and sub-resources.
-            return newResultPromise(new RoutingContext(context, searchRequest.getName(), resource));
+            return newResultPromise(newRoutingContext(context, searchRequest.getName(), resource));
         }
         searchRequest.addAttribute("objectClass");
         return conn.searchSingleEntryAsync(searchRequest)
@@ -243,7 +244,7 @@ public final class SubResourceCollection extends SubResource {
                              public Promise<RoutingContext, ResourceException> apply(SearchResultEntry entry)
                                      throws ResourceException {
                                  final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
-                                 return newResultPromise(new RoutingContext(context, entry.getName(), subType));
+                                 return newResultPromise(newRoutingContext(context, entry.getName(), subType));
                              }
                          }, new AsyncFunction<LdapException, RoutingContext, ResourceException>() {
                              @Override

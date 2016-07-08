@@ -34,6 +34,8 @@ import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.ldap.SearchScope.SINGLE_LEVEL;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
+import static org.forgerock.opendj.rest2ldap.RoutingContext.newCollectionRoutingContext;
+import static org.forgerock.opendj.rest2ldap.RoutingContext.newRoutingContext;
 import static org.forgerock.opendj.rest2ldap.Utils.connectionFrom;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.newNotSupportedException;
@@ -260,10 +262,15 @@ final class SubResourceImpl {
             return e.asPromise();
         }
 
+        // Temporary routing context which will be used for encoding LDAP attributes. Note that the DN represents the
+        // DN of the collection, not the resource being created. The DN of the resource can only be determined once
+        // the LDAP attributes have been encoded.
+        final RoutingContext parentDnAndType = newCollectionRoutingContext(context, baseDn, subType);
+
         // Now build the LDAP representation and add it.
         final Connection connection = connectionFrom(context);
         return subType.getPropertyMapper()
-                      .create(context, subType, ROOT, request.getContent())
+                      .create(parentDnAndType, subType, ROOT, request.getContent())
                       .thenAsync(new AsyncFunction<List<Attribute>, ResourceResponse, ResourceException>() {
                           @Override
                           public Promise<ResourceResponse, ResourceException> apply(final List<Attribute> attributes) {
@@ -284,9 +291,12 @@ final class SubResourceImpl {
                                           getLdapAttributesForKnownType(request.getFields(), subType);
                                   addRequest.addControl(PostReadRequestControl.newControl(false, ldapAttributes));
                               }
+                              // Use a routing context which refers to the created entry when computing the response.
+                              final RoutingContext dnAndType =
+                                      newRoutingContext(context, addRequest.getName(), subType);
                               return connection.addAsync(addRequest)
                                                .thenCatchAsync(lazilyAddGlueEntry(connection, addRequest))
-                                               .thenAsync(encodeUpdateResourceResponse(context, subType),
+                                               .thenAsync(encodeUpdateResourceResponse(dnAndType, subType),
                                                           adaptLdapException(ResourceResponse.class));
                           }
                       });
@@ -346,7 +356,7 @@ final class SubResourceImpl {
                         return connection.applyChangeAsync(deleteRequest)
                                          .thenCatchAsync(deleteSubtreeWithoutUsingSubtreeDeleteControl(connection,
                                                                                                        deleteRequest))
-                                         .thenAsync(encodeUpdateResourceResponse(context, dnAndType.getType()),
+                                         .thenAsync(encodeUpdateResourceResponse(dnAndType, dnAndType.getType()),
                                                     adaptLdapException(ResourceResponse.class));
                     }
                 });
@@ -433,7 +443,7 @@ final class SubResourceImpl {
                         final Resource subType = dnAndType.getType();
                         final PropertyMapper propertyMapper = subType.getPropertyMapper();
                         for (final PatchOperation operation : request.getPatchOperations()) {
-                            promises.add(propertyMapper.patch(context, subType, ROOT, operation));
+                            promises.add(propertyMapper.patch(dnAndType, subType, ROOT, operation));
                         }
                         return when(promises);
                     }
@@ -457,7 +467,7 @@ final class SubResourceImpl {
                         if (modifyRequest.getModifications().isEmpty()) {
                             // This patch is a no-op so just read the entry and check its version.
                             return connection.readEntryAsync(dnAndType.getDn(), attributes)
-                                             .thenAsync(encodeEmptyPatchResourceResponse(context, subType, request),
+                                             .thenAsync(encodeEmptyPatchResourceResponse(dnAndType, subType, request),
                                                         adaptLdapException(ResourceResponse.class));
                         } else {
                             // Add controls and perform the modify request.
@@ -469,7 +479,7 @@ final class SubResourceImpl {
                             }
                             addAssertionControl(modifyRequest, request.getRevision());
                             return connection.applyChangeAsync(modifyRequest)
-                                             .thenAsync(encodeUpdateResourceResponse(context, subType),
+                                             .thenAsync(encodeUpdateResourceResponse(dnAndType, subType),
                                                         adaptLdapException(ResourceResponse.class));
                         }
                     }
@@ -503,6 +513,9 @@ final class SubResourceImpl {
         if (queryFilter == null) {
             return new BadRequestException(ERR_QUERY_BY_ID_OR_EXPRESSION_NOT_SUPPORTED.get().toString()).asPromise();
         }
+
+        // Temporary routing context which will be used for encoding the LDAP filter.
+        final RoutingContext parentDnAndType = newCollectionRoutingContext(context, baseDn, resource);
         final PropertyMapper propertyMapper = resource.getPropertyMapper();
         final QueryFilterVisitor<Promise<Filter, ResourceException>, Void, JsonPointer> visitor =
                 new QueryFilterVisitor<Promise<Filter, ResourceException>, Void, JsonPointer>() {
@@ -549,14 +562,14 @@ final class SubResourceImpl {
                     public Promise<Filter, ResourceException> visitContainsFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, CONTAINS, null, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, CONTAINS, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitEqualsFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, EQUAL_TO, null, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
@@ -565,35 +578,35 @@ final class SubResourceImpl {
                                                                                        final String operator,
                                                                                        final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, EXTENDED, operator, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, EXTENDED, operator, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitGreaterThanFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, GREATER_THAN, null, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, GREATER_THAN, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitGreaterThanOrEqualToFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, GREATER_THAN_OR_EQUAL_TO, null, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, GREATER_THAN_OR_EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitLessThanFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, LESS_THAN, null, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, LESS_THAN, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitLessThanOrEqualToFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, LESS_THAN_OR_EQUAL_TO, null, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, LESS_THAN_OR_EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
@@ -649,14 +662,15 @@ final class SubResourceImpl {
                     @Override
                     public Promise<Filter, ResourceException> visitPresentFilter(
                             final Void unused, final JsonPointer field) {
-                        return propertyMapper.getLdapFilter(context, resource, ROOT, field, PRESENT, null, null);
+                        return propertyMapper.getLdapFilter(
+                                parentDnAndType, resource, ROOT, field, PRESENT, null, null);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitStartsWithFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                context, resource, ROOT, field, STARTS_WITH, null, valueAssertion);
+                                parentDnAndType, resource, ROOT, field, STARTS_WITH, null, valueAssertion);
                     }
                 };
         // Note that the returned LDAP filter may be null if it could not be mapped by any property mappers.
@@ -741,8 +755,9 @@ final class SubResourceImpl {
                         final String id = namingStrategy.decodeResourceId(entry);
                         final String revision = getRevisionFromEntry(entry);
                         final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
+                        final RoutingContext dnAndType = newRoutingContext(context, entry.getName(), subType);
                         final PropertyMapper propertyMapper = subType.getPropertyMapper();
-                        propertyMapper.read(context, subType, ROOT, entry)
+                        propertyMapper.read(dnAndType, subType, ROOT, entry)
                                       .thenOnResult(new ResultHandler<JsonValue>() {
                                           @Override
                                           public void handleResult(final JsonValue result) {
@@ -845,7 +860,8 @@ final class SubResourceImpl {
                              @Override
                              public Promise<ResourceResponse, ResourceException> apply(SearchResultEntry entry) {
                                  final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
-                                 return encodeResourceResponse(context, subType, entry);
+                                 final RoutingContext dnAndType = newRoutingContext(context, entry.getName(), subType);
+                                 return encodeResourceResponse(dnAndType, subType, entry);
                              }
                          });
     }
@@ -854,7 +870,7 @@ final class SubResourceImpl {
             final Context context, final String resourceId, final UpdateRequest request) {
         final Connection connection = connectionFrom(context);
         final AtomicReference<Entry> entryHolder = new AtomicReference<>();
-        final AtomicReference<Resource> subTypeHolder = new AtomicReference<>();
+        final AtomicReference<RoutingContext> dnAndTypeHolder = new AtomicReference<>();
         return connection
                 .searchSingleEntryAsync(searchRequestForUnknownType(resourceId, Collections.<JsonPointer>emptyList()))
                 .thenCatchAsync(adaptLdapException(SearchResultEntry.class))
@@ -869,18 +885,20 @@ final class SubResourceImpl {
 
                         // Determine the type of resource and set of changes that need to be performed.
                         final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
-                        subTypeHolder.set(subType);
+                        final RoutingContext dnAndType = newRoutingContext(context, entry.getName(), subType);
+                        dnAndTypeHolder.set(dnAndType);
                         final PropertyMapper propertyMapper = subType.getPropertyMapper();
-                        return propertyMapper.update(context, subType , ROOT, entry, request.getContent());
+                        return propertyMapper.update(dnAndType, subType , ROOT, entry, request.getContent());
                     }
                 }).thenAsync(new AsyncFunction<List<Modification>, ResourceResponse, ResourceException>() {
                     @Override
                     public Promise<ResourceResponse, ResourceException> apply(List<Modification> modifications)
                             throws ResourceException {
-                        final Resource subType = subTypeHolder.get();
+                        final RoutingContext dnAndType = dnAndTypeHolder.get();
+                        final Resource subType = dnAndType.getType();
                         if (modifications.isEmpty()) {
                             // No changes to be performed so just return the entry that we read.
-                            return encodeResourceResponse(context, subType, entryHolder.get());
+                            return encodeResourceResponse(dnAndType, subType, entryHolder.get());
                         }
                         // Perform the modify operation.
                         final ModifyRequest modifyRequest = newModifyRequest(entryHolder.get().getName());
@@ -894,7 +912,7 @@ final class SubResourceImpl {
                         addAssertionControl(modifyRequest, request.getRevision());
                         modifyRequest.getModifications().addAll(modifications);
                         return connection.applyChangeAsync(modifyRequest)
-                                         .thenAsync(encodeUpdateResourceResponse(context, subType),
+                                         .thenAsync(encodeUpdateResourceResponse(dnAndType, subType),
                                                     adaptLdapException(ResourceResponse.class));
                     }
                 });
@@ -928,7 +946,7 @@ final class SubResourceImpl {
         final SearchRequest searchRequest = namingStrategy.createSearchRequest(baseDn, resourceId);
         if (searchRequest.getScope().equals(BASE_OBJECT) && !resource.hasSubTypes()) {
             // There's no point in doing a search because we already know the DN and sub-resources.
-            return newResultPromise(new RoutingContext(context, searchRequest.getName(), resource));
+            return newResultPromise(newRoutingContext(context, searchRequest.getName(), resource));
         }
         if (etagAttribute != null && revision != null) {
             searchRequest.addAttribute(etagAttribute.toString());
@@ -943,7 +961,7 @@ final class SubResourceImpl {
                                  // Fail-fast if there is a version mismatch.
                                  ensureMvccVersionMatches(entry, revision);
                                  final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
-                                 return newResultPromise(new RoutingContext(context, entry.getName(), subType));
+                                 return newResultPromise(newRoutingContext(context, entry.getName(), subType));
                              }
                          }, adaptLdapException(RoutingContext.class));
     }

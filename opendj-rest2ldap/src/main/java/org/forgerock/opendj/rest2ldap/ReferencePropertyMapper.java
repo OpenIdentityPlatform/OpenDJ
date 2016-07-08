@@ -72,18 +72,19 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
      */
     private static final int SEARCH_MAX_CANDIDATES = 1000;
 
-    private final DN baseDn;
+    private final DnTemplate baseDnTemplate;
     private final Schema schema;
     private Filter filter;
     private final PropertyMapper mapper;
     private final AttributeDescription primaryKey;
     private SearchScope scope = SearchScope.WHOLE_SUBTREE;
 
-    ReferencePropertyMapper(final Schema schema, final AttributeDescription ldapAttributeName, final DN baseDn,
-                            final AttributeDescription primaryKey, final PropertyMapper mapper) {
+    ReferencePropertyMapper(final Schema schema, final AttributeDescription ldapAttributeName,
+                            final String baseDnTemplate, final AttributeDescription primaryKey,
+                            final PropertyMapper mapper) {
         super(ldapAttributeName);
         this.schema = schema;
-        this.baseDn = baseDn;
+        this.baseDnTemplate = DnTemplate.compile(baseDnTemplate);
         this.primaryKey = primaryKey;
         this.mapper = mapper;
     }
@@ -144,7 +145,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                     @Override
                     public Promise<Filter, ResourceException> apply(final Filter result) {
                         // Search for all referenced entries and construct a filter.
-                        final SearchRequest request = createSearchRequest(result);
+                        final SearchRequest request = createSearchRequest(context, result);
                         final List<Filter> subFilters = new LinkedList<>();
 
                         return connectionFrom(context).searchAsync(request, new SearchResultHandler() {
@@ -224,7 +225,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                           // Now search for the referenced entry in to get its DN.
                           final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
                           final Filter filter = Filter.equality(primaryKey.toString(), primaryKeyValue);
-                          final SearchRequest search = createSearchRequest(filter);
+                          final SearchRequest search = createSearchRequest(context, filter);
                           connectionFrom(context).searchSingleEntryAsync(search)
                                     .thenOnResult(new ResultHandler<SearchResultEntry>() {
                                         @Override
@@ -325,9 +326,9 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         }
     }
 
-    private SearchRequest createSearchRequest(final Filter result) {
+    private SearchRequest createSearchRequest(final Context context, final Filter result) {
         final Filter searchFilter = filter != null ? Filter.and(filter, result) : result;
-        return newSearchRequest(baseDn, scope, searchFilter, "1.1");
+        return newSearchRequest(baseDnTemplate.format(context), scope, searchFilter, "1.1");
     }
 
     private Promise<JsonValue, ResourceException> readEntry(

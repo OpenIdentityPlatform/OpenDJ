@@ -54,7 +54,6 @@ import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConstraintViolationException;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
@@ -244,18 +243,21 @@ public final class Rest2Ldap {
      *
      * @param attribute
      *         The DN valued LDAP attribute to be mapped.
-     * @param baseDN
-     *         The search base DN for performing reverse lookups.
+     * @param baseDnTemplate
+     *         The DN template which will be used as the search base when performing reverse lookups. The DN template
+     *         may include template parameters and also parent RDNs using ".." notation. For example, the DN template
+     *         "ou=groups,..,.." specifies that the search base DN should be computed by appending the RDN
+     *         "ou=groups" to the grand-parent of the current resource's LDAP entry.
      * @param primaryKey
      *         The search primary key LDAP attribute to use for performing reverse lookups.
      * @param mapper
      *         An property mapper which will be used to map LDAP attributes in the referenced entry.
      * @return The property mapper.
      */
-    public static ReferencePropertyMapper reference(final AttributeDescription attribute, final DN baseDN,
+    public static ReferencePropertyMapper reference(final AttributeDescription attribute, final String baseDnTemplate,
                                                     final AttributeDescription primaryKey,
                                                     final PropertyMapper mapper) {
-        return new ReferencePropertyMapper(Schema.getDefaultSchema(), attribute, baseDN, primaryKey, mapper);
+        return new ReferencePropertyMapper(Schema.getDefaultSchema(), attribute, baseDnTemplate, primaryKey, mapper);
     }
 
     /**
@@ -263,18 +265,21 @@ public final class Rest2Ldap {
      *
      * @param attribute
      *         The DN valued LDAP attribute to be mapped.
-     * @param baseDN
-     *         The search base DN for performing reverse lookups.
+     * @param baseDnTemplate
+     *         The DN template which will be used as the search base when performing reverse lookups. The DN template
+     *         may include template parameters and also parent RDNs using ".." notation. For example, the DN template
+     *         "ou=groups,..,.." specifies that the search base DN should be computed by appending the RDN
+     *         "ou=groups" to the grand-parent of the current resource's LDAP entry.
      * @param primaryKey
      *         The search primary key LDAP attribute to use for performing reverse lookups.
      * @param mapper
      *         An property mapper which will be used to map LDAP attributes in the referenced entry.
      * @return The property mapper.
      */
-    public static ReferencePropertyMapper reference(final String attribute, final String baseDN,
+    public static ReferencePropertyMapper reference(final String attribute, final String baseDnTemplate,
                                                     final String primaryKey, final PropertyMapper mapper) {
         return reference(AttributeDescription.valueOf(attribute),
-                         DN.valueOf(baseDN),
+                         baseDnTemplate,
                          AttributeDescription.valueOf(primaryKey),
                          mapper);
     }

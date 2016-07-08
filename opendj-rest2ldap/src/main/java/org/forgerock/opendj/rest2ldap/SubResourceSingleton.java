@@ -23,6 +23,7 @@ import static org.forgerock.opendj.ldap.Filter.objectClassPresent;
 import static org.forgerock.opendj.ldap.SearchScope.BASE_OBJECT;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNSUPPORTED_REQUEST_AGAINST_SINGLETON;
+import static org.forgerock.opendj.rest2ldap.RoutingContext.newRoutingContext;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
 import org.forgerock.json.resource.ActionRequest;
@@ -135,7 +136,7 @@ public final class SubResourceSingleton extends SubResource {
     }
 
     private Promise<RoutingContext, ResourceException> route(final Context context) {
-        return newResultPromise(new RoutingContext(context, dnFrom(context), resource));
+        return newResultPromise(newRoutingContext(context, dnFrom(context), resource));
     }
 
     private SubResourceImpl singleton(final Context context) {

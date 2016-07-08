@@ -18,6 +18,7 @@ package org.forgerock.opendj.rest2ldap;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.rest2Ldap;
+import static org.forgerock.opendj.rest2ldap.RoutingContext.newRoutingContext;
 import static org.forgerock.util.Options.defaultOptions;
 
 import org.forgerock.http.routing.UriRouterContext;
@@ -36,7 +37,7 @@ public final class DnTemplateTest extends ForgeRockTestCase {
         Context ctx = new RootContext();
         ctx = new Rest2LdapContext(ctx, rest2Ldap(defaultOptions()));
         ctx = new UriRouterContext(ctx, "", "", singletonMap("subdomain", "www"));
-        ctx = new RoutingContext(ctx, DN.valueOf("dc=example,dc=com"), null);
+        ctx = newRoutingContext(ctx, DN.valueOf("dc=example,dc=com"), null);
         ctx = new UriRouterContext(ctx, "", "", singletonMap("tenant", "acme"));
         context = ctx;
     }

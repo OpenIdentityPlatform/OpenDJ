@@ -44,10 +44,11 @@ import org.forgerock.util.Options;
  * </table>
  */
 final class DnTemplate {
-    private static final Pattern TEMPLATE_KEY_RE = Pattern.compile("\\{([^}]+)\\}");
+    private static final Pattern TEMPLATE_VARIABLE_RE = Pattern.compile("\\{([^}]+)\\}");
     private final String template;
     private final String formatString;
     private final List<String> variables;
+    /** A value of -1 means that this DN template is absolute. */
     private final int relativeOffset;
 
     /**
@@ -65,8 +66,7 @@ final class DnTemplate {
 
     /**
      * Compiles a DN template which will resolve LDAP entries relative to the root DSE by default, but MAY include
-     * relative RDNs indicating that that the DN template will be resolved against current routing state
-     * instead.
+     * relative RDNs indicating that the DN template will be resolved against current routing state instead.
      *
      * @param template
      *         The string representation of the DN template.
@@ -100,7 +100,7 @@ final class DnTemplate {
         }
 
         final List<String> templateVariables = new ArrayList<>();
-        final Matcher matcher = TEMPLATE_KEY_RE.matcher(trimmedTemplate);
+        final Matcher matcher = TEMPLATE_VARIABLE_RE.matcher(trimmedTemplate);
         final StringBuffer buffer = new StringBuffer(trimmedTemplate.length());
         while (matcher.find()) {
             matcher.appendReplacement(buffer, "%s");
@@ -121,7 +121,8 @@ final class DnTemplate {
         // First determine the base DN based on the context DN and the relative offset.
         DN baseDn = null;
         if (relativeOffset >= 0 && context.containsContext(RoutingContext.class)) {
-            baseDn = context.asContext(RoutingContext.class).getDn().parent(relativeOffset);
+            final RoutingContext routingContext = context.asContext(RoutingContext.class);
+            baseDn = routingContext.getDn().parent(routingContext.isCollection() ? relativeOffset - 1 : relativeOffset);
         }
         if (baseDn == null) {
             baseDn = DN.rootDN();
@@ -152,7 +153,7 @@ final class DnTemplate {
                 return value;
             }
             if (!uriRouterContext.getParent().containsContext(UriRouterContext.class)) {
-                throw new IllegalStateException("DN template parameter " + parameter + " cannot be resolved");
+                throw new IllegalStateException("DN template parameter \"" + parameter + "\" cannot be resolved");
             }
             uriRouterContext = uriRouterContext.getParent().asContext(UriRouterContext.class);
         }
