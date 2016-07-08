@@ -20,6 +20,8 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
@@ -51,17 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NameAlreadyBoundException;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.NamingSecurityException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Rdn;
 import javax.swing.JPanel;
 
@@ -71,6 +64,12 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ADSContext;
@@ -4169,47 +4168,46 @@ public class Installer extends GuiApplication
     boolean taskCreated = false;
     int i = 1;
     boolean isOver = false;
-    String dn = null;
-    BasicAttributes attrs = new BasicAttributes();
-    Attribute oc = new BasicAttribute("objectclass");
-    oc.add("top");
-    oc.add("ds-task");
-    oc.add("ds-task-initialize-from-remote-replica");
-    attrs.put(oc);
-    attrs.put("ds-task-class-name", "org.opends.server.tasks.InitializeTask");
-    attrs.put("ds-task-initialize-domain-dn", suffixDn);
-    attrs.put("ds-task-initialize-replica-server-id", String.valueOf(replicaId));
+    String dn = "";
+    AddRequest addRequest = newAddRequest(dn)
+        .addAttribute("objectclass", "top", "ds-task", "ds-task-initialize-from-remote-replica")
+        .addAttribute("ds-task-class-name", "org.opends.server.tasks.InitializeTask")
+        .addAttribute("ds-task-initialize-domain-dn", suffixDn)
+        .addAttribute("ds-task-initialize-replica-server-id", String.valueOf(replicaId));
     while (!taskCreated)
     {
       checkAbort();
       String id = "quicksetup-initialize" + i;
       dn = "ds-task-id=" + id + ",cn=Scheduled Tasks,cn=Tasks";
-      attrs.put("ds-task-id", id);
+      addRequest
+          .setName(dn)
+          .replaceAttribute("ds-task-id", id);
       try
       {
-        DirContext dirCtx = conn.getLdapContext().createSubcontext(dn, attrs);
+        conn.getConnection().add(addRequest);
         taskCreated = true;
-        logger.info(LocalizableMessage.raw("created task entry: " + attrs));
-        dirCtx.close();
+        logger.info(LocalizableMessage.raw("created task entry: " + addRequest));
       }
-      catch (NameAlreadyBoundException x)
+      catch (LdapException e)
       {
-        logger.warn(LocalizableMessage.raw("A task with dn: " + dn + " already existed."));
-      }
-      catch (NamingException ne)
-      {
-        logger.error(LocalizableMessage.raw("Error creating task " + attrs, ne));
-        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, getThrowableMsg(
-            INFO_ERROR_LAUNCHING_INITIALIZATION.get(sourceServerDisplay), ne), ne);
+        if (e.getResult().getResultCode() == ResultCode.ENTRY_ALREADY_EXISTS)
+        {
+          logger.warn(LocalizableMessage.raw("A task with dn: " + dn + " already existed."));
+        }
+        else
+        {
+          logger.error(LocalizableMessage.raw("Error creating task " + addRequest, e));
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR, getThrowableMsg(
+              INFO_ERROR_LAUNCHING_INITIALIZATION.get(sourceServerDisplay), e), e);
+        }
       }
       i++;
     }
+
     // Wait until it is over
-    SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    String filter = "objectclass=*";
-    searchControls.setReturningAttributes(new String[] { "ds-task-unprocessed-entry-count",
-      "ds-task-processed-entry-count", "ds-task-log-message", "ds-task-state" });
+    SearchRequest searchRequest =
+        newSearchRequest(dn, BASE_OBJECT, "(objectclass=*)", "ds-task-unprocessed-entry-count",
+            "ds-task-processed-entry-count", "ds-task-log-message", "ds-task-state");
     LocalizableMessage lastDisplayedMsg = null;
     String lastLogMsg = null;
     long lastTimeMsgDisplayed = -1;
@@ -4232,85 +4230,22 @@ public class Installer extends GuiApplication
         // server will receive a connect error.
         checkAbort();
       }
+
       try
       {
-        NamingEnumeration<SearchResult> res = conn.getLdapContext().search(dn, filter, searchControls);
-        SearchResult sr = null;
-        try
-        {
-          while (res.hasMore())
-          {
-            sr = res.next();
-          }
-        }
-        finally
-        {
-          res.close();
-        }
+        SearchResultEntry sr = conn.getConnection().searchSingleEntry(searchRequest);
         // Get the number of entries that have been handled and
         // a percentage...
-        LocalizableMessage msg;
-        String sProcessed = getFirstValue(sr, "ds-task-processed-entry-count");
-        String sUnprocessed = getFirstValue(sr, "ds-task-unprocessed-entry-count");
-        long processed = -1;
-        long unprocessed = -1;
-        if (sProcessed != null)
-        {
-          processed = Integer.parseInt(sProcessed);
-        }
-        if (sUnprocessed != null)
-        {
-          unprocessed = Integer.parseInt(sUnprocessed);
-        }
+        long processed = asInteger(sr, "ds-task-processed-entry-count");
+        long unprocessed = asInteger(sr, "ds-task-unprocessed-entry-count");
         totalEntries = Math.max(totalEntries, processed + unprocessed);
 
-        if (processed != -1 && unprocessed != -1)
-        {
-          if (processed + unprocessed > 0)
-          {
-            long perc = (100 * processed) / (processed + unprocessed);
-            msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed, perc);
-          }
-          else
-          {
-            //msg = INFO_NO_ENTRIES_TO_INITIALIZE.get();
-            msg = null;
-          }
-        }
-        else if (processed != -1)
-        {
-          msg = INFO_INITIALIZE_PROGRESS_WITH_PROCESSED.get(sProcessed);
-        }
-        else if (unprocessed != -1)
-        {
-          msg = INFO_INITIALIZE_PROGRESS_WITH_UNPROCESSED.get(sUnprocessed);
-        }
-        else
-        {
-          msg = lastDisplayedMsg;
-        }
-
+        LocalizableMessage msg = getLocalizedMessage(lastDisplayedMsg, processed, unprocessed);
+        // TODO JNR extract method
         if (msg != null)
         {
           long currentTime = System.currentTimeMillis();
-          /* Refresh period: to avoid having too many lines in the log */
-          long minRefreshPeriod;
-          if (totalEntries < 100)
-          {
-            minRefreshPeriod = 0;
-          }
-          else if (totalEntries < 1000)
-          {
-            minRefreshPeriod = 1000;
-          }
-          else if (totalEntries < 10000)
-          {
-            minRefreshPeriod = 5000;
-          }
-          else
-          {
-            minRefreshPeriod = 10000;
-          }
+          long minRefreshPeriod = getMinRefreshPeriodInMillis(totalEntries);
           if (currentTime - minRefreshPeriod > lastTimeMsgLogged)
           {
             lastTimeMsgLogged = currentTime;
@@ -4325,14 +4260,14 @@ public class Installer extends GuiApplication
           }
         }
 
-        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        String logMsg = firstValueAsString(sr, "ds-task-log-message");
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
         InstallerHelper helper = new InstallerHelper();
-        String state = getFirstValue(sr, "ds-task-state");
+        String state = firstValueAsString(sr, "ds-task-state");
         TaskState taskState = TaskState.fromString(state);
 
         if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
@@ -4388,7 +4323,7 @@ public class Installer extends GuiApplication
           }
         }
       }
-      catch (NameNotFoundException x)
+      catch (EntryNotFoundException x)
       {
         isOver = true;
         logger.info(LocalizableMessage.raw("Initialization entry not found."));
@@ -4398,13 +4333,63 @@ public class Installer extends GuiApplication
           notifyListeners(getLineBreak());
         }
       }
-      catch (NamingException ne)
+      catch (LdapException e)
       {
         throw new ApplicationException(ReturnCode.APPLICATION_ERROR, getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION
-            .get(sourceServerDisplay), ne), ne);
+            .get(sourceServerDisplay), e), e);
       }
     }
     resetGenerationId(conn, suffixDn, sourceServerDisplay);
+  }
+
+  private LocalizableMessage getLocalizedMessage(LocalizableMessage lastDisplayedMsg, long processed, long unprocessed)
+  {
+    if (processed != -1 && unprocessed != -1)
+    {
+      if (processed + unprocessed > 0)
+      {
+        long perc = (100 * processed) / (processed + unprocessed);
+        return INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(processed, perc);
+      }
+      else
+      {
+        // return INFO_NO_ENTRIES_TO_INITIALIZE.get();
+        return null;
+      }
+    }
+    else if (processed != -1)
+    {
+      return INFO_INITIALIZE_PROGRESS_WITH_PROCESSED.get(processed);
+    }
+    else if (unprocessed != -1)
+    {
+      return INFO_INITIALIZE_PROGRESS_WITH_UNPROCESSED.get(unprocessed);
+    }
+    else
+    {
+      return lastDisplayedMsg;
+    }
+  }
+
+  /** Refresh period: to avoid having too many lines in the log */
+  private long getMinRefreshPeriodInMillis(long totalEntries)
+  {
+    if (totalEntries < 100)
+    {
+      return 0;
+    }
+    else if (totalEntries < 1000)
+    {
+      return 1000;
+    }
+    else if (totalEntries < 10000)
+    {
+      return 5000;
+    }
+    else
+    {
+      return 10000;
+    }
   }
 
   /**
@@ -4430,71 +4415,57 @@ public class Installer extends GuiApplication
     boolean taskCreated = false;
     int i = 1;
     boolean isOver = false;
-    String dn = null;
-    BasicAttributes attrs = new BasicAttributes();
-    Attribute oc = new BasicAttribute("objectclass");
-    oc.add("top");
-    oc.add("ds-task");
-    oc.add("ds-task-reset-generation-id");
-    attrs.put(oc);
-    attrs.put("ds-task-class-name", "org.opends.server.tasks.SetGenerationIdTask");
-    attrs.put("ds-task-reset-generation-id-domain-base-dn", suffixDn);
+    String dn = "";
+    AddRequest addRequest = newAddRequest(dn)
+        .addAttribute("objectclass", "top", "ds-task", "ds-task-reset-generation-id")
+        .addAttribute("ds-task-class-name", "org.opends.server.tasks.SetGenerationIdTask")
+        .addAttribute("ds-task-reset-generation-id-domain-base-dn", suffixDn);
     while (!taskCreated)
     {
       checkAbort();
       String id = "quicksetup-reset-generation-id-" + i;
       dn = "ds-task-id=" + id + ",cn=Scheduled Tasks,cn=Tasks";
-      attrs.put("ds-task-id", id);
+      addRequest
+          .setName(dn)
+          .replaceAttribute("ds-task-id", id);
       try
       {
-        DirContext dirCtx = conn.getLdapContext().createSubcontext(dn, attrs);
+        conn.getConnection().add(addRequest);
+
         taskCreated = true;
-        logger.info(LocalizableMessage.raw("created task entry: " + attrs));
-        dirCtx.close();
+        logger.info(LocalizableMessage.raw("created task entry: " + addRequest));
       }
-      catch (NameAlreadyBoundException x)
+      catch (LdapException e)
       {
-      }
-      catch (NamingException ne)
-      {
-        logger.error(LocalizableMessage.raw("Error creating task " + attrs, ne));
-        throw new ApplicationException(ReturnCode.APPLICATION_ERROR, getThrowableMsg(
-            INFO_ERROR_LAUNCHING_INITIALIZATION.get(sourceServerDisplay), ne), ne);
+        if (e.getResult().getResultCode() != ResultCode.ENTRY_ALREADY_EXISTS)
+        {
+          logger.error(LocalizableMessage.raw("Error creating task " + addRequest, e));
+          throw new ApplicationException(ReturnCode.APPLICATION_ERROR, getThrowableMsg(
+              INFO_ERROR_LAUNCHING_INITIALIZATION.get(sourceServerDisplay), e), e);
+        }
       }
       i++;
     }
+
     // Wait until it is over
-    SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    String filter = "objectclass=*";
-    searchControls.setReturningAttributes(new String[] { "ds-task-log-message", "ds-task-state" });
     String lastLogMsg = null;
     while (!isOver)
     {
       StaticUtils.sleep(500);
       try
       {
-        NamingEnumeration<SearchResult> res = conn.getLdapContext().search(dn, filter, searchControls);
-        SearchResult sr = null;
-        try
-        {
-          while (res.hasMore())
-          {
-            sr = res.next();
-          }
-        }
-        finally
-        {
-          res.close();
-        }
-        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        SearchRequest searchRequest =
+            newSearchRequest(dn, BASE_OBJECT, "(objectclass=*)", "ds-task-log-message", "ds-task-state");
+        SearchResultEntry sr = conn.getConnection().searchSingleEntry(searchRequest);
+
+        String logMsg = firstValueAsString(sr, "ds-task-log-message");
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
 
-        String state = getFirstValue(sr, "ds-task-state");
+        String state = firstValueAsString(sr, "ds-task-state");
         TaskState taskState = TaskState.fromString(state);
         if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
@@ -4515,14 +4486,14 @@ public class Installer extends GuiApplication
           }
         }
       }
-      catch (NameNotFoundException x)
+      catch (EntryNotFoundException x)
       {
         isOver = true;
       }
-      catch (NamingException ne)
+      catch (LdapException e)
       {
         throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
-            getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(sourceServerDisplay), ne), ne);
+            getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(sourceServerDisplay), e), e);
       }
     }
   }

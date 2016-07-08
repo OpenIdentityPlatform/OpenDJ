@@ -19,6 +19,8 @@ package org.opends.quicksetup.util;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -52,12 +54,9 @@ import java.util.TimeZone;
 
 import javax.naming.AuthenticationException;
 import javax.naming.CommunicationException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.NamingSecurityException;
 import javax.naming.NoPermissionException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -66,6 +65,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ConnectionException;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ADSContext;
@@ -955,43 +956,23 @@ public class Utils
    */
   public static long getServerClock(ConnectionWrapper conn)
   {
-    long time = -1;
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    ctls.setReturningAttributes(new String[] { "currentTime" });
-    String filter = "(objectclass=*)";
-
+    SearchRequest request = newSearchRequest("cn=monitor", BASE_OBJECT, "(objectclass=*)", "currentTime");
     try
     {
-      LdapName jndiName = new LdapName("cn=monitor");
-      NamingEnumeration<?> listeners = conn.getLdapContext().search(jndiName, filter, ctls);
+      SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
 
-      try
-      {
-        while (listeners.hasMore())
-        {
-          SearchResult sr = (SearchResult) listeners.next();
+      String v = firstValueAsString(sr, "currentTime");
 
-          String v = getFirstValue(sr, "currentTime");
+      SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+      formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-          TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
-
-          SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
-          formatter.setTimeZone(utcTimeZone);
-
-          time = formatter.parse(v).getTime();
-        }
-      }
-      finally
-      {
-        listeners.close();
-      }
+      return formatter.parse(v).getTime();
     }
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error retrieving server current time: " + t, t));
+      return -1;
     }
-    return time;
   }
 
   /**

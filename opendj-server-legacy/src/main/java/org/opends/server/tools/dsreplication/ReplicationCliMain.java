@@ -23,6 +23,8 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 import static java.util.Collections.*;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
@@ -62,7 +64,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -90,7 +91,13 @@ import org.forgerock.opendj.config.OperationsException;
 import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.server.config.client.CryptoManagerCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
@@ -1399,7 +1406,7 @@ public class ReplicationCliMain extends ConsoleApplication
       waitUntilResetChangeNumberTaskEnds(connDest, taskDN);
       return SUCCESSFUL;
     }
-    catch (ReplicationCliException | NamingException | NullPointerException e)
+    catch (ReplicationCliException | NamingException | LdapException | NullPointerException e)
     {
       errPrintln(ERROR_RESET_CHANGE_NUMBER_EXCEPTION.get(e.getLocalizedMessage()));
       return ERROR_RESET_CHANGE_NUMBER_PROBLEM;
@@ -1435,15 +1442,15 @@ public class ReplicationCliMain extends ConsoleApplication
       sleepCatchInterrupt(500);
       try
       {
-        SearchResult sr = getLastSearchResult(conn, taskDN, "ds-task-log-message", "ds-task-state");
-        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        SearchResultEntry sr = getLastSearchResult(conn, taskDN, "ds-task-log-message", "ds-task-state");
+        String logMsg = firstValueAsString(sr, "ds-task-log-message");
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
 
-        String state = getFirstValue(sr, "ds-task-state");
+        String state = firstValueAsString(sr, "ds-task-state");
         TaskState taskState = TaskState.fromString(state);
         if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
         {
@@ -1466,11 +1473,11 @@ public class ReplicationCliMain extends ConsoleApplication
           return;
         }
       }
-      catch (NameNotFoundException x)
+      catch (EntryNotFoundException x)
       {
         return;
       }
-      catch (NamingException e)
+      catch (IOException e)
       {
         throw new ReplicationCliException(getThrowableMsg(ERR_READING_SERVER_TASK_PROGRESS.get(), e),
             ERROR_CONNECTING, e);
@@ -7120,7 +7127,7 @@ public class ReplicationCliMain extends ConsoleApplication
           "dsreplication-reset-generation-id",
           attrMap);
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
       LocalizableMessage msg = isPre ?
           ERR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION.get():
@@ -7128,7 +7135,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ReplicationCliReturnCode code = isPre?
           ERROR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION:
           ERROR_LAUNCHING_POST_EXTERNAL_INITIALIZATION;
-      throw new ReplicationCliException(getThrowableMsg(msg, ne), code, ne);
+      throw new ReplicationCliException(getThrowableMsg(msg, e), code, e);
     }
 
     String lastLogMsg = null;
@@ -7137,14 +7144,14 @@ public class ReplicationCliMain extends ConsoleApplication
       sleepCatchInterrupt(500);
       try
       {
-        SearchResult sr = getLastSearchResult(conn, dn, "ds-task-log-message", "ds-task-state");
-        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        SearchResultEntry sr = getLastSearchResult(conn, dn, "ds-task-log-message", "ds-task-state");
+        String logMsg = firstValueAsString(sr, "ds-task-log-message");
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
-        String state = getFirstValue(sr, "ds-task-state");
+        String state = firstValueAsString(sr, "ds-task-state");
         TaskState taskState = TaskState.fromString(state);
 
         if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
@@ -7167,11 +7174,11 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      catch (NameNotFoundException x)
+      catch (EntryNotFoundException x)
       {
         isOver = true;
       }
-      catch (NamingException ne)
+      catch (IOException ne)
       {
         throw new ReplicationCliException(getThrowableMsg(ERR_READING_SERVER_TASK_PROGRESS.get(), ne),
             ERROR_CONNECTING, ne);
@@ -7228,10 +7235,10 @@ public class ReplicationCliMain extends ConsoleApplication
           "dsreplication-initialize",
           attrsMap);
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
       throw new ClientException(ReturnCode.APPLICATION_ERROR,
-              getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(hostPort), ne), ne);
+          getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(hostPort), e), e);
     }
 
     LocalizableMessage lastDisplayedMsg = null;
@@ -7244,22 +7251,12 @@ public class ReplicationCliMain extends ConsoleApplication
       sleepCatchInterrupt(500);
       try
       {
-        SearchResult sr = getLastSearchResult(conn, dn, "ds-task-unprocessed-entry-count",
+        SearchResultEntry sr = getLastSearchResult(conn, dn, "ds-task-unprocessed-entry-count",
             "ds-task-processed-entry-count", "ds-task-log-message", "ds-task-state" );
 
         // Get the number of entries that have been handled and a percentage...
-        String sProcessed = getFirstValue(sr, "ds-task-processed-entry-count");
-        String sUnprocessed = getFirstValue(sr, "ds-task-unprocessed-entry-count");
-        long processed = -1;
-        long unprocessed = -1;
-        if (sProcessed != null)
-        {
-          processed = Integer.parseInt(sProcessed);
-        }
-        if (sUnprocessed != null)
-        {
-          unprocessed = Integer.parseInt(sUnprocessed);
-        }
+        long processed = asInteger(sr, "ds-task-processed-entry-count");
+        long unprocessed = asInteger(sr, "ds-task-unprocessed-entry-count");
         totalEntries = Math.max(totalEntries, processed+unprocessed);
 
         LocalizableMessage msg = getMsg(lastDisplayedMsg, processed, unprocessed);
@@ -7284,14 +7281,14 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
 
-        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        String logMsg = firstValueAsString(sr, "ds-task-log-message");
         if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
           logger.info(LocalizableMessage.raw(logMsg));
           lastLogMsg = logMsg;
         }
         InstallerHelper helper = new InstallerHelper();
-        String state = getFirstValue(sr, "ds-task-state");
+        String state = firstValueAsString(sr, "ds-task-state");
         TaskState taskState = TaskState.fromString(state);
 
         if (TaskState.isDone(taskState) || taskState == STOPPED_BY_ERROR)
@@ -7346,7 +7343,7 @@ public class ReplicationCliMain extends ConsoleApplication
           }
         }
       }
-      catch (NameNotFoundException x)
+      catch (EntryNotFoundException x)
       {
         isOver = true;
         logger.info(LocalizableMessage.raw("Initialization entry not found."));
@@ -7356,69 +7353,65 @@ public class ReplicationCliMain extends ConsoleApplication
           println();
         }
       }
-      catch (NamingException ne)
+      catch (IOException e)
       {
         throw new ClientException(
             ReturnCode.APPLICATION_ERROR,
-                getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(hostPort), ne), ne);
+            getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(hostPort), e), e);
       }
     }
   }
 
-  private SearchResult getLastSearchResult(ConnectionWrapper conn, String dn, String... returnedAttributes)
-      throws NamingException
+  private SearchResultEntry getLastSearchResult(ConnectionWrapper conn, String dn, String... returnedAttributes)
+      throws IOException
   {
-    SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    searchControls.setReturningAttributes(returnedAttributes);
-    NamingEnumeration<SearchResult> res = conn.getLdapContext().search(dn, "objectclass=*", searchControls);
-    try
+    SearchRequest request = newSearchRequest(dn, BASE_OBJECT, "(objectclass=*)", returnedAttributes);
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      SearchResult sr = null;
-      while (res.hasMore())
+      SearchResultEntry sr = null;
+      while (entryReader.hasNext())
       {
-        sr = res.next();
+        sr = entryReader.readEntry();
       }
       return sr;
-    }
-    finally
-    {
-      res.close();
     }
   }
 
   private String createServerTask(ConnectionWrapper conn, String taskObjectclass,
-      String taskJavaClass, String taskID, Map<String, String> taskAttrs) throws NamingException
+      String taskJavaClass, String taskID, Map<String, String> taskAttrs) throws LdapException
   {
     int i = 1;
     String dn = "";
-    BasicAttributes attrs = new BasicAttributes();
-    attrs.put("objectclass", taskObjectclass);
-    attrs.put("ds-task-class-name", taskJavaClass);
+    AddRequest request = newAddRequest(dn)
+        .addAttribute("objectclass", taskObjectclass)
+        .addAttribute("ds-task-class-name", taskJavaClass);
     for (Map.Entry<String, String> attr : taskAttrs.entrySet())
     {
-      attrs.put(attr.getKey(), attr.getValue());
+      request.addAttribute(attr.getKey(), attr.getValue());
     }
 
     while (true)
     {
       String id = taskID + "-" + i;
       dn = "ds-task-id=" + id + ",cn=Scheduled Tasks,cn=Tasks";
+      request.setName(dn);
       try
       {
-        DirContext dirCtx = conn.getLdapContext().createSubcontext(dn, attrs);
-        logger.info(LocalizableMessage.raw("created task entry: " + attrs));
-        dirCtx.close();
+        conn.getConnection().add(request);
+        logger.info(LocalizableMessage.raw("created task entry: " + request));
         return dn;
       }
-      catch (NameAlreadyBoundException x)
+      catch (LdapException e)
       {
-        logger.warn(LocalizableMessage.raw("A task with dn: " + dn + " already existed."));
-      }
-      catch (NamingException ne)
-      {
-        logger.error(LocalizableMessage.raw("Error creating task " + attrs, ne));
-        throw ne;
+        if (e.getResult().getResultCode() == ResultCode.ENTRY_ALREADY_EXISTS)
+        {
+          logger.warn(LocalizableMessage.raw("A task with dn: " + dn + " already existed."));
+        }
+        else
+        {
+          logger.error(LocalizableMessage.raw("Error creating task " + request, e));
+          throw e;
+        }
       }
       i++;
     }
