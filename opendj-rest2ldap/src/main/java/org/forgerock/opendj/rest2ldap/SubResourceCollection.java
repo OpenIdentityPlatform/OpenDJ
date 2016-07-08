@@ -177,7 +177,7 @@ public final class SubResourceCollection extends SubResource {
      * @return A reference to this object.
      */
     public SubResourceCollection dnTemplate(final String dnTemplate) {
-        this.dnTemplate = dnTemplate;
+        this.dnTemplateString = dnTemplate;
         return this;
     }
 
@@ -257,7 +257,7 @@ public final class SubResourceCollection extends SubResource {
     private SubResourceImpl collection(final Context context) {
         return new SubResourceImpl(rest2Ldap,
                                    dnFrom(context),
-                                   dnTemplate.isEmpty() ? null : glueObjectClasses,
+                                   dnTemplateString.isEmpty() ? null : glueObjectClasses,
                                    namingStrategy,
                                    resource);
     }

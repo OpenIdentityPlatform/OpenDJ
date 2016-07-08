@@ -26,17 +26,28 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.forgerock.json.resource.ActionRequest;
+import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.CreateRequest;
+import org.forgerock.json.resource.DeleteRequest;
 import org.forgerock.json.resource.ForbiddenException;
 import org.forgerock.json.resource.InternalServerErrorException;
 import org.forgerock.json.resource.NotFoundException;
+import org.forgerock.json.resource.PatchRequest;
 import org.forgerock.json.resource.PermanentException;
 import org.forgerock.json.resource.PreconditionFailedException;
+import org.forgerock.json.resource.QueryRequest;
+import org.forgerock.json.resource.QueryResourceHandler;
+import org.forgerock.json.resource.QueryResponse;
+import org.forgerock.json.resource.ReadRequest;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.json.resource.RetryableException;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.ServiceUnavailableException;
+import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.AssertionFailureException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.AuthenticationException;
@@ -51,9 +62,11 @@ import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Promise;
 
 /**
  * Provides methods for constructing Rest2Ldap protocol gateways. Applications construct a new Rest2Ldap
@@ -359,7 +372,51 @@ public final class Rest2Ldap {
         Reject.ifTrue(!resources.containsKey(resourceId), "unrecognized resource '" + resourceId + "'");
         final SubResourceSingleton root = singletonOf(resourceId);
         root.build(this, null);
-        return root.addRoutes(new Router());
+        return rest2LdapContext(root.addRoutes(new Router()));
+    }
+
+    private RequestHandler rest2LdapContext(final RequestHandler delegate) {
+        return new RequestHandler() {
+            public Promise<ActionResponse, ResourceException> handleAction(final Context context,
+                                                                           final ActionRequest request) {
+                return delegate.handleAction(wrap(context), request);
+            }
+
+            public Promise<ResourceResponse, ResourceException> handleCreate(final Context context,
+                                                                             final CreateRequest request) {
+                return delegate.handleCreate(wrap(context), request);
+            }
+
+            public Promise<ResourceResponse, ResourceException> handleDelete(final Context context,
+                                                                             final DeleteRequest request) {
+                return delegate.handleDelete(wrap(context), request);
+            }
+
+            public Promise<ResourceResponse, ResourceException> handlePatch(final Context context,
+                                                                            final PatchRequest request) {
+                return delegate.handlePatch(wrap(context), request);
+            }
+
+            public Promise<QueryResponse, ResourceException> handleQuery(final Context context,
+                                                                         final QueryRequest request,
+                                                                         final QueryResourceHandler handler) {
+                return delegate.handleQuery(wrap(context), request, handler);
+            }
+
+            public Promise<ResourceResponse, ResourceException> handleRead(final Context context,
+                                                                           final ReadRequest request) {
+                return delegate.handleRead(wrap(context), request);
+            }
+
+            public Promise<ResourceResponse, ResourceException> handleUpdate(final Context context,
+                                                                             final UpdateRequest request) {
+                return delegate.handleUpdate(wrap(context), request);
+            }
+
+            private Context wrap(final Context context) {
+                return new Rest2LdapContext(context, Rest2Ldap.this);
+            }
+        };
     }
 
     Options getOptions() {

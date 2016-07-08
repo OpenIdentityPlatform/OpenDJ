@@ -111,7 +111,7 @@ public final class SubResourceSingleton extends SubResource {
      * @return A reference to this object.
      */
     public SubResourceSingleton dnTemplate(final String dnTemplate) {
-        this.dnTemplate = dnTemplate;
+        this.dnTemplateString = dnTemplate;
         return this;
     }
 
