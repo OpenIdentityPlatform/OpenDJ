@@ -16,8 +16,15 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -35,13 +42,16 @@ import javax.swing.tree.TreeNode;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
@@ -80,11 +90,11 @@ public class NodeRefresher extends AbstractNodeTask {
   private State state;
   private final boolean recursive;
 
-  private SearchResult localEntry;
-  private SearchResult remoteEntry;
+  private SearchResultEntry localEntry;
+  private SearchResultEntry remoteEntry;
   private LDAPURL remoteUrl;
   private boolean isLeafNode;
-  private final List<SearchResult> childEntries = new ArrayList<>();
+  private final List<SearchResultEntry> childEntries = new ArrayList<>();
   private final boolean differential;
   private Exception exception;
   private Object exceptionArg;
@@ -96,7 +106,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * @param localEntry the local entry corresponding to the node.
    * @param recursive whether this task is recursive or not (children must be searched).
    */
-  NodeRefresher(BasicNode node, BrowserController ctlr, SearchResult localEntry, boolean recursive) {
+  NodeRefresher(BasicNode node, BrowserController ctlr, SearchResultEntry localEntry, boolean recursive) {
     super(node);
     controller = ctlr;
     state = State.QUEUED;
@@ -110,7 +120,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * Returns the local entry the refresher is handling.
    * @return the local entry the refresher is handling.
    */
-  public SearchResult getLocalEntry() {
+  public SearchResultEntry getLocalEntry() {
     return localEntry;
   }
 
@@ -119,7 +129,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * the entry is not a referral.
    * @return the remote entry for the node.
    */
-  public SearchResult getRemoteEntry() {
+  public SearchResultEntry getRemoteEntry() {
     return remoteEntry;
   }
 
@@ -145,7 +155,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * Returns the child entries of the node.
    * @return the child entries of the node.
    */
-  public List<SearchResult> getChildEntries() {
+  public List<SearchResultEntry> getChildEntries() {
     return childEntries;
   }
 
@@ -184,16 +194,14 @@ public class NodeRefresher extends AbstractNodeTask {
    * @return the remote entry if the entry is a referral and the
    * BrowserController is following referrals and the local entry otherwise.
    */
-  public SearchResult getDisplayedEntry() {
-    SearchResult result;
+  public SearchResultEntry getDisplayedEntry() {
     if (controller.getFollowReferrals() && remoteEntry != null)
     {
-      result = remoteEntry;
+      return remoteEntry;
     }
     else {
-      result = localEntry;
+      return localEntry;
     }
-    return result;
   }
 
   /**
@@ -291,13 +299,11 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private boolean useCustomFilter()
   {
-    boolean result=false;
     if (controller.getFilter()!=null)
     {
-      result =
- !BrowserController.ALL_OBJECTS_FILTER.equals(controller.getFilter());
+      return !BrowserController.ALL_OBJECTS_FILTER.equals(controller.getFilter());
     }
-    return result;
+    return false;
   }
 
   /**
@@ -307,43 +313,39 @@ public class NodeRefresher extends AbstractNodeTask {
    *          the parent node we perform the search from.
    * @param conn
    *          the connection to be used.
-   * @throws NamingException
+   * @throws IOException
    *           if a problem occurred.
    */
-  private void searchForCustomFilter(BasicNode node, ConnectionWrapper conn)
-  throws NamingException
+  private void searchForCustomFilter(BasicNode node, ConnectionWrapper conn) throws IOException
   {
-    SearchControls ctls = controller.getBasicSearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
-    ctls.setCountLimit(1);
-    NamingEnumeration<SearchResult> s =
-        conn.getLdapContext().search(new LdapName(node.getDN()),
-              controller.getFilter(),
-              ctls);
-    try
+    SearchRequest request = newSearchRequest(node.getDN(), WHOLE_SUBTREE, controller.getFilter(), NO_ATTRIBUTES)
+        .setSizeLimit(1);
+    try (ConnectionEntryReader s = conn.getConnection().search(request))
     {
-      if (!s.hasMore())
+      if (!s.hasNext())
       {
-        throw new NameNotFoundException("Entry "+node.getDN()+
+        throw newLdapException(NO_SUCH_OBJECT, "Entry " + node.getDN() +
             " does not verify filter "+controller.getFilter());
       }
-      while (s.hasMore())
+      while (s.hasNext())
       {
-        s.next();
+        s.readEntry();
       }
     }
-    catch (SizeLimitExceededException slme)
+    catch (LdapException e)
     {
-      // We are just searching for an entry, but if there is more than one
-      // this exception will be thrown.  We call sr.hasMore after the
-      // first entry has been retrieved to avoid sending a systematic
-      // abandon when closing the s NamingEnumeration.
-      // See CR 6976906.
-    }
-    finally
-    {
-      s.close();
+      if (e.getResult().getResultCode() == ResultCode.SIZE_LIMIT_EXCEEDED)
+      {
+        // We are just searching for an entry, but if there is more than one
+        // this exception will be thrown. We call sr.hasMore after the
+        // first entry has been retrieved to avoid sending a systematic
+        // abandon when closing the s NamingEnumeration.
+        // See CR 6976906.
+      }
+      else
+      {
+        throw e;
+      }
     }
   }
 
@@ -403,37 +405,29 @@ public class NodeRefresher extends AbstractNodeTask {
           searchForCustomFilter(node, conn);
         }
 
-        SearchControls ctls = controller.getBasicSearchControls();
-        ctls.setReturningAttributes(controller.getAttrsForRedSearch());
-        ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-
-        NamingEnumeration<SearchResult> s =
-            conn.getLdapContext().search(new LdapName(node.getDN()),
-                controller.getObjectSearchFilter(),
-                ctls);
-        try
+        String filter = controller.getObjectSearchFilter();
+        SearchRequest request =
+            newSearchRequest(node.getDN(), BASE_OBJECT, filter, controller.getAttrsForRedSearch())
+            .setSizeLimit(controller.getMaxChildren());
+        try (ConnectionEntryReader s = conn.getConnection().search(request))
         {
-          while (s.hasMore())
+          while (s.hasNext())
           {
-            localEntry = s.next();
+            localEntry = s.readEntry();
             localEntry.setName(node.getDN());
           }
         }
-        finally
-        {
-          s.close();
-        }
         if (localEntry == null) {
           /* Not enough rights to read the entry or the entry simply does not exist */
-          throw new NameNotFoundException("Can't find entry: "+node.getDN());
+          throw newLdapException(ResultCode.NO_SUCH_OBJECT, "Can't find entry: " + node.getDN());
         }
         throwAbandonIfNeeded(null);
       } else {
           changeStateTo(State.FINISHED);
       }
     }
-    catch(NamingException x) {
-        throwAbandonIfNeeded(x);
+    catch(IOException | NamingException x) {
+      throwAbandonIfNeeded(x);
     }
     finally {
       if (conn != null) {
@@ -478,7 +472,7 @@ public class NodeRefresher extends AbstractNodeTask {
   throws SearchAbandonException {
     LDAPConnectionPool connectionPool = controller.getConnectionPool();
     LDAPURL url = null;
-    SearchResult entry = null;
+    SearchResultEntry entry = null;
     String remoteDn = null;
     Exception lastException = null;
     Object lastExceptionArg = null;
@@ -506,9 +500,9 @@ public class NodeRefresher extends AbstractNodeTask {
              have to use the DN of the entry that contains the
              referral... */
           if (remoteEntry != null) {
-            remoteDn = remoteEntry.getName();
+            remoteDn = remoteEntry.getName().toString();
           } else {
-            remoteDn = localEntry.getName();
+            remoteDn = localEntry.getName().toString();
           }
           /* We have to recreate the url including the target DN we are using */
           url = new LDAPURL(url.getScheme(), url.getHost(), url.getPort(),
@@ -521,30 +515,24 @@ public class NodeRefresher extends AbstractNodeTask {
           searchForCustomFilter(remoteDn, conn);
         }
 
-        int scope = getJNDIScope(url);
         String filter = getJNDIFilter(url);
 
-        SearchControls ctls = controller.getBasicSearchControls();
-        ctls.setReturningAttributes(controller.getAttrsForBlackSearch());
-        ctls.setSearchScope(scope);
-        ctls.setCountLimit(1);
-        NamingEnumeration<SearchResult> sr = conn.getLdapContext().search(remoteDn,
-            filter,
-            ctls);
-        try
+        SearchRequest request = newSearchRequest(remoteDn, url.getScope(), filter, controller.getAttrsForBlackSearch())
+            .setSizeLimit(controller.getMaxChildren());
+        try (ConnectionEntryReader sr = conn.getConnection().search(request))
         {
           boolean found = false;
-          while (sr.hasMore())
+          while (sr.hasNext())
           {
-            entry = sr.next();
+            entry = sr.readEntry();
             String name;
-            if (entry.getName().length() == 0)
+            if (entry.getName().isRootDN())
             {
               name = remoteDn;
             }
             else
             {
-              name = unquoteRelativeName(entry.getName())+","+remoteDn;
+              name = unquoteRelativeName(entry.getName().toString()) + "," + remoteDn;
             }
             entry.setName(name);
             found = true;
@@ -554,24 +542,28 @@ public class NodeRefresher extends AbstractNodeTask {
             throw new NameNotFoundException();
           }
         }
-        catch (SizeLimitExceededException sle)
+        catch (LdapException e)
         {
-          // We are just searching for an entry, but if there is more than one
-          // this exception will be thrown.  We call sr.hasMore after the
-          // first entry has been retrieved to avoid sending a systematic
-          // abandon when closing the sr NamingEnumeration.
-          // See CR 6976906.
-        }
-        finally
-        {
-          sr.close();
+          if (e.getResult().getResultCode() == ResultCode.SIZE_LIMIT_EXCEEDED)
+          {
+            // We are just searching for an entry, but if there is more than one
+            // this exception will be thrown. We call sr.hasMore after the
+            // first entry has been retrieved to avoid sending a systematic
+            // abandon when closing the sr NamingEnumeration.
+            // See CR 6976906.
+          }
+          else
+          {
+            throw e;
+          }
         }
         throwAbandonIfNeeded(null);
       }
       catch (InterruptedNamingException x) {
         throwAbandonIfNeeded(x);
       }
-      catch (NamingException | LocalizedIllegalArgumentException | DirectoryException x) {
+      catch (NamingException | IOException | LocalizedIllegalArgumentException | DirectoryException x)
+      {
         lastException = x;
         lastExceptionArg = referral[i];
       }
@@ -636,7 +628,7 @@ public class NodeRefresher extends AbstractNodeTask {
       runDetectChildrenManually();
     }
     else {
-      SearchResult entry = getDisplayedEntry();
+      SearchResultEntry entry = getDisplayedEntry();
       isLeafNode = !BrowserController.getHasSubOrdinates(entry);
     }
   }
@@ -649,62 +641,47 @@ public class NodeRefresher extends AbstractNodeTask {
   private void runDetectChildrenManually() throws SearchAbandonException {
     BasicNode parentNode = getNode();
     ConnectionWrapper conn = null;
-    NamingEnumeration<SearchResult> searchResults = null;
 
     try {
       // We set the search constraints so that only one entry is returned.
       // It's enough to know if the entry has children or not.
-      SearchControls ctls = controller.getBasicSearchControls();
-      ctls.setCountLimit(1);
-      ctls.setReturningAttributes(
-          new String[] { SchemaConstants.NO_ATTRIBUTES });
-      if (useCustomFilter())
+      // Send an LDAP search
+      conn = controller.findConnectionForDisplayedEntry(parentNode);
+      SearchRequest request = newSearchRequest(
+              controller.findBaseDNForChildEntries(parentNode),
+              useCustomFilter() ? WHOLE_SUBTREE : BASE_OBJECT,
+              controller.getChildSearchFilter(),
+              NO_ATTRIBUTES)
+          .setSizeLimit(1);
+      try (ConnectionEntryReader searchResults = conn.getConnection().search(request))
       {
-        ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        throwAbandonIfNeeded(null);
+        // Check if parentNode has children
+        isLeafNode = !searchResults.hasNext();
+      }
+    }
+    catch (LdapException e)
+    {
+      if (e.getResult().getResultCode().equals(ResultCode.SIZE_LIMIT_EXCEEDED))
+      {
+        // We are just searching for an entry, but if there is more than one
+        // this exception will be thrown. We call sr.hasMore after the
+        // first entry has been retrieved to avoid sending a systematic
+        // abandon when closing the searchResults NamingEnumeration.
+        // See CR 6976906.
       }
       else
       {
-        ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      }
-      // Send an LDAP search
-      conn = controller.findConnectionForDisplayedEntry(parentNode);
-      searchResults = conn.getLdapContext().search(
-          new LdapName(controller.findBaseDNForChildEntries(parentNode)),
-          controller.getChildSearchFilter(),
-          ctls);
-
-      throwAbandonIfNeeded(null);
-      isLeafNode = true;
-      // Check if parentNode has children
-      while (searchResults.hasMoreElements()) {
-        isLeafNode = false;
+        throwAbandonIfNeeded(e);
       }
     }
-    catch (SizeLimitExceededException e)
+    catch (NamingException x)
     {
-      // We are just searching for an entry, but if there is more than one
-      // this exception will be thrown.  We call sr.hasMore after the
-      // first entry has been retrieved to avoid sending a systematic
-      // abandon when closing the searchResults NamingEnumeration.
-      // See CR 6976906.
-    }
-    catch (NamingException x) {
       throwAbandonIfNeeded(x);
     }
     finally {
       if (conn != null) {
         controller.releaseLDAPConnection(conn);
-      }
-      if (searchResults != null)
-      {
-        try
-        {
-          searchResults.close();
-        }
-        catch (NamingException x)
-        {
-          throwAbandonIfNeeded(x);
-        }
       }
     }
   }
@@ -716,7 +693,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * Note: *usable* means *usable for detecting children presence*.
    */
   private boolean isNumSubOrdinatesUsable() throws NamingException {
-    SearchResult entry = getDisplayedEntry();
+    SearchResultEntry entry = getDisplayedEntry();
     boolean hasSubOrdinates = BrowserController.getHasSubOrdinates(entry);
     if (!hasSubOrdinates)
     {
@@ -738,16 +715,6 @@ public class NodeRefresher extends AbstractNodeTask {
 
     try {
       // Send an LDAP search
-      SearchControls ctls = controller.getBasicSearchControls();
-      if (useCustomFilter())
-      {
-        ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-      }
-      else
-      {
-        ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      }
-      ctls.setReturningAttributes(controller.getAttrsForRedSearch());
       conn = controller.findConnectionForDisplayedEntry(parentNode);
       String parentDn = controller.findBaseDNForChildEntries(parentNode);
       int parentComponents;
@@ -761,22 +728,23 @@ public class NodeRefresher extends AbstractNodeTask {
         throw new RuntimeException("Error decoding dn: "+parentDn+" . "+t,
             t);
       }
-      NamingEnumeration<SearchResult> entries = conn.getLdapContext().search(
-            new LdapName(parentDn),
-                controller.getChildSearchFilter(),
-                ctls);
 
-      try
+      SearchScope scope = useCustomFilter() ? WHOLE_SUBTREE : SINGLE_LEVEL;
+      SearchRequest request =
+          newSearchRequest(parentDn, scope, controller.getChildSearchFilter(), controller.getAttrsForRedSearch())
+              .setSizeLimit(controller.getMaxChildren());
+
+      try (ConnectionEntryReader entries = conn.getConnection().search(request))
       {
-        while (entries.hasMore())
+        while (entries.hasNext())
         {
-          SearchResult r = entries.next();
-          if (r.getName().length() == 0)
+          SearchResultEntry r = entries.readEntry();
+          if (r.getName().isRootDN())
           {
             continue;
           }
 
-          String name = unquoteRelativeName(r.getName()) + "," + parentDn;
+          String name = unquoteRelativeName(r.getName().toString()) + "," + parentDn;
           boolean add = false;
           if (useCustomFilter())
           {
@@ -800,48 +768,10 @@ public class NodeRefresher extends AbstractNodeTask {
               // search for the parent and add it.
               RDN[] rdns = new RDN[parentComponents + 1];
               final DN parentToAddDN = dn.parent(dn.size() - rdns.length);
-              boolean mustAddParent = mustAddParent(parentToAddDN);
+              boolean mustAddParent = mustAddParent(parentToAddDN) && mustAddParent2(parentToAddDN);
               if (mustAddParent)
               {
-                final boolean resultValue[] = {true};
-                // Check the children added to the tree
-                try
-                {
-                  SwingUtilities.invokeAndWait(new Runnable()
-                  {
-                    @Override
-                    public void run()
-                    {
-                      for (int i=0; i<getNode().getChildCount(); i++)
-                      {
-                        BasicNode node = (BasicNode)getNode().getChildAt(i);
-                        try
-                        {
-                          DN dn = DN.valueOf(node.getDN());
-                          if (dn.equals(parentToAddDN))
-                          {
-                            resultValue[0] = false;
-                            break;
-                          }
-                        }
-                        catch (Throwable t)
-                        {
-                          throw new RuntimeException("Error decoding dn: "+
-                              node.getDN()+" . "+t, t);
-                        }
-                      }
-                    }
-                  });
-                }
-                catch (Throwable t)
-                {
-                  // Ignore
-                }
-                mustAddParent = resultValue[0];
-              }
-              if (mustAddParent)
-              {
-                SearchResult parentResult = searchManuallyEntry(conn, parentToAddDN.toString());
+                SearchResultEntry parentResult = searchManuallyEntry(conn, parentToAddDN.toString());
                 childEntries.add(parentResult);
               }
             }
@@ -863,17 +793,21 @@ public class NodeRefresher extends AbstractNodeTask {
           throwAbandonIfNeeded(null);
         }
       }
-      finally
+    }
+    catch (LdapException e)
+    {
+      if (e.getResult().getResultCode() == ResultCode.SIZE_LIMIT_EXCEEDED)
       {
-        entries.close();
+        parentNode.setSizeLimitReached(true);
+      }
+      else
+      {
+        throwAbandonIfNeeded(e);
       }
     }
-    catch (SizeLimitExceededException slee)
+    catch (NamingException | IOException e)
     {
-      parentNode.setSizeLimitReached(true);
-    }
-    catch (NamingException x) {
-      throwAbandonIfNeeded(x);
+      throwAbandonIfNeeded(e);
     }
     finally {
       if (conn != null)
@@ -883,14 +817,52 @@ public class NodeRefresher extends AbstractNodeTask {
     }
   }
 
+  private boolean mustAddParent2(final DN parentToAddDN)
+  {
+    final boolean resultValue[] = {true};
+    // Check the children added to the tree
+    try
+    {
+      SwingUtilities.invokeAndWait(new Runnable()
+      {
+        @Override
+        public void run()
+        {
+          for (int i=0; i<getNode().getChildCount(); i++)
+          {
+            BasicNode node = (BasicNode)getNode().getChildAt(i);
+            try
+            {
+              DN dn = DN.valueOf(node.getDN());
+              if (dn.equals(parentToAddDN))
+              {
+                resultValue[0] = false;
+                break;
+              }
+            }
+            catch (Throwable t)
+            {
+              throw new RuntimeException("Error decoding dn: "+
+                  node.getDN()+" . "+t, t);
+            }
+          }
+        }
+      });
+    }
+    catch (Throwable t)
+    {
+      // Ignore
+    }
+    return resultValue[0];
+  }
+
   private boolean mustAddParent(final DN parentToAddDN)
   {
-    for (SearchResult addedEntry : childEntries)
+    for (SearchResultEntry addedEntry : childEntries)
     {
       try
       {
-        DN addedDN = DN.valueOf(addedEntry.getName());
-        if (addedDN.equals(parentToAddDN))
+        if (addedEntry.getName().equals(parentToAddDN))
         {
           return false;
         }
@@ -910,32 +882,22 @@ public class NodeRefresher extends AbstractNodeTask {
    * @param dn the DN of the entry to be searched.
    * @throws NamingException if an error occurs.
    */
-  private SearchResult searchManuallyEntry(ConnectionWrapper conn, String dn)
-  throws NamingException
+  private SearchResultEntry searchManuallyEntry(ConnectionWrapper conn, String dn) throws IOException
   {
-    // Send an LDAP search
-    SearchControls ctls = controller.getBasicSearchControls();
-    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    ctls.setReturningAttributes(controller.getAttrsForRedSearch());
-    NamingEnumeration<SearchResult> entries = conn.getLdapContext().search(
-          new LdapName(dn),
-              controller.getObjectSearchFilter(),
-              ctls);
+    SearchRequest request =
+        newSearchRequest(dn, BASE_OBJECT, controller.getObjectSearchFilter(), controller.getAttrsForRedSearch())
+        .setSizeLimit(controller.getMaxChildren());
 
-    SearchResult sr = null;
-    try
+    try (ConnectionEntryReader entries = conn.getConnection().search(request))
     {
-      while (entries.hasMore())
+      SearchResultEntry sr = null;
+      while (entries.hasNext())
       {
-        sr = entries.next();
+        sr = entries.readEntry();
         sr.setName(dn);
       }
+      return sr;
     }
-    finally
-    {
-      entries.close();
-    }
-    return sr;
   }
 
   /** Utilities. */
@@ -1032,15 +994,15 @@ public class NodeRefresher extends AbstractNodeTask {
    * and the attribute 'ref' is present and <CODE>false</CODE> otherwise.
    * @throws NamingException if an error occurs.
    */
-  private static boolean isReferralEntry(SearchResult entry) throws NamingException
+  private static boolean isReferralEntry(SearchResultEntry entry) throws NamingException
   {
-    Set<String> ocValues = ConnectionUtils.getValues(entry, "objectClass");
+    Set<String> ocValues = asSetOfString(entry, "objectClass");
     if (ocValues != null) {
       for (String value : ocValues)
       {
         boolean isReferral = "referral".equalsIgnoreCase(value);
         if (isReferral) {
-          return ConnectionUtils.getFirstValue(entry, "ref") != null;
+          return firstValueAsString(entry, "ref") != null;
         }
       }
     }

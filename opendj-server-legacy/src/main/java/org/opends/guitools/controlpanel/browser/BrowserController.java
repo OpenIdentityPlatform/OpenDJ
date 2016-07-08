@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.browser;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.awt.Font;
@@ -34,7 +35,6 @@ import java.util.logging.Logger;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.ManageReferralControl;
 import javax.naming.ldap.SortControl;
@@ -48,8 +48,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.ADSContext;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -659,7 +659,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param localEntry the local entry corresponding to the node.
    * @param recursive whether the refresh must be executed recursively or not.
    */
-  private void startRefreshNode(BasicNode node, SearchResult localEntry,
+  private void startRefreshNode(BasicNode node, SearchResultEntry localEntry,
       boolean recursive) {
     if (node == rootNode) {
       // For the root node, readBaseEntry is meaningless.
@@ -1306,7 +1306,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
          If succeeds we will update the remote url.  Set it to null for
          the case when there was a referral and it has been deleted */
         node.setRemoteUrl((String)null);
-        SearchResult localEntry = task.getLocalEntry();
+        SearchResultEntry localEntry = task.getLocalEntry();
         nodeChanged = updateNodeRendering(node, localEntry);
       }
       else if (oldState == NodeRefresher.State.SOLVING_REFERRAL) {
@@ -1425,7 +1425,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     boolean doNotTrust = numSubordinateHacker.containsChildrenOf(parentUrl);
 
     // Walk through the entries
-    for (SearchResult entry : task.getChildEntries())
+    for (SearchResultEntry entry : task.getChildEntries())
     {
       BasicNode child;
 
@@ -1433,7 +1433,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       int index;
       if (differential) {
 //      System.out.println("Differential mode -> starting to search");
-        index = findChildNode(parent, entry.getName());
+        index = findChildNode(parent, entry.getName().toString());
 //      System.out.println("Differential mode -> ending to search");
       }
       else {
@@ -1444,7 +1444,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       if (index < 0) {
         // -(index + 1) is the location where to insert the new node
         index = -(index + 1);
-        child = new BasicNode(entry.getName());
+        child = new BasicNode(entry.getName().toString());
         parent.insert(child, index);
         updateNodeRendering(child, entry);
         insertIndex.add(index);
@@ -1530,15 +1530,14 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param node the node to be rendered.
    * @param entry the search result for the entry that the node represents.
    */
-  private boolean updateNodeRendering(BasicNode node, SearchResult entry)
+  private boolean updateNodeRendering(BasicNode node, SearchResultEntry entry)
   throws NamingException {
     if (entry != null) {
       node.setNumSubOrdinates(getNumSubOrdinates(entry));
       node.setHasSubOrdinates(
           node.getNumSubOrdinates() > 0 || getHasSubOrdinates(entry));
       node.setReferral(getReferral(entry));
-      Set<String> ocValues = ConnectionUtils.getValues(entry,
-          OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+      Set<String> ocValues = asSetOfString(entry, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
       if (ocValues != null) {
         node.setObjectClassValues(ocValues.toArray(new String[ocValues.size()]));
       }
@@ -1565,7 +1564,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     } else {
       boolean useRdn = true;
       if (!RDN_ATTRIBUTE.equals(displayAttribute) && entry != null) {
-        String value = ConnectionUtils.getFirstValue(entry,displayAttribute);
+        String value = firstValueAsString(entry, displayAttribute);
         if (value != null) {
           if (showAttributeName) {
             value = displayAttribute+"="+value;
@@ -1620,20 +1619,16 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return changed;
   }
 
-  private int getAciCount(SearchResult entry) throws NamingException
+  private int getAciCount(SearchResultEntry entry) throws NamingException
   {
     if ((displayFlags & DISPLAY_ACI_COUNT) != 0 && entry != null) {
-      Set<String> aciValues = ConnectionUtils.getValues(entry, "aci");
-      if (aciValues != null) {
-        return aciValues.size();
-      }
+      return asSetOfString(entry, "aci").size();
     }
     return 0;
   }
 
 
-  private Icon getNewIcon(BasicNode node, SearchResult entry)
-      throws NamingException
+  private Icon getNewIcon(BasicNode node, SearchResultEntry entry)
   {
     // Select the icon according the objectClass,...
     int modifiers = 0;
@@ -1654,11 +1649,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     SortedSet<String> objectClasses = new TreeSet<>();
     if (entry != null) {
-      Set<String> ocs = ConnectionUtils.getValues(entry, "objectClass");
-      if (ocs != null)
-      {
-        objectClasses.addAll(ocs);
-      }
+      objectClasses.addAll(asSetOfString(entry, "objectClass"));
     }
 
     if (node instanceof SuffixNode)
@@ -1832,9 +1823,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the value of the numSubordinates attribute.  0 if the attribute
    * could not be found.
    */
-  private static int getNumSubOrdinates(SearchResult entry) throws NamingException
+  private static int getNumSubOrdinates(SearchResultEntry entry) throws NamingException
   {
-    return toInt(ConnectionUtils.getFirstValue(entry, NUMSUBORDINATES_ATTR));
+    return toInt(firstValueAsString(entry, NUMSUBORDINATES_ATTR));
   }
 
   /**
@@ -1846,10 +1837,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * of hasSubordinates and numSubordinates, returns {@code false} if none of
    * the attributes could be found.
    */
-  public static boolean getHasSubOrdinates(SearchResult entry)
+  public static boolean getHasSubOrdinates(SearchResultEntry entry)
   throws NamingException
   {
-    String v = ConnectionUtils.getFirstValue(entry, HASSUBORDINATES_ATTR);
+    String v = firstValueAsString(entry, HASSUBORDINATES_ATTR);
     if (v != null) {
       return "true".equalsIgnoreCase(v);
     }
@@ -1923,11 +1914,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the value of the ref attribute.  <CODE>null</CODE> if the attribute
    * could not be found.
    */
-  public static String[] getReferral(SearchResult entry) throws NamingException
+  public static String[] getReferral(SearchResultEntry entry) throws NamingException
   {
     String[] result = null;
-    Set<String> values = ConnectionUtils.getValues(entry,
-        OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    Set<String> values = asSetOfString(entry, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     if (values != null)
     {
       for (String value : values)
@@ -1935,8 +1925,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         boolean isReferral = "referral".equalsIgnoreCase(value);
         if (isReferral)
         {
-          Set<String> refValues = ConnectionUtils.getValues(entry,
-              ATTR_REFERRAL_URL);
+          Set<String> refValues = asSetOfString(entry, ATTR_REFERRAL_URL);
           if (refValues != null)
           {
             result = new String[refValues.size()];
