@@ -18,9 +18,9 @@ package org.opends.guitools.controlpanel.task;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.util.Utils.*;
-import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
-import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.SchemaUtils.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,13 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
@@ -318,15 +317,13 @@ public class NewSchemaElementsTask extends Task
     });
     try
     {
-      final BasicAttribute attr = new BasicAttribute(getAttributeConfigName(schemaElement));
-      attr.add(schemaElement.toString());
-      final ModificationItem mod = new ModificationItem(DirContext.ADD_ATTRIBUTE, attr);
-      getInfo().getConnection().getLdapContext().modifyAttributes(
-          ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, new ModificationItem[] { mod });
+      ModifyRequest request = Requests.newModifyRequest(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT)
+          .addModification(ADD, getAttributeConfigName(schemaElement), schemaElement.toString());
+      getInfo().getConnection().getConnection().modify(request);
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
-      throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
+      throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(e), e);
     }
     notifyConfigurationElementCreated(schemaElement);
     SwingUtilities.invokeLater(new Runnable()

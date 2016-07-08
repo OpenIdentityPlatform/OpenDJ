@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.task;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.types.ExistingFileBehavior.*;
@@ -33,15 +34,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
@@ -278,16 +278,13 @@ public class DeleteSchemaElementsTask extends Task
     {
       try
       {
-        BasicAttribute attr = new BasicAttribute(getAttributeConfigName(element));
-        attr.add(getSchemaFileAttributeValue(element));
-        ModificationItem mod = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attr);
-        getInfo().getConnection().getLdapContext().modifyAttributes(
-            ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
-            new ModificationItem[]  { mod });
+        ModifyRequest request = Requests.newModifyRequest(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT)
+            .addModification(DELETE, getAttributeConfigName(element), getSchemaFileAttributeValue(element));
+        getInfo().getConnection().getConnection().modify(request);
       }
-      catch (NamingException ne)
+      catch (LdapException e)
       {
-        throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(ne), ne);
+        throw new OnlineUpdateException(ERR_CTRL_PANEL_ERROR_UPDATING_SCHEMA.get(e), e);
       }
     }
     else

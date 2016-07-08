@@ -21,18 +21,14 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -44,7 +40,6 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.Entry;
 
 /** The task launched when we must create an entry. */
@@ -169,29 +164,6 @@ public class NewEntryTask extends Task
         conn = getInfo().getConnection();
         useAdminCtx = true;
       }
-      BasicAttributes attrs = new BasicAttributes();
-      BasicAttribute objectclass =
-        new BasicAttribute(ConfigConstants.ATTR_OBJECTCLASS);
-      for (String oc : newEntry.getObjectClasses().values())
-      {
-        objectclass.add(oc);
-      }
-      attrs.put(objectclass);
-      for (org.opends.server.types.Attribute attr : newEntry.getAttributes())
-      {
-        Set<ByteString> values = new LinkedHashSet<>();
-        Iterator<ByteString> it = attr.iterator();
-        while (it.hasNext())
-        {
-          values.add(it.next());
-        }
-        BasicAttribute a = new BasicAttribute(attr.getAttributeDescription().toString());
-        for (ByteString value : values)
-        {
-          a.add(value.toByteArray());
-        }
-        attrs.put(a);
-      }
 
       SwingUtilities.invokeLater(new Runnable()
       {
@@ -206,8 +178,7 @@ public class NewEntryTask extends Task
         }
       });
 
-      conn.getLdapContext().createSubcontext(Utilities.getJNDIName(newEntry.getName().toString()),
-          attrs);
+      conn.getConnection().add(Converters.from(newEntry));
 
       SwingUtilities.invokeLater(new Runnable()
       {

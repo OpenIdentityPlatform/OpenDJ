@@ -17,13 +17,15 @@
 
 package org.opends.guitools.controlpanel.util;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.naming.NamingEnumeration;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
@@ -59,22 +61,14 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   public CustomSearchResult processBackgroundTask() throws Throwable
   {
     isOver = false;
-    NamingEnumeration<SearchResult> en = null;
-    try
+    final String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
+    SearchRequest request = Requests.newSearchRequest(dn, BASE_OBJECT, filter, "*", "+");
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      SearchControls controls = new SearchControls();
-
-      String[] attrs = {"*", "+"};
-      controls.setReturningAttributes(attrs);
-      controls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      final String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
-
-      en = conn.getLdapContext().search(Utilities.getJNDIName(dn), filter, controls);
-
-      SearchResult sr = null;
-      while (en.hasMore())
+      SearchResultEntry sr = null;
+      while (entryReader.hasNext())
       {
-        sr = en.next();
+        sr = entryReader.readEntry();
       }
 
       return new CustomSearchResult(sr, dn);
@@ -84,10 +78,6 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
       if (isInterrupted())
       {
         isOver = true;
-      }
-      if (en != null)
-      {
-        en.close();
       }
     }
   }

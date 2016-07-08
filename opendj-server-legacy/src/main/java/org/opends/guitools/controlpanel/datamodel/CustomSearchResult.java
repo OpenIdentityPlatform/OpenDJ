@@ -26,21 +26,18 @@ import java.util.TreeSet;
 
 import javax.naming.CompositeName;
 import javax.naming.Name;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.SearchResult;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
 
@@ -80,10 +77,10 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * @throws NamingException if there is an error retrieving the attribute
    * values.
    */
-  public CustomSearchResult(SearchResult sr, String baseDN)
+  public CustomSearchResult(SearchResultEntry sr, String baseDN)
   throws NamingException
   {
-    String sName = sr.getName();
+    String sName = sr.getName().toString();
     Name name;
     if (baseDN != null && baseDN.length() > 0)
     {
@@ -116,32 +113,19 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
 
     attributes = new HashMap<>();
     attrNames = new TreeSet<>();
-    Attributes attrs = sr.getAttributes();
-    if (attrs != null)
+    for (org.forgerock.opendj.ldap.Attribute attr : sr.getAllAttributes())
     {
-      NamingEnumeration<?> en = attrs.getAll();
-      try
+      String attrName = attr.getAttributeDescriptionAsString();
+      attrNames.add(attrName);
+      List<Object> values = new ArrayList<>();
+      for (ByteString v : attr)
       {
-        while (en.hasMore()) {
-          Attribute attr = (Attribute)en.next();
-          String attrName = attr.getID();
-          attrNames.add(attrName);
-          List<Object> values = new ArrayList<>();
-          for (int i=0; i<attr.size(); i++)
-          {
-            Object v = attr.get(i);
-            if (!"".equals(v.toString()))
-            {
-              values.add(v);
-            }
-          }
-          attributes.put(attrName.toLowerCase(), values);
+        if (!"".equals(v.toString()))
+        {
+          values.add(v);
         }
       }
-      finally
-      {
-        en.close();
-      }
+      attributes.put(attrName.toLowerCase(), values);
     }
     toString = calculateToString();
     hashCode = calculateHashCode();

@@ -17,8 +17,13 @@
 
 package org.opends.guitools.controlpanel.task;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,19 +32,20 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.BasicControl;
-import javax.naming.ldap.Control;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -51,7 +57,6 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.ServerConstants;
 
@@ -281,9 +286,8 @@ public class DeleteEntryTask extends Task
     }
   }
 
-  private void deleteSubtreeRecursively(ConnectionWrapper conn, DN dnToRemove,
-      TreePath path, ArrayList<BrowserNodeInfo> toNotify)
-  throws NamingException, DirectoryException
+  private void deleteSubtreeRecursively(ConnectionWrapper conn, DN dnToRemove, TreePath path,
+      List<BrowserNodeInfo> toNotify) throws NamingException, IOException, DirectoryException
   {
     lastDn = dnToRemove;
 
@@ -314,44 +318,30 @@ public class DeleteEntryTask extends Task
       });
     }
 
-    try
+    String filter = "(|(objectClass=*)(objectclass=ldapsubentry))";
+    SearchRequest request = newSearchRequest(dnToRemove, SINGLE_LEVEL, Filter.valueOf(filter), NO_ATTRIBUTES);
+    DN entryDNFound = dnToRemove;
+    try (ConnectionEntryReader entryDNs = conn.getConnection().search(request))
     {
-      SearchControls ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
-      String filter =
-        "(|(objectClass=*)(objectclass=ldapsubentry))";
-      ctls.setReturningAttributes(
-          new String[] { SchemaConstants.NO_ATTRIBUTES });
-      NamingEnumeration<SearchResult> entryDNs =
-          conn.getLdapContext().search(Utilities.getJNDIName(dnToRemove.toString()), filter, ctls);
-
-      DN entryDNFound = dnToRemove;
-      try
+      while (entryDNs.hasNext())
       {
-        while (entryDNs.hasMore())
+        SearchResultEntry sr = entryDNs.readEntry();
+        if (!sr.getName().equals(""))
         {
-          SearchResult sr = entryDNs.next();
-          if (!sr.getName().equals(""))
-          {
-            CustomSearchResult res =
-              new CustomSearchResult(sr, dnToRemove.toString());
-            entryDNFound = DN.valueOf(res.getDN());
-            deleteSubtreeRecursively(conn, entryDNFound, null, toNotify);
-          }
+          CustomSearchResult res = new CustomSearchResult(sr, dnToRemove.toString());
+          entryDNFound = DN.valueOf(res.getDN());
+          deleteSubtreeRecursively(conn, entryDNFound, null, toNotify);
         }
       }
-      finally
-      {
-        entryDNs.close();
-      }
-
-    } catch (NameNotFoundException nnfe) {
+    }
+    catch (EntryNotFoundException e)
+    {
       // The entry is not there: it has been removed
     }
 
     try
     {
-      conn.getLdapContext().destroySubcontext(Utilities.getJNDIName(dnToRemove.toString()));
+      conn.getConnection().delete(dnToRemove.toString());
       if (path != null)
       {
         toNotify.add(controller.getNodeInfoFromPath(path));
@@ -385,15 +375,15 @@ public class DeleteEntryTask extends Task
           }
         });
       }
-    } catch (NameNotFoundException nnfe)
+    }
+    catch (EntryNotFoundException ignored)
     {
       // The entry is not there: it has been removed
     }
   }
 
-  private void deleteSubtreeWithControl(ConnectionWrapper conn, DN dn,
-      TreePath path, ArrayList<BrowserNodeInfo> toNotify)
-  throws NamingException
+  private void deleteSubtreeWithControl(ConnectionWrapper conn, DN dn, TreePath path, List<BrowserNodeInfo> toNotify)
+      throws LdapException, NamingException
   {
     lastDn = dn;
     long t = System.currentTimeMillis();
@@ -418,26 +408,11 @@ public class DeleteEntryTask extends Task
     //  Use a copy of the dir context since we are using an specific
     // control to delete the subtree and this can cause
     // synchronization problems when the tree is refreshed.
-    ConnectionWrapper conn1 = null;
-    try
+    ControlPanelInfo info = getInfo();
+    try (ConnectionWrapper conn1 = cloneConnectionWrapper(conn, info.getConnectTimeout(), info.getTrustManager(), null))
     {
-      conn1 = ConnectionUtils.cloneConnectionWrapper(conn,
-          getInfo().getConnectTimeout(),
-          getInfo().getTrustManager(), null);
-      Control[] ctls = {
-          new BasicControl(ServerConstants.OID_SUBTREE_DELETE_CONTROL)};
-      conn1.getLdapContext().setRequestControls(ctls);
-      conn1.getLdapContext().destroySubcontext(Utilities.getJNDIName(dn.toString()));
-    }
-    finally
-    {
-      try
-      {
-        conn1.close();
-      }
-      catch (Throwable th)
-      {
-      }
+      DeleteRequest request = newDeleteRequest(dn).addControl(SubtreeDeleteRequestControl.newControl(true));
+      conn1.getConnection().delete(request);
     }
     nDeleted ++;
     lastProgressTime = t;

@@ -16,8 +16,14 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.guitools.controlpanel.browser.BrowserController.*;
 import static org.opends.guitools.controlpanel.ui.ControlCenterMainPane.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -33,6 +39,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,9 +55,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NamingEnumeration;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -67,11 +71,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -95,7 +100,6 @@ import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -1992,33 +1996,15 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   protected boolean entryExists(final String dn)
   {
-    boolean entryExists = false;
     try
     {
-      SearchControls ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      ctls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
-      String filter = BrowserController.ALL_OBJECTS_FILTER;
-      NamingEnumeration<SearchResult> result =
-          getInfo().getConnection().getLdapContext().search(Utilities.getJNDIName(dn), filter, ctls);
-
-      try
-      {
-        while (result.hasMore())
-        {
-          SearchResult sr = result.next();
-          entryExists = sr != null;
-        }
-      }
-      finally
-      {
-        result.close();
-      }
+      SearchRequest request = newSearchRequest(dn, BASE_OBJECT, ALL_OBJECTS_FILTER, NO_ATTRIBUTES);
+      return getInfo().getConnection().getConnection().searchSingleEntry(request) != null;
     }
-    catch (Throwable t)
+    catch (LdapException e)
     {
+      return false;
     }
-    return entryExists;
   }
 
   /**
@@ -2034,45 +2020,29 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
    */
   protected boolean hasObjectClass(final String dn, final String... objectClasses)
   {
-    try
+    SearchRequest request = newSearchRequest(dn, BASE_OBJECT, ALL_OBJECTS_FILTER, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    try (ConnectionEntryReader entryReader = getInfo().getConnection().getConnection().search(request))
     {
-      SearchControls ctls = new SearchControls();
-      ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-      ctls.setReturningAttributes(new String[] { ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME });
-      String filter = BrowserController.ALL_OBJECTS_FILTER;
-      NamingEnumeration<SearchResult> result =
-          getInfo().getConnection().getLdapContext().search(Utilities.getJNDIName(dn), filter, ctls);
-
-      try
+      while (entryReader.hasNext())
       {
-        while (result.hasMore())
+        SearchResultEntry sr = entryReader.readEntry();
+        for (String oc : asSetOfString(sr, ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
         {
-          SearchResult sr = result.next();
-          Set<String> values = ConnectionUtils.getValues(sr, ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-          if (values != null)
+          for (String objectClass : objectClasses)
           {
-            for (String s : values)
+            if (oc.equalsIgnoreCase(objectClass))
             {
-              for (String objectClass : objectClasses)
-              {
-                if (s.equalsIgnoreCase(objectClass))
-                {
-                  return true;
-                }
-              }
+              return true;
             }
           }
         }
       }
-      finally
-      {
-        result.close();
-      }
+      return false;
     }
-    catch (Throwable t)
+    catch (IOException e)
     {
+      return false;
     }
-    return false;
   }
 
   /**
