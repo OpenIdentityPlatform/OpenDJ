@@ -34,6 +34,7 @@ import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.ldap.SearchScope.SINGLE_LEVEL;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
+import static org.forgerock.opendj.rest2ldap.Utils.connectionFrom;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.opendj.rest2ldap.Utils.newNotSupportedException;
 import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
@@ -262,7 +263,7 @@ final class SubResourceImpl {
         // Now build the LDAP representation and add it.
         final Connection connection = connectionFrom(context);
         return subType.getPropertyMapper()
-                      .create(connection, subType, ROOT, request.getContent())
+                      .create(context, subType, ROOT, request.getContent())
                       .thenAsync(new AsyncFunction<List<Attribute>, ResourceResponse, ResourceException>() {
                           @Override
                           public Promise<ResourceResponse, ResourceException> apply(final List<Attribute> attributes) {
@@ -285,7 +286,7 @@ final class SubResourceImpl {
                               }
                               return connection.addAsync(addRequest)
                                                .thenCatchAsync(lazilyAddGlueEntry(connection, addRequest))
-                                               .thenAsync(encodeUpdateResourceResponse(connection, subType),
+                                               .thenAsync(encodeUpdateResourceResponse(context, subType),
                                                           adaptLdapException(ResourceResponse.class));
                           }
                       });
@@ -322,10 +323,6 @@ final class SubResourceImpl {
         };
     }
 
-    private Connection connectionFrom(final Context context) {
-        return context.asContext(AuthenticatedConnectionContext.class).getConnection();
-    }
-
     Promise<ResourceResponse, ResourceException> delete(
             final Context context, final String resourceId, final DeleteRequest request) {
         final Connection connection = connectionFrom(context);
@@ -349,7 +346,7 @@ final class SubResourceImpl {
                         return connection.applyChangeAsync(deleteRequest)
                                          .thenCatchAsync(deleteSubtreeWithoutUsingSubtreeDeleteControl(connection,
                                                                                                        deleteRequest))
-                                         .thenAsync(encodeUpdateResourceResponse(connection, dnAndType.getType()),
+                                         .thenAsync(encodeUpdateResourceResponse(context, dnAndType.getType()),
                                                     adaptLdapException(ResourceResponse.class));
                     }
                 });
@@ -436,7 +433,7 @@ final class SubResourceImpl {
                         final Resource subType = dnAndType.getType();
                         final PropertyMapper propertyMapper = subType.getPropertyMapper();
                         for (final PatchOperation operation : request.getPatchOperations()) {
-                            promises.add(propertyMapper.patch(connection, subType, ROOT, operation));
+                            promises.add(propertyMapper.patch(context, subType, ROOT, operation));
                         }
                         return when(promises);
                     }
@@ -460,7 +457,7 @@ final class SubResourceImpl {
                         if (modifyRequest.getModifications().isEmpty()) {
                             // This patch is a no-op so just read the entry and check its version.
                             return connection.readEntryAsync(dnAndType.getDn(), attributes)
-                                             .thenAsync(encodeEmptyPatchResourceResponse(connection, subType, request),
+                                             .thenAsync(encodeEmptyPatchResourceResponse(context, subType, request),
                                                         adaptLdapException(ResourceResponse.class));
                         } else {
                             // Add controls and perform the modify request.
@@ -472,7 +469,7 @@ final class SubResourceImpl {
                             }
                             addAssertionControl(modifyRequest, request.getRevision());
                             return connection.applyChangeAsync(modifyRequest)
-                                             .thenAsync(encodeUpdateResourceResponse(connection, subType),
+                                             .thenAsync(encodeUpdateResourceResponse(context, subType),
                                                         adaptLdapException(ResourceResponse.class));
                         }
                     }
@@ -480,13 +477,13 @@ final class SubResourceImpl {
     }
 
     private AsyncFunction<Entry, ResourceResponse, ResourceException> encodeEmptyPatchResourceResponse(
-            final Connection connection, final Resource resource, final PatchRequest request) {
+            final Context context, final Resource resource, final PatchRequest request) {
         return new AsyncFunction<Entry, ResourceResponse, ResourceException>() {
             @Override
             public Promise<ResourceResponse, ResourceException> apply(Entry entry) throws ResourceException {
                 try {
                     ensureMvccVersionMatches(entry, request.getRevision());
-                    return encodeResourceResponse(connection, resource, entry);
+                    return encodeResourceResponse(context, resource, entry);
                 } catch (final Exception e) {
                     return asResourceException(e).asPromise();
                 }
@@ -496,14 +493,13 @@ final class SubResourceImpl {
 
     Promise<QueryResponse, ResourceException> query(
             final Context context, final QueryRequest request, final QueryResourceHandler resourceHandler) {
-        final Connection connection = connectionFrom(context);
-        return getLdapFilter(connection, request.getQueryFilter())
-                .thenAsync(runQuery(request, resourceHandler, connection));
+        return getLdapFilter(context, request.getQueryFilter())
+                .thenAsync(runQuery(context, request, resourceHandler));
     }
 
     // FIXME: supporting assertions against sub-type properties.
     private Promise<Filter, ResourceException> getLdapFilter(
-            final Connection connection, final QueryFilter<JsonPointer> queryFilter) {
+            final Context context, final QueryFilter<JsonPointer> queryFilter) {
         if (queryFilter == null) {
             return new BadRequestException(ERR_QUERY_BY_ID_OR_EXPRESSION_NOT_SUPPORTED.get().toString()).asPromise();
         }
@@ -553,14 +549,14 @@ final class SubResourceImpl {
                     public Promise<Filter, ResourceException> visitContainsFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, CONTAINS, null, valueAssertion);
+                                context, resource, ROOT, field, CONTAINS, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitEqualsFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, EQUAL_TO, null, valueAssertion);
+                                context, resource, ROOT, field, EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
@@ -569,35 +565,35 @@ final class SubResourceImpl {
                                                                                        final String operator,
                                                                                        final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, EXTENDED, operator, valueAssertion);
+                                context, resource, ROOT, field, EXTENDED, operator, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitGreaterThanFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, GREATER_THAN, null, valueAssertion);
+                                context, resource, ROOT, field, GREATER_THAN, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitGreaterThanOrEqualToFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, GREATER_THAN_OR_EQUAL_TO, null, valueAssertion);
+                                context, resource, ROOT, field, GREATER_THAN_OR_EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitLessThanFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, LESS_THAN, null, valueAssertion);
+                                context, resource, ROOT, field, LESS_THAN, null, valueAssertion);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitLessThanOrEqualToFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, LESS_THAN_OR_EQUAL_TO, null, valueAssertion);
+                                context, resource, ROOT, field, LESS_THAN_OR_EQUAL_TO, null, valueAssertion);
                     }
 
                     @Override
@@ -653,14 +649,14 @@ final class SubResourceImpl {
                     @Override
                     public Promise<Filter, ResourceException> visitPresentFilter(
                             final Void unused, final JsonPointer field) {
-                        return propertyMapper.getLdapFilter(connection, resource, ROOT, field, PRESENT, null, null);
+                        return propertyMapper.getLdapFilter(context, resource, ROOT, field, PRESENT, null, null);
                     }
 
                     @Override
                     public Promise<Filter, ResourceException> visitStartsWithFilter(
                             final Void unused, final JsonPointer field, final Object valueAssertion) {
                         return propertyMapper.getLdapFilter(
-                                connection, resource, ROOT, field, STARTS_WITH, null, valueAssertion);
+                                context, resource, ROOT, field, STARTS_WITH, null, valueAssertion);
                     }
                 };
         // Note that the returned LDAP filter may be null if it could not be mapped by any property mappers.
@@ -668,7 +664,7 @@ final class SubResourceImpl {
     }
 
     private AsyncFunction<Filter, QueryResponse, ResourceException> runQuery(
-            final QueryRequest request, final QueryResourceHandler resourceHandler, final Connection connection) {
+            final Context context, final QueryRequest request, final QueryResourceHandler resourceHandler) {
         return new AsyncFunction<Filter, QueryResponse, ResourceException>() {
             // The following fields are guarded by sequenceLock. In addition, the sequenceLock ensures that
             // we send one JSON resource at a time back to the client.
@@ -714,7 +710,7 @@ final class SubResourceImpl {
                     pageResultStartIndex = 0;
                 }
 
-                connection.searchAsync(searchRequest, new SearchResultHandler() {
+                connectionFrom(context).searchAsync(searchRequest, new SearchResultHandler() {
                     @Override
                     public boolean handleEntry(final SearchResultEntry entry) {
                         // Search result entries will be returned before the search result/error so the only reason
@@ -746,7 +742,7 @@ final class SubResourceImpl {
                         final String revision = getRevisionFromEntry(entry);
                         final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
                         final PropertyMapper propertyMapper = subType.getPropertyMapper();
-                        propertyMapper.read(connection, subType, ROOT, entry)
+                        propertyMapper.read(context, subType, ROOT, entry)
                                       .thenOnResult(new ResultHandler<JsonValue>() {
                                           @Override
                                           public void handleResult(final JsonValue result) {
@@ -849,7 +845,7 @@ final class SubResourceImpl {
                              @Override
                              public Promise<ResourceResponse, ResourceException> apply(SearchResultEntry entry) {
                                  final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
-                                 return encodeResourceResponse(connection, subType, entry);
+                                 return encodeResourceResponse(context, subType, entry);
                              }
                          });
     }
@@ -875,7 +871,7 @@ final class SubResourceImpl {
                         final Resource subType = resource.resolveSubTypeFromObjectClasses(entry);
                         subTypeHolder.set(subType);
                         final PropertyMapper propertyMapper = subType.getPropertyMapper();
-                        return propertyMapper.update(connection, subType , ROOT, entry, request.getContent());
+                        return propertyMapper.update(context, subType , ROOT, entry, request.getContent());
                     }
                 }).thenAsync(new AsyncFunction<List<Modification>, ResourceResponse, ResourceException>() {
                     @Override
@@ -884,7 +880,7 @@ final class SubResourceImpl {
                         final Resource subType = subTypeHolder.get();
                         if (modifications.isEmpty()) {
                             // No changes to be performed so just return the entry that we read.
-                            return encodeResourceResponse(connection, subType, entryHolder.get());
+                            return encodeResourceResponse(context, subType, entryHolder.get());
                         }
                         // Perform the modify operation.
                         final ModifyRequest modifyRequest = newModifyRequest(entryHolder.get().getName());
@@ -898,16 +894,16 @@ final class SubResourceImpl {
                         addAssertionControl(modifyRequest, request.getRevision());
                         modifyRequest.getModifications().addAll(modifications);
                         return connection.applyChangeAsync(modifyRequest)
-                                         .thenAsync(encodeUpdateResourceResponse(connection, subType),
+                                         .thenAsync(encodeUpdateResourceResponse(context, subType),
                                                     adaptLdapException(ResourceResponse.class));
                     }
                 });
     }
 
     private Promise<ResourceResponse, ResourceException> encodeResourceResponse(
-            final Connection connection, final Resource resource, final Entry entry) {
+            final Context context, final Resource resource, final Entry entry) {
         final PropertyMapper propertyMapper = resource.getPropertyMapper();
-        return propertyMapper.read(connection, resource, ROOT, entry)
+        return propertyMapper.read(context, resource, ROOT, entry)
                              .then(new Function<JsonValue, ResourceResponse, ResourceException>() {
                                  @Override
                                  public ResourceResponse apply(final JsonValue value) {
@@ -1020,7 +1016,7 @@ final class SubResourceImpl {
     }
 
     private AsyncFunction<Result, ResourceResponse, ResourceException> encodeUpdateResourceResponse(
-            final Connection connection, final Resource resource) {
+            final Context context, final Resource resource) {
         return new AsyncFunction<Result, ResourceResponse, ResourceException>() {
             @Override
             public Promise<ResourceResponse, ResourceException> apply(Result result) {
@@ -1029,12 +1025,12 @@ final class SubResourceImpl {
                     final PostReadResponseControl postReadControl =
                             result.getControl(PostReadResponseControl.DECODER, decodeOptions);
                     if (postReadControl != null) {
-                        return encodeResourceResponse(connection, resource, postReadControl.getEntry());
+                        return encodeResourceResponse(context, resource, postReadControl.getEntry());
                     }
                     final PreReadResponseControl preReadControl =
                             result.getControl(PreReadResponseControl.DECODER, decodeOptions);
                     if (preReadControl != null) {
-                        return encodeResourceResponse(connection, resource, preReadControl.getEntry());
+                        return encodeResourceResponse(context, resource, preReadControl.getEntry());
                     }
                 } catch (final DecodeException e) {
                     logger.error(ERR_DECODING_CONTROL.get(e.getLocalizedMessage()), e);

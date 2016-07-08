@@ -37,10 +37,10 @@ import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.promise.Promise;
 
 /**
@@ -57,7 +57,7 @@ final class ResourceTypePropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<List<Attribute>, ResourceException> create(final Connection connection,
+    Promise<List<Attribute>, ResourceException> create(final Context context,
                                                        final Resource resource, final JsonPointer path,
                                                        final JsonValue v) {
         return newResultPromise(singletonList(resource.getObjectClassAttribute()));
@@ -69,7 +69,7 @@ final class ResourceTypePropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final Resource resource,
+    Promise<Filter, ResourceException> getLdapFilter(final Context context, final Resource resource,
                                                      final JsonPointer path, final JsonPointer subPath,
                                                      final FilterType type, final String operator,
                                                      final Object valueAssertion) {
@@ -100,19 +100,19 @@ final class ResourceTypePropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> patch(final Connection connection, final Resource resource,
+    Promise<List<Modification>, ResourceException> patch(final Context context, final Resource resource,
                                                          final JsonPointer path, final PatchOperation operation) {
         return newBadRequestException(ERR_PATCH_READ_ONLY_FIELD.get(path)).asPromise();
     }
 
     @Override
-    Promise<JsonValue, ResourceException> read(final Connection connection, final Resource resource,
+    Promise<JsonValue, ResourceException> read(final Context context, final Resource resource,
                                                final JsonPointer path, final Entry e) {
         return newResultPromise(new JsonValue(resource.getResourceId()));
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> update(final Connection connection, final Resource resource,
+    Promise<List<Modification>, ResourceException> update(final Context context, final Resource resource,
                                                           final JsonPointer path, final Entry e, final JsonValue v) {
         if (!isNullOrEmpty(v) && !v.getObject().equals(resource.getResourceId())) {
             return newBadRequestException(ERR_MODIFY_READ_ONLY_FIELD.get("update", path)).asPromise();

@@ -40,10 +40,12 @@ import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 
@@ -183,6 +185,10 @@ final class Utils {
 
     static BadRequestException newBadRequestException(final LocalizableMessage message, final Throwable cause) {
         return new BadRequestException(message.toString(), cause);
+    }
+
+    static Connection connectionFrom(final Context context) {
+        return context.asContext(AuthenticatedConnectionContext.class).getConnection();
     }
 
     /** Prevent instantiation. */

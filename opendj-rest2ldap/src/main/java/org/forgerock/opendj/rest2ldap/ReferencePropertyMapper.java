@@ -20,6 +20,7 @@ import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Utils.connectionFrom;
 import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.util.promise.Promises.newResultPromise;
@@ -38,7 +39,6 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
@@ -53,6 +53,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.ExceptionHandler;
@@ -134,11 +135,11 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     }
 
     @Override
-    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final Resource resource,
+    Promise<Filter, ResourceException> getLdapFilter(final Context context, final Resource resource,
                                                      final JsonPointer path, final JsonPointer subPath,
                                                      final FilterType type, final String operator,
                                                      final Object valueAssertion) {
-        return mapper.getLdapFilter(connection, resource, path, subPath, type, operator, valueAssertion)
+        return mapper.getLdapFilter(context, resource, path, subPath, type, operator, valueAssertion)
                 .thenAsync(new AsyncFunction<Filter, Filter, ResourceException>() {
                     @Override
                     public Promise<Filter, ResourceException> apply(final Filter result) {
@@ -146,7 +147,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                         final SearchRequest request = createSearchRequest(result);
                         final List<Filter> subFilters = new LinkedList<>();
 
-                        return connection.searchAsync(request, new SearchResultHandler() {
+                        return connectionFrom(context).searchAsync(request, new SearchResultHandler() {
                             @Override
                             public boolean handleEntry(final SearchResultEntry entry) {
                                 if (subFilters.size() < SEARCH_MAX_CANDIDATES) {
@@ -184,7 +185,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     }
 
     @Override
-    Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection, final Resource resource,
+    Promise<Attribute, ResourceException> getNewLdapAttributes(final Context context, final Resource resource,
                                                                final JsonPointer path, final List<Object> newValues) {
         /*
          * For each value use the subordinate mapper to obtain the LDAP primary
@@ -196,7 +197,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         final PromiseImpl<Attribute, ResourceException> promise = PromiseImpl.create();
 
         for (final Object value : newValues) {
-            mapper.create(connection, resource, path, new JsonValue(value))
+            mapper.create(context, resource, path, new JsonValue(value))
                   .thenOnResult(new ResultHandler<List<Attribute>>() {
                       @Override
                       public void handleResult(List<Attribute> result) {
@@ -224,7 +225,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                           final ByteString primaryKeyValue = primaryKeyAttribute.firstValue();
                           final Filter filter = Filter.equality(primaryKey.toString(), primaryKeyValue);
                           final SearchRequest search = createSearchRequest(filter);
-                          connection.searchSingleEntryAsync(search)
+                          connectionFrom(context).searchSingleEntryAsync(search)
                                     .thenOnResult(new ResultHandler<SearchResultEntry>() {
                                         @Override
                                         public void handleResult(final SearchResultEntry result) {
@@ -276,7 +277,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
 
     @SuppressWarnings("fallthrough")
     @Override
-    Promise<JsonValue, ResourceException> read(final Connection connection, final Resource resource,
+    Promise<JsonValue, ResourceException> read(final Context context, final Resource resource,
                                                final JsonPointer path, final Entry e) {
         final Set<DN> dns = e.parseAttribute(ldapAttributeName).usingSchema(schema).asSetOfDN();
         switch (dns.size()) {
@@ -285,7 +286,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         case 1:
             if (attributeIsSingleValued()) {
                 try {
-                    return readEntry(connection, resource, path, dns.iterator().next());
+                    return readEntry(context, resource, path, dns.iterator().next());
                 } catch (final Exception ex) {
                     // The LDAP attribute could not be decoded.
                     return Promises.newExceptionPromise(asResourceException(ex));
@@ -296,7 +297,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
             try {
                 final List<Promise<JsonValue, ResourceException>> promises = new ArrayList<>(dns.size());
                 for (final DN dn : dns) {
-                    promises.add(readEntry(connection, resource, path, dn));
+                    promises.add(readEntry(context, resource, path, dn));
                 }
                 return Promises.when(promises)
                                .then(new Function<List<JsonValue>, JsonValue, ResourceException>() {
@@ -330,7 +331,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     }
 
     private Promise<JsonValue, ResourceException> readEntry(
-            final Connection connection, final Resource resource, final JsonPointer path, final DN dn) {
+            final Context context, final Resource resource, final JsonPointer path, final DN dn) {
         final Set<String> requestedLDAPAttributes = new LinkedHashSet<>();
         mapper.getLdapAttributes(path, new JsonPointer(), requestedLDAPAttributes);
 
@@ -338,12 +339,12 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         final String[] attributes = requestedLDAPAttributes.toArray(new String[requestedLDAPAttributes.size()]);
         final SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT, searchFilter, attributes);
 
-        return connection
+        return connectionFrom(context)
                 .searchSingleEntryAsync(request)
                 .thenAsync(new AsyncFunction<SearchResultEntry, JsonValue, ResourceException>() {
                     @Override
                     public Promise<JsonValue, ResourceException> apply(final SearchResultEntry result) {
-                        return mapper.read(connection, resource, path, result);
+                        return mapper.read(context, resource, path, result);
                     }
                 }, new AsyncFunction<LdapException, JsonValue, ResourceException>() {
                     @Override

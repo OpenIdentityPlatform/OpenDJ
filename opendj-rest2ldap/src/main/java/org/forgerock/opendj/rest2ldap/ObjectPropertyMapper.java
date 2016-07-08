@@ -40,10 +40,10 @@ import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Function;
 import org.forgerock.util.Pair;
 import org.forgerock.util.promise.Promise;
@@ -136,7 +136,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<List<Attribute>, ResourceException> create(final Connection connection,
+    Promise<List<Attribute>, ResourceException> create(final Context context,
                                                        final Resource resource, final JsonPointer path,
                                                        final JsonValue v) {
         try {
@@ -151,14 +151,14 @@ public final class ObjectPropertyMapper extends PropertyMapper {
                 for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
                     final Mapping mapping = getMapping(me.getKey());
                     final JsonValue subValue = new JsonValue(me.getValue());
-                    promises.add(mapping.mapper.create(connection, resource, path.child(me.getKey()),
+                    promises.add(mapping.mapper.create(context, resource, path.child(me.getKey()),
                                                        subValue));
                 }
             }
 
             // Invoke mappings for which there were no values provided.
             for (final Mapping mapping : missingMappings.values()) {
-                promises.add(mapping.mapper.create(connection, resource, path.child(mapping.name), null));
+                promises.add(mapping.mapper.create(context, resource, path.child(mapping.name), null));
             }
 
             return Promises.when(promises)
@@ -189,13 +189,13 @@ public final class ObjectPropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final Resource resource,
+    Promise<Filter, ResourceException> getLdapFilter(final Context context, final Resource resource,
                                                      final JsonPointer path, final JsonPointer subPath,
                                                      final FilterType type, final String operator,
                                                      final Object valueAssertion) {
         final Mapping mapping = getMappingOrNull(subPath);
         if (mapping != null) {
-            return mapping.mapper.getLdapFilter(connection,
+            return mapping.mapper.getLdapFilter(context,
                                                 resource,
                                                 path.child(subPath.get(0)),
                                                 subPath.relativePointer(),
@@ -213,7 +213,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> patch(final Connection connection, final Resource resource,
+    Promise<List<Modification>, ResourceException> patch(final Context context, final Resource resource,
                                                          final JsonPointer path, final PatchOperation operation) {
         try {
             final JsonPointer field = operation.getField();
@@ -237,7 +237,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
                         final JsonValue subValue = new JsonValue(me.getValue());
                         final PatchOperation subOperation =
                                 operation(operation.getOperation(), field /* empty */, subValue);
-                        promises.add(mapping.mapper.patch(connection, resource, path.child(me.getKey()), subOperation));
+                        promises.add(mapping.mapper.patch(context, resource, path.child(me.getKey()), subOperation));
                     }
                 }
 
@@ -256,7 +256,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
                 }
                 final PatchOperation subOperation =
                         operation(operation.getOperation(), field.relativePointer(), v);
-                return mapping.mapper.patch(connection, resource, path.child(fieldName), subOperation);
+                return mapping.mapper.patch(context, resource, path.child(fieldName), subOperation);
             }
         } catch (final Exception e) {
             return asResourceException(e).asPromise();
@@ -264,7 +264,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<JsonValue, ResourceException> read(final Connection connection, final Resource resource,
+    Promise<JsonValue, ResourceException> read(final Context context, final Resource resource,
                                                final JsonPointer path, final Entry e) {
         /*
          * Use an accumulator which will aggregate the results from the
@@ -275,7 +275,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
                 new ArrayList<>(mappings.size());
 
         for (final Mapping mapping : mappings.values()) {
-            promises.add(mapping.mapper.read(connection, resource, path.child(mapping.name), e)
+            promises.add(mapping.mapper.read(context, resource, path.child(mapping.name), e)
                                        .then(toProperty(mapping.name)));
         }
 
@@ -296,7 +296,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
                 }
                 // This attribute needs to be mapped.
                 final SimplePropertyMapper mapper = simple(attribute.getAttributeDescription());
-                promises.add(mapper.read(connection, resource, path.child(attributeName), e)
+                promises.add(mapper.read(context, resource, path.child(attributeName), e)
                                    .then(toProperty(attributeName)));
             }
         }
@@ -332,7 +332,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
     }
 
     @Override
-    Promise<List<Modification>, ResourceException> update(final Connection connection, final Resource resource,
+    Promise<List<Modification>, ResourceException> update(final Context context, final Resource resource,
                                                           final JsonPointer path, final Entry e, final JsonValue v) {
         try {
             // First check that the JSON value is an object and that the fields it contains are known by this mapper.
@@ -346,13 +346,13 @@ public final class ObjectPropertyMapper extends PropertyMapper {
                 for (final Map.Entry<String, Object> me : v.asMap().entrySet()) {
                     final Mapping mapping = getMapping(me.getKey());
                     final JsonValue subValue = new JsonValue(me.getValue());
-                    promises.add(mapping.mapper.update(connection, resource, path.child(me.getKey()), e, subValue));
+                    promises.add(mapping.mapper.update(context, resource, path.child(me.getKey()), e, subValue));
                 }
             }
 
             // Invoke mappings for which there were no values provided.
             for (final Mapping mapping : missingMappings.values()) {
-                promises.add(mapping.mapper.update(connection, resource, path.child(mapping.name), e, null));
+                promises.add(mapping.mapper.update(context, resource, path.child(mapping.name), e, null));
             }
 
             return Promises.when(promises)

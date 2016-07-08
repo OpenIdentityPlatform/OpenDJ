@@ -23,10 +23,10 @@ import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.PatchOperation;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.promise.Promise;
 
 /** An property mapper is responsible for converting JSON values to and from LDAP attributes. */
@@ -51,8 +51,7 @@ public abstract class PropertyMapper {
      * action in this case, perhaps by substituting default LDAP values, or by
      * returning a failed promise with an appropriate {@link ResourceException}.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
+     * @param context The request context.
      * @param resource The exact type of resource being created.
      * @param path
      *            The pointer from the root of the JSON resource to this
@@ -64,7 +63,7 @@ public abstract class PropertyMapper {
      *            in the resource.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Attribute>, ResourceException> create(Connection connection, Resource resource,
+    abstract Promise<List<Attribute>, ResourceException> create(Context context, Resource resource,
                                                                 JsonPointer path, JsonValue v);
 
     /**
@@ -96,8 +95,7 @@ public abstract class PropertyMapper {
      * promise must be returned with an appropriate {@link ResourceException}
      * indicating the problem which occurred.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
+     * @param context The request context.
      * @param resource The type of resource being queried.
      * @param path
      *            The pointer from the root of the JSON resource to this
@@ -118,7 +116,7 @@ public abstract class PropertyMapper {
      *            {@link FilterType#PRESENT}.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<Filter, ResourceException> getLdapFilter(Connection connection, Resource resource,
+    abstract Promise<Filter, ResourceException> getLdapFilter(Context context, Resource resource,
                                                               JsonPointer path, JsonPointer subPath, FilterType type,
                                                               String operator, Object valueAssertion);
 
@@ -127,8 +125,7 @@ public abstract class PropertyMapper {
      * a promise once the transformation has completed. This method is invoked
      * when a REST resource is modified using a patch request.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
+     * @param context The request context.
      * @param resource The exact type of resource being patched.
      * @param path
      *            The pointer from the root of the JSON resource to this
@@ -141,7 +138,7 @@ public abstract class PropertyMapper {
      *            with this mapper have been targeted.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Modification>, ResourceException> patch(Connection connection, Resource resource,
+    abstract Promise<List<Modification>, ResourceException> patch(Context context, Resource resource,
                                                                   JsonPointer path, PatchOperation operation);
 
     /**
@@ -159,8 +156,7 @@ public abstract class PropertyMapper {
      * they contain unexpected content, then a failed promise must be returned
      * with an appropriate exception indicating the problem which occurred.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
+     * @param context The request context.
      * @param resource The exact type of resource being read.
      * @param path
      *            The pointer from the root of the JSON resource to this
@@ -170,7 +166,7 @@ public abstract class PropertyMapper {
      *            The LDAP entry to be converted to JSON.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<JsonValue, ResourceException> read(Connection connection, Resource resource,
+    abstract Promise<JsonValue, ResourceException> read(Context context, Resource resource,
                                                         JsonPointer path, Entry e);
 
     /**
@@ -184,8 +180,7 @@ public abstract class PropertyMapper {
      * action in this case, perhaps by substituting default LDAP values, or by
      * returning a failed promise with an appropriate {@link ResourceException}.
      *
-     * @param connection
-     *            The LDAP connection to use to perform the operation.
+     * @param context The request context.
      * @param resource The exact type of resource being updated.
      * @param v
      *            The JSON value to be converted to LDAP attributes, which may
@@ -193,7 +188,7 @@ public abstract class PropertyMapper {
      *            in the resource.
      * @return A {@link Promise} containing the result of the operation.
      */
-    abstract Promise<List<Modification>, ResourceException> update(Connection connection, Resource resource,
+    abstract Promise<List<Modification>, ResourceException> update(Context context, Resource resource,
                                                                    JsonPointer path, Entry e, JsonValue v);
 
     // TODO: methods for obtaining schema information (e.g. name, description, type information).

@@ -28,9 +28,9 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.services.context.Context;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
@@ -133,7 +133,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
     }
 
     @Override
-    Promise<Filter, ResourceException> getLdapFilter(final Connection connection, final Resource resource,
+    Promise<Filter, ResourceException> getLdapFilter(final Context context, final Resource resource,
                                                      final JsonPointer path, final JsonPointer subPath,
                                                      final FilterType type, final String operator,
                                                      final Object valueAssertion) {
@@ -153,7 +153,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
     }
 
     @Override
-    Promise<Attribute, ResourceException> getNewLdapAttributes(final Connection connection, final Resource resource,
+    Promise<Attribute, ResourceException> getNewLdapAttributes(final Context context, final Resource resource,
                                                                final JsonPointer path, final List<Object> newValues) {
         try {
             return newResultPromise(jsonToAttribute(newValues, ldapAttributeName, encoder()));
@@ -169,7 +169,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
 
     @SuppressWarnings("fallthrough")
     @Override
-    Promise<JsonValue, ResourceException> read(final Connection connection, final Resource resource,
+    Promise<JsonValue, ResourceException> read(final Context context, final Resource resource,
                                                final JsonPointer path, final Entry e) {
         try {
             final Set<Object> s = e.parseAttribute(ldapAttributeName).asSetOf(decoder(), defaultJsonValues);
