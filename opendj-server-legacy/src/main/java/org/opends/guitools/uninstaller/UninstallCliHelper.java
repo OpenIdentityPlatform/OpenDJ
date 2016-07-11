@@ -796,7 +796,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       bindDnArg.clearValues();
       if (uid != null)
       {
-        bindDnArg.addValue(ADSContext.getAdministratorDN(uid));
+        bindDnArg.addValue(ADSContext.getAdministratorDN(uid).toString());
         bindDnArg.setPresent(true);
       }
       else
@@ -1088,7 +1088,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       int port = 389;
       String adminUid = userData.getAdminUID();
       String pwd = userData.getAdminPwd();
-      String dn = ADSContext.getAdministratorDN(adminUid);
+      String dn = ADSContext.getAdministratorDN(adminUid).toString();
 
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
       String adminConnectorUrl = info.getAdminConnectorURL();

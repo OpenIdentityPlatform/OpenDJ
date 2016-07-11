@@ -811,7 +811,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       {
         LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, conn.getHostPort());
         getProgressDialog().appendProgressHtml(Utilities.applyFont(msg + "<br>", ColorAndFontConstants.progressFont));
-        repl.initializeAllSuffix(baseDN.toString(), conn, true);
+        repl.initializeAllSuffix(baseDN, conn, true);
       }
     }
 

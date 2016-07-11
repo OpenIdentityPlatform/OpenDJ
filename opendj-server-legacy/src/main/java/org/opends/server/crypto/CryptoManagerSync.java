@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
@@ -60,7 +61,6 @@ import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.operation.PostResponseAddOperation;
@@ -140,7 +140,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
     try
     {
-      adminSuffixDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
+      adminSuffixDN = ADSContext.getAdministrationSuffixDN();
       instanceKeysDN = adminSuffixDN.child(DN.valueOf("cn=instance keys"));
       secretKeysDN = adminSuffixDN.child(DN.valueOf("cn=secret keys"));
       trustStoreRootDN = DN.valueOf(ConfigConstants.DN_TRUST_STORE_ROOT);

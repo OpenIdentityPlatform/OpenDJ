@@ -65,6 +65,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ConnectionException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
@@ -376,7 +377,7 @@ public class Utils
   public static boolean isConfigurationDn(String dn)
   {
     boolean isConfigurationDn = false;
-    String[] configDns = { "cn=config", Constants.SCHEMA_DN };
+    String[] configDns = { "cn=config", Constants.SCHEMA_DN.toString() };
     for (int i = 0; i < configDns.length && !isConfigurationDn; i++)
     {
       isConfigurationDn = areDnsEqual(dn, configDns[i]);
@@ -1589,7 +1590,7 @@ public class Utils
   public static List<List<String>> getDsReplicationEquivalentCommandLines(String subcommand, UserData userData)
   {
     final List<List<String>> cmdLines = new ArrayList<>();
-    final Map<ServerDescriptor, Set<String>> hmServerBaseDNs = getServerDescriptorBaseDNMap(userData);
+    final Map<ServerDescriptor, Set<DN>> hmServerBaseDNs = getServerDescriptorBaseDNMap(userData);
     for (ServerDescriptor server : hmServerBaseDNs.keySet())
     {
       cmdLines.add(getDsReplicationEquivalentCommandLine(subcommand, userData, hmServerBaseDNs.get(server), server));
@@ -1606,7 +1607,7 @@ public class Utils
     cmdLine.add(String.valueOf(server.getEnabledAdministrationPorts().get(0)));
 
     AuthenticationData authData = userData.getReplicationOptions().getAuthenticationData();
-    if (!Utils.areDnsEqual(authData.getDn(), ADSContext.getAdministratorDN(userData.getGlobalAdministratorUID())))
+    if (!DN.valueOf(authData.getDn()).equals(ADSContext.getAdministratorDN(userData.getGlobalAdministratorUID())))
     {
       cmdLine.add("--bindDN1");
       cmdLine.add(authData.getDn());
@@ -1700,7 +1701,7 @@ public class Utils
   }
 
   private static List<String> getDsReplicationEquivalentCommandLine(String subcommand, UserData userData,
-      Set<String> baseDNs, ServerDescriptor server)
+      Set<DN> baseDNs, ServerDescriptor server)
   {
     List<String> cmdLine = new ArrayList<>();
     String cmdName = getCommandLinePath("dsreplication");
@@ -1737,12 +1738,12 @@ public class Utils
     cmdLine.add(String.valueOf(userData.getAdminConnectorPort()));
   }
 
-  private static void addCommonOptions(UserData userData, Set<String> baseDNs, List<String> cmdLine)
+  private static void addCommonOptions(UserData userData, Set<DN> baseDNs, List<String> cmdLine)
   {
-    for (String baseDN : baseDNs)
+    for (DN baseDN : baseDNs)
     {
       cmdLine.add("--baseDN");
-      cmdLine.add(baseDN);
+      cmdLine.add(baseDN.toString());
     }
 
     cmdLine.add("--adminUID");
@@ -1783,9 +1784,9 @@ public class Utils
     return baseDNs;
   }
 
-  private static Map<ServerDescriptor, Set<String>> getServerDescriptorBaseDNMap(UserData userData)
+  private static Map<ServerDescriptor, Set<DN>> getServerDescriptorBaseDNMap(UserData userData)
   {
-    Map<ServerDescriptor, Set<String>> hm = new HashMap<>();
+    Map<ServerDescriptor, Set<DN>> hm = new HashMap<>();
 
     Set<SuffixDescriptor> suffixes = userData.getSuffixesToReplicateOptions().getSuffixes();
     AuthenticationData authData = userData.getReplicationOptions().getAuthenticationData();
@@ -1799,7 +1800,7 @@ public class Utils
         if (ldapURL.equalsIgnoreCase(replica.getServer().getAdminConnectorURL()))
         {
           // This is the server we're configuring
-          Set<String> baseDNs = hm.get(replica.getServer());
+          Set<DN> baseDNs = hm.get(replica.getServer());
           if (baseDNs == null)
           {
             baseDNs = new LinkedHashSet<>();
@@ -1812,7 +1813,7 @@ public class Utils
 
       for (ReplicaDescriptor replica : suffix.getReplicas())
       {
-        Set<String> baseDNs = hm.get(replica.getServer());
+        Set<DN> baseDNs = hm.get(replica.getServer());
         if (baseDNs != null)
         {
           baseDNs.add(suffix.getDN());

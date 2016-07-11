@@ -16,6 +16,7 @@
  */
 package org.opends.admin.ads;
 
+import static org.forgerock.opendj.ldap.Filter.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -45,6 +46,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
@@ -324,7 +326,7 @@ public class ADSContext
    */
   public void registerServer(Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
-    String dn = makeDNFromServerProperties(serverProperties);
+    DN dn = makeDNFromServerProperties(serverProperties);
 
     AddRequest request = newAddRequest(dn);
     for (ServerProperty prop : serverProperties.keySet())
@@ -406,7 +408,7 @@ public class ADSContext
   private void updateServer(Map<ServerProperty, Object> serverProperties, String newServerId)
       throws ADSContextException
   {
-    String dn = makeDNFromServerProperties(serverProperties);
+    DN dn = makeDNFromServerProperties(serverProperties);
 
     try
     {
@@ -414,8 +416,8 @@ public class ADSContext
       {
         Map<ServerProperty, Object> newServerProps = new HashMap<>(serverProperties);
         newServerProps.put(ServerProperty.ID, newServerId);
-        String newDn = makeDNFromServerProperties(newServerProps);
-        throwIfNotSuccess(connectionWrapper.getConnection().modifyDN(dn, newDn));
+        DN newDn = makeDNFromServerProperties(newServerProps);
+        throwIfNotSuccess(connectionWrapper.getConnection().modifyDN(dn.toString(), newDn.toString()));
         dn = newDn;
         serverProperties.put(ServerProperty.ID, newServerId);
       }
@@ -462,7 +464,7 @@ public class ADSContext
    */
   public void unregisterServer(Map<ServerProperty, Object> serverProperties) throws ADSContextException
   {
-    String dn = makeDNFromServerProperties(serverProperties);
+    DN dn = makeDNFromServerProperties(serverProperties);
     Connection conn = connectionWrapper.getConnection();
     try
     {
@@ -481,7 +483,7 @@ public class ADSContext
         }
       }
 
-      throwIfNotSuccess(conn.delete(dn));
+      throwIfNotSuccess(conn.delete(newDeleteRequest(dn)));
     }
     catch (EntryNotFoundException x)
     {
@@ -497,7 +499,7 @@ public class ADSContext
     {
       // Unregister the server in server groups
       String memberAttrName = ServerGroupProperty.MEMBERS.getAttributeName();
-      String filter = "(" + memberAttrName + "=cn=" + serverID + ")";
+      Filter filter = Filter.valueOf("(" + memberAttrName + "=cn=" + serverID + ")");
       SearchRequest request = newSearchRequest(getServerGroupContainerDN(), SINGLE_LEVEL, filter);
       try (ConnectionEntryReader entryReader = conn.search(request);)
       {
@@ -668,7 +670,7 @@ public class ADSContext
   {
     Set<Map<ServerProperty, Object>> result = new HashSet<>();
 
-    SearchRequest request = newSearchRequest(getServerContainerDN(), SINGLE_LEVEL, "(objectclass=*)");
+    SearchRequest request = newSearchRequest(getServerContainerDN(), SINGLE_LEVEL, objectClassPresent());
     try (ConnectionEntryReader entryReader = connectionWrapper.getConnection().search(request))
     {
       while (entryReader.hasNext())
@@ -679,7 +681,7 @@ public class ADSContext
         if (keyId != null)
         {
           SearchRequest request2 = newSearchRequest(
-              getInstanceKeysContainerDN(), SINGLE_LEVEL, "(ds-cfg-key-id=" + keyId + ")",
+              getInstanceKeysContainerDN(), SINGLE_LEVEL, Filter.valueOf("(ds-cfg-key-id=" + keyId + ")"),
               "ds-cfg-public-key-certificate;binary");
           try (ConnectionEntryReader entryReader2 = connectionWrapper.getConnection().search(request2))
           {
@@ -819,7 +821,7 @@ public class ADSContext
    */
   private Set<Map<ServerGroupProperty, Object>> readServerGroupRegistry() throws ADSContextException
   {
-    SearchRequest request = newSearchRequest(getServerGroupContainerDN(), SINGLE_LEVEL, "(objectclass=*)");
+    SearchRequest request = newSearchRequest(getServerGroupContainerDN(), SINGLE_LEVEL, objectClassPresent());
     try (ConnectionEntryReader entryReader = connectionWrapper.getConnection().search(request))
     {
       Set<Map<ServerGroupProperty, Object>> result = new HashSet<>();
@@ -855,7 +857,7 @@ public class ADSContext
   {
     Set<Map<AdministratorProperty, Object>> result = new HashSet<>();
     SearchRequest request = newSearchRequest(
-        getAdministratorContainerDN(), SINGLE_LEVEL, "(objectclass=*)",
+        getAdministratorContainerDN(), SINGLE_LEVEL, objectClassPresent(),
         "cn", "userpassword", "ds-privilege-name", "description");
     try (ConnectionEntryReader entryReader = connectionWrapper.getConnection().search(request))
     {
@@ -954,11 +956,11 @@ public class ADSContext
    */
   public void removeAdminData(boolean removeAdministrators) throws ADSContextException
   {
-    String[] dns = { getServerContainerDN(), getServerGroupContainerDN(),
+    DN[] dns = { getServerContainerDN(), getServerGroupContainerDN(),
       removeAdministrators ? getAdministratorContainerDN() : null };
     try
     {
-      for (String dn : dns)
+      for (DN dn : dns)
       {
         if (dn != null)
         {
@@ -990,7 +992,7 @@ public class ADSContext
    */
   public boolean hasAdminData() throws ADSContextException
   {
-    String[] dns = { getAdministratorContainerDN(), getAllServerGroupDN(), getServerContainerDN(),
+    DN[] dns = { getAdministratorContainerDN(), getAllServerGroupDN(), getServerContainerDN(),
       getInstanceKeysContainerDN(), getSecretKeysContainerDN() };
     boolean hasAdminData = true;
     for (int i = 0; i < dns.length && hasAdminData; i++)
@@ -1007,9 +1009,9 @@ public class ADSContext
    *          the UID to be used to generate the DN.
    * @return the DN of the administrator for the given UID:
    */
-  public static String getAdministratorDN(String uid)
+  public static DN getAdministratorDN(String uid)
   {
-    return "cn=" + Rdn.escapeValue(uid) + "," + getAdministratorContainerDN();
+    return DN.valueOf("cn=" + Rdn.escapeValue(uid) + "," + getAdministratorContainerDN());
   }
 
   /**
@@ -1053,10 +1055,10 @@ public class ADSContext
    */
   public void deleteAdministrator(Map<AdministratorProperty, Object> adminProperties) throws ADSContextException
   {
-    String dnCentralAdmin = getAdministratorDN(getAdministratorUID(adminProperties));
+    DN dnCentralAdmin = getAdministratorDN(getAdministratorUID(adminProperties));
     try
     {
-      throwIfNotSuccess(connectionWrapper.getConnection().delete(dnCentralAdmin));
+      throwIfNotSuccess(connectionWrapper.getConnection().delete(newDeleteRequest(dnCentralAdmin)));
     }
     catch (EntryNotFoundException x)
     {
@@ -1077,9 +1079,9 @@ public class ADSContext
    *
    * @return the DN of the suffix that contains the administration data.
    */
-  public static String getAdministrationSuffixDN()
+  public static DN getAdministrationSuffixDN()
   {
-    return "cn=admin data";
+    return DN.valueOf("cn=admin data");
   }
 
   /**
@@ -1095,9 +1097,9 @@ public class ADSContext
    * @throws ADSContextException
    *           if something goes wrong.
    */
-  private static String makeDNFromHostnameAndPath(String hostname, String ipath) throws ADSContextException
+  private static DN makeDNFromHostnameAndPath(String hostname, String ipath) throws ADSContextException
   {
-    return "cn=" + Rdn.escapeValue(hostname + "@" + ipath) + "," + getServerContainerDN();
+    return DN.valueOf("cn=" + Rdn.escapeValue(hostname + "@" + ipath) + "," + getServerContainerDN());
   }
 
   /**
@@ -1111,9 +1113,9 @@ public class ADSContext
    * @throws ADSContextException
    *           if something goes wrong.
    */
-  private static String makeDNFromServerUniqueId(String serverUniqueId) throws ADSContextException
+  private static DN makeDNFromServerUniqueId(String serverUniqueId) throws ADSContextException
   {
-    return "cn=" + Rdn.escapeValue(serverUniqueId) + "," + getServerContainerDN();
+    return DN.valueOf("cn=" + Rdn.escapeValue(serverUniqueId) + "," + getServerContainerDN());
   }
 
   /**
@@ -1149,7 +1151,7 @@ public class ADSContext
    * @throws ADSContextException
    *           if something goes wrong.
    */
-  private static String makeDNFromServerProperties(Map<ServerProperty, Object> serverProperties)
+  private static DN makeDNFromServerProperties(Map<ServerProperty, Object> serverProperties)
       throws ADSContextException
   {
     String serverID = getServerID(serverProperties);
@@ -1427,9 +1429,9 @@ public class ADSContext
    *
    * @return the parent entry of the server entries.
    */
-  private static String getServerContainerDN()
+  private static DN getServerContainerDN()
   {
-    return "cn=Servers," + getAdministrationSuffixDN();
+    return DN.valueOf("cn=Servers," + getAdministrationSuffixDN());
   }
 
   /**
@@ -1437,9 +1439,9 @@ public class ADSContext
    *
    * @return the parent entry of the administrator entries.
    */
-  public static String getAdministratorContainerDN()
+  public static DN getAdministratorContainerDN()
   {
-    return "cn=Administrators," + getAdministrationSuffixDN();
+    return DN.valueOf("cn=Administrators," + getAdministrationSuffixDN());
   }
 
   /**
@@ -1447,9 +1449,9 @@ public class ADSContext
    *
    * @return the parent entry of the server group entries.
    */
-  private static String getServerGroupContainerDN()
+  private static DN getServerGroupContainerDN()
   {
-    return "cn=Server Groups," + getAdministrationSuffixDN();
+    return DN.valueOf("cn=Server Groups," + getAdministrationSuffixDN());
   }
 
   /**
@@ -1457,9 +1459,9 @@ public class ADSContext
    *
    * @return the all server group entry DN.
    */
-  private static String getAllServerGroupDN()
+  private static DN getAllServerGroupDN()
   {
-    return "cn=" + Rdn.escapeValue(ALL_SERVERGROUP_NAME) + "," + getServerGroupContainerDN();
+    return DN.valueOf("cn=" + Rdn.escapeValue(ALL_SERVERGROUP_NAME) + "," + getServerGroupContainerDN());
   }
 
   /**
@@ -1577,9 +1579,9 @@ public class ADSContext
    * @throws ADSContextException
    *           if an error occurred while checking if the entry exists or not.
    */
-  private boolean isExistingEntry(String dn) throws ADSContextException
+  private boolean isExistingEntry(DN dn) throws ADSContextException
   {
-    SearchRequest request = newSearchRequest(dn, BASE_OBJECT, "(objectclass=*)", NO_ATTRIBUTES);
+    SearchRequest request = newSearchRequest(dn, BASE_OBJECT, objectClassPresent(), NO_ATTRIBUTES);
     try (ConnectionEntryReader entryReader = getConnection().getConnection().search(request))
     {
       while (entryReader.hasNext())
@@ -1611,7 +1613,7 @@ public class ADSContext
    * @throws ADSContextException
    *           if the entry could not be created.
    */
-  private void createContainerEntry(String dn) throws ADSContextException
+  private void createContainerEntry(DN dn) throws ADSContextException
   {
     createEntry(newAddRequest(dn).addAttribute("objectclass", "top", "ds-cfg-branch"));
   }
@@ -1721,9 +1723,9 @@ public class ADSContext
    *
    * @return the parent entry of the server key entries in ADS.
    */
-  static String getInstanceKeysContainerDN()
+  static DN getInstanceKeysContainerDN()
   {
-    return "cn=instance keys," + getAdministrationSuffixDN();
+    return DN.valueOf("cn=instance keys," + getAdministrationSuffixDN());
   }
 
   /**
@@ -1731,9 +1733,9 @@ public class ADSContext
    *
    * @return the parent entry of the secret key entries in ADS.
    */
-  private static String getSecretKeysContainerDN()
+  private static DN getSecretKeysContainerDN()
   {
-    return "cn=secret keys," + getAdministrationSuffixDN();
+    return DN.valueOf("cn=secret keys," + getAdministrationSuffixDN());
   }
 
   /**
@@ -1774,7 +1776,7 @@ public class ADSContext
    * @throws ADSContextException
    *           In case there is a problem registering the instance public key certificate ID
    */
-  private void registerInstanceKeyCertificate(Map<ServerProperty, Object> serverProperties, String serverEntryDn)
+  private void registerInstanceKeyCertificate(Map<ServerProperty, Object> serverProperties, DN serverEntryDn)
       throws ADSContextException
   {
     ADSContextHelper helper = new ADSContextHelper();
@@ -1796,11 +1798,11 @@ public class ADSContext
    */
   public Map<String, byte[]> getTrustedCertificates() throws ADSContextException
   {
-    final String baseDN = getInstanceKeysContainerDN();
+    final DN baseDN = getInstanceKeysContainerDN();
     ADSContextHelper helper = new ADSContextHelper();
     final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + helper.getOcCryptoInstanceKey() + ")";
     final String FILTER_NOT_COMPROMISED = "(!(" + helper.getAttrCryptoKeyCompromisedTime() + "=*))";
-    final String searchFilter = "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + ")";
+    final Filter searchFilter = Filter.valueOf("(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + ")");
 
     String instanceKeyId = ADSContext.ServerProperty.INSTANCE_KEY_ID.getAttributeName();
     String instanceKeyCertificate =

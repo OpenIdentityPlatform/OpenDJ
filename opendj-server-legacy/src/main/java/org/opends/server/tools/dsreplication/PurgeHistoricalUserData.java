@@ -16,8 +16,10 @@
  */
 package org.opends.server.tools.dsreplication;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
 import org.opends.server.types.HostPort;
@@ -106,7 +108,7 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
   public static  void initializeWithArgParser(PurgeHistoricalUserData uData,
       ReplicationCliArgumentParser argParser)
   {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
 
     if (argParser.connectionArgumentsPresent())
     {
@@ -139,5 +141,15 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
     }
 
     uData.setMaximumDuration(argParser.getMaximumDurationOrDefault());
+  }
+
+  private static List<DN> toDNs(List<String> baseDNs)
+  {
+    final List<DN> results = new ArrayList<>(baseDNs.size());
+    for (String dn : baseDNs)
+    {
+      results.add(DN.valueOf(dn));
+    }
+    return results;
   }
 }

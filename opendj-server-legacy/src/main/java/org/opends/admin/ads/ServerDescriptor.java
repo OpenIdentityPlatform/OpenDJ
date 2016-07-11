@@ -883,7 +883,7 @@ public class ServerDescriptor
           {
             for (ReplicaDescriptor replica : desc.getReplicas())
             {
-              if (replica.getSuffix().getDnAsDn().equals(dn))
+              if (replica.getSuffix().getDN().equals(dn))
               {
                 replica.setReplicationId(id);
                 LinkedHashSet<String> repServers = toLowercase(replicationServers);
@@ -1150,8 +1150,7 @@ public class ServerDescriptor
    * @param servers the servers.
    * @return a representation of a base DN for a set of servers.
    */
-  public static String getSuffixDisplay(String baseDN,
-      Set<ServerDescriptor> servers)
+  public static String getSuffixDisplay(DN baseDN, Set<ServerDescriptor> servers)
   {
     StringBuilder sb = new StringBuilder();
     sb.append(baseDN);

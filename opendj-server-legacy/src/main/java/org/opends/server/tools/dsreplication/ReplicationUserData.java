@@ -12,12 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsreplication;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This class is used to store the information provided by the user in the
@@ -26,7 +28,7 @@ import java.util.List;
  */
 public abstract class ReplicationUserData
 {
-  private final LinkedList<String> baseDNs = new LinkedList<>();
+  private final LinkedList<DN> baseDNs = new LinkedList<>();
   private String adminUid;
   private String adminPwd;
 
@@ -70,7 +72,7 @@ public abstract class ReplicationUserData
    * Returns the Base DNs to replicate.
    * @return the Base DNs to replicate.
    */
-  public List<String> getBaseDNs()
+  public List<DN> getBaseDNs()
   {
     return new LinkedList<>(baseDNs);
   }
@@ -79,7 +81,7 @@ public abstract class ReplicationUserData
    * Sets the Base DNs to replicate.
    * @param baseDNs the Base DNs to replicate.
    */
-  public void setBaseDNs(List<String> baseDNs)
+  public void setBaseDNs(List<DN> baseDNs)
   {
     this.baseDNs.clear();
     this.baseDNs.addAll(baseDNs);

@@ -347,8 +347,7 @@ public class ServerLoader extends Thread
   {
     try
     {
-      DN containerDn = DN.valueOf(ADSContext.getAdministratorContainerDN());
-      return dn.isSubordinateOrEqualTo(containerDn);
+      return dn.isSubordinateOrEqualTo(ADSContext.getAdministratorContainerDN());
     }
     catch (Throwable t)
     {

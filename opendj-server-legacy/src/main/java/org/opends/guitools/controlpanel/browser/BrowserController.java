@@ -961,7 +961,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (node instanceof SuffixNode)
     {
       String dn = node.getDN();
-      return Utilities.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) ||
+      return Utilities.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN().toString()) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_TASK_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_CONFIG_ROOT) ||

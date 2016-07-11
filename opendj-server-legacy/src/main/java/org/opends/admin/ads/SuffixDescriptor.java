@@ -36,17 +36,7 @@ public class SuffixDescriptor
    *
    * @return the DN associated with this suffix descriptor.
    */
-  public String getDN() // FIXME change return type to DN
-  {
-    return suffixDN.toString();
-  }
-
-  /**
-   * Returns the DN associated with this suffix descriptor.
-   *
-   * @return the DN associated with this suffix descriptor.
-   */
-  public DN getDnAsDn()
+  public DN getDN()
   {
     return suffixDN;
   }

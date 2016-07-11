@@ -22,18 +22,18 @@ import java.io.File;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OpenDsException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.TimeThread;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import org.opends.server.util.cli.PointAdder;
+
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 /**
  * The class that is in charge of taking the different information provided
@@ -121,13 +121,10 @@ public class LocalPurgeHistorical
     try
     {
       // launch the job
-      for (String baseDN : uData.getBaseDNs())
+      for (DN baseDN : uData.getBaseDNs())
       {
-        DN dn = DN.valueOf(baseDN);
         // We can assume that this is an LDAP replication domain
-        LDAPReplicationDomain domain =
-            LDAPReplicationDomain.retrievesReplicationDomain(dn);
-
+        LDAPReplicationDomain domain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
         domain.purgeConflictsHistorical(null, startTime + purgeMaxTime);
       }
 

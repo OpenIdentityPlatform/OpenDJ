@@ -1888,7 +1888,7 @@ public class Installer extends GuiApplication
       if (replica != null)
       {
         final String backendNameKey = getOrAddBackend(hmBackendSuffix, replica.getBackendName());
-        hmBackendSuffix.get(backendNameKey).add(suffix.getDN());
+        hmBackendSuffix.get(backendNameKey).add(suffix.getDN().toString());
       }
     }
   }
@@ -2010,7 +2010,7 @@ public class Installer extends GuiApplication
      * as the set of ADS suffix replicas (all instances hosting the replication
      * server also replicate ADS).
      */
-    Map<String, Set<String>> replicationServers = new HashMap<>();
+    Map<DN, Set<String>> replicationServers = new HashMap<>();
     Set<String> adsServers = new HashSet<>();
 
     if (getUserData().getReplicationOptions().getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
@@ -2019,9 +2019,9 @@ public class Installer extends GuiApplication
       Set<String> h = new HashSet<>();
       h.add(getLocalReplicationServer());
       adsServers.add(getLocalReplicationServer());
-      for (String dn : baseDns)
+      for (String dnStr : baseDns)
       {
-        replicationServers.put(dn, h);
+        replicationServers.put(DN.valueOf(dnStr), h);
       }
     }
     else
@@ -2114,23 +2114,23 @@ public class Installer extends GuiApplication
             logger.warn(LocalizableMessage.raw("Could not find replication port for: " + getHostPort(server)));
           }
         }
-        Set<String> dns = new HashSet<>();
+        Set<DN> dns = new HashSet<>();
         for (ReplicaDescriptor replica : hm.get(server))
         {
           dns.add(replica.getSuffix().getDN());
         }
         dns.add(ADSContext.getAdministrationSuffixDN());
         dns.add(Constants.SCHEMA_DN);
-        Map<String, Set<String>> remoteReplicationServers = new HashMap<>();
-        for (String dn : dns)
+        Map<DN, Set<String>> remoteReplicationServers = new HashMap<>();
+        for (DN dn : dns)
         {
           Set<String> repServer = replicationServers.get(dn);
           if (repServer == null)
           {
             // Do the comparison manually
-            for (String dn1 : replicationServers.keySet())
+            for (DN dn1 : replicationServers.keySet())
             {
-              if (Utils.areDnsEqual(dn, dn1))
+              if (dn.equals(dn1))
               {
                 repServer = replicationServers.get(dn1);
                 dn = dn1;
@@ -2462,6 +2462,8 @@ public class Installer extends GuiApplication
     }
 
     Set<SuffixDescriptor> suffixes = getUserData().getSuffixesToReplicateOptions().getSuffixes();
+    DN adminSuffixDn = ADSContext.getAdministrationSuffixDN();
+    DN schemaDn = Constants.SCHEMA_DN;
 
     /* Initialize local ADS and schema contents using any replica. */
     {
@@ -2470,17 +2472,17 @@ public class Installer extends GuiApplication
       {
         TopologyCacheFilter filter = new TopologyCacheFilter();
         filter.setSearchMonitoringInformation(false);
-        filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
-        filter.addBaseDNToSearch(Constants.SCHEMA_DN);
+        filter.addBaseDNToSearch(adminSuffixDn.toString());
+        filter.addBaseDNToSearch(schemaDn.toString());
         ServerDescriptor s = createStandalone(remoteConn, filter);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
-          String dn = replica.getSuffix().getDN();
-          if (areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()))
+          DN dn = replica.getSuffix().getDN();
+          if (dn.equals(adminSuffixDn))
           {
             suffixes.add(replica.getSuffix());
           }
-          else if (areDnsEqual(dn, Constants.SCHEMA_DN))
+          else if (dn.equals(schemaDn))
           {
             suffixes.add(replica.getSuffix());
           }
@@ -2495,14 +2497,14 @@ public class Installer extends GuiApplication
 
     for (SuffixDescriptor suffix : suffixes)
     {
-      String dn = suffix.getDN();
+      DN dn = suffix.getDN();
 
       ReplicaDescriptor replica = suffix.getReplicas().iterator().next();
       ServerDescriptor server = replica.getServer();
       HostPort hostPort = getHostPort(server);
 
-      boolean isADS = areDnsEqual(dn, ADSContext.getAdministrationSuffixDN());
-      boolean isSchema = areDnsEqual(dn, Constants.SCHEMA_DN);
+      boolean isADS = dn.equals(adminSuffixDn);
+      boolean isSchema = dn.equals(schemaDn);
       if (isADS)
       {
         if (isVerbose())
@@ -2532,11 +2534,11 @@ public class Installer extends GuiApplication
           {
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
-            filter.addBaseDNToSearch(dn);
+            filter.addBaseDNToSearch(dn.toString());
             ServerDescriptor s = createStandalone(remoteConn, filter);
             for (ReplicaDescriptor r : s.getReplicas())
             {
-              if (areDnsEqual(r.getSuffix().getDN(), dn))
+              if (r.getSuffix().getDN().equals(dn))
               {
                 replicationId = r.getReplicationId();
               }
@@ -3424,18 +3426,7 @@ public class Installer extends GuiApplication
                 cause = e.getTrustManager().getLastRefusedCause();
               }
               logger.info(LocalizableMessage.raw("Certificate exception cause: " + cause));
-              if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
-              {
-                excType = UserDataCertificateException.Type.NOT_TRUSTED;
-              }
-              else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
-              {
-                excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
-              }
-              else
-              {
-                excType = null;
-              }
+              excType = toUserDataCertificateExceptionType(cause);
               if (excType != null)
               {
                 String h;
@@ -3487,19 +3478,7 @@ public class Installer extends GuiApplication
         UserDataCertificateException.Type excType;
         ApplicationTrustManager.Cause cause = trustManager.getLastRefusedCause();
         logger.info(LocalizableMessage.raw("Certificate exception cause: " + cause));
-        if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
-        {
-          excType = UserDataCertificateException.Type.NOT_TRUSTED;
-        }
-        else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
-        {
-          excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
-        }
-        else
-        {
-          excType = null;
-        }
-
+        excType = toUserDataCertificateExceptionType(cause);
         if (excType != null)
         {
           throw new UserDataCertificateException(Step.REPLICATION_OPTIONS, INFO_CERTIFICATE_EXCEPTION.get(host, port),
@@ -3533,6 +3512,19 @@ public class Installer extends GuiApplication
     }
   }
 
+  private UserDataCertificateException.Type toUserDataCertificateExceptionType(ApplicationTrustManager.Cause cause)
+  {
+    switch (cause)
+    {
+    case NOT_TRUSTED:
+      return UserDataCertificateException.Type.NOT_TRUSTED;
+    case HOST_NAME_MISMATCH:
+      return UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+    default:
+      return null;
+    }
+  }
+
   private ConnectionWrapper newConnectionWrapper(String dn, String pwd, String[] effectiveDn, HostPort hostPort,
       ApplicationTrustManager trustManager) throws Throwable
   {
@@ -3548,7 +3540,7 @@ public class Installer extends GuiApplication
         throw t;
       }
       // Try using a global administrator
-      dn = ADSContext.getAdministratorDN(dn);
+      dn = ADSContext.getAdministratorDN(dn).toString();
       effectiveDn[0] = dn;
       return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
     }
@@ -4162,7 +4154,7 @@ public class Installer extends GuiApplication
    * @throws PeerNotFoundException
    *           if the replication mechanism cannot find a peer.
    */
-  public void initializeSuffix(ConnectionWrapper conn, int replicaId, String suffixDn, boolean displayProgress,
+  public void initializeSuffix(ConnectionWrapper conn, int replicaId, DN suffixDn, boolean displayProgress,
       HostPort sourceServerDisplay) throws ApplicationException, PeerNotFoundException
   {
     boolean taskCreated = false;
@@ -4172,7 +4164,7 @@ public class Installer extends GuiApplication
     AddRequest addRequest = newAddRequest(dn)
         .addAttribute("objectclass", "top", "ds-task", "ds-task-initialize-from-remote-replica")
         .addAttribute("ds-task-class-name", "org.opends.server.tasks.InitializeTask")
-        .addAttribute("ds-task-initialize-domain-dn", suffixDn)
+        .addAttribute("ds-task-initialize-domain-dn", suffixDn.toString())
         .addAttribute("ds-task-initialize-replica-server-id", String.valueOf(replicaId));
     while (!taskCreated)
     {
@@ -4409,7 +4401,7 @@ public class Installer extends GuiApplication
     return getUserData().getHostName() + ":" + getUserData().getReplicationOptions().getReplicationPort();
   }
 
-  private void resetGenerationId(ConnectionWrapper conn, String suffixDn, HostPort sourceServerDisplay)
+  private void resetGenerationId(ConnectionWrapper conn, DN suffixDn, HostPort sourceServerDisplay)
       throws ApplicationException
   {
     boolean taskCreated = false;
@@ -4419,7 +4411,7 @@ public class Installer extends GuiApplication
     AddRequest addRequest = newAddRequest(dn)
         .addAttribute("objectclass", "top", "ds-task", "ds-task-reset-generation-id")
         .addAttribute("ds-task-class-name", "org.opends.server.tasks.SetGenerationIdTask")
-        .addAttribute("ds-task-reset-generation-id-domain-base-dn", suffixDn);
+        .addAttribute("ds-task-reset-generation-id-domain-base-dn", suffixDn.toString());
     while (!taskCreated)
     {
       checkAbort();

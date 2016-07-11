@@ -108,7 +108,7 @@ class ADSContextHelper
       {
         suffixes = new TreeSet<>();
       }
-      DN newDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
+      DN newDN = ADSContext.getAdministrationSuffixDN();
       if (suffixes.add(newDN))
       {
         backend.setBaseDN(suffixes);
@@ -135,7 +135,7 @@ class ADSContextHelper
   problem getting the instance public key certificate ID.
    */
   void registerInstanceKeyCertificate(ConnectionWrapper conn, Map<ServerProperty, Object> serverProperties,
-      String serverEntryDn) throws ADSContextException
+      DN serverEntryDn) throws ADSContextException
   {
     if (! serverProperties.containsKey(
         ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)) {
@@ -160,7 +160,7 @@ class ADSContextHelper
             serverProperties.get(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)));
 
     /* search for public-key certificate entry in ADS DIT */
-    DN dn = DN.valueOf(ADSContext.getInstanceKeysContainerDN());
+    DN dn = ADSContext.getInstanceKeysContainerDN();
     SearchRequest searchRequest = newSearchRequest(dn, WHOLE_SUBTREE, filter, "ds-cfg-key-id");
     try (ConnectionEntryReader entryReader = conn.getConnection().search(searchRequest))
     {

@@ -21,7 +21,6 @@ import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Installation.*;
-import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.server.types.ExistingFileBehavior.*;
 
 import java.io.BufferedReader;
@@ -383,7 +382,7 @@ public class InstallerHelper {
    * @return a ConfiguredReplication object describing what has been configured.
    */
   public ConfiguredReplication configureReplication(
-      ConnectionWrapper conn, Map<String,Set<String>> replicationServers,
+      ConnectionWrapper conn, Map<DN, Set<String>> replicationServers,
       int replicationPort, boolean useSecureReplication, Set<Integer> usedReplicationServerIds,
       Set<Integer> usedServerIds)
   throws ApplicationException
@@ -513,15 +512,14 @@ public class InstallerHelper {
       {
         domains[i] = sync.getReplicationDomain(domainNames[i]);
       }
-      for (String dn : replicationServers.keySet())
+      for (DN dn : replicationServers.keySet())
       {
         ReplicationDomainCfgClient domain = null;
         boolean isCreated;
         String domainName = null;
         for (int i = 0; i < domains.length && domain == null; i++)
         {
-          if (areDnsEqual(dn,
-              domains[i].getBaseDN().toString()))
+          if (dn.equals(domains[i].getBaseDN()))
           {
             domain = domains[i];
             domainName = domainNames[i];
@@ -536,7 +534,7 @@ public class InstallerHelper {
               ReplicationDomainCfgDefn.getInstance(), domainName,
               new ArrayList<PropertyException>());
           domain.setServerId(domainId);
-          domain.setBaseDN(DN.valueOf(dn));
+          domain.setBaseDN(dn);
           isCreated = true;
         }
         else
@@ -721,9 +719,9 @@ public class InstallerHelper {
    * @param baseDN the base DN of the domain.
    * @return the name to be used for a new replication domain.
    */
-  public static String getDomainName(String[] existingDomains, String baseDN)
+  public static String getDomainName(String[] existingDomains, DN baseDN)
   {
-    String domainName = baseDN;
+    String domainName = baseDN.toString();
     boolean nameExists = true;
     int j = 0;
     while (nameExists)

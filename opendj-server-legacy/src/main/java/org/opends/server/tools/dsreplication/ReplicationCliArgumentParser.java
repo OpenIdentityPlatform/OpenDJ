@@ -326,7 +326,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         {
           errors.add(ERR_REPLICATION_NOT_A_VALID_BASEDN.get(dn));
         }
-        if (Constants.REPLICATION_CHANGES_DN.equalsIgnoreCase(dn))
+        if (Constants.REPLICATION_CHANGES_DN.toString().equalsIgnoreCase(dn))
         {
           errors.add(ERR_REPLICATION_NOT_A_USER_SUFFIX.get(Constants.REPLICATION_CHANGES_DN));
         }

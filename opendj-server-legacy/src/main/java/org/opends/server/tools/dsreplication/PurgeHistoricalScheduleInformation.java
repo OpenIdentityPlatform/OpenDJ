@@ -16,9 +16,11 @@
  */
 package org.opends.server.tools.dsreplication;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -56,10 +58,20 @@ implements TaskScheduleInformation
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
     attributes.add(new LDAPAttribute(
-        ConfigConstants.ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN, uData.getBaseDNs()));
+        ConfigConstants.ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN, toStrings(uData.getBaseDNs())));
     attributes.add(new LDAPAttribute(
         ConfigConstants.ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION,
         Long.toString(uData.getMaximumDuration())));
+  }
+
+  private List<String> toStrings(List<DN> dns)
+  {
+    final List<String> results = new ArrayList<>();
+    for (DN dn : dns)
+    {
+      results.add(dn.toString());
+    }
+    return results;
   }
 
   @Override

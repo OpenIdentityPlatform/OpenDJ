@@ -16,6 +16,8 @@
  */
 package org.opends.quicksetup;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.admin.ads.ADSContext;
 
 /**
@@ -53,10 +55,10 @@ public class Constants {
   };
 
   /** DN of the schema object. */
-  public static final String SCHEMA_DN = "cn=schema";
+  public static final DN SCHEMA_DN = DN.valueOf("cn=schema", Schema.getCoreSchema());
 
   /** DN of legacy replication changes base DN for backwards compatibility with OpenDJ <= 2.6.x. */
-  public static final String REPLICATION_CHANGES_DN = "dc=replicationChanges";
+  public static final DN REPLICATION_CHANGES_DN = DN.valueOf("dc=replicationChanges", Schema.getCoreSchema());
 
   /** The cli java system property. */
   public static final String CLI_JAVA_PROPERTY = "org.opends.quicksetup.cli";

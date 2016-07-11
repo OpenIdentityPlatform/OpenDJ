@@ -282,7 +282,7 @@ public class ReplicationCliMain extends ConsoleApplication
      * @param interactive if user has to input information
      * @return whether we should stop
      */
-    boolean continueAfterUserInput(Collection<String> baseDNs, ConnectionWrapper source, ConnectionWrapper dest,
+    boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source, ConnectionWrapper dest,
         boolean interactive);
 
     /**
@@ -954,7 +954,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode purgeHistoricalLocally(
       PurgeHistoricalUserData uData)
   {
-    List<String> baseDNs = uData.getBaseDNs();
+    List<DN> baseDNs = uData.getBaseDNs();
     checkSuffixesForLocalPurgeHistorical(baseDNs, false);
     if (!baseDNs.isEmpty())
     {
@@ -982,6 +982,16 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
+  private List<DN> toDNs(List<String> baseDNs)
+  {
+    final List<DN> results = new ArrayList<>(baseDNs.size());
+    for (String dn : baseDNs)
+    {
+      results.add(DN.valueOf(dn));
+    }
+    return results;
+  }
+
   private void printPurgeProgressMessage(PurgeHistoricalUserData uData)
   {
     String separator = formatter.getLineBreak().toString() + formatter.getTab();
@@ -1006,10 +1016,10 @@ public class ReplicationCliMain extends ConsoleApplication
       args.add("--"+argParser.noPromptArg.getLongIdentifier());
       args.add("--"+argParser.maximumDurationArg.getLongIdentifier());
       args.add(String.valueOf(uData.getMaximumDuration()));
-      for (String baseDN : uData.getBaseDNs())
+      for (DN baseDN : uData.getBaseDNs())
       {
         args.add("--"+argParser.baseDNsArg.getLongIdentifier());
-        args.add(baseDN);
+        args.add(baseDN.toString());
       }
       ProcessBuilder pb = new ProcessBuilder(args);
       // Use the java args in the script.
@@ -1241,7 +1251,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     try
     {
-      List<String> baseDNs = uData.getBaseDNs();
+      List<DN> baseDNs = uData.getBaseDNs();
       checkSuffixesForPurgeHistorical(baseDNs, conn, false);
       if (baseDNs.isEmpty())
       {
@@ -1284,7 +1294,7 @@ public class ReplicationCliMain extends ConsoleApplication
         resetChangeNumberOperations = new OperationBetweenSourceAndDestinationServers()
     {
       @Override
-      public boolean continueAfterUserInput(Collection<String> baseDNs, ConnectionWrapper source,
+      public boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source,
           ConnectionWrapper dest, boolean interactive)
       {
         TopologyCacheFilter filter = new TopologyCacheFilter();
@@ -1371,9 +1381,8 @@ public class ReplicationCliMain extends ConsoleApplication
       DN targetBaseDN = DN.rootDN();
       try
       {
-        for (String adn : getCommonSuffixes(connSource, connDest, SuffixRelationType.REPLICATED))
+        for (DN dn : getCommonSuffixes(connSource, connDest, SuffixRelationType.REPLICATED))
         {
-          DN dn = DN.valueOf(adn);
           if (DN.valueOf(targetDN).isSubordinateOrEqualTo(dn) && dn.isSubordinateOrEqualTo(targetBaseDN))
           {
             targetBaseDN = dn;
@@ -1659,7 +1668,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param interactive whether to ask the user to provide interactively
    * base DNs if none of the provided base DNs can be purged.
    */
-  private void checkSuffixesForPurgeHistorical(Collection<String> suffixes, ConnectionWrapper conn, boolean interactive)
+  private void checkSuffixesForPurgeHistorical(Collection<DN> suffixes, ConnectionWrapper conn, boolean interactive)
   {
     checkSuffixesForPurgeHistorical(suffixes, getReplicas(conn), interactive);
   }
@@ -1672,8 +1681,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param interactive whether to ask the user to provide interactively
    * base DNs if none of the provided base DNs can be purged.
    */
-  private void checkSuffixesForLocalPurgeHistorical(Collection<String> suffixes,
-      boolean interactive)
+  private void checkSuffixesForLocalPurgeHistorical(Collection<DN> suffixes, boolean interactive)
   {
     checkSuffixesForPurgeHistorical(suffixes, getLocalReplicas(), interactive);
   }
@@ -1711,15 +1719,15 @@ public class ReplicationCliMain extends ConsoleApplication
     return replicas;
   }
 
-  private void checkSuffixesForPurgeHistorical(Collection<String> suffixes, Collection<ReplicaDescriptor> replicas,
+  private void checkSuffixesForPurgeHistorical(Collection<DN> suffixes, Collection<ReplicaDescriptor> replicas,
       boolean interactive)
   {
-    TreeSet<String> availableSuffixes = new TreeSet<>();
-    TreeSet<String> notReplicatedSuffixes = new TreeSet<>();
+    TreeSet<DN> availableSuffixes = new TreeSet<>();
+    TreeSet<DN> notReplicatedSuffixes = new TreeSet<>();
 
     for (ReplicaDescriptor rep : replicas)
     {
-      String dn = rep.getSuffix().getDN();
+      DN dn = rep.getSuffix().getDN();
       if (rep.isReplicated())
       {
         availableSuffixes.add(dn);
@@ -1733,9 +1741,9 @@ public class ReplicationCliMain extends ConsoleApplication
     checkSuffixesForPurgeHistorical(suffixes, availableSuffixes, notReplicatedSuffixes, interactive);
   }
 
-  private void checkSuffixesForPurgeHistorical(Collection<String> suffixes,
-      Collection<String> availableSuffixes,
-      Collection<String> notReplicatedSuffixes,
+  private void checkSuffixesForPurgeHistorical(Collection<DN> suffixes,
+      Collection<DN> availableSuffixes,
+      Collection<DN> notReplicatedSuffixes,
       boolean interactive)
   {
     if (availableSuffixes.isEmpty())
@@ -1747,13 +1755,13 @@ public class ReplicationCliMain extends ConsoleApplication
     else
     {
       // Verify that the provided suffixes are configured in the servers.
-      TreeSet<String> notFound = new TreeSet<>();
-      TreeSet<String> alreadyNotReplicated = new TreeSet<>();
-      for (String dn : suffixes)
+      TreeSet<DN> notFound = new TreeSet<>();
+      TreeSet<DN> alreadyNotReplicated = new TreeSet<>();
+      for (DN dn : suffixes)
       {
-        if (!containsDN(availableSuffixes, dn))
+        if (!availableSuffixes.contains(dn))
         {
-          if (containsDN(notReplicatedSuffixes, dn))
+          if (notReplicatedSuffixes.contains(dn))
           {
             alreadyNotReplicated.add(dn);
           }
@@ -1780,8 +1788,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void askConfirmations(Collection<String> suffixes,
-      Collection<String> availableSuffixes, Arg0 noSuffixAvailableMsg,
+  private void askConfirmations(Collection<DN> suffixes,
+      Collection<DN> availableSuffixes, Arg0 noSuffixAvailableMsg,
       Arg0 noSuffixSelectedMsg, Arg1<Object> confirmationMsgPromt)
   {
     if (containsOnlySchemaOrAdminSuffix(availableSuffixes))
@@ -1805,9 +1813,9 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private boolean containsOnlySchemaOrAdminSuffix(Collection<String> suffixes)
+  private boolean containsOnlySchemaOrAdminSuffix(Collection<DN> suffixes)
   {
-    for (String suffix : suffixes)
+    for (DN suffix : suffixes)
     {
       if (!isSchemaOrInternalAdminSuffix(suffix))
       {
@@ -1817,11 +1825,11 @@ public class ReplicationCliMain extends ConsoleApplication
     return true;
   }
 
-  private boolean isSchemaOrInternalAdminSuffix(String suffix)
+  private boolean isSchemaOrInternalAdminSuffix(DN suffix)
   {
-    return areDnsEqual(suffix, ADSContext.getAdministrationSuffixDN())
-        || areDnsEqual(suffix, Constants.SCHEMA_DN)
-        || areDnsEqual(suffix,  Constants.REPLICATION_CHANGES_DN);
+    return suffix.equals(ADSContext.getAdministrationSuffixDN())
+        || suffix.equals(Constants.SCHEMA_DN)
+        || suffix.equals(Constants.REPLICATION_CHANGES_DN);
   }
 
   /**
@@ -1843,7 +1851,7 @@ public class ReplicationCliMain extends ConsoleApplication
         initializeReplicationOperations = new OperationBetweenSourceAndDestinationServers()
     {
       @Override
-      public boolean continueAfterUserInput(Collection<String> baseDNs, ConnectionWrapper source,
+      public boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source,
           ConnectionWrapper dest, boolean interactive)
       {
         checkSuffixesForInitializeReplication(baseDNs, source, dest, interactive);
@@ -1890,7 +1898,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       uData.setMaximumDuration(maximumDuration);
 
-      List<String> suffixes = argParser.getBaseDNs();
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
       if (uData.isOnline())
       {
         checkSuffixesForPurgeHistorical(suffixes, conn, true);
@@ -2607,7 +2615,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      List<String> suffixes = argParser.getBaseDNs();
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
       checkSuffixesForEnableReplication(suffixes, conn1, conn2, true, uData);
       cancelled = suffixes.isEmpty();
 
@@ -2760,7 +2768,7 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.setDisableReplicationServer(disableReplicationServer);
     if (!cancelled && !disableAll)
     {
-      List<String> suffixes = argParser.getBaseDNs();
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
       checkSuffixesForDisableReplication(suffixes, conn, true, !disableReplicationServer);
       cancelled = suffixes.isEmpty() && !disableReplicationServer;
 
@@ -2790,13 +2798,13 @@ public class ReplicationCliMain extends ConsoleApplication
       // Ask for confirmation to disable if not already done.
       boolean disableADS = false;
       boolean disableSchema = false;
-      for (String dn : uData.getBaseDNs())
+      for (DN dn : uData.getBaseDNs())
       {
-        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (ADSContext.getAdministrationSuffixDN().equals(dn))
         {
           disableADS = true;
         }
-        else if (areDnsEqual(Constants.SCHEMA_DN, dn))
+        else if (Constants.SCHEMA_DN.equals(dn))
         {
           disableSchema = true;
         }
@@ -2849,7 +2857,7 @@ public class ReplicationCliMain extends ConsoleApplication
         return false;
       }
 
-      List<String> suffixes = argParser.getBaseDNs();
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
       checkSuffixesForInitializeReplication(suffixes, conn, true);
       if (suffixes.isEmpty())
       {
@@ -2908,7 +2916,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         return false;
       }
-      List<String> suffixes = argParser.getBaseDNs();
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
       checkSuffixesForInitializeReplication(suffixes, conn, true);
       uData.setBaseDNs(suffixes);
       return !suffixes.isEmpty();
@@ -2995,7 +3003,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (!cancelled)
       {
-        uData.setBaseDNs(argParser.getBaseDNs());
+        uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
       }
       return !cancelled;
     }
@@ -3153,7 +3161,7 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setHostNameDestination(hostDestination);
       uData.setPortDestination(portDestination);
 
-      List<String> suffixes = argParser.getBaseDNs();
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
       cancelled = serversOperations.continueAfterUserInput(suffixes, connSource, connDestination, true);
       uData.setBaseDNs(suffixes);
 
@@ -3176,22 +3184,15 @@ public class ReplicationCliMain extends ConsoleApplication
     HostPort hostPortDestination = connDestination.getHostPort();
     if (initializeADS(uData.getBaseDNs()))
     {
-      final String adminSuffixDN = ADSContext.getAdministrationSuffixDN();
+      final DN adminSuffixDN = ADSContext.getAdministrationSuffixDN();
       return INFO_REPLICATION_CONFIRM_INITIALIZE_ADS.get(adminSuffixDN, hostPortDestination, hostPortSource);
     }
     return INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(hostPortDestination, hostPortSource);
   }
 
-  private boolean initializeADS(List<String> baseDNs)
+  private boolean initializeADS(List<DN> baseDNs)
   {
-    for (String dn : baseDNs)
-    {
-      if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
-      {
-        return true;
-      }
-    }
-    return false;
+    return baseDNs.contains(ADSContext.getAdministrationSuffixDN());
   }
 
   /**
@@ -3292,7 +3293,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void initializeWithArgParser(DisableReplicationUserData uData)
   {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
     String adminUid = argParser.getAdministratorUID();
     String bindDn = argParser.getBindDNToDisable();
     if (bindDn == null && adminUid == null)
@@ -3340,7 +3341,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void initialize(ReplicationUserData uData)
   {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
     uData.setAdminUid(argParser.getAdministratorUIDOrDefault());
     uData.setAdminPwd(argParser.getBindPasswordAdmin());
   }
@@ -3663,9 +3664,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * @return a Collection containing a list of suffixes that are replicated
    * (or those that can be replicated) in two servers.
    */
-  private List<String> getCommonSuffixes(ConnectionWrapper conn1, ConnectionWrapper conn2, SuffixRelationType type)
+  private List<DN> getCommonSuffixes(ConnectionWrapper conn1, ConnectionWrapper conn2, SuffixRelationType type)
   {
-    LinkedList<String> suffixes = new LinkedList<>();
+    List<DN> suffixes = new LinkedList<>();
     try
     {
       TopologyCacheFilter filter = new TopologyCacheFilter();
@@ -3677,9 +3678,9 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         for (ReplicaDescriptor rep2 : server2.getReplicas())
         {
-          String rep1SuffixDN = rep1.getSuffix().getDN();
-          String rep2SuffixDN = rep2.getSuffix().getDN();
-          boolean areDnsEqual = areDnsEqual(rep1SuffixDN, rep2SuffixDN);
+          DN rep1SuffixDN = rep1.getSuffix().getDN();
+          DN rep2SuffixDN = rep2.getSuffix().getDN();
+          boolean areDnsEqual = rep1SuffixDN.equals(rep2SuffixDN);
           switch (type)
           {
           case NOT_REPLICATED:
@@ -3740,7 +3741,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private boolean areFullyReplicated(ReplicaDescriptor rep1,
       ReplicaDescriptor rep2)
   {
-    if (areDnsEqual(rep1.getSuffix().getDN(), rep2.getSuffix().getDN()) &&
+    if (rep1.getSuffix().getDN().equals(rep2.getSuffix().getDN()) &&
         rep1.isReplicated() && rep2.isReplicated() &&
         rep1.getServer().isReplicationServer() &&
         rep2.getServer().isReplicationServer())
@@ -3765,7 +3766,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean areReplicated(ReplicaDescriptor rep1, ReplicaDescriptor rep2)
   {
-    if (areDnsEqual(rep1.getSuffix().getDN(), rep2.getSuffix().getDN()) &&
+    if (rep1.getSuffix().getDN().equals(rep2.getSuffix().getDN()) &&
         rep1.isReplicated() && rep2.isReplicated())
     {
       Set<String> servers1 = rep1.getReplicationServers();
@@ -3837,7 +3838,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
 
-      List<String> suffixes = uData.getBaseDNs();
+      List<DN> suffixes = uData.getBaseDNs();
       checkSuffixesForEnableReplication(suffixes, conn1, conn2, false, uData);
       if (suffixes.isEmpty())
       {
@@ -4007,7 +4008,7 @@ public class ReplicationCliMain extends ConsoleApplication
       print(formatter.getFormattedDone());
       println();
 
-      List<String> suffixes = uData.getBaseDNs();
+      List<DN> suffixes = uData.getBaseDNs();
       checkSuffixesForDisableReplication(suffixes, conn, false, !uData.disableReplicationServer());
       if (suffixes.isEmpty() && !uData.disableReplicationServer() && !uData.disableAll())
       {
@@ -4121,7 +4122,7 @@ public class ReplicationCliMain extends ConsoleApplication
         return ERROR_CONNECTING;
       }
 
-      List<String> baseDNs = uData.getBaseDNs();
+      List<DN> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, connSource, connDestination, false);
       if (baseDNs.isEmpty())
       {
@@ -4134,7 +4135,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-      for (String baseDN : baseDNs)
+      for (DN baseDN : baseDNs)
       {
         try
         {
@@ -4193,7 +4194,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     try
     {
-      List<String> baseDNs = uData.getBaseDNs();
+      List<DN> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, conn, false);
       if (baseDNs.isEmpty())
       {
@@ -4206,7 +4207,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-      for (String baseDN : baseDNs)
+      for (DN baseDN : baseDNs)
       {
         try
         {
@@ -4252,7 +4253,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     try
     {
-      List<String> baseDNs = uData.getBaseDNs();
+      List<DN> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, conn, false);
       if (baseDNs.isEmpty())
       {
@@ -4265,7 +4266,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       ReplicationCliReturnCode returnValue = SUCCESSFUL;
-      for (String baseDN : baseDNs)
+      for (DN baseDN : baseDNs)
       {
         try
         {
@@ -4314,7 +4315,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     try
     {
-      List<String> baseDNs = uData.getBaseDNs();
+      List<DN> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, conn, false);
       if (baseDNs.isEmpty())
       {
@@ -4327,7 +4328,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       ReplicationCliReturnCode returnValue = SUCCESSFUL;
-      for (String baseDN : baseDNs)
+      for (DN baseDN : baseDNs)
       {
         try
         {
@@ -4370,14 +4371,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * but it is assumed that it contains information about whether the
    * replication domains must be configured or not.
    */
-  private void checkSuffixesForEnableReplication(Collection<String> suffixes,
+  private void checkSuffixesForEnableReplication(Collection<DN> suffixes,
       ConnectionWrapper conn1, ConnectionWrapper conn2,
       boolean interactive, EnableReplicationUserData uData)
   {
     EnableReplicationServerData server1 = uData.getServer1();
     EnableReplicationServerData server2 = uData.getServer2();
-    final TreeSet<String> availableSuffixes = new TreeSet<>();
-    final TreeSet<String> alreadyReplicatedSuffixes = new TreeSet<>();
+    final TreeSet<DN> availableSuffixes = new TreeSet<>();
+    final TreeSet<DN> alreadyReplicatedSuffixes = new TreeSet<>();
     if (server1.configureReplicationDomain() &&
         server2.configureReplicationDomain())
     {
@@ -4415,14 +4416,14 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
       }
 
-      List<String> userProvidedSuffixes = argParser.getBaseDNs();
-      TreeSet<String> userProvidedReplicatedSuffixes = new TreeSet<>();
+      List<DN> userProvidedSuffixes = toDNs(argParser.getBaseDNs());
+      TreeSet<DN> userProvidedReplicatedSuffixes = new TreeSet<>();
 
-      for (String s1 : userProvidedSuffixes)
+      for (DN s1 : userProvidedSuffixes)
       {
-        for (String s2 : alreadyReplicatedSuffixes)
+        for (DN s2 : alreadyReplicatedSuffixes)
         {
-          if (areDnsEqual(s1, s2))
+          if (s1.equals(s2))
           {
             userProvidedReplicatedSuffixes.add(s1);
           }
@@ -4438,13 +4439,13 @@ public class ReplicationCliMain extends ConsoleApplication
     else
     {
       //  Verify that the provided suffixes are configured in the servers.
-      TreeSet<String> notFound = new TreeSet<>();
-      TreeSet<String> alreadyReplicated = new TreeSet<>();
-      for (String dn : suffixes)
+      TreeSet<DN> notFound = new TreeSet<>();
+      TreeSet<DN> alreadyReplicated = new TreeSet<>();
+      for (DN dn : suffixes)
       {
-        if (!containsDN(availableSuffixes, dn))
+        if (!availableSuffixes.contains(dn))
         {
-          if (containsDN(alreadyReplicatedSuffixes, dn))
+          if (alreadyReplicatedSuffixes.contains(dn))
           {
             alreadyReplicated.add(dn);
           }
@@ -4487,20 +4488,20 @@ public class ReplicationCliMain extends ConsoleApplication
    * base DNs if none of the provided base DNs can be disabled.
    * @param displayErrors whether to display errors or not.
    */
-  private void checkSuffixesForDisableReplication(Collection<String> suffixes,
+  private void checkSuffixesForDisableReplication(Collection<DN> suffixes,
       ConnectionWrapper conn, boolean interactive, boolean displayErrors)
   {
     // whether the user must provide base DNs or not
     // (if it is <CODE>false</CODE> the user will be proposed the suffixes only once)
     final boolean areSuffixRequired = displayErrors;
 
-    TreeSet<String> availableSuffixes = new TreeSet<>();
-    TreeSet<String> notReplicatedSuffixes = new TreeSet<>();
+    TreeSet<DN> availableSuffixes = new TreeSet<>();
+    TreeSet<DN> notReplicatedSuffixes = new TreeSet<>();
 
     Collection<ReplicaDescriptor> replicas = getReplicas(conn);
     for (ReplicaDescriptor rep : replicas)
     {
-      String dn = rep.getSuffix().getDN();
+      DN dn = rep.getSuffix().getDN();
       if (rep.isReplicated())
       {
         availableSuffixes.add(dn);
@@ -4517,13 +4518,13 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln();
         errPrintln(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
       }
-      List<String> userProvidedSuffixes = argParser.getBaseDNs();
-      TreeSet<String> userProvidedNotReplicatedSuffixes = new TreeSet<>();
-      for (String s1 : userProvidedSuffixes)
+      List<DN> userProvidedSuffixes = toDNs(argParser.getBaseDNs());
+      TreeSet<DN> userProvidedNotReplicatedSuffixes = new TreeSet<>();
+      for (DN s1 : userProvidedSuffixes)
       {
-        for (String s2 : notReplicatedSuffixes)
+        for (DN s2 : notReplicatedSuffixes)
         {
-          if (areDnsEqual(s1, s2))
+          if (s1.equals(s2))
           {
             userProvidedNotReplicatedSuffixes.add(s1);
           }
@@ -4540,13 +4541,13 @@ public class ReplicationCliMain extends ConsoleApplication
     else
     {
       // Verify that the provided suffixes are configured in the servers.
-      TreeSet<String> notFound = new TreeSet<>();
-      TreeSet<String> alreadyNotReplicated = new TreeSet<>();
-      for (String dn : suffixes)
+      TreeSet<DN> notFound = new TreeSet<>();
+      TreeSet<DN> alreadyNotReplicated = new TreeSet<>();
+      for (DN dn : suffixes)
       {
-        if (!containsDN(availableSuffixes, dn))
+        if (!availableSuffixes.contains(dn))
         {
-          if (containsDN(notReplicatedSuffixes, dn))
+          if (notReplicatedSuffixes.contains(dn))
           {
             alreadyNotReplicated.add(dn);
           }
@@ -4605,9 +4606,9 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private boolean askConfirmations(Arg1<Object> confirmationMsg,
-      Collection<String> availableSuffixes, Collection<String> suffixes)
+      Collection<DN> availableSuffixes, Collection<DN> suffixes)
   {
-    for (String dn : availableSuffixes)
+    for (DN dn : availableSuffixes)
     {
       if (!isSchemaOrInternalAdminSuffix(dn))
       {
@@ -4639,15 +4640,15 @@ public class ReplicationCliMain extends ConsoleApplication
    * base DNs if none of the provided base DNs can be initialized.
    */
   private void checkSuffixesForInitializeReplication(
-      Collection<String> suffixes, ConnectionWrapper conn, boolean interactive)
+      Collection<DN> suffixes, ConnectionWrapper conn, boolean interactive)
   {
-    TreeSet<String> availableSuffixes = new TreeSet<>();
-    TreeSet<String> notReplicatedSuffixes = new TreeSet<>();
+    TreeSet<DN> availableSuffixes = new TreeSet<>();
+    TreeSet<DN> notReplicatedSuffixes = new TreeSet<>();
 
     Collection<ReplicaDescriptor> replicas = getReplicas(conn);
     for (ReplicaDescriptor rep : replicas)
     {
-      String dn = rep.getSuffix().getDN();
+      DN dn = rep.getSuffix().getDN();
       if (rep.isReplicated())
       {
         availableSuffixes.add(dn);
@@ -4669,13 +4670,13 @@ public class ReplicationCliMain extends ConsoleApplication
         errPrintln(
             ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
       }
-      List<String> userProvidedSuffixes = argParser.getBaseDNs();
-      TreeSet<String> userProvidedNotReplicatedSuffixes = new TreeSet<>();
-      for (String s1 : userProvidedSuffixes)
+      List<DN> userProvidedSuffixes = toDNs(argParser.getBaseDNs());
+      TreeSet<DN> userProvidedNotReplicatedSuffixes = new TreeSet<>();
+      for (DN s1 : userProvidedSuffixes)
       {
-        for (String s2 : notReplicatedSuffixes)
+        for (DN s2 : notReplicatedSuffixes)
         {
-          if (areDnsEqual(s1, s2))
+          if (s1.equals(s2))
           {
             userProvidedNotReplicatedSuffixes.add(s1);
           }
@@ -4692,13 +4693,13 @@ public class ReplicationCliMain extends ConsoleApplication
     else
     {
       // Verify that the provided suffixes are configured in the servers.
-      TreeSet<String> notFound = new TreeSet<>();
-      TreeSet<String> alreadyNotReplicated = new TreeSet<>();
-      for (String dn : suffixes)
+      TreeSet<DN> notFound = new TreeSet<>();
+      TreeSet<DN> alreadyNotReplicated = new TreeSet<>();
+      for (DN dn : suffixes)
       {
-        if (!containsDN(availableSuffixes, dn))
+        if (!availableSuffixes.contains(dn))
         {
-          if (containsDN(notReplicatedSuffixes, dn))
+          if (notReplicatedSuffixes.contains(dn))
           {
             alreadyNotReplicated.add(dn);
           }
@@ -4754,7 +4755,7 @@ public class ReplicationCliMain extends ConsoleApplication
               errPrintln(ERR_NO_SUFFIXES_SELECTED_TO_POST_EXTERNAL_INITIALIZATION.get());
             }
 
-            for (String dn : availableSuffixes)
+            for (DN dn : availableSuffixes)
             {
               if (!isSchemaOrInternalAdminSuffix(dn))
               {
@@ -4803,7 +4804,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private String toSingleLine(Collection<String> notFound)
+  private String toSingleLine(Collection<?> notFound)
   {
     return joinAsString(Constants.LINE_SEPARATOR, notFound);
   }
@@ -4818,10 +4819,10 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param interactive whether to ask the user to provide interactively
    * base DNs if none of the provided base DNs can be initialized.
    */
-  private void checkSuffixesForInitializeReplication(Collection<String> suffixes, ConnectionWrapper connSource,
+  private void checkSuffixesForInitializeReplication(Collection<DN> suffixes, ConnectionWrapper connSource,
       ConnectionWrapper connDestination, boolean interactive)
   {
-    TreeSet<String> availableSuffixes = new TreeSet<>(
+    TreeSet<DN> availableSuffixes = new TreeSet<>(
         getCommonSuffixes(connSource, connDestination, SuffixRelationType.REPLICATED));
     if (availableSuffixes.isEmpty())
     {
@@ -4832,10 +4833,10 @@ public class ReplicationCliMain extends ConsoleApplication
     else
     {
       // Verify that the provided suffixes are configured in the servers.
-      LinkedList<String> notFound = new LinkedList<>();
-      for (String dn : suffixes)
+      LinkedList<DN> notFound = new LinkedList<>();
+      for (DN dn : suffixes)
       {
-        if (!containsDN(availableSuffixes, dn))
+        if (!availableSuffixes.contains(dn))
         {
           notFound.add(dn);
         }
@@ -4870,14 +4871,14 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     final Set<String> twoReplServers = new LinkedHashSet<>();
     final Set<String> allRepServers = new LinkedHashSet<>();
-    final Map<String, Set<String>> hmRepServers = new HashMap<>();
+    final Map<DN, Set<String>> hmRepServers = new HashMap<>();
     final Set<Integer> usedReplicationServerIds = new HashSet<>();
-    final Map<String, Set<Integer>> hmUsedReplicationDomainIds = new HashMap<>();
+    final Map<DN, Set<Integer>> hmUsedReplicationDomainIds = new HashMap<>();
 
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
-    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
-    filter.addBaseDNToSearch(Constants.SCHEMA_DN);
+    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN().toString());
+    filter.addBaseDNToSearch(Constants.SCHEMA_DN.toString());
     addBaseDNs(filter, uData.getBaseDNs());
     ServerDescriptor serverDesc1 = createStandalone(conn1, filter);
     ServerDescriptor serverDesc2 = createStandalone(conn2, filter);
@@ -4926,8 +4927,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     // Check whether there is more than one replication server in the topology.
-    Set<String> baseDNsWithOneReplicationServer = new TreeSet<>();
-    Set<String> baseDNsWithNoReplicationServer = new TreeSet<>();
+    Set<DN> baseDNsWithOneReplicationServer = new TreeSet<>();
+    Set<DN> baseDNsWithNoReplicationServer = new TreeSet<>();
     updateBaseDnsWithNotEnoughReplicationServer(adsCtx1, adsCtx2, uData,
        baseDNsWithNoReplicationServer, baseDNsWithOneReplicationServer);
 
@@ -5173,9 +5174,9 @@ public class ReplicationCliMain extends ConsoleApplication
       print(formatter.getFormattedDone());
       println();
     }
-    List<String> baseDNs = uData.getBaseDNs();
+    List<DN> baseDNs = uData.getBaseDNs();
     if (!adsAlreadyReplicated
-        && !containsDN(baseDNs, ADSContext.getAdministrationSuffixDN()))
+        && !baseDNs.contains(ADSContext.getAdministrationSuffixDN()))
     {
       baseDNs.add(ADSContext.getAdministrationSuffixDN());
       uData.setBaseDNs(baseDNs);
@@ -5222,7 +5223,7 @@ public class ReplicationCliMain extends ConsoleApplication
     addToSets(serverDesc1, uData.getServer1(), conn1, twoReplServers, usedReplicationServerIds);
     addToSets(serverDesc2, uData.getServer2(), conn2, twoReplServers, usedReplicationServerIds);
 
-    for (String baseDN : uData.getBaseDNs())
+    for (DN baseDN : uData.getBaseDNs())
     {
       Set<String> repServersForBaseDN = new LinkedHashSet<>();
       repServersForBaseDN.addAll(getReplicationServers(baseDN, cache1, serverDesc1));
@@ -5262,7 +5263,7 @@ public class ReplicationCliMain extends ConsoleApplication
         usedReplicationServerIds, allRepServers, alreadyConfiguredReplicationServers,
         WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED);
 
-    for (String baseDN : uData.getBaseDNs())
+    for (DN baseDN : baseDNs)
     {
       Set<String> repServers = hmRepServers.get(baseDN);
       Set<Integer> usedIds = hmUsedReplicationDomainIds.get(baseDN);
@@ -5360,12 +5361,12 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void configureToReplicateBaseDN(EnableReplicationServerData server, ConnectionWrapper conn,
-      ServerDescriptor serverDesc, TopologyCache cache, String baseDN, Set<Integer> usedIds,
+      ServerDescriptor serverDesc, TopologyCache cache, DN baseDN, Set<Integer> usedIds,
       Set<String> alreadyConfiguredServers, Set<String> repServers, final Set<String> allRepServers,
       Set<String> alreadyConfiguredReplicationServers) throws ReplicationCliException
   {
     if (server.configureReplicationDomain()
-        || areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
+        || baseDN.equals(ADSContext.getAdministrationSuffixDN()))
     {
       try
       {
@@ -5480,7 +5481,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     if (!uData.disableAll())
     {
-      filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+      filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN().toString());
       addBaseDNs(filter, uData.getBaseDNs());
     }
     ServerDescriptor server = createStandalone(conn, filter);
@@ -5571,7 +5572,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Inform the user
       if (!beforeLastRepServer.isEmpty())
       {
-        Set<String> baseDNs = new LinkedHashSet<>();
+        Set<DN> baseDNs = new LinkedHashSet<>();
         for (SuffixDescriptor suffix : beforeLastRepServer)
         {
           if (!isSchemaOrInternalAdminSuffix(suffix.getDN()))
@@ -5604,16 +5605,7 @@ public class ReplicationCliMain extends ConsoleApplication
         Set<String> suffixArg = new LinkedHashSet<>();
         for (SuffixDescriptor suffix : lastRepServer)
         {
-          boolean baseDNSpecified = false;
-          for (String baseDN : uData.getBaseDNs())
-          {
-            if (!isSchemaOrInternalAdminSuffix(baseDN) && areDnsEqual(baseDN, suffix.getDN()))
-            {
-              baseDNSpecified = true;
-              break;
-            }
-          }
-          if (!baseDNSpecified)
+          if (!isBaseDNSpecified(uData.getBaseDNs(), suffix.getDN()))
           {
             Set<ServerDescriptor> servers = new TreeSet<>(new ServerComparator());
             for (ReplicaDescriptor replica : suffix.getReplicas())
@@ -5669,14 +5661,14 @@ public class ReplicationCliMain extends ConsoleApplication
     Collection<ReplicaDescriptor> replicas = getReplicas(conn);
     for (ReplicaDescriptor rep : replicas)
     {
-      String dn = rep.getSuffix().getDN();
+      DN dn = rep.getSuffix().getDN();
       if (rep.isReplicated())
       {
-        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (ADSContext.getAdministrationSuffixDN().equals(dn))
         {
           adsReplicated = true;
         }
-        else if (areDnsEqual(Constants.SCHEMA_DN, dn))
+        else if (Constants.SCHEMA_DN.equals(dn))
         {
           schemaReplicated = true;
         }
@@ -5708,7 +5700,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    Set<String> suffixesToDisable = new HashSet<>();
+    Set<DN> suffixesToDisable = new HashSet<>();
     if (uData.disableAll())
     {
       for (ReplicaDescriptor replica : server.getReplicas())
@@ -5729,14 +5721,14 @@ public class ReplicationCliMain extends ConsoleApplication
         forceDisableSchema = schemaReplicated;
         forceDisableADS = adsReplicated;
       }
-      for (String dn : uData.getBaseDNs())
+      for (DN dn : uData.getBaseDNs())
       {
-        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (ADSContext.getAdministrationSuffixDN().equals(dn))
         {
           // The user already asked this to be explicitly disabled
           forceDisableADS = false;
         }
-        else if (areDnsEqual(Constants.SCHEMA_DN, dn))
+        else if (Constants.SCHEMA_DN.equals(dn))
         {
           // The user already asked this to be explicitly disabled
           forceDisableSchema = false;
@@ -5756,7 +5748,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String replicationServerHostPort =
         server.isReplicationServer() ? server.getReplicationServerHostPort() : null;
 
-    for (String baseDN : suffixesToDisable)
+    for (DN baseDN : suffixesToDisable)
     {
       try
       {
@@ -5773,8 +5765,8 @@ public class ReplicationCliMain extends ConsoleApplication
     if (replicationServerHostPort != null && cache != null)
     {
       Set<ServerDescriptor> serversToUpdate = new LinkedHashSet<>();
-      Set<String> baseDNsToUpdate = new HashSet<>(suffixesToDisable);
-      for (String baseDN : baseDNsToUpdate)
+      Set<DN> baseDNsToUpdate = new HashSet<>(suffixesToDisable);
+      for (DN baseDN : baseDNsToUpdate)
       {
         SuffixDescriptor suffix = getSuffix(baseDN, cache, server);
         if (suffix != null)
@@ -5867,11 +5859,23 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void addBaseDNs(TopologyCacheFilter filter, List<String> baseDNs)
+  private boolean isBaseDNSpecified(List<DN> baseDns, DN dnToFind)
   {
-    for (String dn : baseDNs)
+    for (DN baseDN : baseDns)
     {
-      filter.addBaseDNToSearch(dn);
+      if (!isSchemaOrInternalAdminSuffix(baseDN) && baseDN.equals(dnToFind))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void addBaseDNs(TopologyCacheFilter filter, List<DN> baseDNs)
+  {
+    for (DN dn : baseDNs)
+    {
+      filter.addBaseDNToSearch(dn.toString());
     }
   }
 
@@ -5921,7 +5925,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    List<String> userBaseDNs = uData.getBaseDNs();
+    List<DN> userBaseDNs = uData.getBaseDNs();
     List<Set<ReplicaDescriptor>> replicaLists = new LinkedList<>();
 
     boolean oneReplicated = false;
@@ -5929,11 +5933,11 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean displayAll = userBaseDNs.isEmpty();
     for (SuffixDescriptor suffix : cache.getSuffixes())
     {
-      String dn = suffix.getDN();
+      DN dn = suffix.getDN();
 
       // If no base DNs where specified display all the base DNs but the schema
       // and cn=admin data.
-      boolean found = containsDN(userBaseDNs, dn) || (displayAll && !isSchemaOrInternalAdminSuffix(dn));
+      boolean found = userBaseDNs.contains(dn) || (displayAll && !isSchemaOrInternalAdminSuffix(dn));
       if (found)
       {
         if (isAnyReplicated(suffix))
@@ -5948,8 +5952,7 @@ public class ReplicationCliMain extends ConsoleApplication
           for (Set<ReplicaDescriptor> replicas : replicaLists)
           {
             ReplicaDescriptor replica = replicas.iterator().next();
-            if (!replica.isReplicated() &&
-                areDnsEqual(dn, replica.getSuffix().getDN()))
+            if (!replica.isReplicated() && dn.equals(replica.getSuffix().getDN()))
             {
               replicas.addAll(suffix.getReplicas());
               found = true;
@@ -5987,11 +5990,11 @@ public class ReplicationCliMain extends ConsoleApplication
       List<Set<ReplicaDescriptor>> orderedReplicaLists = new LinkedList<>();
       for (Set<ReplicaDescriptor> replicas : replicaLists)
       {
-        String dn1 = replicas.iterator().next().getSuffix().getDN();
+        DN dn1 = replicas.iterator().next().getSuffix().getDN();
         boolean inserted = false;
         for (int i=0; i<orderedReplicaLists.size() && !inserted; i++)
         {
-          String dn2 = orderedReplicaLists.get(i).iterator().next().getSuffix().getDN();
+          DN dn2 = orderedReplicaLists.get(i).iterator().next().getSuffix().getDN();
           if (dn1.compareTo(dn2) < 0)
           {
             orderedReplicaLists.add(i, replicas);
@@ -6156,7 +6159,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       tableBuilder.startRow();
       // Suffix DN
-      tableBuilder.appendCell(LocalizableMessage.raw(replica.getSuffix().getDN()));
+      tableBuilder.appendCell(LocalizableMessage.raw(replica.getSuffix().getDN().toString()));
       // Server port
       tableBuilder.appendCell(LocalizableMessage.raw("%s", getHostPort2(replica.getServer(), cnx)));
       // Number of entries
@@ -6414,15 +6417,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * to replicate the baseDN defined in the server described by the
    * ServerDescriptor.
    */
-  private Set<String> getReplicationServers(String baseDN,
-      TopologyCache cache, ServerDescriptor server)
+  private Set<String> getReplicationServers(DN baseDN, TopologyCache cache, ServerDescriptor server)
   {
     Set<String> servers = getAllReplicationServers(baseDN, server);
     if (cache != null)
     {
       for (SuffixDescriptor suffix : cache.getSuffixes())
       {
-        if (areDnsEqual(suffix.getDN(), baseDN))
+        if (suffix.getDN().equals(baseDN))
         {
           Set<String> s = suffix.getReplicationServers();
           // Test that at least we share one of the replication servers.
@@ -6482,8 +6484,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param server the ServerDescriptor.
    * @return the suffix in the TopologyCache for a given baseDN.
    */
-  private SuffixDescriptor getSuffix(String baseDN, TopologyCache cache,
-      ServerDescriptor server)
+  private SuffixDescriptor getSuffix(DN baseDN, TopologyCache cache, ServerDescriptor server)
   {
     String replicationServer = null;
     if (server.isReplicationServer())
@@ -6495,7 +6496,7 @@ public class ReplicationCliMain extends ConsoleApplication
     Set<String> servers = getAllReplicationServers(baseDN, server);
     for (SuffixDescriptor suffix : cache.getSuffixes())
     {
-      if (areDnsEqual(suffix.getDN(), baseDN))
+      if (suffix.getDN().equals(baseDN))
       {
         Set<String> s = suffix.getReplicationServers();
         // Test that at least we share one of the replication servers.
@@ -6517,12 +6518,12 @@ public class ReplicationCliMain extends ConsoleApplication
     return returnValue;
   }
 
-  private Set<String> getAllReplicationServers(String baseDN, ServerDescriptor server)
+  private Set<String> getAllReplicationServers(DN baseDN, ServerDescriptor server)
   {
     Set<String> servers = new LinkedHashSet<>();
     for (ReplicaDescriptor replica : server.getReplicas())
     {
-      if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      if (replica.getSuffix().getDN().equals(baseDN))
       {
         servers.addAll(replica.getReplicationServers());
         break;
@@ -6539,14 +6540,13 @@ public class ReplicationCliMain extends ConsoleApplication
    * @return a Set containing the replication domain IDs for a given baseDN in
    * the ServerDescriptor.
    */
-  private Set<Integer> getReplicationDomainIds(String baseDN,
-      ServerDescriptor server)
+  private Set<Integer> getReplicationDomainIds(DN baseDN, ServerDescriptor server)
   {
     Set<Integer> ids = new HashSet<>();
     for (ReplicaDescriptor replica : server.getReplicas())
     {
       if (replica.isReplicated()
-          && areDnsEqual(replica.getSuffix().getDN(), baseDN))
+          && replica.getSuffix().getDN().equals(baseDN))
       {
         ids.add(replica.getReplicationId());
         break;
@@ -6737,18 +6737,18 @@ public class ReplicationCliMain extends ConsoleApplication
    *           if there is an error updating the configuration.
    */
   private void configureToReplicateBaseDN(ConnectionWrapper conn,
-      String baseDN,
+      DN baseDN,
       Set<String> replicationServers,
       Set<Integer> usedReplicationDomainIds) throws Exception
   {
     boolean userSpecifiedAdminBaseDN = false;
-    List<String> l = argParser.getBaseDNs();
-    if (l != null)
+    List<DN> baseDNs = toDNs(argParser.getBaseDNs());
+    if (baseDNs != null)
     {
-      userSpecifiedAdminBaseDN = containsDN(l, ADSContext.getAdministrationSuffixDN());
+      userSpecifiedAdminBaseDN = baseDNs.contains(ADSContext.getAdministrationSuffixDN());
     }
     if (!userSpecifiedAdminBaseDN
-        && areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
+        && baseDN.equals(ADSContext.getAdministrationSuffixDN()))
     {
       print(formatter.getFormattedWithPoints(
           INFO_REPLICATION_ENABLE_CONFIGURING_ADS.get(conn.getHostPort())));
@@ -6775,7 +6775,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ReplicationDomainCfgClient domain = null;
     for (ReplicationDomainCfgClient domain2 : domains)
     {
-      if (areDnsEqual(baseDN, domain2.getBaseDN().toString()))
+      if (baseDN.equals(domain2.getBaseDN()))
       {
         domain = domain2;
         break;
@@ -6791,7 +6791,7 @@ public class ReplicationCliMain extends ConsoleApplication
           ReplicationDomainCfgDefn.getInstance(), domainName,
           new ArrayList<PropertyException>());
       domain.setServerId(domainId);
-      domain.setBaseDN(DN.valueOf(baseDN));
+      domain.setBaseDN(baseDN);
       domain.setReplicationServer(replicationServers);
       mustCommit = true;
     }
@@ -6839,7 +6839,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * replication server.
    * @throws ReplicationCliException if something goes wrong.
    */
-  private void configureToReplicateBaseDN(String baseDN,
+  private void configureToReplicateBaseDN(DN baseDN,
       Set<String> repServers, Set<Integer> usedIds,
       TopologyCache cache, ServerDescriptor server,
       Set<String> alreadyConfiguredServers, Set<String> allRepServers,
@@ -6925,20 +6925,19 @@ public class ReplicationCliMain extends ConsoleApplication
     return adminProperties;
   }
 
-  private void initializeSuffix(String baseDN, ConnectionWrapper connSource, ConnectionWrapper connDestination,
-      boolean displayProgress)
-  throws ReplicationCliException
+  private void initializeSuffix(DN baseDN, ConnectionWrapper connSource, ConnectionWrapper connDestination,
+      boolean displayProgress) throws ReplicationCliException
   {
     int replicationId = -1;
     try
     {
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
-      filter.addBaseDNToSearch(baseDN);
+      filter.addBaseDNToSearch(baseDN.toString());
       ServerDescriptor source = ServerDescriptor.createStandalone(connSource, filter);
       for (ReplicaDescriptor replica : source.getReplicas())
       {
-        if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
+        if (replica.getSuffix().getDN().equals(baseDN))
         {
           replicationId = replica.getReplicationId();
           break;
@@ -7012,7 +7011,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param displayProgress whether we want to display progress or not.
    * @throws ReplicationCliException if an unexpected error occurs.
    */
-  public void initializeAllSuffix(String baseDN, ConnectionWrapper conn, boolean displayProgress)
+  public void initializeAllSuffix(DN baseDN, ConnectionWrapper conn, boolean displayProgress)
       throws ReplicationCliException
   {
     if (argParser == null)
@@ -7064,7 +7063,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ReplicationCliException if there is an error performing the
    * operation.
    */
-  private void preExternalInitialization(String baseDN, ConnectionWrapper conn) throws ReplicationCliException
+  private void preExternalInitialization(DN baseDN, ConnectionWrapper conn) throws ReplicationCliException
   {
     postPreExternalInitialization(baseDN, conn, true);
   }
@@ -7077,7 +7076,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ReplicationCliException if there is an error performing the
    * operation.
    */
-  private void postExternalInitialization(String baseDN, ConnectionWrapper conn) throws ReplicationCliException
+  private void postExternalInitialization(DN baseDN, ConnectionWrapper conn) throws ReplicationCliException
   {
     postPreExternalInitialization(baseDN, conn, false);
   }
@@ -7090,7 +7089,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param isPre whether this is the pre operation or the post operation.
    * @throws ReplicationCliException if there is an error performing the operation
    */
-  private void postPreExternalInitialization(String baseDN,
+  private void postPreExternalInitialization(DN baseDN,
       ConnectionWrapper conn, boolean isPre) throws ReplicationCliException
   {
     boolean isOver = false;
@@ -7100,7 +7099,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       attrMap.put("ds-task-reset-generation-id-new-value", "-1");
     }
-    attrMap.put("ds-task-reset-generation-id-domain-base-dn", baseDN);
+    attrMap.put("ds-task-reset-generation-id-domain-base-dn", baseDN.toString());
 
     try {
       dn = createServerTask(conn,
@@ -7200,14 +7199,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws PeerNotFoundException if the replication mechanism cannot find
    * a peer.
    */
-  private void initializeAllSuffixTry(String baseDN, ConnectionWrapper conn, boolean displayProgress)
+  private void initializeAllSuffixTry(DN baseDN, ConnectionWrapper conn, boolean displayProgress)
       throws ClientException, PeerNotFoundException
   {
     boolean isOver = false;
     String dn = null;
     HostPort hostPort = conn.getHostPort();
     Map<String, String> attrsMap = new TreeMap<>();
-    attrsMap.put("ds-task-initialize-domain-dn", baseDN);
+    attrsMap.put("ds-task-initialize-domain-dn", baseDN.toString());
     attrsMap.put("ds-task-initialize-replica-server-id", "all");
     try
     {
@@ -7473,7 +7472,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void removeReferencesInServer(ServerDescriptor server,
       String replicationServer, DN bindDn, String pwd,
-      Collection<String> baseDNs, boolean updateReplicationServers,
+      Collection<DN> baseDNs, boolean updateReplicationServers,
       Set<PreferredConnection> cnx)
   throws ReplicationCliException
   {
@@ -7482,7 +7481,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(server.getAdsProperties(), bindDn,
         pwd, getTrustManager(sourceServerCI), getConnectTimeout(), cnx, filter);
-    String lastBaseDN = null;
+    DN lastBaseDN = null;
     HostPort hostPort = null;
 
     try (ConnectionWrapper conn = loader.createConnectionWrapper())
@@ -7506,12 +7505,11 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           for (String domainName : domainNames)
           {
-            ReplicationDomainCfgClient domain =
-              sync.getReplicationDomain(domainName);
-            for (String baseDN : baseDNs)
+            ReplicationDomainCfgClient domain = sync.getReplicationDomain(domainName);
+            for (DN baseDN : baseDNs)
             {
               lastBaseDN = baseDN;
-              if (areDnsEqual(domain.getBaseDN().toString(), baseDN))
+              if (domain.getBaseDN().equals(baseDN))
               {
                 print(formatter.getFormattedWithPoints(
                     INFO_REPLICATION_REMOVING_REFERENCES_ON_REMOTE.get(baseDN, hostPort)));
@@ -7597,7 +7595,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ReplicationCliException if there is an error updating the
    * configuration of the server.
    */
-  private void deleteReplicationDomain(ConnectionWrapper conn, String baseDN) throws ReplicationCliException
+  private void deleteReplicationDomain(ConnectionWrapper conn, DN baseDN) throws ReplicationCliException
   {
     HostPort hostPort = conn.getHostPort();
     try
@@ -7621,7 +7619,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             ReplicationDomainCfgClient domain =
               sync.getReplicationDomain(domainName);
-            if (areDnsEqual(domain.getBaseDN().toString(), baseDN))
+            if (domain.getBaseDN().equals(baseDN))
             {
               print(formatter.getFormattedWithPoints(
                   INFO_REPLICATION_DISABLING_BASEDN.get(baseDN, hostPort)));
@@ -7711,7 +7709,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * the replication domain or updating the list of replication servers of
    * the replication domain).
    */
-  private LocalizableMessage getMessageForEnableException(HostPort hostPort, String baseDN)
+  private LocalizableMessage getMessageForEnableException(HostPort hostPort, DN baseDN)
   {
     return ERR_REPLICATION_CONFIGURING_BASEDN.get(baseDN, hostPort);
   }
@@ -7730,7 +7728,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * the replication domain or updating the list of replication servers of
    * the replication domain).
    */
-  private LocalizableMessage getMessageForDisableException(HostPort hostPort, String baseDN)
+  private LocalizableMessage getMessageForDisableException(HostPort hostPort, DN baseDN)
   {
     return ERR_REPLICATION_CONFIGURING_BASEDN.get(baseDN, hostPort);
   }
@@ -8024,38 +8022,26 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     Collection<ReplicaDescriptor> replicas = getReplicas(conn);
-    Set<String> replicatedSuffixes = new HashSet<>();
+    Set<DN> replicatedSuffixes = new HashSet<>();
     for (ReplicaDescriptor rep : replicas)
     {
-      String dn = rep.getSuffix().getDN();
+      DN dn = rep.getSuffix().getDN();
       if (rep.isReplicated())
       {
         replicatedSuffixes.add(dn);
       }
     }
 
-    for (String dn1 : replicatedSuffixes)
+    for (DN dn1 : replicatedSuffixes)
     {
-      if (!areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn1)
-          && !areDnsEqual(Constants.SCHEMA_DN, dn1)
-          && !containsDN(uData.getBaseDNs(), dn1))
+      if (!ADSContext.getAdministrationSuffixDN().equals(dn1)
+          && !Constants.SCHEMA_DN.equals(dn1)
+          && !uData.getBaseDNs().contains(dn1))
       {
         return false;
       }
     }
     return true;
-  }
-
-  private boolean containsDN(final Collection<String> dns, String dnToFind)
-  {
-    for (String dn : dns)
-    {
-      if (areDnsEqual(dn, dnToFind))
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -8309,7 +8295,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void addGlobalArguments(CommandBuilder commandBuilder, ReplicationUserData uData)
   throws ArgumentException
   {
-    List<String> baseDNs = uData.getBaseDNs();
+    List<DN> baseDNs = uData.getBaseDNs();
     StringArgument baseDNsArg =
             StringArgument.builder(OPTION_LONG_BASEDN)
                     .shortIdentifier(OPTION_SHORT_BASEDN)
@@ -8317,9 +8303,9 @@ public class ReplicationCliMain extends ConsoleApplication
                     .multiValued()
                     .valuePlaceholder(INFO_BASEDN_PLACEHOLDER.get())
                     .buildArgument();
-    for (String baseDN : baseDNs)
+    for (DN baseDN : baseDNs)
     {
-      baseDNsArg.addValue(baseDN);
+      baseDNsArg.addValue(baseDN.toString());
     }
     commandBuilder.addArgument(baseDNsArg);
 
@@ -8922,45 +8908,47 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void updateAvailableAndReplicatedSuffixesForOneDomain(
       ConnectionWrapper connDomain, ConnectionWrapper connOther,
-      Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
+      Set<DN> availableSuffixes, Set<DN> alreadyReplicatedSuffixes)
   {
-    Collection<ReplicaDescriptor> replicas = getReplicas(connDomain);
     int replicationPort = getReplicationPort(connOther);
     boolean isReplicationServerConfigured = replicationPort != -1;
     String replicationServer = getReplicationServer(connOther.getHostPort().getHost(), replicationPort);
+
+    Collection<ReplicaDescriptor> replicas = getReplicas(connDomain);
     for (ReplicaDescriptor replica : replicas)
     {
+      final DN suffixDn = replica.getSuffix().getDN();
       if (!isReplicationServerConfigured)
       {
         if (replica.isReplicated())
         {
-          alreadyReplicatedSuffixes.add(replica.getSuffix().getDN());
+          alreadyReplicatedSuffixes.add(suffixDn);
         }
-        availableSuffixes.add(replica.getSuffix().getDN());
+        availableSuffixes.add(suffixDn);
       }
 
       if (!isReplicationServerConfigured)
       {
-        availableSuffixes.add(replica.getSuffix().getDN());
+        availableSuffixes.add(suffixDn);
       }
       else if (!replica.isReplicated())
       {
-        availableSuffixes.add(replica.getSuffix().getDN());
+        availableSuffixes.add(suffixDn);
       }
       else if (containsIgnoreCase(replica.getReplicationServers(), replicationServer))
       {
-        alreadyReplicatedSuffixes.add(replica.getSuffix().getDN());
+        alreadyReplicatedSuffixes.add(suffixDn);
       }
       else
       {
-        availableSuffixes.add(replica.getSuffix().getDN());
+        availableSuffixes.add(suffixDn);
       }
     }
   }
 
   private void updateAvailableAndReplicatedSuffixesForNoDomain(
       ConnectionWrapper conn1, ConnectionWrapper conn2,
-      Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
+      Set<DN> availableSuffixes, Set<DN> alreadyReplicatedSuffixes)
   {
     int replicationPort1 = getReplicationPort(conn1);
     boolean isReplicationServer1Configured = replicationPort1 != -1;
@@ -9013,7 +9001,7 @@ public class ReplicationCliMain extends ConsoleApplication
     return null;
   }
 
-  private void addAllAvailableSuffixes(Collection<String> availableSuffixes,
+  private void addAllAvailableSuffixes(Collection<DN> availableSuffixes,
       Set<SuffixDescriptor> suffixes, String rsToFind)
   {
     for (SuffixDescriptor suffix : suffixes)
@@ -9030,7 +9018,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void updateAvailableAndReplicatedSuffixesForNoDomainOneSense(
       TopologyCache cache1, TopologyCache cache2, String replicationServer1, String replicationServer2,
-      Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
+      Set<DN> availableSuffixes, Set<DN> alreadyReplicatedSuffixes)
   {
     for (SuffixDescriptor suffix : cache1.getSuffixes())
     {
@@ -9043,7 +9031,7 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean isFirstReplicated = false;
           for (SuffixDescriptor suffix2 : cache2.getSuffixes())
           {
-            if (areDnsEqual(suffix.getDN(), suffix2.getDN()))
+            if (suffix.getDN().equals(suffix2.getDN()))
             {
               for (String rServer2 : suffix2.getReplicationServers())
               {
@@ -9080,8 +9068,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void updateBaseDnsWithNotEnoughReplicationServer(ADSContext adsCtx1,
       ADSContext adsCtx2, EnableReplicationUserData uData,
-      Set<String> baseDNsWithNoReplicationServer,
-      Set<String> baseDNsWithOneReplicationServer)
+      Set<DN> baseDNsWithNoReplicationServer, Set<DN> baseDNsWithOneReplicationServer)
   {
     EnableReplicationServerData server1 = uData.getServer1();
     EnableReplicationServerData server2 = uData.getServer2();
@@ -9099,12 +9086,12 @@ public class ReplicationCliMain extends ConsoleApplication
     String repServer1 =  getReplicationServer(server1.getHostName(), repPort1);
     int repPort2 = getReplicationPort(adsCtx2.getConnection());
     String repServer2 =  getReplicationServer(server2.getHostName(), repPort2);
-    for (String baseDN : uData.getBaseDNs())
+    for (DN baseDN : uData.getBaseDNs())
     {
       int nReplicationServers = 0;
       for (SuffixDescriptor suffix : suffixes)
       {
-        if (areDnsEqual(suffix.getDN(), baseDN))
+        if (suffix.getDN().equals(baseDN))
         {
           Set<String> replicationServers = suffix.getReplicationServers();
           nReplicationServers += replicationServers.size();
@@ -9402,10 +9389,10 @@ public class ReplicationCliMain extends ConsoleApplication
     return false;
   }
 
-  private boolean findReplicaInSuffix2(ReplicaDescriptor replica1, SuffixDescriptor suffix2, String suffix1DN,
+  private boolean findReplicaInSuffix2(ReplicaDescriptor replica1, SuffixDescriptor suffix2, DN suffix1DN,
       Set<LocalizableMessage> commonDomainIDErrors)
   {
-    if (!areDnsEqual(suffix2.getDN(), replica1.getSuffix().getDN()))
+    if (!suffix2.getDN().equals(replica1.getSuffix().getDN()))
     {
       // Conflicting domain names must apply to same suffix.
       return false;
@@ -9473,7 +9460,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @return <CODE>true</CODE> if the provided baseDN is replicated in the
    * provided server, <CODE>false</CODE> otherwise.
    */
-  private boolean isBaseDNReplicated(ServerDescriptor server, String baseDN)
+  private boolean isBaseDNReplicated(ServerDescriptor server, DN baseDN)
   {
     return findReplicated(server.getReplicas(), baseDN) != null;
   }
@@ -9487,8 +9474,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @return <CODE>true</CODE> if the provided baseDN is replicated between
    * both servers, <CODE>false</CODE> otherwise.
    */
-  private boolean isBaseDNReplicated(ServerDescriptor server1,
-      ServerDescriptor server2, String baseDN)
+  private boolean isBaseDNReplicated(ServerDescriptor server1, ServerDescriptor server2, DN baseDN)
   {
     final ReplicaDescriptor replica1 = findReplicated(server1.getReplicas(), baseDN);
     final ReplicaDescriptor replica2 = findReplicated(server2.getReplicas(), baseDN);
@@ -9508,11 +9494,11 @@ public class ReplicationCliMain extends ConsoleApplication
     return false;
   }
 
-  private ReplicaDescriptor findReplicated(Set<ReplicaDescriptor> replicas, String baseDN)
+  private ReplicaDescriptor findReplicated(Set<ReplicaDescriptor> replicas, DN baseDN)
   {
     for (ReplicaDescriptor replica : replicas)
     {
-      if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      if (replica.getSuffix().getDN().equals(baseDN))
       {
         return replica;
       }

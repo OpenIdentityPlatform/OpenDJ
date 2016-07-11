@@ -258,7 +258,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       ocMacKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_MAC_KEY);
 
       localTruststoreDN = DN.valueOf(DN_TRUST_STORE_ROOT);
-      DN adminSuffixDN = DN.valueOf(ADSContext.getAdministrationSuffixDN());
+      DN adminSuffixDN = ADSContext.getAdministrationSuffixDN();
       instanceKeysDN = adminSuffixDN.child(DN.valueOf("cn=instance keys"));
       secretKeysDN = adminSuffixDN.child(DN.valueOf("cn=secret keys"));
       serversDN = adminSuffixDN.child(DN.valueOf("cn=Servers"));

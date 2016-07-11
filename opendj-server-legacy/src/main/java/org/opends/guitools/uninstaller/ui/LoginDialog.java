@@ -379,7 +379,7 @@ public class LoginDialog extends JDialog
           info.regenerateDescriptor();
           ConfigFromFile conf = new ConfigFromFile();
           conf.readConfiguration();
-          String dn = ADSContext.getAdministratorDN(tfUid.getText());
+          String dn = ADSContext.getAdministratorDN(tfUid.getText()).toString();
           String pwd = tfPwd.getText();
           info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
           usedUrl = info.getAdminConnectorURL();

@@ -55,7 +55,6 @@ import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.UIFactory.IconType;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
@@ -227,9 +226,9 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
       orderedSuffixes.clear();
       for (SuffixDescriptor suffix : array)
       {
-        if (!Utils.areDnsEqual(suffix.getDN(), ADSContext.getAdministrationSuffixDN())
-            && !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN)
-            && !Utils.areDnsEqual(suffix.getDN(), Constants.REPLICATION_CHANGES_DN))
+        if (!suffix.getDN().equals(ADSContext.getAdministrationSuffixDN())
+            && !suffix.getDN().equals(Constants.SCHEMA_DN)
+            && !suffix.getDN().equals(Constants.REPLICATION_CHANGES_DN))
         {
           orderedSuffixes.add(suffix);
         }
@@ -237,7 +236,8 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
       hmCheckBoxes.clear();
       for (SuffixDescriptor suffix : orderedSuffixes)
       {
-        JCheckBox cb = UIFactory.makeJCheckBox(LocalizableMessage.raw(suffix.getDN()),
+        JCheckBox cb =
+            UIFactory.makeJCheckBox(LocalizableMessage.raw(suffix.getDN().toString()),
                 INFO_SUFFIXES_TO_REPLICATE_DN_TOOLTIP.get(), UIFactory.TextStyle.SECONDARY_FIELD_VALID);
         cb.setOpaque(false);
         Boolean v = hmOldValues.get(suffix.getId());

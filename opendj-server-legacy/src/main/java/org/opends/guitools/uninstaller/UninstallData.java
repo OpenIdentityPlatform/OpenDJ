@@ -12,8 +12,8 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.uninstaller;
 
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class UninstallData
     while (it.hasNext() && !isADS)
     {
       isADS = Utils.areDnsEqual(it.next(),
-          ADSContext.getAdministrationSuffixDN());
+          ADSContext.getAdministrationSuffixDN().toString());
     }
     isReplicationServer = conf.isReplicationServer();
     replicationServerPort = conf.getReplicationPort();

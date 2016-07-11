@@ -127,7 +127,7 @@ public class TopologyCache
               + replica.getSuffix().getDN()));
 
           boolean suffixFound = false;
-          LdapName dn = new LdapName(replica.getSuffix().getDN());
+          LdapName dn = new LdapName(replica.getSuffix().getDN().toString());
           Set<SuffixDescriptor> sufs = hmSuffixes.get(dn);
           if (sufs != null)
           {
@@ -445,7 +445,7 @@ public class TopologyCache
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        String dn = firstValueAsString(sr, "domain-name");
+        String dnStr = firstValueAsString(sr, "domain-name");
         int replicaId = -1;
         try
         {
@@ -462,9 +462,10 @@ public class TopologyCache
           logger.warn(LocalizableMessage.raw("Unexpected error reading replica ID: " + t, t));
         }
 
+        final DN dn = DN.valueOf(dnStr);
         for (ReplicaDescriptor replica : candidateReplicas)
         {
-          if (Utils.areDnsEqual(dn, replica.getSuffix().getDN())
+          if (dn.equals(replica.getSuffix().getDN())
               && replica.isReplicated()
               && replica.getReplicationId() == replicaId)
           {
