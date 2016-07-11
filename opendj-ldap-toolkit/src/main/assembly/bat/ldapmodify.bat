@@ -18,5 +18,5 @@ setlocal
 
 set OPENDJ_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.LDAPModify"
 set SCRIPT_NAME=ldapmodify
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
+call "%~dp0\..\lib\_client-script.bat" %*
 
