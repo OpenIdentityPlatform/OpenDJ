@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.NewEntryTask;
@@ -156,7 +157,7 @@ public abstract class AbstractNewEntryPanel extends StatusGenericPanel
         // Unexpected error: getEntry() should work after calling checkSyntax
         throw new RuntimeException("Unexpected error: "+t, t);
       }
-      String dn = entry.getName().toString();
+      DN dn = entry.getName();
       // Checking for the existence of an entry is fast enough so we can do
       // it on the event thread.
       if (entryExists(dn))

@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.task;
 
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -152,33 +154,22 @@ public class NewEntryTask extends Task
 
     try
     {
-      ConnectionWrapper conn;
-
       if (parentNode != null)
       {
-        conn = controller.findConnectionForDisplayedEntry(parentNode);
+        ConnectionWithControls conn = controller.findConnectionForDisplayedEntry(parentNode);
         useAdminCtx = controller.isConfigurationNode(parentNode);
+        printProgressCreatingEntry();
+        conn.add(newAddRequest(Converters.from(newEntry)));
       }
       else
       {
-        conn = getInfo().getConnection();
+        ConnectionWrapper conn = getInfo().getConnection();
         useAdminCtx = true;
+        printProgressCreatingEntry();
+        conn.getConnection().add(Converters.from(newEntry));
       }
 
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          printEquivalentCommand();
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_CREATING_ENTRY.get(dn),
-                  ColorAndFontConstants.progressFont));
-        }
-      });
 
-      conn.getConnection().add(Converters.from(newEntry));
 
       SwingUtilities.invokeLater(new Runnable()
       {
@@ -225,6 +216,22 @@ public class NewEntryTask extends Task
       lastException = t;
       state = State.FINISHED_WITH_ERROR;
     }
+  }
+
+  private void printProgressCreatingEntry()
+  {
+    SwingUtilities.invokeLater(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        printEquivalentCommand();
+        getProgressDialog().appendProgressHtml(
+            Utilities.getProgressWithPoints(
+                INFO_CTRL_PANEL_CREATING_ENTRY.get(dn),
+                ColorAndFontConstants.progressFont));
+      }
+    });
   }
 
   /** Prints the equivalent command-line in the progress dialog. */

@@ -44,8 +44,8 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
@@ -307,7 +307,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       errors.add(ERR_CTRL_PANEL_DUPLICATE_ENTRY_PARENT_DN_NOT_VALID.get());
       setPrimaryInvalid(lParentDN);
     }
-    else if (!entryExists(parentDN))
+    else if (!entryExists(DN.valueOf(parentDN)))
     {
       errors.add(ERR_CTRL_PANEL_DUPLICATE_ENTRY_PARENT_DOES_NOT_EXIST.get());
       setPrimaryInvalid(lParentDN);
@@ -447,7 +447,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       @Override
       public Entry processBackgroundTask() throws Throwable
       {
-        ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+        ConnectionWithControls conn = controller.findConnectionForDisplayedEntry(node);
         LDAPEntryReader reader = new LDAPEntryReader(node.getDN(), conn);
         sleepIfRequired(700, t1);
         return reader.processBackgroundTask();

@@ -20,11 +20,12 @@ import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.awt.Font;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -34,10 +35,6 @@ import java.util.logging.Logger;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
-import javax.naming.ldap.Control;
-import javax.naming.ldap.ManageReferralControl;
-import javax.naming.ldap.SortControl;
-import javax.naming.ldap.SortKey;
 import javax.swing.Icon;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -49,6 +46,11 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.SortKey;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ManageDsaITRequestControl;
+import org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -77,12 +79,20 @@ import org.opends.server.types.LDAPURL;
 public class BrowserController
 implements TreeExpansionListener, ReferralAuthenticationListener
 {
+  private static final Logger LOG = Logger.getLogger(BrowserController.class.getName());
+
   /** The mask used to display the number of ACIs or not. */
   private static final int DISPLAY_ACI_COUNT = 0x01;
 
   /** The list of attributes that are used to sort the entries (if the sorting option is used). */
-  private static final String[] SORT_ATTRIBUTES =
-      { "cn", "givenname", "o", "ou", "sn", "uid" };
+  private static final SortKey[] SORT_ATTRIBUTES = {
+    new SortKey("cn"),
+    new SortKey("givenname"),
+    new SortKey("o"),
+    new SortKey("ou"),
+    new SortKey("sn"),
+    new SortKey("uid")
+  };
 
   /**
    * This is a key value.  It is used to specify that the attribute that should
@@ -91,8 +101,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private static final String RDN_ATTRIBUTE = "rdn attribute";
 
   /** The filter used to retrieve all the entries. */
-  public static final String ALL_OBJECTS_FILTER =
-    "(|(objectClass=*)(objectClass=ldapsubentry))";
+  public static final Filter ALL_OBJECTS_FILTER = Filter.valueOf(
+      "(|(objectClass=*)(objectClass=ldapsubentry))");
 
   private static final String NUMSUBORDINATES_ATTR = "numsubordinates";
   private static final String HASSUBORDINATES_ATTR = "hassubordinates";
@@ -101,17 +111,15 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private final JTree tree;
   private final DefaultTreeModel treeModel;
   private final RootNode rootNode;
-  private int displayFlags;
-  private String displayAttribute;
-  private final boolean showAttributeName;
-  private ConnectionWrapper connConfig;
-  private ConnectionWrapper connUserData;
-  private boolean followReferrals;
-  private boolean sorted;
-  private boolean showContainerOnly;
+  private int displayFlags = DISPLAY_ACI_COUNT;
+  private String displayAttribute = RDN_ATTRIBUTE;
+  private final boolean showAttributeName = false;
+  private ConnectionWithControls connConfig;
+  private ConnectionWithControls connUserData;
+  private boolean showContainerOnly = true;
   private boolean automaticExpand;
   private boolean automaticallyExpandedNode;
-  private String[] containerClasses;
+  private String[] containerClasses = new String[0];
   private NumSubordinateHacker numSubordinateHacker;
   private int queueTotalSize;
   private int maxChildren;
@@ -121,10 +129,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   private final NodeSearcherQueue refreshQueue;
 
-  private String filter;
-
-  private static final Logger LOG =
-    Logger.getLogger(BrowserController.class.getName());
+  private ServerSideSortRequestControl sortControl;
+  private ManageDsaITRequestControl followReferralsControl;
+  private Filter filter;
 
   /**
    * Constructor of the BrowserController.
@@ -134,8 +141,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param ipool the icon pool to be used to retrieve the icons that will be
    * used to render the nodes in the tree.
    */
-  public BrowserController(JTree tree, LDAPConnectionPool cpool,
-      IconPool ipool)
+  public BrowserController(JTree tree, LDAPConnectionPool cpool, IconPool ipool)
   {
     this.tree = tree;
     iconPool = ipool;
@@ -145,14 +151,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     tree.setModel(treeModel);
     tree.addTreeExpansionListener(this);
     tree.setCellRenderer(new BrowserCellRenderer());
-    displayFlags = DISPLAY_ACI_COUNT;
-    showAttributeName = false;
-    displayAttribute = RDN_ATTRIBUTE;
-    followReferrals = false;
-    sorted = false;
-    showContainerOnly = true;
-    containerClasses = new String[0];
-    queueTotalSize = 0;
     connectionPool = cpool;
     connectionPool.addReferralAuthenticationListener(this);
 
@@ -175,21 +173,18 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * the configuration base DNs.
    * @param connUserData the connection to be used to retrieve the data in the
    * user base DNs.
-   * @throws NamingException if an error occurs.
    */
   public void setConnections(
       ServerDescriptor server,
       ConnectionWrapper connConfiguration,
-      ConnectionWrapper connUserData) throws NamingException {
+      ConnectionWrapper connUserData) {
     String rootNodeName;
     if (connConfiguration != null)
     {
-      this.connConfig = connConfiguration;
-      this.connUserData = connUserData;
-
-      connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
-      connUserData.getLdapContext().setRequestControls(getRequestControls());
-      rootNodeName = new HostPort(server.getHostname(), connConfig.getHostPort().getPort()).toString();
+      this.connConfig = new ConnectionWithControls(connConfiguration, sortControl, followReferralsControl);
+      this.connUserData = new ConnectionWithControls(connUserData, sortControl, followReferralsControl);
+      rootNodeName = HostPort.toString(server.getHostname(),
+                                       connConfig.getConnectionWrapper().getHostPort().getPort());
     }
     else {
       rootNodeName = "";
@@ -202,7 +197,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Return the connection for accessing the directory configuration.
    * @return the connection for accessing the directory configuration.
    */
-  public ConnectionWrapper getConfigurationConnection() {
+  public ConnectionWithControls getConfigurationConnection() {
     return connConfig;
   }
 
@@ -210,7 +205,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Return the connection for accessing the directory user data.
    * @return the connection for accessing the directory user data.
    */
-  public ConnectionWrapper getUserDataConnection() {
+  public ConnectionWithControls getUserDataConnection() {
     return connUserData;
   }
 
@@ -342,6 +337,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public void setDisplayAttribute(String displayAttribute) {
     this.displayAttribute = displayAttribute;
+    restartRefresh();
+  }
+
+  private void restartRefresh()
+  {
     stopRefresh();
     removeAllChildNodes(rootNode, true /* Keep suffixes */);
     startRefresh(null);
@@ -384,55 +384,49 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   /**
    * Return true if this controller follows referrals.
-   * @return {@code true} if this controller follows referrals and
-   * {@code false} otherwise.
+   *
+   * @return {@code true} if this controller follows referrals, {@code false} otherwise.
    */
-  public boolean getFollowReferrals() {
-    return followReferrals;
+  public boolean isFollowReferrals() {
+    return followReferralsControl != null;
   }
 
   /**
    * Enable/display the following of referrals.
    * This routine starts a refresh on each referral node.
    * @param followReferrals whether to follow referrals or not.
-   * @throws NamingException if there is an error updating the request controls
-   * of the internal connections.
    */
-  public void setFollowReferrals(boolean followReferrals) throws NamingException
-  {
-    this.followReferrals = followReferrals;
-    stopRefresh();
-    removeAllChildNodes(rootNode, true /* Keep suffixes */);
-    connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
-    connUserData.getLdapContext().setRequestControls(getRequestControls());
-    connectionPool.setRequestControls(getRequestControls());
-    startRefresh(null);
+  public void setFollowReferrals(boolean followReferrals) {
+    followReferralsControl = followReferrals ? ManageDsaITRequestControl.newControl(false) : null;
+    resetRequestControls();
+    restartRefresh();
   }
 
   /**
    * Return true if entries are displayed sorted.
-   * @return {@code true} if entries are displayed sorted and
-   * {@code false} otherwise.
+   *
+   * @return {@code true} if entries are displayed sorted, {@code false} otherwise.
    */
   public boolean isSorted() {
-    return sorted;
+    return sortControl != null;
   }
 
   /**
    * Enable/disable entry sort.
    * This routine collapses the JTree and invokes startRefresh().
    * @param sorted whether to sort the entries or not.
-   * @throws NamingException if there is an error updating the request controls
-   * of the internal connections.
    */
-  public void setSorted(boolean sorted) throws NamingException {
-    stopRefresh();
-    removeAllChildNodes(rootNode, true /* Keep suffixes */);
-    this.sorted = sorted;
-    connConfig.getLdapContext().setRequestControls(getConfigurationRequestControls());
-    connUserData.getLdapContext().setRequestControls(getRequestControls());
-    connectionPool.setRequestControls(getRequestControls());
-    startRefresh(null);
+  public void setSorted(boolean sorted) {
+    sortControl = sorted ? ServerSideSortRequestControl.newControl(false, SORT_ATTRIBUTES) : null;
+    resetRequestControls();
+    restartRefresh();
+  }
+
+  private void resetRequestControls()
+  {
+    this.connConfig.setRequestControls(sortControl, followReferralsControl);
+    this.connUserData.setRequestControls(sortControl, followReferralsControl);
+    this.connectionPool.setRequestControls(sortControl, followReferralsControl);
   }
 
   /**
@@ -531,7 +525,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     BasicNode parentNode = parentInfo.getNode();
     BasicNode childNode = new BasicNode(newEntryDn);
     int childIndex;
-    if (sorted) {
+    if (isSorted()) {
       childIndex = findChildNode(parentNode, newEntryDn);
       if (childIndex >= 0) {
         throw new IllegalArgumentException("Duplicate DN " + newEntryDn);
@@ -797,7 +791,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * entries.
    * @param filter the LDAP filter.
    */
-  public void setFilter(String filter)
+  public void setFilter(Filter filter)
   {
     this.filter = filter;
   }
@@ -806,7 +800,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Returns the filter that is being used to search the entries.
    * @return the filter that is being used to search the entries.
    */
-  public String getFilter()
+  public Filter getFilter()
   {
     return filter;
   }
@@ -815,7 +809,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Returns the filter used to make a object base search.
    * @return the filter used to make a object base search.
    */
-  String getObjectSearchFilter()
+  Filter getObjectSearchFilter()
   {
     return ALL_OBJECTS_FILTER;
   }
@@ -826,43 +820,42 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * container entries. If not, the filter will select all the children.
    * @return the LDAP search filter to use for searching child entries.
    */
-  String getChildSearchFilter() {
-    String result;
-    if (showContainerOnly) {
-      if (followReferrals) {
-        /* In the case we are following referrals, we have to consider referrals
-         as nodes.
-         Suppose the following scenario: a referral points to a remote entry
-         that has children (node), BUT the referral entry in the local server
-         has no children.  It won't be included in the filter and it won't
-         appear in the tree.  But what we are displaying is the remote entry,
-         the result is that we have a NODE that does not appear in the tree and
-         so the user cannot browse it.
-
-         This has some side effects:
-         If we cannot follow the referral, a leaf will appear on the tree (as it
-         if were a node).
-         If the referral points to a leaf entry, a leaf will appear on the tree
-         (as if it were a node).
-
-         This is minor compared to the impossibility of browsing a subtree with
-         the NODE/LEAF layout.
-         */
-        result = "(|(&(hasSubordinates=true)"+filter+")(objectClass=referral)";
-      } else {
-        result = "(|(&(hasSubordinates=true)"+filter+")";
-      }
-      for (String containerClass : containerClasses)
-      {
-        result += "(objectClass=" + containerClass + ")";
-      }
-      result += ")";
-    }
-    else {
-      result = filter;
+  Filter getChildSearchFilter()
+  {
+    if (!showContainerOnly)
+    {
+      return filter;
     }
 
-    return result;
+    String result = "(|(&(hasSubordinates=true)" + filter + ")";
+    if (isFollowReferrals()) {
+      /* In the case we are following referrals, we have to consider referrals
+       as nodes.
+       Suppose the following scenario: a referral points to a remote entry
+       that has children (node), BUT the referral entry in the local server
+       has no children.  It won't be included in the filter and it won't
+       appear in the tree.  But what we are displaying is the remote entry,
+       the result is that we have a NODE that does not appear in the tree and
+       so the user cannot browse it.
+
+       This has some side effects:
+       If we cannot follow the referral, a leaf will appear on the tree (as it
+       if were a node).
+       If the referral points to a leaf entry, a leaf will appear on the tree
+       (as if it were a node).
+
+       This is minor compared to the impossibility of browsing a subtree with
+       the NODE/LEAF layout.
+       */
+      result += "(objectClass=referral)";
+    }
+    for (String containerClass : containerClasses)
+    {
+      result += "(objectClass=" + containerClass + ")";
+    }
+    result += ")";
+
+    return Filter.valueOf(result);
   }
 
   /**
@@ -871,8 +864,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @throws NamingException if there is an error retrieving the connection.
    * @return the LDAP connection to reading the base entry of a node.
    */
-  ConnectionWrapper findConnectionForLocalEntry(BasicNode node)
-  throws NamingException {
+  ConnectionWithControls findConnectionForLocalEntry(BasicNode node) throws NamingException {
     return findConnectionForLocalEntry(node, isConfigurationNode(node));
   }
 
@@ -883,7 +875,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @throws NamingException if there is an error retrieving the connection.
    * @return the LDAP connection to reading the base entry of a node.
    */
-  private ConnectionWrapper findConnectionForLocalEntry(BasicNode node,
+  private ConnectionWithControls findConnectionForLocalEntry(BasicNode node,
       boolean isConfigurationNode) throws NamingException
   {
     if (node == rootNode) {
@@ -936,8 +928,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the LDAP connection to search the displayed entry.
    * @throws NamingException if there is an error retrieving the connection.
    */
-  public ConnectionWrapper findConnectionForDisplayedEntry(BasicNode node)
-  throws NamingException {
+  public ConnectionWithControls findConnectionForDisplayedEntry(BasicNode node) throws NamingException {
     return findConnectionForDisplayedEntry(node, isConfigurationNode(node));
   }
 
@@ -949,9 +940,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the LDAP connection to search the displayed entry.
    * @throws NamingException if there is an error retrieving the connection.
    */
-  private ConnectionWrapper findConnectionForDisplayedEntry(BasicNode node,
+  private ConnectionWithControls findConnectionForDisplayedEntry(BasicNode node,
       boolean isConfigurationNode) throws NamingException {
-    if (followReferrals && node.getRemoteUrl() != null)
+    if (isFollowReferrals() && node.getRemoteUrl() != null)
     {
       return connectionPool.getConnection(node.getRemoteUrl());
     }
@@ -963,7 +954,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * selectConnectionForBaseEntry().
    * @param conn the connection to be released.
    */
-  void releaseLDAPConnection(ConnectionWrapper conn) {
+  void releaseLDAPConnection(ConnectionWithControls conn) {
     if (conn != connConfig && conn != connUserData)
     {
       // Thus it comes from the connection pool
@@ -977,8 +968,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the local entry URL for a given node.
    */
   LDAPURL findUrlForLocalEntry(BasicNode node) {
+    ConnectionWrapper conn = connConfig.getConnectionWrapper();
     if (node == rootNode) {
-      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", connConfig.isLdaps());
+      return LDAPConnectionPool.makeLDAPUrl(conn.getHostPort(), "", conn.isLdaps());
     }
     final BasicNode parent = (BasicNode) node.getParent();
     if (parent != null)
@@ -986,7 +978,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       final LDAPURL parentUrl = findUrlForDisplayedEntry(parent);
       return LDAPConnectionPool.makeLDAPUrl(parentUrl, node.getDN().toString());
     }
-    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN().toString(), connConfig.isLdaps());
+    return LDAPConnectionPool.makeLDAPUrl(conn.getHostPort(), node.getDN().toString(), conn.isLdaps());
   }
 
   /**
@@ -996,7 +988,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   private LDAPURL findUrlForDisplayedEntry(BasicNode node)
   {
-    if (followReferrals && node.getRemoteUrl() != null) {
+    if (isFollowReferrals() && node.getRemoteUrl() != null) {
       return node.getRemoteUrl();
     }
     return findUrlForLocalEntry(node);
@@ -1011,11 +1003,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param node the node.
    * @return the DN to use for searching children of a given node.
    */
-  String findBaseDNForChildEntries(BasicNode node) {
-    if (followReferrals && node.getRemoteUrl() != null) {
-      return node.getRemoteUrl().getRawBaseDN();
+  DN findBaseDNForChildEntries(BasicNode node) {
+    if (isFollowReferrals() && node.getRemoteUrl() != null) {
+      return DN.valueOf(node.getRemoteUrl().getRawBaseDN());
     }
-    return node.getDN().toString();
+    return node.getDN();
   }
 
   /**
@@ -1025,7 +1017,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * {@code false} otherwise.
    */
   private boolean isDisplayedEntryRemote(BasicNode node) {
-    if (followReferrals) {
+    if (isFollowReferrals()) {
       if (node == rootNode) {
         return false;
       }
@@ -1099,48 +1091,18 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Returns the request controls to search user data.
    * @return the request controls to search user data.
    */
-  private Control[] getRequestControls()
+  private List<Control> getRequestControls()
   {
-    Control ctls[];
-    if (followReferrals)
+    List<Control> controls = new LinkedList<>();
+    if (sortControl != null)
     {
-      ctls = new Control[sorted ? 2 : 1];
+      controls.add(sortControl);
     }
-    else
+    if (isFollowReferrals())
     {
-      ctls = new Control[sorted ? 1 : 0];
+      controls.add(followReferralsControl);
     }
-    if (sorted)
-    {
-      SortKey[] keys = new SortKey[SORT_ATTRIBUTES.length];
-      for (int i=0; i<keys.length; i++) {
-        keys[i] = new SortKey(SORT_ATTRIBUTES[i]);
-      }
-      try
-      {
-        ctls[0] = new SortControl(keys, false);
-      }
-      catch (IOException ioe)
-      {
-        // Bug
-        throw new RuntimeException("Unexpected encoding exception: "+ioe,
-            ioe);
-      }
-    }
-    if (followReferrals)
-    {
-      ctls[ctls.length - 1] = new ManageReferralControl(false);
-    }
-    return ctls;
-  }
-
-  /**
-   * Returns the request controls to search configuration data.
-   * @return the request controls to search configuration data.
-   */
-  private Control[] getConfigurationRequestControls()
-  {
-    return getRequestControls();
+    return controls;
   }
 
   /**
@@ -1165,11 +1127,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param task the task that progressed.
    * @param oldState the previous state of the task.
    * @param newState the new state of the task.
-   * @throws NamingException if there is an error reading entries.
    */
   private void refreshTaskDidProgress(NodeRefresher task,
       NodeRefresher.State oldState,
-      NodeRefresher.State newState) throws NamingException {
+      NodeRefresher.State newState) {
     BasicNode node = task.getNode();
     boolean nodeChanged = false;
 
@@ -1344,9 +1305,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /**
    * Updates the child nodes for a given task.
    * @param task the task.
-   * @throws NamingException if an error occurs.
    */
-  private void updateChildNodes(NodeRefresher task) throws NamingException {
+  private void updateChildNodes(NodeRefresher task) {
     BasicNode parent = task.getNode();
     ArrayList<Integer> insertIndex = new ArrayList<>();
     ArrayList<Integer> changedIndex = new ArrayList<>();
@@ -1454,8 +1414,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param entry the search result for the entry that the node represents.
    * @return whether the node display changed
    */
-  private boolean updateNodeRendering(BasicNode node, SearchResultEntry entry)
-  throws NamingException {
+  private boolean updateNodeRendering(BasicNode node, SearchResultEntry entry) {
     if (entry != null) {
       node.setNumSubOrdinates(getNumSubOrdinates(entry));
       node.setHasSubOrdinates(
@@ -1545,7 +1504,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   private String getRDN(BasicNode node)
   {
-    if (followReferrals && node.getRemoteUrl() != null) {
+    if (isFollowReferrals() && node.getRemoteUrl() != null) {
       if (showAttributeName) {
         return node.getRemoteRDNWithAttributeName();
       } else {
@@ -1561,7 +1520,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
   }
 
-  private int getAciCount(SearchResultEntry entry) throws NamingException
+  private int getAciCount(SearchResultEntry entry)
   {
     if ((displayFlags & DISPLAY_ACI_COUNT) != 0 && entry != null) {
       return asSetOfString(entry, "aci").size();
@@ -1610,7 +1569,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param childDn the DN of the entry that is being searched.
    * @return the index of the node matching childDn.
    */
-  public int findChildNode(BasicNode parent, DN childDn) {
+  public static int findChildNode(BasicNode parent, DN childDn) {
     int childCount = parent.getChildCount();
     int i = 0;
     while (i < childCount
@@ -1700,7 +1659,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @throws IllegalArgumentException if a node with the given dn exists but
    * is not a suffix node.
    */
-  private SuffixNode findSuffixNode(DN suffixDn, SuffixNode suffixNode)
+  private static SuffixNode findSuffixNode(DN suffixDn, SuffixNode suffixNode)
       throws IllegalArgumentException
   {
     if (suffixNode.getDN().equals(suffixDn)) {
@@ -1797,11 +1756,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Returns the value of the 'ref' attribute.
    * {@code null} if the attribute is not present.
    * @param entry the entry to analyze.
-   * @throws NamingException if an error occurs.
    * @return the value of the ref attribute.  {@code null} if the attribute
    * could not be found.
    */
-  public static String[] getReferral(SearchResultEntry entry) throws NamingException
+  public static String[] getReferral(SearchResultEntry entry)
   {
     Set<String> values = asSetOfString(entry, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     for (String value : values)

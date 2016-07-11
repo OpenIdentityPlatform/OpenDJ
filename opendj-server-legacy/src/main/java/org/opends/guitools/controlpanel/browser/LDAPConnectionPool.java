@@ -22,11 +22,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.Control;
 import javax.net.ssl.KeyManager;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.ManageDsaITRequestControl;
+import org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection.Type;
@@ -70,28 +71,33 @@ public class LDAPConnectionPool {
 
   private ArrayList<ReferralAuthenticationListener> listeners;
 
-  private Control[] requestControls = new Control[] {};
+  private ServerSideSortRequestControl sortControl;
+  private ManageDsaITRequestControl followReferralsControl;
   private ApplicationTrustManager trustManager;
   private int connectTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
 
   /**
-   * Returns <CODE>true</CODE> if the connection passed is registered in the
-   * connection pool, <CODE>false</CODE> otherwise.
-   * @param conn the connection.
-   * @return <CODE>true</CODE> if the connection passed is registered in the
-   * connection pool, <CODE>false</CODE> otherwise.
+   * Returns whether the connection passed is registered in the connection pool.
+   *
+   * @param conn
+   *          the connection.
+   * @return {@code true} if the connection passed is registered in the connection pool,
+   *         {@code false} otherwise.
    */
   public boolean isConnectionRegistered(ConnectionWrapper conn) {
     for (String key : connectionTable.keySet())
     {
-      ConnectionRecord cr = connectionTable.get(key);
-      if (cr.conn != null
-          && cr.conn.getHostPort().equals(conn.getHostPort())
-          && cr.conn.getBindDn().equals(conn.getBindDn())
-          && cr.conn.getBindPassword().equals(conn.getBindPassword())
-          && cr.conn.getConnectionType() == conn.getConnectionType())
+      final ConnectionRecord cr = connectionTable.get(key);
+      if (cr.conn != null)
       {
-        return true;
+        final ConnectionWrapper c = cr.conn.getConnectionWrapper();
+        if (c.getHostPort().equals(conn.getHostPort())
+            && c.getBindDn().equals(conn.getBindDn())
+            && c.getBindPassword().equals(conn.getBindPassword())
+            && c.getConnectionType() == conn.getConnectionType())
+        {
+          return true;
+        }
       }
     }
     return false;
@@ -106,7 +112,7 @@ public class LDAPConnectionPool {
     LDAPURL url = makeLDAPUrl(conn);
     String key = makeKeyFromLDAPUrl(url);
     ConnectionRecord cr = new ConnectionRecord();
-    cr.conn = conn;
+    cr.conn = new ConnectionWithControls(conn, sortControl, followReferralsControl);
     cr.counter = 1;
     cr.disconnectAfterUse = false;
     connectionTable.put(key, cr);
@@ -155,8 +161,8 @@ public class LDAPConnectionPool {
    * @return a connection to the provided LDAP URL.
    * @throws NamingException if there was an error connecting.
    */
-  public ConnectionWrapper getConnection(LDAPURL ldapUrl)
-  throws NamingException {
+  public ConnectionWithControls getConnection(LDAPURL ldapUrl) throws NamingException
+  {
     String key = makeKeyFromLDAPUrl(ldapUrl);
     ConnectionRecord cr;
 
@@ -186,7 +192,6 @@ public class LDAPConnectionPool {
             registerAuth = true;
           }
           cr.conn = createLDAPConnection(ldapUrl, authRecord);
-          cr.conn.getLdapContext().setRequestControls(requestControls);
           if (registerAuth)
           {
             authTable.put(key, authRecord);
@@ -208,20 +213,24 @@ public class LDAPConnectionPool {
   }
 
   /**
-   * Sets the request controls to be used by the connections of this connection
-   * pool.
-   * @param ctls the request controls.
-   * @throws NamingException if an error occurs updating the connections.
+   * Sets the request controls to be used by the connections of this connection pool.
+   *
+   * @param sortControl
+   *          the sort control.
+   * @param followReferralsControl
+   *          the manage dsa it control.
    */
-  public synchronized void setRequestControls(Control[] ctls)
-  throws NamingException
+  public synchronized void setRequestControls(
+      ServerSideSortRequestControl sortControl,
+      ManageDsaITRequestControl followReferralsControl)
   {
-    requestControls = ctls;
+    this.sortControl = sortControl;
+    this.followReferralsControl = followReferralsControl;
     for (ConnectionRecord cr : connectionTable.values())
     {
       if (cr.conn != null)
       {
-        cr.conn.getLdapContext().setRequestControls(requestControls);
+        cr.conn.setRequestControls(sortControl, followReferralsControl);
       }
     }
   }
@@ -234,7 +243,7 @@ public class LDAPConnectionPool {
    * @param conn
    *          the connection to be released.
    */
-  public synchronized void releaseConnection(ConnectionWrapper conn) {
+  public synchronized void releaseConnection(ConnectionWithControls conn) {
     String targetKey = null;
     ConnectionRecord targetRecord = null;
     synchronized(this) {
@@ -377,7 +386,8 @@ public class LDAPConnectionPool {
    * @return the key to be used in Maps for the provided connection record.
    */
   private static String makeKeyFromRecord(ConnectionRecord rec) {
-    return (rec.conn.isLdaps() ? "LDAPS" : "LDAP") + ":" + rec.conn.getHostPort();
+    ConnectionWrapper conn = rec.conn.getConnectionWrapper();
+    return (conn.isLdaps() ? "LDAPS" : "LDAP") + ":" + conn.getHostPort();
   }
 
   /**
@@ -388,12 +398,13 @@ public class LDAPConnectionPool {
    * @return a connection.
    * @throws NamingException if an error occurs when connecting.
    */
-  private ConnectionWrapper createLDAPConnection(LDAPURL ldapUrl, AuthRecord ar) throws NamingException
+  private ConnectionWithControls createLDAPConnection(LDAPURL ldapUrl, AuthRecord ar) throws NamingException
   {
     final HostPort hostPort = new HostPort(ldapUrl.getHost(), ldapUrl.getPort());
     final Type connectiontype = isSecureLDAPUrl(ldapUrl) ? LDAPS : LDAP;
-    return new ConnectionWrapper(hostPort, connectiontype, ar.dn, ar.password,
+    final ConnectionWrapper conn = new ConnectionWrapper(hostPort, connectiontype, ar.dn, ar.password,
         getConnectTimeout(), getTrustManager(), getKeyManager());
+    return new ConnectionWithControls(conn, sortControl, followReferralsControl);
   }
 
   /**
@@ -496,7 +507,6 @@ public class LDAPConnectionPool {
         null, // No filter
         null); // No extensions
   }
-
 }
 
 /** A structure representing authentication data. */
@@ -507,7 +517,7 @@ class AuthRecord {
 
 /** A structure representing an active connection. */
 class ConnectionRecord {
-  ConnectionWrapper conn;
+  ConnectionWithControls conn;
   int counter;
   boolean disconnectAfterUse;
 }

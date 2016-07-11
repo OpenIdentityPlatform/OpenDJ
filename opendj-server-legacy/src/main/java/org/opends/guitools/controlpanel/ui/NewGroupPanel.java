@@ -190,8 +190,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
         {
           try
           {
-            DN.valueOf(member);
-            if (!entryExists(member))
+            if (!entryExists(DN.valueOf(member)))
             {
               errorFound = true;
               errors.add(ERR_CTRL_PANEL_MEMBER_NOT_FOUND.get(member));
@@ -258,13 +257,13 @@ public class NewGroupPanel extends AbstractNewEntryPanel
       String ref = referenceGroup.getText().trim();
       try
       {
-        DN.valueOf(ref);
-        if (!entryExists(ref))
+        DN refDN = DN.valueOf(ref);
+        if (!entryExists(refDN))
         {
           errorFound = true;
           errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_FOUND.get());
         }
-        else if (!hasObjectClass(ref, ServerConstants.OC_GROUP_OF_URLS))
+        else if (!hasObjectClass(refDN, ServerConstants.OC_GROUP_OF_URLS))
         {
           errorFound = true;
           errors.add(ERR_CTRL_PANEL_REFERENCE_GROUP_NOT_DYNAMIC.get());

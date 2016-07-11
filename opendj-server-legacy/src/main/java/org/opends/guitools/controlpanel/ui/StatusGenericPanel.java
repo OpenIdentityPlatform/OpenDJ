@@ -71,6 +71,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -1999,15 +2000,13 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
   }
 
   /**
-   * Tells whether an entry exists or not. Actually it tells if we could find a
-   * given entry or not.
+   * Tells whether an entry exists or not. Actually it tells if we could find a given entry or not.
    *
    * @param dn
    *          the DN of the entry to look for.
-   * @return <CODE>true</CODE> if the entry with the provided DN could be found
-   *         and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the entry with the provided DN could be found, {@code false} otherwise.
    */
-  protected boolean entryExists(final String dn)
+  protected boolean entryExists(final DN dn)
   {
     try
     {
@@ -2021,17 +2020,16 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
   }
 
   /**
-   * Tells whether a given entry exists and contains one of the specified object
-   * classes.
+   * Tells whether a given entry exists and contains one of the specified object classes.
    *
    * @param dn
    *          the DN of the entry.
    * @param objectClasses
    *          the object classes to check.
-   * @return <CODE>true</CODE> if the entry exists and contains one of the
-   *         specified object classes and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the entry exists and contains one of the specified object classes,
+   *         {@code false} otherwise.
    */
-  protected boolean hasObjectClass(final String dn, final String... objectClasses)
+  protected boolean hasObjectClass(final DN dn, final String... objectClasses)
   {
     SearchRequest request = newSearchRequest(dn, BASE_OBJECT, ALL_OBJECTS_FILTER, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     try (ConnectionEntryReader entryReader = getInfo().getConnection().getConnection().search(request))

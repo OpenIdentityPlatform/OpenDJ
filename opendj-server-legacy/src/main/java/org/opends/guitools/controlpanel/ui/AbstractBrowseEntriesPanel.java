@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.opends.guitools.controlpanel.browser.BrowserController.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -69,13 +70,14 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.Filter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -96,10 +98,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
 
 /**
@@ -614,14 +612,14 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
     {
       errors.add(INFO_CTRL_PANEL_NO_BASE_DN_SELECTED.get());
     }
-    String filterValue = getFilter();
+    Filter filterValue = null;
     try
     {
-      LDAPFilter.decode(filterValue);
+      filterValue = getFilter();
     }
-    catch (LDAPException le)
+    catch (LocalizedIllegalArgumentException e)
     {
-      errors.add(INFO_CTRL_PANEL_INVALID_FILTER_DETAILS.get(le.getMessageObject()));
+      errors.add(INFO_CTRL_PANEL_INVALID_FILTER_DETAILS.get(e.getMessageObject()));
       setPrimaryInvalid(lFilter);
     }
     if (errors.isEmpty())
@@ -672,7 +670,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           else
           {
             BasicNode rootNode = (BasicNode) controller.getTree().getModel().getRoot();
-            if (controller.findChildNode(rootNode, theDN) == -1)
+            if (findChildNode(rootNode, theDN) == -1)
             {
               controller.addNodeUnderRoot(theDN);
             }
@@ -710,7 +708,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    *
    * @return the LDAP filter built based in the parameters provided by the user.
    */
-  private String getFilter()
+  private Filter getFilter()
   {
     String filterText = filter.getText();
     if (filterText.length() == 0)
@@ -727,39 +725,41 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
         return BrowserController.ALL_OBJECTS_FILTER;
       }
 
-      return filterText;
+      return Filter.valueOf(filterText);
     }
     else if (USER_FILTER.equals(attr))
     {
       if ("*".equals(filterText))
       {
-        return "(objectClass=person)";
+        return Filter.valueOf("(objectClass=person)");
       }
 
-      return "(&(objectClass=person)(|" + "(cn=" + filterText + ")(sn=" + filterText + ")(uid=" + filterText + ")))";
+      return Filter.valueOf(
+          "(&(objectClass=person)"
+              + "(|(cn=" + filterText + ")"
+                  + "(sn=" + filterText + ")"
+                  + "(uid=" + filterText + ")))");
     }
     else if (GROUP_FILTER.equals(attr))
     {
       if ("*".equals(filterText))
       {
-        return "(|(objectClass=groupOfUniqueNames)(objectClass=groupOfURLs))";
+        return Filter.valueOf("(|(objectClass=groupOfUniqueNames)(objectClass=groupOfURLs))");
       }
 
-      return "(&(|(objectClass=groupOfUniqueNames)(objectClass=groupOfURLs))" + "(cn=" + filterText + "))";
+      return Filter.valueOf(
+          "(&(|(objectClass=groupOfUniqueNames)(objectClass=groupOfURLs))" + "(cn=" + filterText + "))");
     }
     else if (attr != null)
     {
       try
       {
-        return new LDAPFilter(SearchFilter.createFilterFromString("(" + attr + "=" + filterText + ")")).toString();
+        return Filter.valueOf("(" + attr + "=" + filterText + ")");
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException ignored)
       {
         // Try this alternative:
-        AttributeType attrType =
-            getInfo().getServerDescriptor().getSchema().getAttributeType(attr.toString().toLowerCase());
-        ByteString filterBytes = ByteString.valueOfUtf8(filterText);
-        return new LDAPFilter(SearchFilter.createEqualityFilter(attrType, filterBytes)).toString();
+        return Filter.equality(attr.toString(), filterText);
       }
     }
     else
@@ -835,7 +835,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
                 }
                 else
                 {
-                  int index = controller.findChildNode(rootNode, baseDN);
+                  int index = findChildNode(rootNode, baseDN);
                   if (index >= 0)
                   {
                     TreeNode node = rootNode.getChildAt(index);
@@ -857,7 +857,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
             }
           }
         }
-        if (isSubordinate && controller.findChildNode(rootNode, theDN) == -1)
+        if (isSubordinate && findChildNode(rootNode, theDN) == -1)
         {
           controller.addNodeUnderRoot(theDN);
         }
@@ -1189,8 +1189,8 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
         try
         {
           ConnectionWrapper conn = getInfo().getConnection();
-          ConnectionWrapper conn1 = controller.getConfigurationConnection();
-          boolean setConnection = conn != conn1;
+          ConnectionWithControls conn1 = controller.getConfigurationConnection();
+          boolean setConnection = conn1 == null || conn1.getConnectionWrapper() != conn;
           updateNumSubordinateHacker(desc);
           if (setConnection)
           {
@@ -1199,23 +1199,15 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
               ConnectionWrapper connUserData = createUserDataDirContext(conn.getBindDn(), conn.getBindPassword());
               getInfo().setUserDataDirContext(connUserData);
             }
-            final NamingException[] fNe = { null };
             Runnable runnable = new Runnable()
             {
               @Override
               public void run()
               {
-                try
-                {
-                  ControlPanelInfo info = getInfo();
-                  controller.setConnections(
-                      info.getServerDescriptor(), info.getConnection(), info.getUserDataDirContext());
-                  applyButtonClicked();
-                }
-                catch (NamingException ne)
-                {
-                  fNe[0] = ne;
-                }
+                ControlPanelInfo info = getInfo();
+                controller.setConnections(
+                    info.getServerDescriptor(), info.getConnection(), info.getUserDataDirContext());
+                applyButtonClicked();
               }
             };
             if (!SwingUtilities.isEventDispatchThread())
@@ -1229,11 +1221,6 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
             else
             {
               runnable.run();
-            }
-
-            if (fNe[0] != null)
-            {
-              throw fNe[0];
             }
           }
           displayNodes = true;
@@ -1341,7 +1328,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
               if (!added && !displayAll)
               {
                 BasicNode rootNode = (BasicNode) controller.getTree().getModel().getRoot();
-                if (controller.findChildNode(rootNode, theDN) == -1)
+                if (findChildNode(rootNode, theDN) == -1)
                 {
                   controller.addNodeUnderRoot(theDN);
                 }

@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
 import org.opends.guitools.controlpanel.event.EntryReadEvent;
 import org.opends.guitools.controlpanel.event.EntryReadListener;
@@ -41,7 +41,7 @@ import org.opends.guitools.controlpanel.event.EntryReadListener;
 public class LDAPEntryReader extends BackgroundTask<Entry>
 {
   private final DN dn;
-  private final ConnectionWrapper conn;
+  private final ConnectionWithControls conn;
   private final Set<EntryReadListener> listeners = new HashSet<>();
   private boolean isOver;
   private boolean notifyListeners;
@@ -51,7 +51,7 @@ public class LDAPEntryReader extends BackgroundTask<Entry>
    * @param dn the DN of the entry.
    * @param conn the connection to the server.
    */
-  public LDAPEntryReader(DN dn, ConnectionWrapper conn)
+  public LDAPEntryReader(DN dn, ConnectionWithControls conn)
   {
     this.dn = dn;
     this.conn = conn;
@@ -64,7 +64,7 @@ public class LDAPEntryReader extends BackgroundTask<Entry>
     isOver = false;
     final Filter filter = Filter.valueOf("(|(objectclass=*)(objectclass=ldapsubentry))");
     SearchRequest request = Requests.newSearchRequest(dn, BASE_OBJECT, filter, "*", "+");
-    SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
+    SearchResultEntry sr = conn.searchSingleEntry(request);
     if (isInterrupted())
     {
       isOver = true;

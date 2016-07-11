@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -86,10 +87,10 @@ public class ResetUserPasswordTask extends Task
 
     try
     {
-      ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+      ConnectionWithControls conn = controller.findConnectionForDisplayedEntry(node);
       if (conn != null && isBoundAs(dn, conn))
       {
-        currentPassword = conn.getBindPassword().toCharArray();
+        currentPassword = conn.getConnectionWrapper().getBindPassword().toCharArray();
       }
     }
     catch (Throwable t)
@@ -225,16 +226,16 @@ public class ResetUserPasswordTask extends Task
    * @param conn the connection that we are using to modify the password.
    * @return {@code true} if we are bound using the provided entry.
    */
-  private boolean isBoundAs(DN dn, ConnectionWrapper conn)
+  private boolean isBoundAs(DN dn, ConnectionWithControls conn)
   {
-    final DN bindDN = conn.getBindDn();
+    final DN bindDN = conn.getConnectionWrapper().getBindDn();
     boolean isBoundAs = dn.equals(bindDN);
     if (!isBoundAs)
     {
       String attrName = ATTR_ROOTDN_ALTERNATE_BIND_DN;
       Filter filter = Filter.valueOf("(|(objectClass=*)(objectclass=ldapsubentry))");
       SearchRequest request = newSearchRequest(dn, BASE_OBJECT, filter, attrName);
-      try (ConnectionEntryReader entries = conn.getConnection().search(request))
+      try (ConnectionEntryReader entries = conn.search(request))
       {
         while (entries.hasNext())
         {

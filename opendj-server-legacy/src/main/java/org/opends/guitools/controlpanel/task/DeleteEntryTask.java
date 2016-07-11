@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -187,7 +188,7 @@ public class DeleteEntryTask extends Task
         DN dn = node.getDN();
         if (!isAlreadyDeleted(alreadyDeleted, dn))
         {
-          ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+          ConnectionWithControls conn = controller.findConnectionForDisplayedEntry(node);
           useAdminCtx = controller.isConfigurationNode(node);
           if (node.hasSubOrdinates())
           {
@@ -279,7 +280,7 @@ public class DeleteEntryTask extends Task
     }
   }
 
-  private void deleteSubtreeRecursively(ConnectionWrapper conn, DN dnToRemove, TreePath path,
+  private void deleteSubtreeRecursively(ConnectionWithControls conn, DN dnToRemove, TreePath path,
       List<BrowserNodeInfo> toNotify) throws NamingException, IOException, DirectoryException
   {
     lastDn = dnToRemove;
@@ -313,7 +314,7 @@ public class DeleteEntryTask extends Task
 
     String filter = "(|(objectClass=*)(objectclass=ldapsubentry))";
     SearchRequest request = newSearchRequest(dnToRemove, SINGLE_LEVEL, Filter.valueOf(filter), NO_ATTRIBUTES);
-    try (ConnectionEntryReader entryDNs = conn.getConnection().search(request))
+    try (ConnectionEntryReader entryDNs = conn.search(request))
     {
       while (entryDNs.hasNext())
       {
@@ -331,7 +332,7 @@ public class DeleteEntryTask extends Task
 
     try
     {
-      conn.getConnection().delete(dnToRemove.toString());
+      conn.delete(newDeleteRequest(dnToRemove));
       if (path != null)
       {
         toNotify.add(controller.getNodeInfoFromPath(path));
@@ -372,8 +373,8 @@ public class DeleteEntryTask extends Task
     }
   }
 
-  private void deleteSubtreeWithControl(ConnectionWrapper conn, DN dn, TreePath path, List<BrowserNodeInfo> toNotify)
-      throws LdapException, NamingException
+  private void deleteSubtreeWithControl(ConnectionWithControls conn, DN dn, TreePath path,
+      List<BrowserNodeInfo> toNotify) throws LdapException, NamingException
   {
     lastDn = dn;
     long t = System.currentTimeMillis();
@@ -395,11 +396,12 @@ public class DeleteEntryTask extends Task
                     ColorAndFontConstants.defaultFont)));
       }
     });
-    //  Use a copy of the dir context since we are using an specific
+    // Use a copy of the connection since we are using a specific
     // control to delete the subtree and this can cause
     // synchronization problems when the tree is refreshed.
     ControlPanelInfo info = getInfo();
-    try (ConnectionWrapper conn1 = cloneConnectionWrapper(conn, info.getConnectTimeout(), info.getTrustManager(), null))
+    try (ConnectionWrapper conn1 =
+        cloneConnectionWrapper(conn.getConnectionWrapper(), info.getConnectTimeout(), info.getTrustManager(), null))
     {
       DeleteRequest request = newDeleteRequest(dn).addControl(SubtreeDeleteRequestControl.newControl(true));
       conn1.getConnection().delete(request);

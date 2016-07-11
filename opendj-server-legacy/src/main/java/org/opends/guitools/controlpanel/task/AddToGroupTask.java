@@ -37,7 +37,6 @@ import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -207,7 +206,7 @@ public class AddToGroupTask extends Task
   private void addModifications(DN groupDn, Set<DN> dns, ModifyRequest modRequest) throws IOException
   {
     // Search for the group entry
-    SearchRequest searchRequest = newSearchRequest(groupDn, BASE_OBJECT, Filter.valueOf(ALL_OBJECTS_FILTER),
+    SearchRequest searchRequest = newSearchRequest(groupDn, BASE_OBJECT, ALL_OBJECTS_FILTER,
         OBJECTCLASS_ATTRIBUTE_TYPE_NAME,
         ATTR_MEMBER,
         ATTR_UNIQUE_MEMBER);

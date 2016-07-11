@@ -43,6 +43,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.AddToGroupTask;
 import org.opends.guitools.controlpanel.task.Task;
@@ -50,9 +53,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.ServerConstants;
 
 /** The dialog that is displayed when we want to add entries to a set of groups. */
@@ -327,24 +327,23 @@ public class AddToGroupPanel extends StatusGenericPanel
 
     String[] grs = groups.getText().split("\n");
     boolean oneGroupDefined = false;
-    for (String groupDn : grs)
+    for (String groupDnStr : grs)
     {
-      groupDn = groupDn.trim();
-      if (groupDn.length() > 0)
+      groupDnStr = groupDnStr.trim();
+      if (groupDnStr.length() > 0)
       {
         try
         {
-          DN.valueOf(groupDn);
-          if (!entryExists(groupDn))
+          DN groupDN = DN.valueOf(groupDnStr);
+          if (!entryExists(groupDN))
           {
-            errors.add(
-                ERR_CTRL_PANEL_GROUP_COULD_NOT_BE_FOUND.get(groupDn));
+            errors.add(ERR_CTRL_PANEL_GROUP_COULD_NOT_BE_FOUND.get(groupDnStr));
           }
-          else if (!hasObjectClass(groupDn, ServerConstants.OC_GROUP_OF_NAMES,
+          else if (!hasObjectClass(groupDN, ServerConstants.OC_GROUP_OF_NAMES,
             ServerConstants.OC_GROUP_OF_ENTRIES,
             ServerConstants.OC_GROUP_OF_UNIQUE_NAMES))
           {
-            errors.add(ERR_CTRL_PANEL_NOT_A_STATIC_GROUP.get(groupDn));
+            errors.add(ERR_CTRL_PANEL_NOT_A_STATIC_GROUP.get(groupDnStr));
           }
           else
           {
@@ -353,7 +352,7 @@ public class AddToGroupPanel extends StatusGenericPanel
         }
         catch (LocalizedIllegalArgumentException e)
         {
-          errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(groupDn, e.getMessageObject()));
+          errors.add(INFO_CTRL_PANEL_INVALID_DN_DETAILS.get(groupDnStr, e.getMessageObject()));
         }
       }
     }

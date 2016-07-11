@@ -43,8 +43,8 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CannotRenameException;
@@ -205,7 +205,7 @@ public class ModifyEntryTask extends Task
     try
     {
       BasicNode node = (BasicNode)treePath.getLastPathComponent();
-      ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+      ConnectionWithControls conn = controller.findConnectionForDisplayedEntry(node);
       useAdminCtx = controller.isConfigurationNode(node);
       if (!mustRename)
       {
@@ -224,7 +224,7 @@ public class ModifyEntryTask extends Task
             }
           });
 
-          conn.getConnection().modify(newModifyRequest0(oldEntry.getName(), modifications));
+          conn.modify(newModifyRequest0(oldEntry.getName(), modifications));
 
           SwingUtilities.invokeLater(new Runnable()
           {
@@ -295,7 +295,7 @@ public class ModifyEntryTask extends Task
    * @throws CannotRenameException if we cannot perform the modification.
    * @throws LdapException if an error performing the modification occurs.
    */
-  private void modifyAndRename(ConnectionWrapper conn, final DN oldDN,
+  private void modifyAndRename(ConnectionWithControls conn, final DN oldDN,
       org.forgerock.opendj.ldap.Entry originalEntry,
       final Entry newEntry, final List<Modification> originalMods)
       throws CannotRenameException, LdapException
@@ -325,7 +325,7 @@ public class ModifyEntryTask extends Task
       }
     });
 
-    conn.getConnection().modifyDN(newModifyDNRequest(oldDn, newRDN));
+    conn.modifyDN(newModifyDNRequest(oldDn, newRDN));
 
     final TreePath[] newPath = {null};
 
@@ -361,7 +361,7 @@ public class ModifyEntryTask extends Task
         }
       });
 
-      conn.getConnection().modify(newModifyRequest0(newEntry.getName(), originalMods));
+      conn.modify(newModifyRequest0(newEntry.getName(), originalMods));
 
       SwingUtilities.invokeLater(new Runnable()
       {

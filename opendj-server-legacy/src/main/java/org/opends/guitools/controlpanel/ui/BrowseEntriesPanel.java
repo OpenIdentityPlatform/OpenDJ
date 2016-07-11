@@ -43,7 +43,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import javax.naming.InterruptedNamingException;
-import javax.naming.NamingException;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -66,7 +65,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.browser.NodeRefresher;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -503,7 +502,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     if (node != null)
     {
       DN dn;
-      if (controller.getFollowReferrals() &&
+      if (controller.isFollowReferrals() &&
           node.getReferral() != null &&
           node.getRemoteUrl() == null &&
           node.getError() != null &&
@@ -514,7 +513,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         entryPane.referralSolveError(node.getDN(), node.getReferral(), node.getError());
         dn = null;
       }
-      else if (controller.getFollowReferrals() && node.getRemoteUrl() != null)
+      else if (controller.isFollowReferrals() && node.getRemoteUrl() != null)
       {
         dn = DN.valueOf(node.getRemoteUrl().getRawBaseDN());
       }
@@ -527,11 +526,10 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       {
         try
         {
-          ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+          ConnectionWithControls conn = controller.findConnectionForDisplayedEntry(node);
           LDAPEntryReader reader = new LDAPEntryReader(dn, conn);
           reader.addEntryReadListener(entryPane);
-          // Required to update the browser controller properly if the entry is
-          // deleted.
+          // Required to update the browser controller properly if the entry is deleted.
           entryPane.setTreePath(path);
           stopCurrentReader();
           startReader(reader);
@@ -1246,23 +1244,13 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       menu.add(sortUserData);
       menu.add(followReferrals);
       sortUserData.setSelected(entryPane.getController().isSorted());
-      followReferrals.setSelected(
-          entryPane.getController().getFollowReferrals());
+      followReferrals.setSelected(entryPane.getController().isFollowReferrals());
       sortUserData.addActionListener(new ActionListener()
       {
         @Override
         public void actionPerformed(ActionEvent ev)
         {
-          try
-          {
-            entryPane.getController().setSorted(sortUserData.isSelected());
-          }
-          catch (NamingException ne)
-          {
-            // Bug
-            System.err.println("Unexpected error updating sorting.");
-            ne.printStackTrace();
-          }
+          entryPane.getController().setSorted(sortUserData.isSelected());
         }
       });
       followReferrals.addActionListener(new ActionListener()
@@ -1270,17 +1258,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         @Override
         public void actionPerformed(ActionEvent ev)
         {
-          try
-          {
-            entryPane.getController().setFollowReferrals(
-                followReferrals.isSelected());
-          }
-          catch (NamingException ne)
-          {
-            // Bug
-            System.err.println("Unexpected error updating referral state.");
-            ne.printStackTrace();
-          }
+          entryPane.getController().setFollowReferrals(followReferrals.isSelected());
         }
       });
       // Add the refresh menu
