@@ -1482,7 +1482,7 @@ public class Utils
     }
 
     cmdLine.add("--rootUserDN");
-    cmdLine.add(userData.getDirectoryManagerDn());
+    cmdLine.add(userData.getDirectoryManagerDn().toString());
 
     cmdLine.add("--rootUserPassword");
     cmdLine.add(OBFUSCATED_VALUE);
@@ -1633,7 +1633,7 @@ public class Utils
     cmdLine.add("--port2");
     cmdLine.add(String.valueOf(userData.getAdminConnectorPort()));
     cmdLine.add("--bindDN2");
-    cmdLine.add(userData.getDirectoryManagerDn());
+    cmdLine.add(userData.getDirectoryManagerDn().toString());
     cmdLine.add("--bindPassword2");
     cmdLine.add(OBFUSCATED_VALUE);
     if (replOptions.getReplicationPort() != -1)
@@ -1848,7 +1848,7 @@ public class Utils
     List<String> connectionArgs = newArrayList(
         "--hostName", userData.getHostName(),
         "--port", String.valueOf(userData.getAdminConnectorPort()),
-        "--bindDN", userData.getDirectoryManagerDn(),
+        "--bindDN", userData.getDirectoryManagerDn().toString(),
         "--bindPassword", OBFUSCATED_VALUE,
         "--trustAll",
         "--no-prompt",

@@ -1225,7 +1225,7 @@ public class Installer extends GuiApplication
     }
 
     argList.add("-D");
-    argList.add(getUserData().getDirectoryManagerDn());
+    argList.add(getUserData().getDirectoryManagerDn().toString());
 
     argList.add("-w");
     argList.add(getUserData().getDirectoryManagerPwd());
@@ -3128,7 +3128,7 @@ public class Installer extends GuiApplication
     }
     else
     {
-      getUserData().setDirectoryManagerDn(dmDn);
+      getUserData().setDirectoryManagerDn(DN.valueOf(dmDn));
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, false);
     }
 
@@ -4087,7 +4087,7 @@ public class Installer extends GuiApplication
   {
     UserData uData = getUserData();
     HostPort hostPort = new HostPort(uData.getHostName(), uData.getAdminConnectorPort());
-    DN dn = DN.valueOf(uData.getDirectoryManagerDn());
+    DN dn = uData.getDirectoryManagerDn();
     String pwd = uData.getDirectoryManagerPwd();
     return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), null);
   }

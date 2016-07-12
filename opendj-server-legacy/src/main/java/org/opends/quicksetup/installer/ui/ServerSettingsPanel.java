@@ -16,6 +16,8 @@
  */
 package org.opends.quicksetup.installer.ui;
 
+import static org.opends.messages.QuickSetupMessages.*;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -33,6 +35,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.quicksetup.SecurityOptions;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.BrowseActionListener;
 import org.opends.quicksetup.ui.FieldName;
 import org.opends.quicksetup.ui.GuiApplication;
@@ -40,12 +45,7 @@ import org.opends.quicksetup.ui.LabelFieldDescriptor;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.opends.quicksetup.SecurityOptions;
-import org.opends.quicksetup.UserData;
-
 import org.opends.server.util.CertificateManager;
-import org.forgerock.i18n.LocalizableMessage;
-import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This is the panel that contains the Server Settings: the port, the Directory
@@ -337,7 +337,7 @@ public class ServerSettingsPanel extends QuickSetupStepPanel
       break;
 
     case DIRECTORY_MANAGER_DN:
-      value = defaultUserData.getDirectoryManagerDn();
+      value = defaultUserData.getDirectoryManagerDn().toString();
       break;
 
     case DIRECTORY_MANAGER_PWD:

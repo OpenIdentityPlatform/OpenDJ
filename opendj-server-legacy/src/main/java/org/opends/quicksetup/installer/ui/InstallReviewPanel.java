@@ -106,7 +106,7 @@ public class InstallReviewPanel extends ReviewPanel {
     setFieldValue(FieldName.SERVER_PORT, Integer.toString(userData.getServerPort()));
     setFieldValue(FieldName.ADMIN_CONNECTOR_PORT, Integer.toString(userData.getAdminConnectorPort()));
     setFieldValue(FieldName.SECURITY_OPTIONS, Utils.getSecurityOptionsString(userData.getSecurityOptions(), false));
-    setFieldValue(FieldName.DIRECTORY_MANAGER_DN, userData.getDirectoryManagerDn());
+    setFieldValue(FieldName.DIRECTORY_MANAGER_DN, userData.getDirectoryManagerDn().toString());
     setFieldValue(FieldName.DATA_OPTIONS, Utils.getDataDisplayString(userData));
 
     final boolean mustCreateAdministrator = userData.mustCreateAdministrator();

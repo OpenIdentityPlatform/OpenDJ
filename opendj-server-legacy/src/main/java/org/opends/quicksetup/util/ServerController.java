@@ -444,7 +444,7 @@ public class ServerController {
 
     // See if the application has prompted for credentials.  If
     // not we'll just try to connect anonymously.
-    String userDn = null;
+    DN userDn = null;
     String userPw = null;
     if (application != null) {
       userDn = application.getUserData().getDirectoryManagerDn();
@@ -467,7 +467,7 @@ public class ServerController {
           timeout = application.getUserData().getConnectTimeout();
         }
         try (ConnectionWrapper conn =
-            new ConnectionWrapper(ldapUrl, Type.LDAPS, DN.valueOf(userDn), userPw, timeout, null))
+            new ConnectionWrapper(ldapUrl, Type.LDAPS, userDn, userPw, timeout, null))
         {
           return;
         }

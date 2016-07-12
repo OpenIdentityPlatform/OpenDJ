@@ -193,8 +193,8 @@ public class InstallDS extends ConsoleApplication
   private String lastResetKeyStorePath;
   private Boolean lastResetEnableWindowsService;
   private Boolean lastResetStartServer;
-  private String lastResetBaseDN = Installation.DEFAULT_INTERACTIVE_BASE_DN;
-  private String lastResetDirectoryManagerDN;
+  private DN lastResetBaseDN = DN.valueOf(Installation.DEFAULT_INTERACTIVE_BASE_DN);
+  private DN lastResetDirectoryManagerDN;
   private Integer lastResetLdapPort;
   private Integer lastResetLdapsPort;
   private Integer lastResetAdminConnectorPort;
@@ -289,7 +289,7 @@ public class InstallDS extends ConsoleApplication
       return InstallReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
 
-    lastResetDirectoryManagerDN = argParser.directoryManagerDNArg.getDefaultValue();
+    lastResetDirectoryManagerDN = DN.valueOf(argParser.directoryManagerDNArg.getDefaultValue());
     lastResetLdapPort = Integer.parseInt(argParser.ldapPortArg.getDefaultValue());
     lastResetLdapsPort = Integer.parseInt(argParser.ldapsPortArg.getDefaultValue());
     lastResetAdminConnectorPort = Integer.parseInt(argParser.adminConnectorPortArg.getDefaultValue());
@@ -661,7 +661,7 @@ public class InstallDS extends ConsoleApplication
       errorMessages.add(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
     }
     checkBaseDN(dmDN, errorMessages);
-    uData.setDirectoryManagerDn(argParser.directoryManagerDNArg.getValue());
+    uData.setDirectoryManagerDn(DN.valueOf(argParser.directoryManagerDNArg.getValue()));
 
     // Check the validity of the directory manager password
     if (argParser.getDirectoryManagerPassword().isEmpty()) {
@@ -902,7 +902,7 @@ public class InstallDS extends ConsoleApplication
   {
     final LinkedList<String> dns = promptIfRequiredForDNs(
             argParser.directoryManagerDNArg, lastResetDirectoryManagerDN, INFO_INSTALLDS_PROMPT_ROOT_DN.get(), true);
-    uData.setDirectoryManagerDn(dns.getFirst());
+    uData.setDirectoryManagerDn(DN.valueOf(dns.getFirst()));
 
     int nTries = 0;
     String pwd = argParser.getDirectoryManagerPassword();
@@ -956,7 +956,7 @@ public class InstallDS extends ConsoleApplication
    * @throws UserDataException
    *           if something went wrong checking the data.
    */
-  private LinkedList<String> promptIfRequiredForDNs(StringArgument arg, String valueToSuggest,
+  private LinkedList<String> promptIfRequiredForDNs(StringArgument arg, DN valueToSuggest,
           LocalizableMessage promptMsg, boolean includeLineBreak) throws UserDataException
   {
     final LinkedList<String> dns = new LinkedList<>();
@@ -979,7 +979,7 @@ public class InstallDS extends ConsoleApplication
         }
         try
         {
-          final String dn = readInput(promptMsg, valueToSuggest);
+          final String dn = readInput(promptMsg, valueToSuggest.toString());
           firstPrompt = false;
           dns.add(dn);
           prompted = true;
@@ -2308,7 +2308,7 @@ public class InstallDS extends ConsoleApplication
         LocalizableMessage.raw(jmxPort != -1 ? String.valueOf(jmxPort) : ""),
         LocalizableMessage.raw(
             Utils.getSecurityOptionsString(uData.getSecurityOptions(), false)),
-        LocalizableMessage.raw(uData.getDirectoryManagerDn()),
+          LocalizableMessage.raw(uData.getDirectoryManagerDn().toString()),
         LocalizableMessage.raw(Utils.getDataDisplayString(uData)),
     };
     int maxWidth = 0;
@@ -2460,7 +2460,7 @@ public class InstallDS extends ConsoleApplication
       final LinkedList<String> baseDNs = uData.getNewSuffixOptions().getBaseDns();
       if (!baseDNs.isEmpty())
       {
-        lastResetBaseDN = baseDNs.getFirst();
+        lastResetBaseDN = DN.valueOf(baseDNs.getFirst());
       }
 
       final NewSuffixOptions suffixOptions = uData.getNewSuffixOptions();

@@ -16,12 +16,23 @@
  */
 package org.opends.quicksetup;
 
-import java.net.*;
-import java.util.*;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.ServerDescriptor;
@@ -45,7 +56,7 @@ public class UserData
   private String serverLocation;
   private HostPort hostPort = new HostPort(null, 0);
   private int adminConnectorPort;
-  private String directoryManagerDn;
+  private DN directoryManagerDn;
   private String directoryManagerPwd;
   private String globalAdministratorUID;
   private String globalAdministratorPassword;
@@ -107,7 +118,7 @@ public class UserData
 
     setHostName(getDefaultHostName());
 
-    setDirectoryManagerDn(Constants.DIRECTORY_MANAGER_DN);
+    setDirectoryManagerDn(DN.valueOf(Constants.DIRECTORY_MANAGER_DN));
 
     setNewSuffixOptions(defaultNewSuffixOptions);
     DataReplicationOptions repl = DataReplicationOptions.createStandalone();
@@ -232,7 +243,7 @@ public class UserData
    * Returns the Directory Manager DN.
    * @return the Directory Manager DN.
    */
-  public String getDirectoryManagerDn()
+  public DN getDirectoryManagerDn()
   {
     return directoryManagerDn;
   }
@@ -241,7 +252,7 @@ public class UserData
    * Sets the new Directory Manager DN.
    * @param directoryManagerDn the new Directory Manager DN.
    */
-  public void setDirectoryManagerDn(String directoryManagerDn)
+  public void setDirectoryManagerDn(DN directoryManagerDn)
   {
     this.directoryManagerDn = directoryManagerDn;
   }
