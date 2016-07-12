@@ -217,7 +217,7 @@ public class ServerLoader extends Thread
     {
       lastLdapUrl = connection.getLDAPURL();
       ConnectionWrapper conn =
-          new ConnectionWrapper(lastLdapUrl, connection.getType(), dn.toString(), pwd, timeout, trustManager);
+          new ConnectionWrapper(lastLdapUrl, connection.getType(), dn, pwd, timeout, trustManager);
       if (conn.getLdapContext() != null)
       {
         return conn;

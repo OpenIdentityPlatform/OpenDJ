@@ -40,6 +40,7 @@ import javax.net.ssl.TrustManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
@@ -1088,7 +1089,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       int port = 389;
       String adminUid = userData.getAdminUID();
       String pwd = userData.getAdminPwd();
-      String dn = ADSContext.getAdministratorDN(adminUid).toString();
+      DN dn = ADSContext.getAdministratorDN(adminUid);
 
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
       String adminConnectorUrl = info.getAdminConnectorURL();

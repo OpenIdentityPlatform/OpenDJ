@@ -39,8 +39,6 @@ import java.util.Map;
 
 import javax.net.ssl.KeyManager;
 
-import com.forgerock.opendj.cli.Argument;
-import com.forgerock.opendj.cli.FileBasedArgument;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationKeyManager;
@@ -52,10 +50,12 @@ import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
+import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommandBuilder;
 import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
@@ -147,7 +147,7 @@ public class LDAPConnectionConsoleInteraction
       }
       else if (providedAdminUID != null)
       {
-        return getAdministratorDN(providedAdminUID);
+        return getAdministratorDN(providedAdminUID).toString();
       }
       else if (bindDN != null)
       {
@@ -155,7 +155,7 @@ public class LDAPConnectionConsoleInteraction
       }
       else if (adminUID != null)
       {
-        return getAdministratorDN(adminUID);
+        return getAdministratorDN(adminUID).toString();
       }
 
       return null;
@@ -1244,7 +1244,7 @@ public class LDAPConnectionConsoleInteraction
     }
     else if (isAdminUidArgVisible())
     {
-      return getAdministratorDN(state.adminUID);
+      return getAdministratorDN(state.adminUID).toString();
     }
     else
     {

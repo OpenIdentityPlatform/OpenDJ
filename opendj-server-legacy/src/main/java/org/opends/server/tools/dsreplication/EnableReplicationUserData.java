@@ -16,6 +16,7 @@
  */
 package org.opends.server.tools.dsreplication;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
 
 /**
@@ -29,7 +30,7 @@ public class EnableReplicationUserData extends ReplicationUserData
   static final class EnableReplicationServerData
   {
     private HostPort hostPort = new HostPort(null, 0);
-    private String bindDn;
+    private DN bindDn;
     private String pwd;
     private int replicationPort;
     private boolean secureReplication;
@@ -103,7 +104,7 @@ public class EnableReplicationUserData extends ReplicationUserData
      *
      * @return the dn to be used to bind to this server
      */
-    String getBindDn()
+    DN getBindDn()
     {
       return bindDn;
     }
@@ -114,7 +115,7 @@ public class EnableReplicationUserData extends ReplicationUserData
      * @param bindDn
      *          the dn to be used to bind to this server
      */
-    void setBindDn(String bindDn)
+    void setBindDn(DN bindDn)
     {
       this.bindDn = bindDn;
     }

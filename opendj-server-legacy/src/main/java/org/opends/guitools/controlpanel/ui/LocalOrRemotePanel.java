@@ -538,16 +538,18 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           ConnectionWrapper conn = null;
           try
           {
+            DN bindDn = DN.valueOf(dn.getText());
+            String bindPwd = String.valueOf(pwd.getPassword());
             if (isLocal)
             {
               usedUrl = info.getAdminConnectorURL();
-              conn = Utilities.getAdminDirContext(info, dn.getText(), String.valueOf(pwd.getPassword()));
+              conn = Utilities.getAdminDirContext(info, bindDn, bindPwd);
             }
             else
             {
               HostPort hostPort = new HostPort(hostName.getText().trim(), Integer.valueOf(port.getText().trim()));
               usedUrl = ConnectionUtils.getLDAPUrl(hostPort, true);
-              conn = new ConnectionWrapper(hostPort, LDAPS, dn.getText(), String.valueOf(pwd.getPassword()),
+              conn = new ConnectionWrapper(hostPort, LDAPS, bindDn, bindPwd,
                   info.getConnectTimeout(), info.getTrustManager());
               checkVersion(conn);
             }

@@ -39,6 +39,7 @@ import javax.swing.text.JTextComponent;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -379,7 +380,7 @@ public class LoginDialog extends JDialog
           info.regenerateDescriptor();
           ConfigFromFile conf = new ConfigFromFile();
           conf.readConfiguration();
-          String dn = ADSContext.getAdministratorDN(tfUid.getText()).toString();
+          DN dn = ADSContext.getAdministratorDN(tfUid.getText());
           String pwd = tfPwd.getText();
           info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
           usedUrl = info.getAdminConnectorURL();

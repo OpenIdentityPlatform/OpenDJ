@@ -1197,8 +1197,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           {
             if (getInfo().getUserDataDirContext() == null)
             {
-              ConnectionWrapper connUserData =
-                  createUserDataDirContext(conn.getBindDn().toString(), conn.getBindPassword());
+              ConnectionWrapper connUserData = createUserDataDirContext(conn.getBindDn(), conn.getBindPassword());
               getInfo().setUserDataDirContext(connUserData);
             }
             final NamingException[] fNe = { null };
@@ -1412,7 +1411,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    * @throws ConfigReadException
    *           if an error occurs reading the configuration.
    */
-  private ConnectionWrapper createUserDataDirContext(final String bindDN, final String bindPassword)
+  private ConnectionWrapper createUserDataDirContext(final DN bindDN, final String bindPassword)
       throws NamingException, IOException, ConfigReadException
   {
     createdUserDataConn = null;
@@ -1529,7 +1528,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    * @param bindPassword
    *          the bind password.
    */
-  private void handleCertificateException(UserDataCertificateException ce, String bindDN, String bindPassword)
+  private void handleCertificateException(UserDataCertificateException ce, DN bindDN, String bindPassword)
       throws NamingException, IOException, ConfigReadException
   {
     CertificateDialog dlg = new CertificateDialog(null, ce);

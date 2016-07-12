@@ -394,7 +394,7 @@ public class LDAPConnectionPool {
   {
     final HostPort hostPort = new HostPort(ldapUrl.getHost(), ldapUrl.getPort());
     final Type connectiontype = isSecureLDAPUrl(ldapUrl) ? LDAPS : LDAP;
-    return new ConnectionWrapper(hostPort, connectiontype, ar.dn.toString(), ar.password,
+    return new ConnectionWrapper(hostPort, connectiontype, ar.dn, ar.password,
         getConnectTimeout(), getTrustManager(), getKeyManager());
   }
 

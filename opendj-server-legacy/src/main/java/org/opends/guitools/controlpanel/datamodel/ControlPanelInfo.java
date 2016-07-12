@@ -40,6 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -102,7 +103,7 @@ public class ControlPanelInfo
   private String ldapsURL;
   private String adminConnectorURL;
   private String localAdminConnectorURL;
-  private String lastWorkingBindDN;
+  private DN lastWorkingBindDN;
   private String lastWorkingBindPwd;
   private String lastRemoteHostName;
   private String lastRemoteAdministrationURL;
@@ -297,7 +298,7 @@ public class ControlPanelInfo
     this.connWrapper = connWrapper;
     if (connWrapper != null)
     {
-      lastWorkingBindDN = connWrapper.getBindDn().toString();
+      lastWorkingBindDN = connWrapper.getBindDn();
       lastWorkingBindPwd = connWrapper.getBindPassword();
       lastRemoteHostName = connWrapper.getHostPort().getHost();
       lastRemoteAdministrationURL = connWrapper.getLdapUrl();

@@ -94,7 +94,7 @@ public class ConnectionWrapper implements Closeable
    * @throws NamingException
    *           If an error occurs
    */
-  public ConnectionWrapper(String ldapUrl, Type connectionType, String bindDn, String bindPwd, int connectTimeout,
+  public ConnectionWrapper(String ldapUrl, Type connectionType, DN bindDn, String bindPwd, int connectTimeout,
       TrustManager trustManager) throws NamingException
   {
     this(toHostPort(ldapUrl), connectionType, bindDn, bindPwd, connectTimeout, trustManager, null);
@@ -140,7 +140,7 @@ public class ConnectionWrapper implements Closeable
    * @throws NamingException
    *           If an error occurs
    */
-  public ConnectionWrapper(HostPort hostPort, Type connectionType, String bindDn, String bindPwd, int connectTimeout,
+  public ConnectionWrapper(HostPort hostPort, Type connectionType, DN bindDn, String bindPwd, int connectTimeout,
       TrustManager trustManager) throws NamingException
   {
     this(hostPort, connectionType, bindDn, bindPwd, connectTimeout, trustManager, null);
@@ -156,7 +156,7 @@ public class ConnectionWrapper implements Closeable
    */
   public ConnectionWrapper(ConnectionWrapper other) throws NamingException
   {
-    this(other.hostPort, other.connectionType, other.bindDn.toString(), other.bindPwd, other.connectTimeout,
+    this(other.hostPort, other.connectionType, other.bindDn, other.bindPwd, other.connectTimeout,
         other.trustManager, other.keyManager);
   }
 
@@ -180,12 +180,12 @@ public class ConnectionWrapper implements Closeable
    * @throws NamingException
    *           If an error occurs
    */
-  public ConnectionWrapper(HostPort hostPort, PreferredConnection.Type connectionType, String bindDn, String bindPwd,
+  public ConnectionWrapper(HostPort hostPort, PreferredConnection.Type connectionType, DN bindDn, String bindPwd,
       int connectTimeout, TrustManager trustManager, KeyManager keyManager) throws NamingException
   {
     this.hostPort = hostPort;
     this.connectionType = connectionType;
-    this.bindDn = DN.valueOf(bindDn);
+    this.bindDn = bindDn;
     this.bindPwd = bindPwd;
     this.connectTimeout = connectTimeout;
     this.trustManager = trustManager;
@@ -197,7 +197,7 @@ public class ConnectionWrapper implements Closeable
     connection = buildConnection();
   }
 
-  private static Options toOptions(Type connectionType, String bindDn, String bindPwd, long connectTimeout,
+  private static Options toOptions(Type connectionType, DN bindDn, String bindPwd, long connectTimeout,
       TrustManager trustManager, KeyManager keyManager) throws NamingException
   {
     final boolean isStartTls = START_TLS.equals(connectionType);
@@ -211,7 +211,7 @@ public class ConnectionWrapper implements Closeable
              .set(SSL_USE_STARTTLS, isStartTls);
     }
     SimpleBindRequest request = bindDn != null && bindPwd != null
-        ? newSimpleBindRequest(bindDn, bindPwd.toCharArray())
+        ? newSimpleBindRequest(bindDn.toString(), bindPwd.toCharArray())
         : newSimpleBindRequest(); // anonymous bind
     options.set(AUTHN_BIND_REQUEST, request);
     return options;

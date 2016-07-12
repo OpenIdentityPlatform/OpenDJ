@@ -558,8 +558,8 @@ public final class Utils {
      *            The UID to be used to generate the DN.
      * @return The DN of the administrator for the given UID.
      */
-    public static String getAdministratorDN(String uid) {
-        return RDN.valueOf("cn=" + uid) + ",cn=Administrators, cn=admin data";
+    public static DN getAdministratorDN(String uid) {
+        return DN.valueOf(RDN.valueOf("cn=" + uid) + ",cn=Administrators, cn=admin data");
     }
 
     /**

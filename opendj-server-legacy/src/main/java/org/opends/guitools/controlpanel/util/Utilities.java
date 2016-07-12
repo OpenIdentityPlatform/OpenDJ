@@ -2140,7 +2140,7 @@ public class Utilities
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
-  public static ConnectionWrapper getAdminDirContext(ControlPanelInfo controlInfo, String bindDN, String pwd)
+  public static ConnectionWrapper getAdminDirContext(ControlPanelInfo controlInfo, DN bindDN, String pwd)
       throws NamingException, IOException, ConfigReadException
   {
     return createConnection(controlInfo.getAdminConnectorURL(), LDAPS, bindDN, pwd, controlInfo);
@@ -2162,7 +2162,7 @@ public class Utilities
    * @throws ConfigReadException if there is an error reading the configuration.
    */
   public static ConnectionWrapper getUserDataDirContext(ControlPanelInfo controlInfo,
-      String bindDN, String pwd) throws NamingException, IOException, ConfigReadException
+      DN bindDN, String pwd) throws NamingException, IOException, ConfigReadException
   {
     if (controlInfo.connectUsingStartTLS())
     {
@@ -2178,7 +2178,7 @@ public class Utilities
     }
   }
 
-  private static ConnectionWrapper createConnection(String usedUrl, Type connectionType, String bindDN, String bindPwd,
+  private static ConnectionWrapper createConnection(String usedUrl, Type connectionType, DN bindDN, String bindPwd,
       ControlPanelInfo controlInfo) throws NamingException, IOException, ConfigReadException
   {
     if (usedUrl == null)

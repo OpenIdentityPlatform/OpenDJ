@@ -2766,7 +2766,7 @@ public class Installer extends GuiApplication
   private ConnectionWrapper createConnection(AuthenticationData auth) throws NamingException
   {
     String ldapUrl = auth.getLdapUrl();
-    String dn = auth.getDn();
+    DN dn = DN.valueOf(auth.getDn());
     String pwd = auth.getPwd();
 
     if (auth.useSecureConnection())
@@ -3205,7 +3205,8 @@ public class Installer extends GuiApplication
 
     DataReplicationOptions.Type type = (DataReplicationOptions.Type) qs.getFieldValue(FieldName.REPLICATION_OPTIONS);
     String host = qs.getFieldStringValue(FieldName.REMOTE_SERVER_HOST);
-    String dn = qs.getFieldStringValue(FieldName.REMOTE_SERVER_DN);
+    String dnStr = qs.getFieldStringValue(FieldName.REMOTE_SERVER_DN);
+    DN dn = dnStr != null ? DN.valueOf(dnStr) : null;
     String pwd = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PWD);
 
     if (type != DataReplicationOptions.Type.STANDALONE)
@@ -3228,7 +3229,7 @@ public class Installer extends GuiApplication
         port = Integer.parseInt(sPort);
         // Try to connect
         boolean[] globalAdmin = { hasGlobalAdministrators };
-        String[] effectiveDn = { dn };
+        DN[] effectiveDn = { dn };
         try
         {
           updateUserDataWithADS(host, port, dn, pwd, qs, errorMsgs, globalAdmin, effectiveDn);
@@ -3264,7 +3265,7 @@ public class Installer extends GuiApplication
     {
       AuthenticationData auth = new AuthenticationData();
       auth.setHostPort(new HostPort("".equals(host) ? null : host, port != null ? port : 0));
-      auth.setDn(dn);
+      auth.setDn(dn.toString());
       auth.setPwd(pwd);
       auth.setUseSecureConnection(true);
 
@@ -3339,7 +3340,7 @@ public class Installer extends GuiApplication
     return replicationPort;
   }
 
-  private void checkRemoteHostPortDnAndPwd(String host, String sPort, String dn, String pwd, QuickSetup qs,
+  private void checkRemoteHostPortDnAndPwd(String host, String sPort, DN dn, String pwd, QuickSetup qs,
       List<LocalizableMessage> errorMsgs)
   {
     // Check host
@@ -3366,7 +3367,7 @@ public class Installer extends GuiApplication
     }
 
     // Check dn
-    if (dn == null || dn.length() == 0)
+    if (dn == null || dn.size() == 0)
     {
       errorMsgs.add(INFO_EMPTY_REMOTE_DN.get());
       qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
@@ -3388,8 +3389,8 @@ public class Installer extends GuiApplication
     }
   }
 
-  private void updateUserDataWithADS(String host, int port, String dn, String pwd, QuickSetup qs,
-      List<LocalizableMessage> errorMsgs, boolean[] hasGlobalAdministrators, String[] effectiveDn)
+  private void updateUserDataWithADS(String host, int port, DN dn, String pwd, QuickSetup qs,
+      List<LocalizableMessage> errorMsgs, boolean[] hasGlobalAdministrators, DN[] effectiveDn)
       throws UserDataException
   {
     host = getHostNameForLdapUrl(host);
@@ -3525,7 +3526,7 @@ public class Installer extends GuiApplication
     }
   }
 
-  private ConnectionWrapper newConnectionWrapper(String dn, String pwd, String[] effectiveDn, HostPort hostPort,
+  private ConnectionWrapper newConnectionWrapper(DN dn, String pwd, DN[] effectiveDn, HostPort hostPort,
       ApplicationTrustManager trustManager) throws Throwable
   {
     try
@@ -3540,7 +3541,7 @@ public class Installer extends GuiApplication
         throw t;
       }
       // Try using a global administrator
-      dn = ADSContext.getAdministratorDN(dn).toString();
+      dn = ADSContext.getAdministratorDN(dn.toString());
       effectiveDn[0] = dn;
       return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), trustManager);
     }
@@ -4086,7 +4087,7 @@ public class Installer extends GuiApplication
   {
     UserData uData = getUserData();
     HostPort hostPort = new HostPort(uData.getHostName(), uData.getAdminConnectorPort());
-    String dn = uData.getDirectoryManagerDn();
+    DN dn = DN.valueOf(uData.getDirectoryManagerDn());
     String pwd = uData.getDirectoryManagerPwd();
     return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), null);
   }

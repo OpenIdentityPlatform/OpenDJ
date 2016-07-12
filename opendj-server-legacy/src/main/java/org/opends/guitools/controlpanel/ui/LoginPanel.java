@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
+import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -185,29 +186,11 @@ public class LoginPanel extends StatusGenericPanel
           ConnectionWrapper conn = null;
           try
           {
-            usedUrl = getInfo().getAdminConnectorURL();
-            conn = Utilities.getAdminDirContext(getInfo(), dn.getText(), String.valueOf(pwd.getPassword()));
+            ControlPanelInfo info = getInfo();
+            usedUrl = info.getAdminConnectorURL();
+            conn = Utilities.getAdminDirContext(info, DN.valueOf(dn.getText()), String.valueOf(pwd.getPassword()));
 
-            if (getInfo().getConnection() != null)
-            {
-              try
-              {
-                getInfo().getConnection().close();
-              }
-              catch (Throwable t)
-              {
-              }
-            }
-            if (getInfo().getUserDataDirContext() != null)
-            {
-              try
-              {
-                getInfo().getUserDataDirContext().close();
-              }
-              catch (Throwable t)
-              {
-              }
-            }
+            org.forgerock.util.Utils.closeSilently(info.getConnection(), info.getUserDataDirContext());
             try
             {
               Thread.sleep(500);
@@ -224,9 +207,9 @@ public class LoginPanel extends StatusGenericPanel
                     INFO_CTRL_PANEL_READING_CONFIGURATION_SUMMARY.get());
               }
             });
-            getInfo().setConnection(conn);
-            getInfo().setUserDataDirContext(null);
-            getInfo().regenerateDescriptor();
+            info.setConnection(conn);
+            info.setUserDataDirContext(null);
+            info.regenerateDescriptor();
             return conn;
           } catch (Throwable t)
           {

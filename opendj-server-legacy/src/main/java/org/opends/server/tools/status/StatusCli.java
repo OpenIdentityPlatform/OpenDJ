@@ -316,7 +316,7 @@ public class StatusCli extends ConsoleApplication
 
       if (managementContextOpened)
       {
-        try (ConnectionWrapper conn = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd))
+        try (ConnectionWrapper conn = Utilities.getAdminDirContext(controlInfo, DN.valueOf(bindDn), bindPwd))
         {
           controlInfo.setConnection(conn);
           controlInfo.regenerateDescriptor();

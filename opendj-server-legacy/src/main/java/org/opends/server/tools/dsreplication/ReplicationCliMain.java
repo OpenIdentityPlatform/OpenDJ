@@ -1201,7 +1201,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ConnectionWrapper newConnectionWrapper(
       LDAPConnectionConsoleInteraction ci, Type connType, int connectTimeout) throws NamingException
   {
-    return new ConnectionWrapper(getHostPort(ci), connType, ci.getBindDN(), ci.getBindPassword(),
+    return new ConnectionWrapper(getHostPort(ci), connType, DN.valueOf(ci.getBindDN()), ci.getBindPassword(),
         connectTimeout, ci.getTrustManager(), ci.getKeyManager());
   }
 
@@ -1475,7 +1475,7 @@ public class ReplicationCliMain extends ConsoleApplication
     return createAdministrativeConnection(uData, getAdministratorDN(uData.getAdminUid()));
   }
 
-  private ConnectionWrapper createAdministrativeConnection(MonoServerReplicationUserData uData, final String bindDn)
+  private ConnectionWrapper createAdministrativeConnection(MonoServerReplicationUserData uData, final DN bindDn)
   {
     try
     {
@@ -2380,7 +2380,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void setConnectionDetails(EnableReplicationServerData serverData, LDAPConnectionConsoleInteraction serverCI)
   {
     serverData.setHostPort(getHostPort2(serverCI));
-    serverData.setBindDn(serverCI.getBindDN());
+    serverData.setBindDn(DN.valueOf(serverCI.getBindDN()));
     serverData.setPwd(serverCI.getBindPassword());
   }
 
@@ -2489,7 +2489,7 @@ public class ReplicationCliMain extends ConsoleApplication
       final String adminUid = sourceServerCI.getProvidedAdminUID();
       uData.setHostPort(getHostPort2(sourceServerCI));
       uData.setAdminUid(adminUid);
-      uData.setBindDn(sourceServerCI.getProvidedBindDN());
+      uData.setBindDn(DN.valueOf(sourceServerCI.getProvidedBindDN()));
       uData.setAdminPwd(sourceServerCI.getBindPassword());
 
       if (adminUid != null)
@@ -3015,7 +3015,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     initialize(uData);
 
-    final String adminDN = getAdministratorDN(uData.getAdminUid());
+    final DN adminDN = getAdministratorDN(uData.getAdminUid());
     final String adminPwd = uData.getAdminPwd();
     setConnectionDetails(uData.getServer1(), argParser.server1, adminDN, adminPwd);
     setConnectionDetails(uData.getServer2(), argParser.server2, adminDN, adminPwd);
@@ -3027,7 +3027,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void setConnectionDetails(
-      EnableReplicationServerData server, ServerArgs args, String adminDN, String adminPwd)
+      EnableReplicationServerData server, ServerArgs args, DN adminDN, String adminPwd)
   {
     server.setHostPort(new HostPort(
         getValueOrDefault(args.hostNameArg), getValueOrDefault(args.portArg)));
@@ -3040,12 +3040,12 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      server.setBindDn(getValueOrDefault(args.bindDnArg));
+      server.setBindDn(DN.valueOf(getValueOrDefault(args.bindDnArg)));
       server.setPwd(pwd);
     }
   }
 
-  private boolean canConnectWithCredentials(EnableReplicationServerData server, String adminDN, String adminPwd)
+  private boolean canConnectWithCredentials(EnableReplicationServerData server, DN adminDN, String adminPwd)
   {
     try (ConnectionWrapper validCredentials = new ConnectionWrapper(
         server.getHostPort(), connectionType, adminDN, adminPwd, getConnectTimeout(), getTrustManager(sourceServerCI)))
@@ -3095,7 +3095,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
     String adminUid = argParser.getAdministratorUID();
-    String bindDn = argParser.getBindDNToDisable();
+    DN bindDn = DN.valueOf(argParser.getBindDNToDisable());
     if (bindDn == null && adminUid == null)
     {
       adminUid = argParser.getAdministratorUIDOrDefault();
@@ -3784,7 +3784,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode disableReplication(DisableReplicationUserData uData)
   {
     print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
-    String bindDn = uData.getAdminUid() != null
+    DN bindDn = uData.getAdminUid() != null
         ? getAdministratorDN(uData.getAdminUid())
         : uData.getBindDn();
 
@@ -8088,11 +8088,11 @@ public class ReplicationCliMain extends ConsoleApplication
       boolean forceAddBindPwdFile1 = false;
       if (useAdminUID)
       {
-        String bindDN1 = server1.getBindDn();
+        DN bindDN1 = server1.getBindDn();
         String adminUID = uData.getAdminUid();
         if (bindDN1 != null
             && adminUID != null
-            && !areDnsEqual(getAdministratorDN(adminUID), bindDN1))
+            && !getAdministratorDN(adminUID).equals(bindDN1))
         {
           forceAddBindDN1 = true;
           forceAddBindPwdFile1 = existsArg(firstServerCommandBuilder, OPTION_LONG_BINDPWD_FILE);
@@ -8180,11 +8180,11 @@ public class ReplicationCliMain extends ConsoleApplication
       boolean forceAddBindPwdFile2 = false;
       if (useAdminUID)
       {
-        String bindDN2 = server2.getBindDn();
+        DN bindDN2 = server2.getBindDn();
         String adminUID = uData.getAdminUid();
         if (bindDN2 != null
             && adminUID != null
-            && !areDnsEqual(getAdministratorDN(adminUID), bindDN2))
+            && !getAdministratorDN(adminUID).equals(bindDN2))
         {
           forceAddBindDN2 = true;
           forceAddBindPwdFile2 = existsArg(interactionBuilder, OPTION_LONG_BINDPWD_FILE);
@@ -8440,7 +8440,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     .defaultValue("cn=Directory Manager")
                     .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
                     .buildArgument();
-    bindDN.addValue(uData.getServer1().getBindDn());
+    bindDN.addValue(uData.getServer1().getBindDn().toString());
     return bindDN;
   }
 
@@ -8454,7 +8454,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     .defaultValue("cn=Directory Manager")
                     .valuePlaceholder(INFO_BINDDN_PLACEHOLDER.get())
                     .buildArgument();
-    bindDN.addValue(uData.getServer2().getBindDn());
+    bindDN.addValue(uData.getServer2().getBindDn().toString());
     return bindDN;
   }
 

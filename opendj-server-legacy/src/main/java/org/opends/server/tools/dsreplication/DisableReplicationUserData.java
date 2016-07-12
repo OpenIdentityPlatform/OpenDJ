@@ -12,9 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.tools.dsreplication;
+
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * This class is used to store the information provided by the user to
@@ -23,7 +25,7 @@ package org.opends.server.tools.dsreplication;
  */
 public class DisableReplicationUserData extends MonoServerReplicationUserData
 {
-  private String bindDn;
+  private DN bindDn;
   private String bindPwd;
   private boolean disableReplicationServer;
   private boolean disableAll;
@@ -34,7 +36,7 @@ public class DisableReplicationUserData extends MonoServerReplicationUserData
    * @return the bind DN to be used to connect to the server if no Administrator
    * has been defined.
    */
-  public String getBindDn()
+  public DN getBindDn()
   {
     return bindDn;
   }
@@ -44,7 +46,7 @@ public class DisableReplicationUserData extends MonoServerReplicationUserData
    * has been defined.
    * @param bindDn the bind DN to be used.
    */
-  public void setBindDn(String bindDn)
+  public void setBindDn(DN bindDn)
   {
     this.bindDn = bindDn;
   }

@@ -28,6 +28,7 @@ import javax.naming.NamingException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.quicksetup.Application;
@@ -465,7 +466,8 @@ public class ServerController {
         {
           timeout = application.getUserData().getConnectTimeout();
         }
-        try (ConnectionWrapper conn = new ConnectionWrapper(ldapUrl, Type.LDAPS, userDn, userPw, timeout, null))
+        try (ConnectionWrapper conn =
+            new ConnectionWrapper(ldapUrl, Type.LDAPS, DN.valueOf(userDn), userPw, timeout, null))
         {
           return;
         }
