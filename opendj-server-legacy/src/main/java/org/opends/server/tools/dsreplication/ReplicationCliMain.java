@@ -1263,17 +1263,14 @@ public class ReplicationCliMain extends ConsoleApplication
         printNewCommandBuilder(PURGE_HISTORICAL_SUBCMD_NAME, uData);
       }
 
-      try
-      {
-        return purgeHistoricalRemoteTask(conn, uData);
-      }
-      catch (ReplicationCliException rce)
-      {
-        errPrintln();
-        errPrintln(getCriticalExceptionMessage(rce));
-        logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-        return rce.getErrorCode();
-      }
+      return purgeHistoricalRemoteTask(conn, uData);
+    }
+    catch (ReplicationCliException rce)
+    {
+      errPrintln();
+      errPrintln(getCriticalExceptionMessage(rce));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+      return rce.getErrorCode();
     }
     finally
     {
@@ -1725,27 +1722,8 @@ public class ReplicationCliMain extends ConsoleApplication
     TreeSet<DN> availableSuffixes = new TreeSet<>();
     TreeSet<DN> notReplicatedSuffixes = new TreeSet<>();
 
-    for (ReplicaDescriptor rep : replicas)
-    {
-      DN dn = rep.getSuffix().getDN();
-      if (rep.isReplicated())
-      {
-        availableSuffixes.add(dn);
-      }
-      else
-      {
-        notReplicatedSuffixes.add(dn);
-      }
-    }
+    partitionReplicasByReplicated(replicas, availableSuffixes, notReplicatedSuffixes);
 
-    checkSuffixesForPurgeHistorical(suffixes, availableSuffixes, notReplicatedSuffixes, interactive);
-  }
-
-  private void checkSuffixesForPurgeHistorical(Collection<DN> suffixes,
-      Collection<DN> availableSuffixes,
-      Collection<DN> notReplicatedSuffixes,
-      boolean interactive)
-  {
     if (availableSuffixes.isEmpty())
     {
       errPrintln();
@@ -1757,20 +1735,8 @@ public class ReplicationCliMain extends ConsoleApplication
       // Verify that the provided suffixes are configured in the servers.
       TreeSet<DN> notFound = new TreeSet<>();
       TreeSet<DN> alreadyNotReplicated = new TreeSet<>();
-      for (DN dn : suffixes)
-      {
-        if (!availableSuffixes.contains(dn))
-        {
-          if (notReplicatedSuffixes.contains(dn))
-          {
-            alreadyNotReplicated.add(dn);
-          }
-          else
-          {
-            notFound.add(dn);
-          }
-        }
-      }
+      determineSuffixesNotFoundAndAlreadyNotReplicated(
+          suffixes, availableSuffixes, notReplicatedSuffixes, notFound, alreadyNotReplicated);
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyNotReplicated);
       if (!notFound.isEmpty())
@@ -1784,6 +1750,42 @@ public class ReplicationCliMain extends ConsoleApplication
             ERR_NO_SUFFIXES_AVAILABLE_TO_PURGE_HISTORICAL,
             ERR_NO_SUFFIXES_SELECTED_TO_PURGE_HISTORICAL,
             INFO_REPLICATION_PURGE_HISTORICAL_PROMPT);
+      }
+    }
+  }
+
+  private void partitionReplicasByReplicated(Collection<ReplicaDescriptor> replicas,
+      Set<DN> replicatedSuffixes, Set<DN> notReplicatedSuffixes)
+  {
+    for (ReplicaDescriptor rep : replicas)
+    {
+      DN dn = rep.getSuffix().getDN();
+      if (rep.isReplicated())
+      {
+        replicatedSuffixes.add(dn);
+      }
+      else
+      {
+        notReplicatedSuffixes.add(dn);
+      }
+    }
+  }
+
+  private void determineSuffixesNotFoundAndAlreadyNotReplicated(Collection<DN> suffixes,
+      Set<DN> availableSuffixes, Set<DN> notReplicatedSuffixes, Set<DN> notFound, Set<DN> alreadyNotReplicated)
+  {
+    for (DN dn : suffixes)
+    {
+      if (!availableSuffixes.contains(dn))
+      {
+        if (notReplicatedSuffixes.contains(dn))
+        {
+          alreadyNotReplicated.add(dn);
+        }
+        else
+        {
+          notFound.add(dn);
+        }
       }
     }
   }
@@ -2639,8 +2641,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ReplicationCliException if there is a critical error reading the
    * ADS.
    */
-  private boolean promptIfRequired(DisableReplicationUserData uData)
-  throws ReplicationCliException
+  private boolean promptIfRequired(DisableReplicationUserData uData) throws ReplicationCliException
   {
     boolean cancelled = false;
 
@@ -4084,18 +4085,15 @@ public class ReplicationCliMain extends ConsoleApplication
 
     try
     {
-      try
-      {
-        displayStatus(conn, uData);
-        return SUCCESSFUL;
-      }
-      catch (ReplicationCliException rce)
-      {
-        errPrintln();
-        errPrintln(getCriticalExceptionMessage(rce));
-        logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-        return rce.getErrorCode();
-      }
+      displayStatus(conn, uData);
+      return SUCCESSFUL;
+    }
+    catch (ReplicationCliException rce)
+    {
+      errPrintln();
+      errPrintln(getCriticalExceptionMessage(rce));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+      return rce.getErrorCode();
     }
     finally
     {
@@ -4441,20 +4439,8 @@ public class ReplicationCliMain extends ConsoleApplication
       //  Verify that the provided suffixes are configured in the servers.
       TreeSet<DN> notFound = new TreeSet<>();
       TreeSet<DN> alreadyReplicated = new TreeSet<>();
-      for (DN dn : suffixes)
-      {
-        if (!availableSuffixes.contains(dn))
-        {
-          if (alreadyReplicatedSuffixes.contains(dn))
-          {
-            alreadyReplicated.add(dn);
-          }
-          else
-          {
-            notFound.add(dn);
-          }
-        }
-      }
+      determineSuffixesNotFoundAndAlreadyNotReplicated(
+          suffixes, availableSuffixes, alreadyReplicatedSuffixes, notFound,alreadyReplicated);
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyReplicated);
       if (!notFound.isEmpty())
@@ -4498,19 +4484,7 @@ public class ReplicationCliMain extends ConsoleApplication
     TreeSet<DN> availableSuffixes = new TreeSet<>();
     TreeSet<DN> notReplicatedSuffixes = new TreeSet<>();
 
-    Collection<ReplicaDescriptor> replicas = getReplicas(conn);
-    for (ReplicaDescriptor rep : replicas)
-    {
-      DN dn = rep.getSuffix().getDN();
-      if (rep.isReplicated())
-      {
-        availableSuffixes.add(dn);
-      }
-      else
-      {
-        notReplicatedSuffixes.add(dn);
-      }
-    }
+    partitionReplicasByReplicated(getReplicas(conn), availableSuffixes, notReplicatedSuffixes);
     if (availableSuffixes.isEmpty())
     {
       if (displayErrors)
@@ -4543,20 +4517,8 @@ public class ReplicationCliMain extends ConsoleApplication
       // Verify that the provided suffixes are configured in the servers.
       TreeSet<DN> notFound = new TreeSet<>();
       TreeSet<DN> alreadyNotReplicated = new TreeSet<>();
-      for (DN dn : suffixes)
-      {
-        if (!availableSuffixes.contains(dn))
-        {
-          if (notReplicatedSuffixes.contains(dn))
-          {
-            alreadyNotReplicated.add(dn);
-          }
-          else
-          {
-            notFound.add(dn);
-          }
-        }
-      }
+      determineSuffixesNotFoundAndAlreadyNotReplicated(
+          suffixes, availableSuffixes, notReplicatedSuffixes, notFound, alreadyNotReplicated);
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyNotReplicated);
       if (!notFound.isEmpty() && displayErrors)
@@ -4645,19 +4607,7 @@ public class ReplicationCliMain extends ConsoleApplication
     TreeSet<DN> availableSuffixes = new TreeSet<>();
     TreeSet<DN> notReplicatedSuffixes = new TreeSet<>();
 
-    Collection<ReplicaDescriptor> replicas = getReplicas(conn);
-    for (ReplicaDescriptor rep : replicas)
-    {
-      DN dn = rep.getSuffix().getDN();
-      if (rep.isReplicated())
-      {
-        availableSuffixes.add(dn);
-      }
-      else
-      {
-        notReplicatedSuffixes.add(dn);
-      }
-    }
+    partitionReplicasByReplicated(getReplicas(conn), availableSuffixes, notReplicatedSuffixes);
     if (availableSuffixes.isEmpty())
     {
       println();
@@ -4695,20 +4645,8 @@ public class ReplicationCliMain extends ConsoleApplication
       // Verify that the provided suffixes are configured in the servers.
       TreeSet<DN> notFound = new TreeSet<>();
       TreeSet<DN> alreadyNotReplicated = new TreeSet<>();
-      for (DN dn : suffixes)
-      {
-        if (!availableSuffixes.contains(dn))
-        {
-          if (notReplicatedSuffixes.contains(dn))
-          {
-            alreadyNotReplicated.add(dn);
-          }
-          else
-          {
-            notFound.add(dn);
-          }
-        }
-      }
+      determineSuffixesNotFoundAndAlreadyNotReplicated(
+          suffixes, availableSuffixes, notReplicatedSuffixes, notFound, alreadyNotReplicated);
       suffixes.removeAll(notFound);
       suffixes.removeAll(alreadyNotReplicated);
       if (!notFound.isEmpty())
@@ -5232,20 +5170,20 @@ public class ReplicationCliMain extends ConsoleApplication
       hmRepServers.put(baseDN, repServersForBaseDN);
 
       Set<Integer> ids = new HashSet<>();
-      ids.addAll(getReplicationDomainIds(baseDN, serverDesc1));
-      ids.addAll(getReplicationDomainIds(baseDN, serverDesc2));
+      addReplicationDomainIds(ids, serverDesc1, baseDN);
+      addReplicationDomainIds(ids, serverDesc2, baseDN);
       if (cache1 != null)
       {
         for (ServerDescriptor server : cache1.getServers())
         {
-          ids.addAll(getReplicationDomainIds(baseDN, server));
+          addReplicationDomainIds(ids, server, baseDN);
         }
       }
       if (cache2 != null)
       {
         for (ServerDescriptor server : cache2.getServers())
         {
-          ids.addAll(getReplicationDomainIds(baseDN, server));
+          addReplicationDomainIds(ids, server, baseDN);
         }
       }
       hmUsedReplicationDomainIds.put(baseDN, ids);
@@ -5343,6 +5281,15 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       print(formatter.getFormattedDone());
       println();
+    }
+  }
+
+  private void addReplicationDomainIds(Set<Integer> replicationIds, ServerDescriptor serverDesc1, DN baseDN)
+  {
+    ReplicaDescriptor replica = findReplicated(baseDN, serverDesc1);
+    if (replica != null)
+    {
+      replicationIds.add(replica.getReplicationId());
     }
   }
 
@@ -5661,9 +5608,9 @@ public class ReplicationCliMain extends ConsoleApplication
     Collection<ReplicaDescriptor> replicas = getReplicas(conn);
     for (ReplicaDescriptor rep : replicas)
     {
-      DN dn = rep.getSuffix().getDN();
       if (rep.isReplicated())
       {
+        DN dn = rep.getSuffix().getDN();
         if (ADSContext.getAdministrationSuffixDN().equals(dn))
         {
           adsReplicated = true;
@@ -5703,13 +5650,7 @@ public class ReplicationCliMain extends ConsoleApplication
     Set<DN> suffixesToDisable = new HashSet<>();
     if (uData.disableAll())
     {
-      for (ReplicaDescriptor replica : server.getReplicas())
-      {
-        if (replica.isReplicated())
-        {
-          suffixesToDisable.add(replica.getSuffix().getDN());
-        }
-      }
+      addAllReplicated(suffixesToDisable, server.getReplicas());
     }
     else
     {
@@ -5859,6 +5800,17 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
+  private void addAllReplicated(Set<DN> suffixesToDisable, Set<ReplicaDescriptor> replicas)
+  {
+    for (ReplicaDescriptor replica : replicas)
+    {
+      if (replica.isReplicated())
+      {
+        suffixesToDisable.add(replica.getSuffix().getDN());
+      }
+    }
+  }
+
   private boolean isBaseDNSpecified(List<DN> baseDns, DN dnToFind)
   {
     for (DN baseDN : baseDns)
@@ -5952,7 +5904,7 @@ public class ReplicationCliMain extends ConsoleApplication
           for (Set<ReplicaDescriptor> replicas : replicaLists)
           {
             ReplicaDescriptor replica = replicas.iterator().next();
-            if (!replica.isReplicated() && dn.equals(replica.getSuffix().getDN()))
+            if (!replica.isReplicated() && replica.getSuffix().getDN().equals(dn))
             {
               replicas.addAll(suffix.getReplicas());
               found = true;
@@ -6520,39 +6472,13 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private Set<String> getAllReplicationServers(DN baseDN, ServerDescriptor server)
   {
+    ReplicaDescriptor replica = findReplicaForSuffixDN(server.getReplicas(), baseDN);
     Set<String> servers = new LinkedHashSet<>();
-    for (ReplicaDescriptor replica : server.getReplicas())
+    if (replica != null)
     {
-      if (replica.getSuffix().getDN().equals(baseDN))
-      {
-        servers.addAll(replica.getReplicationServers());
-        break;
-      }
+      servers.addAll(replica.getReplicationServers());
     }
     return servers;
-  }
-
-  /**
-   * Retrieves all the replication domain IDs for a given baseDN in the
-   * ServerDescriptor.
-   * @param baseDN the base DN.
-   * @param server the ServerDescriptor.
-   * @return a Set containing the replication domain IDs for a given baseDN in
-   * the ServerDescriptor.
-   */
-  private Set<Integer> getReplicationDomainIds(DN baseDN, ServerDescriptor server)
-  {
-    Set<Integer> ids = new HashSet<>();
-    for (ReplicaDescriptor replica : server.getReplicas())
-    {
-      if (replica.isReplicated()
-          && replica.getSuffix().getDN().equals(baseDN))
-      {
-        ids.add(replica.getReplicationId());
-        break;
-      }
-    }
-    return ids;
   }
 
   /**
@@ -6935,13 +6861,10 @@ public class ReplicationCliMain extends ConsoleApplication
       filter.setSearchMonitoringInformation(false);
       filter.addBaseDNToSearch(baseDN.toString());
       ServerDescriptor source = ServerDescriptor.createStandalone(connSource, filter);
-      for (ReplicaDescriptor replica : source.getReplicas())
+      ReplicaDescriptor replica = findReplicaForSuffixDN(source.getReplicas(), baseDN);
+      if (replica != null)
       {
-        if (replica.getSuffix().getDN().equals(baseDN))
-        {
-          replicationId = replica.getReplicationId();
-          break;
-        }
+        replicationId = replica.getReplicationId();
       }
     }
     catch (IOException ne)
@@ -8022,15 +7945,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     Collection<ReplicaDescriptor> replicas = getReplicas(conn);
-    Set<DN> replicatedSuffixes = new HashSet<>();
-    for (ReplicaDescriptor rep : replicas)
-    {
-      DN dn = rep.getSuffix().getDN();
-      if (rep.isReplicated())
-      {
-        replicatedSuffixes.add(dn);
-      }
-    }
+    Set<DN> replicatedSuffixes = findAllReplicasForSuffixDN(replicas);
 
     for (DN dn1 : replicatedSuffixes)
     {
@@ -9462,7 +9377,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean isBaseDNReplicated(ServerDescriptor server, DN baseDN)
   {
-    return findReplicated(server.getReplicas(), baseDN) != null;
+    return findReplicaForSuffixDN(server.getReplicas(), baseDN) != null;
   }
 
   /**
@@ -9476,8 +9391,8 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean isBaseDNReplicated(ServerDescriptor server1, ServerDescriptor server2, DN baseDN)
   {
-    final ReplicaDescriptor replica1 = findReplicated(server1.getReplicas(), baseDN);
-    final ReplicaDescriptor replica2 = findReplicated(server2.getReplicas(), baseDN);
+    final ReplicaDescriptor replica1 = findReplicaForSuffixDN(server1.getReplicas(), baseDN);
+    final ReplicaDescriptor replica2 = findReplicaForSuffixDN(server2.getReplicas(), baseDN);
     if (replica1 != null && replica2 != null)
     {
       Set<String> replServers1 = replica1.getSuffix().getReplicationServers();
@@ -9494,11 +9409,36 @@ public class ReplicationCliMain extends ConsoleApplication
     return false;
   }
 
-  private ReplicaDescriptor findReplicated(Set<ReplicaDescriptor> replicas, DN baseDN)
+  private ReplicaDescriptor findReplicaForSuffixDN(Set<ReplicaDescriptor> replicas, DN suffixDN)
   {
     for (ReplicaDescriptor replica : replicas)
     {
-      if (replica.getSuffix().getDN().equals(baseDN))
+      if (replica.getSuffix().getDN().equals(suffixDN))
+      {
+        return replica;
+      }
+    }
+    return null;
+  }
+
+  private Set<DN> findAllReplicasForSuffixDN(Collection<ReplicaDescriptor> replicas)
+  {
+    Set<DN> results = new HashSet<>();
+    for (ReplicaDescriptor replica : replicas)
+    {
+      if (replica.isReplicated())
+      {
+        results.add(replica.getSuffix().getDN());
+      }
+    }
+    return results;
+  }
+
+  private ReplicaDescriptor findReplicated(DN baseDN, ServerDescriptor server)
+  {
+    for (ReplicaDescriptor replica : server.getReplicas())
+    {
+      if (replica.isReplicated() && replica.getSuffix().getDN().equals(baseDN))
       {
         return replica;
       }
