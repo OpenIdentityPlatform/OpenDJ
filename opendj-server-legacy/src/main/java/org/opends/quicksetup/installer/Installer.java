@@ -1866,7 +1866,7 @@ public class Installer extends GuiApplication
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_REPLICATED_BACKENDS.get()));
 
     // The keys are the backend IDs and the values the list of base DNs.
-    final Map<String, Set<String>> hmBackendSuffix = new HashMap<>();
+    final Map<String, Set<DN>> hmBackendSuffix = new HashMap<>();
     final SuffixesToReplicateOptions suffixData = getUserData().getSuffixesToReplicateOptions();
     populateBackendsToCreate(hmBackendSuffix, suffixData.getSuffixes());
     createReplicatedBackends(hmBackendSuffix, suffixData.getSuffixBackendTypes());
@@ -1879,7 +1879,7 @@ public class Installer extends GuiApplication
    * configuration of the other server. The algorithm consists on putting the
    * remote servers in a list and pick the backend as they appear on the list.
    */
-  private void populateBackendsToCreate(Map<String, Set<String>> hmBackendSuffix, Set<SuffixDescriptor> suffixes)
+  private void populateBackendsToCreate(Map<String, Set<DN>> hmBackendSuffix, Set<SuffixDescriptor> suffixes)
   {
     Set<ServerDescriptor> serverList = getServerListFromSuffixes(suffixes);
     for (SuffixDescriptor suffix : suffixes)
@@ -1887,8 +1887,8 @@ public class Installer extends GuiApplication
       final ReplicaDescriptor replica = retrieveReplicaForSuffix(serverList, suffix);
       if (replica != null)
       {
-        final String backendNameKey = getOrAddBackend(hmBackendSuffix, replica.getBackendName());
-        hmBackendSuffix.get(backendNameKey).add(suffix.getDN().toString());
+        final String backendId = getOrAddBackend(hmBackendSuffix, replica.getBackendId());
+        hmBackendSuffix.get(backendId).add(suffix.getDN());
       }
     }
   }
@@ -1921,29 +1921,29 @@ public class Installer extends GuiApplication
     return null;
   }
 
-  private String getOrAddBackend(Map<String, Set<String>> hmBackendSuffix, String backendName)
+  private String getOrAddBackend(Map<String, Set<DN>> hmBackendSuffix, String backendId)
   {
     for (String storedBackend : hmBackendSuffix.keySet())
     {
-      if (storedBackend.equalsIgnoreCase(backendName))
+      if (storedBackend.equalsIgnoreCase(backendId))
       {
         return storedBackend;
       }
     }
-    hmBackendSuffix.put(backendName, new HashSet<String>());
-    return backendName;
+    hmBackendSuffix.put(backendId, new HashSet<DN>());
+    return backendId;
   }
 
-  private void createReplicatedBackends(final Map<String, Set<String>> hmBackendSuffix,
+  private void createReplicatedBackends(final Map<String, Set<DN>> hmBackendSuffix,
       final Map<String, BackendTypeUIAdapter> backendTypes) throws ApplicationException
   {
     try (ConnectionWrapper connection = createLocalConnection())
     {
       final InstallerHelper helper = new InstallerHelper();
-      for (String backendName : hmBackendSuffix.keySet())
+      for (String backendId : hmBackendSuffix.keySet())
       {
-        helper.createBackend(connection, backendName, hmBackendSuffix.get(backendName),
-            backendTypes.get(backendName).getBackend());
+        helper.createBackend(connection, backendId, hmBackendSuffix.get(backendId),
+            backendTypes.get(backendId).getBackend());
       }
     }
     catch (NamingException e)

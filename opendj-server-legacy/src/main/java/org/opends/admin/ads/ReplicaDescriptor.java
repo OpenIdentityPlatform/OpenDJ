@@ -30,7 +30,7 @@ public class ReplicaDescriptor
   private int replicationId = -1;
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;
-  private String backendName;
+  private String backendId;
   private Set<String> objectClasses;
 
   /**
@@ -200,18 +200,18 @@ public class ReplicaDescriptor
    * Returns the name of the backend where this replica is defined.
    * @return the name of the backend where this replica is defined.
    */
-  public String getBackendName()
+  public String getBackendId()
   {
-    return backendName;
+    return backendId;
   }
 
   /**
    * Sets the name of the backend where this replica is defined.
-   * @param backendName the name of the backend.
+   * @param backendId the name of the backend.
    */
-  public void setBackendName(String backendName)
+  public void setBackendId(String backendId)
   {
-    this.backendName = backendName;
+    this.backendId = backendId;
   }
 
   /**

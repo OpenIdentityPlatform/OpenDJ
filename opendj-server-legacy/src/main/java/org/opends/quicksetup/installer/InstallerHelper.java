@@ -78,7 +78,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.JavaPropertiesTool;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
@@ -333,7 +332,7 @@ public class InstallerHelper {
    * @throws ApplicationException
    *           if something goes wrong.
    */
-  public void createBackend(ConnectionWrapper conn, String backendName, Set<String> baseDNs,
+  public void createBackend(ConnectionWrapper conn, String backendName, Set<DN> baseDNs,
       ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType)
       throws ApplicationException
   {
@@ -342,7 +341,7 @@ public class InstallerHelper {
       RootCfgClient root = conn.getRootConfiguration();
       BackendCfgClient backend = root.createBackend(backendType, backendName, null);
       backend.setEnabled(true);
-      backend.setBaseDN(toDNs(baseDNs));
+      backend.setBaseDN(baseDNs);
       backend.setBackendId(backendName);
       backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
       backend.commit();
@@ -352,16 +351,6 @@ public class InstallerHelper {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(conn.getHostPort(), t), t);
     }
-  }
-
-  private Set<DN> toDNs(Set<String> strings) throws DirectoryException
-  {
-    Set<DN> results = new HashSet<>();
-    for (String s : strings)
-    {
-      results.add(DN.valueOf(s));
-    }
-    return results;
   }
 
   /**

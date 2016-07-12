@@ -19,7 +19,6 @@ package org.opends.admin.ads;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
-import static org.opends.server.util.CollectionUtils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -768,15 +767,15 @@ public class ServerDescriptor
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        String id = firstValueAsString(sr, "ds-cfg-backend-id");
-        if (!isConfigBackend(id) || isSchemaBackend(id))
+        String backendId = firstValueAsString(sr, "ds-cfg-backend-id");
+        if (!isConfigBackend(backendId) || isSchemaBackend(backendId))
         {
           Set<DN> baseDns = asSetOfDN(sr, "ds-cfg-base-dn");
 
           Set<String> entries;
           if (cacheFilter.searchMonitoringInformation())
           {
-            entries = getBaseDNEntryCount(conn, id);
+            entries = getBaseDNEntryCount(conn, backendId);
           }
           else
           {
@@ -791,42 +790,42 @@ public class ServerDescriptor
               ReplicaDescriptor replica = new ReplicaDescriptor();
               replica.setServer(desc);
               replica.setObjectClasses(asSetOfString(sr, ConfigConstants.ATTR_OBJECTCLASS));
-              replica.setBackendName(id);
+              replica.setBackendId(backendId);
+              replica.setSuffix(new SuffixDescriptor(baseDn, replica));
+              replica.setEntries(getNumberOfEntriesForBaseDn(entries, baseDn));
+
               replicas.add(replica);
-
-              SuffixDescriptor suffix = new SuffixDescriptor();
-              suffix.setDN(baseDn);
-              suffix.setReplicas(newHashSet(replica));
-              replica.setSuffix(suffix);
-
-              int nEntries = -1;
-              for (String s : entries)
-              {
-                int index = s.indexOf(" ");
-                if (index != -1)
-                {
-                  DN dn = DN.valueOf(s.substring(index + 1));
-                  if (baseDn.equals(dn))
-                  {
-                    try
-                    {
-                      nEntries = Integer.parseInt(s.substring(0, index));
-                    }
-                    catch (Throwable t)
-                    {
-                      /* Ignore */
-                    }
-                    break;
-                  }
-                }
-              }
-              replica.setEntries(nEntries);
             }
           }
           desc.setReplicas(replicas);
         }
       }
     }
+  }
+
+  private static int getNumberOfEntriesForBaseDn(Set<String> entries, DN baseDn)
+  {
+    for (String s : entries)
+    {
+      int index = s.indexOf(" ");
+      if (index != -1)
+      {
+        DN dn = DN.valueOf(s.substring(index + 1));
+        if (baseDn.equals(dn))
+        {
+          try
+          {
+            return Integer.parseInt(s.substring(0, index));
+          }
+          catch (Throwable t)
+          {
+            /* Ignore */
+          }
+          break;
+        }
+      }
+    }
+    return -1;
   }
 
   private static boolean isAddReplica(TopologyCacheFilter cacheFilter, DN baseDn)

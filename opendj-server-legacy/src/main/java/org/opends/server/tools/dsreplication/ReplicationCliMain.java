@@ -21,7 +21,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
-import static java.util.Collections.*;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -1693,22 +1692,11 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
       {
-        SuffixDescriptor suffix = new SuffixDescriptor();
-        suffix.setDN(baseDN.getDn());
-
         ReplicaDescriptor replica = new ReplicaDescriptor();
-
-        if (baseDN.getType() == BaseDNDescriptor.Type.REPLICATED)
-        {
-          replica.setReplicationId(baseDN.getReplicaID());
-        }
-        else
-        {
-          replica.setReplicationId(-1);
-        }
-        replica.setBackendName(backend.getBackendID());
-        replica.setSuffix(suffix);
-        suffix.setReplicas(singleton(replica));
+        replica.setReplicationId(
+            baseDN.getType() == BaseDNDescriptor.Type.REPLICATED ? baseDN.getReplicaID() : -1);
+        replica.setBackendId(backend.getBackendID());
+        replica.setSuffix(new SuffixDescriptor(baseDN.getDn(), replica));
 
         replicas.add(replica);
       }

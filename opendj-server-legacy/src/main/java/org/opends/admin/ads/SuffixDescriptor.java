@@ -16,6 +16,8 @@
  */
 package org.opends.admin.ads;
 
+import static java.util.Collections.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,6 +32,20 @@ public class SuffixDescriptor
 {
   private DN suffixDN;
   private final Set<ReplicaDescriptor> replicas = new HashSet<>();
+
+  /**
+   * Builds a new SuffixDescriptor.
+   *
+   * @param suffixDn
+   *          the suffix DN
+   * @param replica
+   *          the replica
+   */
+  public SuffixDescriptor(DN suffixDn, ReplicaDescriptor replica)
+  {
+    this.suffixDN = suffixDn;
+    setReplicas(singleton(replica));
+  }
 
   /**
    * Returns the DN associated with this suffix descriptor.

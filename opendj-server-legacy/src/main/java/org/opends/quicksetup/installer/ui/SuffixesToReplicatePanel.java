@@ -131,8 +131,8 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     final Map<String, BackendTypeUIAdapter> backendTypes = new HashMap<>();
     for (SuffixDescriptor suffix : getSelectedSuffixes())
     {
-      final String backendName = suffix.getReplicas().iterator().next().getBackendName();
-      backendTypes.put(backendName, (BackendTypeUIAdapter) backendTypeComboBoxes.get(backendName).getSelectedItem());
+      final String backendId = suffix.getReplicas().iterator().next().getBackendId();
+      backendTypes.put(backendId, (BackendTypeUIAdapter) backendTypeComboBoxes.get(backendId).getSelectedItem());
     }
     return backendTypes;
   }
@@ -299,12 +299,12 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     final Map<String, Set<SuffixDescriptor>> backendToSuffixes = new HashMap<>();
     for (SuffixDescriptor suffix : orderedSuffixes)
     {
-      final String backendName = suffix.getReplicas().iterator().next().getBackendName();
-      if (!backendToSuffixes.containsKey(backendName))
+      final String backendId = suffix.getReplicas().iterator().next().getBackendId();
+      if (!backendToSuffixes.containsKey(backendId))
       {
-        backendToSuffixes.put(backendName, new LinkedHashSet<SuffixDescriptor>());
+        backendToSuffixes.put(backendId, new LinkedHashSet<SuffixDescriptor>());
       }
-      backendToSuffixes.get(backendName).add(suffix);
+      backendToSuffixes.get(backendId).add(suffix);
     }
 
     return backendToSuffixes;
@@ -383,7 +383,7 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     backendTypeComboBox.setToolTipText(INFO_REPLICATED_SUFFIXES_BACKEND_TYPE_TOOLTIP.get().toString());
     final Set<String> objectClasses = backendData.getObjectClasses();
     backendTypeComboBox.setSelectedItem(getBackendTypeFromObjectClasses(objectClasses));
-    backendTypeComboBoxes.put(backendData.getBackendName(), backendTypeComboBox);
+    backendTypeComboBoxes.put(backendData.getBackendId(), backendTypeComboBox);
     checkBoxPanel.add(backendTypeComboBox, gbc);
     gbc.insets = SUFFIXES_TO_REPLICATE_INSETS;
   }
