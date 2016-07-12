@@ -19,6 +19,7 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
+import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
@@ -39,7 +40,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -364,17 +364,21 @@ public final class LDAPModify extends ConsoleApplication {
             reader = createLDIFChangeRecordReader(filename, argParser.getTrailingArguments());
 
             final VisitorImpl visitor = new VisitorImpl(connection);
-            try {
-                while (reader.hasNext()) {
-                    final ChangeRecord cr = reader.readChangeRecord();
-                    final int result = cr.accept(visitor, null);
-                    if (result != 0 && !continueOnError.isPresent()) {
-                        return result;
+            try (final EntryWriter w = writer) {
+                try {
+                    while (reader.hasNext()) {
+                        final ChangeRecord cr = reader.readChangeRecord();
+                        final int result = cr.accept(visitor, null);
+                        if (result != 0 && !continueOnError.isPresent()) {
+                            return result;
+                        }
                     }
+                } catch (final IOException ioe) {
+                    throw newToolParamException(
+                            ioe, ERR_LDIF_FILE_READ_ERROR.get(filename.getValue(), ioe.getLocalizedMessage()));
                 }
-            } catch (final IOException ioe) {
-                throw newToolParamException(
-                        ioe, ERR_LDIF_FILE_READ_ERROR.get(filename.getValue(), ioe.getLocalizedMessage()));
+            } catch (final IOException e) {
+                throw newToolException(e, ResultCode.UNDEFINED, ERR_LDAP_MODIFY_WRITTING_ENTRIES.get(e.getMessage()));
             }
         } finally {
             closeSilently(reader);
