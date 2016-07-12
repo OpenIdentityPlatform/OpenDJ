@@ -5867,9 +5867,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     List<DN> userBaseDNs = uData.getBaseDNs();
     List<Set<ReplicaDescriptor>> replicaLists = new LinkedList<>();
-
     boolean oneReplicated = false;
-
     boolean displayAll = userBaseDNs.isEmpty();
     for (SuffixDescriptor suffix : cache.getSuffixes())
     {
@@ -6075,43 +6073,29 @@ public class ReplicationCliMain extends ConsoleApplication
     TableBuilder tableBuilder = new TableBuilder();
 
     /* Table headings. */
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_SUFFIX_DN.get());
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get());
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get());
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_REPLICATION_ENABLED.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SUFFIX_DN.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_REPLICATION_ENABLED.get());
     tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_DS_ID.get());
     tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_RS_ID.get());
-    tableBuilder.appendHeading(
-        INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get());
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_MISSING_CHANGES.get());
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_AGE_OF_OLDEST_MISSING_CHANGE.get());
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_SECURE.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_MISSING_CHANGES.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_AGE_OF_OLDEST_MISSING_CHANGE.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SECURE.get());
 
     /* Table data. */
     for (ReplicaDescriptor replica : orderedReplicas)
     {
+      ServerDescriptor replicaServer = replica.getServer();
+
       tableBuilder.startRow();
       // Suffix DN
-      tableBuilder.appendCell(LocalizableMessage.raw(replica.getSuffix().getDN().toString()));
+      tableBuilder.appendCell(fromObject(replica.getSuffix().getDN()));
       // Server port
-      tableBuilder.appendCell(LocalizableMessage.raw("%s", getHostPort2(replica.getServer(), cnx)));
+      tableBuilder.appendCell(fromObject(getHostPort2(replicaServer, cnx)));
       // Number of entries
-      int nEntries = replica.getEntries();
-      if (nEntries >= 0)
-      {
-        tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(nEntries)));
-      }
-      else
-      {
-        tableBuilder.appendCell(EMPTY_MSG);
-      }
+      tableBuilder.appendCell(fromPositiveInt(replica.getEntries()));
 
       if (!replica.isReplicated())
       {
@@ -6120,20 +6104,16 @@ public class ReplicationCliMain extends ConsoleApplication
       else
       {
         // Replication enabled
-        tableBuilder.appendCell(
-          LocalizableMessage.raw(Boolean.toString(replica.isReplicationEnabled())));
+        tableBuilder.appendCell(fromBoolean(replica.isReplicationEnabled()));
 
         // DS instance ID
-        tableBuilder.appendCell(
-            LocalizableMessage.raw(Integer.toString(replica.getReplicationId())));
+        tableBuilder.appendCell(fromInt(replica.getReplicationId()));
 
         // RS ID and port.
-        if (replica.getServer().isReplicationServer())
+        if (replicaServer.isReplicationServer())
         {
-          tableBuilder.appendCell(Integer.toString(replica.getServer()
-              .getReplicationServerId()));
-          tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(replica
-              .getServer().getReplicationServerPort())));
+          tableBuilder.appendCell(fromInt(replicaServer.getReplicationServerId()));
+          tableBuilder.appendCell(fromInt(replicaServer.getReplicationServerPort()));
         }
         else
         {
@@ -6151,38 +6131,19 @@ public class ReplicationCliMain extends ConsoleApplication
         }
 
         // Missing changes
-        int missingChanges = replica.getMissingChanges();
-        if (missingChanges >= 0)
-        {
-          tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(missingChanges)));
-        }
-        else
-        {
-          tableBuilder.appendCell(EMPTY_MSG);
-        }
+        tableBuilder.appendCell(fromPositiveInt(replica.getMissingChanges()));
 
         // Age of oldest missing change
-        long ageOfOldestMissingChange = replica.getAgeOfOldestMissingChange();
-        if (ageOfOldestMissingChange > 0)
-        {
-          Date date = new Date(ageOfOldestMissingChange);
-          tableBuilder.appendCell(LocalizableMessage.raw(date.toString()));
-        }
-        else
-        {
-          tableBuilder.appendCell(EMPTY_MSG);
-        }
+        tableBuilder.appendCell(fromDate(replica.getAgeOfOldestMissingChange()));
 
         // Secure
-        if (!replica.getServer().isReplicationServer())
+        if (!replicaServer.isReplicationServer())
         {
           tableBuilder.appendCell(EMPTY_MSG);
         }
         else
         {
-          tableBuilder.appendCell(
-            LocalizableMessage.raw(Boolean.toString(
-              replica.getServer().isReplicationSecure())));
+          tableBuilder.appendCell(fromBoolean(replicaServer.isReplicationSecure()));
         }
       }
     }
@@ -6195,7 +6156,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Suffix DN
       tableBuilder.appendCell(EMPTY_MSG);
       // Server port
-      tableBuilder.appendCell(LocalizableMessage.raw("%s", getHostPort2(server, cnx)));
+      tableBuilder.appendCell(fromObject(getHostPort2(server, cnx)));
       // Number of entries
       if (scriptFriendly)
       {
@@ -6208,26 +6169,16 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       // Replication enabled
-      tableBuilder.appendCell(Boolean.toString(true));
+      tableBuilder.appendCell(fromBoolean(true));
 
       // DS ID
       tableBuilder.appendCell(EMPTY_MSG);
 
       // RS ID
-      tableBuilder.appendCell(
-        LocalizableMessage.raw(Integer.toString(server.getReplicationServerId())));
+      tableBuilder.appendCell(fromInt(server.getReplicationServerId()));
 
       // Replication port
-      int replicationPort = server.getReplicationServerPort();
-      if (replicationPort >= 0)
-      {
-        tableBuilder.appendCell(
-          LocalizableMessage.raw(String.valueOf(replicationPort)));
-      }
-      else
-      {
-        tableBuilder.appendCell(EMPTY_MSG);
-      }
+      tableBuilder.appendCell(fromPositiveInt(server.getReplicationServerPort()));
 
       // Missing changes
       tableBuilder.appendCell(EMPTY_MSG);
@@ -6236,8 +6187,7 @@ public class ReplicationCliMain extends ConsoleApplication
       tableBuilder.appendCell(EMPTY_MSG);
 
       // Secure
-      tableBuilder.appendCell(
-        LocalizableMessage.raw(Boolean.toString(server.isReplicationSecure())));
+      tableBuilder.appendCell(fromBoolean(server.isReplicationSecure()));
     }
 
     TablePrinter printer;
@@ -6253,6 +6203,36 @@ public class ReplicationCliMain extends ConsoleApplication
       printer = ttPrinter;
     }
     tableBuilder.print(printer);
+  }
+
+  private LocalizableMessage fromObject(Object value)
+  {
+    return LocalizableMessage.raw("%s", value);
+  }
+
+  private LocalizableMessage fromDate(long ageOfOldestMissingChange)
+  {
+    if (ageOfOldestMissingChange > 0)
+    {
+      Date date = new Date(ageOfOldestMissingChange);
+      return LocalizableMessage.raw(date.toString());
+    }
+    return EMPTY_MSG;
+  }
+
+  private LocalizableMessage fromBoolean(boolean value)
+  {
+    return LocalizableMessage.raw(Boolean.toString(value));
+  }
+
+  private LocalizableMessage fromInt(int value)
+  {
+    return LocalizableMessage.raw(Integer.toString(value));
+  }
+
+  private LocalizableMessage fromPositiveInt(int value)
+  {
+    return value >= 0 ? LocalizableMessage.raw(Integer.toString(value)) : EMPTY_MSG;
   }
 
   private boolean isRepServerNotInDomain(Set<ReplicaDescriptor> replicas, ServerDescriptor server)
@@ -6291,27 +6271,18 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     TableBuilder tableBuilder = new TableBuilder();
     tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get());
-    tableBuilder.appendHeading(
-      INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get());
+    tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get());
     tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SECURE.get());
 
     for (ServerDescriptor server : servers)
     {
       tableBuilder.startRow();
       // Server port
-      tableBuilder.appendCell(LocalizableMessage.raw("%s", getHostPort2(server, cnx)));
+      tableBuilder.appendCell(fromObject(getHostPort2(server, cnx)));
       // Replication port
-      int replicationPort = server.getReplicationServerPort();
-      if (replicationPort >= 0)
-      {
-        tableBuilder.appendCell(LocalizableMessage.raw(String.valueOf(replicationPort)));
-      }
-      else
-      {
-        tableBuilder.appendCell(EMPTY_MSG);
-      }
+      tableBuilder.appendCell(fromPositiveInt(server.getReplicationServerPort()));
       // Secure
-      tableBuilder.appendCell(LocalizableMessage.raw(Boolean.toString(server.isReplicationSecure())));
+      tableBuilder.appendCell(fromBoolean(server.isReplicationSecure()));
     }
 
     PrintStream out = getOutputStream();
