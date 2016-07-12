@@ -37,7 +37,7 @@ Copyright: Copyright 2013-2015 ForgeRock AS.
            Copyright 2009-2010 Sun Microsystems, Inc.
            Portions Copyright 2011-2016 ForgeRock AS.
 
-Version: opendj-ldap-toolkit.jar (3.0.0)
+Version: opendj-ldap-toolkit.jar (4.0.0)
 Copyright: Copyright 2011-2016 ForgeRock AS.
            Copyright 2006-2010 Sun Microsystems, Inc.
            Portions Copyright 2011-2016 ForgeRock AS.
