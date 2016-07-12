@@ -2766,7 +2766,7 @@ public class Installer extends GuiApplication
   private ConnectionWrapper createConnection(AuthenticationData auth) throws NamingException
   {
     String ldapUrl = auth.getLdapUrl();
-    DN dn = DN.valueOf(auth.getDn());
+    DN dn = auth.getDn();
     String pwd = auth.getPwd();
 
     if (auth.useSecureConnection())
@@ -3265,7 +3265,7 @@ public class Installer extends GuiApplication
     {
       AuthenticationData auth = new AuthenticationData();
       auth.setHostPort(new HostPort("".equals(host) ? null : host, port != null ? port : 0));
-      auth.setDn(dn.toString());
+      auth.setDn(dn);
       auth.setPwd(pwd);
       auth.setUseSecureConnection(true);
 
@@ -4130,8 +4130,7 @@ public class Installer extends GuiApplication
       }
       server.setAdsProperties(adsProperties);
     }
-    return getRemoteConnection(server, DN.valueOf(auth.getDn()), auth.getPwd(), getConnectTimeout(),
-        getPreferredConnections());
+    return getRemoteConnection(server, auth.getDn(), auth.getPwd(), getConnectTimeout(), getPreferredConnections());
   }
 
   /**

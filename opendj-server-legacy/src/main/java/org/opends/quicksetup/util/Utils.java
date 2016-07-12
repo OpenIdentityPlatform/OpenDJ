@@ -1607,10 +1607,10 @@ public class Utils
     cmdLine.add(String.valueOf(server.getEnabledAdministrationPorts().get(0)));
 
     AuthenticationData authData = userData.getReplicationOptions().getAuthenticationData();
-    if (!DN.valueOf(authData.getDn()).equals(ADSContext.getAdministratorDN(userData.getGlobalAdministratorUID())))
+    if (!authData.getDn().equals(ADSContext.getAdministratorDN(userData.getGlobalAdministratorUID())))
     {
       cmdLine.add("--bindDN1");
-      cmdLine.add(authData.getDn());
+      cmdLine.add(authData.getDn().toString());
       cmdLine.add("--bindPassword1");
       cmdLine.add(OBFUSCATED_VALUE);
     }

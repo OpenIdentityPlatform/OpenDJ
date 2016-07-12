@@ -16,6 +16,7 @@
  */
 package org.opends.quicksetup.installer;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 
@@ -44,7 +45,7 @@ public class DataReplicationOptions
   private boolean secureReplication;
   private AuthenticationData authenticationData = new AuthenticationData();
   {
-    authenticationData.setDn(Constants.DIRECTORY_MANAGER_DN);
+    authenticationData.setDn(DN.valueOf(Constants.DIRECTORY_MANAGER_DN));
     authenticationData.setPort(4444);
   }
 

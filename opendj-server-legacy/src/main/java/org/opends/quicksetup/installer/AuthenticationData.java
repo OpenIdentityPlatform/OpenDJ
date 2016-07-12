@@ -16,6 +16,7 @@
  */
 package org.opends.quicksetup.installer;
 
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.HostPort;
 
 /**
@@ -27,7 +28,7 @@ import org.opends.server.types.HostPort;
 public class AuthenticationData
 {
   private HostPort hostPort = new HostPort(null, 0);
-  private String dn;
+  private DN dn;
   private String pwd;
   private boolean useSecureConnection;
 
@@ -53,7 +54,7 @@ public class AuthenticationData
    * Returns the Authentication DN.
    * @return the Authentication DN.
    */
-  public String getDn()
+  public DN getDn()
   {
     return dn;
   }
@@ -62,7 +63,7 @@ public class AuthenticationData
    * Sets the Authentication DN.
    * @param dn the Authentication DN.
    */
-  public void setDn(String dn)
+  public void setDn(DN dn)
   {
     this.dn = dn;
   }
