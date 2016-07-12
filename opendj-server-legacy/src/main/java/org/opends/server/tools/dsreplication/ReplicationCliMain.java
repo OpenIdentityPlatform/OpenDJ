@@ -47,6 +47,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -5871,35 +5872,30 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean displayAll = userBaseDNs.isEmpty();
     for (SuffixDescriptor suffix : cache.getSuffixes())
     {
-      DN dn = suffix.getDN();
+      DN suffixDn = suffix.getDN();
 
       // If no base DNs where specified display all the base DNs but the schema
       // and cn=admin data.
-      boolean found = userBaseDNs.contains(dn) || (displayAll && !isSchemaOrInternalAdminSuffix(dn));
-      if (found)
+      if (userBaseDNs.contains(suffixDn)
+          || (displayAll && !isSchemaOrInternalAdminSuffix(suffixDn)))
       {
-        if (isAnyReplicated(suffix))
+        Set<ReplicaDescriptor> suffixReplicas = suffix.getReplicas();
+        if (isAnyReplicated(suffixReplicas))
         {
           oneReplicated = true;
-          replicaLists.add(suffix.getReplicas());
+          replicaLists.add(suffixReplicas);
         }
         else
         {
           // Check if there are already some non replicated base DNs.
-          found = false;
-          for (Set<ReplicaDescriptor> replicas : replicaLists)
+          Set<ReplicaDescriptor> replicas = findNonReplicatedReplicasForSuffixDn(replicaLists, suffixDn);
+          if (replicas != null)
           {
-            ReplicaDescriptor replica = replicas.iterator().next();
-            if (!replica.isReplicated() && replica.getSuffix().getDN().equals(dn))
-            {
-              replicas.addAll(suffix.getReplicas());
-              found = true;
-              break;
-            }
+            replicas.addAll(suffixReplicas);
           }
-          if (!found)
+          else
           {
-            replicaLists.add(suffix.getReplicas());
+            replicaLists.add(suffixReplicas);
           }
         }
       }
@@ -5918,35 +5914,17 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (!rServers.isEmpty())
       {
-        displayStatus(rServers, uData.isScriptFriendly(), getPreferredConnections(conn));
+        displayReplicationServerStatuses(rServers, uData.isScriptFriendly(), getPreferredConnections(conn));
         somethingDisplayed = true;
       }
     }
 
     if (!replicaLists.isEmpty())
     {
-      List<Set<ReplicaDescriptor>> orderedReplicaLists = new LinkedList<>();
-      for (Set<ReplicaDescriptor> replicas : replicaLists)
-      {
-        DN dn1 = replicas.iterator().next().getSuffix().getDN();
-        boolean inserted = false;
-        for (int i=0; i<orderedReplicaLists.size() && !inserted; i++)
-        {
-          DN dn2 = orderedReplicaLists.get(i).iterator().next().getSuffix().getDN();
-          if (dn1.compareTo(dn2) < 0)
-          {
-            orderedReplicaLists.add(i, replicas);
-            inserted = true;
-          }
-        }
-        if (!inserted)
-        {
-          orderedReplicaLists.add(replicas);
-        }
-      }
+      sort(replicaLists);
       Set<ReplicaDescriptor> replicasWithNoReplicationServer = new HashSet<>();
       Set<ServerDescriptor> serversWithNoReplica = new HashSet<>();
-      displayStatus(orderedReplicaLists, uData.isScriptFriendly(),
+      displayReplicaStatuses(replicaLists, uData.isScriptFriendly(),
             getPreferredConnections(conn), cache.getServers(),
             replicasWithNoReplicationServer, serversWithNoReplica);
       somethingDisplayed = true;
@@ -5986,9 +5964,23 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private boolean isAnyReplicated(SuffixDescriptor suffix)
+  private Set<ReplicaDescriptor> findNonReplicatedReplicasForSuffixDn(List<Set<ReplicaDescriptor>> replicaLists,
+      DN suffixDn)
   {
-    for (ReplicaDescriptor replica : suffix.getReplicas())
+    for (Set<ReplicaDescriptor> replicas : replicaLists)
+    {
+      ReplicaDescriptor replica = replicas.iterator().next();
+      if (!replica.isReplicated() && replica.getSuffix().getDN().equals(suffixDn))
+      {
+        return replicas;
+      }
+    }
+    return null;
+  }
+
+  private boolean isAnyReplicated(Set<ReplicaDescriptor> replicas)
+  {
+    for (ReplicaDescriptor replica : replicas)
     {
       if (replica.isReplicated())
       {
@@ -5996,6 +5988,20 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return false;
+  }
+
+  private void sort(List<Set<ReplicaDescriptor>> replicaLists)
+  {
+    Collections.sort(replicaLists, new Comparator<Set<ReplicaDescriptor>>()
+    {
+      @Override
+      public int compare(Set<ReplicaDescriptor> o1, Set<ReplicaDescriptor> o2)
+      {
+        DN dn1 = o1.iterator().next().getSuffix().getDN();
+        DN dn2 = o2.iterator().next().getSuffix().getDN();
+        return dn1.compareTo(dn2);
+      }
+    });
   }
 
   /**
@@ -6015,7 +6021,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * all the servers that act as replication server in the topology but have
    * no replica.
    */
-  private void displayStatus(
+  private void displayReplicaStatuses(
       List<Set<ReplicaDescriptor>> orderedReplicaLists,
       boolean scriptFriendly, Set<PreferredConnection> cnx,
       Set<ServerDescriptor> servers,
@@ -6264,10 +6270,10 @@ public class ReplicationCliMain extends ConsoleApplication
    * are associated with no replication domain.
    * @param servers the servers
    * @param cnx the preferred connections used to connect to the server.
-   * @param scriptFriendly wheter to display it on script-friendly mode or not.
+   * @param scriptFriendly whether to display it on script-friendly mode or not.
    */
-  private void displayStatus(Set<ServerDescriptor> servers,
-      boolean scriptFriendly, Set<PreferredConnection> cnx)
+  private void displayReplicationServerStatuses(
+      Set<ServerDescriptor> servers, boolean scriptFriendly, Set<PreferredConnection> cnx)
   {
     TableBuilder tableBuilder = new TableBuilder();
     tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get());
@@ -6277,7 +6283,7 @@ public class ReplicationCliMain extends ConsoleApplication
     for (ServerDescriptor server : servers)
     {
       tableBuilder.startRow();
-      // Server port
+      // Server host+port
       tableBuilder.appendCell(fromObject(getHostPort2(server, cnx)));
       // Replication port
       tableBuilder.appendCell(fromPositiveInt(server.getReplicationServerPort()));
@@ -6285,34 +6291,36 @@ public class ReplicationCliMain extends ConsoleApplication
       tableBuilder.appendCell(fromBoolean(server.isReplicationSecure()));
     }
 
-    PrintStream out = getOutputStream();
     TablePrinter printer;
-
     if (scriptFriendly)
     {
       print(INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get());
       println();
-      printer = new TabSeparatedTablePrinter(out);
+      printer = new TabSeparatedTablePrinter(getOutputStream());
     }
     else
     {
       LocalizableMessage msg = INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get();
       print(msg);
       println();
-      int length = msg.length();
-      StringBuilder buf = new StringBuilder();
-      for (int i=0; i<length; i++)
-      {
-        buf.append("=");
-      }
-      print(LocalizableMessage.raw(buf.toString()));
+      print(LocalizableMessage.raw(times('=', msg.length())));
       println();
 
-      printer = new TextTablePrinter(getOutputStream());
-      ((TextTablePrinter)printer).setColumnSeparator(
-        LIST_TABLE_SEPARATOR);
+      final TextTablePrinter ttPrinter = new TextTablePrinter(getOutputStream());
+      ttPrinter.setColumnSeparator(LIST_TABLE_SEPARATOR);
+      printer = ttPrinter;
     }
     tableBuilder.print(printer);
+  }
+
+  private String times(char c, int nb)
+  {
+    StringBuilder buf = new StringBuilder();
+    for (int i = 0; i < nb; i++)
+    {
+      buf.append(c);
+    }
+    return buf.toString();
   }
 
   /**
@@ -9472,18 +9480,11 @@ class ReplicationServerComparator implements Comparator<ServerDescriptor>
   public int compare(ServerDescriptor s1, ServerDescriptor s2)
   {
     int compare = s1.getHostName().compareTo(s2.getHostName());
-    if (compare == 0)
+    if (compare != 0)
     {
-      if (s1.getReplicationServerPort() > s2.getReplicationServerPort())
-      {
-        return 1;
-      }
-      else if (s1.getReplicationServerPort() < s2.getReplicationServerPort())
-      {
-        return -1;
-      }
+      return compare;
     }
-    return compare;
+    return ((Integer) s1.getReplicationServerPort()).compareTo(s2.getReplicationServerPort());
   }
 }
 

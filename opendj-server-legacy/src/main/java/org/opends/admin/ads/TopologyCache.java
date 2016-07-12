@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.naming.NamingException;
-import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -117,17 +116,16 @@ public class TopologyCache
       joinThreadSet(threadSet);
 
       // Try to consolidate things (even if the data is not complete)
-      Map<LdapName, Set<SuffixDescriptor>> hmSuffixes = new HashMap<>();
+      Map<DN, Set<SuffixDescriptor>> hmSuffixes = new HashMap<>();
       for (ServerLoader loader : threadSet)
       {
         ServerDescriptor descriptor = loader.getServerDescriptor();
         for (ReplicaDescriptor replica : descriptor.getReplicas())
         {
-          logger.info(LocalizableMessage.raw("Handling replica with dn: "
-              + replica.getSuffix().getDN()));
+          DN dn = replica.getSuffix().getDN();
+          logger.info(LocalizableMessage.raw("Handling replica with dn: " + dn));
 
           boolean suffixFound = false;
-          LdapName dn = new LdapName(replica.getSuffix().getDN().toString());
           Set<SuffixDescriptor> sufs = hmSuffixes.get(dn);
           if (sufs != null)
           {
