@@ -2472,8 +2472,8 @@ public class Installer extends GuiApplication
       {
         TopologyCacheFilter filter = new TopologyCacheFilter();
         filter.setSearchMonitoringInformation(false);
-        filter.addBaseDNToSearch(adminSuffixDn.toString());
-        filter.addBaseDNToSearch(schemaDn.toString());
+        filter.addBaseDNToSearch(adminSuffixDn);
+        filter.addBaseDNToSearch(schemaDn);
         ServerDescriptor s = createStandalone(remoteConn, filter);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
@@ -2534,7 +2534,7 @@ public class Installer extends GuiApplication
           {
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
-            filter.addBaseDNToSearch(dn.toString());
+            filter.addBaseDNToSearch(dn);
             ServerDescriptor s = createStandalone(remoteConn, filter);
             for (ReplicaDescriptor r : s.getReplicas())
             {

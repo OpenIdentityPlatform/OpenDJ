@@ -19,6 +19,8 @@ package org.opends.admin.ads;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.DN;
+
 /**
  * Class used to filter what we look for in the topology cache.
  * This is done in particular to avoid problems of performance when we
@@ -27,7 +29,7 @@ import java.util.Set;
  */
 public class TopologyCacheFilter
 {
-  private final Set<String> baseDNs = new HashSet<>();
+  private final Set<DN> baseDNs = new HashSet<>();
   private boolean searchMonitoringInformation = true;
   private boolean searchBaseDNInformation = true;
 
@@ -80,7 +82,7 @@ public class TopologyCacheFilter
    * base DN is added, all the base DNs will be retrieved.
    * @param dn the DN of the base DN to look for.
    */
-  public void addBaseDNToSearch(String dn)
+  public void addBaseDNToSearch(DN dn)
   {
     baseDNs.add(dn);
   }
@@ -90,7 +92,7 @@ public class TopologyCacheFilter
    * empty we will search for all the base DNs.
    * @return the list of base DNs we will search for.
    */
-  public Set<String> getBaseDNsToSearch()
+  public Set<DN> getBaseDNsToSearch()
   {
     return new HashSet<>(baseDNs);
   }

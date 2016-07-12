@@ -4606,8 +4606,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
-    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN().toString());
-    filter.addBaseDNToSearch(Constants.SCHEMA_DN.toString());
+    filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
+    filter.addBaseDNToSearch(Constants.SCHEMA_DN);
     addBaseDNs(filter, uData.getBaseDNs());
     ServerDescriptor serverDesc1 = createStandalone(conn1, filter);
     ServerDescriptor serverDesc2 = createStandalone(conn2, filter);
@@ -5219,7 +5219,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     if (!uData.disableAll())
     {
-      filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN().toString());
+      filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
       addBaseDNs(filter, uData.getBaseDNs());
     }
     ServerDescriptor server = createStandalone(conn, filter);
@@ -5618,7 +5618,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     for (DN dn : baseDNs)
     {
-      filter.addBaseDNToSearch(dn.toString());
+      filter.addBaseDNToSearch(dn);
     }
   }
 
@@ -6612,7 +6612,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
-      filter.addBaseDNToSearch(baseDN.toString());
+      filter.addBaseDNToSearch(baseDN);
       ServerDescriptor source = ServerDescriptor.createStandalone(connSource, filter);
       ReplicaDescriptor replica = findReplicaForSuffixDN(source.getReplicas(), baseDN);
       if (replica != null)

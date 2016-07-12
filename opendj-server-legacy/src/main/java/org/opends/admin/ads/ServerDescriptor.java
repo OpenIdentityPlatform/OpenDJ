@@ -854,15 +854,7 @@ public class ServerDescriptor
     {
       return true;
     }
-
-    for (String dn : cacheFilter.getBaseDNsToSearch())
-    {
-      if (DN.valueOf(dn).equals(baseDn))
-      {
-        return true;
-      }
-    }
-    return false;
+    return cacheFilter.getBaseDNsToSearch().contains(baseDn);
   }
 
   private static void updateReplication(ServerDescriptor desc, ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
