@@ -30,14 +30,13 @@
  */
 package org.opends.server.extensions;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.codec.Charsets;
 
 /**
  * SHA2-based Unix crypt implementation.
@@ -269,7 +268,7 @@ final class Sha2Crypt {
       roundsCustom = true;
     }
     final String saltString = m.group(4);
-    final byte[] saltBytes = saltString.getBytes(Charsets.UTF_8);
+    final byte[] saltBytes = saltString.getBytes(StandardCharsets.UTF_8);
     final int saltLen = saltBytes.length;
 
     // 1. start digest A
