@@ -1201,7 +1201,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ConnectionWrapper newConnectionWrapper(
       LDAPConnectionConsoleInteraction ci, Type connType, int connectTimeout) throws NamingException
   {
-    return new ConnectionWrapper(getHostPort(ci), connType, DN.valueOf(ci.getBindDN()), ci.getBindPassword(),
+    return new ConnectionWrapper(getHostPort(ci), connType, ci.getBindDN(), ci.getBindPassword(),
         connectTimeout, ci.getTrustManager(), ci.getKeyManager());
   }
 
@@ -2373,14 +2373,14 @@ public class ReplicationCliMain extends ConsoleApplication
       pwdFile = getPwdFile();
     }
 
-    serverCI.initializeGlobalArguments(host, port, adminUid, bindDn, pwd, pwdFile);
+    serverCI.initializeGlobalArguments(host, port, adminUid, DN.valueOf(bindDn), pwd, pwdFile);
     return doNotDisplayFirstError;
   }
 
   private void setConnectionDetails(EnableReplicationServerData serverData, LDAPConnectionConsoleInteraction serverCI)
   {
     serverData.setHostPort(getHostPort2(serverCI));
-    serverData.setBindDn(DN.valueOf(serverCI.getBindDN()));
+    serverData.setBindDn(serverCI.getBindDN());
     serverData.setPwd(serverCI.getBindPassword());
   }
 
@@ -2489,7 +2489,7 @@ public class ReplicationCliMain extends ConsoleApplication
       final String adminUid = sourceServerCI.getProvidedAdminUID();
       uData.setHostPort(getHostPort2(sourceServerCI));
       uData.setAdminUid(adminUid);
-      uData.setBindDn(DN.valueOf(sourceServerCI.getProvidedBindDN()));
+      uData.setBindDn(sourceServerCI.getProvidedBindDN());
       uData.setAdminPwd(sourceServerCI.getBindPassword());
 
       if (adminUid != null)

@@ -273,7 +273,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
       ui.run();
       LDAPConnectionOptions options = new LDAPConnectionOptions();
       options.setVersionNumber(3);
-      return connect(ui.getHostName(), ui.getPortNumber(), ui.getBindDN(),
+      return connect(ui.getHostName(), ui.getPortNumber(), ui.getBindDN().toString(),
           ui.getBindPassword(), ui.populateLDAPOptions(options), ui.getConnectTimeout(), out, err);
     }
     catch (OpenDsException e)

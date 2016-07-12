@@ -240,7 +240,7 @@ public class StatusCli extends ConsoleApplication
 
     if (controlInfo.getServerDescriptor().getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
-      String bindDn = null;
+      DN bindDn = null;
       String bindPwd = null;
 
       // This is done because we do not need to ask the user about these
@@ -292,7 +292,7 @@ public class StatusCli extends ConsoleApplication
         }
         else
         {
-          bindDn = argParser.getBindDN();
+          bindDn = DN.valueOf(argParser.getBindDN());
           bindPwd = argParser.getBindPassword();
         }
         if (bindPwd != null && !bindPwd.isEmpty())
@@ -316,7 +316,7 @@ public class StatusCli extends ConsoleApplication
 
       if (managementContextOpened)
       {
-        try (ConnectionWrapper conn = Utilities.getAdminDirContext(controlInfo, DN.valueOf(bindDn), bindPwd))
+        try (ConnectionWrapper conn = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd))
         {
           controlInfo.setConnection(conn);
           controlInfo.regenerateDescriptor();
@@ -1131,7 +1131,7 @@ public class StatusCli extends ConsoleApplication
     // LDAP connection information
     final String hostName = getHostNameForLdapUrl(ci.getHostName());
     final Integer portNumber = ci.getPortNumber();
-    final String bindDN = ci.getBindDN();
+    final DN bindDN = ci.getBindDN();
     final String bindPassword = ci.getBindPassword();
     TrustManager trustManager = ci.getTrustManager();
     final KeyManager keyManager = ci.getKeyManager();
@@ -1153,7 +1153,7 @@ public class StatusCli extends ConsoleApplication
 
         factory = new LDAPConnectionFactory(hostName, portNumber, options);
         connection = factory.getConnection();
-        connection.bind(bindDN, bindPassword.toCharArray());
+        connection.bind(bindDN.toString(), bindPassword.toCharArray());
         break;
       }
       catch (LdapException e)

@@ -41,6 +41,7 @@ import javax.net.ssl.KeyManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
@@ -88,8 +89,8 @@ public class LDAPConnectionConsoleInteraction
     private boolean useSSL;
     private boolean useStartTLS;
     private String hostName;
-    private String bindDN;
-    private String providedBindDN;
+    private DN bindDN;
+    private DN providedBindDN;
     private String adminUID;
     private String providedAdminUID;
     private String bindPassword;
@@ -139,7 +140,7 @@ public class LDAPConnectionConsoleInteraction
       return INFO_LDAPAUTH_PASSWORD_PROMPT.get(adminUID);
     }
 
-    protected String getAdminOrBindDN()
+    protected DN getAdminOrBindDN()
     {
       if (providedBindDN != null)
       {
@@ -147,7 +148,7 @@ public class LDAPConnectionConsoleInteraction
       }
       else if (providedAdminUID != null)
       {
-        return getAdministratorDN(providedAdminUID).toString();
+        return getAdministratorDN(providedAdminUID);
       }
       else if (bindDN != null)
       {
@@ -155,7 +156,7 @@ public class LDAPConnectionConsoleInteraction
       }
       else if (adminUID != null)
       {
-        return getAdministratorDN(adminUID).toString();
+        return getAdministratorDN(adminUID);
       }
 
       return null;
@@ -415,7 +416,7 @@ public class LDAPConnectionConsoleInteraction
     }
     else
     {
-      addArgToCommandBuilder(copySecureArgsList.getBindDnArg(), getBindDN());
+      addArgToCommandBuilder(copySecureArgsList.getBindDnArg(), getBindDN().toString());
     }
   }
 
@@ -425,10 +426,10 @@ public class LDAPConnectionConsoleInteraction
     final Argument bindDn = secureArgsList.getBindDnArg();
 
     state.providedAdminUID = (isAdminUidArgVisible() && adminUid.isPresent()) ? adminUid.getValue() : null;
-    state.providedBindDN = ((useAdminOrBindDn || !isAdminUidArgVisible()) && bindDn.isPresent()) ? bindDn.getValue()
-                                                                                                 : null;
+    boolean useBindDnArg = (useAdminOrBindDn || !isAdminUidArgVisible()) && bindDn.isPresent();
+    state.providedBindDN = useBindDnArg ? DN.valueOf(bindDn.getValue()) : null;
     state.adminUID = !useKeyManager() ? adminUid.getValue() : null;
-    state.bindDN = !useKeyManager() ? bindDn.getValue() : null;
+    state.bindDN = !useKeyManager() ? DN.valueOf(bindDn.getValue()) : null;
   }
 
   private void resolveCredentialPassword() throws ArgumentException
@@ -623,12 +624,13 @@ public class LDAPConnectionConsoleInteraction
       app.println();
       if (useAdminOrBindDn)
       {
-        String def = state.adminUID != null ? state.adminUID : state.bindDN;
+        String def = state.adminUID != null ? state.adminUID : state.bindDN.toString();
         String v = app.readValidatedInput(INFO_LDAP_CONN_GLOBAL_ADMINISTRATOR_OR_BINDDN_PROMPT.get(def), callback);
         if (isDN(v))
         {
-          state.bindDN = v;
-          state.providedBindDN = v;
+          DN dn = DN.valueOf(v);
+          state.bindDN = dn;
+          state.providedBindDN = dn;
           state.adminUID = null;
           state.providedAdminUID = null;
         }
@@ -647,7 +649,7 @@ public class LDAPConnectionConsoleInteraction
       }
       else
       {
-        state.bindDN = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_BIND_DN.get(state.bindDN), callback);
+        state.bindDN = DN.valueOf(app.readValidatedInput(INFO_LDAP_CONN_PROMPT_BIND_DN.get(state.bindDN), callback));
         state.providedBindDN = state.bindDN;
       }
     }
@@ -1236,7 +1238,7 @@ public class LDAPConnectionConsoleInteraction
    *
    * @return bind DN for connections
    */
-  public String getBindDN()
+  public DN getBindDN()
   {
     if (useAdminOrBindDn)
     {
@@ -1244,7 +1246,7 @@ public class LDAPConnectionConsoleInteraction
     }
     else if (isAdminUidArgVisible())
     {
-      return getAdministratorDN(state.adminUID).toString();
+      return getAdministratorDN(state.adminUID);
     }
     else
     {
@@ -1747,7 +1749,7 @@ public class LDAPConnectionConsoleInteraction
    *          the Map containing the file and the password to bind.
    */
   public void initializeGlobalArguments(String hostName, int port,
-      String adminUid, String bindDn, String bindPwd,
+      String adminUid, DN bindDn, String bindPwd,
       LinkedHashMap<String, String> pwdFile)
   {
     resetConnectionArguments();
@@ -1777,7 +1779,7 @@ public class LDAPConnectionConsoleInteraction
     }
     if (bindDn != null)
     {
-      secureArgsList.getBindDnArg().addValue(bindDn);
+      secureArgsList.getBindDnArg().addValue(bindDn.toString());
       secureArgsList.getBindDnArg().setPresent(true);
     }
     if (pwdFile != null)
@@ -1851,7 +1853,7 @@ public class LDAPConnectionConsoleInteraction
    * @return the explicitly provided bind DN from the user (interactively or
    *         through the argument).
    */
-  public String getProvidedBindDN()
+  public DN getProvidedBindDN()
   {
     return state.providedBindDN;
   }
