@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.naming.ldap.Rdn;
@@ -42,12 +43,17 @@ import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.util.Pair;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.HostPort;
 
-/** The object of this class represent an OpenDS server. */
+/**
+ * The object of this class represent an OpenDS server instance.
+ * <p>
+ * It can represent either a DS-only, a RS-only or a combined DS-RS.
+ */
 public class ServerDescriptor
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -65,48 +71,55 @@ public class ServerDescriptor
   public enum ServerProperty
   {
     /** The associated value is a String. */
-    HOST_NAME,
-    /** The associated value is an ArrayList of Integer. */
-    LDAP_PORT,
-    /** The associated value is an ArrayList of Integer. */
-    LDAPS_PORT,
+    HOST_NAME(ADSContext.ServerProperty.HOST_NAME),
+    /** The associated value is an List of Integer. */
+    LDAP_PORT(ADSContext.ServerProperty.LDAP_PORT),
+    /** The associated value is an List of Integer. */
+    LDAPS_PORT(ADSContext.ServerProperty.LDAPS_PORT),
     /** The associated value is an Integer. */
-    ADMIN_PORT,
-    /** The associated value is an ArrayList of Boolean. */
-    LDAP_ENABLED,
-    /** The associated value is an ArrayList of Boolean. */
-    LDAPS_ENABLED,
-    /** The associated value is an ArrayList of Boolean. */
-    ADMIN_ENABLED,
-    /** The associated value is an ArrayList of Boolean. */
-    STARTTLS_ENABLED,
-    /** The associated value is an ArrayList of Integer. */
-    JMX_PORT,
-    /** The associated value is an ArrayList of Integer. */
-    JMXS_PORT,
-    /** The associated value is an ArrayList of Boolean. */
-    JMX_ENABLED,
-    /** The associated value is an ArrayList of Boolean. */
-    JMXS_ENABLED,
+    ADMIN_PORT(ADSContext.ServerProperty.ADMIN_PORT),
+    /** The associated value is an List of Boolean. */
+    LDAP_ENABLED(ADSContext.ServerProperty.LDAP_ENABLED),
+    /** The associated value is an List of Boolean. */
+    LDAPS_ENABLED(ADSContext.ServerProperty.LDAPS_ENABLED),
+    /** The associated value is an List of Boolean. */
+    ADMIN_ENABLED(ADSContext.ServerProperty.ADMIN_ENABLED),
+    /** The associated value is an List of Boolean. */
+    STARTTLS_ENABLED(ADSContext.ServerProperty.STARTTLS_ENABLED),
+    /** The associated value is an List of Integer. */
+    JMX_PORT(ADSContext.ServerProperty.JMX_PORT),
+    /** The associated value is an List of Integer. */
+    JMXS_PORT(ADSContext.ServerProperty.JMXS_PORT),
+    /** The associated value is an List of Boolean. */
+    JMX_ENABLED(ADSContext.ServerProperty.JMX_ENABLED),
+    /** The associated value is an List of Boolean. */
+    JMXS_ENABLED(ADSContext.ServerProperty.JMXS_ENABLED),
     /** The associated value is an Integer. */
-    REPLICATION_SERVER_PORT,
+    REPLICATION_SERVER_PORT(null),
     /** The associated value is a Boolean. */
-    IS_REPLICATION_SERVER,
+    IS_REPLICATION_SERVER(null),
     /** The associated value is a Boolean. */
-    IS_REPLICATION_ENABLED,
+    IS_REPLICATION_ENABLED(null),
     /** The associated value is a Boolean. */
-    IS_REPLICATION_SECURE,
+    IS_REPLICATION_SECURE(null),
     /** List of servers specified in the Replication Server configuration. This is a Set of String. */
-    EXTERNAL_REPLICATION_SERVERS,
+    EXTERNAL_REPLICATION_SERVERS(null),
     /** The associated value is an Integer. */
-    REPLICATION_SERVER_ID,
+    REPLICATION_SERVER_ID(null),
     /**
      * The instance key-pair public-key certificate. The associated value is a
      * byte[] (ds-cfg-public-key-certificate;binary).
      */
-    INSTANCE_PUBLIC_KEY_CERTIFICATE,
+    INSTANCE_PUBLIC_KEY_CERTIFICATE(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE),
     /** The schema generation ID. */
-    SCHEMA_GENERATION_ID
+    SCHEMA_GENERATION_ID(null);
+
+    private org.opends.admin.ads.ADSContext.ServerProperty adsEquivalent;
+
+    private ServerProperty(ADSContext.ServerProperty adsEquivalent)
+    {
+      this.adsEquivalent = adsEquivalent;
+    }
   }
 
   /** Default constructor. */
@@ -152,9 +165,8 @@ public class ServerDescriptor
   }
 
   /**
-   * Tells whether this server is registered in the ADS or not.
-   * @return <CODE>true</CODE> if the server is registered in the ADS and
-   * <CODE>false</CODE> otherwise.
+   * Tells whether this server is registered in the ADS.
+   * @return {@code true} if the server is registered in the ADS and {@code false} otherwise.
    */
   public boolean isRegistered()
   {
@@ -162,9 +174,8 @@ public class ServerDescriptor
   }
 
   /**
-   * Tells whether this server is a replication server or not.
-   * @return <CODE>true</CODE> if the server is a replication server and
-   * <CODE>false</CODE> otherwise.
+   * Tells whether this server is a replication server.
+   * @return {@code true} if the server is a replication server and {@code false} otherwise.
    */
   public boolean isReplicationServer()
   {
@@ -173,9 +184,8 @@ public class ServerDescriptor
   }
 
   /**
-   * Tells whether replication is enabled on this server or not.
-   * @return <CODE>true</CODE> if replication is enabled and
-   * <CODE>false</CODE> otherwise.
+   * Tells whether replication is enabled on this server.
+   * @return {@code true} if replication is enabled and {@code false} otherwise.
    */
   public boolean isReplicationEnabled()
   {
@@ -185,10 +195,10 @@ public class ServerDescriptor
   /**
    * Returns the String representation of this replication server based
    * on the information we have ("hostname":"replication port") and
-   * <CODE>null</CODE> if this is not a replication server.
+   * {@code null} if this is not a replication server.
    * @return the String representation of this replication server based
    * on the information we have ("hostname":"replication port") and
-   * <CODE>null</CODE> if this is not a replication server.
+   * {@code null} if this is not a replication server.
    */
   public String getReplicationServerHostPort()
   {
@@ -218,10 +228,9 @@ public class ServerDescriptor
   }
 
   /**
-   * Returns whether the communication with the replication port on the server
-   * is encrypted or not.
-   * @return <CODE>true</CODE> if the communication with the replication port on
-   * the server is encrypted and <CODE>false</CODE> otherwise.
+   * Returns whether the communication with the replication port on the server is encrypted.
+   * @return {@code true} if the communication with the replication port on
+   * the server is encrypted and {@code false} otherwise.
    */
   public boolean isReplicationSecure()
   {
@@ -255,10 +264,9 @@ public class ServerDescriptor
   }
 
   /**
-   * Returns the URL to access this server using LDAP.  Returns
-   * <CODE>null</CODE> if the server is not configured to listen on an LDAP
-   * port.
-   * @return the URL to access this server using LDAP.
+   * Returns the URL to access this server using LDAP.
+   * @return the URL to access this server using LDAP,
+   *         {@code null} if the server is not configured to listen on an LDAP port.
    */
   public String getLDAPURL()
   {
@@ -266,10 +274,9 @@ public class ServerDescriptor
   }
 
   /**
-   * Returns the URL to access this server using LDAPS.  Returns
-   * <CODE>null</CODE> if the server is not configured to listen on an LDAPS
-   * port.
-   * @return the URL to access this server using LDAP.
+   * Returns the URL to access this server using LDAPS.
+   * @return the URL to access this server using LDAP,
+   *         {@code null} if the server is not configured to listen on an LDAPS port.
    */
   public String getLDAPsURL()
   {
@@ -298,9 +305,8 @@ public class ServerDescriptor
 
   /**
    * Returns the URL to access this server using the administration connector.
-   * Returns <CODE>null</CODE> if the server cannot get the administration
-   * connector.
-   * @return the URL to access this server using the administration connector.
+   * @return the URL to access this server using the administration connector,
+   *         {@code null} if the server cannot get the administration connector.
    */
   public String getAdminConnectorURL()
   {
@@ -314,8 +320,8 @@ public class ServerDescriptor
   public List<Integer> getEnabledAdministrationPorts()
   {
     List<Integer> ports = new ArrayList<>(1);
-    ArrayList<?> s = (ArrayList<?>)serverProperties.get(ServerProperty.ADMIN_ENABLED);
-    ArrayList<?> p = (ArrayList<?>)serverProperties.get(ServerProperty.ADMIN_PORT);
+    List<?> s = (List<?>) serverProperties.get(ServerProperty.ADMIN_ENABLED);
+    List<?> p = (List<?>) serverProperties.get(ServerProperty.ADMIN_PORT);
     if (s != null)
     {
       for (int i=0; i<s.size(); i++)
@@ -334,7 +340,7 @@ public class ServerDescriptor
    * the provided securePreferred is set to true the port that will be used
    * will be the administration connector port.
    * @param securePreferred whether to try to use the secure port as part
-   * of the returning String or not.
+   * of the returning String.
    * @return a String of type host-name:port-number for the server.
    */
   public HostPort getHostPort(boolean securePreferred)
@@ -343,15 +349,15 @@ public class ServerDescriptor
 
     if (!serverProperties.isEmpty())
     {
-      port = getPort(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT, port);
+      port = getLdapPort(port);
       if (securePreferred)
       {
-        port = getPort(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT, port);
+        port = getAdminPort(port);
       }
     }
     else
     {
-      ArrayList<ADSContext.ServerProperty> enabledAttrs = new ArrayList<>();
+      List<ADSContext.ServerProperty> enabledAttrs = new ArrayList<>();
 
       if (securePreferred)
       {
@@ -397,6 +403,21 @@ public class ServerDescriptor
     return new HostPort(getHostName(), port);
   }
 
+  private int getLdapPort(int port)
+  {
+    return getPort(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT, port);
+  }
+
+  private int getLdapsPort(int port)
+  {
+    return getPort(ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT, port);
+  }
+
+  private int getAdminPort(int port)
+  {
+    return getPort(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT, port);
+  }
+
   private ADSContext.ServerProperty getPortProperty(ADSContext.ServerProperty prop)
   {
     switch (prop)
@@ -439,15 +460,16 @@ public class ServerDescriptor
     if (!serverProperties.isEmpty())
     {
       buf.append(serverProperties.get(ServerProperty.HOST_NAME));
-      ServerProperty [] props =
-      {
-          ServerProperty.LDAP_PORT, ServerProperty.LDAPS_PORT,
+      ServerProperty [] props = {
+          ServerProperty.LDAP_PORT,
+          ServerProperty.LDAPS_PORT,
           ServerProperty.ADMIN_PORT,
-          ServerProperty.LDAP_ENABLED, ServerProperty.LDAPS_ENABLED,
+          ServerProperty.LDAP_ENABLED,
+          ServerProperty.LDAPS_ENABLED,
           ServerProperty.ADMIN_ENABLED
       };
       for (ServerProperty prop : props) {
-        ArrayList<?> s = (ArrayList<?>) serverProperties.get(prop);
+        List<?> s = (List<?>) serverProperties.get(prop);
         for (Object o : s) {
           buf.append(":").append(o);
         }
@@ -455,8 +477,7 @@ public class ServerDescriptor
     }
     else
     {
-      ADSContext.ServerProperty[] props =
-      {
+      ADSContext.ServerProperty[] props = {
           ADSContext.ServerProperty.HOST_NAME,
           ADSContext.ServerProperty.LDAP_PORT,
           ADSContext.ServerProperty.LDAPS_PORT,
@@ -553,8 +574,8 @@ public class ServerDescriptor
 
     for (int i=0; i<sProps.length; i++)
     {
-      ArrayList<?> s = (ArrayList<?>)serverProperties.get(sProps[i][0]);
-      ArrayList<?> p = (ArrayList<?>)serverProperties.get(sProps[i][1]);
+      List<?> s = (List<?>) serverProperties.get(sProps[i][0]);
+      List<?> p = (List<?>) serverProperties.get(sProps[i][1]);
       if (s != null)
       {
         int port = getPort(s, p);
@@ -574,8 +595,7 @@ public class ServerDescriptor
       }
     }
 
-    ArrayList<?> array = (ArrayList<?>)serverProperties.get(
-        ServerProperty.STARTTLS_ENABLED);
+    List<?> array = (List<?>) serverProperties.get(ServerProperty.STARTTLS_ENABLED);
     boolean startTLSEnabled = false;
     if (array != null && !array.isEmpty())
     {
@@ -653,11 +673,11 @@ public class ServerDescriptor
         "objectclass");
     try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      ArrayList<Integer> ldapPorts = new ArrayList<>();
-      ArrayList<Integer> ldapsPorts = new ArrayList<>();
-      ArrayList<Boolean> ldapEnabled = new ArrayList<>();
-      ArrayList<Boolean> ldapsEnabled = new ArrayList<>();
-      ArrayList<Boolean> startTLSEnabled = new ArrayList<>();
+      List<Integer> ldapPorts = new ArrayList<>();
+      List<Integer> ldapsPorts = new ArrayList<>();
+      List<Boolean> ldapEnabled = new ArrayList<>();
+      List<Boolean> ldapsEnabled = new ArrayList<>();
+      List<Boolean> startTLSEnabled = new ArrayList<>();
 
       desc.serverProperties.put(ServerProperty.LDAP_PORT, ldapPorts);
       desc.serverProperties.put(ServerProperty.LDAPS_PORT, ldapsPorts);
@@ -697,8 +717,8 @@ public class ServerDescriptor
 
     // Even if we have a single port, use an array to be consistent with
     // other protocols.
-    ArrayList<Integer> adminPorts = new ArrayList<>();
-    ArrayList<Boolean> adminEnabled = new ArrayList<>();
+    List<Integer> adminPorts = new ArrayList<>();
+    List<Boolean> adminEnabled = new ArrayList<>();
     if (adminConnectorPort != null)
     {
       adminPorts.add(adminConnectorPort);
@@ -710,10 +730,10 @@ public class ServerDescriptor
 
   private static void updateJmxConfiguration(ServerDescriptor desc, ConnectionWrapper conn) throws IOException
   {
-    ArrayList<Integer> jmxPorts = new ArrayList<>();
-    ArrayList<Integer> jmxsPorts = new ArrayList<>();
-    ArrayList<Boolean> jmxEnabled = new ArrayList<>();
-    ArrayList<Boolean> jmxsEnabled = new ArrayList<>();
+    List<Integer> jmxPorts = new ArrayList<>();
+    List<Integer> jmxsPorts = new ArrayList<>();
+    List<Boolean> jmxEnabled = new ArrayList<>();
+    List<Boolean> jmxsEnabled = new ArrayList<>();
 
     desc.serverProperties.put(ServerProperty.JMX_PORT, jmxPorts);
     desc.serverProperties.put(ServerProperty.JMXS_PORT, jmxsPorts);
@@ -1102,32 +1122,30 @@ public class ServerDescriptor
   }
 
   /**
-   * An convenience method to know if the provided ID corresponds to a
-   * configuration backend or not.
-   * @param id the backend ID to analyze
-   * @return <CODE>true</CODE> if the the id corresponds to a configuration
-   * backend and <CODE>false</CODE> otherwise.
+   * Returns whether the provided backendID corresponds to a configuration backend.
+   * @param backendId the backend ID to analyze
+   * @return {@code true} if the the id corresponds to a configuration
+   * backend and {@code false} otherwise.
    */
-  private static boolean isConfigBackend(String id)
+  private static boolean isConfigBackend(String backendId)
   {
-    return "tasks".equalsIgnoreCase(id) ||
-    "schema".equalsIgnoreCase(id) ||
-    "config".equalsIgnoreCase(id) ||
-    "monitor".equalsIgnoreCase(id) ||
-    "backup".equalsIgnoreCase(id) ||
-    "ads-truststore".equalsIgnoreCase(id);
+    return "tasks".equalsIgnoreCase(backendId)
+        || "schema".equalsIgnoreCase(backendId)
+        || "config".equalsIgnoreCase(backendId)
+        || "monitor".equalsIgnoreCase(backendId)
+        || "backup".equalsIgnoreCase(backendId)
+        || "ads-truststore".equalsIgnoreCase(backendId);
   }
 
   /**
-   * An convenience method to know if the provided ID corresponds to the schema
-   * backend or not.
-   * @param id the backend ID to analyze
-   * @return <CODE>true</CODE> if the the id corresponds to the schema backend
-   * and <CODE>false</CODE> otherwise.
+   * Returns whether the provided ID corresponds to the schema backend.
+   * @param backendId the backend ID to analyze
+   * @return {@code true} if the the id corresponds to the schema backend
+   * and {@code false} otherwise.
    */
-  private static boolean isSchemaBackend(String id)
+  private static boolean isSchemaBackend(String backendId)
   {
-    return "schema".equalsIgnoreCase(id);
+    return "schema".equalsIgnoreCase(backendId);
   }
 
   /**
@@ -1165,11 +1183,80 @@ public class ServerDescriptor
    * Tells whether the provided server descriptor represents the same server
    * as this object.
    * @param server the server to make the comparison.
-   * @return whether the provided server descriptor represents the same server
-   * as this object or not.
+   * @return {@code true} if the provided server descriptor represents the same server
+   * as this object, {@code false} otherwise.
    */
   public boolean isSameServer(ServerDescriptor server)
   {
     return getId().equals(server.getId());
+  }
+
+  @Override
+  public String toString()
+  {
+    final int defaultPort = -1;
+    final int adminPort = getAdminPort(defaultPort);
+    final int ldapPort = getLdapPort(defaultPort);
+    final int ldapsPort = getLdapsPort(defaultPort);
+    final boolean isRs = isReplicationServer();
+    StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+    sb.append("(host-name=").append(getHostName());
+    if (adminPort != defaultPort)
+    {
+      sb.append(", adminPort=").append(adminPort);
+    }
+    if (ldapPort != defaultPort)
+    {
+      sb.append(", ldapPort=").append(ldapPort);
+    }
+    if (ldapsPort != defaultPort)
+    {
+      sb.append(", ldapsPort=").append(ldapsPort);
+    }
+    sb.append(", isReplicationServer=").append(isRs);
+    if (isRs)
+    {
+      sb.append(", replication-server-id=").append(getReplicationServerId());
+    }
+    appendInconsistencies(sb);
+    sb.append(")");
+    return sb.toString();
+  }
+
+  private void appendInconsistencies(StringBuilder sb)
+  {
+    Map<ServerProperty, Pair<?, ?>> inconsistencies = new HashMap<>();
+    for (ServerProperty prop : ServerProperty.values())
+    {
+      if (prop.adsEquivalent != null)
+      {
+        Object propVal = toScalar(serverProperties.get(prop));
+        Object propValue = propVal instanceof byte[] ? (byte[]) propVal : toStringValue(propVal);
+        Object adsPropValue = adsProperties.get(prop.adsEquivalent);
+        if (!Objects.equals(propValue, adsPropValue))
+        {
+          inconsistencies.put(prop, Pair.of(propValue, adsPropValue));
+        }
+      }
+    }
+    if (!inconsistencies.isEmpty())
+    {
+      sb.append(", inconsistencies=").append(inconsistencies);
+    }
+  }
+
+  private Object toScalar(Object propValue)
+  {
+    if (propValue instanceof List)
+    {
+      List<?> propValues = (List<?>) propValue;
+      return !propValues.isEmpty() ? propValues.get(0) : null;
+    }
+    return propValue;
+  }
+
+  private String toStringValue(Object propValue)
+  {
+    return propValue != null ? propValue.toString() : null;
   }
 }

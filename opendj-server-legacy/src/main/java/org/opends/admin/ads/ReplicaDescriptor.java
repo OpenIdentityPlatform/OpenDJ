@@ -19,14 +19,19 @@ package org.opends.admin.ads;
 import java.util.HashSet;
 import java.util.Set;
 
-
-/** The object of this class represent a Replica (i.e. a suffix in a given server). */
+/**
+ * The object of this class represent a Replica, i.e. a suffix in a given server instance.
+ * <p>
+ * Note: this does not represent a replication server.
+ */
 public class ReplicaDescriptor
 {
   private SuffixDescriptor suffix;
-  private int entries = -1;
+  /** Number of entries held by this replica. */
+  private int nbEntries = -1;
   private ServerDescriptor server;
   private final Set<String> replicationServers = new HashSet<>();
+  /** This corresponds to the server-id of this replica. */
   private int replicationId = -1;
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;
@@ -39,7 +44,7 @@ public class ReplicaDescriptor
    */
   public int getEntries()
   {
-    return entries;
+    return nbEntries;
   }
 
   /**
@@ -64,11 +69,11 @@ public class ReplicaDescriptor
 
   /**
    * Sets the number of entries contained in the replica.
-   * @param entries the number of entries contained in the replica.
+   * @param nbEntries the number of entries contained in the replica.
    */
-  public void setEntries(int entries)
+  public void setEntries(int nbEntries)
   {
-    this.entries = entries;
+    this.nbEntries = nbEntries;
   }
 
   /**
@@ -233,5 +238,19 @@ public class ReplicaDescriptor
   public void setObjectClasses(Set<String> objectClasses)
   {
     this.objectClasses = objectClasses;
+  }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName()
+        + "(domain-name=" + suffix.getDN()
+        + ", server-id=" + replicationId
+        + ", host-name=" + server.getReplicationServerHostPort()
+        + ", nb-entries=" + nbEntries
+        + ", rs-port=" + server.getReplicationServerPort()
+        + ", missing-changes=" + missingChanges
+        + ", age-of-oldest-missing-change=" + ageOfOldestMissingChange
+        + ")";
   }
 }

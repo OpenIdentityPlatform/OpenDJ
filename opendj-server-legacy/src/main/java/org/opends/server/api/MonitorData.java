@@ -224,6 +224,6 @@ public final class MonitorData implements Iterable<Attribute>
   @Override
   public String toString()
   {
-    return getClass().getName() + attrs;
+    return getClass().getSimpleName() + attrs;
   }
 }

@@ -16,10 +16,9 @@
  */
 package org.opends.admin.ads;
 
-import static java.util.Collections.*;
-
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.DN;
 
@@ -44,7 +43,7 @@ public class SuffixDescriptor
   public SuffixDescriptor(DN suffixDn, ReplicaDescriptor replica)
   {
     this.suffixDN = suffixDn;
-    setReplicas(singleton(replica));
+    this.replicas.add(replica);
   }
 
   /**
@@ -80,16 +79,14 @@ public class SuffixDescriptor
   }
 
   /**
-   * Sets the replicas associated with this SuffixDescriptor.
+   * Associates the provided replica with this SuffixDescriptor.
    *
-   * @param replicas
-   *          a Set containing the replicas associated with this
-   *          SuffixDescriptor.
+   * @param replica
+   *          the replicate to associate with this SuffixDescriptor.
    */
-  public void setReplicas(Set<ReplicaDescriptor> replicas)
+  void addReplica(ReplicaDescriptor replica)
   {
-    this.replicas.clear();
-    this.replicas.addAll(replicas);
+    replicas.add(replica);
   }
 
   /**
@@ -128,5 +125,19 @@ public class SuffixDescriptor
       buf.append("-").append(replica.getServer().getId());
     }
     return buf.toString();
+  }
+
+  @Override
+  public String toString()
+  {
+    Set<String> replicaStrings = new TreeSet<>();
+    for (ReplicaDescriptor replica : replicas)
+    {
+      replicaStrings.add(replica.getServer().getHostPort(true).toString());
+    }
+    return getClass().getSimpleName()
+        + "(dn=" + suffixDN
+        + ", replicas=" + replicaStrings
+        + ")";
   }
 }

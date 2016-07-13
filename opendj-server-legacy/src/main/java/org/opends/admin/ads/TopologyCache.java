@@ -17,12 +17,15 @@
 package org.opends.admin.ads;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,13 +45,13 @@ import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.HostPort;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
-
 /**
  * This class allows to read the configuration of the different servers that are
  * registered in a given ADS server. It provides a read only view of the
@@ -125,29 +128,14 @@ public class TopologyCache
           DN dn = replica.getSuffix().getDN();
           logger.info(LocalizableMessage.raw("Handling replica with dn: " + dn));
 
-          boolean suffixFound = false;
           Set<SuffixDescriptor> sufs = hmSuffixes.get(dn);
-          if (sufs != null)
+          SuffixDescriptor suffix = findSuffix(replica, sufs);
+          if (suffix != null)
           {
-            Iterator<SuffixDescriptor> it = sufs.iterator();
-            while (it.hasNext() && !suffixFound)
-            {
-              SuffixDescriptor suffix = it.next();
-              Iterator<String> it2 = suffix.getReplicationServers().iterator();
-              while (it2.hasNext() && !suffixFound)
-              {
-                if (replica.getReplicationServers().contains(it2.next()))
-                {
-                  suffixFound = true;
-                  Set<ReplicaDescriptor> replicas = suffix.getReplicas();
-                  replicas.add(replica);
-                  suffix.setReplicas(replicas);
-                  replica.setSuffix(suffix);
-                }
-              }
-            }
+            suffix.addReplica(replica);
+            replica.setSuffix(suffix);
           }
-          if (!suffixFound)
+          else
           {
             if (sufs == null)
             {
@@ -175,6 +163,25 @@ public class TopologyCache
     {
       throw new TopologyCacheException(TopologyCacheException.Type.BUG, t);
     }
+  }
+
+  private SuffixDescriptor findSuffix(ReplicaDescriptor replica, Set<SuffixDescriptor> sufs)
+  {
+    if (sufs != null)
+    {
+      for (SuffixDescriptor suffix : sufs)
+      {
+        Set<String> rssInSuffix = suffix.getReplicationServers();
+        for (String replicationServer : rssInSuffix)
+        {
+          if (replica.getReplicationServers().contains(replicationServer))
+          {
+            return suffix;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /** Reads the replication monitoring. */
@@ -434,8 +441,11 @@ public class TopologyCache
       throws NamingException, IOException
   {
     ServerLoader loader = getServerLoader(replicationServer.getAdsProperties());
-    SearchRequest request=Requests.newSearchRequest("cn=monitor", WHOLE_SUBTREE, "(missing-changes=*)",
-        "approx-older-change-not-synchronized-millis", "missing-changes", "domain-name", "server-id");
+    SearchRequest request = Requests.newSearchRequest("cn=monitor", WHOLE_SUBTREE, "(missing-changes=*)",
+        "domain-name",
+        "server-id",
+        "missing-changes",
+        "approx-older-change-not-synchronized-millis");
     try (ConnectionWrapper conn = loader.createConnectionWrapper();
         ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
@@ -443,7 +453,7 @@ public class TopologyCache
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        String dnStr = firstValueAsString(sr, "domain-name");
+        final DN dn = DN.valueOf(firstValueAsString(sr, "domain-name"));
         int replicaId = -1;
         try
         {
@@ -460,7 +470,6 @@ public class TopologyCache
           logger.warn(LocalizableMessage.raw("Unexpected error reading replica ID: " + t, t));
         }
 
-        final DN dn = DN.valueOf(dnStr);
         for (ReplicaDescriptor replica : candidateReplicas)
         {
           if (dn.equals(replica.getSuffix().getDN())
@@ -475,8 +484,9 @@ public class TopologyCache
         }
       }
     }
-    catch (EntryNotFoundException e)
+    catch (EntryNotFoundException ignored)
     {
+      // no replicas updated this time. Try with another server higher up the stack.
     }
   }
 
@@ -512,5 +522,59 @@ public class TopologyCache
             "Unexpected error reading age of oldest change: " + t, t));
       }
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    List<SuffixDescriptor> sortedSuffixes = new ArrayList<>(suffixes);
+    Collections.sort(sortedSuffixes, new Comparator<SuffixDescriptor>()
+    {
+      @Override
+      public int compare(SuffixDescriptor suffix1, SuffixDescriptor suffix2)
+      {
+        return suffix1.getDN().compareTo(suffix2.getDN());
+      }
+    });
+
+    final StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("\n");
+    sb.append("Suffix DN,Server,Entries,Replication enabled,DS ID,RS ID,RS Port,M.C.,A.O.M.C.,Security\n");
+    for (SuffixDescriptor suffix : sortedSuffixes)
+    {
+      List<ReplicaDescriptor> sortedReplicas = new ArrayList<>(suffix.getReplicas());
+      Collections.sort(sortedReplicas, new Comparator<ReplicaDescriptor>()
+      {
+        @Override
+        public int compare(ReplicaDescriptor replica1, ReplicaDescriptor replica2)
+        {
+          HostPort hp1 = replica1.getServer().getHostPort(true);
+          HostPort hp2 = replica2.getServer().getHostPort(true);
+          return hp1.toString().compareTo(hp2.toString());
+        }
+      });
+      for (ReplicaDescriptor replica : sortedReplicas)
+      {
+        ServerDescriptor server = replica.getServer();
+        boolean isReplEnabled = server.isReplicationEnabled();
+        boolean secureReplication = server.isReplicationSecure();
+        sb.append(suffix.getDN()).append(",")
+          .append(server.getHostPort(true)).append(",")
+          .append(replica.getEntries()).append(",")
+          .append(isReplEnabled).append(",")
+          .append(replica.getReplicationId()).append(",")
+          .append(orBlank(server.getReplicationServerId())).append(",")
+          .append(orBlank(server.getReplicationServerPort())).append(",")
+          .append(replica.getMissingChanges()).append(",")
+          .append(orBlank(replica.getAgeOfOldestMissingChange())).append(",")
+          .append(secureReplication ? secureReplication : "")
+          .append("\n");
+      }
+    }
+    return sb.toString();
+  }
+
+  private Object orBlank(long value)
+  {
+    return value!=-1 ? value : "";
   }
 }

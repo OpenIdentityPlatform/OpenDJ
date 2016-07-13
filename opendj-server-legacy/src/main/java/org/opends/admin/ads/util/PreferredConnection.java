@@ -85,7 +85,7 @@ public class PreferredConnection
     if (o instanceof PreferredConnection)
     {
       PreferredConnection p = (PreferredConnection)o;
-      return type == p.getType()
+      return type == p.type
           && ldapUrl.equalsIgnoreCase(p.getLDAPURL());
     }
     return false;

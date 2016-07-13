@@ -5836,7 +5836,6 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     ADSContext adsCtx = new ADSContext(conn);
 
-    boolean somethingDisplayed = false;
     TopologyCache cache;
     try
     {
@@ -5901,6 +5900,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
+
+    boolean somethingDisplayed = false;
     if (!oneReplicated && displayAll)
     {
       // Maybe there are some replication server configured...
@@ -5932,35 +5933,22 @@ public class ReplicationCliMain extends ConsoleApplication
       if (oneReplicated && !uData.isScriptFriendly())
       {
         println();
-        print(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
+        println(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
 
         if (!replicasWithNoReplicationServer.isEmpty() ||
             !serversWithNoReplica.isEmpty())
         {
-          println();
-          print(
-              INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_LEGEND.get());
-
-          println();
-          print(
-              INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LEGEND.get());
+          println(INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_LEGEND.get());
+          println(INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LEGEND.get());
         }
-        println();
         somethingDisplayed = true;
       }
     }
     if (!somethingDisplayed)
     {
-      if (displayAll)
-      {
-        print(INFO_REPLICATION_STATUS_NO_REPLICATION_INFORMATION.get());
-        println();
-      }
-      else
-      {
-        print(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
-        println();
-      }
+      println(displayAll
+          ? INFO_REPLICATION_STATUS_NO_REPLICATION_INFORMATION.get()
+          : INFO_REPLICATION_STATUS_NO_BASEDNS.get());
     }
   }
 
@@ -6029,31 +6017,10 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<ServerDescriptor> serversWithNoReplica)
   {
     Set<ReplicaDescriptor> orderedReplicas = new LinkedHashSet<>();
-    Set<HostPort> hostPorts = new TreeSet<>(new Comparator<HostPort>()
-    {
-      @Override
-      public int compare(HostPort hp1, HostPort hp2)
-      {
-        return hp1.toString().compareTo(hp2.toString());
-      }
-    });
     Set<ServerDescriptor> notAddedReplicationServers = new TreeSet<>(new ReplicationServerComparator());
     for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
     {
-      for (ReplicaDescriptor replica : replicas)
-      {
-        hostPorts.add(getHostPort2(replica.getServer(), cnx));
-      }
-      for (HostPort hostPort : hostPorts)
-      {
-        for (ReplicaDescriptor replica : replicas)
-        {
-          if (getHostPort2(replica.getServer(), cnx).equals(hostPort))
-          {
-            orderedReplicas.add(replica);
-          }
-        }
-      }
+      addReplicasSortedByHostPort(orderedReplicas, replicas, cnx);
       for (ServerDescriptor server : servers)
       {
         if (server.isReplicationServer() && isRepServerNotInDomain(replicas, server))
@@ -6209,6 +6176,23 @@ public class ReplicationCliMain extends ConsoleApplication
       printer = ttPrinter;
     }
     tableBuilder.print(printer);
+  }
+
+  private void addReplicasSortedByHostPort(Set<ReplicaDescriptor> orderedReplicas, Set<ReplicaDescriptor> replicas,
+      final Set<PreferredConnection> cnx)
+  {
+    List<ReplicaDescriptor> sortedReplicas = new ArrayList<>(replicas);
+    Collections.sort(sortedReplicas, new Comparator<ReplicaDescriptor>()
+    {
+      @Override
+      public int compare(ReplicaDescriptor replica1, ReplicaDescriptor replica2)
+      {
+        HostPort hp1 = getHostPort2(replica1.getServer(), cnx);
+        HostPort hp2 = getHostPort2(replica2.getServer(), cnx);
+        return hp1.toString().compareTo(hp2.toString());
+      }
+    });
+    orderedReplicas.addAll(sortedReplicas);
   }
 
   private LocalizableMessage fromObject(Object value)

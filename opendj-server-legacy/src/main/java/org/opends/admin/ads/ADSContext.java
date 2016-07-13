@@ -91,7 +91,7 @@ public class ADSContext
   /** Enumeration containing the different server properties that are stored in the ADS. */
   public enum ServerProperty
   {
-    /** The ID used to identify the server. */
+    /** The ID used to identify the server (hostname + port). */
     ID("id",ADSPropertySyntax.STRING),
     /** The host name of the server. */
     HOST_NAME("hostname",ADSPropertySyntax.STRING),
@@ -379,7 +379,7 @@ public class ADSContext
       }
       groupList.add(ALL_SERVERGROUP_NAME);
       serverProperties.put(ServerProperty.GROUPS, groupList);
-      updateServer(serverProperties, null);
+      updateServer(serverProperties);
     }
     catch (ADSContextException ace)
     {
@@ -405,23 +405,13 @@ public class ADSContext
    * @throws ADSContextException
    *           if the server could not be registered.
    */
-  private void updateServer(Map<ServerProperty, Object> serverProperties, String newServerId)
+  private void updateServer(Map<ServerProperty, Object> serverProperties)
       throws ADSContextException
   {
     DN dn = makeDNFromServerProperties(serverProperties);
 
     try
     {
-      if (newServerId != null)
-      {
-        Map<ServerProperty, Object> newServerProps = new HashMap<>(serverProperties);
-        newServerProps.put(ServerProperty.ID, newServerId);
-        DN newDn = makeDNFromServerProperties(newServerProps);
-        throwIfNotSuccess(connectionWrapper.getConnection().modifyDN(dn.toString(), newDn.toString()));
-        dn = newDn;
-        serverProperties.put(ServerProperty.ID, newServerId);
-      }
-
       ModifyRequest request = newModifyRequest(dn);
       for (ServerProperty prop : serverProperties.keySet())
       {
@@ -596,7 +586,7 @@ public class ADSContext
     {
       if (x.getError() == ErrorType.ALREADY_REGISTERED)
       {
-        updateServer(serverProperties, null);
+        updateServer(serverProperties);
         return 1;
       }
 

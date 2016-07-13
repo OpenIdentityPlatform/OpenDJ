@@ -375,22 +375,11 @@ public class ServerLoader extends Thread
     for (PreferredConnection connection : preferredLDAPURLs)
     {
       String url = connection.getLDAPURL();
-      if (url.equalsIgnoreCase(adminConnectorUrl))
-      {
-        ldapUrls.add(connection);
-      }
-      else if (url.equalsIgnoreCase(ldapsUrl) &&
-          connection.getType() == LDAPS)
-      {
-        ldapUrls.add(connection);
-      }
-      else if (url.equalsIgnoreCase(startTLSUrl) &&
-          connection.getType() == START_TLS)
-      {
-        ldapUrls.add(connection);
-      }
-      else if (url.equalsIgnoreCase(ldapUrl) &&
-          connection.getType() == LDAP)
+      org.opends.admin.ads.util.PreferredConnection.Type type = connection.getType();
+      if (url.equalsIgnoreCase(adminConnectorUrl)
+          || (url.equalsIgnoreCase(ldapsUrl) && type == LDAPS)
+          || (url.equalsIgnoreCase(startTLSUrl) && type == START_TLS)
+          || (url.equalsIgnoreCase(ldapUrl) && type == LDAP))
       {
         ldapUrls.add(connection);
       }
