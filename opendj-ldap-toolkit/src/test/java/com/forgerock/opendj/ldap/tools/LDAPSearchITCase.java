@@ -17,7 +17,6 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ERROR_PARSING_ARGS;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_TOOL_RESULT_CODE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPSEARCH_TOOL_DESCRIPTION;
 
@@ -26,7 +25,6 @@ import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -64,12 +62,10 @@ public class LDAPSearchITCase extends ToolsITCase {
     private Object[] produceLDAPSearchBasicTestCase(long userID) {
         String dn = String.format("uid=user.%d,ou=people,o=test", userID);
         LocalizableMessage matchEntryCnt = INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT.get(1);
-        LocalizableMessage resultSuccess =
-            ERR_TOOL_RESULT_CODE.get(ResultCode.SUCCESS.intValue(), ResultCode.SUCCESS.getName().toString());
         return new Object[] {
             args("--countEntries", "-h", TestCaseUtils.getServerSocketAddress().getHostName(), "-p",
                 Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()), "-b", dn, "(uid=user.%d)", "uid"),
-            matchEntryCnt, resultSuccess };
+            matchEntryCnt, "" };
     }
 
     @Test(dataProvider = "ldapSearchArgs")

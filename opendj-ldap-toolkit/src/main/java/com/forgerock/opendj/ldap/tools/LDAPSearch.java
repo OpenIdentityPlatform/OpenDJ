@@ -550,9 +550,6 @@ public final class LDAPSearch extends ConsoleApplication {
                 }
             } while (hasRemainingPages);
 
-            errPrintln();
-            final ResultCode rc = result.getResultCode();
-            errPrintln(ERR_TOOL_RESULT_CODE.get(rc.intValue(), rc.toString()));
             printlnTextMsg(this, result.getDiagnosticMessage());
             printlnTextMsg(this, ERR_TOOL_MATCHED_DN, result.getMatchedDN());
 
