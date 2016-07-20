@@ -56,7 +56,7 @@ public class ModifyDNMsgTest extends ReplicationTestCase
     ModifyDNMsg newMsg = new ModifyDNMsg(msg.getBytes());
 
     SoftAssertions softly = new SoftAssertions();
-    softly.assertThat(msg.getDN()).isEqualTo(newMsg.getDN());
+    softly.assertThat((Object) msg.getDN()).isEqualTo(newMsg.getDN());
     softly.assertThat(msg.getCSN()).isEqualTo(newMsg.getCSN());
     softly.assertThat(msg.getEntryUUID()).isEqualTo(newMsg.getEntryUUID());
     softly.assertThat(msg.getNewSuperiorEntryUUID()).isEqualTo(newMsg.getNewSuperiorEntryUUID());
