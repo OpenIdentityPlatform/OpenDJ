@@ -1544,7 +1544,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
           String.valueOf(keyEntry.getIVLengthBits()));
       putSingleValueAttribute(userAttrs, attrKeyLength,
           String.valueOf(keyEntry.getKeyLengthBits()));
-      userAttrs.put(attrSymmetricKey, buildSymetricKeyAttributes(keyEntry.getSecretKey()));
+      userAttrs.put(attrSymmetricKey, buildSymmetricKeyAttributes(keyEntry.getSecretKey()));
 
       // Create the entry.
       LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
@@ -2020,7 +2020,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
       userAttrs.put(attrKeyID, Attributes.createAsList(attrKeyID, distinguishedValue));
       putSingleValueAttribute(userAttrs, attrMacAlgorithm, keyEntry.getType());
       putSingleValueAttribute(userAttrs, attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()));
-      userAttrs.put(attrSymmetricKey, buildSymetricKeyAttributes(keyEntry.getSecretKey()));
+      userAttrs.put(attrSymmetricKey, buildSymmetricKeyAttributes(keyEntry.getSecretKey()));
 
       // Create the entry.
       LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
@@ -2241,7 +2241,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     private final String fType;
   }
 
-  private List<Attribute> buildSymetricKeyAttributes(SecretKey secretKey) throws CryptoManagerException
+  private List<Attribute> buildSymmetricKeyAttributes(SecretKey secretKey) throws CryptoManagerException
   {
     Map<String, byte[]> trustedCerts = getTrustedCertificates();
 
