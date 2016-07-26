@@ -174,8 +174,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private int assuredTimeoutTimerPurgeCounter;
 
-
-
   /**
    * Stores pending status messages such as DS change time heartbeats for future
    * forwarding to the rest of the topology. This class is required in order to
@@ -247,7 +245,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       pendingRSMonitorMsgs.put(rsServerId, msg);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -871,8 +868,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
 
     /**
-     * Run when the assured timeout for an assured update message we are waiting
-     * acks for occurs.
+     * Run when the assured timeout for an assured update message we are waiting acks for occurs.
      */
     @Override
     public void run()
@@ -923,12 +919,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           if (safeRead)
           {
             origServer.incrementAssuredSrReceivedUpdatesTimeout();
-          } else
+          }
+          else if (origServer.isDataServer())
           {
-            if (origServer.isDataServer())
-            {
-              origServer.incrementAssuredSdReceivedUpdatesTimeout();
-            }
+            origServer.incrementAssuredSdReceivedUpdatesTimeout();
           }
           //   retrieve expected servers in timeout to increment their counter
           List<Integer> serversInTimeout = expectedAcksInfo.getTimeoutServers();
@@ -962,7 +956,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
   }
-
 
   /**
    * Stop operations with a list of replication servers.
@@ -1351,8 +1344,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return servers;
   }
 
-
-
   /**
    * Processes a message coming from one server in the topology and potentially
    * forwards it to one or all other servers.
@@ -1553,8 +1544,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return returnMsg;
   }
 
-
-
   /**
    * Creates a new monitor message including monitoring information for the
    * topology directly connected to this RS. This includes information for: -
@@ -1589,9 +1578,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return monitorMsg;
   }
 
-  /**
-   * Shutdown this ReplicationServerDomain.
-   */
+  /** Shutdown this ReplicationServerDomain. */
   public void shutdown()
   {
     DirectoryServer.deregisterMonitorProvider(this);
@@ -1615,14 +1602,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return domainDB.getDomainNewestCSNs(baseDN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    return "ReplicationServerDomain " + baseDN;
+    return getClass().getSimpleName() + " " + baseDN;
   }
-
-
 
   /**
    * Creates a TopologyMsg filled with information to be sent to a remote RS.
@@ -1968,9 +1952,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return false;
   }
 
-  /**
-   * Update every peers (RS/DS) with topology changes.
-   */
+  /** Update every peers (RS/DS) with topology changes. */
   public void sendTopoInfoToAll()
   {
     enqueueTopoInfoToAllExcept(null);
@@ -1992,9 +1974,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     statusAnalyzer.notifyPendingStatusMessage();
   }
 
-  /**
-   * Clears the Db associated with that domain.
-   */
+  /** Clears the Db associated with that domain. */
   private void clearDbs()
   {
     try
@@ -2099,10 +2079,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         rsHandler.send(errorMsg);
       }
 
-      /*
-       * Sends the currently known topology information to every connected
-       * DS we have.
-       */
+      /* Sends the currently known topology information to every connected DS we have. */
       synchronized (pendingStatusMessagesLock)
       {
         pendingStatusMessages.enqueueTopoInfoToAllDSsExcept(null);
@@ -2157,7 +2134,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return Collections.unmodifiableMap(connectedRSs);
   }
 
-
   /**
    * A synchronization mechanism is created to insure exclusive access to the
    * domain. The goal is to have a consistent view of the topology by locking
@@ -2183,9 +2159,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private final ReentrantLock lock = new ReentrantLock();
 
-  /**
-   * This lock is used to protect the generationId variable.
-   */
+  /** This lock is used to protect the generationId variable. */
   private final Object generationIDLock = new Object();
 
   /**
@@ -2207,9 +2181,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     lock.lockInterruptibly();
   }
 
-  /**
-   * Releases the lock on this domain.
-   */
+  /** Releases the lock on this domain. */
   public void release()
   {
     lock.unlock();
@@ -2226,9 +2198,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return lock.tryLock(timeout, TimeUnit.MILLISECONDS);
   }
 
-  /**
-   * Starts the monitoring publisher for the domain if not already started.
-   */
+  /** Starts the monitoring publisher for the domain if not already started. */
   private void startMonitoringPublisher()
   {
     long period = localReplicationServer.getMonitoringPublisherPeriod();
@@ -2242,9 +2212,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  /**
-   * Stops the monitoring publisher for the domain.
-   */
+  /** Stops the monitoring publisher for the domain. */
   private void stopMonitoringPublisher()
   {
     final MonitoringPublisher thread = monitoringPublisher.get();
@@ -2255,14 +2223,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuraiton)
   {
     // Nothing to do for now
   }
 
-  /** {@inheritDoc} */
   @Override
   public String getMonitorInstanceName()
   {
@@ -2324,8 +2290,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       sleep(100);
     }
   }
-
-
 
   /**
    * Processes a ChangeTimeHeartbeatMsg received, by storing the CSN (timestamp)
@@ -2455,8 +2419,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         + ": " + message);
   }
 
-
-
   /**
    * Go through each connected DS, get the number of pending changes we have for
    * it and change status accordingly if threshold value is crossed/uncrossed.
@@ -2508,11 +2470,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-
-
-  /**
-   * Sends any enqueued status messages to the rest of the topology.
-   */
+  /** Sends any enqueued status messages to the rest of the topology. */
   void sendPendingStatusMessages()
   {
     /*
@@ -2530,8 +2488,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     sendPendingTopologyMsgs(savedState);
     sendPendingMonitorMsgs(savedState);
   }
-
-
 
   private void sendPendingMonitorMsgs(final PendingStatusMessages pendingMsgs)
   {
@@ -2574,8 +2530,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-
-
   private void sendPendingChangeTimeHeartbeatMsgs(PendingStatusMessages pendingMsgs)
   {
     for (ChangeTimeHeartbeatMsg pendingHeartbeat : pendingMsgs.pendingHeartbeats.values())
@@ -2601,8 +2555,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-
-
   private void sendPendingTopologyMsgs(PendingStatusMessages pendingMsgs)
   {
     if (pendingMsgs.sendDSTopologyMsg)
@@ -2627,8 +2579,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
   }
-
-
 
   private void enqueueMonitorMsg(MonitorRequestMsg msg, ServerHandler sender)
   {
