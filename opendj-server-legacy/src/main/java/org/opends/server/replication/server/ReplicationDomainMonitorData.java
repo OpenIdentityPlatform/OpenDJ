@@ -132,6 +132,7 @@ class ReplicationDomainMonitorData
 
     for (Entry<Integer, ServerState> entry : ldapStates.entrySet())
     {
+      clear(mds);
       final Integer lsiServerId = entry.getKey();
       final ServerState lsiState = entry.getValue();
       long lsiMissingChanges = computeMissingChanges(mds, lsiServerId, lsiState);
@@ -140,6 +141,7 @@ class ReplicationDomainMonitorData
       }
 
       this.missingChanges.put(lsiServerId, lsiMissingChanges);
+      logger.trace("Complete monitor data : Missing changes    (%5d)=%s", lsiServerId, mds);
     }
 
     // Computes the missing changes counters for RS :
@@ -147,6 +149,7 @@ class ReplicationDomainMonitorData
 
     for (Entry<Integer, ServerState> entry : rsStates.entrySet())
     {
+      clear(mds);
       final Integer lsiServerId = entry.getKey();
       final ServerState lsiState = entry.getValue();
       long lsiMissingChanges = computeMissingChanges(mds, null, lsiState);
@@ -155,12 +158,13 @@ class ReplicationDomainMonitorData
       }
 
       this.missingChangesRS.put(lsiServerId, lsiMissingChanges);
-
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Complete monitor data : Missing changes (" + lsiServerId + ")=" + mds);
-      }
+      logger.trace("Complete monitor data : Missing changes RS (%5d)=%s", lsiServerId, mds);
     }
+  }
+
+  private void clear(StringBuilder mds)
+  {
+    mds.setLength(0);
   }
 
   private long computeMissingChanges(StringBuilder mds, final Integer lsiServerId, final ServerState lsiState)
@@ -176,7 +180,11 @@ class ReplicationDomainMonitorData
         int missingChangesLsiLsj = CSN.diffSeqNum(lsjMaxCSN, lsiLastCSN);
 
         if (logger.isTraceEnabled()) {
-          mds.append("+ diff(")
+          if (mds.length() > 0)
+          {
+            mds.append(" + ");
+          }
+          mds.append("diff(")
              .append(lsjMaxCSN).append("-").append(lsiLastCSN).append(")=").append(missingChangesLsiLsj);
         }
         /*

@@ -283,11 +283,11 @@ class ReplicationDomainMonitor
       {
         // Here is the RS state : list <serverID, lastCSN>
         // For each LDAP Server, we keep the max CSN across the RSes
-        ServerState replServerState = msg.getReplServerDbState();
-        pendingMonitorData.setMaxCSNs(replServerState);
+        ServerState replServerDbState = msg.getReplServerDbState();
+        pendingMonitorData.setMaxCSNs(replServerDbState);
 
         // store the remote RS states.
-        pendingMonitorData.setRSState(msg.getSenderID(), replServerState);
+        pendingMonitorData.setRSState(msg.getSenderID(), replServerDbState);
 
         // Store the remote LDAP servers states
         for (int dsServerId : toIterable(msg.ldapIterator()))
@@ -295,8 +295,7 @@ class ReplicationDomainMonitor
           ServerState dsServerState = msg.getLDAPServerState(dsServerId);
           pendingMonitorData.setMaxCSNs(dsServerState);
           pendingMonitorData.setLDAPServerState(dsServerId, dsServerState);
-          pendingMonitorData.setFirstMissingDate(dsServerId,
-              msg.getLDAPApproxFirstMissingDate(dsServerId));
+          pendingMonitorData.setFirstMissingDate(dsServerId, msg.getLDAPApproxFirstMissingDate(dsServerId));
         }
 
         // Process the latency reported by the remote RSi on its connections
