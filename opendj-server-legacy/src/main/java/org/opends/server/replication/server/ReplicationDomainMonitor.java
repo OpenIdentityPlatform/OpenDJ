@@ -23,83 +23,57 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.TimeThread;
+
+import net.jcip.annotations.GuardedBy;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * This class maintains monitor data for a replication domain.
- */
+/** This class maintains monitor data for a replication domain. */
 class ReplicationDomainMonitor
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** TODO: Remote monitor data cache lifetime is 500ms/should be configurable. */
+  private final long monitorDataLifeTime = 500;
+  /** The replication domain monitored by this class. */
+  private final ReplicationServerDomain domain;
+  /** The monitor data consolidated over the topology. */
+  private volatile ReplicationDomainMonitorData monitorData;
 
-  /**
-   * The monitor data consolidated over the topology.
-   */
-  private volatile ReplicationDomainMonitorData monitorData =
-      new ReplicationDomainMonitorData();
-
-  /**
-   * This lock guards against multiple concurrent monitor data recalculation.
-   */
+  /** This lock guards against multiple concurrent monitor data recalculation. */
   private final Object pendingMonitorLock = new Object();
-
-  /** Guarded by pendingMonitorLock. */
+  @GuardedBy("pendingMonitorLock")
   private long monitorDataLastBuildDate;
-
-  /**
-   * The set of replication servers which are already known to be slow to send
-   * monitor data.
-   * <p>
-   * Guarded by pendingMonitorLock.
-   */
-  private final Set<Integer> monitorDataLateServers = new HashSet<>();
 
   /** This lock serializes updates to the pending monitor data. */
   private final Object pendingMonitorDataLock = new Object();
-
-  /**
-   * Monitor data which is currently being calculated.
-   * <p>
-   * Guarded by pendingMonitorDataLock.
-   */
+  /** Monitor data which is currently being calculated. */
+  @GuardedBy("pendingMonitorDataLock")
   private ReplicationDomainMonitorData pendingMonitorData;
-
+  /** The set of replication servers which are already known to be slow to send monitor data. */
+  @GuardedBy("pendingMonitorDataLock")
+  private final Set<Integer> monitorDataLateServers = new HashSet<>();
   /**
    * A set containing the IDs of servers from which we are currently expecting
    * monitor responses. When a response is received from a server we remove the
    * ID from this table, and count down the latch if the ID was in the table.
-   * <p>
-   * Guarded by pendingMonitorDataLock.
    */
+  @GuardedBy("pendingMonitorDataLock")
   private final Set<Integer> pendingMonitorDataServerIDs = new HashSet<>();
-
   /**
    * This latch is non-null and is used in order to count incoming responses as
    * they arrive. Since incoming response may arrive at any time, even when
    * there is no pending monitor request, access to the latch must be guarded.
-   * <p>
-   * Guarded by pendingMonitorDataLock.
    */
+  @GuardedBy("pendingMonitorDataLock")
   private CountDownLatch pendingMonitorDataLatch;
-
-  /**
-   * TODO: Remote monitor data cache lifetime is 500ms/should be configurable.
-   */
-  private final long monitorDataLifeTime = 500;
-
-  /** The replication domain monitored by this class. */
-  private final ReplicationServerDomain domain;
-
 
   /**
    * Builds an object of this class.
@@ -110,6 +84,12 @@ class ReplicationDomainMonitor
   public ReplicationDomainMonitor(ReplicationServerDomain replicationDomain)
   {
     this.domain = replicationDomain;
+    this.monitorData = new ReplicationDomainMonitorData(getBaseDn());
+  }
+
+  private DN getBaseDn()
+  {
+    return domain.getBaseDN();
   }
 
   /**
@@ -149,7 +129,7 @@ class ReplicationDomainMonitor
           {
             // Clear the pending monitor data.
             pendingMonitorDataServerIDs.clear();
-            pendingMonitorData = new ReplicationDomainMonitorData();
+            pendingMonitorData = new ReplicationDomainMonitorData(baseDN);
 
             initializePendingMonitorData();
 
@@ -239,9 +219,7 @@ class ReplicationDomainMonitor
     return monitorData;
   }
 
-  /**
-   * Start collecting global monitoring information for the replication domain.
-   */
+  /** Start collecting global monitoring information for the replication domain. */
   private void initializePendingMonitorData()
   {
     // Let's process our directly connected DS
@@ -266,8 +244,7 @@ class ReplicationDomainMonitor
       }
       pendingMonitorData.setMaxCSN(maxCSN);
       pendingMonitorData.setLDAPServerState(serverId, dsState);
-      pendingMonitorData.setFirstMissingDate(serverId,
-          ds.getApproxFirstMissingDate());
+      pendingMonitorData.setFirstMissingDate(serverId, ds.getApproxFirstMissingDate());
     }
 
     // Then initialize the max CSN for the LS that produced something
@@ -369,5 +346,4 @@ class ReplicationDomainMonitor
       }
     }
   }
-
 }

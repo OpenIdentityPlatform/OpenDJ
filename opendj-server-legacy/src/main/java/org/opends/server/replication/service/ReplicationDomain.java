@@ -842,6 +842,10 @@ public abstract class ReplicationDomain
         else if (msg instanceof UpdateMsg)
         {
           update = (UpdateMsg) msg;
+          // If the replica is reset to an older state (server died, reset from a backup of day-1),
+          // then its generator state must be adjusted back to what it was before.
+          // Scary: what happens if the DS starts accepting updates
+          // before the recovery is finished?
           generator.adjust(update.getCSN());
         }
         else if (msg instanceof InitializeRcvAckMsg)

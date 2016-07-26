@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.util.TimeThread;
@@ -44,17 +45,29 @@ class ReplicationDomainMonitorData
    *   date of the first missing change.
    */
 
-  /** For each LDAP server, its server state. */
-  private ConcurrentMap<Integer, ServerState> ldapStates = new ConcurrentHashMap<>();
-  /** A Map containing the ServerStates of each RS. */
-  private ConcurrentMap<Integer, ServerState> rsStates = new ConcurrentHashMap<>();
-  /** For each LDAP server, the last(max) CSN it published. */
-  private ConcurrentMap<Integer, CSN> maxCSNs = new ConcurrentHashMap<>();
+  /** BaseDN being monitored. This field is only used for debugging purposes. */
+  private final DN baseDN;
+
+  /** For each LDAP server, its server state. This is the point-of-view of the DSs. */
+  private final ConcurrentMap<Integer, ServerState> ldapStates = new ConcurrentHashMap<>();
+  /** A Map containing the ServerStates of each RS. This is the point-of-view of the RSs. */
+  private final ConcurrentMap<Integer, ServerState> rsStates = new ConcurrentHashMap<>();
+  /**
+   * For each LDAP server, the last(max) CSN it published.
+   * <p>
+   * Union of the view from all the {@code ldapStates} and {@code rsStates}.
+   */
+  private final ConcurrentMap<Integer, CSN> maxCSNs = new ConcurrentHashMap<>();
 
   /** For each LDAP server, an approximation of the date of the first missing change. */
-  private ConcurrentMap<Integer, Long> firstMissingDates = new ConcurrentHashMap<>();
-  private ConcurrentMap<Integer, Long> missingChanges = new ConcurrentHashMap<>();
-  private ConcurrentMap<Integer, Long> missingChangesRS = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Integer, Long> firstMissingDates = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Integer, Long> missingChanges = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Integer, Long> missingChangesRS = new ConcurrentHashMap<>();
+
+  public ReplicationDomainMonitorData(DN baseDN)
+  {
+    this.baseDN = baseDN;
+  }
 
   /**
    * Get an approximation of the latency delay of the replication.
@@ -193,15 +206,10 @@ class ReplicationDomainMonitorData
     return lsiMissingChanges;
   }
 
-  /**
-   * Returns a <code>String</code> object representing this
-   * object's value.
-   * @return  a string representation of the value of this object in
-   */
   @Override
   public String toString()
   {
-    StringBuilder mds = new StringBuilder("Monitor data=\n");
+    StringBuilder mds = new StringBuilder("Monitor data='").append(baseDN).append("'\n");
 
     // maxCSNs
     for (Entry<Integer, CSN> entry : maxCSNs.entrySet())
@@ -256,22 +264,28 @@ class ReplicationDomainMonitorData
    */
   public void setMaxCSN(CSN newCSN)
   {
-    if (newCSN == null)
+    if (newCSN != null)
     {
-      return;
+      while (!setMaxCsn0(newCSN))
+      {
+        // try setting up the max CSN until the CSN is no longer the max one, or until it succeeds
+      }
     }
+  }
 
+  private boolean setMaxCsn0(CSN newCSN)
+  {
     int serverId = newCSN.getServerId();
     CSN currentMaxCSN = maxCSNs.get(serverId);
     if (currentMaxCSN == null)
     {
-      maxCSNs.put(serverId, newCSN);
+      return maxCSNs.putIfAbsent(serverId, newCSN) == null;
     }
     else if (newCSN.isNewerThan(currentMaxCSN))
     {
-      // TODO JNR should we check for unsuccessful replace?
-      maxCSNs.replace(serverId, newCSN);
+      return maxCSNs.replace(serverId, currentMaxCSN, newCSN);
     }
+    return true;
   }
 
   /**
@@ -312,15 +326,25 @@ class ReplicationDomainMonitorData
    */
   public void setFirstMissingDate(int serverId, long newFmd)
   {
+    while (!setFirstMissingDate0(serverId, newFmd))
+    {
+      // try setting up the first missing date
+      // until the first missing date is no longer the min one, or until it succeeds
+    }
+  }
+
+  public boolean setFirstMissingDate0(int serverId, long newFmd)
+  {
     Long currentFmd = firstMissingDates.get(serverId);
     if (currentFmd == null)
     {
-      firstMissingDates.put(serverId, newFmd);
+      return firstMissingDates.putIfAbsent(serverId, newFmd) == null;
     }
     else if (newFmd != 0 && (newFmd < currentFmd || currentFmd == 0))
     {
-      firstMissingDates.replace(serverId, newFmd);
+      return firstMissingDates.replace(serverId, currentFmd, newFmd);
     }
+    return true;
   }
 
   /**
