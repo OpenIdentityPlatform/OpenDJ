@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -37,22 +37,14 @@ import org.opends.server.replication.common.ServerState;
  */
 public class MonitorMsg extends ReplicationMsg
 {
-  /**
-   * The destination server or servers of this message.
-   */
+  /** The destination server or servers of this message. */
   private final int destination;
-
-  /**
-   * The serverID of the server that sends this message.
-   */
+  /** The serverID of the server that sends this message. */
   private final int senderID;
-
-
 
   /**
    * Data structure to manage the state and the approximation of the data of the
-   * first missing change for each LDAP server connected to a Replication
-   * Server.
+   * first missing change for each LDAP server connected to a Replication Server.
    */
   private static class ServerData
   {
@@ -255,7 +247,6 @@ public class MonitorMsg extends ReplicationMsg
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
@@ -393,7 +384,6 @@ public class MonitorMsg extends ReplicationMsg
     return senderID;
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -418,7 +408,7 @@ public class MonitorMsg extends ReplicationMsg
             .append(sd.state).append("]").append(" afmd=")
             .append(sd.approxFirstMissingDate).append("]");
     }
-    return getClass().getCanonicalName() +
+    return getClass().getSimpleName() +
     "[ sender=" + this.senderID +
     " destination=" + this.destination +
     " data=[" + stateS + "]" +

@@ -80,15 +80,10 @@ public abstract class RoutableMsg extends ReplicationMsg
     return this.senderID;
   }
 
-  /**
-   * Returns a string representation of the message.
-   *
-   * @return the string representation of this message.
-   */
   @Override
   public String toString()
   {
-    return "[" + getClass().getCanonicalName() +
+    return "[" + getClass().getSimpleName() +
       " sender=" + this.senderID +
       " destination=" + this.destination + "]";
   }

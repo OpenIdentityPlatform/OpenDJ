@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions copyright 2013-2014 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -25,14 +25,9 @@ import java.util.zip.DataFormatException;
  */
 public class MonitorRequestMsg extends ReplicationMsg
 {
-  /**
-   * The destination server or servers of this message.
-   */
+  /** The destination server or servers of this message. */
   private final int destination;
-
-  /**
-   * The serverID of the server that sends this message.
-   */
+  /** The serverID of the server that sends this message. */
   private final int senderID;
 
   /**
@@ -48,8 +43,6 @@ public class MonitorRequestMsg extends ReplicationMsg
     this.senderID = serverID;
     this.destination = destination;
   }
-
-
 
   /**
    * Creates a new message by decoding the provided byte array.
@@ -72,7 +65,6 @@ public class MonitorRequestMsg extends ReplicationMsg
     this.destination = scanner.nextIntUTF8();
   }
 
-  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
@@ -103,15 +95,9 @@ public class MonitorRequestMsg extends ReplicationMsg
     return senderID;
   }
 
-  /**
-   * Returns a string representation of the message.
-   *
-   * @return the string representation of this message.
-   */
   @Override
   public String toString()
   {
-    return "[" + getClass().getCanonicalName() + " sender=" + senderID
-        + " destination=" + destination + "]";
+    return "[" + getClass().getSimpleName() + " sender=" + senderID + " destination=" + destination + "]";
   }
 }
