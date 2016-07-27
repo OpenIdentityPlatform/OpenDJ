@@ -1242,6 +1242,10 @@ public class LDAPConnectionConsoleInteraction
     {
       return state.getAdminOrBindDN();
     }
+    else if (isAdminUidArgVisible())
+    {
+      return getAdministratorDN(state.adminUID);
+    }
     else
     {
       return state.bindDN;
