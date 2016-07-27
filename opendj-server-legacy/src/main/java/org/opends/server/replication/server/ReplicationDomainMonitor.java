@@ -250,12 +250,7 @@ class ReplicationDomainMonitor
     // Then initialize the max CSN for the LS that produced something
     // - from our own local db state
     // - whatever they are directly or indirectly connected
-    final ServerState dbServerState = domain.getLatestServerState();
-    pendingMonitorData.setRSState(domain.getLocalRSServerId(), dbServerState);
-    for (CSN storedCSN : dbServerState)
-    {
-      pendingMonitorData.setMaxCSN(storedCSN);
-    }
+    pendingMonitorData.setRSState(domain.getLocalRSServerId(), domain.getLatestServerState());
   }
 
   /**
@@ -281,13 +276,8 @@ class ReplicationDomainMonitor
 
       try
       {
-        // Here is the RS state : list <serverID, lastCSN>
-        // For each LDAP Server, we keep the max CSN across the RSes
-        ServerState replServerDbState = msg.getReplServerDbState();
-        pendingMonitorData.setMaxCSNs(replServerDbState);
-
         // store the remote RS states.
-        pendingMonitorData.setRSState(msg.getSenderID(), replServerDbState);
+        pendingMonitorData.setRSState(msg.getSenderID(), msg.getReplServerDbState());
 
         // Store the remote LDAP servers states
         for (int dsServerId : toIterable(msg.ldapIterator()))

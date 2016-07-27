@@ -325,6 +325,7 @@ class ReplicationDomainMonitorData
   public void setRSState(int serverId, ServerState state)
   {
     rsStates.put(serverId, state);
+    setMaxCSNs(state);
   }
 
   /**
