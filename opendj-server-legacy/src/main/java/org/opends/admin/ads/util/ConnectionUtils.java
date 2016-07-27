@@ -98,12 +98,9 @@ public class ConnectionUtils
     {
       env.put("com.sun.jndi.ldap.connect.timeout", String.valueOf(timeout));
     }
-    if (dn != null)
+    if (dn != null && pwd != null)
     {
       env.put(Context.SECURITY_PRINCIPAL, dn);
-    }
-    if (pwd != null)
-    {
       env.put(Context.SECURITY_CREDENTIALS, pwd);
     }
 
