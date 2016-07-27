@@ -200,7 +200,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   /** The value set by the dsreplication script if it is called the first time. */
   private static final String FIRST_SCRIPT_CALL = "firstcall";
-  private static final LocalizableMessage EMPTY_MSG = LocalizableMessage.raw("");
+  private static final LocalizableMessage EMPTY_MSG = LocalizableMessage.EMPTY;
 
   private boolean forceNonInteractive;
 

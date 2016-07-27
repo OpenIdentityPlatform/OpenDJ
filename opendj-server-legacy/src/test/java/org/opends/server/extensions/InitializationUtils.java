@@ -131,7 +131,7 @@ public final class InitializationUtils {
     try {
       return AdminTestCaseUtils.getConfiguration(context, cfgDefn, Converters.from(cfgEntry));
     } catch (IllegalArgumentException e) {
-      throw new ConfigException(LocalizableMessage.raw(""), e);
+      throw new ConfigException(LocalizableMessage.EMPTY, e);
     }
   }
 }
