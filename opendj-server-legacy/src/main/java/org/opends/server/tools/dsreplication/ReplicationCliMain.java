@@ -65,7 +65,6 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.naming.NamingException;
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
@@ -1103,24 +1102,17 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     // Interact with the user though the console to get
     // LDAP connection information
-    String hostName = getHostNameForLdapUrl(ci.getHostName());
-    int portNumber = ci.getPortNumber();
-    HostPort hostPort = new HostPort(hostName, portNumber);
-    String bindDN = ci.getBindDN();
-    String bindPassword = ci.getBindPassword();
-    TrustManager trustManager = ci.getTrustManager();
-    KeyManager keyManager = ci.getKeyManager();
+    final String hostName = getHostNameForLdapUrl(ci.getHostName());
+    final int portNumber = ci.getPortNumber();
+    final HostPort hostPort = new HostPort(hostName, portNumber);
 
-    ConnectionWrapper conn;
     if (ci.useSSL())
     {
       while (true)
       {
         try
         {
-          conn = new ConnectionWrapper(
-              hostPort, LDAPS, bindDN, bindPassword, ci.getConnectTimeout(), trustManager, keyManager);
-          break;
+          return newConnectionWrapper(ci, LDAPS, ci.getConnectTimeout());
         }
         catch (NamingException e)
         {
@@ -1129,13 +1121,10 @@ public class ReplicationCliMain extends ConsoleApplication
             OpendsCertificateException oce = getCertificateRootException(e);
             if (oce != null)
             {
-              String authType = getAuthType(trustManager);
+              String authType = getAuthType(ci.getTrustManager());
               if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
               {
-                // If the certificate is trusted, update the trust manager.
-                trustManager = ci.getTrustManager();
-
-                // Try to connect again.
+                // User trusts the certificate, try to connect again.
                 continue;
               }
               else
@@ -1175,10 +1164,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         try
         {
-          conn = new ConnectionWrapper(
-              hostPort, START_TLS, bindDN, bindPassword,
-              CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, trustManager, keyManager);
-          return conn;
+          return newConnectionWrapper(ci, START_TLS, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT);
         }
         catch (NamingException e)
         {
@@ -1191,13 +1177,10 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             throw failedToConnect(hostName, portNumber);
           }
-          String authType = getAuthType(trustManager);
+          String authType = getAuthType(ci.getTrustManager());
           if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
           {
-            // If the certificate is trusted, update the trust manager.
-            trustManager = ci.getTrustManager();
-
-            // Try to connect again.
+            // User trusts the certificate, try to connect again.
             continue;
           }
           else
@@ -1210,21 +1193,25 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      while (true)
+      try
       {
-        try
-        {
-          conn = new ConnectionWrapper(
-              hostPort, LDAP, bindDN, bindPassword, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null);
-          return conn;
-        }
-        catch (NamingException e)
-        {
-          throw failedToConnect(hostName, portNumber);
-        }
+        return newConnectionWrapper(ci, LDAP, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT);
+      }
+      catch (NamingException e)
+      {
+        throw failedToConnect(hostName, portNumber);
       }
     }
-    return conn;
+  }
+
+  private ConnectionWrapper newConnectionWrapper(
+      LDAPConnectionConsoleInteraction ci, Type connType, int connectTimeout) throws NamingException
+  {
+    String hostName = getHostNameForLdapUrl(ci.getHostName());
+    int portNumber = ci.getPortNumber();
+    HostPort hostPort = new HostPort(hostName, portNumber);
+    return new ConnectionWrapper(hostPort, connType, ci.getBindDN(), ci.getBindPassword(),
+        connectTimeout, ci.getTrustManager(), ci.getKeyManager());
   }
 
   private String getAuthType(TrustManager trustManager)
@@ -3967,8 +3954,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       errorMessages.add(getMessageForException(e, server.getHostPort().toString()));
       logger.error(LocalizableMessage.raw("Error when creating connection for:" + server.getHostPort()));
+      return null;
     }
-    return null;
   }
 
   /**

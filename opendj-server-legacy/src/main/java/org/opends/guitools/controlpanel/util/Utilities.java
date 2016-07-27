@@ -16,10 +16,9 @@
  */
 package org.opends.guitools.controlpanel.util;
 
-import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
-
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -107,8 +106,8 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -160,8 +159,8 @@ public class Utilities
   private static ImageIcon warningIcon;
   private static ImageIcon requiredIcon;
 
-  private final static LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
-  private final static LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
+  private static final LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
+  private static final LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /**
    * Creates a combo box.
@@ -500,16 +499,14 @@ public class Utilities
   public static JMenu createMenu(LocalizableMessage msg, LocalizableMessage description)
   {
     JMenu menu = new JMenu(msg.toString());
-    menu.getAccessibleContext().setAccessibleDescription(
-        description.toString());
+    menu.getAccessibleContext().setAccessibleDescription(description.toString());
     return menu;
   }
 
   /**
-   * Creates a label of type 'primary' (with bigger font than usual) with no
-   * text.
-   * @return the label of type 'primary' (with bigger font than usual) with no
-   * text.
+   * Creates a label of type 'primary' (with bigger font than usual) with no text.
+   *
+   * @return the label of type 'primary' (with bigger font than usual) with no text.
    */
   public static JLabel createPrimaryLabel()
   {
@@ -596,7 +593,7 @@ public class Utilities
           BorderFactory.createMatteBorder(1, 1, 0, 0,
               ColorAndFontConstants.gridColor));
     }
-    if (isWindows())
+    else if (isWindows())
     {
       table.getTableHeader().setBorder(
           BorderFactory.createMatteBorder(1, 1, 0, 1,
@@ -671,8 +668,7 @@ public class Utilities
    * @param cols the columns of the text area.
    * @return a text area.
    */
-  public static JTextArea createTextArea(LocalizableMessage text, int rows,
-      int cols)
+  public static JTextArea createTextArea(LocalizableMessage text, int rows, int cols)
   {
     JTextArea ta = new JTextArea(text.toString(), rows, cols);
     ta.setFont(ColorAndFontConstants.defaultFont);
@@ -726,7 +722,6 @@ public class Utilities
     return tf;
   }
 
-
   /**
    * Creates a text field with the default size.
    * @return the created text field.
@@ -740,7 +735,7 @@ public class Utilities
   }
 
   /**
-   * Creates a pasword text field.
+   * Creates a password text field.
    * @return the created password text field.
    */
   public static JPasswordField createPasswordField()
@@ -752,7 +747,7 @@ public class Utilities
   }
 
   /**
-   * Creates a pasword text field.
+   * Creates a password text field.
    * @param cols the columns of the password text field.
    * @return the created password text field.
    */
@@ -772,14 +767,9 @@ public class Utilities
    */
   public static void setBorder(JComponent comp, Border border)
   {
-    if (comp.getBorder() != null)
-    {
-      comp.setBorder(BorderFactory.createCompoundBorder(comp.getBorder(), border));
-    }
-    else
-    {
-      comp.setBorder(border);
-    }
+    comp.setBorder(comp.getBorder() != null
+        ? BorderFactory.createCompoundBorder(comp.getBorder(), border)
+        : border);
   }
 
   /**
@@ -793,14 +783,9 @@ public class Utilities
     int width1 = table.getPreferredScrollableViewportSize().width;
     int width2 = scroll.getViewport().getWidth();
 
-    if (width1 > width2)
-    {
-      table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-    }
-    else
-    {
-      table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
-    }
+    table.setAutoResizeMode(width1 > width2
+        ? JTable.AUTO_RESIZE_OFF
+        : JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
   }
 
   /**
@@ -942,11 +927,11 @@ public class Utilities
 
 
   /**
-   * Returns an ImageIcon or <CODE>null</CODE> if the path was invalid.
+   * Returns an ImageIcon or {@code null} if the path was invalid.
    * @param path the path of the image.
    * @param loader the class loader to use to load the image.  If
-   * <CODE>null</CODE> this class class loader will be used.
-   * @return an ImageIcon or <CODE>null</CODE> if the path was invalid.
+   * {@code null} this class class loader will be used.
+   * @return an ImageIcon or {@code null} if the path was invalid.
    */
   public static ImageIcon createImageIcon(String path, ClassLoader loader) {
     if (loader == null)
@@ -958,9 +943,9 @@ public class Utilities
   }
 
   /**
-   * Returns an ImageIcon or <CODE>null</CODE> if the path was invalid.
+   * Returns an ImageIcon or {@code null} if the path was invalid.
    * @param path the path of the image.
-   * @return an ImageIcon or <CODE>null</CODE> if the path was invalid.
+   * @return an ImageIcon or {@code null} if the path was invalid.
    */
   public static ImageIcon createImageIcon(String path) {
     return createImageIcon(path, null);
@@ -1099,8 +1084,7 @@ public class Utilities
       {
         if (s.length() >= i + HTML_SPACE.length())
         {
-          if (HTML_SPACE.equalsIgnoreCase(s.substring(i, i
-              + HTML_SPACE.length())))
+          if (HTML_SPACE.equalsIgnoreCase(s.substring(i, i + HTML_SPACE.length())))
           {
             if (lastLineLength < nCols)
             {
@@ -1261,10 +1245,10 @@ public class Utilities
   }
 
   /**
-   * Returns the parent frame of a component.  <CODE>null</CODE> if this
+   * Returns the parent frame of a component.  {@code null} if this
    * component is not contained in any frame.
    * @param comp the component.
-   * @return the parent frame of a component.  <CODE>null</CODE> if this
+   * @return the parent frame of a component.  {@code null} if this
    * component is not contained in any frame.
    */
   public static JFrame getFrame(Component comp)
@@ -1278,10 +1262,10 @@ public class Utilities
   }
 
   /**
-   * Returns the parent dialog of a component.  <CODE>null</CODE> if this
+   * Returns the parent dialog of a component.  {@code null} if this
    * component is not contained in any dialog.
    * @param comp the component.
-   * @return the parent dialog of a component.  <CODE>null</CODE> if this
+   * @return the parent dialog of a component.  {@code null} if this
    * component is not contained in any dialog.
    */
   public static Window getParentDialog(Component comp)
@@ -1317,131 +1301,8 @@ public class Utilities
                 && StaticUtils.isHexDigit(stringBytes[i+1])
                 && StaticUtils.isHexDigit(stringBytes[i+2]))
         {
-          // Convert hex-encoded UTF-8 to 16-bit chars.
-          byte b;
-
-          byte escapedByte1 = stringBytes[++i];
-          switch (escapedByte1)
-          {
-          case '0':
-            b = (byte) 0x00;
-            break;
-          case '1':
-            b = (byte) 0x10;
-            break;
-          case '2':
-            b = (byte) 0x20;
-            break;
-          case '3':
-            b = (byte) 0x30;
-            break;
-          case '4':
-            b = (byte) 0x40;
-            break;
-          case '5':
-            b = (byte) 0x50;
-            break;
-          case '6':
-            b = (byte) 0x60;
-            break;
-          case '7':
-            b = (byte) 0x70;
-            break;
-          case '8':
-            b = (byte) 0x80;
-            break;
-          case '9':
-            b = (byte) 0x90;
-            break;
-          case 'a':
-          case 'A':
-            b = (byte) 0xA0;
-            break;
-          case 'b':
-          case 'B':
-            b = (byte) 0xB0;
-            break;
-          case 'c':
-          case 'C':
-            b = (byte) 0xC0;
-            break;
-          case 'd':
-          case 'D':
-            b = (byte) 0xD0;
-            break;
-          case 'e':
-          case 'E':
-            b = (byte) 0xE0;
-            break;
-          case 'f':
-          case 'F':
-            b = (byte) 0xF0;
-            break;
-          default:
-            throw new RuntimeException("Unexpected byte: "+escapedByte1);
-          }
-
-          byte escapedByte2 = stringBytes[++i];
-          switch (escapedByte2)
-          {
-          case '0':
-            break;
-          case '1':
-            b |= 0x01;
-            break;
-          case '2':
-            b |= 0x02;
-            break;
-          case '3':
-            b |= 0x03;
-            break;
-          case '4':
-            b |= 0x04;
-            break;
-          case '5':
-            b |= 0x05;
-            break;
-          case '6':
-            b |= 0x06;
-            break;
-          case '7':
-            b |= 0x07;
-            break;
-          case '8':
-            b |= 0x08;
-            break;
-          case '9':
-            b |= 0x09;
-            break;
-          case 'a':
-          case 'A':
-            b |= 0x0A;
-            break;
-          case 'b':
-          case 'B':
-            b |= 0x0B;
-            break;
-          case 'c':
-          case 'C':
-            b |= 0x0C;
-            break;
-          case 'd':
-          case 'D':
-            b |= 0x0D;
-            break;
-          case 'e':
-          case 'E':
-            b |= 0x0E;
-            break;
-          case 'f':
-          case 'F':
-            b |= 0x0F;
-            break;
-          default:
-            throw new RuntimeException("Unexpected byte: "+escapedByte2);
-          }
-
-          decodedBytes[pos++] = b;
+          decodedBytes[pos++] = convertHexEncodedUtf8To16BitChars(stringBytes, i);
+          i += 2;
         }
         else {
           decodedBytes[pos++] = stringBytes[i];
@@ -1449,11 +1310,140 @@ public class Utilities
       }
       return new String(decodedBytes, 0, pos, "UTF-8");
     }
-    catch (UnsupportedEncodingException uee)
+    catch (UnsupportedEncodingException unexpected)
     {
-//    This is a bug, UTF-8 should be supported always by the JVM
-      throw new RuntimeException("UTF-8 encoding not supported", uee);
+      // This is a bug, UTF-8 should be supported always by the JVM
+      throw new RuntimeException("UTF-8 encoding not supported", unexpected);
     }
+  }
+
+  /** Convert hex-encoded UTF-8 to 16-bit chars. */
+  private static byte convertHexEncodedUtf8To16BitChars(byte[] bytes, int i)
+  {
+    byte b;
+
+    byte escapedByte1 = bytes[i + 1];
+    switch (escapedByte1)
+    {
+    case '0':
+      b = (byte) 0x00;
+      break;
+    case '1':
+      b = (byte) 0x10;
+      break;
+    case '2':
+      b = (byte) 0x20;
+      break;
+    case '3':
+      b = (byte) 0x30;
+      break;
+    case '4':
+      b = (byte) 0x40;
+      break;
+    case '5':
+      b = (byte) 0x50;
+      break;
+    case '6':
+      b = (byte) 0x60;
+      break;
+    case '7':
+      b = (byte) 0x70;
+      break;
+    case '8':
+      b = (byte) 0x80;
+      break;
+    case '9':
+      b = (byte) 0x90;
+      break;
+    case 'a':
+    case 'A':
+      b = (byte) 0xA0;
+      break;
+    case 'b':
+    case 'B':
+      b = (byte) 0xB0;
+      break;
+    case 'c':
+    case 'C':
+      b = (byte) 0xC0;
+      break;
+    case 'd':
+    case 'D':
+      b = (byte) 0xD0;
+      break;
+    case 'e':
+    case 'E':
+      b = (byte) 0xE0;
+      break;
+    case 'f':
+    case 'F':
+      b = (byte) 0xF0;
+      break;
+    default:
+      throw new RuntimeException("Unexpected byte: " + escapedByte1);
+    }
+
+    byte escapedByte2 = bytes[i + 2];
+    switch (escapedByte2)
+    {
+    case '0':
+      break;
+    case '1':
+      b |= 0x01;
+      break;
+    case '2':
+      b |= 0x02;
+      break;
+    case '3':
+      b |= 0x03;
+      break;
+    case '4':
+      b |= 0x04;
+      break;
+    case '5':
+      b |= 0x05;
+      break;
+    case '6':
+      b |= 0x06;
+      break;
+    case '7':
+      b |= 0x07;
+      break;
+    case '8':
+      b |= 0x08;
+      break;
+    case '9':
+      b |= 0x09;
+      break;
+    case 'a':
+    case 'A':
+      b |= 0x0A;
+      break;
+    case 'b':
+    case 'B':
+      b |= 0x0B;
+      break;
+    case 'c':
+    case 'C':
+      b |= 0x0C;
+      break;
+    case 'd':
+    case 'D':
+      b |= 0x0D;
+      break;
+    case 'e':
+    case 'E':
+      b |= 0x0E;
+      break;
+    case 'f':
+    case 'F':
+      b |= 0x0F;
+      break;
+    default:
+      throw new RuntimeException("Unexpected byte: " + escapedByte2);
+    }
+
+    return b;
   }
 
   /**
@@ -1488,7 +1478,7 @@ public class Utilities
   }
 
   /** The pattern for control characters. */
-  private final static Pattern cntrl_pattern = Pattern.compile("\\p{Cntrl}", Pattern.MULTILINE);
+  private static final Pattern cntrl_pattern = Pattern.compile("\\p{Cntrl}", Pattern.MULTILINE);
 
   /**
    * Checks if a string contains control characters.
@@ -2024,11 +2014,7 @@ public class Utilities
       return configurationSchemaFileNames.contains(fileName);
     }
     String xOrigin = getElementOrigin(fileElement);
-    if (xOrigin != null)
-    {
-      return configurationSchemaOrigins.contains(xOrigin);
-    }
-    return false;
+    return xOrigin != null && configurationSchemaOrigins.contains(xOrigin);
   }
 
   /**
@@ -2157,20 +2143,8 @@ public class Utilities
   public static ConnectionWrapper getAdminDirContext(ControlPanelInfo controlInfo, String bindDN, String pwd)
       throws NamingException, IOException, ConfigReadException
   {
-    String usedUrl = controlInfo.getAdminConnectorURL();
-    if (usedUrl == null)
-    {
-      throw new ConfigReadException(
-          ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-    }
-
-    // Search for the config to check that it is the directory manager.
-    ConnectionWrapper conn = new ConnectionWrapper(
-        usedUrl, LDAPS, bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
-    checkCanReadConfig(conn);
-    return conn;
+    return createConnection(controlInfo.getAdminConnectorURL(), LDAPS, bindDN, pwd, controlInfo);
   }
-
 
   /**
    * Returns the connection to connect to the server using the
@@ -2190,41 +2164,30 @@ public class Utilities
   public static ConnectionWrapper getUserDataDirContext(ControlPanelInfo controlInfo,
       String bindDN, String pwd) throws NamingException, IOException, ConfigReadException
   {
-    ConnectionWrapper conn;
     if (controlInfo.connectUsingStartTLS())
     {
-      String usedUrl = controlInfo.getStartTLSURL();
-      if (usedUrl == null)
-      {
-        throw new ConfigReadException(
-            ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      conn = new ConnectionWrapper(usedUrl, START_TLS,
-          bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
+      return createConnection(controlInfo.getStartTLSURL(), START_TLS, bindDN, pwd, controlInfo);
     }
     else if (controlInfo.connectUsingLDAPS())
     {
-      String usedUrl = controlInfo.getLDAPSURL();
-      if (usedUrl == null)
-      {
-        throw new ConfigReadException(
-            ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      conn = new ConnectionWrapper(usedUrl, LDAPS,
-          bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
+      return createConnection(controlInfo.getLDAPSURL(), LDAPS, bindDN, pwd, controlInfo);
     }
     else
     {
-      String usedUrl = controlInfo.getLDAPURL();
-      if (usedUrl == null)
-      {
-        throw new ConfigReadException(
-            ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-      }
-      conn = new ConnectionWrapper(usedUrl, LDAP,
-          bindDN, pwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
+      return createConnection(controlInfo.getLDAPURL(), LDAP, bindDN, pwd, controlInfo);
+    }
+  }
+
+  private static ConnectionWrapper createConnection(String usedUrl, Type connectionType, String bindDN, String bindPwd,
+      ControlPanelInfo controlInfo) throws NamingException, IOException, ConfigReadException
+  {
+    if (usedUrl == null)
+    {
+      throw new ConfigReadException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
     }
 
+    ConnectionWrapper conn = new ConnectionWrapper(usedUrl, connectionType,
+        bindDN, bindPwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
     checkCanReadConfig(conn);
     return conn;
   }
@@ -2241,13 +2204,8 @@ public class Utilities
   {
     // Search for the config to check that it is the directory manager.
     SearchRequest request = newSearchRequest("cn=config", BASE_OBJECT, "objectclass=*", NO_ATTRIBUTES);
-    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
-    {
-      while (entryReader.hasNext())
-      {
-        entryReader.readEntry();
-      }
-    }
+    // rely on exception being thrown if we cannot read
+    conn.getConnection().searchSingleEntry(request);
   }
 
   /**
@@ -2265,7 +2223,7 @@ public class Utilities
         .setSizeLimit(0)
         .setTimeLimit(0)
         .setDereferenceAliasesPolicy(NEVER);
-    connWrapper.getConnection().search(request);
+    connWrapper.getConnection().search(request).close();
   }
 
   /**
@@ -2354,10 +2312,10 @@ public class Utilities
   }
 
   /**
-   * Returns the scrolpane where the provided component is contained.
-   * <CODE>null</CODE> if the component is not contained in any scrolpane.
+   * Returns the scrollpane where the provided component is contained.
+   * {@code null} if the component is not contained in any scrollpane.
    * @param comp the component.
-   * @return the scrolpane where the provided component is contained.
+   * @return the scrollpane where the provided component is contained.
    */
   public static JScrollPane getContainingScroll(Component comp)
   {
@@ -2430,7 +2388,7 @@ public class Utilities
    * entry.
    *
    * @param sr
-   *          the entry. It may be <CODE>null</CODE>.
+   *          the entry. It may be {@code null}.
    * @param attrName
    *          the attribute name.
    * @return the first value as a String for a given attribute in the provided
@@ -2565,7 +2523,7 @@ public class Utilities
    * @param newElements the new items for the combo box model.
    * @param model the combo box model to be updated.
    * @param comparator the object that will be used to compare the objects in
-   * the model.  If <CODE>null</CODE>, the equals method will be used.
+   * the model.  If {@code null}, the equals method will be used.
    */
   public static void updateComboBoxModel(Collection<?> newElements,
       DefaultComboBoxModel model,
@@ -2651,95 +2609,84 @@ public class Utilities
   {
     for (String attrName : attrNames)
     {
-      int possibleResult;
-      if (monitor1 == null)
+      possibleResults.add(compareForAttribute(monitor1, monitor2, attrName));
+    }
+  }
+
+  private static int compareForAttribute(SearchResultEntry monitor1, SearchResultEntry monitor2, String attrName)
+  {
+    if (monitor1 == null)
+    {
+      return monitor2 == null ? 0 : -1;
+    }
+    else if (monitor2 == null)
+    {
+      return 1;
+    }
+    else
+    {
+      Object v1 = getFirstMonitoringValue(monitor1.getAttribute(attrName));
+      Object v2 = getFirstMonitoringValue(monitor2.getAttribute(attrName));
+      if (v1 == null)
       {
-        if (monitor2 == null)
-        {
-          possibleResult = 0;
-        }
-        else
-        {
-          possibleResult = -1;
-        }
+        return v2 == null ? 0 : -1;
       }
-      else if (monitor2 == null)
+      else if (v2 == null)
       {
-        possibleResult = 1;
+        return 1;
       }
-      else
+      else if (v1 instanceof Number)
       {
-        Object v1 = getFirstMonitoringValue(monitor1.getAttribute(attrName));
-        Object v2 = getFirstMonitoringValue(monitor2.getAttribute(attrName));
-        if (v1 == null)
+        if (v2 instanceof Number)
         {
-          if (v2 == null)
+          if (v1 instanceof Double || v2 instanceof Double)
           {
-            possibleResult = 0;
-          }
-          else
-          {
-            possibleResult = -1;
-          }
-        }
-        else if (v2 == null)
-        {
-          possibleResult = 1;
-        }
-        else if (v1 instanceof Number)
-        {
-          if (v2 instanceof Number)
-          {
-            if (v1 instanceof Double || v2 instanceof Double)
+            double n1 = ((Number) v1).doubleValue();
+            double n2 = ((Number) v2).doubleValue();
+            if (n1 > n2)
             {
-              double n1 = ((Number) v1).doubleValue();
-              double n2 = ((Number) v2).doubleValue();
-              if (n1 > n2)
-              {
-                possibleResult = 1;
-              }
-              else if (n1 < n2)
-              {
-                possibleResult = -1;
-              }
-              else
-              {
-                possibleResult = 0;
-              }
+              return 1;
+            }
+            else if (n1 < n2)
+            {
+              return -1;
             }
             else
             {
-              long n1 = ((Number) v1).longValue();
-              long n2 = ((Number) v2).longValue();
-              if (n1 > n2)
-              {
-                possibleResult = 1;
-              }
-              else if (n1 < n2)
-              {
-                possibleResult = -1;
-              }
-              else
-              {
-                possibleResult = 0;
-              }
+              return 0;
             }
           }
           else
           {
-            possibleResult = 1;
+            long n1 = ((Number) v1).longValue();
+            long n2 = ((Number) v2).longValue();
+            if (n1 > n2)
+            {
+              return 1;
+            }
+            else if (n1 < n2)
+            {
+              return -1;
+            }
+            else
+            {
+              return 0;
+            }
           }
-        }
-        else if (v2 instanceof Number)
-        {
-          possibleResult = -1;
         }
         else
         {
-          possibleResult = v1.toString().compareTo(v2.toString());
+          return 1;
         }
       }
-      possibleResults.add(possibleResult);
+      else if (v2 instanceof Number)
+      {
+        return -1;
+      }
+      else
+      {
+        return v1.toString().compareTo(v2.toString());
+      }
     }
   }
 
@@ -2751,8 +2698,7 @@ public class Utilities
    * @param exceptions
    *          A list of exceptions.
    * @throws E
-   *           The first element of the provided list (if the list is not
-   *           empty).
+   *           The first element of the provided list (if the list is not empty).
    */
   public static <E extends Exception> void throwFirstFrom(List<? extends E> exceptions) throws E
   {

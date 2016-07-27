@@ -93,12 +93,7 @@ public class ConnectionUtils
       String pwd, int timeout, Hashtable<String, String> env)
       throws NamingException
   {
-    env = copy(env);
-    env.put(Context.INITIAL_CONTEXT_FACTORY,
-        "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put("java.naming.ldap.attributes.binary",
-        EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
-    env.put(Context.PROVIDER_URL, ldapURL);
+    env = newEnvironmentFrom(ldapURL, env);
     if (timeout >= 1)
     {
       env.put("com.sun.jndi.ldap.connect.timeout", String.valueOf(timeout));
@@ -113,8 +108,7 @@ public class ConnectionUtils
     }
 
     /* Contains the DirContext and the Exception if any */
-    final Object[] pair = new Object[]
-      { null, null };
+    final Object[] pair = { null, null };
     final Hashtable<String, String> fEnv = env;
     Thread t = new Thread(new Runnable()
     {
@@ -124,11 +118,9 @@ public class ConnectionUtils
         try
         {
           pair[0] = new InitialLdapContext(fEnv, null);
-
         } catch (NamingException ne)
         {
           pair[1] = ne;
-
         } catch (Throwable t)
         {
           t.printStackTrace();
@@ -166,20 +158,14 @@ public class ConnectionUtils
    */
   static InitialLdapContext createLdapsContext(String ldapsURL,
       String dn, String pwd, int timeout, Hashtable<String, String> env,
-      TrustManager trustManager, KeyManager keyManager) throws NamingException {
-    env = copy(env);
-    env.put(Context.INITIAL_CONTEXT_FACTORY,
-        "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put("java.naming.ldap.attributes.binary",
-        EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
-    env.put(Context.PROVIDER_URL, ldapsURL);
-    env.put("java.naming.ldap.factory.socket",
-        org.opends.admin.ads.util.TrustedSocketFactory.class.getName());
+      TrustManager trustManager, final KeyManager keyManager) throws NamingException {
+    final Hashtable<String, String> newEnv = newEnvironmentFrom(ldapsURL, env);
+    newEnv.put("java.naming.ldap.factory.socket", TrustedSocketFactory.class.getName());
 
     if (dn != null && pwd != null)
     {
-      env.put(Context.SECURITY_PRINCIPAL, dn);
-      env.put(Context.SECURITY_CREDENTIALS, pwd);
+      newEnv.put(Context.SECURITY_PRINCIPAL, dn);
+      newEnv.put(Context.SECURITY_CREDENTIALS, pwd);
     }
 
     if (trustManager == null)
@@ -188,18 +174,14 @@ public class ConnectionUtils
     }
 
     /* Contains the DirContext and the Exception if any */
-    final Object[] pair = new Object[] {null, null};
-    final Hashtable<String, String> fEnv = env;
+    final Object[] pair = { null, null };
     final TrustManager fTrustManager = trustManager;
-    final KeyManager   fKeyManager   = keyManager;
-
     Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
         try {
-          TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
-              fKeyManager);
-          pair[0] = new InitialLdapContext(fEnv, null);
+          TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager, keyManager);
+          pair[0] = new InitialLdapContext(newEnv, null);
         } catch (NamingException | RuntimeException ne) {
           pair[1] = ne;
         }
@@ -221,19 +203,17 @@ public class ConnectionUtils
    * @throws NamingException if there was an error creating the new connection.
    */
   public static ConnectionWrapper cloneConnectionWrapper(
-      final ConnectionWrapper conn, int timeout, TrustManager trustManager,
-      KeyManager keyManager) throws NamingException
+      final ConnectionWrapper conn, int timeout, final TrustManager trustManager,
+      final KeyManager keyManager) throws NamingException
   {
-    final Object[] pair = new Object[] {null, null};
-    final TrustManager fTrustManager = trustManager;
-    final KeyManager fKeyManager = keyManager;
+    final Object[] pair = { null, null };
     Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
         try {
           if (conn.isSSL() || conn.isStartTLS())
           {
-            TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager, fKeyManager);
+            TrustedSocketFactory.setCurrentThreadTrustManager(trustManager, keyManager);
           }
           pair[0] = new ConnectionWrapper(conn);
         } catch (NamingException | RuntimeException ne) {
@@ -278,8 +258,8 @@ public class ConnectionUtils
    * @see TrustedSocketFactory
    */
   static InitialLdapContext createStartTLSContext(String ldapURL,
-      String dn, String pwd, int timeout, Hashtable<String, String> env,
-      TrustManager trustManager, KeyManager keyManager,
+      final String dn, final String pwd, int timeout, Hashtable<String, String> env,
+      TrustManager trustManager, final KeyManager keyManager,
       HostnameVerifier verifier)
   throws NamingException
   {
@@ -291,41 +271,28 @@ public class ConnectionUtils
       verifier = new BlindHostnameVerifier();
     }
 
-    env = copy(env);
-    env.put(Context.INITIAL_CONTEXT_FACTORY,
-        "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put("java.naming.ldap.attributes.binary",
-        EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
-    env.put(Context.PROVIDER_URL, ldapURL);
-    env.put(Context.SECURITY_AUTHENTICATION , "none");
+    final Hashtable<String, String> newEnv = newEnvironmentFrom(ldapURL, env);
+    newEnv.put(Context.SECURITY_AUTHENTICATION, "none");
 
     /* Contains the DirContext and the Exception if any */
-    final Object[] pair = new Object[] {null, null};
-    final Hashtable<?, ?> fEnv = env;
-    final String fDn = dn;
-    final String fPwd = pwd;
+    final Object[] pair = { null, null };
     final TrustManager fTrustManager = trustManager;
-    final KeyManager fKeyManager     = keyManager;
     final HostnameVerifier fVerifier = verifier;
 
     Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
         try {
-          StartTlsResponse tls;
+          InitialLdapContext result = new InitialLdapContext(newEnv, null);
 
-          InitialLdapContext result = new InitialLdapContext(fEnv, null);
-
-          tls = (StartTlsResponse) result.extendedOperation(
-              new StartTlsRequest());
+          StartTlsResponse tls = (StartTlsResponse) result.extendedOperation(new StartTlsRequest());
           tls.setHostnameVerifier(fVerifier);
           try
           {
-            tls.negotiate(new TrustedSocketFactory(fTrustManager,fKeyManager));
+            tls.negotiate(new TrustedSocketFactory(fTrustManager, keyManager));
           }
           catch(IOException x) {
-            NamingException xx;
-            xx = new CommunicationException(
+            NamingException xx = new CommunicationException(
                 "Failed to negotiate Start TLS operation");
             xx.initCause(x);
             result.close();
@@ -333,13 +300,13 @@ public class ConnectionUtils
           }
 
           result.addToEnvironment(STARTTLS_PROPERTY, "true");
-          if (fDn != null)
+          if (dn != null)
           {
             result.addToEnvironment(Context.SECURITY_AUTHENTICATION , "simple");
-            result.addToEnvironment(Context.SECURITY_PRINCIPAL, fDn);
-            if (fPwd != null)
+            result.addToEnvironment(Context.SECURITY_PRINCIPAL, dn);
+            if (pwd != null)
             {
-              result.addToEnvironment(Context.SECURITY_CREDENTIALS, fPwd);
+              result.addToEnvironment(Context.SECURITY_CREDENTIALS, pwd);
             }
             result.reconnect(null);
           }
@@ -358,12 +325,21 @@ public class ConnectionUtils
     return env != null ? new Hashtable<>(env) : new Hashtable<String, String>();
   }
 
+  private static Hashtable<String, String> newEnvironmentFrom(String ldapURL, Hashtable<String, String> env)
+  {
+    final Hashtable<String, String> copy = copy(env);
+    copy.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+    copy.put("java.naming.ldap.attributes.binary", EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+    copy.put(Context.PROVIDER_URL, ldapURL);
+    return copy;
+  }
+
   /**
    * Method used to know if we are connected as administrator in a server with a
    * given InitialLdapContext.
    * @param ctx the context.
-   * @return <CODE>true</CODE> if we are connected and read the configuration
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if we are connected and read the configuration
+   * and {@code false} otherwise.
    */
   static boolean connectedAsAdministrativeUser(InitialLdapContext ctx)
   {
@@ -435,14 +411,11 @@ public class ConnectionUtils
       {
         t.run();
       }
-
     } catch (InterruptedException x)
     {
       // This might happen for problems in sockets
       // so it does not necessarily imply a bug
     }
-
-    boolean throwException = false;
 
     if (timeout > 0 && t.isAlive())
     {
@@ -455,38 +428,39 @@ public class ConnectionUtils
         // This might happen for problems in sockets
         // so it does not necessarily imply a bug
       }
-      throwException = true;
+      throw connectionTimedOut();
     }
 
-    if (pair[0] == null && pair[1] == null)
+    Object connection = pair[0];
+    Object ex = pair[1];
+    if (connection == null && ex == null)
     {
-      throwException = true;
+      throw connectionTimedOut();
     }
 
-    if (throwException)
+    if (ex != null)
     {
-      NamingException xx = new CommunicationException("Connection timed out");
-      xx.initCause(new ConnectException("Connection timed out"));
-      throw xx;
-    }
-
-    if (pair[1] != null)
-    {
-      if (pair[1] instanceof NamingException)
+      if (ex instanceof NamingException)
       {
-        throw (NamingException) pair[1];
-
-      } else if (pair[1] instanceof RuntimeException)
+        throw (NamingException) ex;
+      }
+      else if (ex instanceof RuntimeException)
       {
-        throw (RuntimeException) pair[1];
-
-      } else if (pair[1] instanceof Throwable)
+        throw (RuntimeException) ex;
+      }
+      else if (ex instanceof Throwable)
       {
-        throw new IllegalStateException("Unexpected throwable occurred",
-            (Throwable) pair[1]);
+        throw new IllegalStateException("Unexpected throwable occurred", (Throwable) ex);
       }
     }
-    return (T) pair[0];
+    return (T) connection;
+  }
+
+  private static NamingException connectionTimedOut()
+  {
+    NamingException xx = new CommunicationException("Connection timed out");
+    xx.initCause(new ConnectException("Connection timed out"));
+    return xx;
   }
 
   /**

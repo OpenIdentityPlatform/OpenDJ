@@ -18,8 +18,8 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,38 +27,22 @@ import java.util.TreeSet;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
-/**
- * Class used to be able to generate the non interactive mode.
- */
+/** Class used to be able to generate the non interactive mode. */
 public class CommandBuilder {
     private String commandName;
     private String subcommandName;
-    private final ArrayList<Argument> args = new ArrayList<>();
-    private final HashSet<Argument> obfuscatedArgs = new HashSet<>();
+    private final List<Argument> args = new ArrayList<>();
+    /** Arguments whose values must be obfuscated (passwords for instance). */
+    private final Set<Argument> obfuscatedArgs = new HashSet<>();
 
-    /**
-     * The separator used to link the lines of the resulting command-lines.
-     */
-    public static final String LINE_SEPARATOR;
-    static {
-        if (OperatingSystem.isWindows()) {
-            LINE_SEPARATOR = " ";
-        } else {
-            LINE_SEPARATOR = " \\\n          ";
-        }
-    }
+    /** The separator used to link the lines of the resulting command-lines. */
+    public static final String LINE_SEPARATOR =
+        OperatingSystem.isWindows() ? " " : " \\\n          ";
 
-    /**
-     * The separator used to link the lines of the resulting command-lines in HTML format.
-     */
-    public static final String HTML_LINE_SEPARATOR;
-    static {
-        if (OperatingSystem.isWindows()) {
-            HTML_LINE_SEPARATOR = "&nbsp;";
-        } else {
-            HTML_LINE_SEPARATOR = "&nbsp;\\<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-        }
-    }
+    /** The separator used to link the lines of the resulting command-lines in HTML format. */
+    public static final String HTML_LINE_SEPARATOR = OperatingSystem.isWindows()
+        ? "&nbsp;"
+        : "&nbsp;\\<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
     /** Creates a {@link CommandBuilder} with {@code null} command and subcommand names. */
     public CommandBuilder() {
@@ -108,7 +92,7 @@ public class CommandBuilder {
      *
      * @param argument
      *            The argument to be removed.
-     * @return <CODE>true</CODE> if the attribute was present and removed and <CODE>false</CODE> otherwise.
+     * @return {@code true} if the attribute was present and removed and {@code false} otherwise.
      */
     public boolean removeArgument(final Argument argument) {
         obfuscatedArgs.remove(argument);
@@ -217,9 +201,7 @@ public class CommandBuilder {
         return escapeValue(value);
     }
 
-    /**
-     * Clears the arguments.
-     */
+    /** Clears the arguments. */
     public void clearArguments() {
         args.clear();
         obfuscatedArgs.clear();
@@ -239,7 +221,7 @@ public class CommandBuilder {
      *
      * @param argument
      *            The argument to handle.
-     * @return <CODE>true</CODE> if the attribute's values must be obfuscated and <CODE>false</CODE> otherwise.
+     * @return {@code true} if the attribute's values must be obfuscated and {@code false} otherwise.
      */
     public boolean isObfuscated(final Argument argument) {
         return obfuscatedArgs.contains(argument);
