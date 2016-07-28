@@ -278,11 +278,9 @@ public class ReplicationCliMain extends ConsoleApplication
      * @param baseDNs user specified baseDNs
      * @param source the source server
      * @param dest the destination server
-     * @param interactive if user has to input information
-     * @return whether we should stop
+     * @return whether we should continue
      */
-    boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source, ConnectionWrapper dest,
-        boolean interactive);
+    boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source, ConnectionWrapper dest);
 
     /**
      * Confirm with the user whether the current task should continue.
@@ -291,7 +289,7 @@ public class ReplicationCliMain extends ConsoleApplication
      * @param connSource connection to the source server
      * @param connDestination connection to the destination server
      * @param defaultValue default yes or no
-     * @return whether the current task should be interrupted
+     * @return whether the current task should continue
      */
     boolean confirmOperation(SourceDestinationServerUserData uData, ConnectionWrapper connSource,
         ConnectionWrapper connDestination, final boolean defaultValue);
@@ -350,11 +348,9 @@ public class ReplicationCliMain extends ConsoleApplication
    *                           program.
    * @param initializeServer   Indicates whether to initialize the server.
    * @param  outStream         The output stream to use for standard output, or
-   *                           <CODE>null</CODE> if standard output is not
-   *                           needed.
+   *                           {@code null} if standard output is not needed.
    * @param  errStream         The output stream to use for standard error, or
-   *                           <CODE>null</CODE> if standard error is not
-   *                           needed.
+   *                           {@code null} if standard error is not needed.
    * @return The error code.
    */
   public static int mainCLI(String[] args, boolean initializeServer,
@@ -1100,12 +1096,10 @@ public class ReplicationCliMain extends ConsoleApplication
   private ConnectionWrapper createConnectionInteracting(LDAPConnectionConsoleInteraction ci,
       boolean promptForCertificate) throws ClientException
   {
-    // Interact with the user though the console to get
-    // LDAP connection information
-    final String hostName = getHostNameForLdapUrl(ci.getHostName());
-    final int portNumber = ci.getPortNumber();
-    final HostPort hostPort = new HostPort(hostName, portNumber);
-
+    // Interact with the user though the console to get LDAP connection information
+    final HostPort hostPort = getHostPort(ci);
+    final String hostName = hostPort.getHost();
+    final int portNumber = hostPort.getPort();
     if (ci.useSSL())
     {
       while (true)
@@ -1207,11 +1201,19 @@ public class ReplicationCliMain extends ConsoleApplication
   private ConnectionWrapper newConnectionWrapper(
       LDAPConnectionConsoleInteraction ci, Type connType, int connectTimeout) throws NamingException
   {
-    String hostName = getHostNameForLdapUrl(ci.getHostName());
-    int portNumber = ci.getPortNumber();
-    HostPort hostPort = new HostPort(hostName, portNumber);
-    return new ConnectionWrapper(hostPort, connType, ci.getBindDN(), ci.getBindPassword(),
+    return new ConnectionWrapper(getHostPort(ci), connType, ci.getBindDN(), ci.getBindPassword(),
         connectTimeout, ci.getTrustManager(), ci.getKeyManager());
+  }
+
+  private HostPort getHostPort(LDAPConnectionConsoleInteraction ci)
+  {
+    final String hostName = getHostNameForLdapUrl(ci.getHostName());
+    return new HostPort(hostName, ci.getPortNumber());
+  }
+
+  private HostPort getHostPort2(LDAPConnectionConsoleInteraction ci)
+  {
+    return new HostPort(ci.getHostName(), ci.getPortNumber());
   }
 
   private String getAuthType(TrustManager trustManager)
@@ -1278,8 +1280,7 @@ public class ReplicationCliMain extends ConsoleApplication
         resetChangeNumberOperations = new OperationBetweenSourceAndDestinationServers()
     {
       @Override
-      public boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source,
-          ConnectionWrapper dest, boolean interactive)
+      public boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source, ConnectionWrapper dest)
       {
         TopologyCacheFilter filter = new TopologyCacheFilter();
         filter.setSearchMonitoringInformation(false);
@@ -1289,20 +1290,20 @@ public class ReplicationCliMain extends ConsoleApplication
           String cn = getNewestChangeNumber(source);
           if (cn.isEmpty())
           {
-            return true;
+            return false;
           }
           argParser.setResetChangeNumber(
               ask(logger, INFO_RESET_CHANGE_NUMBER_TO.get(uData.getSource(), uData.getDestination()), cn));
         }
-        return false;
+        return true;
       }
 
       @Override
       public boolean confirmOperation(SourceDestinationServerUserData uData, ConnectionWrapper connSource,
           ConnectionWrapper connDestination, boolean defaultValue)
       {
-        return !askConfirmation(INFO_RESET_CHANGE_NUMBER_CONFIRM_RESET.get(uData.getDestinationHostPort()),
-            defaultValue);
+        LocalizableMessage promptMsg = INFO_RESET_CHANGE_NUMBER_CONFIRM_RESET.get(uData.getDestinationHostPort());
+        return askConfirmation(promptMsg, defaultValue);
       }
     };
 
@@ -1829,18 +1830,17 @@ public class ReplicationCliMain extends ConsoleApplication
         initializeReplicationOperations = new OperationBetweenSourceAndDestinationServers()
     {
       @Override
-      public boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source,
-          ConnectionWrapper dest, boolean interactive)
+      public boolean continueAfterUserInput(Collection<DN> baseDNs, ConnectionWrapper source, ConnectionWrapper dest)
       {
-        checkSuffixesForInitializeReplication(baseDNs, source, dest, interactive);
-        return baseDNs.isEmpty();
+        checkSuffixesForInitializeReplication(baseDNs, source, dest, true);
+        return !baseDNs.isEmpty();
       }
 
       @Override
       public boolean confirmOperation(SourceDestinationServerUserData uData, ConnectionWrapper connSource,
           ConnectionWrapper connDestination, boolean defaultValue)
       {
-        return !askConfirmation(getInitializeReplicationPrompt(uData, connSource, connDestination), defaultValue);
+        return askConfirmation(getInitializeReplicationPrompt(uData, connSource, connDestination), defaultValue);
       }
     };
     return promptIfRequired(uData, initializeReplicationOperations) ? initializeReplication(uData) : USER_CANCELLED;
@@ -1852,20 +1852,19 @@ public class ReplicationCliMain extends ConsoleApplication
    * information is missing, ask the user to provide valid data.
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user canceled the operation.
+   * @return {@code true} if the object was successfully updated and
+   * {@code false} if the user canceled the operation.
    */
   private boolean promptIfRequired(PurgeHistoricalUserData uData)
   {
-    ConnectionWrapper conn = null;
+    ConnectionWrapper conn = getConnection(uData);
+    if (conn == null)
+    {
+      return false;
+    }
+
     try
     {
-      conn = getConnection(uData);
-      if (conn == null)
-      {
-        return false;
-      }
-
       /* Prompt for maximum duration */
       int maximumDuration = argParser.getMaximumDuration();
       if (!argParser.maximumDurationArg.isPresent())
@@ -1920,37 +1919,28 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private ConnectionWrapper getConnection(PurgeHistoricalUserData uData)
   {
-    boolean firstTry = true;
-    Boolean serverRunning = null;
+    boolean serverRunning = Utilities.isServerRunning(Installation.getLocal().getInstanceDirectory());
 
+    boolean firstTry = true;
     while (true)
     {
       boolean promptForConnection = firstTry && argParser.connectionArgumentsPresent();
-      if (!promptForConnection)
+      if (!promptForConnection && !serverRunning)
       {
-        if (serverRunning == null)
+        try
         {
-          serverRunning = Utilities.isServerRunning(Installation.getLocal().getInstanceDirectory());
+          println();
+          promptForConnection = !askConfirmation(INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_PROMPT.get(), true, logger);
+        }
+        catch (ClientException ce)
+        {
+          errPrintln(ce.getMessageObject());
         }
 
-        if (!serverRunning)
+        if (!promptForConnection)
         {
-          try
-          {
-            println();
-            promptForConnection = !askConfirmation(
-                INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_PROMPT.get(), true, logger);
-          }
-          catch (ClientException ce)
-          {
-            errPrintln(ce.getMessageObject());
-          }
-
-          if (!promptForConnection)
-          {
-            uData.setOnline(false);
-            return null;
-          }
+          uData.setOnline(false);
+          return null;
         }
       }
 
@@ -1962,7 +1952,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (conn != null)
         {
           uData.setOnline(true);
-          uData.setHostPort(new HostPort(sourceServerCI.getHostName(), sourceServerCI.getPortNumber()));
+          uData.setHostPort(getHostPort2(sourceServerCI));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
           uData.setAdminPwd(sourceServerCI.getBindPassword());
         }
@@ -2005,87 +1995,466 @@ public class ReplicationCliMain extends ConsoleApplication
    * is missing, ask the user to provide valid data.
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user cancelled the operation.
-   * @throws ReplicationCliException if a critical error occurs reading the
-   * ADS.
+   * @return {@code true} if the object was successfully updated and
+   * {@code false} if the user cancelled the operation.
+   * @throws ReplicationCliException if a critical error occurs reading the ADS.
    */
-  private boolean promptIfRequired(EnableReplicationUserData uData)
-  throws ReplicationCliException
+  private boolean promptIfRequired(EnableReplicationUserData uData) throws ReplicationCliException
   {
-    boolean cancelled = false;
-
-    boolean administratorDefined = false;
-
     sourceServerCI.setUseAdminOrBindDn(true);
 
-    String adminPwd = argParser.getBindPasswordAdmin();
-    String adminUid = argParser.getAdministratorUID();
-
-    /* Try to connect to the first server. */
-    String host1 = getValue(argParser.server1.hostNameArg);
-    int port1 = getValue(argParser.server1.portArg);
-    String bindDn1 = getValue(argParser.server1.bindDnArg);
-    String pwd1 = argParser.server1.getBindPassword();
-    String pwd = null;
-    Map<String, String> pwdFile = null;
-    if (argParser.server1.bindPasswordArg.isPresent())
-    {
-      pwd = argParser.server1.bindPasswordArg.getValue();
-    }
-    else if (argParser.server1.bindPasswordFileArg.isPresent())
-    {
-      pwdFile = argParser.server1.bindPasswordFileArg.getNameToValueMap();
-    }
-    else if (bindDn1 == null)
-    {
-      pwd = adminPwd;
-      if (argParser.getSecureArgsList().getBindPasswordFileArg().isPresent())
-      {
-        pwdFile = argParser.getSecureArgsList().getBindPasswordFileArg().
-          getNameToValueMap();
-      }
-    }
-
-    /*
-     * Use a copy of the argument properties since the map might be cleared
-     * in initializeGlobalArguments.
-     */
-    sourceServerCI.initializeGlobalArguments(host1, port1, adminUid, bindDn1, pwd,
-        pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
     ConnectionWrapper conn1 = null;
+    ConnectionWrapper conn2 = null;
+    try
+    {
+      String adminPwd = argParser.getBindPasswordAdmin();
+      String adminUid = argParser.getAdministratorUID();
 
-    while (conn1 == null && !cancelled)
+      /* Try to connect to the first server. */
+      initializeGlobalArguments(sourceServerCI, argParser.server1, adminPwd, adminUid);
+
+      conn1 = initializeFirstConnection(INFO_REPLICATION_ENABLE_HOST1_CONNECTION_PARAMETERS.get());
+      if (conn1 == null)
+      {
+        return false;
+      }
+
+      if (sourceServerCI.getProvidedAdminUID() != null)
+      {
+        adminUid = sourceServerCI.getProvidedAdminUID();
+        if (sourceServerCI.getProvidedBindDN() == null)
+        {
+          // If the explicit bind DN is not null, the password corresponds
+          // to that bind DN. We are in the case where the user provides
+          // bind DN on first server and admin UID globally.
+          adminPwd = sourceServerCI.getBindPassword();
+        }
+      }
+
+      String host1 = sourceServerCI.getHostName();
+      int port1 = sourceServerCI.getPortNumber();
+      setConnectionDetails(uData.getServer1(), sourceServerCI);
+
+      boolean administratorDefined = false;
+      int replicationPort1 = -1;
+      boolean secureReplication1 = argParser.server1.secureReplicationArg.isPresent();
+      boolean configureReplicationServer1 = argParser.server1.configureReplicationServer();
+      boolean configureReplicationDomain1 = argParser.server1.configureReplicationDomain();
+      {
+        int repPort1 = getReplicationPort(conn1);
+        boolean replicationServer1Configured = repPort1 > 0;
+        if (replicationServer1Configured && !configureReplicationServer1)
+        {
+          final LocalizableMessage msg =
+              INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(conn1.getHostPort(), repPort1);
+          if (!askConfirmation(msg, false))
+          {
+            return false;
+          }
+        }
+
+        // Try to get the replication port for server 1 only if it is required.
+        if (configureReplicationServer1
+            && !replicationServer1Configured
+            && argParser.advancedArg.isPresent()
+            && configureReplicationDomain1)
+        {
+          // Only ask if the replication domain will be configured (if not
+          // the replication server MUST be configured).
+          try
+          {
+            configureReplicationServer1 =
+                askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_SERVER1_PROMPT.get(), true, logger);
+          }
+          catch (ClientException ce)
+          {
+            errPrintln(ce.getMessageObject());
+            return false;
+          }
+        }
+        if (configureReplicationServer1 && !replicationServer1Configured)
+        {
+          boolean tryWithDefault = argParser.getReplicationPort1() != -1;
+          while (replicationPort1 == -1)
+          {
+            if (tryWithDefault)
+            {
+              replicationPort1 = argParser.getReplicationPort1();
+              tryWithDefault = false;
+            }
+            else
+            {
+              replicationPort1 =
+                  askPort(INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get(), getDefaultValue(
+                      argParser.server1.replicationPortArg), logger);
+              println();
+            }
+            if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
+            {
+              if (!SetupUtils.canUseAsPort(replicationPort1))
+              {
+                errPrintln();
+                errPrintln(getCannotBindToPortError(replicationPort1));
+                errPrintln();
+                replicationPort1 = -1;
+              }
+            }
+            else if (replicationPort1 == port1)
+            {
+              // This is something that we must do in any case... this test is
+              // already included when we call SetupUtils.canUseAsPort
+              errPrintln();
+              errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replicationPort1));
+              errPrintln();
+              replicationPort1 = -1;
+            }
+          }
+          if (!secureReplication1)
+          {
+            try
+            {
+              secureReplication1 =
+                  askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(replicationPort1), false, logger);
+            }
+            catch (ClientException ce)
+            {
+              errPrintln(ce.getMessageObject());
+              return false;
+            }
+            println();
+          }
+        }
+        if (configureReplicationDomain1 && configureReplicationServer1 && argParser.advancedArg.isPresent())
+        {
+          // Only necessary to ask if the replication server will be configured
+          try
+          {
+            configureReplicationDomain1 =
+                askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN1_PROMPT.get(), true, logger);
+          }
+          catch (ClientException ce)
+          {
+            errPrintln(ce.getMessageObject());
+            return false;
+          }
+        }
+        // If the server contains an ADS. Try to load it and only load it: if
+        // there are issues with the ADS they will be encountered in the
+        // enableReplication(EnableReplicationUserData) method. Here we have
+        // to load the ADS to ask the user to accept the certificates and
+        // eventually admin authentication data.
+        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn1);
+        if (!loadADSAndAcceptCertificates(sourceServerCI, aux, uData, true))
+        {
+          return false;
+        }
+        conn1 = aux.get();
+        administratorDefined |= hasAdministrator(conn1);
+        if (uData.getAdminPwd() != null)
+        {
+          adminPwd = uData.getAdminPwd();
+        }
+      }
+
+      uData.getServer1().setReplicationPort(replicationPort1);
+      uData.getServer1().setSecureReplication(secureReplication1);
+      uData.getServer1().setConfigureReplicationServer(configureReplicationServer1);
+      uData.getServer1().setConfigureReplicationDomain(configureReplicationDomain1);
+      firstServerCommandBuilder = new CommandBuilder();
+      if (mustPrintCommandBuilder())
+      {
+        firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());
+      }
+
+      /* Prompt for information on the second server. */
+      LDAPConnectionConsoleInteraction destinationServerCI =
+          new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
+      boolean doNotDisplayFirstError =
+          initializeGlobalArguments(destinationServerCI, argParser.server2, adminPwd, adminUid);
+      destinationServerCI.setUseAdminOrBindDn(true);
+
+      conn2 = initializeConnection2(destinationServerCI, sourceServerCI, doNotDisplayFirstError);
+      if (conn2 == null)
+      {
+        return false;
+      }
+
+      if (destinationServerCI.getProvidedAdminUID() != null)
+      {
+        adminUid = destinationServerCI.getProvidedAdminUID();
+        if (destinationServerCI.getProvidedBindDN() == null)
+        {
+          // If the explicit bind DN is not null, the password corresponds
+          // to that bind DN. We are in the case where the user provides
+          // bind DN on first server and admin UID globally.
+          adminPwd = destinationServerCI.getBindPassword();
+        }
+      }
+
+      String host2 = destinationServerCI.getHostName();
+      int port2 = destinationServerCI.getPortNumber();
+      setConnectionDetails(uData.getServer2(), destinationServerCI);
+
+      int replicationPort2 = -1;
+      boolean secureReplication2 = argParser.server2.secureReplicationArg.isPresent();
+      boolean configureReplicationServer2 = argParser.server2.configureReplicationServer();
+      boolean configureReplicationDomain2 = argParser.server2.configureReplicationDomain();
+      {
+        int repPort2 = getReplicationPort(conn2);
+        boolean replicationServer2Configured = repPort2 > 0;
+        if (replicationServer2Configured && !configureReplicationServer2)
+        {
+          final LocalizableMessage prompt =
+              INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(conn2.getHostPort(), repPort2);
+          if (!askConfirmation(prompt, false))
+          {
+            return false;
+          }
+        }
+
+        // Try to get the replication port for server 2 only if it is required.
+        if (configureReplicationServer2 && !replicationServer2Configured)
+        {
+          // Only ask if the replication domain will be configured (if not the
+          // replication server MUST be configured).
+          if (argParser.advancedArg.isPresent() && configureReplicationDomain2)
+          {
+            try
+            {
+              configureReplicationServer2 =
+                  askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_SERVER2_PROMPT.get(), true, logger);
+            }
+            catch (ClientException ce)
+            {
+              errPrintln(ce.getMessageObject());
+              return false;
+            }
+          }
+          if (configureReplicationServer2 && !replicationServer2Configured)
+          {
+            boolean tryWithDefault = argParser.getReplicationPort2() != -1;
+            while (replicationPort2 == -1)
+            {
+              if (tryWithDefault)
+              {
+                replicationPort2 = argParser.getReplicationPort2();
+                tryWithDefault = false;
+              }
+              else
+              {
+                replicationPort2 =
+                    askPort(INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(), getDefaultValue(
+                        argParser.server2.replicationPortArg), logger);
+                println();
+              }
+              if (!argParser.skipReplicationPortCheck() && isLocalHost(host2))
+              {
+                if (!SetupUtils.canUseAsPort(replicationPort2))
+                {
+                  errPrintln();
+                  errPrintln(getCannotBindToPortError(replicationPort2));
+                  errPrintln();
+                  replicationPort2 = -1;
+                }
+              }
+              else if (replicationPort2 == port2)
+              {
+                // This is something that we must do in any case... this test is
+                // already included when we call SetupUtils.canUseAsPort
+                errPrintln();
+                errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replicationPort2));
+                replicationPort2 = -1;
+              }
+              if (host1.equalsIgnoreCase(host2) && replicationPort1 > 0 && replicationPort1 == replicationPort2)
+              {
+                errPrintln();
+                errPrintln(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replicationPort2, host1));
+                errPrintln();
+                replicationPort2 = -1;
+              }
+            }
+            if (!secureReplication2)
+            {
+              try
+              {
+                secureReplication2 =
+                    askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(replicationPort2), false, logger);
+              }
+              catch (ClientException ce)
+              {
+                errPrintln(ce.getMessageObject());
+                return false;
+              }
+              println();
+            }
+          }
+        }
+        if (configureReplicationDomain2 && configureReplicationServer2 && argParser.advancedArg.isPresent())
+        {
+          // Only necessary to ask if the replication server will be configured
+          try
+          {
+            configureReplicationDomain2 =
+                askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN2_PROMPT.get(), true, logger);
+          }
+          catch (ClientException ce)
+          {
+            errPrintln(ce.getMessageObject());
+            return false;
+          }
+        }
+        // If the server contains an ADS. Try to load it and only load it: if
+        // there are issues with the ADS they will be encountered in the
+        // enableReplication(EnableReplicationUserData) method. Here we have
+        // to load the ADS to ask the user to accept the certificates.
+        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn2);
+        if (!loadADSAndAcceptCertificates(destinationServerCI, aux, uData, false))
+        {
+          return false;
+        }
+        conn2 = aux.get();
+        administratorDefined |= hasAdministrator(conn2);
+      }
+      uData.getServer2().setReplicationPort(replicationPort2);
+      uData.getServer2().setSecureReplication(secureReplication2);
+      uData.getServer2().setConfigureReplicationServer(configureReplicationServer2);
+      uData.getServer2().setConfigureReplicationDomain(configureReplicationDomain2);
+
+      // If the adminUid and adminPwd are not set in the EnableReplicationUserData
+      // object, that means that there are no administrators and that they
+      // must be created. The adminUId and adminPwd are updated inside
+      // loadADSAndAcceptCertificates.
+      boolean promptedForAdmin = false;
+
+      // There is a case where we haven't had need for the administrator
+      // credentials even if the administrators are defined: where all the servers
+      // can be accessed with another user (for instance if all the server have
+      // defined cn=directory manager and all the entries have the same password).
+      if (uData.getAdminUid() == null && !administratorDefined)
+      {
+        if (adminUid == null)
+        {
+          println(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get());
+          promptedForAdmin = true;
+          adminUid = askForAdministratorUID(getDefaultValue(argParser.getAdminUidArg()), logger);
+          println();
+        }
+        uData.setAdminUid(adminUid);
+      }
+
+      if (uData.getAdminPwd() == null)
+      {
+        uData.setAdminPwd(adminPwd);
+      }
+      if (uData.getAdminPwd() == null && !administratorDefined)
+      {
+        adminPwd = null;
+        int nPasswordPrompts = 0;
+        while (adminPwd == null)
+        {
+          if (nPasswordPrompts > CONFIRMATION_MAX_TRIES)
+          {
+            errPrintln(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
+            return false;
+          }
+          nPasswordPrompts++;
+          if (!promptedForAdmin)
+          {
+            println();
+            println(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get());
+            println();
+          }
+          while (adminPwd == null)
+          {
+            adminPwd = askForAdministratorPwd(logger);
+            println();
+          }
+          String adminPwdConfirm = null;
+          while (adminPwdConfirm == null)
+          {
+            try
+            {
+              adminPwdConfirm = String.valueOf(readPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT.get()));
+            }
+            catch (ClientException ex)
+            {
+              logger.warn(LocalizableMessage.raw("Error reading input: " + ex, ex));
+            }
+            println();
+          }
+          if (!adminPwd.equals(adminPwdConfirm))
+          {
+            println();
+            errPrintln(ERR_ADMINISTRATOR_PWD_DO_NOT_MATCH.get());
+            println();
+            adminPwd = null;
+          }
+        }
+        uData.setAdminPwd(adminPwd);
+      }
+
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
+      checkSuffixesForEnableReplication(suffixes, conn1, conn2, true, uData);
+
+      uData.setBaseDNs(suffixes);
+      return !suffixes.isEmpty();
+    }
+    finally
+    {
+      close(conn1, conn2);
+      uData.setReplicateSchema(!argParser.noSchemaReplication());
+    }
+  }
+
+  private boolean initializeGlobalArguments(LDAPConnectionConsoleInteraction serverCI, ServerArgs serverArgs,
+      String adminPwd, String adminUid)
+  {
+    boolean doNotDisplayFirstError = false;
+    String host = getValue(serverArgs.hostNameArg);
+    int port = getValue(serverArgs.portArg);
+    String bindDn = getValue(serverArgs.bindDnArg);
+
+    String pwd = null;
+    LinkedHashMap<String, String> pwdFile = null;
+    if (serverArgs.bindPasswordArg.isPresent())
+    {
+      pwd = serverArgs.bindPasswordArg.getValue();
+    }
+    else if (serverArgs.bindPasswordFileArg.isPresent())
+    {
+      pwdFile = new LinkedHashMap<>(serverArgs.bindPasswordFileArg.getNameToValueMap());
+    }
+    else if (bindDn == null)
+    {
+      doNotDisplayFirstError = true;
+      pwd = adminPwd;
+      pwdFile = getPwdFile();
+    }
+
+    serverCI.initializeGlobalArguments(host, port, adminUid, bindDn, pwd, pwdFile);
+    return doNotDisplayFirstError;
+  }
+
+  private void setConnectionDetails(EnableReplicationServerData serverData, LDAPConnectionConsoleInteraction serverCI)
+  {
+    serverData.setHostPort(getHostPort2(serverCI));
+    serverData.setBindDn(serverCI.getBindDN());
+    serverData.setPwd(serverCI.getBindPassword());
+  }
+
+  private ConnectionWrapper initializeFirstConnection(LocalizableMessage headingMsg)
+  {
+    while (true)
     {
       try
       {
-        sourceServerCI.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST1_CONNECTION_PARAMETERS.get());
+        sourceServerCI.setHeadingMessage(headingMsg);
         sourceServerCI.run();
-        host1 = sourceServerCI.getHostName();
-        port1 = sourceServerCI.getPortNumber();
-        if (sourceServerCI.getProvidedAdminUID() != null)
-        {
-          adminUid = sourceServerCI.getProvidedAdminUID();
-          if (sourceServerCI.getProvidedBindDN() == null)
-          {
-            // If the explicit bind DN is not null, the password corresponds
-            // to that bind DN.  We are in the case where the user provides
-            // bind DN on first server and admin UID globally.
-            adminPwd = sourceServerCI.getBindPassword();
-          }
-        }
-        bindDn1 = sourceServerCI.getBindDN();
-        pwd1 = sourceServerCI.getBindPassword();
-
-        conn1 = createConnectionInteracting(sourceServerCI);
-        if (conn1 == null)
-        {
-          cancelled = true;
-        }
+        return createConnectionInteracting(sourceServerCI);
       }
       catch (ClientException ce)
       {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
+        logger.warn(LocalizableMessage.raw("Client exception " + ce));
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
@@ -2093,253 +2462,40 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ArgumentException ae)
       {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
+        logger.warn(LocalizableMessage.raw("Argument exception " + ae));
         argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
-        cancelled = true;
+        return null;
       }
     }
+  }
 
-    if (!cancelled)
-    {
-      uData.getServer1().setHostPort(new HostPort(host1, port1));
-      uData.getServer1().setBindDn(bindDn1);
-      uData.getServer1().setPwd(pwd1);
-    }
-    int replicationPort1 = -1;
-    boolean secureReplication1 = argParser.server1.secureReplicationArg.isPresent();
-    boolean configureReplicationServer1 = argParser.server1.configureReplicationServer();
-    boolean configureReplicationDomain1 = argParser.server1.configureReplicationDomain();
-    if (conn1 != null)
-    {
-      int repPort1 = getReplicationPort(conn1);
-      boolean replicationServer1Configured = repPort1 > 0;
-      if (replicationServer1Configured && !configureReplicationServer1)
-      {
-        final LocalizableMessage msg =
-            INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(conn1.getHostPort(), repPort1);
-        if (!askConfirmation(msg, false))
-        {
-          cancelled = true;
-        }
-      }
-
-      // Try to get the replication port for server 1 only if it is required.
-      if (!cancelled
-          && configureReplicationServer1
-          && !replicationServer1Configured
-          && argParser.advancedArg.isPresent()
-          && configureReplicationDomain1)
-      {
-        // Only ask if the replication domain will be configured (if not
-        // the replication server MUST be configured).
-        try
-        {
-          configureReplicationServer1 = askConfirmation(
-              INFO_REPLICATION_ENABLE_REPLICATION_SERVER1_PROMPT.get(),
-              true, logger);
-        }
-        catch (ClientException ce)
-        {
-          errPrintln(ce.getMessageObject());
-          cancelled = true;
-        }
-      }
-      if (!cancelled
-          && configureReplicationServer1
-          && !replicationServer1Configured)
-      {
-        boolean tryWithDefault = argParser.getReplicationPort1() != -1;
-        while (replicationPort1 == -1)
-        {
-          if (tryWithDefault)
-          {
-            replicationPort1 = argParser.getReplicationPort1();
-            tryWithDefault = false;
-          }
-          else
-          {
-            replicationPort1 = askPort(
-                INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get(),
-                getDefaultValue(argParser.server1.replicationPortArg), logger);
-            println();
-          }
-          if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
-          {
-            if (!SetupUtils.canUseAsPort(replicationPort1))
-            {
-              errPrintln();
-              errPrintln(getCannotBindToPortError(replicationPort1));
-              errPrintln();
-              replicationPort1 = -1;
-            }
-          }
-          else if (replicationPort1 == port1)
-          {
-            // This is something that we must do in any case... this test is
-            // already included when we call SetupUtils.canUseAsPort
-            errPrintln();
-            errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replicationPort1));
-            errPrintln();
-            replicationPort1 = -1;
-          }
-        }
-        if (!secureReplication1)
-        {
-          try
-          {
-            secureReplication1 =
-              askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(replicationPort1),
-                  false, logger);
-          }
-          catch (ClientException ce)
-          {
-            errPrintln(ce.getMessageObject());
-            cancelled = true;
-          }
-          println();
-        }
-      }
-      if (!cancelled &&
-          configureReplicationDomain1 &&
-          configureReplicationServer1 &&
-          argParser.advancedArg.isPresent())
-      {
-        // Only necessary to ask if the replication server will be configured
-        try
-        {
-          configureReplicationDomain1 = askConfirmation(
-              INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN1_PROMPT.get(),
-              true, logger);
-        }
-        catch (ClientException ce)
-        {
-          errPrintln(ce.getMessageObject());
-          cancelled = true;
-        }
-      }
-      // If the server contains an ADS. Try to load it and only load it: if
-      // there are issues with the ADS they will be encountered in the
-      // enableReplication(EnableReplicationUserData) method.  Here we have
-      // to load the ADS to ask the user to accept the certificates and
-      // eventually admin authentication data.
-      if (!cancelled)
-      {
-        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn1);
-        cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, true);
-        conn1 = aux.get();
-      }
-      if (!cancelled)
-      {
-        administratorDefined |= hasAdministrator(conn1);
-        if (uData.getAdminPwd() != null)
-        {
-          adminPwd = uData.getAdminPwd();
-        }
-      }
-    }
-    uData.getServer1().setReplicationPort(replicationPort1);
-    uData.getServer1().setSecureReplication(secureReplication1);
-    uData.getServer1().setConfigureReplicationServer(configureReplicationServer1);
-    uData.getServer1().setConfigureReplicationDomain(configureReplicationDomain1);
-    firstServerCommandBuilder = new CommandBuilder();
-    if (mustPrintCommandBuilder())
-    {
-      firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());
-    }
-
-    /* Prompt for information on the second server. */
-    String host2 = null;
-    int port2 = -1;
-    String bindDn2 = null;
-    String pwd2 = null;
-    LDAPConnectionConsoleInteraction destinationServerCI = new LDAPConnectionConsoleInteraction(this,
-        argParser.getSecureArgsList());
+  private ConnectionWrapper initializeConnection2(LDAPConnectionConsoleInteraction destinationServerCI,
+      LDAPConnectionConsoleInteraction sourceServerCI, boolean doNotDisplayFirstError)
+  {
     destinationServerCI.resetHeadingDisplayed();
-
-    boolean doNotDisplayFirstError = false;
-
-    if (!cancelled)
-    {
-      host2 = getValue(argParser.server2.hostNameArg);
-      port2 = getValue(argParser.server2.portArg);
-      bindDn2 = getValue(argParser.server2.bindDnArg);
-      pwd2 = argParser.server2.getBindPassword();
-
-      pwdFile = null;
-      pwd = null;
-      if (argParser.server2.bindPasswordArg.isPresent())
-      {
-        pwd = argParser.server2.bindPasswordArg.getValue();
-      }
-      else if (argParser.server2.bindPasswordFileArg.isPresent())
-      {
-        pwdFile = argParser.server2.bindPasswordFileArg.getNameToValueMap();
-      }
-      else if (bindDn2 == null)
-      {
-        doNotDisplayFirstError = true;
-        pwd = adminPwd;
-        if (argParser.getSecureArgsList().getBindPasswordFileArg().isPresent())
-        {
-          pwdFile = argParser.getSecureArgsList().getBindPasswordFileArg().
-            getNameToValueMap();
-        }
-      }
-
-      /*
-       * Use a copy of the argument properties since the map might be cleared
-       * in initializeGlobalArguments.
-       */
-      destinationServerCI.initializeGlobalArguments(host2, port2, adminUid, bindDn2, pwd,
-          pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
-      destinationServerCI.setUseAdminOrBindDn(true);
-    }
-
-    ConnectionWrapper conn2 = null;
-    while (conn2 == null && !cancelled)
+    while (true)
     {
       try
       {
         destinationServerCI.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST2_CONNECTION_PARAMETERS.get());
         destinationServerCI.run();
-        host2 = destinationServerCI.getHostName();
-        port2 = destinationServerCI.getPortNumber();
-        if (destinationServerCI.getProvidedAdminUID() != null)
-        {
-          adminUid = destinationServerCI.getProvidedAdminUID();
-          if (destinationServerCI.getProvidedBindDN() == null)
-          {
-            // If the explicit bind DN is not null, the password corresponds
-            // to that bind DN.  We are in the case where the user provides
-            // bind DN on first server and admin UID globally.
-            adminPwd = destinationServerCI.getBindPassword();
-          }
-        }
-        bindDn2 = destinationServerCI.getBindDN();
-        pwd2 = destinationServerCI.getBindPassword();
 
-        boolean error = false;
-        if (host1.equalsIgnoreCase(host2) && port1 == port2)
+        String host1 = sourceServerCI.getHostName();
+        int port1 = sourceServerCI.getPortNumber();
+        if (host1.equalsIgnoreCase(destinationServerCI.getHostName())
+            && port1 == destinationServerCI.getPortNumber())
         {
-          port2 = -1;
           errPrintln();
           errPrintln(ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(host1, port1));
           errPrintln();
-          error = true;
+          return null;
         }
 
-        if (!error)
-        {
-          conn2 = createConnectionInteracting(destinationServerCI, true);
-          if (conn2 == null)
-          {
-            cancelled = true;
-          }
-        }
+        return createConnectionInteracting(destinationServerCI, true);
       }
       catch (ClientException ce)
       {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
+        logger.warn(LocalizableMessage.raw("Client exception " + ce));
         if (!doNotDisplayFirstError)
         {
           errPrintln();
@@ -2351,259 +2507,21 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           // Reset only the credential parameters.
           destinationServerCI.resetConnectionArguments();
-          destinationServerCI.initializeGlobalArguments(host2, port2, null, null, null, null);
+          destinationServerCI.initializeGlobalArguments(
+              destinationServerCI.getHostName(), destinationServerCI.getPortNumber(), null, null, null, null);
         }
       }
       catch (ArgumentException ae)
       {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
+        logger.warn(LocalizableMessage.raw("Argument exception " + ae));
         argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
-        cancelled = true;
+        return null;
       }
       finally
       {
         doNotDisplayFirstError = false;
       }
     }
-
-    if (!cancelled)
-    {
-      uData.getServer2().setHostPort(new HostPort(host2, port2));
-      uData.getServer2().setBindDn(bindDn2);
-      uData.getServer2().setPwd(pwd2);
-    }
-
-    int replicationPort2 = -1;
-    boolean secureReplication2 = argParser.server2.secureReplicationArg.isPresent();
-    boolean configureReplicationServer2 = argParser.server2.configureReplicationServer();
-    boolean configureReplicationDomain2 = argParser.server2.configureReplicationDomain();
-    if (conn2 != null)
-    {
-      int repPort2 = getReplicationPort(conn2);
-      boolean replicationServer2Configured = repPort2 > 0;
-      if (replicationServer2Configured && !configureReplicationServer2)
-      {
-        final LocalizableMessage prompt =
-            INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(conn2.getHostPort(), repPort2);
-        if (!askConfirmation(prompt, false))
-        {
-          cancelled = true;
-        }
-      }
-
-      // Try to get the replication port for server 2 only if it is required.
-      if (!cancelled
-          && configureReplicationServer2
-          && !replicationServer2Configured)
-      {
-        // Only ask if the replication domain will be configured (if not the
-        // replication server MUST be configured).
-        if (argParser.advancedArg.isPresent() &&
-            configureReplicationDomain2)
-        {
-          try
-          {
-            configureReplicationServer2 = askConfirmation(
-                INFO_REPLICATION_ENABLE_REPLICATION_SERVER2_PROMPT.get(),
-                true, logger);
-          }
-          catch (ClientException ce)
-          {
-            errPrintln(ce.getMessageObject());
-            cancelled = true;
-          }
-        }
-        if (!cancelled
-            && configureReplicationServer2
-            && !replicationServer2Configured)
-        {
-          boolean tryWithDefault = argParser.getReplicationPort2() != -1;
-          while (replicationPort2 == -1)
-          {
-            if (tryWithDefault)
-            {
-              replicationPort2 = argParser.getReplicationPort2();
-              tryWithDefault = false;
-            }
-            else
-            {
-              replicationPort2 = askPort(
-                  INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(),
-                  getDefaultValue(argParser.server2.replicationPortArg), logger);
-              println();
-            }
-            if (!argParser.skipReplicationPortCheck() &&
-                isLocalHost(host2))
-            {
-              if (!SetupUtils.canUseAsPort(replicationPort2))
-              {
-                errPrintln();
-                errPrintln(getCannotBindToPortError(replicationPort2));
-                errPrintln();
-                replicationPort2 = -1;
-              }
-            }
-            else if (replicationPort2 == port2)
-            {
-              // This is something that we must do in any case... this test is
-              // already included when we call SetupUtils.canUseAsPort
-              errPrintln();
-              errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replicationPort2));
-              replicationPort2 = -1;
-            }
-            if (host1.equalsIgnoreCase(host2)
-                && replicationPort1 > 0
-                && replicationPort1 == replicationPort2)
-            {
-              errPrintln();
-              errPrintln(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replicationPort2, host1));
-              errPrintln();
-              replicationPort2 = -1;
-            }
-          }
-          if (!secureReplication2)
-          {
-            try
-            {
-              secureReplication2 =
-                askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(replicationPort2), false, logger);
-            }
-            catch (ClientException ce)
-            {
-              errPrintln(ce.getMessageObject());
-              cancelled = true;
-            }
-            println();
-          }
-        }
-      }
-      if (!cancelled &&
-          configureReplicationDomain2 &&
-          configureReplicationServer2 &&
-          argParser.advancedArg.isPresent())
-      {
-        // Only necessary to ask if the replication server will be configured
-        try
-        {
-          configureReplicationDomain2 = askConfirmation(
-              INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN2_PROMPT.get(),
-              true, logger);
-        }
-        catch (ClientException ce)
-        {
-          errPrintln(ce.getMessageObject());
-          cancelled = true;
-        }
-      }
-      // If the server contains an ADS. Try to load it and only load it: if
-      // there are issues with the ADS they will be encountered in the
-      // enableReplication(EnableReplicationUserData) method.  Here we have
-      // to load the ADS to ask the user to accept the certificates.
-      if (!cancelled)
-      {
-        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn2);
-        cancelled = !loadADSAndAcceptCertificates(destinationServerCI, aux, uData, false);
-        conn2 = aux.get();
-      }
-      if (!cancelled)
-      {
-        administratorDefined |= hasAdministrator(conn2);
-      }
-    }
-    uData.getServer2().setReplicationPort(replicationPort2);
-    uData.getServer2().setSecureReplication(secureReplication2);
-    uData.getServer2().setConfigureReplicationServer(configureReplicationServer2);
-    uData.getServer2().setConfigureReplicationDomain(configureReplicationDomain2);
-
-    // If the adminUid and adminPwd are not set in the EnableReplicationUserData
-    // object, that means that there are no administrators and that they
-    // must be created. The adminUId and adminPwd are updated inside
-    // loadADSAndAcceptCertificates.
-    boolean promptedForAdmin = false;
-
-    // There is a case where we haven't had need for the administrator
-    // credentials even if the administrators are defined: where all the servers
-    // can be accessed with another user (for instance if all the server have
-    // defined cn=directory manager and all the entries have the same password).
-    if (!cancelled && uData.getAdminUid() == null && !administratorDefined)
-    {
-      if (adminUid == null)
-      {
-        println(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get());
-        promptedForAdmin = true;
-        adminUid= askForAdministratorUID(
-            getDefaultValue(argParser.getAdminUidArg()), logger);
-        println();
-      }
-      uData.setAdminUid(adminUid);
-    }
-
-    if (uData.getAdminPwd() == null)
-    {
-      uData.setAdminPwd(adminPwd);
-    }
-    if (!cancelled && uData.getAdminPwd() == null && !administratorDefined)
-    {
-      adminPwd = null;
-      int nPasswordPrompts = 0;
-      while (adminPwd == null)
-      {
-        if (nPasswordPrompts > CONFIRMATION_MAX_TRIES)
-        {
-          errPrintln(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
-              CONFIRMATION_MAX_TRIES));
-          cancelled = true;
-          break;
-        }
-        nPasswordPrompts ++;
-        if (!promptedForAdmin)
-        {
-          println();
-          println(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get());
-          println();
-        }
-        while (adminPwd == null)
-        {
-          adminPwd = askForAdministratorPwd(logger);
-          println();
-        }
-        String adminPwdConfirm = null;
-        while (adminPwdConfirm == null)
-        {
-          try
-          {
-            adminPwdConfirm = String.valueOf(readPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT.get()));
-          }
-          catch (ClientException ex)
-          {
-            logger.warn(LocalizableMessage.raw("Error reading input: " + ex, ex));
-          }
-          println();
-        }
-        if (!adminPwd.equals(adminPwdConfirm))
-        {
-          println();
-          errPrintln(ERR_ADMINISTRATOR_PWD_DO_NOT_MATCH.get());
-          println();
-          adminPwd = null;
-        }
-      }
-      uData.setAdminPwd(adminPwd);
-    }
-
-    if (!cancelled)
-    {
-      List<DN> suffixes = toDNs(argParser.getBaseDNs());
-      checkSuffixesForEnableReplication(suffixes, conn1, conn2, true, uData);
-      cancelled = suffixes.isEmpty();
-
-      uData.setBaseDNs(suffixes);
-    }
-
-    close(conn1, conn2);
-    uData.setReplicateSchema(!argParser.noSchemaReplication());
-
-    return !cancelled;
   }
 
   /**
@@ -2612,166 +2530,131 @@ public class ReplicationCliMain extends ConsoleApplication
    * is missing, ask the user to provide valid data.
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user cancelled the operation.
-   * @throws ReplicationCliException if there is a critical error reading the
-   * ADS.
+   * @return {@code true} if the object was successfully updated and
+   * {@code false} if the user cancelled the operation.
+   * @throws ReplicationCliException if there is a critical error reading the ADS.
    */
   private boolean promptIfRequired(DisableReplicationUserData uData) throws ReplicationCliException
   {
-    boolean cancelled = false;
-
-    String adminPwd = argParser.getBindPasswordAdmin();
-    String adminUid = argParser.getAdministratorUID();
-    String bindDn = argParser.getBindDNToDisable();
-
-    // This is done because we want to ask explicitly for this
-
-    String host = argParser.getHostNameToDisable();
-    int port = argParser.getPortToDisable();
-
-    /* Try to connect to the server. */
-    ConnectionWrapper conn = null;
-
-    while (conn == null && !cancelled)
+    ConnectionWrapper conn = createConnection();
+    if (conn == null)
     {
-      try
-      {
-        sourceServerCI.setUseAdminOrBindDn(true);
-        sourceServerCI.run();
-        host = sourceServerCI.getHostName();
-        port = sourceServerCI.getPortNumber();
-        bindDn = sourceServerCI.getProvidedBindDN();
-        adminUid = sourceServerCI.getProvidedAdminUID();
-        adminPwd = sourceServerCI.getBindPassword();
-
-        conn = createConnectionInteracting(sourceServerCI);
-        if (conn == null)
-        {
-          cancelled = true;
-        }
-      }
-      catch (ClientException ce)
-      {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        errPrintln();
-        errPrintln(ce.getMessageObject());
-        errPrintln();
-        sourceServerCI.resetConnectionArguments();
-      }
-      catch (ArgumentException ae)
-      {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
-        cancelled = true;
-      }
+      return false;
     }
 
-    if (!cancelled)
+    try
     {
-      uData.setHostPort(new HostPort(host, port));
+      final String adminUid = sourceServerCI.getProvidedAdminUID();
+      uData.setHostPort(getHostPort2(sourceServerCI));
       uData.setAdminUid(adminUid);
-      uData.setBindDn(bindDn);
-      uData.setAdminPwd(adminPwd);
-    }
-    if (conn != null && adminUid != null)
-    {
-      // If the server contains an ADS, try to load it and only load it: if
-      // there are issues with the ADS they will be encountered in the
-      // disableReplication(DisableReplicationUserData) method.  Here we have
-      // to load the ADS to ask the user to accept the certificates and
-      // eventually admin authentication data.
-      AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn);
-      cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false);
-      conn = aux.get();
-    }
+      uData.setBindDn(sourceServerCI.getProvidedBindDN());
+      uData.setAdminPwd(sourceServerCI.getBindPassword());
 
-    boolean disableAll = argParser.disableAllArg.isPresent();
-    boolean disableReplicationServer =
-      argParser.disableReplicationServerArg.isPresent();
-    if (disableAll ||
-        (argParser.advancedArg.isPresent() &&
-        argParser.getBaseDNs().isEmpty() &&
-        !disableReplicationServer))
-    {
-      try
+      if (adminUid != null)
       {
-        disableAll = askConfirmation(INFO_REPLICATION_PROMPT_DISABLE_ALL.get(),
-          disableAll, logger);
+        // If the server contains an ADS, try to load it and only load it: if
+        // there are issues with the ADS they will be encountered in the
+        // disableReplication(DisableReplicationUserData) method. Here we have
+        // to load the ADS to ask the user to accept the certificates and
+        // eventually admin authentication data.
+        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn);
+        if (!loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false))
+        {
+          return false;
+        }
+        conn = aux.get();
       }
-      catch (ClientException ce)
-      {
-        errPrintln(ce.getMessageObject());
-        cancelled = true;
-      }
-    }
-    int repPort = getReplicationPort(conn);
-    if (!disableAll
-        && (argParser.advancedArg.isPresent() || disableReplicationServer)
-        && repPort > 0)
-    {
-      try
-      {
-        disableReplicationServer = askConfirmation(
-            INFO_REPLICATION_PROMPT_DISABLE_REPLICATION_SERVER.get(repPort),
-            disableReplicationServer,
-            logger);
-      }
-      catch (ClientException ce)
-      {
-        errPrintln(ce.getMessageObject());
-        cancelled = true;
-      }
-    }
-    if (disableReplicationServer && repPort < 0)
-    {
-      disableReplicationServer = false;
-      final LocalizableMessage msg = INFO_REPLICATION_PROMPT_NO_REPLICATION_SERVER_TO_DISABLE.get(conn.getHostPort());
-      try
-      {
-        cancelled = askConfirmation(msg, false, logger);
-      }
-      catch (ClientException ce)
-      {
-        errPrintln(ce.getMessageObject());
-        cancelled = true;
-      }
-    }
-    if (repPort > 0 && disableAll)
-    {
-      disableReplicationServer = true;
-    }
-    uData.setDisableAll(disableAll);
-    uData.setDisableReplicationServer(disableReplicationServer);
-    if (!cancelled && !disableAll)
-    {
-      List<DN> suffixes = toDNs(argParser.getBaseDNs());
-      checkSuffixesForDisableReplication(suffixes, conn, true, !disableReplicationServer);
-      cancelled = suffixes.isEmpty() && !disableReplicationServer;
 
-      uData.setBaseDNs(suffixes);
-
-      if (!uData.disableReplicationServer() && repPort > 0
-          && disableAllBaseDns(conn, uData)
-          && !argParser.advancedArg.isPresent())
+      boolean disableAll = argParser.disableAllArg.isPresent();
+      boolean disableReplicationServer = argParser.disableReplicationServerArg.isPresent();
+      if (disableAll
+          || (argParser.advancedArg.isPresent()
+              && argParser.getBaseDNs().isEmpty()
+              && !disableReplicationServer))
       {
         try
         {
-          uData.setDisableReplicationServer(askConfirmation(
-              INFO_REPLICATION_DISABLE_ALL_SUFFIXES_DISABLE_REPLICATION_SERVER.get(
-                  conn.getHostPort(), repPort), true,
-              logger));
+          disableAll = askConfirmation(INFO_REPLICATION_PROMPT_DISABLE_ALL.get(), disableAll, logger);
         }
         catch (ClientException ce)
         {
           errPrintln(ce.getMessageObject());
-          cancelled = true;
+          return false;
         }
       }
-    }
 
-    if (!cancelled)
-    {
+      int repPort = getReplicationPort(conn);
+      if (!disableAll
+          && repPort > 0
+          && (argParser.advancedArg.isPresent() || disableReplicationServer))
+      {
+        try
+        {
+          LocalizableMessage prompt = INFO_REPLICATION_PROMPT_DISABLE_REPLICATION_SERVER.get(repPort);
+          disableReplicationServer = askConfirmation(prompt, disableReplicationServer, logger);
+        }
+        catch (ClientException ce)
+        {
+          errPrintln(ce.getMessageObject());
+          return false;
+        }
+      }
+
+      if (disableReplicationServer && repPort < 0)
+      {
+        disableReplicationServer = false;
+        try
+        {
+          LocalizableMessage prompt = INFO_REPLICATION_PROMPT_NO_REPLICATION_SERVER_TO_DISABLE.get(conn.getHostPort());
+          if (!askConfirmation(prompt, false, logger))
+          {
+            return false;
+          }
+        }
+        catch (ClientException ce)
+        {
+          errPrintln(ce.getMessageObject());
+          return false;
+        }
+      }
+      if (repPort > 0 && disableAll)
+      {
+        disableReplicationServer = true;
+      }
+
+      uData.setDisableAll(disableAll);
+      uData.setDisableReplicationServer(disableReplicationServer);
+
+      if (!disableAll)
+      {
+        List<DN> suffixes = toDNs(argParser.getBaseDNs());
+        checkSuffixesForDisableReplication(suffixes, conn, true, !disableReplicationServer);
+        if (suffixes.isEmpty() && !disableReplicationServer)
+        {
+          return false;
+        }
+
+        uData.setBaseDNs(suffixes);
+
+        if (!uData.disableReplicationServer()
+            && repPort > 0
+            && disableAllBaseDns(conn, uData)
+            && !argParser.advancedArg.isPresent())
+        {
+          try
+          {
+            LocalizableMessage prompt =
+                INFO_REPLICATION_DISABLE_ALL_SUFFIXES_DISABLE_REPLICATION_SERVER.get(conn.getHostPort(), repPort);
+            uData.setDisableReplicationServer(askConfirmation(prompt, true, logger));
+          }
+          catch (ClientException ce)
+          {
+            errPrintln(ce.getMessageObject());
+            return false;
+          }
+        }
+      }
+
       // Ask for confirmation to disable if not already done.
       boolean disableADS = false;
       boolean disableSchema = false;
@@ -2786,6 +2669,8 @@ public class ReplicationCliMain extends ConsoleApplication
           disableSchema = true;
         }
       }
+
+      boolean cancelled = false;
       if (disableADS)
       {
         println();
@@ -2809,11 +2694,39 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         println();
       }
+      return !cancelled;
     }
+    finally
+    {
+      close(conn);
+    }
+  }
 
-    close(conn);
-
-    return !cancelled;
+  private ConnectionWrapper createConnection()
+  {
+    while (true)
+    {
+      try
+      {
+        sourceServerCI.setUseAdminOrBindDn(true);
+        sourceServerCI.run();
+        return createConnectionInteracting(sourceServerCI);
+      }
+      catch (ClientException ce)
+      {
+        logger.warn(LocalizableMessage.raw("Client exception " + ce));
+        errPrintln();
+        errPrintln(ce.getMessageObject());
+        errPrintln();
+        sourceServerCI.resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        logger.warn(LocalizableMessage.raw("Argument exception " + ae));
+        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
+        return null;
+      }
+    }
   }
 
   /**
@@ -2822,17 +2735,19 @@ public class ReplicationCliMain extends ConsoleApplication
    * information is missing, ask the user to provide valid data.
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user cancelled the operation.
+   * @return {@code true} if the object was successfully updated and
+   * {@code false} if the user cancelled the operation.
    */
   private boolean promptIfRequired(InitializeAllReplicationUserData uData)
   {
-    try (ConnectionWrapper conn = getConnection(uData))
+    ConnectionWrapper conn = getConnection(uData);
+    if (conn == null)
     {
-      if (conn == null)
-      {
-        return false;
-      }
+      return false;
+    }
+
+    try
+    {
 
       List<DN> suffixes = toDNs(argParser.getBaseDNs());
       checkSuffixesForInitializeReplication(suffixes, conn, true);
@@ -2844,12 +2759,13 @@ public class ReplicationCliMain extends ConsoleApplication
 
       // Ask for confirmation to initialize.
       println();
-      if (!askConfirmation(getPrompt(uData, conn), true))
-      {
-        return false;
-      }
+      final boolean cancelled = !askConfirmation(getPrompt(uData, conn), true);
       println();
-      return true;
+      return !cancelled;
+    }
+    finally
+    {
+      close(conn);
     }
   }
 
@@ -2882,21 +2798,26 @@ public class ReplicationCliMain extends ConsoleApplication
    * If some information is missing, ask the user to provide valid data.
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user cancelled the operation.
+   * @return {@code true} if the object was successfully updated and
+   * {@code false} if the user cancelled the operation.
    */
   private boolean promptIfRequiredForPreOrPost(MonoServerReplicationUserData uData)
   {
-    try (ConnectionWrapper conn = getConnection(uData))
+    ConnectionWrapper conn = getConnection(uData);
+    if (conn == null)
     {
-      if (conn == null)
-      {
-        return false;
-      }
+      return false;
+    }
+    try
+    {
       List<DN> suffixes = toDNs(argParser.getBaseDNs());
       checkSuffixesForInitializeReplication(suffixes, conn, true);
       uData.setBaseDNs(suffixes);
       return !suffixes.isEmpty();
+    }
+    finally
+    {
+      close(conn);
     }
   }
 
@@ -2916,7 +2837,7 @@ public class ReplicationCliMain extends ConsoleApplication
         ConnectionWrapper conn = createConnectionInteracting(sourceServerCI);
         if (conn != null)
         {
-          uData.setHostPort(new HostPort(sourceServerCI.getHostName(), sourceServerCI.getPortNumber()));
+          uData.setHostPort(getHostPort2(sourceServerCI));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
           uData.setAdminPwd(sourceServerCI.getBindPassword());
           if (uData instanceof StatusReplicationUserData)
@@ -2949,40 +2870,34 @@ public class ReplicationCliMain extends ConsoleApplication
    * is missing, ask the user to provide valid data.
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user cancelled the operation.
+   * @return {@code true} if the object was successfully updated and
+   * {@code false} if the user cancelled the operation.
    * @throws ReplicationCliException if a critical error occurs reading the ADS.
    */
-  private boolean promptIfRequired(StatusReplicationUserData uData)
-  throws ReplicationCliException
+  private boolean promptIfRequired(StatusReplicationUserData uData) throws ReplicationCliException
   {
-    ConnectionWrapper conn = null;
+    ConnectionWrapper conn = getConnection(uData);
+    if (conn == null)
+    {
+      return false;
+    }
+
     try
     {
-      conn = getConnection(uData);
-      if (conn == null)
-      {
-        return false;
-      }
-
       // If the server contains an ADS, try to load it and only load it: if
       // there are issues with the ADS they will be encountered in the
       // statusReplication(StatusReplicationUserData) method. Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
       AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn);
-      boolean cancelled = !loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false);
-      conn = aux.get();
-      if (cancelled)
+      if (!loadADSAndAcceptCertificates(sourceServerCI, aux, uData, false))
       {
         return false;
       }
+      conn = aux.get();
 
-      if (!cancelled)
-      {
-        uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
-      }
-      return !cancelled;
+      uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
+      return true;
     }
     finally
     {
@@ -2997,129 +2912,115 @@ public class ReplicationCliMain extends ConsoleApplication
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
    * @param serversOperations Additional processing for the command
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user cancelled the operation.
+   * @return {@code true} if the object was successfully updated and
+   * {@code false} if the user cancelled the operation.
    */
   private boolean promptIfRequired(SourceDestinationServerUserData uData,
       OperationBetweenSourceAndDestinationServers serversOperations)
   {
-    boolean cancelled = false;
-
     String adminPwd = argParser.getBindPasswordAdmin();
     String adminUid = argParser.getAdministratorUID();
 
-    String hostSource = argParser.getHostNameSource();
-    int portSource = argParser.getPortSource();
-
-    Map<String, String> pwdFile = null;
-    if (argParser.getSecureArgsList().getBindPasswordFileArg().isPresent())
-    {
-      pwdFile = argParser.getSecureArgsList().getBindPasswordFileArg().getNameToValueMap();
-    }
-
-    /*
-     * Use a copy of the argument properties since the map might be cleared
-     * in initializeGlobalArguments.
-     */
-    sourceServerCI.initializeGlobalArguments(hostSource, portSource, adminUid, null, adminPwd,
-        pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
-
-    // Try to connect to the source server
     ConnectionWrapper connSource = null;
-    while (connSource == null && !cancelled)
+    ConnectionWrapper connDestination = null;
+    try
     {
-      try
+      // Prompt for source server credentials
+      sourceServerCI.initializeGlobalArguments(argParser.getHostNameSource(), argParser.getPortSource(), adminUid, null,
+          adminPwd, getPwdFile());
+      // Try to connect to the source server
+      connSource = initializeFirstConnection(INFO_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
+      if (connSource == null)
       {
-        sourceServerCI.setHeadingMessage(INFO_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
-        sourceServerCI.run();
-        hostSource = sourceServerCI.getHostName();
-        portSource = sourceServerCI.getPortNumber();
-        adminUid = sourceServerCI.getAdministratorUID();
-        adminPwd = sourceServerCI.getBindPassword();
+        return false;
+      }
 
-        connSource = createConnectionInteracting(sourceServerCI);
-        if (connSource == null)
-        {
-          cancelled = true;
-        }
-      }
-      catch (ClientException ce)
-      {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        errPrintln();
-        errPrintln(ce.getMessageObject());
-        errPrintln();
-        sourceServerCI.resetConnectionArguments();
-      }
-      catch (ArgumentException ae)
-      {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
-        cancelled = true;
-      }
-    }
-    if (!cancelled)
-    {
-      uData.setHostNameSource(hostSource);
-      uData.setPortSource(portSource);
+      adminUid = sourceServerCI.getAdministratorUID();
+      adminPwd = sourceServerCI.getBindPassword();
+
+      uData.setHostNameSource(sourceServerCI.getHostName());
+      uData.setPortSource(sourceServerCI.getPortNumber());
       uData.setAdminUid(adminUid);
       uData.setAdminPwd(adminPwd);
-    }
 
-    firstServerCommandBuilder = new CommandBuilder();
-    if (mustPrintCommandBuilder())
+      firstServerCommandBuilder = new CommandBuilder();
+      if (mustPrintCommandBuilder())
+      {
+        firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());
+      }
+
+      // Prompt for destination server credentials
+      LDAPConnectionConsoleInteraction destinationServerCI =
+          new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
+      destinationServerCI.initializeGlobalArguments(argParser.getHostNameDestination(), argParser.getPortDestination(),
+          adminUid, null, adminPwd, getPwdFile());
+
+      // Try to connect to the destination server.
+      connDestination = initializeDestinationConnection(sourceServerCI, destinationServerCI);
+      if (connDestination == null)
+      {
+        return false;
+      }
+
+      uData.setHostNameDestination(destinationServerCI.getHostName());
+      uData.setPortDestination(destinationServerCI.getPortNumber());
+
+      List<DN> suffixes = toDNs(argParser.getBaseDNs());
+      uData.setBaseDNs(suffixes);
+      if (!serversOperations.continueAfterUserInput(suffixes, connSource, connDestination))
+      {
+        return false;
+      }
+      println();
+      final boolean confirmed = serversOperations.confirmOperation(uData, connSource, connDestination, true);
+      println();
+      return confirmed;
+    }
+    finally
     {
-      firstServerCommandBuilder.append(sourceServerCI.getCommandBuilder());
+      close(connSource, connDestination);
     }
+  }
 
-    /* Prompt for destination server credentials */
-    String hostDestination = argParser.getHostNameDestination();
-    int portDestination = argParser.getPortDestination();
+  private LinkedHashMap<String, String> getPwdFile()
+  {
+    FileBasedArgument bindPasswordFileArg = argParser.getSecureArgsList().getBindPasswordFileArg();
+    if (bindPasswordFileArg.isPresent())
+    {
+      // Use a copy of the argument properties since the map might be cleared in
+      // {@link LDAPConnectionConsoleInteraction#initializeGlobalArguments()}
+      return new LinkedHashMap<>(bindPasswordFileArg.getNameToValueMap());
+    }
+    return null;
+  }
 
-    /*
-     * Use a copy of the argument properties since the map might be cleared
-     * in initializeGlobalArguments.
-     */
-    LDAPConnectionConsoleInteraction destinationServerCI = new LDAPConnectionConsoleInteraction(this,
-        argParser.getSecureArgsList());
-    destinationServerCI.initializeGlobalArguments(hostDestination, portDestination, adminUid, null, adminPwd,
-        pwdFile == null ? null : new LinkedHashMap<String, String>(pwdFile));
-
-    /* Try to connect to the destination server. */
-    ConnectionWrapper connDestination = null;
+  private ConnectionWrapper initializeDestinationConnection(LDAPConnectionConsoleInteraction sourceServerCI,
+      LDAPConnectionConsoleInteraction destinationServerCI)
+  {
     destinationServerCI.resetHeadingDisplayed();
-    while (connDestination == null && !cancelled)
+    while (true)
     {
       try
       {
         destinationServerCI.setHeadingMessage(INFO_INITIALIZE_DESTINATION_CONNECTION_PARAMETERS.get());
         destinationServerCI.run();
-        hostDestination = destinationServerCI.getHostName();
-        portDestination = destinationServerCI.getPortNumber();
 
-        boolean error = false;
-        if (hostSource.equalsIgnoreCase(hostDestination)
-            && portSource == portDestination)
+        final String hostSource = sourceServerCI.getHostName();
+        final int portSource = sourceServerCI.getPortNumber();
+        if (hostSource.equalsIgnoreCase(destinationServerCI.getHostName())
+            && portSource == destinationServerCI.getPortNumber())
         {
-          portDestination = -1;
           errPrintln();
           errPrintln(ERR_SOURCE_DESTINATION_INITIALIZE_SAME_SERVER_PORT.get(hostSource, portSource));
           errPrintln();
-          error = true;
+          return null;
         }
 
-        if (!error)
-        {
-          connDestination = createConnectionInteracting(destinationServerCI, true);
-          if (connDestination == null)
-          {
-            cancelled = true;
-          }
-        }
+        return createConnectionInteracting(destinationServerCI, true);
       }
       catch (ClientException ce)
       {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
+        logger.warn(LocalizableMessage.raw("Client exception " + ce));
         errPrintln();
         errPrintln(ce.getMessageObject());
         errPrintln();
@@ -3127,31 +3028,11 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ArgumentException ae)
       {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
+        logger.warn(LocalizableMessage.raw("Argument exception " + ae));
         argParser.displayMessageAndUsageReference(getErrStream(), ae.getMessageObject());
-        cancelled = true;
+        return null;
       }
     }
-
-    if (!cancelled)
-    {
-      uData.setHostNameDestination(hostDestination);
-      uData.setPortDestination(portDestination);
-
-      List<DN> suffixes = toDNs(argParser.getBaseDNs());
-      cancelled = serversOperations.continueAfterUserInput(suffixes, connSource, connDestination, true);
-      uData.setBaseDNs(suffixes);
-
-      if (!cancelled)
-      {
-        println();
-        cancelled = serversOperations.confirmOperation(uData, connSource, connDestination, true);
-        println();
-      }
-    }
-
-    close(connSource, connDestination);
-    return !cancelled;
   }
 
   private LocalizableMessage getInitializeReplicationPrompt(SourceDestinationServerUserData uData,
@@ -3373,8 +3254,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * enable replication subcommand or the source server in the initialize server
    * subcommand.
    * @throws ReplicationCliException if a critical error occurred.
-   * @return <CODE>true</CODE> if everything went fine and the user accepted
-   * all the certificates and confirmed everything.  Returns <CODE>false</CODE>
+   * @return {@code true} if everything went fine and the user accepted
+   * all the certificates and confirmed everything.  Returns {@code false}
    * if the user did not accept a certificate or any of the confirmation
    * messages.
    */
@@ -3574,8 +3455,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ADSContext adsContext = new ADSContext(conn);
       if (adsContext.hasAdminData())
       {
-        Set<?> administrators = adsContext.readAdministratorRegistry();
-        return !administrators.isEmpty();
+        return !adsContext.readAdministratorRegistry().isEmpty();
       }
     }
     catch (Throwable t)
@@ -3591,8 +3471,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * ReplicationUserData defined in the server for which the connection is provided.
    * @param conn the connection
    * @param uData the user data
-   * @return <CODE>true</CODE> if we could find an administrator and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if we could find an administrator, {@code false} otherwise.
    */
   private boolean hasAdministrator(ConnectionWrapper conn, ReplicationUserData uData)
   {
@@ -3711,9 +3590,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * make reference to the other replication server.
    * @param rep1 the first replica.
    * @param rep2 the second replica.
-   * @return <CODE>true</CODE> if we can assure that the two replicas are
+   * @return {@code true} if we can assure that the two replicas are
    * replicated using the replication server and replication port information
-   * and <CODE>false</CODE> otherwise.
+   * and {@code false} otherwise.
    */
   private boolean areFullyReplicated(ReplicaDescriptor rep1,
       ReplicaDescriptor rep2)
@@ -3738,8 +3617,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * have at least one common replication server referenced.
    * @param rep1 the first replica.
    * @param rep2 the second replica.
-   * @return <CODE>true</CODE> if we can assure that the two replicas are
-   * replicated and <CODE>false</CODE> otherwise.
+   * @return {@code true} if we can assure that the two replicas are
+   * replicated and {@code false} otherwise.
    */
   private boolean areReplicated(ReplicaDescriptor rep1, ReplicaDescriptor rep2)
   {
@@ -4454,7 +4333,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ConnectionWrapper conn, boolean interactive, boolean displayErrors)
   {
     // whether the user must provide base DNs or not
-    // (if it is <CODE>false</CODE> the user will be proposed the suffixes only once)
+    // (if it is {@code false} the user will be proposed the suffixes only once)
     final boolean areSuffixRequired = displayErrors;
 
     TreeSet<DN> availableSuffixes = new TreeSet<>();
@@ -7613,8 +7492,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * another set of replication servers.
    * @param s1 the first set of replication servers.
    * @param s2 the second set of replication servers.
-   * @return <CODE>true</CODE> if the two sets represent the same replication
-   * servers and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the two sets represent the same replication
+   * servers and {@code false} otherwise.
    */
   private boolean areReplicationServersEqual(Set<String> s1, Set<String> s2)
   {
@@ -7808,8 +7687,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * Method used to compare two server registries.
    * @param registry1 the first registry to compare.
    * @param registry2 the second registry to compare.
-   * @return <CODE>true</CODE> if the registries are equal and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the registries are equal and {@code false} otherwise.
    */
   private boolean areEqual(Set<Map<ServerProperty, Object>> registry1, Set<Map<ServerProperty, Object>> registry2)
   {
@@ -7872,8 +7750,8 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * Tells whether we are trying to disable all the replicated suffixes.
    * @param uData the disable replication data provided by the user.
-   * @return <CODE>true</CODE> if we want to disable all the replicated suffixes
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if we want to disable all the replicated suffixes
+   * and {@code false} otherwise.
    */
   private boolean disableAllBaseDns(ConnectionWrapper conn, DisableReplicationUserData uData)
   {
@@ -7992,19 +7870,14 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         // Write to the file.
         String file = argParser.equivalentCommandFileArgument.getValue();
-        try
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true)))
         {
-          BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-
-          writer.write(SHELL_COMMENT_SEPARATOR+getCurrentOperationDateMessage());
+          writer.write(SHELL_COMMENT_SEPARATOR + getCurrentOperationDateMessage());
           writer.newLine();
 
           writer.write(commandBuilder.toString());
           writer.newLine();
           writer.newLine();
-
-          writer.flush();
-          writer.close();
         }
         catch (IOException ioe)
         {
@@ -9013,8 +8886,8 @@ public class ReplicationCliMain extends ConsoleApplication
    *
    * @param adsCtx1 the ADSContext of the first registry.
    * @param adsCtx2 the ADSContext of the second registry.
-   * @return <CODE>true</CODE> if the registry containing all the data is
-   * the first registry and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the registry containing all the data is
+   * the first registry and {@code false} otherwise.
    * @throws ReplicationCliException if there is a problem reading or updating
    * the registries.
    */
@@ -9306,12 +9179,12 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided baseDN is replicated in the
-   * provided server, <CODE>false</CODE> otherwise.
+   * Returns {@code true} if the provided baseDN is replicated in the
+   * provided server, {@code false} otherwise.
    * @param server the server.
    * @param baseDN the base DN.
-   * @return <CODE>true</CODE> if the provided baseDN is replicated in the
-   * provided server, <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided baseDN is replicated in the
+   * provided server, {@code false} otherwise.
    */
   private boolean isBaseDNReplicated(ServerDescriptor server, DN baseDN)
   {
@@ -9319,13 +9192,13 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided baseDN is replicated between
-   * both servers, <CODE>false</CODE> otherwise.
+   * Returns {@code true} if the provided baseDN is replicated between
+   * both servers, {@code false} otherwise.
    * @param server1 the first server.
    * @param server2 the second server.
    * @param baseDN the base DN.
-   * @return <CODE>true</CODE> if the provided baseDN is replicated between
-   * both servers, <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided baseDN is replicated between
+   * both servers, {@code false} otherwise.
    */
   private boolean isBaseDNReplicated(ServerDescriptor server1, ServerDescriptor server2, DN baseDN)
   {

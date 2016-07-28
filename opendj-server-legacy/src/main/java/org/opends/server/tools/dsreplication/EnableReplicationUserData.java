@@ -205,15 +205,13 @@ public class EnableReplicationUserData extends ReplicationUserData
     }
   }
 
-  private EnableReplicationServerData server1 = new EnableReplicationServerData();
-  private EnableReplicationServerData server2 = new EnableReplicationServerData();
+  private final EnableReplicationServerData server1 = new EnableReplicationServerData();
+  private final EnableReplicationServerData server2 = new EnableReplicationServerData();
   private boolean replicateSchema = true;
 
   /**
-   * Returns <CODE>true</CODE> if the user asked to replicate schema and <CODE>
-   * false</CODE> otherwise.
-   * @return <CODE>true</CODE> if the user asked to replicate schema and <CODE>
-   * false</CODE> otherwise.
+   * Returns whether the user asked to replicate schema.
+   * @return {@code true} if the user asked to replicate schema, {@code false} otherwise.
    */
   public boolean replicateSchema()
   {
