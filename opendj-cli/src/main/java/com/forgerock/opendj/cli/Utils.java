@@ -549,10 +549,15 @@ public final class Utils {
     /**
      * Returns the string that can be used to represent a given host name in a LDAP URL.
      * This method must be used when we have IPv6 addresses (the address in the LDAP URL
-     *  must be enclosed with brackets).
-     *  E.g:<pre>
+     * must be enclosed with brackets).
+     * <p>
+     * E.g:
+     *
+     * <pre>
      *  -h "[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]"
-     *  </pre>
+     * </pre>
+     *
+     * Note: it would be nice to replace this method by {@code HostPort}
      *
      * @param host
      *            The host name.

@@ -1097,8 +1097,6 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     // Interact with the user though the console to get LDAP connection information
     final HostPort hostPort = getHostPort(ci);
-    final String hostName = hostPort.getHost();
-    final int portNumber = hostPort.getPort();
     if (ci.useSSL())
     {
       while (true)
@@ -1115,7 +1113,7 @@ public class ReplicationCliMain extends ConsoleApplication
             if (oce != null)
             {
               String authType = getAuthType(ci.getTrustManager());
-              if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
+              if (ci.checkServerCertificate(oce.getChain(), authType, hostPort.getHost()))
               {
                 // User trusts the certificate, try to connect again.
                 continue;
@@ -1135,13 +1133,13 @@ public class ReplicationCliMain extends ConsoleApplication
                   || e.getCause() instanceof SSLHandshakeException))
             {
               LocalizableMessage message =
-                  ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
+                  ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostPort.getHost(), hostPort.getPort());
               throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
             if (e.getCause() instanceof SSLException)
             {
               LocalizableMessage message =
-                  ERR_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
+                  ERR_FAILED_TO_CONNECT_WRONG_PORT.get(hostPort.getHost(), hostPort.getPort());
               throw new ClientException(
                   ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
@@ -1163,15 +1161,15 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!promptForCertificate)
           {
-            throw failedToConnect(hostName, portNumber);
+            throw failedToConnect(hostPort);
           }
           OpendsCertificateException oce = getCertificateRootException(e);
           if (oce == null)
           {
-            throw failedToConnect(hostName, portNumber);
+            throw failedToConnect(hostPort);
           }
           String authType = getAuthType(ci.getTrustManager());
-          if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
+          if (ci.checkServerCertificate(oce.getChain(), authType, hostPort.getHost()))
           {
             // User trusts the certificate, try to connect again.
             continue;
@@ -1192,7 +1190,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (LdapException e)
       {
-        throw failedToConnect(hostName, portNumber);
+        throw failedToConnect(hostPort);
       }
     }
   }
@@ -1206,12 +1204,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private HostPort getHostPort(LDAPConnectionConsoleInteraction ci)
   {
-    final String hostName = getHostNameForLdapUrl(ci.getHostName());
-    return new HostPort(hostName, ci.getPortNumber());
-  }
-
-  private HostPort getHostPort2(LDAPConnectionConsoleInteraction ci)
-  {
     return new HostPort(ci.getHostName(), ci.getPortNumber());
   }
 
@@ -1224,9 +1216,10 @@ public class ReplicationCliMain extends ConsoleApplication
     return null;
   }
 
-  private ClientException failedToConnect(String hostName, Integer portNumber)
+  private ClientException failedToConnect(HostPort hostPort)
   {
-    return new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, ERR_FAILED_TO_CONNECT.get(hostName, portNumber));
+    return new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+        ERR_FAILED_TO_CONNECT.get(hostPort.getHost(), hostPort.getPort()));
   }
 
   private ReplicationCliReturnCode purgeHistoricalRemotely(PurgeHistoricalUserData uData)
@@ -1951,7 +1944,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (conn != null)
         {
           uData.setOnline(true);
-          uData.setHostPort(getHostPort2(sourceServerCI));
+          uData.setHostPort(getHostPort(sourceServerCI));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
           uData.setAdminPwd(sourceServerCI.getBindPassword());
         }
@@ -2378,7 +2371,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void setConnectionDetails(EnableReplicationServerData serverData, LDAPConnectionConsoleInteraction serverCI)
   {
-    serverData.setHostPort(getHostPort2(serverCI));
+    serverData.setHostPort(getHostPort(serverCI));
     serverData.setBindDn(serverCI.getBindDN());
     serverData.setPwd(serverCI.getBindPassword());
   }
@@ -2486,7 +2479,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       final String adminUid = sourceServerCI.getProvidedAdminUID();
-      uData.setHostPort(getHostPort2(sourceServerCI));
+      uData.setHostPort(getHostPort(sourceServerCI));
       uData.setAdminUid(adminUid);
       uData.setBindDn(sourceServerCI.getProvidedBindDN());
       uData.setAdminPwd(sourceServerCI.getBindPassword());
@@ -2777,7 +2770,7 @@ public class ReplicationCliMain extends ConsoleApplication
         ConnectionWrapper conn = createConnectionInteracting(sourceServerCI);
         if (conn != null)
         {
-          uData.setHostPort(getHostPort2(sourceServerCI));
+          uData.setHostPort(getHostPort(sourceServerCI));
           uData.setAdminUid(sourceServerCI.getAdministratorUID());
           uData.setAdminPwd(sourceServerCI.getBindPassword());
           if (uData instanceof StatusReplicationUserData)
