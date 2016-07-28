@@ -2031,135 +2031,30 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
 
-      String host1 = sourceServerCI.getHostName();
-      int port1 = sourceServerCI.getPortNumber();
       setConnectionDetails(uData.getServer1(), sourceServerCI);
-
-      boolean administratorDefined = false;
-      int replicationPort1 = -1;
-      boolean secureReplication1 = argParser.server1.secureReplicationArg.isPresent();
-      boolean configureReplicationServer1 = argParser.server1.configureReplicationServer();
-      boolean configureReplicationDomain1 = argParser.server1.configureReplicationDomain();
+      if (!setReplicationDetails(uData.getServer1(), sourceServerCI, argParser.server1, conn1, null))
       {
-        int repPort1 = getReplicationPort(conn1);
-        boolean replicationServer1Configured = repPort1 > 0;
-        if (replicationServer1Configured && !configureReplicationServer1)
-        {
-          final LocalizableMessage msg =
-              INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(conn1.getHostPort(), repPort1);
-          if (!askConfirmation(msg, false))
-          {
-            return false;
-          }
-        }
-
-        // Try to get the replication port for server 1 only if it is required.
-        if (configureReplicationServer1
-            && !replicationServer1Configured
-            && argParser.advancedArg.isPresent()
-            && configureReplicationDomain1)
-        {
-          // Only ask if the replication domain will be configured (if not
-          // the replication server MUST be configured).
-          try
-          {
-            configureReplicationServer1 =
-                askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_SERVER1_PROMPT.get(), true, logger);
-          }
-          catch (ClientException ce)
-          {
-            errPrintln(ce.getMessageObject());
-            return false;
-          }
-        }
-        if (configureReplicationServer1 && !replicationServer1Configured)
-        {
-          boolean tryWithDefault = argParser.getReplicationPort1() != -1;
-          while (replicationPort1 == -1)
-          {
-            if (tryWithDefault)
-            {
-              replicationPort1 = argParser.getReplicationPort1();
-              tryWithDefault = false;
-            }
-            else
-            {
-              replicationPort1 =
-                  askPort(INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get(), getDefaultValue(
-                      argParser.server1.replicationPortArg), logger);
-              println();
-            }
-            if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
-            {
-              if (!SetupUtils.canUseAsPort(replicationPort1))
-              {
-                errPrintln();
-                errPrintln(getCannotBindToPortError(replicationPort1));
-                errPrintln();
-                replicationPort1 = -1;
-              }
-            }
-            else if (replicationPort1 == port1)
-            {
-              // This is something that we must do in any case... this test is
-              // already included when we call SetupUtils.canUseAsPort
-              errPrintln();
-              errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host1, replicationPort1));
-              errPrintln();
-              replicationPort1 = -1;
-            }
-          }
-          if (!secureReplication1)
-          {
-            try
-            {
-              secureReplication1 =
-                  askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(replicationPort1), false, logger);
-            }
-            catch (ClientException ce)
-            {
-              errPrintln(ce.getMessageObject());
-              return false;
-            }
-            println();
-          }
-        }
-        if (configureReplicationDomain1 && configureReplicationServer1 && argParser.advancedArg.isPresent())
-        {
-          // Only necessary to ask if the replication server will be configured
-          try
-          {
-            configureReplicationDomain1 =
-                askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN1_PROMPT.get(), true, logger);
-          }
-          catch (ClientException ce)
-          {
-            errPrintln(ce.getMessageObject());
-            return false;
-          }
-        }
-        // If the server contains an ADS. Try to load it and only load it: if
-        // there are issues with the ADS they will be encountered in the
-        // enableReplication(EnableReplicationUserData) method. Here we have
-        // to load the ADS to ask the user to accept the certificates and
-        // eventually admin authentication data.
-        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn1);
-        if (!loadADSAndAcceptCertificates(sourceServerCI, aux, uData, true))
-        {
-          return false;
-        }
-        conn1 = aux.get();
-        administratorDefined |= hasAdministrator(conn1);
-        if (uData.getAdminPwd() != null)
-        {
-          adminPwd = uData.getAdminPwd();
-        }
+        return false;
       }
 
-      uData.getServer1().setReplicationPort(replicationPort1);
-      uData.getServer1().setSecureReplication(secureReplication1);
-      uData.getServer1().setConfigureReplicationServer(configureReplicationServer1);
-      uData.getServer1().setConfigureReplicationDomain(configureReplicationDomain1);
+      // If the server contains an ADS. Try to load it and only load it: if
+      // there are issues with the ADS they will be encountered in the
+      // enableReplication(EnableReplicationUserData) method. Here we have
+      // to load the ADS to ask the user to accept the certificates and
+      // eventually admin authentication data.
+      AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn1);
+      if (!loadADSAndAcceptCertificates(sourceServerCI, aux, uData, true))
+      {
+        return false;
+      }
+      conn1 = aux.get();
+
+      boolean administratorDefined = false;
+      administratorDefined |= hasAdministrator(conn1);
+      if (uData.getAdminPwd() != null)
+      {
+        adminPwd = uData.getAdminPwd();
+      }
       firstServerCommandBuilder = new CommandBuilder();
       if (mustPrintCommandBuilder())
       {
@@ -2191,134 +2086,24 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
 
-      String host2 = destinationServerCI.getHostName();
-      int port2 = destinationServerCI.getPortNumber();
       setConnectionDetails(uData.getServer2(), destinationServerCI);
-
-      int replicationPort2 = -1;
-      boolean secureReplication2 = argParser.server2.secureReplicationArg.isPresent();
-      boolean configureReplicationServer2 = argParser.server2.configureReplicationServer();
-      boolean configureReplicationDomain2 = argParser.server2.configureReplicationDomain();
+      if (!setReplicationDetails(
+          uData.getServer2(), destinationServerCI, argParser.server2, conn2, uData.getServer1()))
       {
-        int repPort2 = getReplicationPort(conn2);
-        boolean replicationServer2Configured = repPort2 > 0;
-        if (replicationServer2Configured && !configureReplicationServer2)
-        {
-          final LocalizableMessage prompt =
-              INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(conn2.getHostPort(), repPort2);
-          if (!askConfirmation(prompt, false))
-          {
-            return false;
-          }
-        }
-
-        // Try to get the replication port for server 2 only if it is required.
-        if (configureReplicationServer2 && !replicationServer2Configured)
-        {
-          // Only ask if the replication domain will be configured (if not the
-          // replication server MUST be configured).
-          if (argParser.advancedArg.isPresent() && configureReplicationDomain2)
-          {
-            try
-            {
-              configureReplicationServer2 =
-                  askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_SERVER2_PROMPT.get(), true, logger);
-            }
-            catch (ClientException ce)
-            {
-              errPrintln(ce.getMessageObject());
-              return false;
-            }
-          }
-          if (configureReplicationServer2 && !replicationServer2Configured)
-          {
-            boolean tryWithDefault = argParser.getReplicationPort2() != -1;
-            while (replicationPort2 == -1)
-            {
-              if (tryWithDefault)
-              {
-                replicationPort2 = argParser.getReplicationPort2();
-                tryWithDefault = false;
-              }
-              else
-              {
-                replicationPort2 =
-                    askPort(INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(), getDefaultValue(
-                        argParser.server2.replicationPortArg), logger);
-                println();
-              }
-              if (!argParser.skipReplicationPortCheck() && isLocalHost(host2))
-              {
-                if (!SetupUtils.canUseAsPort(replicationPort2))
-                {
-                  errPrintln();
-                  errPrintln(getCannotBindToPortError(replicationPort2));
-                  errPrintln();
-                  replicationPort2 = -1;
-                }
-              }
-              else if (replicationPort2 == port2)
-              {
-                // This is something that we must do in any case... this test is
-                // already included when we call SetupUtils.canUseAsPort
-                errPrintln();
-                errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host2, replicationPort2));
-                replicationPort2 = -1;
-              }
-              if (host1.equalsIgnoreCase(host2) && replicationPort1 > 0 && replicationPort1 == replicationPort2)
-              {
-                errPrintln();
-                errPrintln(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replicationPort2, host1));
-                errPrintln();
-                replicationPort2 = -1;
-              }
-            }
-            if (!secureReplication2)
-            {
-              try
-              {
-                secureReplication2 =
-                    askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(replicationPort2), false, logger);
-              }
-              catch (ClientException ce)
-              {
-                errPrintln(ce.getMessageObject());
-                return false;
-              }
-              println();
-            }
-          }
-        }
-        if (configureReplicationDomain2 && configureReplicationServer2 && argParser.advancedArg.isPresent())
-        {
-          // Only necessary to ask if the replication server will be configured
-          try
-          {
-            configureReplicationDomain2 =
-                askConfirmation(INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN2_PROMPT.get(), true, logger);
-          }
-          catch (ClientException ce)
-          {
-            errPrintln(ce.getMessageObject());
-            return false;
-          }
-        }
-        // If the server contains an ADS. Try to load it and only load it: if
-        // there are issues with the ADS they will be encountered in the
-        // enableReplication(EnableReplicationUserData) method. Here we have
-        // to load the ADS to ask the user to accept the certificates.
-        AtomicReference<ConnectionWrapper> aux = new AtomicReference<>(conn2);
-        if (!loadADSAndAcceptCertificates(destinationServerCI, aux, uData, false))
-        {
-          return false;
-        }
-        conn2 = aux.get();
-        administratorDefined |= hasAdministrator(conn2);
+        return false;
       }
-      uData.getServer2().setReplicationPort(replicationPort2);
-      uData.getServer2().setSecureReplication(secureReplication2);
-      uData.getServer2().setConfigureReplicationServer(configureReplicationServer2);
-      uData.getServer2().setConfigureReplicationDomain(configureReplicationDomain2);
+
+      // If the server contains an ADS. Try to load it and only load it: if
+      // there are issues with the ADS they will be encountered in the
+      // enableReplication(EnableReplicationUserData) method. Here we have
+      // to load the ADS to ask the user to accept the certificates.
+      AtomicReference<ConnectionWrapper> aux1 = new AtomicReference<>(conn2);
+      if (!loadADSAndAcceptCertificates(destinationServerCI, aux1, uData, false))
+      {
+        return false;
+      }
+      conn2 = aux1.get();
+      administratorDefined |= hasAdministrator(conn2);
 
       // If the adminUid and adminPwd are not set in the EnableReplicationUserData
       // object, that means that there are no administrators and that they
@@ -2404,6 +2189,163 @@ public class ReplicationCliMain extends ConsoleApplication
       close(conn1, conn2);
       uData.setReplicateSchema(!argParser.noSchemaReplication());
     }
+  }
+
+  private boolean setReplicationDetails(
+      EnableReplicationServerData serverData, LDAPConnectionConsoleInteraction serverCI, ServerArgs serverArgs,
+      ConnectionWrapper conn, EnableReplicationServerData otherServerData)
+  {
+    final String host = serverCI.getHostName();
+    final int port = serverCI.getPortNumber();
+
+    int replicationPort = -1;
+    boolean secureReplication = serverArgs.secureReplicationArg.isPresent();
+    boolean configureReplicationServer = serverArgs.configureReplicationServer();
+    boolean configureReplicationDomain = serverArgs.configureReplicationDomain();
+    final int repPort = getReplicationPort(conn);
+    final boolean replicationServerConfigured = repPort > 0;
+    if (replicationServerConfigured && !configureReplicationServer)
+    {
+      final LocalizableMessage prompt =
+          INFO_REPLICATION_SERVER_CONFIGURED_WARNING_PROMPT.get(conn.getHostPort(), repPort);
+      if (!askConfirmation(prompt, false))
+      {
+        return false;
+      }
+    }
+
+    // Try to get the replication port for server only if it is required.
+    if (configureReplicationServer && !replicationServerConfigured)
+    {
+      if (argParser.advancedArg.isPresent() && configureReplicationDomain)
+      {
+        // Only ask if the replication domain will be configured
+        // (if not the replication server MUST be configured).
+        try
+        {
+          configureReplicationServer = askConfirmation(configureReplicationServerPrompt(otherServerData), true, logger);
+        }
+        catch (ClientException ce)
+        {
+          errPrintln(ce.getMessageObject());
+          return false;
+        }
+      }
+
+      if (configureReplicationServer && !replicationServerConfigured)
+      {
+        boolean tryWithDefault = getValue(serverArgs.replicationPortArg) != -1;
+        while (replicationPort == -1)
+        {
+          if (tryWithDefault)
+          {
+            replicationPort = getValue(serverArgs.replicationPortArg);
+            tryWithDefault = false;
+          }
+          else
+          {
+            replicationPort = askPort(
+                replicationPortPrompt(otherServerData), getDefaultValue(serverArgs.replicationPortArg), logger);
+            println();
+          }
+          if (!argParser.skipReplicationPortCheck() && isLocalHost(host))
+          {
+            if (!SetupUtils.canUseAsPort(replicationPort))
+            {
+              errPrintln();
+              errPrintln(getCannotBindToPortError(replicationPort));
+              errPrintln();
+              replicationPort = -1;
+            }
+          }
+          else if (replicationPort == port)
+          {
+            // This is something that we must do in any case...
+            // this test is already included when we call SetupUtils.canUseAsPort()
+            errPrintln();
+            errPrintln(ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(host, replicationPort));
+            errPrintln();
+            replicationPort = -1;
+          }
+
+          if (otherServerData != null)
+          {
+            final String otherHost = otherServerData.getHostName();
+            final int otherReplPort = otherServerData.getReplicationPort();
+            if (otherHost.equalsIgnoreCase(host) && otherReplPort > 0 && otherReplPort == replicationPort)
+            {
+              errPrintln();
+              errPrintln(ERR_REPLICATION_SAME_REPLICATION_PORT.get(replicationPort, otherHost));
+              errPrintln();
+              replicationPort = -1;
+            }
+          }
+        }
+
+        if (!secureReplication)
+        {
+          try
+          {
+            secureReplication = askConfirmation(
+                secureReplicationPrompt(replicationPort, otherServerData), false, logger);
+          }
+          catch (ClientException ce)
+          {
+            errPrintln(ce.getMessageObject());
+            return false;
+          }
+          println();
+        }
+      }
+    }
+
+    if (configureReplicationDomain && configureReplicationServer && argParser.advancedArg.isPresent())
+    {
+      // Only necessary to ask if the replication server will be configured
+      try
+      {
+        configureReplicationDomain = askConfirmation(configureReplicationDomainPrompt(otherServerData), true, logger);
+      }
+      catch (ClientException ce)
+      {
+        errPrintln(ce.getMessageObject());
+        return false;
+      }
+    }
+
+    serverData.setReplicationPort(replicationPort);
+    serverData.setSecureReplication(secureReplication);
+    serverData.setConfigureReplicationServer(configureReplicationServer);
+    serverData.setConfigureReplicationDomain(configureReplicationDomain);
+    return true;
+  }
+
+  private LocalizableMessage configureReplicationDomainPrompt(EnableReplicationServerData otherServerData)
+  {
+    return otherServerData == null
+        ? INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN1_PROMPT.get()
+        : INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN2_PROMPT.get();
+  }
+
+  private LocalizableMessage secureReplicationPrompt(int replicationPort, EnableReplicationServerData otherServerData)
+  {
+    return otherServerData == null
+        ? INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(replicationPort)
+        : INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(replicationPort);
+  }
+
+  private LocalizableMessage configureReplicationServerPrompt(EnableReplicationServerData otherServerData)
+  {
+    return otherServerData == null
+        ? INFO_REPLICATION_ENABLE_REPLICATION_SERVER1_PROMPT.get()
+        : INFO_REPLICATION_ENABLE_REPLICATION_SERVER2_PROMPT.get();
+  }
+
+  private LocalizableMessage replicationPortPrompt(EnableReplicationServerData otherServerData)
+  {
+    return otherServerData == null
+        ? INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get()
+        : INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get();
   }
 
   private boolean initializeGlobalArguments(LDAPConnectionConsoleInteraction serverCI, ServerArgs serverArgs,
@@ -3313,18 +3255,12 @@ public class ReplicationCliMain extends ConsoleApplication
             }
           }
           /* Check the exceptions and see if we throw them or not. */
-          boolean notGlobalAdministratorError = false;
+          loopOnExceptions:
           for (TopologyCacheException e : exceptions)
           {
-            if (notGlobalAdministratorError)
-            {
-              break;
-            }
-
             switch (e.getType())
             {
               case NOT_GLOBAL_ADMINISTRATOR:
-                notGlobalAdministratorError = true;
                 boolean connected = false;
 
                 String adminUid = uData.getAdminUid();
@@ -3386,7 +3322,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   server.setPwd(adminPwd);
                 }
                 reloadTopology = true;
-              break;
+              break loopOnExceptions;
             case GENERIC_CREATING_CONNECTION:
               if (isCertificateException(e.getCause()))
               {
