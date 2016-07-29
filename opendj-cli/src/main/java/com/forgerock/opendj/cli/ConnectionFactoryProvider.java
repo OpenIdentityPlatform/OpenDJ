@@ -21,10 +21,7 @@ import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
 import static com.forgerock.opendj.cli.Utils.throwIfArgumentsConflict;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.CONNECT_TIMEOUT;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_CONTEXT;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.SSL_USE_STARTTLS;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.util.time.Duration.*;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -38,6 +35,9 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
@@ -345,6 +345,43 @@ public final class ConnectionFactoryProvider {
     }
 
     /**
+     * Return a list of the available TLS protocols to use.
+     *
+     * <p>
+     * All protocols starting with "SSL" are removed. In particular the SSLv2Hello pseudo protocol is removed which will
+     * prevent connections to a server that doesn't have this configured.
+     * </p>
+     * <p>
+     * To override the defaults, set the <em>org.opends.ldaps.protocols</em> system property to a comma-separated list
+     * of desired protocols.
+     * </p>
+     *
+     * @return A list of valid protocol strings.
+     * @throws NoSuchAlgorithmException
+     *         If an SSL context could not be created.
+     */
+    public static List<String> getDefaultProtocols() throws NoSuchAlgorithmException {
+        List<String> enabled = Arrays.asList(SSLContext.getDefault().createSSLEngine().getEnabledProtocols());
+        final String property = System.getProperty("org.opends.ldaps.protocols");
+        final List<String> defaults = new ArrayList<>();
+        if (property != null && property.length() != 0) {
+            for (String protocol : property.split(",")) {
+                if (enabled.contains(protocol)) {
+                    defaults.add(protocol);
+                }
+            }
+            return defaults;
+        }
+        // exclude SSLv2Hello and SSLv3
+        for (String protocol : enabled) {
+            if (!protocol.startsWith("SSL")) {
+                defaults.add(protocol);
+            }
+        }
+        return defaults;
+    }
+
+    /**
      * Constructs a connection factory for pre-authenticated connections. Checks if any conflicting arguments are
      * present, build the connection with selected arguments and returns the connection factory. If the application is
      * interactive, it will prompt the user for missing parameters.
@@ -427,8 +464,13 @@ public final class ConnectionFactoryProvider {
 
             Options options = Options.defaultOptions();
             if (sslContext != null) {
-                options.set(SSL_CONTEXT, sslContext)
-                    .set(SSL_USE_STARTTLS, useStartTLSArg.isPresent());
+                try {
+                    options.set(SSL_CONTEXT, sslContext)
+                            .set(SSL_USE_STARTTLS, useStartTLSArg.isPresent())
+                            .set(SSL_ENABLED_PROTOCOLS, getDefaultProtocols());
+                } catch (NoSuchAlgorithmException e) {
+                    throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(e.toString()), e);
+                }
             }
             options.set(CONNECT_TIMEOUT, duration(getConnectTimeout(), TimeUnit.MILLISECONDS));
             if (usePreAuthentication) {

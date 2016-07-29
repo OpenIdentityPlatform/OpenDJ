@@ -25,12 +25,14 @@ import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 
 import java.io.Closeable;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
@@ -149,8 +151,13 @@ public class ConnectionWrapper implements Closeable
         .set(CONNECT_TIMEOUT, duration(connectTimeout, TimeUnit.MILLISECONDS));
     if (isLdaps || isStartTls)
     {
-      options.set(SSL_CONTEXT, getSSLContext(trustManager, keyManager))
-             .set(SSL_USE_STARTTLS, isStartTls);
+      try {
+        options.set(SSL_CONTEXT, getSSLContext(trustManager, keyManager))
+                .set(SSL_USE_STARTTLS, isStartTls)
+                .set(SSL_ENABLED_PROTOCOLS, ConnectionFactoryProvider.getDefaultProtocols());
+      } catch (NoSuchAlgorithmException e) {
+          throw newLdapException(CLIENT_SIDE_PARAM_ERROR, "Unable to perform SSL initialization:" + e.getMessage());
+      }
     }
     SimpleBindRequest request = bindDn != null && bindPwd != null
         ? newSimpleBindRequest(bindDn.toString(), bindPwd.toCharArray())
