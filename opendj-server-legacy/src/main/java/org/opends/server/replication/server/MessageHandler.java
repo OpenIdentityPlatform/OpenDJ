@@ -23,9 +23,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.MonitorData;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
+import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -33,7 +34,6 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
@@ -582,7 +582,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   boolean updateServerState(UpdateMsg msg)
   {
-    return serverState.update(msg.getCSN());
+    return msg.contributesToDomainState()
+        ? serverState.update(msg.getCSN())
+        // Do not update the server state with an offline CSN,
+        // to avoid missing-changes being incorrectly reported
+        : !serverState.cover(msg.getCSN());
   }
 
   /**
