@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -25,16 +25,11 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-/**
- * Test the ServerState.
- */
+/** Test the ServerState. */
 @SuppressWarnings("javadoc")
 public class ServerStateTest extends ReplicationTestCase
 {
-
-  /**
-   * Create CSN Data.
-   */
+  /** Create CSN Data. */
   @DataProvider(name = "csnData")
   public Object[][] createCSNData()
   {
@@ -44,9 +39,7 @@ public class ServerStateTest extends ReplicationTestCase
     };
   }
 
-  /**
-   * Create a new ServerState object.
-   */
+  /** Create a new ServerState object. */
   @Test(dataProvider = "csnData")
   public void serverStateTest(CSN csn) throws Exception
   {
@@ -83,25 +76,6 @@ public class ServerStateTest extends ReplicationTestCase
     String stringRep = serverState.toString();
     assertTrue(stringRep.contains(csn2.toString()));
     assertTrue(stringRep.contains(csn3.toString()));
-  }
-
-  /**
-   * Create a new ServerState object.
-   */
-  @Test(dataProvider = "csnData")
-  public void serverStateReloadTest(CSN csn) throws Exception
-  {
-    CSN csn1 = new CSN(csn.getTime() + 1, csn.getSeqnum(), csn.getServerId());
-    CSN csn3 = new CSN(csn1.getTime(), csn1.getSeqnum(), (csn1.getServerId() + 1));
-
-    ServerState state1 = new ServerState();
-    state1.update(csn1);
-    state1.update(csn3);
-
-    ServerState state2 = new ServerState();
-    state2.reload(state1);
-
-    assertEquals(state1.toString(), state2.toString()) ;
   }
 
   @Test

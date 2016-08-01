@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -41,7 +41,6 @@ import org.opends.server.replication.protocol.ProtocolVersion;
  */
 public class ServerState implements Iterable<CSN>
 {
-
   /** Associates a serverId with a CSN. */
   private final ConcurrentMap<Integer, CSN> serverIdToCSN = new ConcurrentSkipListMap<>();
   /**
@@ -50,9 +49,7 @@ public class ServerState implements Iterable<CSN>
    */
   private volatile boolean saved = true;
 
-  /**
-   * Creates a new empty ServerState.
-   */
+  /** Creates a new empty ServerState. */
   public ServerState()
   {
     super();
@@ -161,22 +158,6 @@ public class ServerState implements Iterable<CSN>
   }
 
   /**
-   * Replace the Server State with another ServerState.
-   *
-   * @param serverState The ServerState.
-   *
-   * @return a boolean indicating if the update was meaningful.
-   */
-  public boolean reload(ServerState serverState) {
-    if (serverState == null) {
-      return false;
-    }
-
-    clear();
-    return update(serverState);
-  }
-
-  /**
    * Return a Set of String usable as a textual representation of
    * a Server state.
    * format : time seqnum id
@@ -213,8 +194,6 @@ public class ServerState implements Iterable<CSN>
     }
     return values;
   }
-
-
 
   /**
    * Encodes this server state to the provided ASN1 writer.
@@ -315,7 +294,6 @@ public class ServerState implements Iterable<CSN>
     return new HashMap<>(serverIdToCSN);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Iterator<CSN> iterator()
   {
@@ -436,5 +414,4 @@ public class ServerState implements Iterable<CSN>
   {
     return saved;
   }
-
 }
