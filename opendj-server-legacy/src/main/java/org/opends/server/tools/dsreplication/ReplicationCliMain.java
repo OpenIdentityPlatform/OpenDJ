@@ -4608,7 +4608,7 @@ public class ReplicationCliMain extends ConsoleApplication
     filter.setSearchMonitoringInformation(false);
     filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
     filter.addBaseDNToSearch(Constants.SCHEMA_DN);
-    addBaseDNs(filter, uData.getBaseDNs());
+    filter.addBaseDNsToSearch(uData.getBaseDNs());
     ServerDescriptor serverDesc1 = createStandalone(conn1, filter);
     ServerDescriptor serverDesc2 = createStandalone(conn2, filter);
 
@@ -5179,7 +5179,7 @@ public class ReplicationCliMain extends ConsoleApplication
       TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
       cache.setPreferredConnections(cnx);
       cache.getFilter().setSearchMonitoringInformation(false);
-      addBaseDNs(cache.getFilter(), uData.getBaseDNs());
+      cache.getFilter().addBaseDNsToSearch(uData.getBaseDNs());
       cache.reloadTopology();
       return cache;
     }
@@ -5220,7 +5220,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!uData.disableAll())
     {
       filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
-      addBaseDNs(filter, uData.getBaseDNs());
+      filter.addBaseDNsToSearch(uData.getBaseDNs());
     }
     ServerDescriptor server = createStandalone(conn, filter);
 
@@ -5239,7 +5239,7 @@ public class ReplicationCliMain extends ConsoleApplication
         cache.getFilter().setSearchMonitoringInformation(false);
         if (!uData.disableAll())
         {
-          addBaseDNs(cache.getFilter(), uData.getBaseDNs());
+          cache.getFilter().addBaseDNsToSearch(uData.getBaseDNs());
         }
         cache.reloadTopology();
       }
@@ -5614,14 +5614,6 @@ public class ReplicationCliMain extends ConsoleApplication
     return false;
   }
 
-  private void addBaseDNs(TopologyCacheFilter filter, List<DN> baseDNs)
-  {
-    for (DN dn : baseDNs)
-    {
-      filter.addBaseDNToSearch(dn);
-    }
-  }
-
   /**
    * Displays the replication status of the different base DNs in the servers registered in the ADS.
    *
@@ -5637,21 +5629,7 @@ public class ReplicationCliMain extends ConsoleApplication
       StatusReplicationUserData uData) throws ReplicationCliException
   {
     ADSContext adsCtx = new ADSContext(conn);
-
-    TopologyCache cache;
-    try
-    {
-      cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
-      cache.setPreferredConnections(getPreferredConnections(conn));
-      addBaseDNs(cache.getFilter(), uData.getBaseDNs());
-      cache.reloadTopology();
-    }
-    catch (TopologyCacheException tce)
-    {
-      throw new ReplicationCliException(
-          ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
-          ERROR_READING_TOPOLOGY_CACHE, tce);
-    }
+    TopologyCache cache = createTopologyCache(conn, uData, adsCtx);
     if (mustPrintCommandBuilder())
     {
       printNewCommandBuilder(STATUS_REPLICATION_SUBCMD_NAME, uData);
@@ -5751,6 +5729,25 @@ public class ReplicationCliMain extends ConsoleApplication
       println(displayAll
           ? INFO_REPLICATION_STATUS_NO_REPLICATION_INFORMATION.get()
           : INFO_REPLICATION_STATUS_NO_BASEDNS.get());
+    }
+  }
+
+  private TopologyCache createTopologyCache(ConnectionWrapper conn, StatusReplicationUserData uData, ADSContext adsCtx)
+      throws ReplicationCliException
+  {
+    try
+    {
+      TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
+      cache.setPreferredConnections(getPreferredConnections(conn));
+      cache.getFilter().addBaseDNsToSearch(uData.getBaseDNs());
+      cache.reloadTopology();
+      return cache;
+    }
+    catch (TopologyCacheException tce)
+    {
+      throw new ReplicationCliException(
+          ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
+          ERROR_READING_TOPOLOGY_CACHE, tce);
     }
   }
 
@@ -8799,7 +8796,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         TopologyCache cache = new TopologyCache(adsCtx, getTrustManager(sourceServerCI), getConnectTimeout());
         cache.getFilter().setSearchMonitoringInformation(false);
-        addBaseDNs(cache.getFilter(), uData.getBaseDNs());
+        cache.getFilter().addBaseDNsToSearch(uData.getBaseDNs());
         cache.reloadTopology();
         suffixes.addAll(cache.getSuffixes());
       }
@@ -9103,13 +9100,13 @@ public class ReplicationCliMain extends ConsoleApplication
   private ConnectionWrapper getConnection(TopologyCache cache, ServerDescriptor server) throws NamingException
   {
     ConnectionWrapper conn = cache.getAdsContext().getConnection();
-    DN dn = conn.getBindDn();
-    String pwd = conn.getBindPassword();
+
     TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
     filter.setSearchBaseDNInformation(false);
+
     ServerLoader loader = new ServerLoader(server.getAdsProperties(),
-        dn, pwd, getTrustManager(sourceServerCI), getConnectTimeout(),
+        conn.getBindDn(), conn.getBindPassword(), getTrustManager(sourceServerCI), getConnectTimeout(),
         cache.getPreferredConnections(), filter);
     return loader.createConnectionWrapper();
   }

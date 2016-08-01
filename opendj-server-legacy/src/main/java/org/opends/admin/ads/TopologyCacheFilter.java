@@ -16,6 +16,7 @@
  */
 package org.opends.admin.ads;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,8 +36,8 @@ public class TopologyCacheFilter
 
   /**
    * Returns whether we must search for base DN information or not.
-   * @return <CODE>true</CODE> if we must search base DN information and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must search base DN information and
+   * {@code false} otherwise.
    */
   boolean searchBaseDNInformation()
   {
@@ -54,11 +55,10 @@ public class TopologyCacheFilter
     this.searchBaseDNInformation = searchBaseDNInformation;
   }
 
-
   /**
    * Returns whether we must search for monitoring information or not.
-   * @return <CODE>true</CODE> if we must search monitoring information and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must search monitoring information and
+   * {@code false} otherwise.
    */
   boolean searchMonitoringInformation()
   {
@@ -80,11 +80,22 @@ public class TopologyCacheFilter
    * Adds one of the base DNs we must search for.  If at least one baseDN
    * is added using this method, only the added baseDNs are searched.  If no
    * base DN is added, all the base DNs will be retrieved.
-   * @param dn the DN of the base DN to look for.
+   * @param dn the base DN to look for.
    */
   public void addBaseDNToSearch(DN dn)
   {
     baseDNs.add(dn);
+  }
+
+  /**
+   * Adds all the base DNs we must search for.  If at least one baseDN
+   * is added using this method, only the added baseDNs are searched.
+   * If no base DN is added, all the base DNs will be retrieved.
+   * @param dns the base DNs to look for.
+   */
+  public void addBaseDNsToSearch(Collection<DN> dns)
+  {
+    dns.addAll(dns);
   }
 
   /**
@@ -99,8 +110,8 @@ public class TopologyCacheFilter
 
   /**
    * Tells whether this filter specifies to search for all the base DNs or not.
-   * @return <CODE>true</CODE> if the filter specifies to search for all the
-   * base DNs and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the filter specifies to search for all the
+   * base DNs and {@code false} otherwise.
    */
   boolean searchAllBaseDNs()
   {

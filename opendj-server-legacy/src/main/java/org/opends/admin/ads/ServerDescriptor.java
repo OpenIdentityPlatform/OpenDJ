@@ -850,11 +850,7 @@ public class ServerDescriptor
 
   private static boolean isAddReplica(TopologyCacheFilter cacheFilter, DN baseDn)
   {
-    if (cacheFilter.searchAllBaseDNs())
-    {
-      return true;
-    }
-    return cacheFilter.getBaseDNsToSearch().contains(baseDn);
+    return cacheFilter.searchAllBaseDNs() || cacheFilter.getBaseDNsToSearch().contains(baseDn);
   }
 
   private static void updateReplication(ServerDescriptor desc, ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
