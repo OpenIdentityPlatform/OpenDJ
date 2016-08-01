@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -56,7 +56,15 @@ public class UtilsTestCase extends CliTestCase {
         f.setReadOnly();
         f.deleteOnExit();
         assertTrue(f.exists());
-        assertFalse(Utils.canWrite(f.getPath()));
+        if (!System.getProperty("user.name").equals("root")) {
+            // Expected behaviour
+            assertFalse(Utils.canWrite(f.getPath()));
+        } else {
+            // Workaround for running tests in Docker
+            // side effect of https://bugs.openjdk.java.net/browse/JDK-6931128,
+            // where file permissions are not enforced if user is root.
+            assertTrue(Utils.canWrite(f.getPath()));
+        }
     }
 
     @Test
