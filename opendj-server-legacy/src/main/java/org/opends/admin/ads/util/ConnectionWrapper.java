@@ -192,7 +192,7 @@ public class ConnectionWrapper implements Closeable
     this.keyManager = keyManager;
 
     final Options options = toOptions(connectionType, bindDn, bindPwd, connectTimeout, trustManager, keyManager);
-    ldapContext = createAdministrativeContext(options);
+    ldapContext = createAdministrativeContext();
     connectionFactory = new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
     connection = buildConnection();
   }
@@ -223,7 +223,8 @@ public class ConnectionWrapper implements Closeable
     {
       return new SSLContextBuilder()
           .setTrustManager(trustManager != null ? trustManager : new BlindTrustManager())
-          .setKeyManager(keyManager).getSSLContext();
+          .setKeyManager(keyManager)
+          .getSSLContext();
     }
     catch (GeneralSecurityException e)
     {
@@ -295,9 +296,9 @@ public class ConnectionWrapper implements Closeable
     return getConnectionType() == START_TLS;
   }
 
-  private InitialLdapContext createAdministrativeContext(Options options) throws NamingException
+  private InitialLdapContext createAdministrativeContext() throws NamingException
   {
-    final InitialLdapContext ctx = createAdministrativeContext0(options);
+    final InitialLdapContext ctx = createAdministrativeContext0();
     if (!connectedAsAdministrativeUser(ctx))
     {
       throw new NoPermissionException(ERR_NOT_ADMINISTRATIVE_USER.get().toString());
@@ -305,10 +306,9 @@ public class ConnectionWrapper implements Closeable
     return ctx;
   }
 
-  private InitialLdapContext createAdministrativeContext0(Options options) throws NamingException
+  private InitialLdapContext createAdministrativeContext0() throws NamingException
   {
-    boolean useSSL = options.get(SSL_CONTEXT) != null;
-    final String ldapUrl = getLDAPUrl(getHostPort(), useSSL);
+    final String ldapUrl = getLDAPUrl(getHostPort(), isSSL());
     final String bindDnStr = bindDn.toString();
     switch (connectionType)
     {
