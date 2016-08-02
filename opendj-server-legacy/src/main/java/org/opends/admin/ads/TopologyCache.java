@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -188,7 +189,7 @@ public class TopologyCache
   private void readReplicationMonitoring()
   {
     Set<ReplicaDescriptor> replicasToUpdate = getReplicasToUpdate();
-    for (ServerDescriptor server : getServers())
+    for (ServerDescriptor server : putQueriedReplicaFirst(this.servers))
     {
       if (server.isReplicationServer())
       {
@@ -217,6 +218,23 @@ public class TopologyCache
         break;
       }
     }
+  }
+
+  /** Put first in the list the replica which host/port was provided on the command line. */
+  private List<ServerDescriptor> putQueriedReplicaFirst(Set<ServerDescriptor> servers)
+  {
+    List<ServerDescriptor> results = new ArrayList<>(servers);
+    for (Iterator<ServerDescriptor> it = results.iterator(); it.hasNext();)
+    {
+      ServerDescriptor server = it.next();
+      if (adsContext.getHostPort().equals(server.getHostPort(true)))
+      {
+        it.remove();
+        results.add(0, server);
+        break; // avoids any ConcurrentModificationException
+      }
+    }
+    return results;
   }
 
   private Set<ReplicaDescriptor> getReplicasToUpdate()
