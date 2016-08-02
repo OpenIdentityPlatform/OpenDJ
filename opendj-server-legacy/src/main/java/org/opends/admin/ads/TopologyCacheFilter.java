@@ -117,4 +117,14 @@ public class TopologyCacheFilter
   {
     return baseDNs.isEmpty();
   }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + "("
+        + "baseDNs=" + baseDNs
+        + ", searchMonitoringInformation=" + searchMonitoringInformation
+        + ", searchBaseDNInformation=" + searchBaseDNInformation
+        + ")";
+  }
 }

@@ -1950,4 +1950,10 @@ public class ADSContext
       }
     }
   }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + "(" + connectionWrapper + ")";
+  }
 }

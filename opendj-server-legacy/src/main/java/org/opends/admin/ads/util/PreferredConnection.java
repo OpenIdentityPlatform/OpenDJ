@@ -72,7 +72,7 @@ public class PreferredConnection
   @Override
   public int hashCode()
   {
-    return (type+ldapUrl.toLowerCase()).hashCode();
+    return (type + ldapUrl.toLowerCase()).hashCode();
   }
 
   @Override
@@ -89,6 +89,12 @@ public class PreferredConnection
           && ldapUrl.equalsIgnoreCase(p.getLDAPURL());
     }
     return false;
+  }
+
+  @Override
+  public String toString()
+  {
+    return type + ": " + ldapUrl;
   }
 
   /**

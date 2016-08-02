@@ -80,12 +80,9 @@ import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.replication.server.ReplicationServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * The broker for Multi-master Replication.
- */
+/** The broker for Multi-master Replication. */
 public class ReplicationBroker
 {
-
   /**
    * Immutable class containing information about whether the broker is
    * connected to an RS and data associated to this connected RS.
@@ -142,7 +139,6 @@ public class ReplicationBroker
       return session != null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -166,8 +162,8 @@ public class ReplicationBroker
           .append(")");
       }
     }
-
   }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private volatile boolean shutdown;
   private final Object startStopLock = new Object();
@@ -216,14 +212,9 @@ public class ReplicationBroker
    */
   private volatile boolean connectionError;
   private final Object connectPhaseLock = new Object();
-  /**
-   * The thread that publishes messages to the RS containing the current
-   * change time of this DS.
-   */
+  /** The thread that publishes messages to the RS containing the current change time of this DS. */
   private CTHeartbeatPublisherThread ctHeartbeatPublisherThread;
-  /*
-   * Properties for the last topology info received from the network.
-   */
+  /* Properties for the last topology info received from the network. */
   /** Contains the last known state of the replication topology. */
   private final AtomicReference<Topology> topology = new AtomicReference<>(new Topology());
   @GuardedBy("this")
@@ -284,9 +275,7 @@ public class ReplicationBroker
     registerReplicationMonitor();
   }
 
-  /**
-   * Start the ReplicationBroker.
-   */
+  /** Start the ReplicationBroker. */
   public void start()
   {
     synchronized (startStopLock)
@@ -398,17 +387,15 @@ public class ReplicationBroker
     private final short protocolVersion;
     private final DN baseDN;
     private final int windowSize;
-    // @NotNull
+    /** @NotNull */
     private final ServerState serverState;
     private final boolean sslEncryption;
     private final int degradedStatusThreshold;
     /** Keeps the 0 value if created with a ReplServerStartMsg. */
     private int connectedDSNumber;
-    // @NotNull
+    /** @NotNull */
     private Set<Integer> connectedDSs;
-    /**
-     * Is this RS locally configured? (the RS is recognized as a usable server).
-     */
+    /** Is this RS locally configured? (the RS is recognized as a usable server). */
     private boolean locallyConfigured = true;
 
     /**
@@ -767,10 +754,7 @@ public class ReplicationBroker
      */
     domain.toNotConnectedStatus();
 
-    /*
-    Stop any existing heartbeat monitor and changeTime publisher
-    from a previous session.
-    */
+    /* Stop any existing heartbeat monitor and changeTime publisher from a previous session. */
     stopRSHeartBeatMonitoring();
     stopChangeTimeHeartBeatPublishing();
     mustRunBestServerCheckingAlgorithm = 0;
@@ -1062,8 +1046,6 @@ public class ReplicationBroker
       return ServerStatus.NORMAL_STATUS;
     }
   }
-
-
 
   /**
    * Connect to the provided server performing the first phase handshake (start
@@ -1378,7 +1360,6 @@ public class ReplicationBroker
       return NOTE_UNKNOWN_RS.get(rsServerId, localServerId);
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -1390,9 +1371,7 @@ public class ReplicationBroker
     }
   }
 
-  /**
-   * Evaluation local to one filter.
-   */
+  /** Evaluation local to one filter. */
   private static class LocalEvaluation
   {
     private final Map<Integer, ReplicationServerInfo> accepted = new HashMap<>();
@@ -1436,7 +1415,6 @@ public class ReplicationBroker
     {
       return !accepted.isEmpty();
     }
-
   }
 
   /**
@@ -1514,9 +1492,7 @@ public class ReplicationBroker
       return evals;
     }
 
-    /**
-     * Now apply the choice based on the weight to the best servers list
-     */
+    /* Now apply the choice based on the weight to the best servers list */
     if (firstConnection)
     {
       // We are not connected to a server yet
@@ -2125,9 +2101,7 @@ public class ReplicationBroker
     return idx != -1 && idx < overloadingDSsNumber;
   }
 
-  /**
-   * Start the heartbeat monitor thread.
-   */
+  /** Start the heartbeat monitor thread. */
   private void startRSHeartBeatMonitoring(ConnectedRS rs)
   {
     final long heartbeatInterval = config.getHeartbeatInterval();
@@ -2139,9 +2113,7 @@ public class ReplicationBroker
     }
   }
 
-  /**
-   * Stop the heartbeat monitor thread.
-   */
+  /** Stop the heartbeat monitor thread. */
   private synchronized void stopRSHeartBeatMonitoring()
   {
     if (heartbeatMonitor != null)
@@ -2449,19 +2421,19 @@ public class ReplicationBroker
     while (!shutdown)
     {
       ConnectedRS rs = connectedRS.get();
-      if (reconnectOnFailure && !rs.isConnected())
+      if (!rs.isConnected())
       {
-        // infinite try to reconnect
-        reStart(null, true);
-        continue;
-      }
-
-      // Save session information for later in case we need it for log messages
-      // after the session has been closed and/or failed.
-      if (rs.session == null)
-      {
-        // Must be shutting down.
-        break;
+        if (reconnectOnFailure)
+        {
+          // infinite try to reconnect
+          reStart(null, true);
+          continue;
+        }
+        else
+        {
+          // Must be shutting down.
+          break;
+        }
       }
 
       final int serverId = getServerId();
@@ -2619,7 +2591,7 @@ public class ReplicationBroker
           reStart(rs.session, true);
         }
       }
-    } // while !shutdown
+    }
     return null;
   }
 
@@ -2824,11 +2796,7 @@ public class ReplicationBroker
   public short getProtocolVersion()
   {
     final Session session = connectedRS.get().session;
-    if (session != null)
-    {
-      return session.getProtocolVersion();
-    }
-    return ProtocolVersion.getCurrentVersion();
+    return session != null ? session.getProtocolVersion() : ProtocolVersion.getCurrentVersion();
   }
 
   /**
@@ -2939,16 +2907,10 @@ public class ReplicationBroker
     return newTopo;
   }
 
-  /**
-   * Contains the last known state of the replication topology.
-   */
+  /** Contains the last known state of the replication topology. */
   static final class Topology
   {
-
-    /**
-     * The RS's serverId that this DS was connected to when this topology state
-     * was computed.
-     */
+    /** The RS's serverId that this DS was connected to when this topology state was computed. */
     private final int rsServerId;
     /**
      * Info for other DSs.
@@ -3130,7 +3092,6 @@ public class ReplicationBroker
       rsInfo.setLocallyConfigured(false);
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean equals(Object obj)
     {
@@ -3178,7 +3139,6 @@ public class ReplicationBroker
       return true;
     }
 
-    /** {@inheritDoc} */
     @Override
     public int hashCode()
     {
@@ -3191,7 +3151,6 @@ public class ReplicationBroker
       return result;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -3213,9 +3172,7 @@ public class ReplicationBroker
     return connectionError;
   }
 
-  /**
-   * Starts publishing to the RS the current timestamp used in this server.
-   */
+  /** Starts publishing to the RS the current timestamp used in this server. */
   private void startChangeTimeHeartBeatPublishing(ConnectedRS rs)
   {
     // Start a CSN heartbeat thread.
@@ -3230,18 +3187,13 @@ public class ReplicationBroker
           threadName, rs.session, changeTimeHeartbeatInterval, getServerId());
       ctHeartbeatPublisherThread.start();
     }
-    else
+    else if (logger.isTraceEnabled())
     {
-      if (logger.isTraceEnabled())
-      {
-        debugInfo("is not configured to send CSN heartbeat interval");
-      }
+      debugInfo("is not configured to send CSN heartbeat interval");
     }
   }
 
-  /**
-   * Stops publishing to the RS the current timestamp used in this server.
-   */
+  /** Stops publishing to the RS the current timestamp used in this server. */
   private synchronized void stopChangeTimeHeartBeatPublishing()
   {
     if (ctHeartbeatPublisherThread != null)
@@ -3300,7 +3252,7 @@ public class ReplicationBroker
   private ConnectedRS setConnectedRS(final ConnectedRS newRS)
   {
     final ConnectedRS oldRS = connectedRS.getAndSet(newRS);
-    if (!oldRS.equals(newRS) && oldRS.session != null)
+    if (!oldRS.equals(newRS) && oldRS.isConnected())
     {
       // monitor name is changing, deregister before registering again
       deregisterReplicationMonitor();
@@ -3337,7 +3289,6 @@ public class ReplicationBroker
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {

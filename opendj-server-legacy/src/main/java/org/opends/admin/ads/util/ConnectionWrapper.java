@@ -391,4 +391,10 @@ public class ConnectionWrapper implements Closeable
     StaticUtils.close(connectionFactory, connection);
     StaticUtils.close(ldapContext);
   }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + "(" + getLdapUrl() + ")";
+  }
 }
