@@ -36,7 +36,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
@@ -51,8 +50,10 @@ import org.opends.server.types.HostPort;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
+
 /**
  * This class allows to read the configuration of the different servers that are
  * registered in a given ADS server. It provides a read only view of the
@@ -459,7 +460,8 @@ public class TopologyCache
       throws NamingException, IOException
   {
     ServerLoader loader = getServerLoader(replicationServer.getAdsProperties());
-    SearchRequest request = Requests.newSearchRequest("cn=monitor", WHOLE_SUBTREE, "(missing-changes=*)",
+    // only replicas have "server-id", but not replication servers
+    SearchRequest request = newSearchRequest("cn=monitor", WHOLE_SUBTREE, "(&(missing-changes=*)(server-id=*))",
         "domain-name",
         "server-id",
         "missing-changes",
@@ -475,13 +477,7 @@ public class TopologyCache
         int replicaId = -1;
         try
         {
-          Integer sid = asInteger(sr, "server-id");
-          if (sid == null)
-          {
-            // This is not a replica, but a replication server. Skip it
-            continue;
-          }
-          replicaId = Integer.valueOf(sid);
+          replicaId = sr.getAttribute("server-id").parse().asInteger();
         }
         catch (Throwable t)
         {
@@ -490,14 +486,15 @@ public class TopologyCache
 
         for (ReplicaDescriptor replica : candidateReplicas)
         {
-          if (dn.equals(replica.getSuffix().getDN())
-              && replica.isReplicated()
+          if (replica.isReplicated()
+              && dn.equals(replica.getSuffix().getDN())
               && replica.getReplicationId() == replicaId)
           {
             // This statistic is optional.
             setAgeOfOldestMissingChange(replica, sr);
             setMissingChanges(replica, sr);
             updatedReplicas.add(replica);
+            break;
           }
         }
       }
