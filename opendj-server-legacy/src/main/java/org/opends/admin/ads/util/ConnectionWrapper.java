@@ -277,11 +277,11 @@ public class ConnectionWrapper implements Closeable
   }
 
   /**
-   * Returns whether this connection uses SSL.
+   * Returns whether this connection uses LDAPS.
    *
-   * @return {@code true} if this connection uses SSL {@code false} otherwise.
+   * @return {@code true} if this connection uses LDAPS, {@code false} otherwise.
    */
-  public boolean isSSL()
+  public boolean isLdaps()
   {
     return getConnectionType() == LDAPS;
   }
@@ -289,9 +289,9 @@ public class ConnectionWrapper implements Closeable
   /**
    * Returns whether this connection uses StartTLS.
    *
-   * @return {@code true} if this connection uses StartTLS {@code false} otherwise.
+   * @return {@code true} if this connection uses StartTLS, {@code false} otherwise.
    */
-  public boolean isStartTLS()
+  public boolean isStartTls()
   {
     return getConnectionType() == START_TLS;
   }
@@ -308,7 +308,7 @@ public class ConnectionWrapper implements Closeable
 
   private InitialLdapContext createAdministrativeContext0() throws NamingException
   {
-    final String ldapUrl = getLDAPUrl(getHostPort(), isSSL());
+    final String ldapUrl = getLDAPUrl(getHostPort(), isLdaps());
     final String bindDnStr = bindDn.toString();
     switch (connectionType)
     {

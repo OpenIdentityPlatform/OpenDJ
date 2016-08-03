@@ -208,7 +208,7 @@ public class ConnectionUtils
       @Override
       public void run() {
         try {
-          if (conn.isSSL() || conn.isStartTLS())
+          if (conn.isLdaps() || conn.isStartTls())
           {
             TrustedSocketFactory.setCurrentThreadTrustManager(trustManager, keyManager);
           }
@@ -463,25 +463,25 @@ public class ConnectionUtils
   /**
    * Returns the LDAP URL for the provided parameters.
    * @param hostPort the host name and LDAP port.
-   * @param useSSL whether to use SSL or not.
+   * @param useLdaps whether to use LDAPS.
    * @return the LDAP URL for the provided parameters.
    */
-  public static String getLDAPUrl(HostPort hostPort, boolean useSSL)
+  public static String getLDAPUrl(HostPort hostPort, boolean useLdaps)
   {
-    return getLDAPUrl(hostPort.getHost(), hostPort.getPort(), useSSL);
+    return getLDAPUrl(hostPort.getHost(), hostPort.getPort(), useLdaps);
   }
 
   /**
    * Returns the LDAP URL for the provided parameters.
    * @param host the host name.
    * @param port the LDAP port.
-   * @param useSSL whether to use SSL or not.
+   * @param useLdaps whether to use LDAPS.
    * @return the LDAP URL for the provided parameters.
    */
-  public static String getLDAPUrl(String host, int port, boolean useSSL)
+  public static String getLDAPUrl(String host, int port, boolean useLdaps)
   {
     host = Utils.getHostNameForLdapUrl(host);
-    return (useSSL ? "ldaps://" : "ldap://") + host + ":" + port;
+    return (useLdaps ? "ldaps" : "ldap") + "://" + host + ":" + port;
   }
 
   /**

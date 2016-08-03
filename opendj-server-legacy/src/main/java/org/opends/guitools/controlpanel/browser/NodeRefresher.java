@@ -490,7 +490,7 @@ public class NodeRefresher extends AbstractNodeTask {
           HostPort hostPort = conn.getHostPort();
           url.setHost(hostPort.getHost());
           url.setPort(hostPort.getPort());
-          url.setScheme(conn.isSSL() ? "ldaps" : "ldap");
+          url.setScheme(conn.isLdaps() ? "ldaps" : "ldap");
         }
         conn = connectionPool.getConnection(url);
         remoteDn = url.getRawBaseDN();

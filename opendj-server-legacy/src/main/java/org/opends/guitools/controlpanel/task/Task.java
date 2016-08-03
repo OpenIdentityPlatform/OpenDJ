@@ -711,8 +711,8 @@ public abstract class Task
       {
         hostName = hostPort.getHost();
       }
-      boolean isSSL = conn.isSSL();
-      boolean isStartTLS = conn.isStartTLS();
+      boolean isLdaps = conn.isLdaps();
+      boolean isStartTls = conn.isStartTls();
       String bindDN = conn.getBindDn().toString();
       String bindPwd = conn.getBindPassword();
       args.add("--hostName");
@@ -723,15 +723,15 @@ public abstract class Task
       args.add(bindDN);
       args.add("--bindPassword");
       args.add(bindPwd);
-      if (isSSL || isStartTLS)
+      if (isLdaps || isStartTls)
       {
         args.add("--trustAll");
       }
-      if (isSSL && addConnectionTypeParameters)
+      if (isLdaps && addConnectionTypeParameters)
       {
         args.add("--useSSL");
       }
-      else if (isStartTLS && addConnectionTypeParameters)
+      else if (isStartTls && addConnectionTypeParameters)
       {
         args.add("--useStartTLS");
       }

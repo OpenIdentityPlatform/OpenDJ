@@ -1030,7 +1030,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   LDAPURL findUrlForLocalEntry(BasicNode node) {
     if (node == rootNode) {
-      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", connConfig.isSSL());
+      return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), "", connConfig.isLdaps());
     }
     final BasicNode parent = (BasicNode) node.getParent();
     if (parent != null)
@@ -1038,7 +1038,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       final LDAPURL parentUrl = findUrlForDisplayedEntry(parent);
       return LDAPConnectionPool.makeLDAPUrl(parentUrl, node.getDN());
     }
-    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), connConfig.isSSL());
+    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), connConfig.isLdaps());
   }
 
 

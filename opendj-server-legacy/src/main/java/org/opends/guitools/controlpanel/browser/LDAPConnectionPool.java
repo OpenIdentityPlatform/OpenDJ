@@ -347,8 +347,7 @@ public class LDAPConnectionPool {
    */
   private void disconnectAndRemove(ConnectionRecord cr)
   {
-    String key = makeKeyFromRecord(cr);
-    connectionTable.remove(key);
+    connectionTable.remove(makeKeyFromRecord(cr));
     cr.conn.close();
   }
 
@@ -378,8 +377,7 @@ public class LDAPConnectionPool {
    * @return the key to be used in Maps for the provided connection record.
    */
   private static String makeKeyFromRecord(ConnectionRecord rec) {
-    String protocol = rec.conn.isSSL() ? "LDAPS" : "LDAP";
-    return protocol + ":" + rec.conn.getHostPort();
+    return (rec.conn.isLdaps() ? "LDAPS" : "LDAP") + ":" + rec.conn.getHostPort();
   }
 
   /**
@@ -457,20 +455,20 @@ public class LDAPConnectionPool {
   }
 
   private LDAPURL makeLDAPUrl(ConnectionWrapper conn) {
-    return makeLDAPUrl(conn.getHostPort(), "", conn.isSSL());
+    return makeLDAPUrl(conn.getHostPort(), "", conn.isLdaps());
   }
 
   /**
    * Make an url from the specified arguments.
    * @param hostPort the host name and port of the server.
    * @param dn the base DN of the URL.
-   * @param isSSL whether the connection uses SSL
+   * @param isLdaps whether the connection uses LDAPS
    * @return an LDAP URL from the specified arguments.
    */
-  public static LDAPURL makeLDAPUrl(HostPort hostPort, String dn, boolean isSSL)
+  public static LDAPURL makeLDAPUrl(HostPort hostPort, String dn, boolean isLdaps)
   {
     return new LDAPURL(
-        isSSL ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
+        isLdaps ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
                hostPort.getHost(),
                hostPort.getPort(),
                dn,
