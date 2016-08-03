@@ -50,12 +50,6 @@ public class UserDefinedVirtualAttributeProviderTestCase
   /** The attribute type for the description attribute. */
   private AttributeType descriptionType;
 
-  /** The attribute type for the ds-privilege-name attribute. */
-  private AttributeType privNameType;
-
-  /** The attribute type for the ds-pwp-password-policy-dn attribute. */
-  private AttributeType pwPolicyDNType;
-
 
   /**
    * Ensures that the Directory Server is running.
@@ -69,8 +63,6 @@ public class UserDefinedVirtualAttributeProviderTestCase
     TestCaseUtils.startServer();
 
     descriptionType = CoreSchema.getDescriptionAttributeType();
-    pwPolicyDNType = DirectoryServer.getSchema().getAttributeType("ds-pwp-password-policy-dn");
-    privNameType = DirectoryServer.getSchema().getAttributeType("ds-privilege-name");
   }
 
 
@@ -583,16 +575,61 @@ public class UserDefinedVirtualAttributeProviderTestCase
   }
 
 
+  private void testSetupVirtualPasswordPolicyDN(String policyDN, String ruleDN) throws Exception
+  {
+    TestCaseUtils.addEntries(
+            "dn: " + policyDN,
+            "objectClass: top",
+            "objectClass: ds-cfg-password-policy",
+            "cn: Test Policy",
+            "ds-cfg-password-attribute: userPassword",
+            "ds-cfg-default-password-storage-scheme: " +
+                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
+            "ds-cfg-allow-expired-password-changes: false",
+            "ds-cfg-allow-multiple-password-values: false",
+            "ds-cfg-allow-pre-encoded-passwords: false",
+            "ds-cfg-allow-user-password-changes: true",
+            "ds-cfg-expire-passwords-without-warning: false",
+            "ds-cfg-force-change-on-add: false",
+            "ds-cfg-force-change-on-reset: false",
+            "ds-cfg-grace-login-count: 0",
+            "ds-cfg-idle-lockout-interval: 0 seconds",
+            "ds-cfg-lockout-failure-count: 0",
+            "ds-cfg-lockout-duration: 0 seconds",
+            "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
+            "ds-cfg-min-password-age: 0 seconds",
+            "ds-cfg-max-password-age: 0 seconds",
+            "ds-cfg-max-password-reset-age: 0 seconds",
+            "ds-cfg-password-expiration-warning-interval: 5 days",
+            "ds-cfg-password-change-requires-current-password: true",
+            "ds-cfg-password-validator: cn=Length-Based Password Validator," +
+                    "cn=Password Validators,cn=config",
+            "ds-cfg-require-secure-authentication: false",
+            "ds-cfg-require-secure-password-changes: false",
+            "ds-cfg-skip-validation-for-administrators: false",
+            "",
+            "dn: " + ruleDN,
+            "objectClass: top",
+            "objectClass: ds-cfg-virtual-attribute",
+            "objectClass: ds-cfg-user-defined-virtual-attribute",
+            "cn: User-Defined Test",
+            "ds-cfg-java-class: org.opends.server.extensions." +
+                    "UserDefinedVirtualAttributeProvider",
+            "ds-cfg-enabled: true",
+            "ds-cfg-attribute-type: ds-pwp-password-policy-dn",
+            "ds-cfg-conflict-behavior: merge-real-and-virtual",
+            "ds-cfg-value: " + policyDN);
+  }
+
 
   /**
    * Tests to ensure that the user-defined virtual attribute provider can be
-   * used to grant a privilege to a user.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * used to apply a custom password policy for a user.  The custom password
+   * policy will reject passwords shorter than six characters, whereas the
+   * default policy will not.
    */
   @Test
-  public void testVirtualPrivilege()
-         throws Exception
+  public void testVirtualPasswordPolicyDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -600,62 +637,22 @@ public class UserDefinedVirtualAttributeProviderTestCase
     String ruleDN   = "cn=User-Defined Test,cn=Virtual Attributes,cn=config";
     String userDN   = "uid=test.user,o=test";
 
-    TestCaseUtils.addEntries(
-      "dn: cn=Test Policy,cn=Password Policies,cn=config",
-      "objectClass: top",
-      "objectClass: ds-cfg-password-policy",
-      "cn: Test Policy",
-      "ds-cfg-password-attribute: userPassword",
-      "ds-cfg-default-password-storage-scheme: " +
-           "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
-      "ds-cfg-allow-expired-password-changes: false",
-      "ds-cfg-allow-multiple-password-values: false",
-      "ds-cfg-allow-pre-encoded-passwords: false",
-      "ds-cfg-allow-user-password-changes: true",
-      "ds-cfg-expire-passwords-without-warning: false",
-      "ds-cfg-force-change-on-add: false",
-      "ds-cfg-force-change-on-reset: false",
-      "ds-cfg-grace-login-count: 0",
-      "ds-cfg-idle-lockout-interval: 0 seconds",
-      "ds-cfg-lockout-failure-count: 0",
-      "ds-cfg-lockout-duration: 0 seconds",
-      "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-      "ds-cfg-min-password-age: 0 seconds",
-      "ds-cfg-max-password-age: 0 seconds",
-      "ds-cfg-max-password-reset-age: 0 seconds",
-      "ds-cfg-password-expiration-warning-interval: 5 days",
-      "ds-cfg-password-change-requires-current-password: true",
-      "ds-cfg-password-validator: cn=Length-Based Password Validator," +
-           "cn=Password Validators,cn=config",
-      "ds-cfg-require-secure-authentication: false",
-      "ds-cfg-require-secure-password-changes: false",
-      "ds-cfg-skip-validation-for-administrators: false",
-      "",
-      "dn: " + ruleDN,
-      "objectClass: top",
-      "objectClass: ds-cfg-virtual-attribute",
-      "objectClass: ds-cfg-user-defined-virtual-attribute",
-      "cn: User-Defined Test",
-      "ds-cfg-java-class: org.opends.server.extensions." +
-           "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-enabled: true",
-      "ds-cfg-attribute-type: ds-pwp-password-policy-dn",
-      "ds-cfg-conflict-behavior: merge-real-and-virtual",
-      "ds-cfg-value: " + policyDN,
-      "",
-      "dn: " + userDN,
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: testtest");
-
+    testSetupVirtualPasswordPolicyDN(policyDN, ruleDN);
     try
     {
+      assertEquals(TestCaseUtils.addEntryOperation(
+              "dn: " + userDN,
+              "objectClass: top",
+              "objectClass: person",
+              "objectClass: organizationalPerson",
+              "objectClass: inetOrgPerson",
+              "uid: test.user",
+              "givenName: Test",
+              "sn: User",
+              "cn: Test User",
+              "userPassword: testtest"),
+              ResultCode.SUCCESS);
+
       String path1 =
           TestCaseUtils.createTempFile("dn: " + userDN,
               "changetype: modify", "replace: userPassword",
@@ -681,7 +678,6 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
       assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
       assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
-
     }
     finally
     {
@@ -696,18 +692,52 @@ public class UserDefinedVirtualAttributeProviderTestCase
   }
 
 
+  /**
+   * Tests to ensure that the user-defined virtual attribute provider can be used to apply a custom password
+   * policy for a user. The custom password policy will reject passwords shorter than six characters,
+   * whereas the default policy will not. This test verifies that adding a user with a short password fails.
+   */
+  @Test
+  public void testVirtualPasswordPolicyDNForAdd() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String policyDN = "cn=Test Policy,cn=Password Policies,cn=config";
+    String ruleDN   = "cn=User-Defined Test,cn=Virtual Attributes,cn=config";
+
+    testSetupVirtualPasswordPolicyDN(policyDN, ruleDN);
+    try {
+      assertEquals(TestCaseUtils.addEntryOperation(
+              "dn: uid=test.user,o=test",
+              "objectClass: top",
+              "objectClass: person",
+              "objectClass: organizationalPerson",
+              "objectClass: inetOrgPerson",
+              "uid: test.user",
+              "givenName: Test",
+              "sn: User",
+              "cn: Test User",
+              "userPassword: test"
+      ), ResultCode.CONSTRAINT_VIOLATION);
+    }
+    finally {
+      InternalClientConnection conn = getRootConnection();
+
+      DeleteOperation deleteOperation = conn.processDelete(DN.valueOf(ruleDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+
+      deleteOperation = conn.processDelete(DN.valueOf(policyDN));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+  }
+
 
   /**
    * Tests to ensure that the user-defined virtual attribute provider can be
-   * used to apply a custom password policy for a user.  The custom password
-   * policy will reject passwords shorter than six characters, whereas the
-   * default policy will not.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * used to grant a privilege to a user.
    */
   @Test
-  public void testVirtualPasswordPolicyDN()
-         throws Exception
+  public void testVirtualPrivilege() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -738,7 +768,6 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "cn: Test User",
       "userPassword: password");
 
-
     try
     {
       String path1 =
@@ -766,7 +795,6 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
       assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
       assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
-
     }
     finally
     {
