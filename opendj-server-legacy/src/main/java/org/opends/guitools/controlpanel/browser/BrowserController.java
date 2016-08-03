@@ -165,7 +165,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     numSubordinateHacker = new NumSubordinateHacker();
   }
 
-
   /**
    * Set the connection for accessing the directory.  Since we must use
    * different controls when searching the configuration and the user data,
@@ -200,7 +199,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     startRefresh(null);
   }
 
-
   /**
    * Return the connection for accessing the directory configuration.
    * @return the connection for accessing the directory configuration.
@@ -217,7 +215,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return connUserData;
   }
 
-
   /**
    * Return the JTree controlled by this controller.
    * @return the JTree controlled by this controller.
@@ -225,7 +222,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   public JTree getTree() {
     return tree;
   }
-
 
   /**
    * Return the connection pool used by this controller.
@@ -248,8 +244,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /**
    * Tells whether the given suffix is in the tree or not.
    * @param suffixDn the DN of the suffix to be analyzed.
-   * @return <CODE>true</CODE> if the provided String is the DN of a suffix
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided String is the DN of a suffix
+   * and {@code false} otherwise.
    * @throws IllegalArgumentException if a node with the given dn exists but
    * is not a suffix node.
    */
@@ -262,7 +258,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Add an LDAP suffix to this controller.
    * A new node is added in the JTree and a refresh is started.
    * @param suffixDn the DN of the suffix.
-   * @param parentSuffixDn the DN of the parent suffix (or <CODE>null</CODE> if
+   * @param parentSuffixDn the DN of the parent suffix (or {@code null} if
    * there is no parent DN).
    * @return the TreePath of the new node.
    * @throws IllegalArgumentException if a node with the given dn exists.
@@ -313,7 +309,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return new TreePath(treeModel.getPathToRoot(newNode));
   }
 
-
   /**
    * Remove all the suffixes.
    * The controller removes all the nodes from the JTree except the root.
@@ -325,7 +320,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return new TreePath(treeModel.getPathToRoot(rootNode));
   }
 
-
   /**
    * Return the display flags.
    * @return the display flags.
@@ -333,7 +327,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   public int getDisplayFlags() {
     return displayFlags;
   }
-
 
   /**
    * Set the display flags and call startRefresh().
@@ -368,8 +361,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   /**
    * Says whether we are showing the attribute name or not.
-   * @return <CODE>true</CODE> if we are showing the attribute name and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if we are showing the attribute name and
+   * {@code false} otherwise.
    */
   public boolean isAttributeNameShown() {
     return showAttributeName;
@@ -394,13 +387,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   /**
    * Return true if this controller follows referrals.
-   * @return <CODE>true</CODE> if this controller follows referrals and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if this controller follows referrals and
+   * {@code false} otherwise.
    */
   public boolean getFollowReferrals() {
     return followReferrals;
   }
-
 
   /**
    * Enable/display the following of referrals.
@@ -420,16 +412,14 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     startRefresh(null);
   }
 
-
   /**
    * Return true if entries are displayed sorted.
-   * @return <CODE>true</CODE> if entries are displayed sorted and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if entries are displayed sorted and
+   * {@code false} otherwise.
    */
   public boolean isSorted() {
     return sorted;
   }
-
 
   /**
    * Enable/disable entry sort.
@@ -448,20 +438,18 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     startRefresh(null);
   }
 
-
   /**
    * Return true if only container entries are displayed.
    * An entry is a container if:
    *    - it has some children
    *    - or its class is one of the container classes
    *      specified with setContainerClasses().
-   * @return <CODE>true</CODE> if only container entries are displayed and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if only container entries are displayed and
+   * {@code false} otherwise.
    */
   public boolean isShowContainerOnly() {
     return showContainerOnly;
   }
-
 
   /**
    * Enable or disable container display and call startRefresh().
@@ -472,7 +460,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     this.showContainerOnly = showContainerOnly;
     startRefresh(null);
   }
-
 
   /**
    * Find the BrowserNodeInfo associated to a TreePath and returns
@@ -485,7 +472,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return new BrowserNodeInfoImpl(node);
   }
 
-
   /**
    * Return the array of container classes for this controller.
    * Warning: the returned array is not cloned.
@@ -494,7 +480,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   public String[] getContainerClasses() {
     return containerClasses;
   }
-
 
   /**
    * Set the list of container classes and calls startRefresh().
@@ -506,7 +491,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     startRefresh(null);
   }
 
-
   /**
    * NUMSUBORDINATE HACK
    * Make the hacker public so that RefreshTask can use it.
@@ -515,7 +499,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   public NumSubordinateHacker getNumSubordinateHacker() {
     return numSubordinateHacker;
   }
-
 
   /**
    * NUMSUBORDINATE HACK
@@ -568,7 +551,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return new TreePath(treeModel.getPathToRoot(childNode));
   }
 
-
   /**
    * Notify this controller that a entry has been deleted.
    * The controller removes the corresponding node from the JTree and returns
@@ -590,7 +572,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     return null;
   }
-
 
   /**
    * Notify this controller that an entry has changed.
@@ -625,7 +606,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     startRefreshReferralNodes(rootNode);
   }
 
-
   /**
    * Start a refresh from the specified node.
    * If some refresh are on-going on descendant nodes, they are stopped.
@@ -633,13 +613,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param nodeInfo the node to be refreshed.
    */
   public void startRefresh(BrowserNodeInfo nodeInfo) {
-    BasicNode node;
-    if (nodeInfo == null) {
-      node = rootNode;
-    }
-    else {
-      node = nodeInfo.getNode();
-    }
+    BasicNode node = nodeInfo != null ? nodeInfo.getNode() : rootNode;
     stopRefreshNode(node);
     startRefreshNode(node, null, true);
   }
@@ -690,9 +664,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
   }
 
-
-
-
   /**
    * Stop refreshing below this node.
    * TODO: this method is very costly when applied to something else than the
@@ -713,8 +684,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
   }
 
-
-
   /**
    * Call startRefreshNode() on each referral node accessible from parentNode.
    * @param parentNode the parent node.
@@ -731,8 +700,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       }
     }
   }
-
-
 
   /**
    * Remove all the children below parentNode *without changing the leaf state*.
@@ -774,7 +741,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
   }
 
-
   /**
    * For BrowserController private use.  When a node is collapsed the refresh
    * tasks on it are canceled.
@@ -808,14 +774,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param node the selected node.
    */
   public void setInspectedNode(BrowserNodeInfo node) {
-    BrowserCellRenderer renderer = (BrowserCellRenderer)tree.getCellRenderer();
-    if (node == null) {
-      renderer.setInspectedNode(null);
-    } else {
-      renderer.setInspectedNode(node.getNode());
-    }
+    BrowserCellRenderer renderer = (BrowserCellRenderer) tree.getCellRenderer();
+    renderer.setInspectedNode(node != null ? node.getNode() : null);
   }
-
 
   /**
    * Routines for the task classes
@@ -825,7 +786,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * They do not alter any variable: so they can be safely
    * called by task threads without synchronize clauses.
    */
-
 
   /**
    * The tree model created by the controller and assigned
@@ -863,7 +823,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   {
     return ALL_OBJECTS_FILTER;
   }
-
 
   /**
    * Return the LDAP search filter to use for searching child entries.
@@ -910,9 +869,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return result;
   }
 
-
-
-
   /**
    * Return the LDAP connection to reading the base entry of a node.
    * @param node the node for which we want the LDAP connection.
@@ -949,8 +905,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /**
    * Returns whether a given node is a configuration node or not.
    * @param node the node to analyze.
-   * @return <CODE>true</CODE> if the node is a configuration node and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the node is a configuration node and
+   * {@code false} otherwise.
    */
   public boolean isConfigurationNode(BasicNode node)
   {
@@ -989,7 +945,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return findConnectionForDisplayedEntry(node, isConfigurationNode(node));
   }
 
-
   /**
    * Return the LDAP connection to search the displayed entry (which can be the
    * local or remote entry).
@@ -1007,8 +962,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return findConnectionForLocalEntry(node, isConfigurationNode);
   }
 
-
-
   /**
    * Release a connection returned by selectConnectionForChildEntries() or
    * selectConnectionForBaseEntry().
@@ -1021,7 +974,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       connectionPool.releaseConnection(conn);
     }
   }
-
 
   /**
    * Returns the local entry URL for a given node.
@@ -1041,7 +993,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), connConfig.isLdaps());
   }
 
-
   /**
    * Returns the displayed entry URL for a given node.
    * @param node the node.
@@ -1054,7 +1005,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     return findUrlForLocalEntry(node);
   }
-
 
   /**
    * Returns the DN to use for searching children of a given node.
@@ -1072,13 +1022,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return node.getDN();
   }
 
-
-
   /**
    * Tells whether a node is displaying a remote entry.
    * @param node the node.
-   * @return <CODE>true</CODE> if the node displays a remote entry and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the node displays a remote entry and
+   * {@code false} otherwise.
    */
   private boolean isDisplayedEntryRemote(BasicNode node) {
     if (followReferrals) {
@@ -1095,7 +1043,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     return false;
   }
-
 
   /**
    * Returns the list of attributes for the red search.
@@ -1200,7 +1147,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return getRequestControls();
   }
 
-
   /**
    * Callbacks invoked by task classes
    * =================================
@@ -1278,14 +1224,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     else if (newState == NodeRefresher.State.CANCELLED ||
         newState == NodeRefresher.State.INTERRUPTED) {
-
       // Let's collapse task.getNode()
       tree.collapsePath(new TreePath(treeModel.getPathToRoot(node)));
 
       // TODO: should we reflect this situation visually ?
     }
     else {
-
       if (oldState != NodeRefresher.State.SEARCHING_CHILDREN
           && newState == NodeRefresher.State.SEARCHING_CHILDREN) {
         // The children search is going to start
@@ -1326,7 +1270,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         }
       }
       else if (oldState == NodeRefresher.State.SEARCHING_CHILDREN) {
-
         updateChildNodes(task);
         if (newState == NodeRefresher.State.FINISHED) {
           // The children search is finished
@@ -1359,7 +1302,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       }
     }
 
-
     if (nodeChanged) {
       treeModel.nodeChanged(task.getNode());
     }
@@ -1368,7 +1310,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       throw new RuntimeException("Inconsistent node: " + node.getDN());
     }
   }
-
 
   /**
    * Commodity method that calls the method refreshTaskDidProgress in the event
@@ -1427,19 +1368,16 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     // Walk through the entries
     for (SearchResultEntry entry : task.getChildEntries())
     {
-      BasicNode child;
-
       // Search a child node matching the DN of the entry
       int index;
       if (differential) {
-//      System.out.println("Differential mode -> starting to search");
         index = findChildNode(parent, entry.getName().toString());
-//      System.out.println("Differential mode -> ending to search");
       }
       else {
         index = - (parent.getChildCount() + 1);
       }
 
+      BasicNode child;
       // If no node matches, we create a new node
       if (index < 0) {
         // -(index + 1) is the location where to insert the new node
@@ -1448,7 +1386,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         parent.insert(child, index);
         updateNodeRendering(child, entry);
         insertIndex.add(index);
-//      System.out.println("Inserted " + child.getDN() + " at " + index);
       }
       else { // Else we update the existing one
         child = (BasicNode)parent.getChildAt(index);
@@ -1473,32 +1410,25 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         hasNoSubOrdinates = !child.hasSubOrdinates();
       }
 
-
-
       // Propagate the refresh
       // Note: logically we should unconditionally call:
       //  startRefreshNode(child, false, true);
       //
-      // However doing that saturates refreshQueue
-      // with many nodes. And, by design, RefreshTask
-      // won't do anything on a node if:
+      // However doing that saturates refreshQueue with many nodes.
+      // And, by design, RefreshTask won't do anything on a node if:
       //    - this node has no subordinates
       //    - *and* this node has no referral data
-      // So we test these conditions here and
-      // skip the call to startRefreshNode() if
-      // possible.
+      // So we test these conditions here
+      // and skip the call to startRefreshNode() if possible.
       //
-      // The exception to this is the case where the
-      // node had children (in the tree).  In this case
-      // we force the refresh. See bug 5015115
-      //
+      // The exception to this is the case where the node had children
+      // (in the tree). In this case we force the refresh. See bug 5015115
       if (!hasNoSubOrdinates
           || child.getReferral() != null
           || child.getChildCount() > 0) {
         startRefreshNode(child, entry, true);
       }
     }
-
 
     // Inform the tree model that we have created some new nodes
     if (insertIndex.size() >= 1) {
@@ -1509,19 +1439,16 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
   }
 
-
-
   /**
    * Tells whether a differential update can be made in the provided task.
    * @param task the task.
-   * @return <CODE>true</CODE> if a differential update can be made and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if a differential update can be made and
+   * {@code false} otherwise.
    */
   private boolean canDoDifferentialUpdate(NodeRefresher task) {
     return task.getNode().getChildCount() >= 1
         && task.getNode().getNumSubOrdinates() <= 100;
   }
-
 
   /**
    * Recompute the rendering props of a node (text, style, icon) depending on.
@@ -1529,6 +1456,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    *    - the LDAPEntry displayed by this node
    * @param node the node to be rendered.
    * @param entry the search result for the entry that the node represents.
+   * @return whether the node display changed
    */
   private boolean updateNodeRendering(BasicNode node, SearchResultEntry entry)
   throws NamingException {
@@ -1545,58 +1473,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     Icon newIcon = getNewIcon(node, entry);
 
     // Construct the icon text according the dn, the aci count...
-    StringBuilder sb2 = new StringBuilder();
-    if (aciCount >= 1) {
-      sb2.append(aciCount);
-      sb2.append(" aci");
-      if (aciCount != 1) {
-        sb2.append("s");
-      }
-    }
-
-    StringBuilder sb1 = new StringBuilder();
-    if (node instanceof SuffixNode) {
-      if (entry != null) {
-        sb1.append(entry.getName());
-      }
-    } else {
-      boolean useRdn = true;
-      if (!RDN_ATTRIBUTE.equals(displayAttribute) && entry != null) {
-        String value = firstValueAsString(entry, displayAttribute);
-        if (value != null) {
-          if (showAttributeName) {
-            value = displayAttribute+"="+value;
-          }
-          sb1.append(value);
-          useRdn = false;
-        }
-      }
-
-      if (useRdn) {
-        String rdn;
-        if (followReferrals && node.getRemoteUrl() != null) {
-          if (showAttributeName) {
-            rdn = node.getRemoteRDNWithAttributeName();
-          } else {
-            rdn = node.getRemoteRDN();
-          }
-        }
-        else {
-          if (showAttributeName) {
-            rdn = node.getRDNWithAttributeName();
-          } else {
-            rdn = node.getRDN();
-          }
-        }
-        sb1.append(rdn);
-      }
-    }
-    if (sb2.length() >= 1) {
-      sb1.append("  (");
-      sb1.append(sb2);
-      sb1.append(")");
-    }
-    String newDisplayName = sb1.toString();
+    String newDisplayName = newDisplayName(node, entry, aciCount);
 
     // Select the font style according referral
     int newStyle = 0;
@@ -1613,8 +1490,79 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       node.setIcon(newIcon);
       node.setDisplayName(newDisplayName);
       node.setFontStyle(newStyle);
+      return true;
     }
-    return changed;
+    return false;
+  }
+
+  private String newDisplayName(BasicNode node, SearchResultEntry entry, int aciCount)
+  {
+    StringBuilder result = new StringBuilder();
+    if (node instanceof SuffixNode)
+    {
+      if (entry != null)
+      {
+        result.append(entry.getName());
+      }
+    }
+    else
+    {
+      boolean useRdn = true;
+      if (!RDN_ATTRIBUTE.equals(displayAttribute) && entry != null)
+      {
+        String value = firstValueAsString(entry, displayAttribute);
+        if (value != null)
+        {
+          if (showAttributeName)
+          {
+            value = displayAttribute + "=" + value;
+          }
+          result.append(value);
+          useRdn = false;
+        }
+      }
+
+      if (useRdn)
+      {
+        result.append(getRDN(node));
+      }
+    }
+
+    StringBuilder acis = new StringBuilder();
+    if (aciCount >= 1)
+    {
+      acis.append(aciCount);
+      acis.append(" aci");
+      if (aciCount != 1)
+      {
+        acis.append("s");
+      }
+    }
+    if (acis.length() >= 1)
+    {
+      result.append("  (");
+      result.append(acis);
+      result.append(")");
+    }
+    return result.toString();
+  }
+
+  private String getRDN(BasicNode node)
+  {
+    if (followReferrals && node.getRemoteUrl() != null) {
+      if (showAttributeName) {
+        return node.getRemoteRDNWithAttributeName();
+      } else {
+        return node.getRemoteRDN();
+      }
+    }
+    else {
+      if (showAttributeName) {
+        return node.getRDNWithAttributeName();
+      } else {
+        return node.getRDN();
+      }
+    }
   }
 
   private int getAciCount(SearchResultEntry entry) throws NamingException
@@ -1624,7 +1572,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     return 0;
   }
-
 
   private Icon getNewIcon(BasicNode node, SearchResultEntry entry)
   {
@@ -1690,7 +1637,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     treeModel.removeNodeFromParent(node);
   }
 
-
   /**
    * BrowserEvent management
    * =======================
@@ -1730,7 +1676,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return refreshQueue.size();
   }
 
-
   /**
    * Fires a BrowserEvent.
    * @param type the type of the event.
@@ -1754,7 +1699,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Find a SuffixNode in the tree model.
    * @param suffixDn the dn of the suffix node.
    * @param suffixNode the node from which we start searching.
-   * @return the SuffixNode associated with the provided DN.  <CODE>null</CODE>
+   * @return the SuffixNode associated with the provided DN.  {@code null}
    * if nothing is found.
    * @throws IllegalArgumentException if a node with the given dn exists but
    * is not a suffix node.
@@ -1799,19 +1744,13 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     throw new IllegalArgumentException(suffixDn + " is not a suffix node");
   }
 
-
-
   /**
-   * Return <CODE>true</CODE> if x is a non <code>null</code>
-   * NameNotFoundException.
-   * @return <CODE>true</CODE> if x is a non <code>null</code>
-   * NameNotFoundException.
+   * Return {@code true} if x is a non {@code null} NameNotFoundException.
+   * @return {@code true} if x is a non {@code null} NameNotFoundException.
    */
   private boolean isNameNotFoundException(Object x) {
     return x instanceof NameNotFoundException;
   }
-
-
 
   /**
    * Get the value of the numSubordinates attribute.
@@ -1863,7 +1802,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return toInt(v);
   }
 
-
   private static int toInt(String v)
   {
     if (v == null)
@@ -1903,13 +1841,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return getNumSubOrdinates(entry) > 0;
   }
 
-
   /**
    * Returns the value of the 'ref' attribute.
-   * <CODE>null</CODE> if the attribute is not present.
+   * {@code null} if the attribute is not present.
    * @param entry the entry to analyze.
    * @throws NamingException if an error occurs.
-   * @return the value of the ref attribute.  <CODE>null</CODE> if the attribute
+   * @return the value of the ref attribute.  {@code null} if the attribute
    * could not be found.
    */
   public static String[] getReferral(SearchResultEntry entry) throws NamingException
@@ -1926,12 +1863,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return null;
   }
 
-
   /**
    * Returns true if the node is expanded.
    * @param node the node to analyze.
-   * @return <CODE>true</CODE> if the node is expanded and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the node is expanded and {@code false} otherwise.
    */
   public boolean nodeIsExpanded(BasicNode node) {
     TreePath tp = new TreePath(treeModel.getPathToRoot(node));
@@ -1951,8 +1886,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     automaticallyExpandedNode = false;
   }
 
-
-
   /** Collection utilities. */
   /**
    * Returns an array of integer from a Collection of Integer objects.
@@ -1969,7 +1902,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     return result;
   }
-
 
   /**
    * For debugging purpose: allows to switch easily
@@ -1990,7 +1922,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       x.printStackTrace();
     }
   }
-
 
   /** The default implementation of the BrowserNodeInfo interface. */
   private class BrowserNodeInfoImpl implements BrowserNodeInfo
@@ -2071,8 +2002,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     /**
      * Tells whether this is a root node or not.
-     * @return <CODE>true</CODE> if this is a root node and <CODE>false</CODE>
-     * otherwise.
+     * @return {@code true} if this is a root node and {@code false} otherwise.
      */
     @Override
     public boolean isRootNode() {
@@ -2081,8 +2011,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     /**
      * Tells whether this is a suffix node or not.
-     * @return <CODE>true</CODE> if this is a suffix node and <CODE>false</CODE>
-     * otherwise.
+     * @return {@code true} if this is a suffix node and {@code false} otherwise.
      */
     @Override
     public boolean isSuffix() {
@@ -2091,8 +2020,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     /**
      * Tells whether this is a remote node or not.
-     * @return <CODE>true</CODE> if this is a remote node and <CODE>false</CODE>
-     * otherwise.
+     * @return {@code true} if this is a remote node and {@code false} otherwise.
      */
     @Override
     public boolean isRemote() {
@@ -2131,9 +2059,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     /**
      * Returns the error type associated we got when refreshing the node.
-     * <CODE>null</CODE> if no error was found.
+     * {@code null} if no error was found.
      * @return the error type associated we got when refreshing the node.
-     * <CODE>null</CODE> if no error was found.
+     * {@code null} if no error was found.
      */
     @Override
     public int getErrorType() {
@@ -2142,9 +2070,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     /**
      * Returns the exception associated we got when refreshing the node.
-     * <CODE>null</CODE> if no exception was found.
+     * {@code null} if no exception was found.
      * @return the exception associated we got when refreshing the node.
-     * <CODE>null</CODE> if no exception was found.
+     * {@code null} if no exception was found.
      */
     @Override
     public Exception getErrorException() {
@@ -2153,9 +2081,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     /**
      * Returns the error argument associated we got when refreshing the node.
-     * <CODE>null</CODE> if no error argument was found.
+     * {@code null} if no error argument was found.
      * @return the error argument associated we got when refreshing the node.
-     * <CODE>null</CODE> if no error argument was found.
+     * {@code null} if no error argument was found.
      */
     @Override
     public Object getErrorArg() {
@@ -2192,8 +2120,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     /**
      * Compares the provide node with this object.
      * @param node the node.
-     * @return <CODE>true</CODE> if the node info represents the same node as
-     * this and <CODE>false</CODE> otherwise.
+     * @return {@code true} if the node info represents the same node as
+     * this and {@code false} otherwise.
      */
     @Override
     public boolean representsSameNode(BrowserNodeInfo node) {
@@ -2201,18 +2129,16 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
   }
 
-
   /**
    * Returns whether we are in automatic expand mode.  This mode is used when
    * the user specifies a filter and all the nodes are automatically expanded.
-   * @return <CODE>true</CODE> if we are in automatic expand mode and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if we are in automatic expand mode and
+   * {@code false} otherwise.
    */
   public boolean isAutomaticExpand()
   {
     return automaticExpand;
   }
-
 
   /**
    * Sets the automatic expand mode.

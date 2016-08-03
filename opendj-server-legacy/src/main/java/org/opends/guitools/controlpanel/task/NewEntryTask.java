@@ -218,17 +218,13 @@ public class NewEntryTask extends Task
             {
               insertNode(realParentNode, newEntry.getName(), false);
             }
-            else
+            else if (isBaseDN(newEntry.getName()))
             {
-              if (isBaseDN(newEntry.getName()))
+              int nRootChildren = controller.getTreeModel().getChildCount(controller.getTreeModel().getRoot());
+              if (nRootChildren > 1)
               {
-                int nRootChildren = controller.getTreeModel().getChildCount(
-                  controller.getTreeModel().getRoot());
-                if (nRootChildren > 1)
-                {
-                  // Insert in the root.
-                  insertNode(root, newEntry.getName(), true);
-                }
+                // Insert in the root.
+                insertNode(root, newEntry.getName(), true);
               }
             }
           }
@@ -303,29 +299,23 @@ public class NewEntryTask extends Task
 
   private void insertNode(BasicNode parentNode, DN dn, boolean isSuffix)
   {
-    TreePath parentPath =
-      new TreePath(controller.getTreeModel().getPathToRoot(parentNode));
-    if (parentPath != null)
+    TreePath parentPath = new TreePath(controller.getTreeModel().getPathToRoot(parentNode));
+    BrowserNodeInfo nodeInfo = controller.getNodeInfoFromPath(parentPath);
+    if (nodeInfo != null)
     {
-      BrowserNodeInfo nodeInfo =
-        controller.getNodeInfoFromPath(parentPath);
-      if (nodeInfo != null)
+      TreePath newPath;
+      if (isSuffix)
       {
-        TreePath newPath;
-        if (isSuffix)
-        {
-          newPath = controller.addSuffix(dn.toString(), parentNode.getDN());
-        }
-        else
-        {
-          newPath = controller.notifyEntryAdded(
-            controller.getNodeInfoFromPath(parentPath), dn.toString());
-        }
-        if (newPath != null)
-        {
-          controller.getTree().setSelectionPath(newPath);
-          controller.getTree().scrollPathToVisible(newPath);
-        }
+        newPath = controller.addSuffix(dn.toString(), parentNode.getDN());
+      }
+      else
+      {
+        newPath = controller.notifyEntryAdded(controller.getNodeInfoFromPath(parentPath), dn.toString());
+      }
+      if (newPath != null)
+      {
+        controller.getTree().setSelectionPath(newPath);
+        controller.getTree().scrollPathToVisible(newPath);
       }
     }
   }

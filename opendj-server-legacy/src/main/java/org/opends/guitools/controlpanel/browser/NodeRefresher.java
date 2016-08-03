@@ -124,7 +124,7 @@ public class NodeRefresher extends AbstractNodeTask {
   }
 
   /**
-   * Returns the remote entry for the node.  It will be <CODE>null</CODE> if
+   * Returns the remote entry for the node.  It will be {@code null} if
    * the entry is not a referral.
    * @return the remote entry for the node.
    */
@@ -133,7 +133,7 @@ public class NodeRefresher extends AbstractNodeTask {
   }
 
   /**
-   * Returns the URL of the remote entry.  It will be <CODE>null</CODE> if
+   * Returns the URL of the remote entry.  It will be {@code null} if
    * the entry is not a referral.
    * @return the URL of the remote entry.
    */
@@ -143,8 +143,7 @@ public class NodeRefresher extends AbstractNodeTask {
 
   /**
    * Tells whether the node is a leaf or not.
-   * @return <CODE>true</CODE> if the node is a leaf and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the node is a leaf and {@code false} otherwise.
    */
   public boolean isLeafNode() {
     return isLeafNode;
@@ -159,10 +158,9 @@ public class NodeRefresher extends AbstractNodeTask {
   }
 
   /**
-   * Returns whether this refresher object is working on differential mode or
-   * not.
-   * @return <CODE>true</CODE> if the refresher is working on differential
-   * mode and <CODE>false</CODE> otherwise.
+   * Returns whether this refresher object is working on differential mode or not.
+   * @return {@code true} if the refresher is working on differential
+   * mode and {@code false} otherwise.
    */
   public boolean isDifferential() {
     return differential;
@@ -170,7 +168,7 @@ public class NodeRefresher extends AbstractNodeTask {
 
   /**
    * Returns the exception that occurred during the processing.  It returns
-   * <CODE>null</CODE> if no exception occurred.
+   * {@code null} if no exception occurred.
    * @return the exception that occurred during the processing.
    */
   public Exception getException() {
@@ -179,7 +177,7 @@ public class NodeRefresher extends AbstractNodeTask {
 
   /**
    * Returns the argument of the exception that occurred during the processing.
-   * It returns <CODE>null</CODE> if no exception occurred or if the exception
+   * It returns {@code null} if no exception occurred or if the exception
    * has no arguments.
    * @return the argument exception that occurred during the processing.
    */
@@ -211,21 +209,20 @@ public class NodeRefresher extends AbstractNodeTask {
    * otherwise.
    */
   public LDAPURL getDisplayedUrl() {
-    LDAPURL result;
     if (controller.getFollowReferrals() && remoteUrl != null)
     {
-      result = remoteUrl;
+      return remoteUrl;
     }
-    else {
-      result = controller.findUrlForLocalEntry(getNode());
+    else
+    {
+      return controller.findUrlForLocalEntry(getNode());
     }
-    return result;
   }
 
   /**
    * Returns whether the refresh is over or not.
-   * @return <CODE>true</CODE> if the refresh is over and <CODE>false</CODE>
-   * otherwise.
+   *
+   * @return {@code true} if the refresh is over and {@code false} otherwise.
    */
   public boolean isInFinalState() {
     return state == State.FINISHED || state == State.CANCELLED || state == State.FAILED || state == State.INTERRUPTED;
@@ -293,16 +290,11 @@ public class NodeRefresher extends AbstractNodeTask {
   /**
    * Tells whether a custom filter is being used (specified by the user in the
    * browser dialog) or not.
-   * @return <CODE>true</CODE> if a custom filter is being used and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if a custom filter is being used and {@code false} otherwise.
    */
   private boolean useCustomFilter()
   {
-    if (controller.getFilter()!=null)
-    {
-      return !BrowserController.ALL_OBJECTS_FILTER.equals(controller.getFilter());
-    }
-    return false;
+    return controller.getFilter() != null && !BrowserController.ALL_OBJECTS_FILTER.equals(controller.getFilter());
   }
 
   /**
@@ -408,14 +400,8 @@ public class NodeRefresher extends AbstractNodeTask {
         SearchRequest request =
             newSearchRequest(node.getDN(), BASE_OBJECT, filter, controller.getAttrsForRedSearch())
             .setSizeLimit(controller.getMaxChildren());
-        try (ConnectionEntryReader s = conn.getConnection().search(request))
-        {
-          while (s.hasNext())
-          {
-            localEntry = s.readEntry();
-            localEntry.setName(node.getDN());
-          }
-        }
+        localEntry = conn.getConnection().searchSingleEntry(request);
+        localEntry.setName(node.getDN());
         if (localEntry == null) {
           /* Not enough rights to read the entry or the entry simply does not exist */
           throw newLdapException(ResultCode.NO_SUCH_OBJECT, "Can't find entry: " + node.getDN());
@@ -485,11 +471,11 @@ public class NodeRefresher extends AbstractNodeTask {
         if (url.getHost() == null)
         {
           // Use the local server connection.
-          conn = controller.getUserDataConnection();
-          HostPort hostPort = conn.getHostPort();
+          ConnectionWrapper userConn = controller.getUserDataConnection();
+          HostPort hostPort = userConn.getHostPort();
           url.setHost(hostPort.getHost());
           url.setPort(hostPort.getPort());
-          url.setScheme(conn.isLdaps() ? "ldaps" : "ldap");
+          url.setScheme(userConn.isLdaps() ? "ldaps" : "ldap");
         }
         conn = connectionPool.getConnection(url);
         remoteDn = url.getRawBaseDN();
@@ -595,8 +581,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * This is used when the user provides a custom filter, in this case we
    * expand automatically the tree.
    * @param node the node to analyze.
-   * @return <CODE>true</CODE> if the node must be expanded and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the node must be expanded and {@code false} otherwise.
    */
   private boolean mustAutomaticallyExpand(BasicNode node)
   {
@@ -887,16 +872,9 @@ public class NodeRefresher extends AbstractNodeTask {
         newSearchRequest(dn, BASE_OBJECT, controller.getObjectSearchFilter(), controller.getAttrsForRedSearch())
         .setSizeLimit(controller.getMaxChildren());
 
-    try (ConnectionEntryReader entries = conn.getConnection().search(request))
-    {
-      SearchResultEntry sr = null;
-      while (entries.hasNext())
-      {
-        sr = entries.readEntry();
-        sr.setName(dn);
-      }
-      return sr;
-    }
+    SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
+    sr.setName(dn);
+    return sr;
   }
 
   /** Utilities. */
@@ -924,21 +902,15 @@ public class NodeRefresher extends AbstractNodeTask {
    * @throws SearchAbandonException if the task/refresher must be abandoned.
    */
   private void throwAbandonIfNeeded(Exception x) throws SearchAbandonException {
-    SearchAbandonException tax = null;
     if (x != null) {
       if (x instanceof InterruptedException || x instanceof InterruptedNamingException)
       {
-        tax = new SearchAbandonException(State.INTERRUPTED, x, null);
+        throw new SearchAbandonException(State.INTERRUPTED, x, null);
       }
-      else {
-        tax = new SearchAbandonException(State.FAILED, x, null);
-      }
+      throw new SearchAbandonException(State.FAILED, x, null);
     }
     else if (isCanceled()) {
-      tax = new SearchAbandonException(State.CANCELLED, null, null);
-    }
-    if (tax != null) {
-      throw tax;
+      throw new SearchAbandonException(State.CANCELLED, null, null);
     }
   }
 
@@ -989,8 +961,8 @@ public class NodeRefresher extends AbstractNodeTask {
    * Checks that the entry's objectClass contains 'referral' and that the
    * attribute 'ref' is present.
    * @param entry the search result.
-   * @return <CODE>true</CODE> if the entry's objectClass contains 'referral'
-   * and the attribute 'ref' is present and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the entry's objectClass contains 'referral'
+   * and the attribute 'ref' is present and {@code false} otherwise.
    * @throws NamingException if an error occurs.
    */
   private static boolean isReferralEntry(SearchResultEntry entry) throws NamingException
@@ -1003,42 +975,6 @@ public class NodeRefresher extends AbstractNodeTask {
       }
     }
     return false;
-  }
-
-  /**
-   * Returns the scope to be used in a JNDI request based on the information
-   * of an LDAP URL.
-   * @param url the LDAP URL.
-   * @return the scope to be used in a JNDI request.
-   */
-  private int getJNDIScope(LDAPURL url)
-  {
-    int scope;
-    if (url.getScope() != null)
-    {
-      switch (url.getScope().asEnum())
-      {
-      case BASE_OBJECT:
-        scope = SearchControls.OBJECT_SCOPE;
-        break;
-      case WHOLE_SUBTREE:
-        scope = SearchControls.SUBTREE_SCOPE;
-        break;
-      case SUBORDINATES:
-        scope = SearchControls.ONELEVEL_SCOPE;
-        break;
-      case SINGLE_LEVEL:
-        scope = SearchControls.ONELEVEL_SCOPE;
-        break;
-      default:
-        scope = SearchControls.OBJECT_SCOPE;
-      }
-    }
-    else
-    {
-      scope = SearchControls.OBJECT_SCOPE;
-    }
-    return scope;
   }
 
   /**

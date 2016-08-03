@@ -128,7 +128,6 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
   private static final String[] SYSTEM_INDEXES =
     { "aci", "dn2id", "ds-sync-hist", "entryUUID", "id2children", "id2subtree" };
 
-
   private JComboBox<String> baseDNs;
 
   /** The combo box containing the different filter types. */
@@ -971,7 +970,6 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
     });
   }
 
-
   private static boolean displayIndex(String name)
   {
     for (String systemIndex : SYSTEM_INDEXES)
@@ -1319,12 +1317,8 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
             {
               for (BaseDNDescriptor baseDN : backend.getBaseDns())
               {
-                boolean isBaseDN = false;
                 String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
-                if (theDN != null && baseDN.getDn().equals(theDN))
-                {
-                  isBaseDN = true;
-                }
+                boolean isBaseDN = baseDN.getDn().equals(theDN);
                 if (baseDN.getEntries() > 0)
                 {
                   try
@@ -1460,61 +1454,67 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
             null, INFO_CERTIFICATE_EXCEPTION.get(h, p), ne, h, p, trustManager.getLastRefusedChain(),
             trustManager.getLastRefusedAuthType(), excType);
 
-        if (SwingUtilities.isEventDispatchThread())
-        {
-          handleCertificateException(udce, bindDN, bindPassword);
-        }
-        else
-        {
-          final ConfigReadException[] fcre = { null };
-          final NamingException[] fne = { null };
-          final IOException[] fioe = { null };
-          try
-          {
-            SwingUtilities.invokeAndWait(new Runnable()
-            {
-              @Override
-              public void run()
-              {
-                try
-                {
-                  handleCertificateException(udce, bindDN, bindPassword);
-                }
-                catch (ConfigReadException cre)
-                {
-                  fcre[0] = cre;
-                }
-                catch (NamingException ne)
-                {
-                  fne[0] = ne;
-                }
-                catch (IOException ioe)
-                {
-                  fioe[0] = ioe;
-                }
-              }
-            });
-          }
-          catch (Exception e)
-          {
-            throw new IllegalArgumentException("Unexpected error: " + e, e);
-          }
-          if (fcre[0] != null)
-          {
-            throw fcre[0];
-          }
-          if (fne[0] != null)
-          {
-            throw fne[0];
-          }
-          if (fioe[0] != null)
-          {
-            throw fioe[0];
-          }
-        }
+        handleCertificateExceptionInSwing(bindDN, bindPassword, udce);
       }
     }
     return createdUserDataConn;
+  }
+
+  private void handleCertificateExceptionInSwing(final DN bindDN, final String bindPassword,
+      final UserDataCertificateException udce) throws NamingException, IOException, ConfigReadException
+  {
+    if (SwingUtilities.isEventDispatchThread())
+    {
+      handleCertificateException(udce, bindDN, bindPassword);
+    }
+    else
+    {
+      final ConfigReadException[] fcre = { null };
+      final NamingException[] fne = { null };
+      final IOException[] fioe = { null };
+      try
+      {
+        SwingUtilities.invokeAndWait(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            try
+            {
+              handleCertificateException(udce, bindDN, bindPassword);
+            }
+            catch (ConfigReadException cre)
+            {
+              fcre[0] = cre;
+            }
+            catch (NamingException ne)
+            {
+              fne[0] = ne;
+            }
+            catch (IOException ioe)
+            {
+              fioe[0] = ioe;
+            }
+          }
+        });
+      }
+      catch (Exception e)
+      {
+        throw new IllegalArgumentException("Unexpected error: " + e, e);
+      }
+      if (fcre[0] != null)
+      {
+        throw fcre[0];
+      }
+      if (fne[0] != null)
+      {
+        throw fne[0];
+      }
+      if (fioe[0] != null)
+      {
+        throw fioe[0];
+      }
+    }
   }
 
   /**
