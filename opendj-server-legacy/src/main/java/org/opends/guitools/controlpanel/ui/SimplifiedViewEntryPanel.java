@@ -1422,7 +1422,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     StringBuilder sb = new StringBuilder();
     try
     {
-      DN oldDN = DN.valueOf(searchResult.getDN());
+      DN oldDN = searchResult.getDN();
       if (oldDN.size() > 0)
       {
         List<AVA> avas = toAvas(oldDN.rdn());

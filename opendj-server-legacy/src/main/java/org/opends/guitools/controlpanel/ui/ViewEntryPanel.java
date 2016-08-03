@@ -37,6 +37,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -181,10 +182,10 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected void updateTitle(CustomSearchResult sr, TreePath path)
   {
-    String dn = sr.getDN();
-    if (dn != null && dn.length() > 0)
+    final DN dn = sr.getDN();
+    if (dn != null && dn.size() > 0)
     {
-      title.setText(sr.getDN());
+      title.setText(dn.toString());
     }
     else if (path != null)
     {

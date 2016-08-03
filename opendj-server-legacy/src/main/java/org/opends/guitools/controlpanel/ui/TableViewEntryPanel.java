@@ -262,7 +262,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     StringBuilder sb = new StringBuilder();
     try
     {
-      DN oldDN = DN.valueOf(searchResult.getDN());
+      DN oldDN = searchResult.getDN();
       if (oldDN.size() > 0)
       {
         RDN rdn = oldDN.rdn();

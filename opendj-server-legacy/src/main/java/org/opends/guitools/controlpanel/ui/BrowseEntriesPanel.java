@@ -336,7 +336,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           for (TreePath p : paths)
           {
             BasicNode n = (BasicNode)p.getLastPathComponent();
-            if (!entryPane.canDelete(n.getDN()))
+            if (!entryPane.canDelete(DN.valueOf(n.getDN())))
             {
               return false;
             }

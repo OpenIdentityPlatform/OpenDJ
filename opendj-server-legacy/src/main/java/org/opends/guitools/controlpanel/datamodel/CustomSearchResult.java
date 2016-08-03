@@ -46,7 +46,7 @@ import org.opends.server.util.LDIFReader;
  */
 public class CustomSearchResult implements Comparable<CustomSearchResult>
 {
-  private final String dn;
+  private final DN dn;
   private Map<String, List<Object>> attributes;
   private SortedSet<String> attrNames;
   private String toString;
@@ -58,7 +58,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * editors use some methods that require CustomSearchResult.
    * @param dn the dn of the entry.
    */
-  public CustomSearchResult(String dn)
+  public CustomSearchResult(DN dn)
   {
     this.dn = dn;
     attributes = new HashMap<>();
@@ -74,7 +74,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public CustomSearchResult(SearchResultEntry sr) throws NamingException
   {
-    dn = sr.getName().toString();
+    dn = sr.getName();
 
     attributes = new HashMap<>();
     attrNames = new TreeSet<>();
@@ -100,7 +100,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * Returns the DN of the entry.
    * @return the DN of the entry.
    */
-  public String getDN() {
+  public DN getDN()
+  {
     return dn;
   }
 
@@ -113,11 +114,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public List<Object> getAttributeValues(String name) {
     List<Object> values = attributes.get(name.toLowerCase());
-    if (values == null)
-    {
-      values = Collections.emptyList();
-    }
-    return values;
+    return values != null ? values : Collections.emptyList();
   }
 
   /**
@@ -209,7 +206,6 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public Entry getEntry() throws OpenDsException
   {
-    DN dn = DN.valueOf(getDN());
     Map<ObjectClass,String> objectClasses = new HashMap<>();
     Map<AttributeType,List<org.opends.server.types.Attribute>> userAttributes = new HashMap<>();
     Map<AttributeType,List<org.opends.server.types.Attribute>> operationalAttributes = new HashMap<>();

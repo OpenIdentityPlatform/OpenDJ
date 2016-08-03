@@ -96,7 +96,7 @@ public class ModifyEntryTask extends Task
     this.treePath = path;
 
     DN newDn = newEntry.getName();
-    oldDn = DN.valueOf(oldEntry.getDN());
+    oldDn = oldEntry.getDN();
     for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
@@ -228,7 +228,7 @@ public class ModifyEntryTask extends Task
             }
           });
 
-          conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(oldEntry.getDN()), mods);
+          conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(oldEntry.getDN().toString()), mods);
 
           SwingUtilities.invokeLater(new Runnable()
           {
@@ -515,7 +515,7 @@ public class ModifyEntryTask extends Task
        * modifications.
        */
       ByteString oldRdnValueDeleted = null;
-      RDN oldRDN = DN.valueOf(oldEntry.getDN()).rdn();
+      RDN oldRDN = oldEntry.getDN().rdn();
       for (AVA ava : oldRDN)
       {
         if (ava.getAttributeType().equals(attrDesc.getAttributeType()))

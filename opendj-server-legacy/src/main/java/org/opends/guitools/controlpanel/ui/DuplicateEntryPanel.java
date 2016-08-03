@@ -377,7 +377,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
       else
       {
-        String newValue = getFirstValue(dn);
+        String newValue = getFirstValue(DN.valueOf(dn));
         if (values.size() == 1)
         {
           sb.append("\n");
@@ -404,9 +404,9 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     return sb.toString();
   }
 
-  private String getFirstValue(String dn)
+  private String getFirstValue(DN dn)
   {
-    return DN.valueOf(dn).rdn().getFirstAVA().getAttributeValue().toString();
+    return dn.rdn().getFirstAVA().getAttributeValue().toString();
   }
 
   private void browseClicked()
@@ -467,8 +467,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           entryToDuplicate = sr;
           try
           {
-            DN dn = DN.valueOf(sr.getDN());
-            rdnAttribute = dn.rdn().getFirstAVA().getAttributeType().getNameOrOID();
+            rdnAttribute = sr.getDN().rdn().getFirstAVA().getAttributeType().getNameOrOID();
 
             updateDNValue();
             Boolean hasPassword = !sr.getAttributeValues(

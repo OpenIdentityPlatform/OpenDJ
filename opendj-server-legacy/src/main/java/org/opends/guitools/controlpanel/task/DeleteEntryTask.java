@@ -320,7 +320,6 @@ public class DeleteEntryTask extends Task
 
     String filter = "(|(objectClass=*)(objectclass=ldapsubentry))";
     SearchRequest request = newSearchRequest(dnToRemove, SINGLE_LEVEL, Filter.valueOf(filter), NO_ATTRIBUTES);
-    DN entryDNFound = dnToRemove;
     try (ConnectionEntryReader entryDNs = conn.getConnection().search(request))
     {
       while (entryDNs.hasNext())
@@ -329,8 +328,7 @@ public class DeleteEntryTask extends Task
         if (!sr.getName().equals(""))
         {
           CustomSearchResult res = new CustomSearchResult(sr);
-          entryDNFound = DN.valueOf(res.getDN());
-          deleteSubtreeRecursively(conn, entryDNFound, null, toNotify);
+          deleteSubtreeRecursively(conn, res.getDN(), null, toNotify);
         }
       }
     }

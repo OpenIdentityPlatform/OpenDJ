@@ -57,6 +57,7 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -72,7 +73,6 @@ import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.OpenDsException;
 
 /** The panel displaying the list of scheduled tasks. */
@@ -468,8 +468,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     int numberTasks = r.nextInt(10);
     for (int i= 0; i<numberTasks; i++)
     {
-      CustomSearchResult csr =
-        new CustomSearchResult("cn=mytask"+i+",cn=tasks");
+      CustomSearchResult csr = new CustomSearchResult(DN.valueOf("cn=mytask" + i + ",cn=tasks"));
       String p = "ds-task-";
       String[] attrNames =
       {
@@ -534,8 +533,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     Set<TaskEntry> list = new HashSet<>();
     for (int i= 0; i<10; i++)
     {
-      CustomSearchResult csr =
-        new CustomSearchResult("cn=mytask"+i+",cn=tasks");
+      CustomSearchResult csr = new CustomSearchResult(DN.valueOf("cn=mytask" + i + ",cn=tasks"));
       String p = "ds-task-";
       String[] attrNames =
       {
@@ -634,7 +632,7 @@ public class ManageTasksPanel extends StatusGenericPanel
    */
   private static Entry getEntry(CustomSearchResult csr) throws OpenDsException
   {
-    DN dn = DN.valueOf(csr.getDN());
+    DN dn = csr.getDN();
     Map<ObjectClass,String> objectClasses = new HashMap<>();
     Map<AttributeType,List<Attribute>> userAttributes = new HashMap<>();
     Map<AttributeType,List<Attribute>> operationalAttributes = new HashMap<>();

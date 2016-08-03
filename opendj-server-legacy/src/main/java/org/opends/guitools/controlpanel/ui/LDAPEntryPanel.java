@@ -36,6 +36,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -52,7 +53,6 @@ import org.opends.guitools.controlpanel.task.ModifyEntryTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
@@ -192,11 +192,8 @@ implements EntryReadListener
           }
           else
           {
-            boolean modified =
-              !Utilities.areDnsEqual(ev.getEntry().getName().toString(),
-                  searchResult.getDN()) ||
-                  !ModifyEntryTask.getModifications(ev.getEntry(), searchResult,
-                      getInfo()).isEmpty();
+            boolean modified = !ev.getEntry().getName().equals(searchResult.getDN())
+                || !ModifyEntryTask.getModifications(ev .getEntry(), searchResult, getInfo()).isEmpty();
             enable = modified;
           }
         }
@@ -441,44 +438,29 @@ implements EntryReadListener
    * @return <CODE>true</CODE> if the provided DN corresponds to a read-only
    * entry and <CODE>false</CODE> otherwise.
    */
-  private boolean isReadOnly(String sDn)
+  private boolean isReadOnly(DN dn)
   {
-    boolean isReadOnly = false;
-    try
+    for (DN parentDN : parentReadOnly)
     {
-      DN dn = DN.valueOf(sDn);
-      for (DN parentDN : parentReadOnly)
+      if (dn.isSubordinateOrEqualTo(parentDN))
       {
-        if (dn.isSubordinateOrEqualTo(parentDN))
-        {
-          isReadOnly = true;
-          break;
-        }
-      }
-      if (!isReadOnly)
-      {
-        isReadOnly = dn.equals(DN.rootDN());
+        return true;
       }
     }
-    catch (Throwable t)
-    {
-      throw new RuntimeException("Error decoding DNs: "+t, t);
-    }
-    return isReadOnly;
+    return dn.equals(DN.rootDN());
   }
 
   /**
    * Returns <CODE>true</CODE> if the provided DN corresponds to an entry that
    * can be deleted and <CODE>false</CODE> otherwise.
-   * @param sDn the DN of the entry.
+   * @param dn the DN of the entry.
    * @return <CODE>true</CODE> if the provided DN corresponds to an entry that
    * can be deleted and <CODE>false</CODE> otherwise.
    */
-  public boolean canDelete(String sDn)
+  public boolean canDelete(DN dn)
   {
     try
     {
-      DN dn = DN.valueOf(sDn);
       return !dn.equals(DN.rootDN())
           && !nonDeletable.contains(dn)
           && isDescendantOfAny(dn, parentReadOnly);
@@ -591,7 +573,7 @@ implements EntryReadListener
               INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
               confirmationMessage))
           {
-            String dn = searchResult.getDN();
+            DN dn = searchResult.getDN();
             if (isLeaf)
             {
               launchOperation(newTask,
