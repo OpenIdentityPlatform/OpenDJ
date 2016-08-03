@@ -1538,9 +1538,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           node.getNumSubOrdinates() > 0 || getHasSubOrdinates(entry));
       node.setReferral(getReferral(entry));
       Set<String> ocValues = asSetOfString(entry, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-      if (ocValues != null) {
-        node.setObjectClassValues(ocValues.toArray(new String[ocValues.size()]));
-      }
+      node.setObjectClassValues(ocValues.toArray(new String[0]));
     }
 
     int aciCount = getAciCount(entry);
@@ -1916,26 +1914,16 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public static String[] getReferral(SearchResultEntry entry) throws NamingException
   {
-    String[] result = null;
     Set<String> values = asSetOfString(entry, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-    if (values != null)
+    for (String value : values)
     {
-      for (String value : values)
+      if ("referral".equalsIgnoreCase(value))
       {
-        boolean isReferral = "referral".equalsIgnoreCase(value);
-        if (isReferral)
-        {
-          Set<String> refValues = asSetOfString(entry, ATTR_REFERRAL_URL);
-          if (refValues != null)
-          {
-            result = new String[refValues.size()];
-            refValues.toArray(result);
-          }
-          break;
-        }
+        Set<String> refValues = asSetOfString(entry, ATTR_REFERRAL_URL);
+        return !refValues.isEmpty() ? refValues.toArray(new String[0]) : null;
       }
     }
-    return result;
+    return null;
   }
 
 

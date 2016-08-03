@@ -27,7 +27,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.naming.InterruptedNamingException;
 import javax.naming.NameNotFoundException;
@@ -996,14 +995,11 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private static boolean isReferralEntry(SearchResultEntry entry) throws NamingException
   {
-    Set<String> ocValues = asSetOfString(entry, "objectClass");
-    if (ocValues != null) {
-      for (String value : ocValues)
+    for (String value : asSetOfString(entry, "objectClass"))
+    {
+      if ("referral".equalsIgnoreCase(value))
       {
-        boolean isReferral = "referral".equalsIgnoreCase(value);
-        if (isReferral) {
-          return firstValueAsString(entry, "ref") != null;
-        }
+        return firstValueAsString(entry, "ref") != null;
       }
     }
     return false;

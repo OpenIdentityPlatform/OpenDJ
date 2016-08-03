@@ -790,8 +790,6 @@ public class ServerDescriptor
         String backendId = firstValueAsString(sr, "ds-cfg-backend-id");
         if (!isConfigBackend(backendId) || isSchemaBackend(backendId))
         {
-          Set<DN> baseDns = asSetOfDN(sr, "ds-cfg-base-dn");
-
           Set<String> entries;
           if (cacheFilter.searchMonitoringInformation())
           {
@@ -803,6 +801,7 @@ public class ServerDescriptor
           }
 
           Set<ReplicaDescriptor> replicas = desc.getReplicas();
+          Set<DN> baseDns = asSetOfDN(sr, "ds-cfg-base-dn");
           for (DN baseDn : baseDns)
           {
             if (isAddReplica(cacheFilter, baseDn))

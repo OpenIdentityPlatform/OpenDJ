@@ -18,6 +18,7 @@ package org.opends.admin.ads.util;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -605,7 +606,7 @@ public class ConnectionUtils
   public static Set<String> asSetOfString(SearchResultEntry sr, String attrDesc)
   {
     org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
-    return attr != null ? attr.parse().asSetOfString() : null;
+    return attr != null ? attr.parse().asSetOfString() : Collections.<String> emptySet();
   }
 
   /**
@@ -621,6 +622,6 @@ public class ConnectionUtils
   public static Set<DN> asSetOfDN(SearchResultEntry sr, String attrDesc)
   {
     org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
-    return attr != null ? attr.parse().asSetOfDN() : null;
+    return attr != null ? attr.parse().asSetOfDN() : Collections.<DN> emptySet();
   }
 }
