@@ -184,23 +184,20 @@ public class ControlPanelInfo
   /**
    * Tells whether an index must be reindexed or not.
    * @param index the index.
-   * @return <CODE>true</CODE> if the index must be reindexed and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the index must be reindexed, {@code false} otherwise.
    */
   public boolean mustReindex(AbstractIndexDescriptor index)
   {
-    boolean mustReindex = false;
     for (AbstractIndexDescriptor i : modifiedIndexes)
     {
       if (i.getName().equals(index.getName()) &&
           i.getBackend().getBackendID().equals(
               index.getBackend().getBackendID()))
       {
-        mustReindex = true;
-        break;
+        return true;
       }
     }
-    return mustReindex;
+    return false;
   }
 
   /**
@@ -217,8 +214,8 @@ public class ControlPanelInfo
   /**
    * Unregisters a modified index.
    * @param index the index.
-   * @return <CODE>true</CODE> if the index is found in the list of modified
-   * indexes and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the index is found in the list of modified
+   * indexes, {@code false} otherwise.
    */
   public boolean unregisterModifiedIndex(AbstractIndexDescriptor index)
   {
@@ -257,8 +254,7 @@ public class ControlPanelInfo
     {
       // Compare only the Backend ID, since the backend object attached to
       // the registered index might have changed (for instance the number of
-      // entries).  Relying on the backend ID to identify the backend is
-      // safe.
+      // entries).  Relying on the backend ID to identify the backend is safe.
       if (index.getBackend().getBackendID().equalsIgnoreCase(backendName))
       {
         toDelete.add(index);
@@ -411,7 +407,7 @@ public class ControlPanelInfo
     desc.setIsLocal(isLocal);
     if (isLocal)
     {
-      desc.setOpenDSVersion(DynamicConstants.FULL_VERSION_STRING);
+      desc.setOpenDJVersion(DynamicConstants.FULL_VERSION_STRING);
       String installPath = Utilities.getInstallPathFromClasspath();
       desc.setInstallPath(installPath);
       desc.setInstancePath(Utils.getInstancePathFromInstallPath(installPath));
@@ -526,7 +522,7 @@ public class ControlPanelInfo
           desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
           desc.setSystemInformationMonitor(rCtx.getSystemInformation());
           desc.setWorkQueueMonitor(rCtx.getWorkQueue());
-          desc.setOpenDSVersion(rCtx.getVersionMonitor().getAttribute("fullVersion").firstValueAsString());
+          desc.setOpenDJVersion(rCtx.getVersionMonitor().getAttribute("fullVersion").firstValueAsString());
           String installPath = rCtx.getSystemInformation().getAttribute("installPath").firstValueAsString();
           if (installPath != null)
           {
@@ -631,8 +627,7 @@ public class ControlPanelInfo
   /**
    * Removes a configuration change listener.
    * @param listener the listener.
-   * @return <CODE>true</CODE> if the listener is found and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the listener is found, {@code false} otherwise.
    */
   public boolean removeConfigChangeListener(ConfigChangeListener listener)
   {
@@ -651,8 +646,7 @@ public class ControlPanelInfo
   /**
    * Removes a backup creation listener.
    * @param listener the listener.
-   * @return <CODE>true</CODE> if the listener is found and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the listener is found, {@code false} otherwise.
    */
   public boolean removeBackupCreatedListener(BackupCreatedListener listener)
   {
@@ -671,8 +665,7 @@ public class ControlPanelInfo
   /**
    * Removes a backend populated listener.
    * @param listener the listener.
-   * @return <CODE>true</CODE> if the listener is found and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the listener is found, {@code false} otherwise.
    */
   public boolean removeBackendPopulatedListener(
       BackendPopulatedListener listener)
@@ -692,8 +685,7 @@ public class ControlPanelInfo
   /**
    * Removes an index modification listener.
    * @param listener the listener.
-   * @return <CODE>true</CODE> if the listener is found and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the listener is found, {@code false} otherwise.
    */
   public boolean removeIndexModifiedListener(IndexModifiedListener listener)
   {
@@ -826,7 +818,7 @@ public class ControlPanelInfo
 
   /**
    * Gets the LDAPS URL based in what is read in the configuration. It
-   * returns <CODE>null</CODE> if no LDAPS URL was found.
+   * returns {@code null} if no LDAPS URL was found.
    * @return the LDAPS URL to be used to connect to the server.
    */
   public String getLDAPSURL()
@@ -836,7 +828,7 @@ public class ControlPanelInfo
 
   /**
    * Gets the Administration Connector URL based in what is read in the
-   * configuration. It returns <CODE>null</CODE> if no Administration
+   * configuration. It returns {@code null} if no Administration
    * Connector URL was found.
    * @return the Administration Connector URL to be used to connect
    * to the server.
@@ -845,9 +837,8 @@ public class ControlPanelInfo
   {
     if (isLocal)
     {
-      // If the user set isLocal to true, we want to return the
-      // localAdminConnectorURL (in particular if regenerateDescriptor has not
-      // been called).
+      // If the user set isLocal to true, we want to return the localAdminConnectorURL
+      // (in particular if regenerateDescriptor has not been called).
       return localAdminConnectorURL;
     }
     return adminConnectorURL;
@@ -855,7 +846,7 @@ public class ControlPanelInfo
 
   /**
    * Gets the Administration Connector URL based in what is read in the local
-   * configuration. It returns <CODE>null</CODE> if no Administration
+   * configuration. It returns {@code null} if no Administration
    * Connector URL was found.
    * @return the Administration Connector URL to be used to connect
    * to the local server.
@@ -866,8 +857,8 @@ public class ControlPanelInfo
   }
 
   /**
-   * Gets the LDAP URL based in what is read in the configuration. It
-   * returns <CODE>null</CODE> if no LDAP URL was found.
+   * Gets the LDAP URL based in what is read in the configuration.
+   * It returns {@code null} if no LDAP URL was found.
    * @return the LDAP URL to be used to connect to the server.
    */
   public String getLDAPURL()
@@ -877,7 +868,7 @@ public class ControlPanelInfo
 
   /**
    * Gets the Start TLS URL based in what is read in the configuration. It
-   * returns <CODE>null</CODE> if no Start TLS URL is found.
+   * returns {@code null} if no Start TLS URL is found.
    * @return the Start TLS URL to be used to connect to the server.
    */
   public String getStartTLSURL()
@@ -887,7 +878,7 @@ public class ControlPanelInfo
 
   /**
    * Returns the LDAP URL to be used to connect to a given ServerDescriptor
-   * using a certain protocol. It returns <CODE>null</CODE> if URL for the
+   * using a certain protocol. It returns {@code null} if URL for the
    * protocol is not found.
    * @param server the server descriptor.
    * @param protocol the protocol to be used.
@@ -936,11 +927,10 @@ public class ControlPanelInfo
     switch (protocol)
     {
     case LDAP:
+    case LDAP_STARTTLS:
       return "ldap";
     case LDAPS:
       return "ldaps";
-    case LDAP_STARTTLS:
-      return "ldap";
     case JMX:
       return "jmx";
     case JMXS:
@@ -952,8 +942,7 @@ public class ControlPanelInfo
 
   /**
    * Returns the Administration Connector URL.
-   * It returns <CODE>null</CODE> if URL for the
-   * protocol is not found.
+   * It returns {@code null} if URL for the protocol is not found.
    * @param server the server descriptor.
    * @return the Administration Connector URL.
    */
@@ -980,8 +969,8 @@ public class ControlPanelInfo
 
   /**
    * Tells whether we must connect to the server using Start TLS.
-   * @return <CODE>true</CODE> if we must connect to the server using Start TLS
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must connect to the server using Start TLS
+   * and {@code false} otherwise.
    */
   public boolean connectUsingStartTLS()
   {
@@ -990,8 +979,7 @@ public class ControlPanelInfo
 
   /**
    * Tells whether we must connect to the server using LDAPS.
-   * @return <CODE>true</CODE> if we must connect to the server using LDAPS
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must connect to the server using LDAPS, {@code false} otherwise.
    */
   public boolean connectUsingLDAPS()
   {
@@ -1074,10 +1062,9 @@ public class ControlPanelInfo
   }
 
   /**
-   * Returns <CODE>true</CODE> if we are trying to manage the local host and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we are trying to manage the local host and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether we are trying to manage the local host.
+   * @return {@code true} if we are trying to manage the local host,
+   * {@code false} otherwise.
    */
   public boolean isLocal()
   {
@@ -1103,8 +1090,8 @@ public class ControlPanelInfo
   }
 
   /**
-   * Returns the pooling period in miliseconds.
-   * @return the pooling period in miliseconds.
+   * Returns the pooling period in milliseconds.
+   * @return the pooling period in milliseconds.
    */
   public long getPoolingPeriod()
   {
@@ -1145,8 +1132,8 @@ public class ControlPanelInfo
    * path if it is local).
    * @param server the server.
    * @param task the task to be analyzed.
-   * @return <CODE>true</CODE> if the provided task is running on the provided
-   * server and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided task is running on the provided server,
+   * {@code false} otherwise.
    */
   private boolean isRunningOnServer(ServerDescriptor server, Task task)
   {

@@ -16,12 +16,15 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.Utils;
 import org.opends.admin.ads.ADSContext;
 
 /** The class that describes the backend configuration. */
@@ -120,7 +123,6 @@ public class BackendDescriptor
   {
     return vlvIndexes;
   }
-
 
   /**
    * Returns the index objects associated with the backend.
@@ -231,8 +233,8 @@ public class BackendDescriptor
    * An convenience method to know if the provided ID corresponds to a
    * configuration backend or not.
    * @param id the backend ID to analyze
-   * @return <CODE>true</CODE> if the the id corresponds to a configuration
-   * backend and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the the id corresponds to a configuration backend,
+   *         {@code false} otherwise.
    */
   private boolean isConfigBackend(String id)
   {
@@ -247,8 +249,7 @@ public class BackendDescriptor
 
   /**
    * Tells whether this is a configuration backend or not.
-   * @return <CODE>true</CODE> if this is a configuration backend and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if this is a configuration backend, {@code false} otherwise.
    */
   public boolean isConfigBackend()
   {
@@ -287,8 +288,7 @@ public class BackendDescriptor
 
   /**
    * Tells whether this backend is enabled or not.
-   * @return <CODE>true</CODE> if this is backend is enabled
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if this is backend is enabled, {@code false} otherwise.
    */
   public boolean isEnabled()
   {
@@ -311,5 +311,19 @@ public class BackendDescriptor
   public PluggableType getPluggableType()
   {
     return pluggableType;
+  }
+
+  @Override
+  public String toString()
+  {
+    Set<DN> baseDNs = new HashSet<>();
+    for (BaseDNDescriptor baseDn : this.baseDns)
+    {
+      baseDNs.add(baseDn.getDn());
+    }
+    return getClass().getSimpleName()
+        + "(backendID=" + backendID
+        + ", isEnabled=" + isEnabled
+        + ", baseDNs=" + Utils.joinAsString(",", baseDNs) + ")";
   }
 }

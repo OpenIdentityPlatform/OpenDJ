@@ -16,7 +16,8 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.server.util.SchemaUtils.getElementDefinitionWithFileName;
+import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
+import static org.opends.server.util.SchemaUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
@@ -38,8 +40,6 @@ import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;
-
-import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
 
 /**
  * This is just a class used to provide a data model describing what the
@@ -57,7 +57,7 @@ public class ServerDescriptor
   private Set<DN> administrativeUsers = new HashSet<>();
   private String installPath;
   private String instancePath;
-  private String openDSVersion;
+  private String openDJVersion;
   private String javaVersion;
   private ArrayList<Exception> exceptions = new ArrayList<>();
   private boolean isWindowsServiceEnabled;
@@ -119,8 +119,7 @@ public class ServerDescriptor
 
   /**
    * Returns whether the schema is enabled or not.
-   * @return <CODE>true</CODE> if the schema is enabled and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the schema is enabled, {@code false} otherwise.
    */
   public boolean isSchemaEnabled()
   {
@@ -129,8 +128,7 @@ public class ServerDescriptor
 
   /**
    * Sets whether the schema is enabled or not.
-   * @param isSchemaEnabled <CODE>true</CODE> if the schema is enabled and
-   * <CODE>false</CODE> otherwise.
+   * @param isSchemaEnabled {@code true} if the schema is enabled, {@code false} otherwise.
    */
   public void setSchemaEnabled(boolean isSchemaEnabled)
   {
@@ -256,16 +254,16 @@ public class ServerDescriptor
    */
   public String getOpenDSVersion()
   {
-    return openDSVersion;
+    return openDJVersion;
   }
 
   /**
    * Sets the version of the server.
    * @param openDSVersion the version of the server.
    */
-  public void setOpenDSVersion(String openDSVersion)
+  public void setOpenDJVersion(String openDSVersion)
   {
-    this.openDSVersion = openDSVersion;
+    this.openDJVersion = openDSVersion;
   }
 
   /**
@@ -321,14 +319,14 @@ public class ServerDescriptor
         && desc.isLocal() == isLocal()
         && desc.isAuthenticated() == isAuthenticated()
         && desc.getOpenConnections() == getOpenConnections()
-        && areEqual(getInstallPath(), desc.getInstallPath())
-        && areEqual(getInstancePath(), desc.getInstancePath())
-        && areEqual(getJavaVersion(), desc.getJavaVersion())
-        && areEqual(getOpenDSVersion(), desc.getOpenDSVersion())
-        && areEqual(desc.getAdministrativeUsers(), getAdministrativeUsers())
-        && areEqual(desc.getConnectionHandlers(), getConnectionHandlers())
-        && areEqual(desc.getBackends(), getBackends())
-        && areEqual(desc.getExceptions(), getExceptions())
+        && Objects.equals(getInstallPath(), desc.getInstallPath())
+        && Objects.equals(getInstancePath(), desc.getInstancePath())
+        && Objects.equals(getJavaVersion(), desc.getJavaVersion())
+        && Objects.equals(getOpenDSVersion(), desc.getOpenDSVersion())
+        && Objects.equals(desc.getAdministrativeUsers(), getAdministrativeUsers())
+        && Objects.equals(desc.getConnectionHandlers(), getConnectionHandlers())
+        && Objects.equals(desc.getBackends(), getBackends())
+        && Objects.equals(desc.getExceptions(), getExceptions())
         && desc.isSchemaEnabled() == isSchemaEnabled()
         && areSchemasEqual(getSchema(), desc.getSchema())
         && (!OperatingSystem.isWindows() || desc.isWindowsServiceEnabled() == isWindowsServiceEnabled())
@@ -338,16 +336,15 @@ public class ServerDescriptor
   @Override
   public int hashCode()
   {
-    String s = installPath + openDSVersion + javaVersion + isAuthenticated;
+    String s = installPath + openDJVersion + javaVersion + isAuthenticated;
     return status.hashCode() + openConnections + s.hashCode();
   }
 
   /**
    * Return whether we were authenticated when retrieving the information of
    * this ServerStatusDescriptor.
-   * @return <CODE>true</CODE> if we were authenticated when retrieving the
-   * information of this ServerStatusDescriptor and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if we were authenticated when retrieving the
+   * information of this ServerStatusDescriptor and {@code false} otherwise.
    */
   public boolean isAuthenticated()
   {
@@ -438,10 +435,8 @@ public class ServerDescriptor
   }
 
   /**
-   * Returns <CODE>true</CODE> if we are trying to manage the local host and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we are trying to manage the local host and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether we are trying to manage the local host.
+   * @return {@code true} if we are trying to manage the local host, {@code false} otherwise.
    */
   public boolean isLocal()
   {
@@ -481,8 +476,7 @@ public class ServerDescriptor
 
   /**
    * Tells whether the windows service is enabled or not.
-   * @return <CODE>true</CODE> if the windows service is enabled and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the windows service is enabled, {@code false} otherwise.
    */
   public boolean isWindowsServiceEnabled()
   {
@@ -491,8 +485,8 @@ public class ServerDescriptor
 
   /**
    * Sets whether the windows service is enabled or not.
-   * @param isWindowsServiceEnabled <CODE>true</CODE> if the windows service is
-   * enabled and <CODE>false</CODE> otherwise.
+   * @param isWindowsServiceEnabled {@code true} if the windows service is
+   * enabled, {@code false} otherwise.
    */
   public void setWindowsServiceEnabled(boolean isWindowsServiceEnabled)
   {
@@ -520,12 +514,10 @@ public class ServerDescriptor
 
   /**
    * Method used to compare schemas.
-   * Returns <CODE>true</CODE> if the two schemas are equal and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the two schemas are equal.
    * @param schema1 the first schema.
    * @param schema2 the second schema.
-   * @return <CODE>true</CODE> if the two schemas are equal and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the two schemas are equal, {@code false} otherwise.
    */
   public static boolean areSchemasEqual(Schema schema1, Schema schema2)
   {
@@ -544,8 +536,8 @@ public class ServerDescriptor
 
     return areAttributeTypesEqual(schema1, schema2)
         && areObjectClassesEqual(schema1, schema2)
-        && areEqual(schema1.getMatchingRules(), schema2.getMatchingRules())
-        && areEqual(schema1.getSyntaxes(), schema2.getSyntaxes());
+        && Objects.equals(schema1.getMatchingRules(), schema2.getMatchingRules())
+        && Objects.equals(schema1.getSyntaxes(), schema2.getSyntaxes());
   }
 
   private static boolean areAttributeTypesEqual(Schema schema1, Schema schema2)
@@ -591,12 +583,10 @@ public class ServerDescriptor
 
   /**
    * Method used to compare attributes defined in the schema.
-   * Returns <CODE>true</CODE> if the two schema attributes are equal and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the two schema attributes are equal.
    * @param schema1 the first schema attribute.
    * @param schema2 the second schema attribute.
-   * @return <CODE>true</CODE> if the two schema attributes are equal and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the two schema attributes are equal, {@code false} otherwise.
    */
   private static boolean areAttributesEqual(AttributeType attr1, AttributeType attr2)
   {
@@ -607,39 +597,37 @@ public class ServerDescriptor
         && attr1.isObsolete() == attr2.isObsolete()
         && attr1.isOperational() == attr2.isOperational()
         && attr1.isSingleValue() == attr2.isSingleValue()
-        && areEqual(attr1.getApproximateMatchingRule(), attr2.getApproximateMatchingRule())
-        && areEqual(getElementDefinitionWithFileName(attr1), getElementDefinitionWithFileName(attr2))
-        && areEqual(attr1.getDescription(), attr2.getDescription())
-        && areEqual(attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule())
-        && areEqual(attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule())
-        && areEqual(attr1.getSubstringMatchingRule(), attr2.getSubstringMatchingRule())
-        && areEqual(attr1.getSuperiorType(), attr2.getSuperiorType())
-        && areEqual(attr1.getSyntax(), attr2.getSyntax())
-        && areEqual(attr1.getSyntax().getOID(), attr2.getSyntax().getOID())
-        && areEqual(attr1.getExtraProperties().keySet(), attr2.getExtraProperties().keySet())
-        && areEqual(toSet(attr1.getNames()), toSet(attr2.getNames()));
+        && Objects.equals(attr1.getApproximateMatchingRule(), attr2.getApproximateMatchingRule())
+        && Objects.equals(getElementDefinitionWithFileName(attr1), getElementDefinitionWithFileName(attr2))
+        && Objects.equals(attr1.getDescription(), attr2.getDescription())
+        && Objects.equals(attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule())
+        && Objects.equals(attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule())
+        && Objects.equals(attr1.getSubstringMatchingRule(), attr2.getSubstringMatchingRule())
+        && Objects.equals(attr1.getSuperiorType(), attr2.getSuperiorType())
+        && Objects.equals(attr1.getSyntax(), attr2.getSyntax())
+        && Objects.equals(attr1.getSyntax().getOID(), attr2.getSyntax().getOID())
+        && Objects.equals(attr1.getExtraProperties().keySet(), attr2.getExtraProperties().keySet())
+        && Objects.equals(toSet(attr1.getNames()), toSet(attr2.getNames()));
   }
 
   /**
    * Method used to compare objectclasses defined in the schema.
-   * Returns <CODE>true</CODE> if the two schema objectclasses are equal and
-   * <CODE>false</CODE> otherwise.
+   * Returns whether the two schema objectclasses are equal.
    * @param schema1 the first schema objectclass.
    * @param schema2 the second schema objectclass.
-   * @return <CODE>true</CODE> if the two schema objectclasses are equal and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the two schema objectclasses are equal, {@code false} otherwise.
    */
   private static boolean areObjectClassesEqual(ObjectClass oc1, ObjectClass oc2)
   {
     return oc1.getOID().equals(oc2.getOID())
-        && areEqual(getElementDefinitionWithFileName(oc1), getElementDefinitionWithFileName(oc2))
-        && areEqual(oc1.getDescription(), oc2.getDescription())
-        && areEqual(oc1.getObjectClassType(), oc2.getObjectClassType())
-        && areEqual(oc1.getDeclaredOptionalAttributes(), oc2.getDeclaredOptionalAttributes())
-        && areEqual(oc1.getDeclaredRequiredAttributes(), oc2.getDeclaredRequiredAttributes())
-        && areEqual(oc1.getSuperiorClasses(), oc2.getSuperiorClasses())
-        && areEqual(oc1.getExtraProperties().keySet(), oc2.getExtraProperties().keySet())
-        && areEqual(toSet(oc1.getNames()), toSet(oc2.getNames()));
+        && Objects.equals(getElementDefinitionWithFileName(oc1), getElementDefinitionWithFileName(oc2))
+        && Objects.equals(oc1.getDescription(), oc2.getDescription())
+        && Objects.equals(oc1.getObjectClassType(), oc2.getObjectClassType())
+        && Objects.equals(oc1.getDeclaredOptionalAttributes(), oc2.getDeclaredOptionalAttributes())
+        && Objects.equals(oc1.getDeclaredRequiredAttributes(), oc2.getDeclaredRequiredAttributes())
+        && Objects.equals(oc1.getSuperiorClasses(), oc2.getSuperiorClasses())
+        && Objects.equals(oc1.getExtraProperties().keySet(), oc2.getExtraProperties().keySet())
+        && Objects.equals(toSet(oc1.getNames()), toSet(oc2.getNames()));
   }
 
   private static Set<Object> toSet(Iterable<?> iterable)
@@ -650,24 +638,6 @@ public class ServerDescriptor
       s.add(o);
     }
     return s;
-  }
-
-  /**
-   * Commodity method used to compare two objects that might be
-   * <CODE>null</CODE>.
-   * @param o1 the first object.
-   * @param o2 the second object.
-   * @return if both objects are <CODE>null</CODE> returns true.  If not returns
-   * <CODE>true</CODE> if both objects are equal according to the Object.equal
-   * method and <CODE>false</CODE> otherwise.
-   */
-  private static boolean areEqual(Object o1, Object o2)
-  {
-    if (o1 != null)
-    {
-      return o1.equals(o2);
-    }
-    return o2 == null;
   }
 
   /**
@@ -807,5 +777,16 @@ public class ServerDescriptor
   public SearchResultEntry getWorkQueueMonitor()
   {
     return workQueue;
+  }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName()
+        + "(hostName=" + hostName
+        + ", openDJVersion=" + openDJVersion
+        + ", status=" + status
+        + ", isLocal=" + isLocal
+        + ", backends=" + backends + ")";
   }
 }

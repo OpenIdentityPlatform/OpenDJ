@@ -73,8 +73,7 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
     }
     if (isPassword(table, row, column))
     {
-      return getStringValue(table, OBFUSCATED_VALUE, isSelected,
-          hasFocus, row, column);
+      return getStringValue(table, OBFUSCATED_VALUE, isSelected, hasFocus, row, column);
     }
     else if (value instanceof ObjectClassValue)
     {
@@ -82,34 +81,25 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
       ocPanel.setLockIconVisible(!cellEditable);
       ocPanel.setEditButtonVisible(cellEditable);
       ocPanel.setValue((ObjectClassValue)value);
-      if (hasFocus)
-      {
-        ocPanel.setBorder(getDefaultFocusBorder(table, value, isSelected, row, column));
-      }
-      else
-      {
-        ocPanel.setBorder(defaultBorder);
-      }
+      ocPanel.setBorder(hasFocus
+          ? getDefaultFocusBorder(table, value, isSelected, row, column)
+          : defaultBorder);
       updateComponent(ocPanel, table, row, column, isSelected);
       return ocPanel;
     }
     else if (value instanceof byte[] || value instanceof BinaryValue)
     {
+      boolean isImage = isImage(table, row, column);
       if (value instanceof byte[])
       {
-        if (((byte[])value).length > 0)
-        {
-          binaryPanel.setValue((byte[])value, isImage(table, row, column));
-        }
-        else
-        {
-          binaryPanel.setValue((byte[])null, isImage(table, row, column));
-        }
+        byte[] bytes = (byte[]) value;
+        binaryPanel.setValue(bytes.length > 0 ? bytes : null, isImage);
       }
       else
       {
-        binaryPanel.setValue((BinaryValue)value, isImage(table, row, column));
+        binaryPanel.setValue((BinaryValue) value, isImage);
       }
+
       if (!table.isCellEditable(row, column))
       {
         binaryPanel.setLockIconVisible(true);
@@ -120,15 +110,10 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
         binaryPanel.setLockIconVisible(false);
         binaryPanel.setEditButtonText(INFO_CTRL_PANEL_EDIT_BUTTON_LABEL.get());
       }
-      if (hasFocus)
-      {
-        binaryPanel.setBorder(getDefaultFocusBorder(table, value, isSelected,
-            row, column));
-      }
-      else
-      {
-        binaryPanel.setBorder(defaultBorder);
-      }
+
+      binaryPanel.setBorder(hasFocus
+          ? getDefaultFocusBorder(table, value, isSelected, row, column)
+          : defaultBorder);
       updateComponent(binaryPanel, table, row, column, isSelected);
       return binaryPanel;
     }
@@ -173,19 +158,24 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
   {
     super.getTableCellRendererComponent(table, value, isSelected,
         hasFocus, row, column);
+    lockLabel.setIcon(getIcon(table, row, column, isSelected));
+    return this;
+  }
+
+  private ImageIcon getIcon(JTable table, int row, int column, boolean isSelected)
+  {
     if (table.isCellEditable(row, column) && !isSelected)
     {
-      lockLabel.setIcon(null);
+      return null;
     }
     else if (column == 1 && !table.isCellEditable(row, column))
     {
-      lockLabel.setIcon(lockIcon);
+      return lockIcon;
     }
     else
     {
-      lockLabel.setIcon(null);
+      return null;
     }
-    return this;
   }
 
   private boolean isPassword(JTable table, int row, int col)

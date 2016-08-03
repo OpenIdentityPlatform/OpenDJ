@@ -14,11 +14,9 @@
  * Copyright 2008-2011 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import org.forgerock.opendj.ldap.DN;
-
 
 /**
  * This class is used to represent a Base DN / Replica and is aimed to be
@@ -37,12 +35,12 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     DISABLED
   }
 
+  private final DN baseDn;
+  private BackendDescriptor backend;
+  private Type type;
   private int nEntries;
   private int missingChanges;
-  private BackendDescriptor backend;
   private long ageOfOldestMissingChange;
-  private Type type;
-  private final DN baseDn;
   private int replicaID = -1;
 
   private int hashCode;
@@ -105,9 +103,9 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
   private boolean backendIdEqual(BaseDNDescriptor desc)
   {
     // Only compare the backend IDs.  In this context is enough
-    return getBackend() != null
-        && desc.getBackend() != null
-        && getBackend().getBackendID().equals(desc.getBackend().getBackendID());
+    final BackendDescriptor b1 = getBackend();
+    final BackendDescriptor b2 = desc.getBackend();
+    return b1 != null && b2 != null && b1.getBackendID().equals(b2.getBackendID());
   }
 
   @Override
@@ -218,7 +216,6 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     return backend;
   }
 
-
   /**
    * Sets the backend of this base DN.
    * @param backend the backend for this base DN.
@@ -277,9 +274,9 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
    */
   private void recalculateHashCode()
   {
-    hashCode = (getType().toString() + getAgeOfOldestMissingChange() +
-          getDn() +
-        getBackend().getBackendID() + getMissingChanges()).hashCode();
+    String s = ""
+        + getType() + getAgeOfOldestMissingChange() + getDn() + getBackend().getBackendID() + getMissingChanges();
+    hashCode = s.hashCode();
   }
 
   private int compare(int i1, int i2)
@@ -312,5 +309,16 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     {
       return -1;
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName()
+        + "(baseDN=" + baseDn
+        + ", nbEntries=" + nEntries
+        + ", missingChanges=" + missingChanges
+        + ", ageOfOldestMissingChange=" + ageOfOldestMissingChange
+        + ")";
   }
 }

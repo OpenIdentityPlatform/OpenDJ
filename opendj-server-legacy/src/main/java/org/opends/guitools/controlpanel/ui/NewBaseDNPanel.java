@@ -597,19 +597,20 @@ public class NewBaseDNPanel extends StatusGenericPanel
       final DN theDN = DN.valueOf(dn);
       for (final BackendDescriptor backend : existingBackends)
       {
-        for (final BaseDNDescriptor baseDN : backend.getBaseDns())
+        for (final BaseDNDescriptor baseDNDescriptor : backend.getBaseDns())
         {
-          if (baseDN.getDn().equals(theDN))
+          DN baseDN = baseDNDescriptor.getDn();
+          if (baseDN.equals(theDN))
           {
             return invalidBaseDNValue(dn, ERR_BASE_DN_ALREADY_EXISTS.get(dn), errors);
           }
-          else if (baseDN.getDn().isSuperiorOrEqualTo(theDN) && backendName.equalsIgnoreCase(backend.getBackendID()))
+          else if (baseDN.isSuperiorOrEqualTo(theDN) && backendName.equalsIgnoreCase(backend.getBackendID()))
           {
-            return invalidBaseDNValue(dn, ERR_BASE_DN_ANCESTOR_EXISTS.get(baseDN.getDn()), errors);
+            return invalidBaseDNValue(dn, ERR_BASE_DN_ANCESTOR_EXISTS.get(baseDN), errors);
           }
-          else if (theDN.isSuperiorOrEqualTo(baseDN.getDn()) && backendName.equalsIgnoreCase(backend.getBackendID()))
+          else if (theDN.isSuperiorOrEqualTo(baseDN) && backendName.equalsIgnoreCase(backend.getBackendID()))
           {
-            return invalidBaseDNValue(dn, ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN.getDn()), errors);
+            return invalidBaseDNValue(dn, ERR_BASE_DN_DN_IS_ANCESTOR_OF.get(baseDN), errors);
           }
         }
       }
@@ -676,7 +677,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       return backendName.toString();
     }
-
     return null;
   }
 
@@ -695,7 +695,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
   {
     private final Set<String> backendSet;
     private final String newBaseDN;
-    private int progressAfterConfigurationUpdate = -1;
+    private final int progressAfterConfigurationUpdate;
 
     /**
      * The constructor of the task.
@@ -711,31 +711,36 @@ public class NewBaseDNPanel extends StatusGenericPanel
       backendSet = new HashSet<>();
       backendSet.add(getBackendName());
       newBaseDN = baseDN.getText();
+      progressAfterConfigurationUpdate = computeProgress();
+    }
 
+    private int computeProgress()
+    {
       if (onlyCreateBaseEntry.isSelected())
       {
-        progressAfterConfigurationUpdate = 40;
+        return 40;
       }
       else if (leaveDatabaseEmpty.isSelected())
       {
-        progressAfterConfigurationUpdate = 90;
+        return 90;
       }
       else if (importAutomaticallyGenerated.isSelected())
       {
         int nEntries = Integer.parseInt(numberOfEntries.getText().trim());
         if (nEntries < 500)
         {
-          progressAfterConfigurationUpdate = 30;
+          return 30;
         }
         else if (nEntries < 3000)
         {
-          progressAfterConfigurationUpdate = 15;
+          return 15;
         }
         else
         {
-          progressAfterConfigurationUpdate = 5;
+          return 5;
         }
       }
+      return -1;
     }
 
     @Override
@@ -787,7 +792,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         return getCommandLinePath(isLocal() ? "import-ldif" : "ldapmodify");
       }
-
       return null;
     }
 
@@ -869,22 +873,16 @@ public class NewBaseDNPanel extends StatusGenericPanel
 
     private void updateConfigurationOffline() throws Exception
     {
-      boolean configHandlerUpdated = false;
+      stopPoolingAndInitializeConfiguration();
       try
       {
-        stopPoolingAndInitializeConfiguration();
-        configHandlerUpdated = true;
-
         performTask();
         printTaskDone();
         refreshProgressBar();
       }
       finally
       {
-        if (configHandlerUpdated)
-        {
-          startPoolingAndInitializeConfiguration();
-        }
+        startPoolingAndInitializeConfiguration();
       }
     }
 
@@ -922,10 +920,11 @@ public class NewBaseDNPanel extends StatusGenericPanel
       if (!isServerRunning())
       {
         createBackendOffline(backendName);
-        return;
       }
-
-      createBackendOnline(backendName);
+      else
+      {
+        createBackendOnline(backendName);
+      }
     }
 
     private void createBackendOffline(String backendName) throws OpenDsException
