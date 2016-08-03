@@ -48,6 +48,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -249,7 +250,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @throws IllegalArgumentException if a node with the given dn exists but
    * is not a suffix node.
    */
-  public boolean hasSuffix(String suffixDn) throws IllegalArgumentException
+  public boolean hasSuffix(DN suffixDn) throws IllegalArgumentException
   {
     return findSuffixNode(suffixDn, rootNode) != null;
   }
@@ -263,15 +264,13 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @return the TreePath of the new node.
    * @throws IllegalArgumentException if a node with the given dn exists.
    */
-  public TreePath addSuffix(String suffixDn, String parentSuffixDn)
-  throws IllegalArgumentException
+  public TreePath addSuffix(DN suffixDn, DN parentSuffixDn) throws IllegalArgumentException
   {
     SuffixNode parentNode;
     if (parentSuffixDn != null) {
       parentNode = findSuffixNode(parentSuffixDn, rootNode);
       if (parentNode == null) {
-        throw new IllegalArgumentException("Invalid suffix dn " +
-            parentSuffixDn);
+        throw new IllegalArgumentException("Invalid suffix dn " + parentSuffixDn);
       }
     }
     else {
@@ -295,7 +294,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param nodeDn the DN of the node to be added.
    * @return the TreePath of the new node.
    */
-  public TreePath addNodeUnderRoot(String nodeDn) {
+  public TreePath addNodeUnderRoot(DN nodeDn) {
     SuffixNode parentNode = rootNode;
     int index = findChildNode(parentNode, nodeDn);
     if (index >= 0) { // A node has already this dn -> bug
@@ -530,8 +529,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param newEntryDn the dn of the entry to be added.
    * @return the tree path associated with the new entry.
    */
-  public TreePath notifyEntryAdded(BrowserNodeInfo parentInfo,
-      String newEntryDn) {
+  public TreePath notifyEntryAdded(BrowserNodeInfo parentInfo, DN newEntryDn) {
     BasicNode parentNode = parentInfo.getNode();
     BasicNode childNode = new BasicNode(newEntryDn);
     int childIndex;
@@ -916,15 +914,16 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
     if (node instanceof SuffixNode)
     {
-      String dn = node.getDN();
-      return Utilities.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN().toString()) ||
-          Utilities.areDnsEqual(dn, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT) ||
-          Utilities.areDnsEqual(dn, ConfigConstants.DN_TASK_ROOT) ||
-          Utilities.areDnsEqual(dn, ConfigConstants.DN_CONFIG_ROOT) ||
-          Utilities.areDnsEqual(dn, ConfigConstants.DN_MONITOR_ROOT) ||
-          Utilities.areDnsEqual(dn, ConfigConstants.DN_TRUST_STORE_ROOT) ||
-          Utilities.areDnsEqual(dn, ConfigConstants.DN_BACKUP_ROOT) ||
-          Utilities.areDnsEqual(dn, DN_EXTERNAL_CHANGELOG_ROOT);
+      DN dn = node.getDN();
+      String dnStr = dn.toString();
+      return dn.equals(ADSContext.getAdministrationSuffixDN()) ||
+          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT) ||
+          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_TASK_ROOT) ||
+          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_CONFIG_ROOT) ||
+          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_MONITOR_ROOT) ||
+          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_TRUST_STORE_ROOT) ||
+          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_BACKUP_ROOT) ||
+          Utilities.areDnsEqual(dnStr, DN_EXTERNAL_CHANGELOG_ROOT);
     }
     else
     {
@@ -988,9 +987,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (parent != null)
     {
       final LDAPURL parentUrl = findUrlForDisplayedEntry(parent);
-      return LDAPConnectionPool.makeLDAPUrl(parentUrl, node.getDN());
+      return LDAPConnectionPool.makeLDAPUrl(parentUrl, node.getDN().toString());
     }
-    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN(), connConfig.isLdaps());
+    return LDAPConnectionPool.makeLDAPUrl(connConfig.getHostPort(), node.getDN().toString(), connConfig.isLdaps());
   }
 
   /**
@@ -1019,7 +1018,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (followReferrals && node.getRemoteUrl() != null) {
       return node.getRemoteUrl().getRawBaseDN();
     }
-    return node.getDN();
+    return node.getDN().toString();
   }
 
   /**
@@ -1371,7 +1370,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       // Search a child node matching the DN of the entry
       int index;
       if (differential) {
-        index = findChildNode(parent, entry.getName().toString());
+        index = findChildNode(parent, entry.getName());
       }
       else {
         index = - (parent.getChildCount() + 1);
@@ -1382,7 +1381,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       if (index < 0) {
         // -(index + 1) is the location where to insert the new node
         index = -(index + 1);
-        child = new BasicNode(entry.getName().toString());
+        child = new BasicNode(entry.getName());
         parent.insert(child, index);
         updateNodeRendering(child, entry);
         insertIndex.add(index);
@@ -1614,7 +1613,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param childDn the DN of the entry that is being searched.
    * @return the index of the node matching childDn.
    */
-  public int findChildNode(BasicNode parent, String childDn) {
+  public int findChildNode(BasicNode parent, DN childDn) {
     int childCount = parent.getChildCount();
     int i = 0;
     while (i < childCount
@@ -1704,10 +1703,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @throws IllegalArgumentException if a node with the given dn exists but
    * is not a suffix node.
    */
-  private SuffixNode findSuffixNode(String suffixDn, SuffixNode suffixNode)
+  private SuffixNode findSuffixNode(DN suffixDn, SuffixNode suffixNode)
       throws IllegalArgumentException
   {
-    if (Utilities.areDnsEqual(suffixNode.getDN(), suffixDn)) {
+    if (suffixNode.getDN().equals(suffixDn)) {
       return suffixNode;
     }
 
@@ -1722,7 +1721,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     do
     {
       child = (BasicNode) suffixNode.getChildAt(i);
-      if (Utilities.areDnsEqual(child.getDN(), suffixDn))
+      if (child.getDN().equals(suffixDn))
       {
         found = true;
       }

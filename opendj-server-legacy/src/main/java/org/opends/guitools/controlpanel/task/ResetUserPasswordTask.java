@@ -70,7 +70,7 @@ public class ResetUserPasswordTask extends Task
     backendSet = new HashSet<>();
     this.node = node;
     this.newPassword = pwd;
-    dn = DN.valueOf(node.getDN());
+    dn = node.getDN();
 
     for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
@@ -112,8 +112,7 @@ public class ResetUserPasswordTask extends Task
   @Override
   public LocalizableMessage getTaskDescription()
   {
-    return INFO_CTRL_PANEL_RESET_USER_PASSWORD_TASK_DESCRIPTION.get(
-        node.getDN());
+    return INFO_CTRL_PANEL_RESET_USER_PASSWORD_TASK_DESCRIPTION.get(node.getDN());
   }
 
   @Override

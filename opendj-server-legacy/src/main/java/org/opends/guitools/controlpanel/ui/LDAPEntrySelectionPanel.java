@@ -126,7 +126,7 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
       dns = new String[paths.length];
       for (int i=0; i<paths.length; i++)
       {
-        dns[i] = ((BasicNode)paths[i].getLastPathComponent()).getDN();
+        dns[i] = ((BasicNode) paths[i].getLastPathComponent()).getDN().toString();
       }
     }
     else

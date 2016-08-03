@@ -12,9 +12,11 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.event;
+
+import org.forgerock.opendj.ldap.DN;
 
 //Note: in terms of synchronization, this implementation assumes that the
 //interrupt method is only called in the event thread (this class is used
@@ -27,7 +29,7 @@ public class EntryReadErrorEvent
 {
   private Object source;
   private Throwable t;
-  private String dn;
+  private DN dn;
 
   /**
    * Constructor for the event.
@@ -35,7 +37,7 @@ public class EntryReadErrorEvent
    * @param dn the DN of the entry we were searching.
    * @param t the throwable that we got as error.
    */
-  public EntryReadErrorEvent(Object source, String dn, Throwable t)
+  public EntryReadErrorEvent(Object source, DN dn, Throwable t)
   {
     this.source = source;
     this.t = t;
@@ -64,7 +66,7 @@ public class EntryReadErrorEvent
    * Returns the DN of the entry we were searching.
    * @return the DN of the entry we were searching.
    */
-  public String getDN()
+  public DN getDN()
   {
     return dn;
   }

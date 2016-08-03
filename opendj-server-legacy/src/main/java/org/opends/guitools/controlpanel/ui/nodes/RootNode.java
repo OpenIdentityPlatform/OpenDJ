@@ -14,8 +14,9 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui.nodes;
+
+import org.forgerock.opendj.ldap.DN;
 
 /**
  * The root node of the tree in the 'Manage Entries...' tree.  It represents
@@ -27,7 +28,7 @@ public class RootNode extends SuffixNode {
 
   /** Constructor of the node. */
   public RootNode() {
-    super("");
+    super(DN.rootDN());
     setLeaf(false);
     setRefreshNeededOnExpansion(false);
   }

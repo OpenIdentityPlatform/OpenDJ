@@ -335,8 +335,8 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
         {
           for (TreePath p : paths)
           {
-            BasicNode n = (BasicNode)p.getLastPathComponent();
-            if (!entryPane.canDelete(DN.valueOf(n.getDN())))
+            BasicNode n = (BasicNode) p.getLastPathComponent();
+            if (!entryPane.canDelete(n.getDN()))
             {
               return false;
             }
@@ -502,7 +502,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     }
     if (node != null)
     {
-      String dn;
+      DN dn;
       if (controller.getFollowReferrals() &&
           node.getReferral() != null &&
           node.getRemoteUrl() == null &&
@@ -511,13 +511,12 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       {
         // We are in the case where we are following referrals but the referral
         // could not be resolved.  Display an error.
-        entryPane.referralSolveError(node.getDN(), node.getReferral(),
-            node.getError());
+        entryPane.referralSolveError(node.getDN(), node.getReferral(), node.getError());
         dn = null;
       }
       else if (controller.getFollowReferrals() && node.getRemoteUrl() != null)
       {
-        dn = node.getRemoteUrl().getRawBaseDN();
+        dn = DN.valueOf(node.getRemoteUrl().getRawBaseDN());
       }
       else
       {
@@ -1069,8 +1068,8 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       LinkedHashSet<DN> dns = new LinkedHashSet<>();
       for (TreePath path : paths)
       {
-        BasicNode node = (BasicNode)path.getLastPathComponent();
-        dns.add(DN.valueOf(node.getDN()));
+        BasicNode node = (BasicNode) path.getLastPathComponent();
+        dns.add(node.getDN());
       }
       if (addToGroupDlg == null)
       {

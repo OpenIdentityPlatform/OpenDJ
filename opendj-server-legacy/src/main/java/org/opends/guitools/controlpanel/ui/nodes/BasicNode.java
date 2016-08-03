@@ -28,7 +28,7 @@ import org.opends.server.types.LDAPURL;
 public class BasicNode extends DefaultMutableTreeNode {
 
   private static final long serialVersionUID = 5441658731908509872L;
-  private String localDn;
+  private DN localDn;
   private String localRdn;
   private String localRdnWithAttributeName;
   private LDAPURL remoteUrl;
@@ -61,10 +61,10 @@ public class BasicNode extends DefaultMutableTreeNode {
    * Constructor.
    * @param dn the DN of the entry.
    */
-  public BasicNode(String dn) {
+  public BasicNode(DN dn) {
     localDn = dn;
-    localRdn = extractRDN(localDn);
-    localRdnWithAttributeName = extractRDN(localDn, true);
+    localRdn = extractRDN(localDn.toString());
+    localRdnWithAttributeName = extractRDN(localDn.toString(), true);
     isLeaf = true;
     refreshNeededOnExpansion = true;
     numSubOrdinates = -1;
@@ -77,7 +77,7 @@ public class BasicNode extends DefaultMutableTreeNode {
    * Returns the DN of the local entry.
    * @return the DN of the local entry.
    */
-  public String getDN() {
+  public DN getDN() {
     return localDn;
   }
 

@@ -187,44 +187,32 @@ public class NewEntryTask extends Task
         {
           getProgressDialog().appendProgressHtml(
               Utilities.getProgressDone(ColorAndFontConstants.progressFont));
+          final DN newEntryName = newEntry.getName();
           boolean entryInserted = false;
           if (parentNode != null)
           {
-            boolean isReallyParentNode = false;
-            try
-            {
-              DN parentDN = DN.valueOf(parentNode.getDN());
-              isReallyParentNode =
-                parentDN.equals(newEntry.getName().parent());
-            }
-            catch (Throwable t)
-            {
-              // Bug
-              t.printStackTrace();
-              isReallyParentNode = false;
-            }
+            boolean isReallyParentNode = parentNode.getDN().equals(newEntryName.parent());
             if (isReallyParentNode)
             {
-              insertNode(parentNode, newEntry.getName(),
-                  isBaseDN(newEntry.getName()));
+              insertNode(parentNode, newEntryName, isBaseDN(newEntryName));
               entryInserted = true;
             }
           }
           if (!entryInserted)
           {
             BasicNode root = (BasicNode)controller.getTreeModel().getRoot();
-            BasicNode realParentNode = findParentNode(newEntry.getName(), root);
+            BasicNode realParentNode = findParentNode(newEntryName, root);
             if (realParentNode != null)
             {
-              insertNode(realParentNode, newEntry.getName(), false);
+              insertNode(realParentNode, newEntryName, false);
             }
-            else if (isBaseDN(newEntry.getName()))
+            else if (isBaseDN(newEntryName))
             {
               int nRootChildren = controller.getTreeModel().getChildCount(controller.getTreeModel().getRoot());
               if (nRootChildren > 1)
               {
                 // Insert in the root.
-                insertNode(root, newEntry.getName(), true);
+                insertNode(root, newEntryName, true);
               }
             }
           }
@@ -269,29 +257,20 @@ public class NewEntryTask extends Task
     int nRootChildren = controller.getTreeModel().getChildCount(root);
     for (int i=0; i<nRootChildren; i++)
     {
-      BasicNode node =
-        (BasicNode)controller.getTreeModel().getChild(root, i);
-      try
+      BasicNode node = (BasicNode) controller.getTreeModel().getChild(root, i);
+      DN nodeDN = node.getDN();
+      if (dn.isSubordinateOrEqualTo(nodeDN))
       {
-        DN nodeDN = DN.valueOf(node.getDN());
-        if (dn.isSubordinateOrEqualTo(nodeDN))
+        if (dn.size() == nodeDN.size() + 1)
         {
-          if (dn.size() == nodeDN.size() + 1)
-          {
-            parentNode = node;
-            break;
-          }
-          else
-          {
-            parentNode = findParentNode(dn, node);
-            break;
-          }
+          parentNode = node;
+          break;
         }
-      }
-      catch (Throwable t)
-      {
-        // Bug
-        throw new RuntimeException("Unexpected error: "+t, t);
+        else
+        {
+          parentNode = findParentNode(dn, node);
+          break;
+        }
       }
     }
     return parentNode;
@@ -306,11 +285,11 @@ public class NewEntryTask extends Task
       TreePath newPath;
       if (isSuffix)
       {
-        newPath = controller.addSuffix(dn.toString(), parentNode.getDN());
+        newPath = controller.addSuffix(dn, parentNode.getDN());
       }
       else
       {
-        newPath = controller.notifyEntryAdded(controller.getNodeInfoFromPath(parentPath), dn.toString());
+        newPath = controller.notifyEntryAdded(controller.getNodeInfoFromPath(parentPath), dn);
       }
       if (newPath != null)
       {

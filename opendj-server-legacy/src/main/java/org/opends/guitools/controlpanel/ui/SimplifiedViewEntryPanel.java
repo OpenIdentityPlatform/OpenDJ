@@ -332,7 +332,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
             JTextField tf = (JTextField)comp;
             if (nodes.getNodes().length > 0)
             {
-              String dn = nodes.getNodes()[0].getNode().getDN();
+              String dn = nodes.getNodes()[0].getNode().getDN().toString();
               tf.setText(dn);
               tf.setCaretPosition(dn.length());
             }

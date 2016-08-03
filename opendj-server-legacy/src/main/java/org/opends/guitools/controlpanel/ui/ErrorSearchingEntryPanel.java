@@ -25,6 +25,7 @@ import javax.naming.NamingException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.opends.guitools.controlpanel.browser.ReferralLimitExceededException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -85,7 +86,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
    * @param dn the DN of the entry that caused a problem.
    * @param t the Throwable that occurred when searching the entry.
    */
-  public void setError(String dn, Throwable t)
+  public void setError(DN dn, Throwable t)
   {
     LocalizableMessage title = INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
     LocalizableMessage details;
@@ -108,8 +109,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
    * @param referrals the list of referrals defined in the entry.
    * @param error the error that occurred resolving the referral.
    */
-  public void setReferralError(String dn, String[] referrals,
-      BasicNodeError error)
+  public void setReferralError(DN dn, String[] referrals, BasicNodeError error)
   {
     LocalizableMessage title = INFO_CTRL_PANEL_ERROR_RESOLVING_REFERRAL_TITLE.get();
     LocalizableMessageBuilder details = new LocalizableMessageBuilder();

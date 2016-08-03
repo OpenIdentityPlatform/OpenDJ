@@ -370,7 +370,7 @@ public class ModifyEntryTask extends Task
             controller.getNodeInfoFromPath(treePath));
         newPath[0] = controller.notifyEntryAdded(
             controller.getNodeInfoFromPath(parentPath),
-            newEntry.getName().toString());
+            newEntry.getName());
       }
     });
 

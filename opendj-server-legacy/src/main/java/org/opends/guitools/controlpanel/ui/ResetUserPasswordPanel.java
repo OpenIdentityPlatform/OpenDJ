@@ -26,13 +26,13 @@ import java.util.ArrayList;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.ResetUserPasswordTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 
 /** Panel that appears when the user wants to change the password of a user. */
 public class ResetUserPasswordPanel extends StatusGenericPanel
@@ -68,7 +68,7 @@ public class ResetUserPasswordPanel extends StatusGenericPanel
     setPrimaryValid(lPassword);
     setPrimaryValid(lConfirmPassword);
 
-    dn.setText(node.getDN());
+    dn.setText(node.getDN().toString());
     name.setText(node.getDisplayName());
 
     password.setText("");

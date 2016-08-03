@@ -316,8 +316,7 @@ implements EntryReadListener
    * @param referrals the list of referrals defined in the entry.
    * @param error the error that occurred resolving the referral.
    */
-  public void referralSolveError(String dn, String[] referrals,
-      BasicNodeError error)
+  public void referralSolveError(DN dn, String[] referrals, BasicNodeError error)
   {
     searchResult = null;
 

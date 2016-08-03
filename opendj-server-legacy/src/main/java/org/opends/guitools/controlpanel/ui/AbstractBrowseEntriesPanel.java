@@ -631,7 +631,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
       controller.removeAllUnderRoot();
       controller.setFilter(filterValue);
       controller.setAutomaticExpand(!BrowserController.ALL_OBJECTS_FILTER.equals(filterValue));
-      SortedSet<String> allSuffixes = new TreeSet<>();
+      SortedSet<DN> allSuffixes = new TreeSet<>();
       if (controller.getConfigurationConnection() != null)
       {
         treePane.getTree().setRootVisible(displayAll);
@@ -639,27 +639,27 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
         boolean added = false;
         for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
         {
-          for (BaseDNDescriptor baseDN : backend.getBaseDns())
+          for (BaseDNDescriptor baseDNDescriptor : backend.getBaseDns())
           {
-            boolean isBaseDN = baseDN.getDn().equals(theDN);
-            String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
+            DN baseDN = baseDNDescriptor.getDn();
+            boolean isBaseDN = baseDN.equals(theDN);
             if (displayAll)
             {
-              allSuffixes.add(dn);
+              allSuffixes.add(baseDN);
             }
             else if (isBaseDN)
             {
-              controller.addSuffix(dn, null);
+              controller.addSuffix(baseDN, null);
               added = true;
             }
           }
         }
         if (displayAll)
         {
-          allSuffixes.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-          for (String dn : allSuffixes)
+          allSuffixes.add(DN.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
+          for (DN baseDN : allSuffixes)
           {
-            controller.addSuffix(dn, null);
+            controller.addSuffix(baseDN, null);
           }
         }
         else if (!added && !displayAll)
@@ -667,14 +667,14 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           if (isChangeLog(theDN))
           {
             // Consider it a suffix
-            controller.addSuffix(s, null);
+            controller.addSuffix(theDN, null);
           }
           else
           {
             BasicNode rootNode = (BasicNode) controller.getTree().getModel().getRoot();
-            if (controller.findChildNode(rootNode, s) == -1)
+            if (controller.findChildNode(rootNode, theDN) == -1)
             {
-              controller.addNodeUnderRoot(s);
+              controller.addNodeUnderRoot(theDN);
             }
           }
         }
@@ -813,29 +813,29 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
         boolean isSubordinate = false;
         for (BackendDescriptor backend : ev.getBackends())
         {
-          for (BaseDNDescriptor baseDN : backend.getBaseDns())
+          for (BaseDNDescriptor baseDNDescriptor : backend.getBaseDns())
           {
             boolean isBaseDN = false;
-            if (baseDN.getDn().equals(theDN))
+            DN baseDN = baseDNDescriptor.getDn();
+            if (baseDN.equals(theDN))
             {
               isBaseDN = true;
             }
-            else if (baseDN.getDn().isSuperiorOrEqualTo(theDN))
+            else if (baseDN.isSuperiorOrEqualTo(theDN))
             {
               isSubordinate = true;
             }
-            String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
             if (displayAll || isBaseDN)
             {
               try
               {
-                if (!controller.hasSuffix(dn))
+                if (!controller.hasSuffix(baseDN))
                 {
-                  controller.addSuffix(dn, null);
+                  controller.addSuffix(baseDN, null);
                 }
                 else
                 {
-                  int index = controller.findChildNode(rootNode, dn);
+                  int index = controller.findChildNode(rootNode, baseDN);
                   if (index >= 0)
                   {
                     TreeNode node = rootNode.getChildAt(index);
@@ -851,14 +851,15 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
               {
                 // The suffix node exists but is not a suffix node. Simply log a message.
                 logger.warn(
-                    LocalizableMessage.raw("Suffix: " + dn + " added as a non suffix node. Exception: " + iae, iae));
+                    LocalizableMessage.raw("Suffix: " + baseDN + " added as a non suffix node. Exception: " + iae,
+                        iae));
               }
             }
           }
         }
-        if (isSubordinate && controller.findChildNode(rootNode, s) == -1)
+        if (isSubordinate && controller.findChildNode(rootNode, theDN) == -1)
         {
-          controller.addNodeUnderRoot(s);
+          controller.addNodeUnderRoot(theDN);
         }
       }
     }
@@ -1315,17 +1316,17 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
             boolean added = false;
             for (BackendDescriptor backend : getInfo().getServerDescriptor().getBackends())
             {
-              for (BaseDNDescriptor baseDN : backend.getBaseDns())
+              for (BaseDNDescriptor baseDNDescriptor : backend.getBaseDns())
               {
-                String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
-                boolean isBaseDN = baseDN.getDn().equals(theDN);
-                if (baseDN.getEntries() > 0)
+                DN baseDN = baseDNDescriptor.getDn();
+                boolean isBaseDN = baseDN.equals(theDN);
+                if (baseDNDescriptor.getEntries() > 0)
                 {
                   try
                   {
-                    if ((displayAll || isBaseDN) && !controller.hasSuffix(dn))
+                    if ((displayAll || isBaseDN) && !controller.hasSuffix(baseDN))
                     {
-                      controller.addSuffix(dn, null);
+                      controller.addSuffix(baseDN, null);
                       added = true;
                     }
                   }
@@ -1333,16 +1334,16 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
                   {
                     // The suffix node exists but is not a suffix node. Simply log a message.
                     logger.warn(LocalizableMessage.raw(
-                        "Suffix: " + dn + " added as a non suffix node. Exception: " + iae, iae));
+                        "Suffix: " + baseDN + " added as a non suffix node. Exception: " + iae, iae));
                   }
                 }
               }
               if (!added && !displayAll)
               {
                 BasicNode rootNode = (BasicNode) controller.getTree().getModel().getRoot();
-                if (controller.findChildNode(rootNode, s) == -1)
+                if (controller.findChildNode(rootNode, theDN) == -1)
                 {
-                  controller.addNodeUnderRoot(s);
+                  controller.addNodeUnderRoot(theDN);
                 }
               }
             }

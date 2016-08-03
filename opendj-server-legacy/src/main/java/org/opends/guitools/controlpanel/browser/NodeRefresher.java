@@ -309,7 +309,8 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private void searchForCustomFilter(BasicNode node, ConnectionWrapper conn) throws IOException
   {
-    SearchRequest request = newSearchRequest(node.getDN(), WHOLE_SUBTREE, controller.getFilter(), NO_ATTRIBUTES)
+    SearchRequest request =
+        newSearchRequest(node.getDN().toString(), WHOLE_SUBTREE, controller.getFilter(), NO_ATTRIBUTES)
         .setSizeLimit(1);
     try (ConnectionEntryReader s = conn.getConnection().search(request))
     {
@@ -398,10 +399,9 @@ public class NodeRefresher extends AbstractNodeTask {
 
         String filter = controller.getObjectSearchFilter();
         SearchRequest request =
-            newSearchRequest(node.getDN(), BASE_OBJECT, filter, controller.getAttrsForRedSearch())
+            newSearchRequest(node.getDN().toString(), BASE_OBJECT, filter, controller.getAttrsForRedSearch())
             .setSizeLimit(controller.getMaxChildren());
         localEntry = conn.getConnection().searchSingleEntry(request);
-        localEntry.setName(node.getDN());
         if (localEntry == null) {
           /* Not enough rights to read the entry or the entry simply does not exist */
           throw newLdapException(ResultCode.NO_SUCH_OBJECT, "Can't find entry: " + node.getDN());
@@ -798,19 +798,10 @@ public class NodeRefresher extends AbstractNodeTask {
           for (int i=0; i<getNode().getChildCount(); i++)
           {
             BasicNode node = (BasicNode)getNode().getChildAt(i);
-            try
+            if (node.getDN().equals(parentToAddDN))
             {
-              DN dn = DN.valueOf(node.getDN());
-              if (dn.equals(parentToAddDN))
-              {
-                resultValue[0] = false;
-                break;
-              }
-            }
-            catch (Throwable t)
-            {
-              throw new RuntimeException("Error decoding dn: "+
-                  node.getDN()+" . "+t, t);
+              resultValue[0] = false;
+              break;
             }
           }
         }
@@ -966,9 +957,7 @@ public class NodeRefresher extends AbstractNodeTask {
     boolean checkSucceeded = true;
     try
     {
-      DN dn1 = DN.valueOf(getNode().getDN());
-      DN dn2 = url.getBaseDN();
-      if (dn2.isSuperiorOrEqualTo(dn1))
+      if (url.getBaseDN().isSuperiorOrEqualTo(getNode().getDN()))
       {
         HostPort urlHostPort = new HostPort(url.getHost(), url.getPort());
         checkSucceeded = urlHostPort.equals(controller.getConfigurationConnection().getHostPort());

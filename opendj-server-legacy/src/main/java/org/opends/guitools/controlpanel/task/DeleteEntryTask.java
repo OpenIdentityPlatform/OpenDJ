@@ -94,7 +94,7 @@ public class DeleteEntryTask extends Task
     for (TreePath path : paths)
     {
       BasicNode node = (BasicNode)path.getLastPathComponent();
-      entries.add(DN.valueOf(node.getDN()));
+      entries.add(node.getDN());
     }
     for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
@@ -186,37 +186,20 @@ public class DeleteEntryTask extends Task
       for (TreePath path : paths)
       {
         BasicNode node = (BasicNode)path.getLastPathComponent();
-        try
+        DN dn = node.getDN();
+        if (!isAlreadyDeleted(alreadyDeleted, dn))
         {
-          DN dn = DN.valueOf(node.getDN());
-          boolean isDnDeleted = false;
-          for (DN deletedDn : alreadyDeleted)
+          ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
+          useAdminCtx = controller.isConfigurationNode(node);
+          if (node.hasSubOrdinates())
           {
-            if (dn.isSubordinateOrEqualTo(deletedDn))
-            {
-              isDnDeleted = true;
-              break;
-            }
+            deleteSubtreeWithControl(conn, dn, path, toNotify);
           }
-          if (!isDnDeleted)
+          else
           {
-            ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
-            useAdminCtx = controller.isConfigurationNode(node);
-            if (node.hasSubOrdinates())
-            {
-              deleteSubtreeWithControl(conn, dn, path, toNotify);
-            }
-            else
-            {
-              deleteSubtreeRecursively(conn, dn, path, toNotify);
-            }
-            alreadyDeleted.add(dn);
+            deleteSubtreeRecursively(conn, dn, path, toNotify);
           }
-        }
-        catch (DirectoryException de)
-        {
-          throw new RuntimeException("Unexpected error parsing dn: "+
-              node.getDN(), de);
+          alreadyDeleted.add(dn);
         }
       }
       if (!toNotify.isEmpty())
@@ -245,6 +228,18 @@ public class DeleteEntryTask extends Task
           "<br>"+INFO_CTRL_PANEL_ENTRIES_DELETED.get(nDeleted),
           ColorAndFontConstants.progressFont));
     }
+  }
+
+  private boolean isAlreadyDeleted(ArrayList<DN> dns, DN dnToFind)
+  {
+    for (DN dn : dns)
+    {
+      if (dnToFind.isSubordinateOrEqualTo(dn))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

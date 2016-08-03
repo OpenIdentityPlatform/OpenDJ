@@ -14,8 +14,9 @@
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.ui.nodes;
+
+import org.forgerock.opendj.ldap.DN;
 
 /** Represents a suffix in the tree in the 'Manage Entries...' tree. */
 public class SuffixNode extends BasicNode {
@@ -26,7 +27,7 @@ public class SuffixNode extends BasicNode {
    * Constructor of the node.
    * @param dn the DN of the suffix.
    */
-  public SuffixNode(String dn) {
+  public SuffixNode(DN dn) {
     super(dn);
   }
 }

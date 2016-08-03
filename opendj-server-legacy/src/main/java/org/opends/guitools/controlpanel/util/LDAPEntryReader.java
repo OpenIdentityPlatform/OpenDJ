@@ -22,6 +22,8 @@ import static org.forgerock.opendj.ldap.SearchScope.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -38,7 +40,7 @@ import org.opends.guitools.controlpanel.event.EntryReadListener;
  */
 public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
 {
-  private final String dn;
+  private final DN dn;
   private final ConnectionWrapper conn;
   private final Set<EntryReadListener> listeners = new HashSet<>();
   private boolean isOver;
@@ -49,7 +51,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
    * @param dn the DN of the entry.
    * @param conn the connection to the server.
    */
-  public LDAPEntryReader(String dn, ConnectionWrapper conn)
+  public LDAPEntryReader(DN dn, ConnectionWrapper conn)
   {
     this.dn = dn;
     this.conn = conn;
@@ -60,7 +62,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   public CustomSearchResult processBackgroundTask() throws Throwable
   {
     isOver = false;
-    final String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
+    final Filter filter = Filter.valueOf("(|(objectclass=*)(objectclass=ldapsubentry))");
     SearchRequest request = Requests.newSearchRequest(dn, BASE_OBJECT, filter, "*", "+");
     SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
     if (isInterrupted())

@@ -116,7 +116,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
 
     DN aParentDN;
     String aRdn;
-    DN nodeDN = DN.valueOf(node.getDN());
+    DN nodeDN = node.getDN();
     if (nodeDN.isRootDN())
     {
       aParentDN = nodeDN;

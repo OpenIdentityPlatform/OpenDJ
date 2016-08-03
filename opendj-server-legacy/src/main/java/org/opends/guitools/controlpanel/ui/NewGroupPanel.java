@@ -565,7 +565,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
           else if (comp == referenceGroup
               && nodes.getNodes().length > 0)
           {
-            String dn = nodes.getNodes()[0].getNode().getDN();
+            String dn = nodes.getNodes()[0].getNode().getDN().toString();
             referenceGroup.setText(dn);
             referenceGroup.setCaretPosition(dn.length());
           }
