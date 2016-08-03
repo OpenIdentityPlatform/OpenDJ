@@ -1467,6 +1467,28 @@ public class Utilities
   }
 
   /**
+   * Returns the attribute name with no options (or subtypes).
+   * <p>
+   * Note: normal code should use <code>AttributeDescription.valueOf(attrName).getNameOrOID()</code>
+   * <p>
+   * However this method is used by UI code which sometimes receives strings which are not valid
+   * attribute descriptions.
+   *
+   * @param attrDesc
+   *          the complete attribute name.
+   * @return the attribute name with no options (or subtypes).
+   */
+  public static String getAttributeNameWithoutOptions(String attrDesc)
+  {
+    int index = attrDesc.indexOf(";");
+    if (index != -1)
+    {
+      return attrDesc.substring(0, index);
+    }
+    return attrDesc;
+  }
+
+  /**
    * Strings any potential "separator" from a given string.
    * @param s string to strip
    * @param separator  the separator string to remove
@@ -1474,7 +1496,7 @@ public class Utilities
    */
   private static String stripStringToSingleLine(String s, String separator)
   {
-    return (s == null) ? null : s.replaceAll(separator, "");
+    return (s != null) ? s.replaceAll(separator, "") : null;
   }
 
   /** The pattern for control characters. */
