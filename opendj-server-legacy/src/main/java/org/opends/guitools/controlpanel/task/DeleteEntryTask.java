@@ -328,7 +328,7 @@ public class DeleteEntryTask extends Task
         SearchResultEntry sr = entryDNs.readEntry();
         if (!sr.getName().equals(""))
         {
-          CustomSearchResult res = new CustomSearchResult(sr, dnToRemove.toString());
+          CustomSearchResult res = new CustomSearchResult(sr);
           entryDNFound = DN.valueOf(res.getDN());
           deleteSubtreeRecursively(conn, entryDNFound, null, toNotify);
         }

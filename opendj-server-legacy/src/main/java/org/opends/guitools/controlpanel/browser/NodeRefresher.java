@@ -510,16 +510,10 @@ public class NodeRefresher extends AbstractNodeTask {
           while (sr.hasNext())
           {
             entry = sr.readEntry();
-            String name;
             if (entry.getName().isRootDN())
             {
-              name = remoteDn;
+              entry.setName(remoteDn);
             }
-            else
-            {
-              name = unquoteRelativeName(entry.getName().toString()) + "," + remoteDn;
-            }
-            entry.setName(name);
             found = true;
           }
           if (!found)
@@ -728,23 +722,13 @@ public class NodeRefresher extends AbstractNodeTask {
             continue;
           }
 
-          String name = unquoteRelativeName(r.getName().toString()) + "," + parentDn;
           boolean add = false;
           if (useCustomFilter())
           {
             // Check that is an immediate child: use a faster method by just
             // comparing the number of components.
-            DN dn = null;
-            try
-            {
-              dn = DN.valueOf(name);
-              add = dn.size() == parentComponents + 1;
-            }
-            catch (Throwable t)
-            {
-              throw new RuntimeException("Error decoding dns: "+t, t);
-            }
-
+            final DN dn = r.getName();
+            add = dn.size() == parentComponents + 1;
             if (!add)
             {
               // Is not a direct child.  Check if the parent has been added,
@@ -766,7 +750,6 @@ public class NodeRefresher extends AbstractNodeTask {
           }
           if (add)
           {
-            r.setName(name);
             childEntries.add(r);
             // Time to time we update the display
             if (childEntries.size() >= 20) {
@@ -911,32 +894,6 @@ public class NodeRefresher extends AbstractNodeTask {
     }
     else if (isCanceled()) {
       throw new SearchAbandonException(State.CANCELLED, null, null);
-    }
-  }
-
-  /**
-   * Removes the quotes surrounding the provided name.  JNDI can return relative
-   * names with this format.
-   * @param name the relative name to be treated.
-   * @return an String representing the provided relative name without
-   * surrounding quotes.
-   */
-  private String unquoteRelativeName(String name)
-  {
-    if (name.length() > 0 && name.charAt(0) == '"')
-    {
-      if (name.charAt(name.length() - 1) == '"')
-      {
-        return name.substring(1, name.length() - 1);
-      }
-      else
-      {
-        return name.substring(1);
-      }
-    }
-    else
-    {
-      return name;
     }
   }
 

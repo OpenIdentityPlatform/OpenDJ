@@ -25,7 +25,6 @@ import java.util.Set;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
@@ -63,23 +62,12 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
     isOver = false;
     final String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
     SearchRequest request = Requests.newSearchRequest(dn, BASE_OBJECT, filter, "*", "+");
-    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
+    SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
+    if (isInterrupted())
     {
-      SearchResultEntry sr = null;
-      while (entryReader.hasNext())
-      {
-        sr = entryReader.readEntry();
-      }
-
-      return new CustomSearchResult(sr, dn);
+      isOver = true;
     }
-    finally
-    {
-      if (isInterrupted())
-      {
-        isOver = true;
-      }
-    }
+    return new CustomSearchResult(sr);
   }
 
   @Override

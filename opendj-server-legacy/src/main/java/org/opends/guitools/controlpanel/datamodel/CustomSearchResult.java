@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.CompositeName;
-import javax.naming.Name;
 import javax.naming.NamingException;
 
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -34,7 +32,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
@@ -73,43 +70,11 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
   /**
    * Constructor of a search result using a SearchResult as basis.
    * @param sr the SearchResult.
-   * @param baseDN the base DN of the search that returned the SearchResult.
-   * @throws NamingException if there is an error retrieving the attribute
-   * values.
+   * @throws NamingException if there is an error retrieving the attribute values.
    */
-  public CustomSearchResult(SearchResultEntry sr, String baseDN)
-  throws NamingException
+  public CustomSearchResult(SearchResultEntry sr) throws NamingException
   {
-    String sName = sr.getName().toString();
-    Name name;
-    if (baseDN != null && baseDN.length() > 0)
-    {
-      if (sName != null && sName.length() > 0)
-      {
-        name = new CompositeName(sName);
-        name.add(baseDN);
-      }
-      else {
-        name = Utilities.getJNDIName(baseDN);
-      }
-    }
-    else {
-      name = new CompositeName(sName);
-    }
-    StringBuilder buf = new StringBuilder();
-    for (int i=0; i<name.size(); i++)
-    {
-      String n = name.get(i);
-      if (n != null && n.length() > 0)
-      {
-        if (buf.length() != 0)
-        {
-          buf.append(",");
-        }
-        buf.append(n);
-      }
-    }
-    dn = buf.toString();
+    dn = sr.getName().toString();
 
     attributes = new HashMap<>();
     attrNames = new TreeSet<>();
