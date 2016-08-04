@@ -47,7 +47,7 @@ import org.opends.server.util.LDIFReader;
 public class CustomSearchResult implements Comparable<CustomSearchResult>
 {
   private final DN dn;
-  private Map<String, List<Object>> attributes;
+  private Map<String, List<ByteString>> attributes;
   private SortedSet<String> attrNames;
   private String toString;
   private int hashCode;
@@ -82,7 +82,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     {
       String attrName = attr.getAttributeDescriptionAsString();
       attrNames.add(attrName);
-      List<Object> values = new ArrayList<>();
+      List<ByteString> values = new ArrayList<>();
       for (ByteString v : attr)
       {
         if (!"".equals(v.toString()))
@@ -112,9 +112,9 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * @return the values for a given attribute.  It returns an empty Set if
    * the attribute is not defined.
    */
-  public List<Object> getAttributeValues(String name) {
-    List<Object> values = attributes.get(name.toLowerCase());
-    return values != null ? values : Collections.emptyList();
+  public List<ByteString> getAttributeValues(String name) {
+    List<ByteString> values = attributes.get(name.toLowerCase());
+    return values != null ? values : Collections.<ByteString> emptyList();
   }
 
   /**
@@ -178,7 +178,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * @param attrName the name of the attribute.
    * @param values the values for the attribute.
    */
-  public void set(String attrName, List<Object> values)
+  public void set(String attrName, List<ByteString> values)
   {
     attrNames.add(attrName);
     attrName = attrName.toLowerCase();
@@ -219,7 +219,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       // corresponding definition and add the value to the appropriate hash.
       if (attrType.isObjectClass())
       {
-        for (Object value : getAttributeValues(attrType.getNameOrOID()))
+        for (ByteString value : getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
           objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
@@ -228,17 +228,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       else
       {
         AttributeBuilder builder = new AttributeBuilder(attrDesc);
-        for (Object value : getAttributeValues(attrType.getNameOrOID()))
+        for (ByteString bs : getAttributeValues(attrType.getNameOrOID()))
         {
-          ByteString bs;
-          if (value instanceof byte[])
-          {
-            bs = ByteString.wrap((byte[])value);
-          }
-          else
-          {
-            bs = ByteString.valueOfUtf8(value.toString());
-          }
           builder.add(bs);
         }
 

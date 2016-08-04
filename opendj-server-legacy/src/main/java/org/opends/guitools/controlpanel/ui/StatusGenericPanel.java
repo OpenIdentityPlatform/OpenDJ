@@ -101,6 +101,7 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -1026,6 +1027,18 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       return desc.getType() == CategorizedComboBoxElement.Type.CATEGORY;
     }
     return false;
+  }
+
+  /**
+   * Returns whether the provided attribute name has binary syntax.
+   * @param attrName the attribute name.
+   * @return {@code true} if the provided attribute name has binary syntax,
+   * {@code false} otherwise.
+   */
+  protected boolean isBinary(String attrName)
+  {
+    Schema schema = getInfo().getServerDescriptor().getSchema();
+    return Utilities.hasBinarySyntax(attrName, schema);
   }
 
   /**

@@ -590,7 +590,7 @@ class TableViewEntryPanel extends ViewEntryPanel
       requiredAttrs.clear();
       List<String> addedAttrs = new ArrayList<>();
       Schema schema = getInfo().getServerDescriptor().getSchema();
-      List<Object> ocs = null;
+      List<ByteString> ocs = null;
       for (String attrName : searchResult.getAttributeNames())
       {
         if (ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attrName))
@@ -598,8 +598,7 @@ class TableViewEntryPanel extends ViewEntryPanel
           if (schema != null)
           {
             ocs = searchResult.getAttributeValues(attrName);
-            ObjectClassValue ocValue = getObjectClassDescriptor(
-                ocs, schema);
+            ObjectClassValue ocValue = getObjectClassDescriptor(ocs, schema);
             allSortedValues.add(new AttributeValuePair(attrName, ocValue));
           }
         }
@@ -615,9 +614,9 @@ class TableViewEntryPanel extends ViewEntryPanel
       }
       if (ocs != null && schema != null)
       {
-        for (Object oc : ocs)
+        for (ByteString oc : ocs)
         {
-          ObjectClass objectClass = schema.getObjectClass((String) oc);
+          ObjectClass objectClass = schema.getObjectClass(oc.toString());
           if (!objectClass.isPlaceHolder())
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())
@@ -717,12 +716,11 @@ class TableViewEntryPanel extends ViewEntryPanel
     private void updateObjectClass(ObjectClassValue newValue)
     {
       CustomSearchResult oldResult = searchResult;
-      CustomSearchResult newResult =
-        new CustomSearchResult(searchResult.getDN());
+      CustomSearchResult newResult = new CustomSearchResult(searchResult.getDN());
 
       for (String attrName : schemaReadOnlyAttributesLowerCase)
       {
-        List<Object> values = searchResult.getAttributeValues(attrName);
+        List<ByteString> values = searchResult.getAttributeValues(attrName);
         if (!values.isEmpty())
         {
           newResult.set(attrName, values);

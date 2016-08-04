@@ -2420,13 +2420,13 @@ public class Utilities
   {
     if (sr != null)
     {
-      final List<Object> values = sr.getAttributeValues(attrName);
-      if (values != null && !values.isEmpty())
+      final List<ByteString> values = sr.getAttributeValues(attrName);
+      if (!values.isEmpty())
       {
-        final Object o = values.get(0);
-        if (o != null)
+        final ByteString v = values.get(0);
+        if (v != null)
         {
-          return String.valueOf(o);
+          return v.toString();
         }
       }
     }

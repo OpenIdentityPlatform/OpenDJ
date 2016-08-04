@@ -48,6 +48,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.ADSContext;
@@ -1792,12 +1793,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   private static int getNumSubOrdinates(CustomSearchResult entry)
   {
-    List<Object> vs = entry.getAttributeValues(NUMSUBORDINATES_ATTR);
-    String v = null;
-    if (vs != null && !vs.isEmpty())
-    {
-      v = vs.get(0).toString();
-    }
+    List<ByteString> vs = entry.getAttributeValues(NUMSUBORDINATES_ATTR);
+    String v = !vs.isEmpty() ? vs.get(0).toString() : null;
     return toInt(v);
   }
 
@@ -1827,12 +1824,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public static boolean getHasSubOrdinates(CustomSearchResult entry)
   {
-    List<Object> vs = entry.getAttributeValues(HASSUBORDINATES_ATTR);
-    String v = null;
-    if (vs != null && !vs.isEmpty())
-    {
-      v = vs.get(0).toString();
-    }
+    List<ByteString> vs = entry.getAttributeValues(HASSUBORDINATES_ATTR);
+    String v = !vs.isEmpty() ? vs.get(0).toString() : null;
     if (v != null)
     {
       return "true".equalsIgnoreCase(v);

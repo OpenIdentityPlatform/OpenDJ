@@ -34,6 +34,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -168,10 +169,9 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       editableScroll.setVisible(false);
       for (String attrName : sr.getAttributeNames())
       {
-        List<Object> values = sr.getAttributeValues(attrName);
-        for (Object o : values)
+        for (ByteString v : sr.getAttributeValues(attrName))
         {
-          sb.append("\n").append(getLDIFLine(attrName, o));
+          sb.append("\n").append(getLDIFLine(attrName, v));
         }
       }
       final Point p1 = sameEntry ?
@@ -187,10 +187,9 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       {
         if (!schemaReadOnlyAttributesLowerCase.contains(attrName.toLowerCase()))
         {
-          List<Object> values = sr.getAttributeValues(attrName);
-          for (Object o : values)
+          for (ByteString v : sr.getAttributeValues(attrName))
           {
-            sb.append("\n").append(getLDIFLine(attrName, o));
+            sb.append("\n").append(getLDIFLine(attrName, v));
           }
         }
       }
@@ -206,15 +205,14 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       sb = new StringBuilder();
       for (String attrName : schemaReadOnlyAttributes)
       {
-        List<Object> values = sr.getAttributeValues(attrName);
-        for (Object o : values)
+        for (ByteString v : sr.getAttributeValues(attrName))
         {
           if (oneLineAdded)
           {
             sb.append("\n");
           }
           oneLineAdded = true;
-          sb.append(getLDIFLine(attrName, o));
+          sb.append(getLDIFLine(attrName, v));
         }
       }
       final Point p2 = sameEntry ?

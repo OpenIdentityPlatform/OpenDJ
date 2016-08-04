@@ -455,8 +455,7 @@ public class ModifyEntryTask extends Task
   {
     for (AVA ava : rdn)
     {
-      List<Object> values = entry.getAttributeValues(ava.getAttributeName());
-      if (values.isEmpty())
+      if (entry.getAttributeValues(ava.getAttributeName()).isEmpty())
       {
         return false;
       }
@@ -492,7 +491,7 @@ public class ModifyEntryTask extends Task
       {
         newValues.add(it.next());
       }
-      List<Object> oldValues = oldEntry.getAttributeValues(attrName);
+      List<ByteString> oldValues = oldEntry.getAttributeValues(attrName);
 
       ByteString rdnValue = null;
       for (AVA ava : newEntry.getName().rdn())
@@ -549,12 +548,12 @@ public class ModifyEntryTask extends Task
               createAttribute(attrName, newValues)));
         }
       } else {
-        List<ByteString> toDelete = getValuesToDelete(oldValues, newValues);
+        List<ByteString> toDelete = disjunction(newValues, oldValues);
         if (oldRdnValueDeleted != null)
         {
           toDelete.remove(oldRdnValueDeleted);
         }
-        List<ByteString> toAdd = getValuesToAdd(oldValues, newValues);
+        List<ByteString> toAdd = disjunction(oldValues, newValues);
         if (oldRdnValueToAdd != null)
         {
           toAdd.add(oldRdnValueToAdd);
@@ -599,7 +598,7 @@ public class ModifyEntryTask extends Task
       {
         continue;
       }
-      List<Object> oldValues = oldEntry.getAttributeValues(attrName);
+      List<ByteString> oldValues = oldEntry.getAttributeValues(attrName);
       AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
 
       List<org.opends.server.types.Attribute> attrs = newEntry.getAttribute(attrDesc.getNameOrOID());
@@ -641,74 +640,16 @@ public class ModifyEntryTask extends Task
     return attribute;
   }
 
-  /**
-   * Creates a ByteString for an attribute and a value (the one we got using JNDI).
-   * @param value the value found using JNDI.
-   * @return a ByteString object.
-   */
-  private static ByteString createAttributeValue(Object value)
+  private static List<ByteString> disjunction(List<ByteString> values2, List<ByteString> values1)
   {
-    if (value instanceof String)
+    List<ByteString> results = new ArrayList<>();
+    for (ByteString v : values1)
     {
-      return ByteString.valueOfUtf8((String) value);
-    }
-    else if (value instanceof byte[])
-    {
-      return ByteString.wrap((byte[]) value);
-    }
-    return ByteString.valueOfUtf8(String.valueOf(value));
-  }
-
-  /**
-   * Returns the set of ByteString that must be deleted.
-   * @param oldValues the old values of the entry.
-   * @param newValues the new values of the entry.
-   * @return the set of ByteString that must be deleted.
-   */
-  private static List<ByteString> getValuesToDelete(List<Object> oldValues,
-      List<ByteString> newValues)
-  {
-    List<ByteString> valuesToDelete = new ArrayList<>();
-    for (Object o : oldValues)
-    {
-      ByteString oldValue = createAttributeValue(o);
-      if (!newValues.contains(oldValue))
+      if (!values2.contains(v))
       {
-        valuesToDelete.add(oldValue);
+        results.add(v);
       }
     }
-    return valuesToDelete;
-  }
-
-  /**
-   * Returns the set of ByteString that must be added.
-   * @param oldValues the old values of the entry.
-   * @param newValues the new values of the entry.
-   * @return the set of ByteString that must be added.
-   */
-  private static List<ByteString> getValuesToAdd(List<Object> oldValues,
-    List<ByteString> newValues)
-  {
-    List<ByteString> valuesToAdd = new ArrayList<>();
-    for (ByteString newValue : newValues)
-    {
-      if (!contains(oldValues, newValue))
-      {
-        valuesToAdd.add(newValue);
-      }
-    }
-    return valuesToAdd;
-  }
-
-  private static boolean contains(List<Object> oldValues, ByteString newValue)
-  {
-    for (Object o : oldValues)
-    {
-      if (createAttributeValue(o).equals(newValue))
-      {
-        return true;
-      }
-    }
-    return false;
+    return results;
   }
 }

@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.awt.Container;
 import java.awt.GridBagConstraints;
@@ -55,7 +56,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
-import org.opends.server.util.ServerConstants;
 
 /**
  * Abstract class containing code shared by the different LDAP entry view
@@ -203,8 +203,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       title.setIcon(null);
     }
 
-    List<Object> ocs =
-      sr.getAttributeValues(ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    List<ByteString> ocs = sr.getAttributeValues(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (!ocs.isEmpty() && schema != null)
     {
@@ -240,14 +239,13 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @return an object class value representing all the object class values of
    * the entry.
    */
-  protected ObjectClassValue getObjectClassDescriptor(List<Object> ocValues,
-      Schema schema)
+  protected ObjectClassValue getObjectClassDescriptor(List<ByteString> ocValues, Schema schema)
   {
     ObjectClass structuralObjectClass = null;
     SortedSet<String> auxiliaryClasses = new TreeSet<>();
-    for (Object o : ocValues)
+    for (ByteString oc : ocValues)
     {
-      ObjectClass objectClass = schema.getObjectClass(((String) o));
+      ObjectClass objectClass = schema.getObjectClass(oc.toString());
       if (!objectClass.isPlaceHolder())
       {
         if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL)
@@ -357,60 +355,61 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       ObjectClassValue ocValue = (ObjectClassValue)value;
       if (ocValue.getStructural() != null)
       {
-        sb.append("\n");
-        sb.append(attrName).append(": ").append(ocValue.getStructural());
+        appendPlain(sb, attrName, ocValue.getStructural());
+
         Schema schema = getInfo().getServerDescriptor().getSchema();
         if (schema != null)
         {
           ObjectClass oc = schema.getObjectClass(ocValue.getStructural());
           if (!oc.isPlaceHolder())
           {
-            Set<String> names = getObjectClassSuperiorValues(oc);
-            for (String name : names)
+            for (String name : getObjectClassSuperiorValues(oc))
             {
-              sb.append("\n");
-              sb.append(attrName).append(": ").append(name);
+              appendPlain(sb, attrName, name);
             }
           }
         }
       }
       for (String v : ocValue.getAuxiliary())
       {
-        sb.append("\n");
-        sb.append(attrName).append(": ").append(v);
+        appendPlain(sb, attrName, v);
+      }
+    }
+    else if (value instanceof ByteString)
+    {
+      ByteString v = (ByteString) value;
+      if (v.length() > 0)
+      {
+        appendBase64(sb, attrName, Base64.encode(v.toByteArray()));
       }
     }
     else if (value instanceof byte[])
     {
       if (((byte[])value).length > 0)
       {
-        sb.append("\n");
-        sb.append(attrName).append(":: ").append(Base64.encode((byte[])value));
+        appendBase64(sb, attrName, Base64.encode((byte[]) value));
       }
     }
     else if (value instanceof BinaryValue)
     {
-      sb.append("\n");
-      sb.append(attrName).append(":: ").append(((BinaryValue)value).getBase64());
+      appendBase64(sb, attrName, ((BinaryValue) value).getBase64());
     }
     else if (String.valueOf(value).trim().length() > 0)
     {
-      sb.append("\n");
-      sb.append(attrName).append(": ").append(value);
+      appendPlain(sb, attrName, value);
     }
   }
 
-  /**
-   * Returns <CODE>true</CODE> if the provided attribute name has binary syntax
-   * and <CODE>false</CODE> otherwise.
-   * @param attrName the attribute name.
-   * @return <CODE>true</CODE> if the provided attribute name has binary syntax
-   * and <CODE>false</CODE> otherwise.
-   */
-  protected boolean isBinary(String attrName)
+  private void appendPlain(StringBuilder sb, String attrName, Object value)
   {
-    Schema schema = getInfo().getServerDescriptor().getSchema();
-    return Utilities.hasBinarySyntax(attrName, schema);
+    sb.append("\n");
+    sb.append(attrName).append(": ").append(value);
+  }
+
+  private void appendBase64(StringBuilder sb, String attrName, String base64Value)
+  {
+    sb.append("\n");
+    sb.append(attrName).append(":: ").append(base64Value);
   }
 
   /**
@@ -443,7 +442,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected void setValues(CustomSearchResult sr, String attrName)
   {
     List<Object> values = getValues(attrName);
-    List<Object> valuesToSet = new ArrayList<>();
+    List<ByteString> valuesToSet = new ArrayList<>();
     for (Object value : values)
     {
       if (value instanceof ObjectClassValue)
@@ -451,28 +450,36 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         ObjectClassValue ocValue = (ObjectClassValue)value;
         if (ocValue.getStructural() != null)
         {
-          valuesToSet.add(ocValue.getStructural());
+          valuesToSet.add(ByteString.valueOfUtf8(ocValue.getStructural()));
         }
-        valuesToSet.addAll(ocValue.getAuxiliary());
+        SortedSet<String> auxiliaries = ocValue.getAuxiliary();
+        for (String auxiliary : auxiliaries)
+        {
+          valuesToSet.add(ByteString.valueOfUtf8(auxiliary));
+        }
       }
       else if (value instanceof byte[])
       {
-        valuesToSet.add(value);
+        valuesToSet.add(ByteString.wrap((byte[]) value));
       }
       else if (value instanceof BinaryValue)
       {
         try
         {
-          valuesToSet.add(((BinaryValue)value).getBytes());
+          valuesToSet.add(ByteString.wrap(((BinaryValue) value).getBytes()));
         }
         catch (ParseException pe)
         {
          throw new RuntimeException("Unexpected error: "+pe, pe);
         }
       }
-      else if (String.valueOf(value).trim().length() > 0)
+      else
       {
-        valuesToSet.add(String.valueOf(value));
+        String s = String.valueOf(value);
+        if (s.trim().length() > 0)
+        {
+          valuesToSet.add(ByteString.valueOfUtf8(s));
+        }
       }
     }
     if (!valuesToSet.isEmpty())

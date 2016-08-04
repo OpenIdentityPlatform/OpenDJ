@@ -17,8 +17,10 @@
 
 package org.opends.guitools.controlpanel.ui;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.AdminToolMessages.*;
-import static com.forgerock.opendj.cli.Utils.isDN;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -37,6 +39,7 @@ import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -47,7 +50,6 @@ import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFException;
-import org.opends.server.util.ServerConstants;
 
 /** The panel used to duplicate an entry. */
 public class DuplicateEntryPanel extends AbstractNewEntryPanel
@@ -344,8 +346,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     sb.append("dn: ").append(dn);
     for (String attrName : entryToDuplicate.getAttributeNames())
     {
-      List<Object> values = entryToDuplicate.getAttributeValues(attrName);
-      if (attrName.equalsIgnoreCase(ServerConstants.ATTR_USER_PASSWORD))
+      List<ByteString> values = entryToDuplicate.getAttributeValues(attrName);
+      if (attrName.equalsIgnoreCase(ATTR_USER_PASSWORD))
       {
         sb.append("\n");
         String pwd = new String(password.getPassword());
@@ -361,12 +363,12 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         {
           continue;
         }
-        for (Object value : values)
+        for (ByteString value : values)
         {
           sb.append("\n");
-          if (value instanceof byte[])
+          if (isBinary(attrName))
           {
-            final String base64 = Base64.encode((byte[]) value);
+            final String base64 = Base64.encode(value.toByteArray());
             sb.append(attrName).append(":: ").append(base64);
           }
           else
@@ -386,7 +388,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         else
         {
           String oldValue = getFirstValue(entryToDuplicate.getDN());
-          for (Object value : values)
+          for (ByteString value : values)
           {
             sb.append("\n");
             if (oldValue.equals(value))
@@ -470,8 +472,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
             rdnAttribute = sr.getDN().rdn().getFirstAVA().getAttributeType().getNameOrOID();
 
             updateDNValue();
-            Boolean hasPassword = !sr.getAttributeValues(
-                    ServerConstants.ATTR_USER_PASSWORD).isEmpty();
+            boolean hasPassword = !sr.getAttributeValues(ATTR_USER_PASSWORD).isEmpty();
             lPassword.setVisible(hasPassword);
             password.setVisible(hasPassword);
             lconfirmPassword.setVisible(hasPassword);

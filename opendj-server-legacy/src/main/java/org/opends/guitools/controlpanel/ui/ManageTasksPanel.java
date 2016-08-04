@@ -506,7 +506,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        Object o = values[j] + r.nextInt();
+        ByteString o = ByteString.valueOfUtf8(values[j] + r.nextInt());
         csr.set(attrNames[j], newArrayList(o));
       }
       try
@@ -571,7 +571,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        Object o = values[j];
+        ByteString o = ByteString.valueOfUtf8(values[j]);
         csr.set(attrNames[j], newArrayList(o));
       }
       try
@@ -646,7 +646,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       // corresponding definition and add the value to the appropriate hash.
       if (attrType.isObjectClass())
       {
-        for (Object value : csr.getAttributeValues(attrType.getNameOrOID()))
+        for (ByteString value : csr.getAttributeValues(attrType.getNameOrOID()))
         {
           String ocName = value.toString().trim();
           objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
@@ -655,17 +655,8 @@ public class ManageTasksPanel extends StatusGenericPanel
       else
       {
         AttributeBuilder builder = new AttributeBuilder(attrDesc);
-        for (Object value : csr.getAttributeValues(attrType.getNameOrOID()))
+        for (ByteString bs : csr.getAttributeValues(attrType.getNameOrOID()))
         {
-          ByteString bs;
-          if (value instanceof byte[])
-          {
-            bs = ByteString.wrap((byte[])value);
-          }
-          else
-          {
-            bs = ByteString.valueOfUtf8(value.toString());
-          }
           builder.add(bs);
         }
 
