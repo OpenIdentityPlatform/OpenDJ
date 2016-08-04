@@ -15,8 +15,10 @@
  */
 package org.opends.server.core;
 
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
+import static org.opends.messages.ConfigMessages.WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE;
+import static org.opends.messages.ConfigMessages.WARN_CONFIG_SCHEMA_CANNOT_PARSE_DEFINITIONS_IN_SCHEMA_FILE;
 import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
-
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -41,8 +43,18 @@ import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.DITContentRule;
+import org.forgerock.opendj.ldap.schema.DITStructureRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.NameForm;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
+import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.schema.AttributeType.Builder;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder.SchemaBuilderHook;
 import org.forgerock.opendj.ldif.EntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.server.config.meta.SchemaProviderCfgDefn;
@@ -53,7 +65,6 @@ import org.forgerock.util.Utils;
 import org.opends.server.schema.SchemaProvider;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Schema.SchemaUpdater;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 
 /**
@@ -69,9 +80,11 @@ import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 @ActivateOnceSDKSchemaIsUsed
 public final class SchemaHandler
 {
-  private static final String CORE_SCHEMA_PROVIDER_NAME = "Core Schema";
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static final String CORE_SCHEMA_PROVIDER_NAME = "Core Schema";
+  private static final String CORE_SCHEMA_FILE = "00-core.ldif";
+  private static final String RFC_3112_SCHEMA_FILE = "03-rfc3112.ldif";
 
   private ServerContext serverContext;
 
@@ -122,12 +135,14 @@ public final class SchemaHandler
       // Take providers into account.
       loadSchemaFromProviders(serverContext.getRootConfig(), schemaBuilder);
 
-      // Take schema files into account (TODO : or load files using provider mechanism ?)
+      // Take schema files into account
       completeSchemaFromFiles(schemaBuilder);
 
       try
       {
-        // see RemoteSchemaLoader.readSchema()
+        // see RemoteSchemaLoader.readSchema() ==> why ??
+
+        // Add server specific syntaxes and matching rules
         AciSyntax.addAciSyntax(schemaBuilder);
         SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
         HistoricalCsnOrderingMatchingRuleImpl.addHistoricalCsnOrderingMatchingRule(schemaBuilder);
@@ -306,6 +321,7 @@ public final class SchemaHandler
     {
       final LDIFEntryReader reader = new LDIFEntryReader(new FileReader(ldifFile));
       reader.setSchema(schema);
+      reader.setSchemaValidationPolicy(SchemaValidationPolicy.ignoreAll());
       return reader;
     }
     catch (Exception e)
@@ -333,7 +349,7 @@ public final class SchemaHandler
     final File schemaDirectory = getSchemaDirectoryPath();
     for (String schemaFile : getSchemaFileNames(schemaDirectory))
     {
-      loadSchemaFile(schemaFile, schemaBuilder, Schema.getDefaultSchema());
+      loadSchemaFile(new File(schemaDirectory, schemaFile), schemaBuilder, Schema.getDefaultSchema());
     }
   }
 
@@ -380,6 +396,7 @@ public final class SchemaHandler
     }
     catch (Exception e)
     {
+      logger.traceException(e);
       throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES
           .get(schemaDirectory, getExceptionMessage(e)), e);
     }
@@ -423,8 +440,8 @@ public final class SchemaHandler
    * Add the schema from the provided schema file to the provided schema
    * builder.
    *
-   * @param schemaFileName
-   *          The name of the schema file to be loaded
+   * @param schemaFile
+   *          the schema file to be loaded
    * @param schemaBuilder
    *          The schema builder in which the contents of the schema file are to
    *          be loaded.
@@ -433,22 +450,111 @@ public final class SchemaHandler
    * @throws InitializationException
    *           If a problem occurs while initializing the schema elements.
    */
-  private void loadSchemaFile(final String schemaFileName, final SchemaBuilder schemaBuilder, final Schema readSchema)
-         throws InitializationException
+  private void loadSchemaFile(final File schemaFile, final SchemaBuilder schemaBuilder, final Schema readSchema)
+         throws InitializationException, ConfigException
   {
     EntryReader reader = null;
     try
     {
-      File schemaFile = new File(getSchemaDirectoryPath(), schemaFileName);
       reader = getLDIFReader(schemaFile, readSchema);
       final Entry entry = readSchemaEntry(reader, schemaFile);
-      // TODO : there is no more file information attached to schema elements - we should add support for this
-      // in order to be able to redirect schema elements in the correct file when doing backups
-      schemaBuilder.addSchema(entry, true);
+      boolean failOnError = true;
+      updateSchemaBuilderWithEntry(schemaBuilder, entry, schemaFile.getName(), failOnError);
     }
     finally {
       Utils.closeSilently(reader);
     }
+  }
+
+  private void updateSchemaBuilderWithEntry(SchemaBuilder schemaBuilder, Entry schemaEntry, String schemaFile,
+      boolean failOnError) throws ConfigException
+  {
+
+    // immediately overwrite these definitions which are already defined in the SDK core schema
+    final boolean overwriteCoreSchemaDefinitions =
+        CORE_SCHEMA_FILE.equals(schemaFile) || RFC_3112_SCHEMA_FILE.equals(schemaFile);
+
+    updateSchemaBuilderWithEntry0(schemaBuilder, schemaEntry, schemaFile, overwriteCoreSchemaDefinitions);
+
+    // check that the update is correct
+    Collection<LocalizableMessage> warnings = schemaBuilder.toSchema().getWarnings();
+    if (!warnings.isEmpty())
+    {
+      if (!overwriteCoreSchemaDefinitions)
+      {
+        // TODO: use correct message = warnings for schema file
+        logger.warn(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE, schemaFile, warnings);
+        // try to update again with overwriting
+        updateSchemaBuilderWithEntry0(schemaBuilder, schemaEntry, schemaFile, true);
+        warnings = schemaBuilder.toSchema().getWarnings();
+        if (!warnings.isEmpty())
+        {
+          // TODO: use correct message: warnings for schema file with overwrite=true
+          reportSchemaWarnings(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE.get(schemaFile, warnings),
+              failOnError);
+        }
+      }
+      else
+      {
+        // TODO: use correct message: warnings for schema file with overwrite=true
+        reportSchemaWarnings(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE.get(schemaFile, warnings), failOnError);
+      }
+    }
+  }
+
+  private void updateSchemaBuilderWithEntry0(final SchemaBuilder schemaBuilder, final Entry schemaEntry,
+      final String schemaFile, final boolean overwrite)
+  {
+    schemaBuilder.addSchema(schemaEntry, overwrite, new SchemaBuilderHook()
+    {
+      @Override
+      public void beforeAddSyntax(Syntax.Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+
+      @Override
+      public void beforeAddObjectClass(ObjectClass.Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+
+      @Override
+      public void beforeAddNameForm(NameForm.Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+
+      @Override
+      public void beforeAddMatchingRuleUse(MatchingRuleUse.Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+
+      @Override
+      public void beforeAddMatchingRule(MatchingRule.Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+
+      @Override
+      public void beforeAddDitStructureRule(DITStructureRule.Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+
+      @Override
+      public void beforeAddDitContentRule(DITContentRule.Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+
+      @Override
+      public void beforeAddAttribute(Builder builder)
+      {
+        builder.removeExtraProperty(SCHEMA_PROPERTY_FILENAME).extraProperties(SCHEMA_PROPERTY_FILENAME, schemaFile);
+      }
+    });
   }
 
   private void switchSchema(Schema newSchema) throws DirectoryException
@@ -466,6 +572,15 @@ public final class SchemaHandler
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
           ERR_SCHEMA_HAS_WARNINGS.get(warnings.size(), Utils.joinAsString("; ", warnings)));
     }
+  }
+
+  private void reportSchemaWarnings(LocalizableMessage message, boolean failOnError) throws ConfigException
+  {
+    if (failOnError)
+    {
+      throw new ConfigException(message);
+    }
+    logger.error(message);
   }
 
   /** A file filter implementation that accepts only LDIF files. */
