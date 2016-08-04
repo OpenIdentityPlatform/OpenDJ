@@ -18,14 +18,12 @@ package org.opends.guitools.controlpanel.datamodel;
 
 import javax.naming.NamingException;
 
-import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.opends.server.types.OpenDsException;
 
 /**
  * This is a commodity class used to wrap the SearchResult class of JNDI.
@@ -118,27 +116,5 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
   @Override
   public int hashCode() {
     return entry.hashCode();
-  }
-
-  /** 
-   * Sets the given attribute.
-   * @param attr the attribute.
-   */
-  public void set(final Attribute attr)
-  {
-    entry.removeAttribute(attr.getAttributeDescription());
-    entry.addAttribute(attr);
-  }
-
-  /**
-   * Gets the Entry object equivalent to this CustomSearchResult.
-   * The method assumes that the schema in DirectoryServer has been initialized.
-   * @return the Entry object equivalent to this CustomSearchResult.
-   * @throws OpenDsException if there is an error parsing the DN or retrieving
-   * the attributes definition and objectclasses in the schema of the server.
-   */
-  public org.opends.server.types.Entry getEntry() throws OpenDsException
-  {
-    return Converters.to(entry);
   }
 }

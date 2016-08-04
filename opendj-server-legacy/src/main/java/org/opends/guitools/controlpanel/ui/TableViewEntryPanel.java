@@ -725,7 +725,10 @@ class TableViewEntryPanel extends ViewEntryPanel
         Attribute attr = searchResult.getAttribute(attrName);
         if (attr != null && !attr.isEmpty())
         {
-          newResult.set(new LinkedAttribute(attr));
+          final Attribute newAttr = new LinkedAttribute(attr);
+          org.forgerock.opendj.ldap.Entry entry = newResult.getSdkEntry();
+          entry.removeAttribute(newAttr.getAttributeDescription());
+          entry.addAttribute(newAttr);
         }
       }
       ignoreEntryChangeEvents = true;

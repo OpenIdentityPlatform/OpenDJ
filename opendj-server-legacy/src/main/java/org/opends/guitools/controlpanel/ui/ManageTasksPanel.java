@@ -50,7 +50,9 @@ import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -497,11 +499,13 @@ public class ManageTasksPanel extends StatusGenericPanel
       {
         final LinkedAttribute attr = new LinkedAttribute(attrNames[j]);
         attr.add(values[j] + r.nextInt());
-        csr.set(attr);
+        Entry entry = csr.getSdkEntry();
+        entry.removeAttribute(attr.getAttributeDescription());
+        entry.addAttribute(attr);
       }
       try
       {
-        list.add(new TaskEntry(csr.getEntry()));
+        list.add(new TaskEntry(Converters.to(csr.getSdkEntry())));
       }
       catch (Throwable t)
       {
@@ -561,11 +565,13 @@ public class ManageTasksPanel extends StatusGenericPanel
       {
         final LinkedAttribute attr = new LinkedAttribute(attrNames[j]);
         attr.add(values[j]);
-        csr.set(attr);
+        Entry entry = csr.getSdkEntry();
+        entry.removeAttribute(attr.getAttributeDescription());
+        entry.addAttribute(attr);
       }
       try
       {
-        list.add(new TaskEntry(csr.getEntry()));
+        list.add(new TaskEntry(Converters.to(csr.getSdkEntry())));
       }
       catch (Throwable t)
       {

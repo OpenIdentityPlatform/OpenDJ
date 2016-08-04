@@ -1599,7 +1599,10 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       Attribute attr = searchResult.getAttribute(attrName);
       if (attr != null && !attr.isEmpty())
       {
-        newResult.set(new LinkedAttribute(attr));
+        final Attribute newAttr = new LinkedAttribute(attr);
+        org.forgerock.opendj.ldap.Entry entry = newResult.getSdkEntry();
+        entry.removeAttribute(newAttr.getAttributeDescription());
+        entry.addAttribute(newAttr);
       }
     }
     ignoreEntryChangeEvents = true;
@@ -1649,7 +1652,11 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
           if (newPwds.equals(lastUserPasswords.get(attrName)))
           {
             Attribute oldValues = searchResult.getAttribute(attrName);
-            newResult.set(oldValues != null ? new LinkedAttribute(oldValues) : new LinkedAttribute(attrName));
+            final Attribute newAttr =
+                oldValues != null ? new LinkedAttribute(oldValues) : new LinkedAttribute(attrName);
+            org.forgerock.opendj.ldap.Entry entry = newResult.getSdkEntry();
+            entry.removeAttribute(newAttr.getAttributeDescription());
+            entry.addAttribute(newAttr);
           }
           else
           {

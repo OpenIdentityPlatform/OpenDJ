@@ -486,7 +486,9 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     }
     if (!attr.isEmpty())
     {
-      sr.set(attr);
+      org.forgerock.opendj.ldap.Entry entry = sr.getSdkEntry();
+      entry.removeAttribute(attr.getAttributeDescription());
+      entry.addAttribute(attr);
     }
   }
 
