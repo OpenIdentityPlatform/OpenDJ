@@ -16,21 +16,13 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import javax.naming.NamingException;
 
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.server.types.OpenDsException;
@@ -75,28 +67,6 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return entry.getName();
   }
 
-  /**
-   * Returns the values for a given attribute.  It returns an empty Set if
-   * the attribute is not defined.
-   * @param name the name of the attribute.
-   * @return the values for a given attribute.  It returns an empty Set if
-   * the attribute is not defined.
-   */
-  public List<ByteString> getAttributeValues(String name) {
-    Attribute attr = entry.getAttribute(name);
-    return attr != null ? toList(attr) : Collections.<ByteString> emptyList();
-  }
-
-  private List<ByteString> toList(Attribute attr)
-  {
-    final List<ByteString> results = new ArrayList<>();
-    for (ByteString value : attr)
-    {
-      results.add(value);
-    }
-    return results;
-  }
-
   public Attribute getAttribute(AttributeDescription attributeDescription)
   {
     return entry.getAttribute(attributeDescription);
@@ -115,19 +85,6 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
   public Entry getSdkEntry()
   {
     return entry;
-  }
-
-  /**
-   * Returns all the attribute names of the entry.
-   * @return the attribute names of the entry.
-   */
-  public SortedSet<String> getAttributeNames() {
-    SortedSet<String> results = new TreeSet<>();
-    for (Attribute attr : entry.getAllAttributes())
-    {
-      results.add(attr.getAttributeDescriptionAsString());
-    }
-    return results;
   }
 
   @Override
@@ -163,15 +120,12 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return entry.hashCode();
   }
 
-  /**
-   * Sets the values for a given attribute name.
-   * @param attrName the name of the attribute.
-   * @param values the values for the attribute.
+  /** 
+   * Sets the given attribute.
+   * @param attr the attribute.
    */
-  public void set(String attrName, List<ByteString> values)
+  public void set(final Attribute attr)
   {
-    final LinkedAttribute attr = new LinkedAttribute(attrName);
-    attr.addAll(values);
     entry.removeAttribute(attr.getAttributeDescription());
     entry.addAttribute(attr);
   }

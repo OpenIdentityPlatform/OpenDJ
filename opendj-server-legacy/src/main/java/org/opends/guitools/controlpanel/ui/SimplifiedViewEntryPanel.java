@@ -73,9 +73,11 @@ import javax.swing.tree.TreePath;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -436,13 +438,14 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     requiredAttrs.clear();
 
     // Build the attributes panel.
-    Collection<String> sortedAttributes = getSortedAttributes(sr, isReadOnly);
+    Collection<AttributeDescription> sortedAttributes = getSortedAttributes(sr, isReadOnly);
     if (isReadOnly)
     {
-      for (String attrName : sortedAttributes)
+      for (AttributeDescription attrDesc : sortedAttributes)
       {
+        String attrName = attrDesc.toString();
         JLabel label = getLabelForAttribute(attrName, sr);
-        List<ByteString> values = toList(sr.getAttribute(attrName));
+        List<ByteString> values = toList(sr.getAttribute(attrDesc));
         JComponent comp = getReadOnlyComponent(attrName, values);
         gbc.weightx = 0.0;
         gbc.anchor = anchor1(values);
@@ -458,16 +461,17 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     else
     {
-      for (final String attrName : sortedAttributes)
+      for (AttributeDescription attrDesc : sortedAttributes)
       {
+        final String attrName = attrDesc.toString();
         String lcAttr = attrName.toLowerCase();
         JLabel label = getLabelForAttribute(attrName, sr);
-        if (isRequired(attrName, sr))
+        if (isRequired(attrDesc, sr))
         {
           Utilities.setRequiredIcon(label);
           requiredAttrs.add(lcAttr);
         }
-        List<ByteString> values = toList(sr.getAttribute(attrName));
+        List<ByteString> values = toList(sr.getAttribute(attrDesc));
         if (values.isEmpty())
         {
           values = newArrayList(ByteString.empty());
@@ -662,20 +666,20 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     return Utilities.createPrimaryLabel(l.toMessage());
   }
 
-  private Collection<String> getSortedAttributes(CustomSearchResult sr, boolean isReadOnly)
+  private LinkedHashSet<AttributeDescription> getSortedAttributes(CustomSearchResult sr, boolean isReadOnly)
   {
     // Get all attributes that the entry can have
-    Set<String> attributes = new LinkedHashSet<>();
-    List<String> entryAttrs = new ArrayList<>(sr.getAttributeNames());
+    List<AttributeDescription> entryAttrs = new ArrayList<>();
     List<String> attrsWithNoOptions = new ArrayList<>();
-    for (String attr : entryAttrs)
+    for (Attribute attr : sr.getSdkEntry().getAllAttributes())
     {
-      AttributeDescription attrDesc = AttributeDescription.valueOf(attr);
+      AttributeDescription attrDesc = attr.getAttributeDescription();
+      entryAttrs.add(attrDesc);
       attrsWithNoOptions.add(attrDesc.getNameOrOID().toLowerCase());
     }
 
     // Put first the attributes associated with the objectclass in hmOrderedAttrNames
-    LinkedHashSet<String> attrNames = new LinkedHashSet<>();
+    LinkedHashSet<AttributeDescription> attrNames = new LinkedHashSet<>();
     for (ByteString ocName : sr.getAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
     {
       String[] attrs = hmOrdereredAttrNames.get(ocName.toString().toLowerCase());
@@ -684,7 +688,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         for (String attr : attrs)
         {
           int index = attrsWithNoOptions.indexOf(attr.toLowerCase());
-          attrNames.add(index != -1 ? entryAttrs.get(index) : attr);
+          attrNames.add(index != -1 ? entryAttrs.get(index) : AttributeDescription.valueOf(attr));
         }
       }
     }
@@ -696,11 +700,11 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     {
       List<String> attrsNotToAdd = Arrays.asList("entryuuid", "hassubordinates",
           "numsubordinates", "subschemasubentry", "entrydn");
-      for (String attr : sr.getAttributeNames())
+      for (AttributeDescription attrDesc : entryAttrs)
       {
-        if (!find(attrNames, attr) && !find(attrsNotToAdd, attr))
+        if (!attrNames.contains(attrDesc) && !contains(attrsNotToAdd, attrDesc))
         {
-          attrNames.add(attr);
+          attrNames.add(attrDesc);
         }
       }
     }
@@ -711,8 +715,8 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       // alphabetical order) the attributes with no friendly name.  Finally
       // do the same with the other attributes.
 
-      SortedSet<String> requiredAttributes = new TreeSet<>();
-      SortedSet<String> allowedAttributes = new TreeSet<>();
+      SortedSet<AttributeType> requiredAttributes = new TreeSet<>();
+      SortedSet<AttributeType> allowedAttributes = new TreeSet<>();
 
       if (schema != null)
       {
@@ -723,11 +727,11 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())
             {
-              requiredAttributes.add(attr.getNameOrOID());
+              requiredAttributes.add(attr);
             }
             for (AttributeType attr : objectClass.getOptionalAttributes())
             {
-              allowedAttributes.add(attr.getNameOrOID());
+              allowedAttributes.add(attr);
             }
           }
         }
@@ -735,11 +739,12 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
       // Now try to put first the attributes for which we have a friendly
       // name (the most common ones).
+      Set<AttributeDescription> attributes = new LinkedHashSet<>();
       updateAttributes(attributes, requiredAttributes, entryAttrs, attrsWithNoOptions);
       updateAttributes(attributes, allowedAttributes, entryAttrs, attrsWithNoOptions);
 
       attributes.addAll(entryAttrs);
-      attributes.add("aci");
+      attributes.add(AttributeDescription.valueOf("aci"));
 
       // In read-only mode display only the attributes with values
       if (isReadOnly)
@@ -747,10 +752,9 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         attributes.retainAll(entryAttrs);
       }
 
-      for (String attr : attributes)
+      for (AttributeDescription attr : attributes)
       {
-        boolean canAdd = isEditable(AttributeDescription.valueOf(attr), schema);
-        if (canAdd && !find(attrNames, attr))
+        if (isEditable(attr, schema) && !attrNames.contains(attr))
         {
           attrNames.add(attr);
         }
@@ -759,11 +763,11 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     return attrNames;
   }
 
-  private boolean find(Collection<String> attrNames, String attrNameToFind)
+  private boolean contains(List<String> attrNames, AttributeDescription attrDesc)
   {
     for (String attrName : attrNames)
     {
-      if (attrName.equalsIgnoreCase(attrNameToFind))
+      if (attrDesc.getAttributeType().hasName(attrName))
       {
         return true;
       }
@@ -772,37 +776,37 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   }
 
   private void updateAttributes(
-      Collection<String> attributes,
-      Set<String> newAttributes,
-      List<String> entryAttrs,
+      Collection<AttributeDescription> attributes,
+      Set<AttributeType> newAttributes,
+      List<AttributeDescription> entryAttrs,
       List<String> attrsWithNoOptions)
   {
-    for (String attr : newAttributes)
+    for (AttributeType attr : newAttributes)
     {
-      int index = attrsWithNoOptions.indexOf(attr.toLowerCase());
+      int index = attrsWithNoOptions.indexOf(attr.getNameOrOID().toLowerCase());
       if (index != -1)
       {
         attributes.add(entryAttrs.get(index));
       }
       else if (hasCertificateSyntax(attr))
       {
-        attributes.add(attr + ";binary");
+        attributes.add(AttributeDescription.create(attr).withOption("binary"));
       }
       else
       {
-        attributes.add(attr);
+        attributes.add(AttributeDescription.create(attr));
       }
     }
   }
 
-  private boolean hasCertificateSyntax(String attrName)
+  private boolean hasCertificateSyntax(AttributeType attrType)
   {
     Schema schema = getInfo().getServerDescriptor().getSchema();
     boolean isCertificate = false;
     // Check all the attributes that we consider binaries.
     if (schema != null)
     {
-      String attributeName = AttributeDescription.valueOf(attrName).getNameOrOID().toLowerCase();
+      String attributeName = attrType.getNameOrOID().toLowerCase();
       if (schema.hasAttributeType(attributeName))
       {
         AttributeType attr = schema.getAttributeType(attributeName);
@@ -1135,12 +1139,11 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     return false;
   }
 
-  private boolean isRequired(String attrName, CustomSearchResult sr)
+  private boolean isRequired(AttributeDescription attrDesc, CustomSearchResult sr)
   {
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (schema != null)
     {
-      AttributeDescription attrDesc = AttributeDescription.valueOf(attrName, schema.getSchemaNG());
       AttributeType attrType = attrDesc.getAttributeType();
       if (!attrType.isPlaceHolder())
       {
@@ -1304,8 +1307,8 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         List<String> newPwds = getNewPasswords(attrName);
         if (newPwds.equals(lastUserPasswords.get(attrName.toLowerCase())))
         {
-          List<ByteString> oldValues = searchResult.getAttributeValues(attrName);
-          if (!oldValues.isEmpty())
+          Attribute oldValues = searchResult.getAttribute(attrName);
+          if (oldValues != null && !oldValues.isEmpty())
           {
             appendLDIFLines(sb, attrName, oldValues);
           }
@@ -1325,8 +1328,8 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     // Add the attributes that are not displayed
     for (String attrName : schemaReadOnlyAttributesLowerCase)
     {
-      List<ByteString> values = searchResult.getAttributeValues(attrName);
-      if (!values.isEmpty())
+      Attribute values = searchResult.getAttribute(attrName);
+      if (values != null && !values.isEmpty())
       {
         appendLDIFLines(sb, attrName, values);
       }
@@ -1391,7 +1394,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     appendLDIFLines(sb, attrName, getValues(attrName));
   }
 
-  private void appendLDIFLines(StringBuilder sb, String attrName, List<?> values)
+  private void appendLDIFLines(StringBuilder sb, String attrName, Iterable<?> values)
   {
     for (Object value : values)
     {
@@ -1593,10 +1596,10 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
     for (String attrName : schemaReadOnlyAttributesLowerCase)
     {
-      List<ByteString> values = searchResult.getAttributeValues(attrName);
-      if (!values.isEmpty())
+      Attribute attr = searchResult.getAttribute(attrName);
+      if (attr != null && !attr.isEmpty())
       {
-        newResult.set(attrName, values);
+        newResult.set(new LinkedAttribute(attr));
       }
     }
     ignoreEntryChangeEvents = true;
@@ -1645,8 +1648,8 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
           List<String> newPwds = getNewPasswords(attrName);
           if (newPwds.equals(lastUserPasswords.get(attrName)))
           {
-            List<ByteString> oldValues = searchResult.getAttributeValues(attrName);
-            newResult.set(attrName, oldValues);
+            Attribute oldValues = searchResult.getAttribute(attrName);
+            newResult.set(oldValues != null ? new LinkedAttribute(oldValues) : new LinkedAttribute(attrName));
           }
           else
           {

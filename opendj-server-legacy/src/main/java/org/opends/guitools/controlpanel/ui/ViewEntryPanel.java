@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -443,7 +444,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   protected void setValues(CustomSearchResult sr, String attrName)
   {
     List<Object> values = getValues(attrName);
-    List<ByteString> valuesToSet = new ArrayList<>();
+    final LinkedAttribute attr = new LinkedAttribute(attrName);
     for (Object value : values)
     {
       if (value instanceof ObjectClassValue)
@@ -451,23 +452,23 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         ObjectClassValue ocValue = (ObjectClassValue)value;
         if (ocValue.getStructural() != null)
         {
-          valuesToSet.add(ByteString.valueOfUtf8(ocValue.getStructural()));
+          attr.add(ocValue.getStructural());
         }
         SortedSet<String> auxiliaries = ocValue.getAuxiliary();
         for (String auxiliary : auxiliaries)
         {
-          valuesToSet.add(ByteString.valueOfUtf8(auxiliary));
+          attr.add(auxiliary);
         }
       }
       else if (value instanceof byte[])
       {
-        valuesToSet.add(ByteString.wrap((byte[]) value));
+        attr.add((byte[]) value);
       }
       else if (value instanceof BinaryValue)
       {
         try
         {
-          valuesToSet.add(ByteString.wrap(((BinaryValue) value).getBytes()));
+          attr.add(((BinaryValue) value).getBytes());
         }
         catch (ParseException pe)
         {
@@ -479,13 +480,13 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         String s = String.valueOf(value);
         if (s.trim().length() > 0)
         {
-          valuesToSet.add(ByteString.valueOfUtf8(s));
+          attr.add(s);
         }
       }
     }
-    if (!valuesToSet.isEmpty())
+    if (!attr.isEmpty())
     {
-      sr.set(attrName, valuesToSet);
+      sr.set(attr);
     }
   }
 

@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.util.CollectionUtils.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -51,8 +50,8 @@ import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -496,8 +495,9 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        ByteString o = ByteString.valueOfUtf8(values[j] + r.nextInt());
-        csr.set(attrNames[j], newArrayList(o));
+        final LinkedAttribute attr = new LinkedAttribute(attrNames[j]);
+        attr.add(values[j] + r.nextInt());
+        csr.set(attr);
       }
       try
       {
@@ -559,8 +559,9 @@ public class ManageTasksPanel extends StatusGenericPanel
       };
       for (int j=0; j < attrNames.length; j++)
       {
-        ByteString o = ByteString.valueOfUtf8(values[j]);
-        csr.set(attrNames[j], newArrayList(o));
+        final LinkedAttribute attr = new LinkedAttribute(attrNames[j]);
+        attr.add(values[j]);
+        csr.set(attr);
       }
       try
       {

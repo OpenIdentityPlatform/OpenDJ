@@ -51,6 +51,7 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -721,10 +722,10 @@ class TableViewEntryPanel extends ViewEntryPanel
 
       for (String attrName : schemaReadOnlyAttributesLowerCase)
       {
-        List<ByteString> values = searchResult.getAttributeValues(attrName);
-        if (!values.isEmpty())
+        Attribute attr = searchResult.getAttribute(attrName);
+        if (attr != null && !attr.isEmpty())
         {
-          newResult.set(attrName, values);
+          newResult.set(new LinkedAttribute(attr));
         }
       }
       ignoreEntryChangeEvents = true;
