@@ -100,7 +100,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * Returns the DN of the entry.
    * @return the DN of the entry.
    */
-  public DN getDN()
+  public DN getName()
   {
     return dn;
   }
@@ -144,7 +144,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     if (o instanceof CustomSearchResult)
     {
       CustomSearchResult sr = (CustomSearchResult)o;
-      return getDN().equals(sr.getDN())
+      return getName().equals(sr.getName())
           && getAttributeNames().equals(sr.getAttributeNames())
           && attrValuesEqual(sr);
     }

@@ -96,7 +96,7 @@ public class ModifyEntryTask extends Task
     this.treePath = path;
 
     DN newDn = newEntry.getName();
-    oldDn = oldEntry.getDN();
+    oldDn = oldEntry.getName();
     for (BackendDescriptor backend : info.getServerDescriptor().getBackends())
     {
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
@@ -153,7 +153,7 @@ public class ModifyEntryTask extends Task
   @Override
   public LocalizableMessage getTaskDescription()
   {
-    return INFO_CTRL_PANEL_MODIFY_ENTRY_TASK_DESCRIPTION.get(oldEntry.getDN());
+    return INFO_CTRL_PANEL_MODIFY_ENTRY_TASK_DESCRIPTION.get(oldEntry.getName());
   }
 
   @Override
@@ -223,12 +223,12 @@ public class ModifyEntryTask extends Task
                   useAdminCtx);
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(
-                      INFO_CTRL_PANEL_MODIFYING_ENTRY.get(oldEntry.getDN()),
+                      INFO_CTRL_PANEL_MODIFYING_ENTRY.get(oldEntry.getName()),
                       ColorAndFontConstants.progressFont));
             }
           });
 
-          conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(oldEntry.getDN().toString()), mods);
+          conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(oldEntry.getName().toString()), mods);
 
           SwingUtilities.invokeLater(new Runnable()
           {
@@ -514,7 +514,7 @@ public class ModifyEntryTask extends Task
        * modifications.
        */
       ByteString oldRdnValueDeleted = null;
-      RDN oldRDN = oldEntry.getDN().rdn();
+      RDN oldRDN = oldEntry.getName().rdn();
       for (AVA ava : oldRDN)
       {
         if (ava.getAttributeType().equals(attrDesc.getAttributeType()))

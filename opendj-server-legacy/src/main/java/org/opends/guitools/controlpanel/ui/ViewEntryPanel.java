@@ -182,7 +182,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected void updateTitle(CustomSearchResult sr, TreePath path)
   {
-    final DN dn = sr.getDN();
+    final DN dn = sr.getName();
     if (dn != null && dn.size() > 0)
     {
       title.setText(dn.toString());

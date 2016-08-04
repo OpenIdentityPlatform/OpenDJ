@@ -505,7 +505,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       catch (Throwable t)
       {
-        logger.error(LocalizableMessage.raw("Error getting entry '"+csr.getDN()+"': "+t, t));
+        logger.error(LocalizableMessage.raw("Error getting entry '"+csr.getName()+"': "+t, t));
       }
     }
     return list;
@@ -568,7 +568,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       catch (Throwable t)
       {
-        logger.error(LocalizableMessage.raw("Error getting entry '"+csr.getDN()+"': "+t, t));
+        logger.error(LocalizableMessage.raw("Error getting entry '"+csr.getName()+"': "+t, t));
       }
     }
     return list;

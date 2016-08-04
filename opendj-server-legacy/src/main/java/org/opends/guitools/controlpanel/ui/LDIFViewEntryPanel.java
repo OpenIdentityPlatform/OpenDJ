@@ -155,14 +155,14 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     boolean sameEntry = false;
     if (searchResult != null && sr != null)
     {
-      sameEntry = searchResult.getDN().equals(sr.getDN());
+      sameEntry = searchResult.getName().equals(sr.getName());
     }
 
     searchResult = sr;
     updateTitle(sr, path);
 
     StringBuilder sb = new StringBuilder();
-    sb.append("dn: ").append(sr.getDN());
+    sb.append("dn: ").append(sr.getName());
 
     if (isReadOnly)
     {

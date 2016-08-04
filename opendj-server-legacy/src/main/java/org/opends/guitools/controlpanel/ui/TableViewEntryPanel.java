@@ -160,7 +160,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     boolean sameEntry = false;
     if (searchResult != null && sr != null)
     {
-      sameEntry = searchResult.getDN().equals(sr.getDN());
+      sameEntry = searchResult.getName().equals(sr.getName());
     }
 
     searchResult = sr;
@@ -262,7 +262,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     StringBuilder sb = new StringBuilder();
     try
     {
-      DN oldDN = searchResult.getDN();
+      DN oldDN = searchResult.getName();
       if (oldDN.size() > 0)
       {
         RDN rdn = oldDN.rdn();
@@ -716,7 +716,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     private void updateObjectClass(ObjectClassValue newValue)
     {
       CustomSearchResult oldResult = searchResult;
-      CustomSearchResult newResult = new CustomSearchResult(searchResult.getDN());
+      CustomSearchResult newResult = new CustomSearchResult(searchResult.getName());
 
       for (String attrName : schemaReadOnlyAttributesLowerCase)
       {

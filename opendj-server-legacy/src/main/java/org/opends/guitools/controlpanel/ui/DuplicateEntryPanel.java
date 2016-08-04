@@ -387,7 +387,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         }
         else
         {
-          String oldValue = getFirstValue(entryToDuplicate.getDN());
+          String oldValue = getFirstValue(entryToDuplicate.getName());
           for (ByteString value : values)
           {
             sb.append("\n");
@@ -469,7 +469,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           entryToDuplicate = sr;
           try
           {
-            rdnAttribute = sr.getDN().rdn().getFirstAVA().getAttributeType().getNameOrOID();
+            rdnAttribute = sr.getName().rdn().getFirstAVA().getAttributeType().getNameOrOID();
 
             updateDNValue();
             boolean hasPassword = !sr.getAttributeValues(ATTR_USER_PASSWORD).isEmpty();

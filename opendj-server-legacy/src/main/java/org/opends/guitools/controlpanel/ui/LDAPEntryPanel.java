@@ -192,7 +192,7 @@ implements EntryReadListener
           }
           else
           {
-            boolean modified = !ev.getEntry().getName().equals(searchResult.getDN())
+            boolean modified = !ev.getEntry().getName().equals(searchResult.getName())
                 || !ModifyEntryTask.getModifications(ev .getEntry(), searchResult, getInfo()).isEmpty();
             enable = modified;
           }
@@ -250,8 +250,8 @@ implements EntryReadListener
   private void updateEntryView(CustomSearchResult searchResult,
       TreePath treePath)
   {
-    boolean isReadOnly = isReadOnly(searchResult.getDN());
-    boolean canDelete = canDelete(searchResult.getDN());
+    boolean isReadOnly = isReadOnly(searchResult.getName());
+    boolean canDelete = canDelete(searchResult.getName());
 
     delete.setVisible(canDelete);
     saveChanges.setVisible(!isReadOnly);
@@ -387,8 +387,8 @@ implements EntryReadListener
         boolean canDelete = false;
         if (searchResult != null && desc.isAuthenticated())
         {
-          isReadOnly = isReadOnly(searchResult.getDN());
-          canDelete = canDelete(searchResult.getDN());
+          isReadOnly = isReadOnly(searchResult.getName());
+          canDelete = canDelete(searchResult.getName());
         }
 
         delete.setVisible(canDelete);
@@ -565,14 +565,14 @@ implements EntryReadListener
       {
         LocalizableMessage confirmationMessage =
           isLeaf ? INFO_CTRL_PANEL_DELETE_ENTRY_CONFIRMATION_DETAILS.get(
-              searchResult.getDN()) :
+              searchResult.getName()) :
                 INFO_CTRL_PANEL_DELETE_SUBTREE_CONFIRMATION_DETAILS.get(
-                    searchResult.getDN());
+                    searchResult.getName());
           if (displayConfirmationDialog(
               INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
               confirmationMessage))
           {
-            DN dn = searchResult.getDN();
+            DN dn = searchResult.getName();
             if (isLeaf)
             {
               launchOperation(newTask,
@@ -667,7 +667,7 @@ implements EntryReadListener
     UnsavedChangesDialog unsavedChangesDlg = new UnsavedChangesDialog(
           Utilities.getParentDialog(this), getInfo());
     unsavedChangesDlg.setMessage(INFO_CTRL_PANEL_UNSAVED_CHANGES_SUMMARY.get(),
-       INFO_CTRL_PANEL_UNSAVED_ENTRY_CHANGES_DETAILS.get(searchResult.getDN()));
+       INFO_CTRL_PANEL_UNSAVED_ENTRY_CHANGES_DETAILS.get(searchResult.getName()));
     Utilities.centerGoldenMean(unsavedChangesDlg,
           Utilities.getParentDialog(this));
     unsavedChangesDlg.setVisible(true);

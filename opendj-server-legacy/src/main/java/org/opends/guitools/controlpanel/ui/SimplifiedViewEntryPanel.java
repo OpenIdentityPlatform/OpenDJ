@@ -409,7 +409,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     boolean sameEntry = false;
     if (searchResult != null && sr != null)
     {
-      sameEntry = searchResult.getDN().equals(sr.getDN());
+      sameEntry = searchResult.getName().equals(sr.getName());
     }
     final Point p = sameEntry ?
         scrollAttributes.getViewport().getViewPosition() : new Point(0, 0);
@@ -679,7 +679,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
     // Handle the root entry separately: most of its attributes are operational
     // so we filter a list of hardcoded attributes.
-    boolean isRootEntry = "".equals(sr.getDN());
+    boolean isRootEntry = "".equals(sr.getName());
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (isRootEntry)
     {
@@ -1397,7 +1397,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     StringBuilder sb = new StringBuilder();
     try
     {
-      DN oldDN = searchResult.getDN();
+      DN oldDN = searchResult.getName();
       if (oldDN.size() > 0)
       {
         List<AVA> avas = toAvas(oldDN.rdn());
@@ -1581,7 +1581,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   private void updatePanel(ObjectClassValue newValue)
   {
     CustomSearchResult oldResult = searchResult;
-    CustomSearchResult newResult = new CustomSearchResult(searchResult.getDN());
+    CustomSearchResult newResult = new CustomSearchResult(searchResult.getName());
 
     for (String attrName : schemaReadOnlyAttributesLowerCase)
     {

@@ -323,7 +323,7 @@ public class DeleteEntryTask extends Task
         if (!sr.getName().equals(""))
         {
           CustomSearchResult res = new CustomSearchResult(sr);
-          deleteSubtreeRecursively(conn, res.getDN(), null, toNotify);
+          deleteSubtreeRecursively(conn, res.getName(), null, toNotify);
         }
       }
     }
