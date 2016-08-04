@@ -18,25 +18,21 @@ package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.naming.NamingException;
 
-import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.adapter.server3x.Converters;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.LDIFReader;
 
 /**
  * This is a commodity class used to wrap the SearchResult class of JNDI.
@@ -46,25 +42,17 @@ import org.opends.server.util.LDIFReader;
  */
 public class CustomSearchResult implements Comparable<CustomSearchResult>
 {
-  private final DN dn;
-  private Map<String, List<ByteString>> attributes;
-  private SortedSet<String> attrNames;
-  private String toString;
-  private int hashCode;
+  private final Entry entry;
 
   /**
    * Constructor of an empty search result.  This constructor is used by the
    * LDAP entry editor which 'build' their own CustomSearchResult.  The entry
    * editors use some methods that require CustomSearchResult.
-   * @param dn the dn of the entry.
+   * @param name the dn of the entry.
    */
-  public CustomSearchResult(DN dn)
+  public CustomSearchResult(DN name)
   {
-    this.dn = dn;
-    attributes = new HashMap<>();
-    attrNames = new TreeSet<>();
-    toString = calculateToString();
-    hashCode = calculateHashCode();
+    this.entry = new LinkedHashMapEntry(name);
   }
 
   /**
@@ -74,26 +62,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public CustomSearchResult(SearchResultEntry sr) throws NamingException
   {
-    dn = sr.getName();
-
-    attributes = new HashMap<>();
-    attrNames = new TreeSet<>();
-    for (org.forgerock.opendj.ldap.Attribute attr : sr.getAllAttributes())
-    {
-      String attrName = attr.getAttributeDescriptionAsString();
-      attrNames.add(attrName);
-      List<ByteString> values = new ArrayList<>();
-      for (ByteString v : attr)
-      {
-        if (!"".equals(v.toString()))
-        {
-          values.add(v);
-        }
-      }
-      attributes.put(attrName.toLowerCase(), values);
-    }
-    toString = calculateToString();
-    hashCode = calculateHashCode();
+    this.entry = sr;
   }
 
   /**
@@ -102,7 +71,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public DN getName()
   {
-    return dn;
+    return entry.getName();
   }
 
   /**
@@ -113,8 +82,18 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * the attribute is not defined.
    */
   public List<ByteString> getAttributeValues(String name) {
-    List<ByteString> values = attributes.get(name.toLowerCase());
-    return values != null ? values : Collections.<ByteString> emptyList();
+    Attribute attr = entry.getAttribute(name);
+    return attr != null ? toList(attr) : Collections.<ByteString> emptyList();
+  }
+
+  private List<ByteString> toList(Attribute attr)
+  {
+    final List<ByteString> results = new ArrayList<>();
+    for (ByteString value : attr)
+    {
+      results.add(value);
+    }
+    return results;
   }
 
   /**
@@ -122,7 +101,12 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * @return the attribute names of the entry.
    */
   public SortedSet<String> getAttributeNames() {
-    return attrNames;
+    SortedSet<String> results = new TreeSet<>();
+    for (Attribute attr : entry.getAllAttributes())
+    {
+      results.add(attr.getAttributeDescriptionAsString());
+    }
+    return results;
   }
 
   @Override
@@ -143,34 +127,19 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     }
     if (o instanceof CustomSearchResult)
     {
-      CustomSearchResult sr = (CustomSearchResult)o;
-      return getName().equals(sr.getName())
-          && getAttributeNames().equals(sr.getAttributeNames())
-          && attrValuesEqual(sr);
+      return entry.equals(((CustomSearchResult)o).entry);
     }
     return false;
   }
 
-  private boolean attrValuesEqual(CustomSearchResult sr)
-  {
-    for (String attrName : getAttributeNames())
-    {
-      if (!getAttributeValues(attrName).equals(sr.getAttributeValues(attrName)))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
   @Override
   public String toString() {
-    return toString;
+    return entry.toString();
   }
 
   @Override
   public int hashCode() {
-    return hashCode;
+    return entry.hashCode();
   }
 
   /**
@@ -180,21 +149,10 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public void set(String attrName, List<ByteString> values)
   {
-    attrNames.add(attrName);
-    attrName = attrName.toLowerCase();
-    attributes.put(attrName, values);
-    toString = calculateToString();
-    hashCode = calculateHashCode();
-  }
-
-  private String calculateToString()
-  {
-    return "dn: "+dn+"\nattributes: "+attributes;
-  }
-
-  private int calculateHashCode()
-  {
-    return 23 + toString.hashCode();
+    final LinkedAttribute attr = new LinkedAttribute(attrName);
+    attr.addAll(values);
+    entry.removeAttribute(attr.getAttributeDescription());
+    entry.addAttribute(attr);
   }
 
   /**
@@ -204,47 +162,8 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * @throws OpenDsException if there is an error parsing the DN or retrieving
    * the attributes definition and objectclasses in the schema of the server.
    */
-  public Entry getEntry() throws OpenDsException
+  public org.opends.server.types.Entry getEntry() throws OpenDsException
   {
-    Map<ObjectClass,String> objectClasses = new HashMap<>();
-    Map<AttributeType,List<org.opends.server.types.Attribute>> userAttributes = new HashMap<>();
-    Map<AttributeType,List<org.opends.server.types.Attribute>> operationalAttributes = new HashMap<>();
-
-    for (String wholeName : getAttributeNames())
-    {
-      final AttributeDescription attrDesc = LDIFReader.parseAttrDescription(wholeName);
-      final AttributeType attrType = attrDesc.getAttributeType();
-
-      // See if this is an objectclass or an attribute.  Then get the
-      // corresponding definition and add the value to the appropriate hash.
-      if (attrType.isObjectClass())
-      {
-        for (ByteString value : getAttributeValues(attrType.getNameOrOID()))
-        {
-          String ocName = value.toString().trim();
-          objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
-        }
-      }
-      else
-      {
-        AttributeBuilder builder = new AttributeBuilder(attrDesc);
-        for (ByteString bs : getAttributeValues(attrType.getNameOrOID()))
-        {
-          builder.add(bs);
-        }
-
-        List<org.opends.server.types.Attribute> attrList = builder.toAttributeList();
-        if (attrType.isOperational())
-        {
-          operationalAttributes.put(attrType, attrList);
-        }
-        else
-        {
-          userAttributes.put(attrType, attrList);
-        }
-      }
-    }
-
-    return new Entry(dn, objectClasses, userAttributes, operationalAttributes);
+    return Converters.to(entry);
   }
 }
