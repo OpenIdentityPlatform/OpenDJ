@@ -26,6 +26,7 @@ import javax.naming.NamingException;
 
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
@@ -94,6 +95,21 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       results.add(value);
     }
     return results;
+  }
+
+  public Attribute getAttribute(AttributeDescription attributeDescription)
+  {
+    return entry.getAttribute(attributeDescription);
+  }
+
+  public Attribute getAttribute(String attributeDescription)
+  {
+    return entry.getAttribute(attributeDescription);
+  }
+
+  public Iterable<Attribute> getAllAttributes()
+  {
+    return entry.getAllAttributes();
   }
 
   /**

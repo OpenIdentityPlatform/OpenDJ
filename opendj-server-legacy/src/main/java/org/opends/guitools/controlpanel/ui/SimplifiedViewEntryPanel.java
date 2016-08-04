@@ -442,7 +442,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       for (String attrName : sortedAttributes)
       {
         JLabel label = getLabelForAttribute(attrName, sr);
-        List<ByteString> values = sr.getAttributeValues(attrName);
+        List<ByteString> values = toList(sr.getAttribute(attrName));
         JComponent comp = getReadOnlyComponent(attrName, values);
         gbc.weightx = 0.0;
         gbc.anchor = anchor1(values);
@@ -467,7 +467,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
           Utilities.setRequiredIcon(label);
           requiredAttrs.add(lcAttr);
         }
-        List<ByteString> values = sr.getAttributeValues(attrName);
+        List<ByteString> values = toList(sr.getAttribute(attrName));
         if (values.isEmpty())
         {
           values = newArrayList(ByteString.empty());
@@ -549,6 +549,19 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         ignoreEntryChangeEvents = false;
       }
     });
+  }
+
+  private List<ByteString> toList(Iterable<ByteString> values)
+  {
+    final List<ByteString> results = new ArrayList<>();
+    if (values != null)
+    {
+      for (ByteString v : values)
+      {
+        results.add(v);
+      }
+    }
+    return results;
   }
 
   private int anchor2(final String attr, List<ByteString> values)
@@ -739,7 +752,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
       for (String attr : attributes)
       {
-        boolean canAdd = isEditable(attr, schema);
+        boolean canAdd = isEditable(AttributeDescription.valueOf(attr), schema);
         if (canAdd && !find(attrNames, attr))
         {
           attrNames.add(attr);

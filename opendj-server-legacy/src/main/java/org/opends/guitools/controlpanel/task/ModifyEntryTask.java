@@ -22,7 +22,6 @@ import static org.opends.server.config.ConfigConstants.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -480,18 +479,17 @@ public class ModifyEntryTask extends Task
     for (org.opends.server.types.Attribute attr : newAttrs)
     {
       AttributeDescription attrDesc = attr.getAttributeDescription();
-      String attrName = attrDesc.toString();
-      if (!ViewEntryPanel.isEditable(attrName, schema))
+      final String attrName = attrDesc.toString();
+      if (!ViewEntryPanel.isEditable(attrDesc, schema))
       {
         continue;
       }
       List<ByteString> newValues = new ArrayList<>();
-      Iterator<ByteString> it = attr.iterator();
-      while (it.hasNext())
+      for (ByteString v : attr)
       {
-        newValues.add(it.next());
+        newValues.add(v);
       }
-      List<ByteString> oldValues = oldEntry.getAttributeValues(attrName);
+      org.forgerock.opendj.ldap.Attribute oldAttr = oldEntry.getAttribute(attrDesc);
 
       ByteString rdnValue = null;
       for (AVA ava : newEntry.getName().rdn())
@@ -534,7 +532,7 @@ public class ModifyEntryTask extends Task
           break;
         }
       }
-      if (oldValues == null)
+      if (oldAttr == null)
       {
         Set<ByteString> vs = new HashSet<>(newValues);
         if (rdnValue != null)
@@ -548,6 +546,7 @@ public class ModifyEntryTask extends Task
               createAttribute(attrName, newValues)));
         }
       } else {
+        final List<ByteString> oldValues = toList(oldAttr);
         List<ByteString> toDelete = disjunction(newValues, oldValues);
         if (oldRdnValueDeleted != null)
         {
@@ -592,37 +591,33 @@ public class ModifyEntryTask extends Task
     }
 
     /* Check if there are attributes to delete */
-    for (String attrName : oldEntry.getAttributeNames())
+    for (org.forgerock.opendj.ldap.Attribute attr : oldEntry.getAllAttributes())
     {
-      if (!ViewEntryPanel.isEditable(attrName, schema))
+      AttributeDescription attrDesc = attr.getAttributeDescription();
+      if (!ViewEntryPanel.isEditable(attrDesc, schema))
       {
         continue;
       }
-      List<ByteString> oldValues = oldEntry.getAttributeValues(attrName);
-      AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
+      org.forgerock.opendj.ldap.Attribute oldAttr = oldEntry.getAttribute(attrDesc);
 
-      List<org.opends.server.types.Attribute> attrs = newEntry.getAttribute(attrDesc.getNameOrOID());
-      if (!find(attrs, attrName) && !oldValues.isEmpty())
+      if (!newEntry.hasAttribute(AttributeDescription.valueOf(attrDesc.getNameOrOID())) && !oldAttr.isEmpty())
       {
         modifications.add(new ModificationItem(
             DirContext.REMOVE_ATTRIBUTE,
-            new BasicAttribute(attrName)));
+            new BasicAttribute(attrDesc.toString())));
       }
     }
     return modifications;
   }
 
-  private static boolean find(List<org.opends.server.types.Attribute> attrs, String attrName)
+  private static List<ByteString> toList(org.forgerock.opendj.ldap.Attribute oldAttr)
   {
-    // TODO JNR use Entry.hasAttribute(AttributeDescription) instead?
-    for (org.opends.server.types.Attribute attr : attrs)
+    List<ByteString> results = new ArrayList<>();
+    for (ByteString v : oldAttr)
     {
-      if (attr.getAttributeDescription().toString().equalsIgnoreCase(attrName))
-      {
-        return true;
-      }
+      results.add(v);
     }
-    return false;
+    return results;
   }
 
   /**

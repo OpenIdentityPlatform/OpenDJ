@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
@@ -46,6 +47,7 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -421,7 +423,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     {
       int result;
       int[] possibleResults = {
-          desc1.attrName.compareTo(desc2.attrName),
+          desc1.attrDesc.compareTo(desc2.attrDesc),
           compareValues(desc1.value, desc2.value)};
       result = possibleResults[sortColumn];
       if (result == 0)
@@ -512,7 +514,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     public Object getValueAt(int row, int col)
     {
       AttributeValuePair attrValuePair = dataArray.get(row);
-      return col == 0 ? attrValuePair.attrName : attrValuePair.value;
+      return col == 0 ? attrValuePair.attrDesc.toString() : attrValuePair.value;
     }
 
     @Override
@@ -565,7 +567,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     public boolean isCellEditable(int row, int col) {
       return col != 0
           && !isReadOnly
-          && !schemaReadOnlyAttributesLowerCase.contains(dataArray.get(row).attrName.toLowerCase());
+          && !schemaReadOnlyAttributesLowerCase.contains(dataArray.get(row).attrDesc.toString().toLowerCase());
     }
 
     @Override
@@ -590,26 +592,26 @@ class TableViewEntryPanel extends ViewEntryPanel
       requiredAttrs.clear();
       List<String> addedAttrs = new ArrayList<>();
       Schema schema = getInfo().getServerDescriptor().getSchema();
-      List<ByteString> ocs = null;
-      for (String attrName : searchResult.getAttributeNames())
+      Attribute ocs = null;
+      for (Attribute attr : searchResult.getAllAttributes())
       {
-        if (ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attrName))
+        AttributeDescription attrDesc = attr.getAttributeDescription();
+        if (attrDesc.equals(getObjectClassAttributeType()))
         {
           if (schema != null)
           {
-            ocs = searchResult.getAttributeValues(attrName);
+            ocs = attr;
             ObjectClassValue ocValue = getObjectClassDescriptor(ocs, schema);
-            allSortedValues.add(new AttributeValuePair(attrName, ocValue));
+            allSortedValues.add(new AttributeValuePair(attrDesc, ocValue));
           }
         }
         else
         {
-          for (Object v : searchResult.getAttributeValues(attrName))
+          for (Object v : attr)
           {
-            allSortedValues.add(new AttributeValuePair(attrName, v));
+            allSortedValues.add(new AttributeValuePair(attrDesc, v));
           }
         }
-        AttributeDescription attrDesc = AttributeDescription.valueOf(attrName);
         addedAttrs.add(attrDesc.getNameOrOID().toLowerCase());
       }
       if (ocs != null && schema != null)
@@ -619,22 +621,20 @@ class TableViewEntryPanel extends ViewEntryPanel
           ObjectClass objectClass = schema.getObjectClass(oc.toString());
           if (!objectClass.isPlaceHolder())
           {
-            for (AttributeType attr : objectClass.getRequiredAttributes())
+            for (AttributeType attrType : objectClass.getRequiredAttributes())
             {
-              String attrName = attr.getNameOrOID();
-              String lowerCase = attrName.toLowerCase();
+              String lowerCase = attrType.getNameOrOID().toLowerCase();
               if (!addedAttrs.contains(lowerCase))
               {
-                allSortedValues.add(newAttributeValuePair(attrName));
+                allSortedValues.add(newAttributeValuePair(AttributeDescription.create(attrType)));
               }
               requiredAttrs.add(lowerCase);
             }
-            for (AttributeType attr : objectClass.getOptionalAttributes())
+            for (AttributeType attrType : objectClass.getOptionalAttributes())
             {
-              String attrName = attr.getNameOrOID();
-              if (!addedAttrs.contains(attrName.toLowerCase()))
+              if (!addedAttrs.contains(attrType.getNameOrOID().toLowerCase()))
               {
-                allSortedValues.add(newAttributeValuePair(attrName));
+                allSortedValues.add(newAttributeValuePair(AttributeDescription.create(attrType)));
               }
             }
           }
@@ -652,15 +652,16 @@ class TableViewEntryPanel extends ViewEntryPanel
       renderer.setRequiredAttrs(requiredAttrs);
     }
 
-    private AttributeValuePair newAttributeValuePair(String attrName)
+    private AttributeValuePair newAttributeValuePair(AttributeDescription attrDesc)
     {
+      String attrName = attrDesc.toString();
       if (isBinary(attrName) || isPassword(attrName))
       {
-        return new AttributeValuePair(attrName, new byte[] {});
+        return new AttributeValuePair(attrDesc, new byte[] {});
       }
       else
       {
-        return new AttributeValuePair(attrName, "");
+        return new AttributeValuePair(attrDesc, "");
       }
     }
 
@@ -697,7 +698,7 @@ class TableViewEntryPanel extends ViewEntryPanel
       List<Object> values = new ArrayList<>();
       for (AttributeValuePair valuePair : dataArray)
       {
-        if (valuePair.attrName.equalsIgnoreCase(attrName)
+        if (valuePair.attrDesc.equals(AttributeDescription.valueOf(attrName))
             && hasValue(valuePair))
         {
           if (valuePair.value instanceof Collection<?>)
@@ -762,12 +763,11 @@ class TableViewEntryPanel extends ViewEntryPanel
         }
         for (AttributeValuePair currValue : allSortedValues)
         {
-          AttributeDescription attrDesc = AttributeDescription.valueOf(currValue.attrName);
-          String attrNoOptions = attrDesc.getNameOrOID().toLowerCase();
+          String attrNoOptions = currValue.attrDesc.getNameOrOID().toLowerCase();
           if (attributes.contains(attrNoOptions)
-              && !schemaReadOnlyAttributesLowerCase.contains(currValue.attrName.toLowerCase()))
+              && !schemaReadOnlyAttributesLowerCase.contains(currValue.attrDesc.toString().toLowerCase()))
           {
-            setValues(newResult, currValue.attrName);
+            setValues(newResult, currValue.attrDesc.toString());
           }
         }
       }
@@ -779,8 +779,7 @@ class TableViewEntryPanel extends ViewEntryPanel
 
     private boolean isRequired(AttributeValuePair value)
     {
-      AttributeDescription attrDesc = AttributeDescription.valueOf(value.attrName.toLowerCase());
-      return requiredAttrs.contains(attrDesc.getNameOrOID());
+      return requiredAttrs.contains(value.attrDesc.getNameOrOID());
     }
 
     private boolean hasValue(AttributeValuePair value)
@@ -808,18 +807,12 @@ class TableViewEntryPanel extends ViewEntryPanel
    */
   private static class AttributeValuePair
   {
-    /** The attribute name. */
-    private final String attrName;
-    /** The value. */
+    private final AttributeDescription attrDesc;
     private Object value;
-    /**
-     * Constructor.
-     * @param attrName the attribute name.
-     * @param value the value.
-     */
-    private AttributeValuePair(String attrName, Object value)
+
+    private AttributeValuePair(AttributeDescription attrDesc, Object value)
     {
-      this.attrName = attrName;
+      this.attrDesc = attrDesc;
       this.value = value;
     }
   }

@@ -36,6 +36,7 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -203,7 +204,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       title.setIcon(null);
     }
 
-    List<ByteString> ocs = sr.getAttributeValues(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    Attribute ocs = sr.getAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (!ocs.isEmpty() && schema != null)
     {
@@ -234,16 +235,16 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   /**
    * Returns an object class value representing all the object class values of
    * the entry.
-   * @param ocValues the list of object class values.
+   * @param ocAttr the list of object class values.
    * @param schema the schema.
    * @return an object class value representing all the object class values of
    * the entry.
    */
-  protected ObjectClassValue getObjectClassDescriptor(List<ByteString> ocValues, Schema schema)
+  protected ObjectClassValue getObjectClassDescriptor(Iterable<ByteString> ocAttr, Schema schema)
   {
     ObjectClass structuralObjectClass = null;
     SortedSet<String> auxiliaryClasses = new TreeSet<>();
-    for (ByteString oc : ocValues)
+    for (ByteString oc : ocAttr)
     {
       ObjectClass objectClass = schema.getObjectClass(oc.toString());
       if (!objectClass.isPlaceHolder())
@@ -489,16 +490,15 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided attribute name is an editable
-   * attribute and <CODE>false</CODE> otherwise.
-   * @param attrName the attribute name.
+   * Returns whether the provided attribute name is an editable attribute.
+   * @param attrDesc the attribute description.
    * @param schema the schema.
-   * @return <CODE>true</CODE> if the provided attribute name is an editable
-   * attribute and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the provided attribute name is an editable
+   * attribute, {@code false} otherwise.
    */
-  public static boolean isEditable(String attrName, Schema schema)
+  public static boolean isEditable(AttributeDescription attrDesc, Schema schema)
   {
-    attrName = AttributeDescription.valueOf(attrName).getNameOrOID();
+    String attrName = attrDesc.getNameOrOID();
     if (schema != null && schema.hasAttributeType(attrName))
     {
       AttributeType attrType = schema.getAttributeType(attrName);

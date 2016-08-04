@@ -34,6 +34,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
@@ -167,9 +168,10 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     if (isReadOnly)
     {
       editableScroll.setVisible(false);
-      for (String attrName : sr.getAttributeNames())
+      for (Attribute attr : sr.getAllAttributes())
       {
-        for (ByteString v : sr.getAttributeValues(attrName))
+        final String attrName = attr.getAttributeDescriptionAsString();
+        for (ByteString v : attr)
         {
           sb.append("\n").append(getLDIFLine(attrName, v));
         }
@@ -183,11 +185,12 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     {
       editableScroll.setVisible(true);
 
-      for (String attrName : sr.getAttributeNames())
+      for (Attribute attr : sr.getAllAttributes())
       {
+        String attrName = attr.getAttributeDescriptionAsString();
         if (!schemaReadOnlyAttributesLowerCase.contains(attrName.toLowerCase()))
         {
-          for (ByteString v : sr.getAttributeValues(attrName))
+          for (ByteString v : attr)
           {
             sb.append("\n").append(getLDIFLine(attrName, v));
           }

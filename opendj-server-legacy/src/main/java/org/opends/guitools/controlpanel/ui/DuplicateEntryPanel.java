@@ -19,6 +19,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -28,7 +29,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -39,6 +39,8 @@ import javax.swing.event.DocumentListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -344,10 +346,11 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     String dn = this.dn.getText();
     StringBuilder sb = new StringBuilder();
     sb.append("dn: ").append(dn);
-    for (String attrName : entryToDuplicate.getAttributeNames())
+    for (Attribute attr : entryToDuplicate.getAllAttributes())
     {
-      List<ByteString> values = entryToDuplicate.getAttributeValues(attrName);
-      if (attrName.equalsIgnoreCase(ATTR_USER_PASSWORD))
+      AttributeDescription attrDesc = attr.getAttributeDescription();
+      String attrName = attr.getAttributeDescriptionAsString();
+      if (attrDesc.equals(getUserPasswordAttributeType()))
       {
         sb.append("\n");
         String pwd = new String(password.getPassword());
@@ -358,12 +361,12 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
       else if (!attrName.equalsIgnoreCase(rdnAttribute))
       {
-        if (!ViewEntryPanel.isEditable(attrName,
+        if (!ViewEntryPanel.isEditable(attrDesc,
             getInfo().getServerDescriptor().getSchema()))
         {
           continue;
         }
-        for (ByteString value : values)
+        for (ByteString value : attr)
         {
           sb.append("\n");
           if (isBinary(attrName))
@@ -380,7 +383,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       else
       {
         String newValue = getFirstValue(DN.valueOf(dn));
-        if (values.size() == 1)
+        if (attr.size() == 1)
         {
           sb.append("\n");
           sb.append(attrName).append(": ").append(newValue);
@@ -388,7 +391,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         else
         {
           String oldValue = getFirstValue(entryToDuplicate.getName());
-          for (ByteString value : values)
+          for (ByteString value : attr)
           {
             sb.append("\n");
             if (oldValue.equals(value))
