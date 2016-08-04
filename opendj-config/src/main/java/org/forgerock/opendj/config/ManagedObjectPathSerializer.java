@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -19,8 +20,8 @@ package org.forgerock.opendj.config;
  * A strategy for serializing managed object paths.
  * <p>
  * This interface provides a generic means for serializing managed object paths
- * into application specific forms. For example, a JNDI client would use this
- * interface to construct <code>LdapName</code> objects from a path. Similarly,
+ * into application specific forms. For example, a client would use this
+ * interface to construct {@code DN} objects from a path. Similarly,
  * on the server side, a serialization strategy is used to construct
  * <code>DN</code> instances from a path.
  * <p>

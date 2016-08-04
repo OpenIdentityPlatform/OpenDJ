@@ -289,7 +289,7 @@ public class ADSContext
    * Constructor of the ADSContext.
    *
    * @param connectionWrapper
-   *          provide connection either via JNDI or Ldap Connection
+   *          provide an Ldap Connection
    */
   public ADSContext(ConnectionWrapper connectionWrapper)
   {

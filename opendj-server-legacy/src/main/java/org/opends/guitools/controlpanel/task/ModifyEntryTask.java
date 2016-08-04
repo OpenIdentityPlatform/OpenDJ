@@ -79,7 +79,7 @@ public class ModifyEntryTask extends Task
    * @param info the control panel information.
    * @param dlg the progress dialog where the task progress will be displayed.
    * @param newEntry the entry containing the new values.
-   * @param oldEntry the old entry as we retrieved using JNDI.
+   * @param oldEntry the old entry as we retrieved using LDAP.
    * @param controller the BrowserController.
    * @param path the TreePath corresponding to the node in the tree that we
    * want to modify.

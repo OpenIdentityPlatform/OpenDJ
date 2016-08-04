@@ -489,7 +489,7 @@ public class NodeRefresher extends AbstractNodeTask {
           searchForCustomFilter(remoteDn, conn);
         }
 
-        String filter = getJNDIFilter(url);
+        String filter = getFilter(url);
 
         SearchRequest request = newSearchRequest(remoteDn, url.getScope(), filter, controller.getAttrsForBlackSearch())
             .setSizeLimit(controller.getMaxChildren());
@@ -915,12 +915,13 @@ public class NodeRefresher extends AbstractNodeTask {
   }
 
   /**
-   * Returns the filter to be used in a JNDI request based on the information
-   * of an LDAP URL.
-   * @param url the LDAP URL.
+   * Returns the filter to be used in a LDAP request based on the information of an LDAP URL.
+   *
+   * @param url
+   *          the LDAP URL.
    * @return the filter.
    */
-  private String getJNDIFilter(LDAPURL url)
+  private String getFilter(LDAPURL url)
   {
     String filter = url.getRawFilter();
     if (filter == null)

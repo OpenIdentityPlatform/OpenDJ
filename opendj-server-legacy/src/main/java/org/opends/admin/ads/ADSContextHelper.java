@@ -131,7 +131,7 @@ class ADSContextHelper
   @param serverProperties Properties of the server being registered to which
   the instance key entry belongs.
   @param serverEntryDn The server's ADS entry DN.
-  @throws ADSContextException In case some JNDI operation fails or there is a
+  @throws ADSContextException In case some LDAP operation fails or there is a
   problem getting the instance public key certificate ID.
    */
   void registerInstanceKeyCertificate(ConnectionWrapper conn, Map<ServerProperty, Object> serverProperties,

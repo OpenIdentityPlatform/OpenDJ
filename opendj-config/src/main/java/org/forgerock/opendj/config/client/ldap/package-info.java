@@ -12,16 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
-
-
-/**
- * LDAP configuration transport implementation.
- * <p>
- * This implementation uses JNDI for all communication. It is expected
- * that, at some point in the future, we will replace this implementation
- * with our own LDAP client SDK based implementation.
- */
+/** LDAP configuration transport implementation. */
 package org.forgerock.opendj.config.client.ldap;
-
