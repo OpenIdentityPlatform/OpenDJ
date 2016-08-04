@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -62,11 +61,9 @@ import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
-import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -82,7 +79,7 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.BackendCreationHelper;
-import org.opends.server.tools.BackendCreationHelper.DefaultIndex;
+import org.opends.server.tools.BackendCreationHelper.CreateIndex;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.tools.ImportLDIF;
@@ -863,12 +860,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       });
 
       performTask();
-      printTaskDone();
-      if (isNewBackend())
-      {
-        createAdditionalIndexes();
-      }
-      refreshProgressBar();
     }
 
     private void updateConfigurationOffline() throws Exception
@@ -877,8 +868,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       try
       {
         performTask();
-        printTaskDone();
-        refreshProgressBar();
       }
       finally
       {
@@ -907,12 +896,17 @@ public class NewBaseDNPanel extends StatusGenericPanel
       {
         printCreateNewBackendProgress(backendName);
         createBackend(backendName);
+        printTaskDone();
+        displayCreateAdditionalIndexesDsConfigCmdLine();
+        printTaskDone();
       }
       else
       {
         printCreateNewBaseDNProgress(backendName);
         addNewBaseDN(backendName);
+        printTaskDone();
       }
+      refreshProgressBar();
     }
 
     private void createBackend(String backendName) throws Exception
@@ -923,7 +917,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
       else
       {
-        createBackendOnline(backendName);
+        createBackendOnline(backendName, getInfo().getConnection());
       }
     }
 
@@ -940,10 +934,10 @@ public class NewBaseDNPanel extends StatusGenericPanel
       }
     }
 
-    private void createBackendOnline(String backendName) throws Exception
+    private void createBackendOnline(String backendName, ConnectionWrapper conn) throws Exception
     {
       Set<DN> baseDNs = Collections.singleton(DN.valueOf(newBaseDN));
-      BackendCreationHelper.createBackendOffline(backendName, baseDNs, getSelectedBackendType().getBackend());
+      BackendCreationHelper.createBackendOnline(backendName, baseDNs, getSelectedBackendType().getBackend(), conn);
     }
 
     private RootCfgClient getRootConfigurationClient() throws LdapException
@@ -984,33 +978,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       catch (Exception e)
       {
         throw new OfflineUpdateException(LocalizableMessage.raw(e.getMessage()), e);
-      }
-    }
-
-    private void createAdditionalIndexes() throws Exception
-    {
-      final String backendName = getBackendName();
-      displayCreateAdditionalIndexesDsConfigCmdLine();
-      final RootCfgClient root = getRootConfigurationClient();
-      addBackendDefaultIndexes((PluggableBackendCfgClient) root.getBackend(backendName));
-      displayCreateAdditionalIndexesDone();
-    }
-
-    private void addBackendDefaultIndexes(PluggableBackendCfgClient backendCfgClient) throws Exception
-    {
-      for (DefaultIndex defaultIndex : BackendCreationHelper.DEFAULT_INDEXES)
-      {
-        final BackendIndexCfgClient index = backendCfgClient.createBackendIndex(
-            BackendIndexCfgDefn.getInstance(), defaultIndex.getName(), null);
-
-        final List<IndexType> indexTypes = new LinkedList<>();
-        indexTypes.add(IndexType.EQUALITY);
-        if (defaultIndex.shouldCreateSubstringIndex())
-        {
-          indexTypes.add(IndexType.SUBSTRING);
-        }
-        index.setIndexType(indexTypes);
-        index.commit();
       }
     }
 
@@ -1060,9 +1027,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
     private void displayCreateAdditionalIndexesDsConfigCmdLine()
     {
       final List<List<String>> argsArray = new ArrayList<>();
-      for (DefaultIndex defaultIndex : BackendCreationHelper.DEFAULT_INDEXES)
+      for (CreateIndex index : BackendCreationHelper.DEFAULT_INDEXES)
       {
-        argsArray.add(getCreateIndexCommandLineArguments(defaultIndex));
+        argsArray.add(getCreateIndexCommandLineArguments(index));
       }
 
       final StringBuilder sb = new StringBuilder();
@@ -1086,7 +1053,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       });
     }
 
-    private List<String> getCreateIndexCommandLineArguments(final DefaultIndex defaultIndex)
+    private List<String> getCreateIndexCommandLineArguments(final CreateIndex index)
     {
       final List<String> args = new ArrayList<>();
       args.add("create-backend-index");
@@ -1095,10 +1062,10 @@ public class NewBaseDNPanel extends StatusGenericPanel
       args.add("--type");
       args.add("generic");
       args.add("--index-name");
-      args.add(defaultIndex.getName());
+      args.add(index.getName());
       args.add("--set");
       args.add("index-type:" + IndexType.EQUALITY);
-      if (defaultIndex.shouldCreateSubstringIndex())
+      if (index.shouldCreateSubstringIndex())
       {
         args.add("--set");
         args.add("index-type:" + IndexType.SUBSTRING);
@@ -1108,19 +1075,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
       args.add("--no-prompt");
 
       return args;
-    }
-
-    private void displayCreateAdditionalIndexesDone()
-    {
-      SwingUtilities.invokeLater(new Runnable()
-      {
-        @Override
-        public void run()
-        {
-          getProgressDialog().appendProgressHtml(
-              Utilities.getProgressDone(ColorAndFontConstants.progressFont) + "<br><br>");
-        }
-      });
     }
 
     /**

@@ -32,6 +32,7 @@ import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Installation;
 
@@ -39,22 +40,22 @@ import org.opends.quicksetup.Installation;
 public class BackendCreationHelper
 {
   /** Describes an attribute index which should be created during installation. */
-  public static final class DefaultIndex
+  public static final class CreateIndex
   {
-    private static DefaultIndex withEqualityAndSubstring(final String name)
+    private static CreateIndex withEqualityAndSubstring(final String name)
     {
-      return new DefaultIndex(name, true);
+      return new CreateIndex(name, true);
     }
 
-    private static DefaultIndex withEquality(final String name)
+    private static CreateIndex withEquality(final String name)
     {
-      return new DefaultIndex(name, false);
+      return new CreateIndex(name, false);
     }
 
     private final String name;
     private final boolean shouldCreateSubstringIndex;
 
-    private DefaultIndex(final String name, final boolean substringIndex)
+    private CreateIndex(final String name, final boolean substringIndex)
     {
       this.name = name;
       this.shouldCreateSubstringIndex = substringIndex;
@@ -81,18 +82,29 @@ public class BackendCreationHelper
     {
       return shouldCreateSubstringIndex;
     }
+
+    @Override
+    public String toString()
+    {
+      String className = getClass().getSimpleName();
+      if (shouldCreateSubstringIndex)
+      {
+        return className + "(" + name + ".equality" + ", " + name + ".substring" + ")";
+      }
+      return className + "(" + name + ".equality" + ")";
+    }
   }
 
   /** Default indexes to add in a new backend. */
-  public static final DefaultIndex[] DEFAULT_INDEXES = {
-    DefaultIndex.withEqualityAndSubstring("cn"),
-    DefaultIndex.withEqualityAndSubstring("givenName"),
-    DefaultIndex.withEqualityAndSubstring("mail"),
-    DefaultIndex.withEqualityAndSubstring("sn"),
-    DefaultIndex.withEqualityAndSubstring("telephoneNumber"),
-    DefaultIndex.withEquality("member"),
-    DefaultIndex.withEquality("uid"),
-    DefaultIndex.withEquality("uniqueMember")
+  public static final CreateIndex[] DEFAULT_INDEXES = {
+    CreateIndex.withEqualityAndSubstring("cn"),
+    CreateIndex.withEqualityAndSubstring("givenName"),
+    CreateIndex.withEqualityAndSubstring("mail"),
+    CreateIndex.withEqualityAndSubstring("sn"),
+    CreateIndex.withEqualityAndSubstring("telephoneNumber"),
+    CreateIndex.withEquality("member"),
+    CreateIndex.withEquality("uid"),
+    CreateIndex.withEquality("uniqueMember")
   };
 
   /**
@@ -119,6 +131,27 @@ public class BackendCreationHelper
   }
 
   /**
+   * Add a new backend with the provided name in the config.ldif file.
+   *
+   * @param backendName
+   *          The new backend name
+   * @param baseDNs
+   *          The base dns to add in the new backend.
+   * @param backendType
+   *          The backend type
+   * @param conn
+   *          The connection to the server
+   * @throws Exception
+   *           If any problems occurred
+   */
+  public static void createBackendOnline(String backendName, Collection<DN> baseDNs,
+      ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType, ConnectionWrapper conn)
+      throws Exception
+  {
+    createBackend(conn.getRootConfiguration(), backendName, baseDNs, backendType);
+  }
+
+  /**
    * Create a backend with the provided name using the provided
    * {@code RootCfgClient}.
    *
@@ -136,31 +169,31 @@ public class BackendCreationHelper
   private static void createBackend(RootCfgClient rootConfiguration, String backendName, Collection<DN> baseDNs,
       ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType) throws Exception
   {
-      final BackendCfgClient backendCfgClient = rootConfiguration.createBackend(backendType, backendName, null);
-      backendCfgClient.setEnabled(true);
-      backendCfgClient.setBaseDN(baseDNs);
-      backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);
-      backendCfgClient.commit();
+    final BackendCfgClient backendCfgClient = rootConfiguration.createBackend(backendType, backendName, null);
+    backendCfgClient.setEnabled(true);
+    backendCfgClient.setBaseDN(baseDNs);
+    backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);
+    backendCfgClient.commit();
 
-      addBackendDefaultIndexes((PluggableBackendCfgClient) backendCfgClient);
+    addBackendDefaultIndexes((PluggableBackendCfgClient) backendCfgClient);
   }
 
   private static void addBackendDefaultIndexes(PluggableBackendCfgClient backendCfgClient) throws Exception
   {
-    for (DefaultIndex defaultIndex : DEFAULT_INDEXES)
+    for (CreateIndex index : DEFAULT_INDEXES)
     {
-      final BackendIndexCfgClient index =
-          backendCfgClient.createBackendIndex(BackendIndexCfgDefn.getInstance(), defaultIndex.name, null);
+      final BackendIndexCfgClient indexCfg =
+          backendCfgClient.createBackendIndex(BackendIndexCfgDefn.getInstance(), index.name, null);
 
       final List<IndexType> indexTypes = new LinkedList<>();
       indexTypes.add(IndexType.EQUALITY);
-      if (defaultIndex.shouldCreateSubstringIndex)
+      if (index.shouldCreateSubstringIndex)
       {
         indexTypes.add(IndexType.SUBSTRING);
       }
-      index.setIndexType(indexTypes);
+      indexCfg.setIndexType(indexTypes);
 
-      index.commit();
+      indexCfg.commit();
     }
   }
 }
