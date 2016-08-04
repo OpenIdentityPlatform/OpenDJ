@@ -54,11 +54,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import javax.naming.CompositeName;
-import javax.naming.InvalidNameException;
-import javax.naming.Name;
 import javax.naming.NamingException;
-import javax.naming.ldap.LdapName;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -1447,26 +1443,6 @@ public class Utilities
   }
 
   /**
-   * Returns whether the provided strings represent the same DN.
-   *
-   * @param dn1 the first dn to compare.
-   * @param dn2 the second dn to compare.
-   * @return {@code true} if the provided strings represent the same DN, {@code false} otherwise.
-   */
-  public static boolean areDnsEqual(String dn1, String dn2)
-  {
-    try
-    {
-      LdapName name1 = new LdapName(dn1);
-      LdapName name2 = new LdapName(dn2);
-      return name1.equals(name2);
-    } catch (Exception ex)
-    {
-      return false;
-    }
-  }
-
-  /**
    * Returns the attribute name with no options (or subtypes).
    * <p>
    * Note: normal code should use <code>AttributeDescription.valueOf(attrName).getNameOrOID()</code>
@@ -1535,23 +1511,6 @@ public class Utilities
       msg.append(stripStringToSingleLine(m, separator));
     }
     return msg.toString();
-  }
-
-  /**
-   * Commodity method to get the Name object representing a dn.
-   * It is preferable to use Name objects when doing JNDI operations to avoid
-   * problems with the '/' character.
-   * @param dn the DN as a String.
-   * @return a Name object representing the DN.
-   * @throws InvalidNameException if the provided DN value is not valid.
-   */
-  public static Name getJNDIName(String dn) throws InvalidNameException
-  {
-    Name name = new CompositeName();
-    if (dn != null && dn.length() > 0) {
-      name.add(dn);
-    }
-    return name;
   }
 
   /**

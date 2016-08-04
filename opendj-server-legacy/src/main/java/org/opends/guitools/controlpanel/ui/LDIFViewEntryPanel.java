@@ -41,9 +41,7 @@ import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFReader;
-import org.opends.server.util.StaticUtils;
 
 /** The panel displaying an LDIF view of an entry. */
 public class LDIFViewEntryPanel extends ViewEntryPanel
@@ -290,35 +288,17 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * Returns the equivalent LDIF line for a given attribute and value.
    * @param attrName the attribute name.
-   * @param o the value.
+   * @param value the value.
    * @return the equivalent LDIF line for the provided attribute and value.
    */
-  private String getLDIFLine(String attrName, Object o)
+  private String getLDIFLine(String attrName, ByteString value)
   {
-    String attrValue;
-    if (o instanceof String)
+    String v = value.toString();
+    if (isBinary(attrName) || Utilities.hasControlCharaters(v))
     {
-      if (Utilities.hasControlCharaters((String)o))
-      {
-        attrValue = Base64.encode(StaticUtils.getBytes((String)o));
-        attrName = attrName+":";
-      }
-      else
-      {
-        attrValue = (String)o;
-      }
-    }
-    else if (o instanceof byte[])
-    {
-      attrValue = Base64.encode((byte[])o);
       // To indicate that is base64 encoded
-      attrName = attrName+":";
+      return attrName + ":: " + value.toBase64String();
     }
-    else
-    {
-      attrValue = String.valueOf(o);
-    }
-
-    return attrName+": "+ attrValue;
+    return attrName + ": " + v;
   }
 }

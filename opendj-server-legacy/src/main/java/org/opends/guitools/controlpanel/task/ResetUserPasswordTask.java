@@ -14,25 +14,28 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.task;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.Context;
-import javax.naming.NamingEnumeration;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.admin.ads.util.ConnectionUtils;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -40,8 +43,6 @@ import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
-import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.tools.LDAPPasswordModify;
 
 /** The task called when we want to reset the password of the user. */
@@ -128,9 +129,9 @@ public class ResetUserPasswordTask extends Task
   }
 
   @Override
-  protected ArrayList<String> getCommandLineArguments()
+  protected List<String> getCommandLineArguments()
   {
-    ArrayList<String> args = new ArrayList<>();
+    List<String> args = new ArrayList<>();
     if (currentPassword == null)
     {
       args.add("--authzID");
@@ -177,9 +178,8 @@ public class ResetUserPasswordTask extends Task
     lastException = null;
     try
     {
-      ArrayList<String> arguments = getCommandLineArguments();
-      String[] args = new String[arguments.size()];
-      arguments.toArray(args);
+      List<String> arguments = getCommandLineArguments();
+      String[] args = arguments.toArray(new String[arguments.size()]);
 
       returnCode = LDAPPasswordModify.mainPasswordModify(args, false,
             outPrintStream, errorPrintStream);
@@ -195,14 +195,10 @@ public class ResetUserPasswordTask extends Task
           // The connections must be updated, just update the environment, which
           // is what we use to clone connections and to launch scripts.
           // The environment will also be used if we want to reconnect.
-          getInfo().getConnection().getLdapContext().addToEnvironment(
-              Context.SECURITY_CREDENTIALS,
-              String.valueOf(newPassword));
+          rebind(getInfo().getConnection());
           if (getInfo().getUserDataDirContext() != null)
           {
-            getInfo().getUserDataDirContext().getLdapContext().addToEnvironment(
-                Context.SECURITY_CREDENTIALS,
-                String.valueOf(newPassword));
+            rebind(getInfo().getUserDataDirContext());
           }
         }
         state = State.FINISHED_SUCCESSFULLY;
@@ -215,60 +211,35 @@ public class ResetUserPasswordTask extends Task
     }
   }
 
+  private void rebind(ConnectionWrapper conn) throws LdapException
+  {
+    conn.getConnection().bind(newSimpleBindRequest(conn.getBindDn().toString(), newPassword));
+  }
+
   /**
-   * Returns <CODE>true</CODE> if we are bound using the provided entry.  In
+   * Returns whether we are bound using the provided entry.  In
    * the case of root entries this is not necessarily the same as using that
    * particular DN (we might be binding using a value specified in
    * ds-cfg-alternate-bind-dn).
    * @param dn the DN.
    * @param conn the connection that we are using to modify the password.
-   * @return <CODE>true</CODE> if we are bound using the provided entry.
+   * @return {@code true} if we are bound using the provided entry.
    */
   private boolean isBoundAs(DN dn, ConnectionWrapper conn)
   {
-    boolean isBoundAs = false;
-    DN bindDN = DN.rootDN();
-    try
-    {
-      bindDN = conn.getBindDn();
-      isBoundAs = dn.equals(bindDN);
-    }
-    catch (Throwable t)
-    {
-      // Ignore
-    }
+    final DN bindDN = conn.getBindDn();
+    boolean isBoundAs = dn.equals(bindDN);
     if (!isBoundAs)
     {
-      try
+      String attrName = ATTR_ROOTDN_ALTERNATE_BIND_DN;
+      Filter filter = Filter.valueOf("(|(objectClass=*)(objectclass=ldapsubentry))");
+      SearchRequest request = newSearchRequest(dn, BASE_OBJECT, filter, attrName);
+      try (ConnectionEntryReader entries = conn.getConnection().search(request))
       {
-        SearchControls ctls = new SearchControls();
-        ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-        String filter =
-          "(|(objectClass=*)(objectclass=ldapsubentry))";
-        String attrName = ConfigConstants.ATTR_ROOTDN_ALTERNATE_BIND_DN;
-        ctls.setReturningAttributes(new String[] {attrName});
-        NamingEnumeration<SearchResult> entries =
-            conn.getLdapContext().search(Utilities.getJNDIName(dn.toString()), filter, ctls);
-
-        try
+        while (entries.hasNext())
         {
-          while (entries.hasMore())
-          {
-            SearchResult sr = entries.next();
-            Set<String> dns = ConnectionUtils.getValues(sr, attrName);
-            for (String sDn : dns)
-            {
-              if (bindDN.equals(DN.valueOf(sDn)))
-              {
-                isBoundAs = true;
-                break;
-              }
-            }
-          }
-        }
-        finally
-        {
-          entries.close();
+          SearchResultEntry sr = entries.readEntry();
+          return asSetOfDN(sr, attrName).contains(bindDN);
         }
       }
       catch (Throwable t)

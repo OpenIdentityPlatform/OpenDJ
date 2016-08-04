@@ -30,14 +30,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
-
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Modification;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -57,7 +55,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Schema;
-import org.opends.server.util.Base64;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CommandBuilder;
@@ -407,49 +404,29 @@ public abstract class Task
    * to display the command-line equivalent when we do a modification in an
    * entry.  But since some attributes must be obfuscated (like the user
    * password) we pass through this method.
-   * @param attrName the attribute name.
-   * @param o the attribute value.
+   * @param attrDesc the attribute description.
+   * @param value the attribute value.
    * @return the obfuscated String representing the attribute value to be
    * displayed in the logs of the user.
    */
-  private String obfuscateAttributeStringValue(String attrName, Object o)
+  private String obfuscateAttributeStringValue(AttributeDescription attrDesc, ByteString value)
   {
-    if (Utilities.mustObfuscate(attrName,
+    if (Utilities.mustObfuscate(attrDesc.toString(),
         getInfo().getServerDescriptor().getSchema()))
     {
       return OBFUSCATED_VALUE;
     }
-    else if (o instanceof byte[])
+    else if (displayBase64(attrDesc.toString()))
     {
-      byte[] bytes = (byte[])o;
-      if (displayBase64(attrName))
+      if (value.length() > MAX_BINARY_LENGTH_TO_DISPLAY)
       {
-        if (bytes.length > MAX_BINARY_LENGTH_TO_DISPLAY)
-        {
-          return INFO_CTRL_PANEL_VALUE_IN_BASE64.get().toString();
-        }
-        else
-        {
-          return Base64.encode(bytes);
-        }
+        return INFO_CTRL_PANEL_VALUE_IN_BASE64.get().toString();
       }
-      else
-      {
-        if (bytes.length > MAX_BINARY_LENGTH_TO_DISPLAY)
-        {
-          return INFO_CTRL_PANEL_BINARY_VALUE.get().toString();
-        }
-        else
-        {
-          // Get the String value
-          ByteString v = ByteString.wrap(bytes);
-          return v.toString();
-        }
-      }
+      return value.toBase64String();
     }
     else
     {
-      return String.valueOf(o);
+      return value.toString();
     }
   }
 
@@ -801,20 +778,7 @@ public abstract class Task
    * @param mods the modifications.
    * @param useAdminCtx use the administration connector.
    */
-  protected void printEquivalentCommandToModify(DN dn,
-      Collection<ModificationItem> mods, boolean useAdminCtx)
-  {
-    printEquivalentCommandToModify(dn.toString(), mods, useAdminCtx);
-  }
-
-  /**
-   * Prints the equivalent modify command line in the progress dialog.
-   * @param dn the dn of the modified entry.
-   * @param mods the modifications.
-   * @param useAdminCtx use the administration connector.
-   */
-  private void printEquivalentCommandToModify(String dn,
-      Collection<ModificationItem> mods, boolean useAdminCtx)
+  protected void printEquivalentCommandToModify(DN dn, Collection<Modification> mods, boolean useAdminCtx)
   {
     ArrayList<String> args = new ArrayList<>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
@@ -827,7 +791,7 @@ public abstract class Task
     sb.append("<br>");
     sb.append("dn: ").append(dn);
     boolean firstChangeType = true;
-    for (ModificationItem mod : mods)
+    for (Modification mod : mods)
     {
       if (firstChangeType)
       {
@@ -838,44 +802,36 @@ public abstract class Task
         sb.append("-<br>");
       }
       firstChangeType = false;
+
       Attribute attr = mod.getAttribute();
-      String attrName = attr.getID();
-      if (mod.getModificationOp() == DirContext.ADD_ATTRIBUTE)
+      AttributeDescription attrDesc = attr.getAttributeDescription();
+      switch (mod.getModificationType().asEnum())
       {
-        sb.append("add: ").append(attrName).append("<br>");
+      case ADD:
+        sb.append("add: ").append(attrDesc).append("<br>");
+        break;
+      case REPLACE:
+        sb.append("replace: ").append(attrDesc).append("<br>");
+        break;
+      case DELETE:
+        sb.append("delete: ").append(attrDesc).append("<br>");
+        break;
       }
-      else if (mod.getModificationOp() == DirContext.REPLACE_ATTRIBUTE)
+
+      for (ByteString value : attr)
       {
-        sb.append("replace: ").append(attrName).append("<br>");
-      }
-      else
-      {
-        sb.append("delete: ").append(attrName).append("<br>");
-      }
-      for (int i=0; i<attr.size(); i++)
-      {
-        try
+        // We are systematically adding the values in binary mode.
+        // Use the attribute names to figure out the value to be displayed.
+        if (displayBase64(attrDesc.toString()))
         {
-          Object o = attr.get(i);
-          // We are systematically adding the values in binary mode.
-          // Use the attribute names to figure out the value to be displayed.
-          if (displayBase64(attr.getID()))
-          {
-            sb.append(attrName).append(":: ");
-          }
-          else
-          {
-            sb.append(attrName).append(": ");
-          }
-          sb.append(obfuscateAttributeStringValue(attrName, o));
-          sb.append("<br>");
+          sb.append(attrDesc).append(":: ");
         }
-        catch (NamingException ne)
+        else
         {
-          // Bug
-          throw new RuntimeException(
-              "Unexpected error parsing modifications: "+ne, ne);
+          sb.append(attrDesc).append(": ");
         }
+        sb.append(obfuscateAttributeStringValue(attrDesc, value));
+        sb.append("<br>");
       }
     }
     sb.append("</b><br><br>");
@@ -930,8 +886,8 @@ public abstract class Task
    * Tells whether the provided attribute's values must be displayed using
    * base 64 when displaying the equivalent command-line or not.
    * @param attrName the attribute name.
-   * @return <CODE>true</CODE> if the attribute must be displayed using base 64
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the attribute must be displayed using base 64,
+   * {@code false} otherwise.
    */
   private boolean displayBase64(String attrName)
   {

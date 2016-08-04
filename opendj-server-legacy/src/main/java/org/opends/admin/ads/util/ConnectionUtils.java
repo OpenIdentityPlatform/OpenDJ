@@ -19,7 +19,6 @@ package org.opends.admin.ads.util;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -27,8 +26,6 @@ import javax.naming.CommunicationException;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
@@ -484,67 +481,6 @@ public class ConnectionUtils
   {
     host = Utils.getHostNameForLdapUrl(host);
     return (useLdaps ? "ldaps" : "ldap") + "://" + host + ":" + port;
-  }
-
-  /**
-   * Returns the String representation of the first value of an attribute in a
-   * LDAP entry.
-   * @param entry the entry.
-   * @param attrName the attribute name.
-   * @return the String representation of the first value of an attribute in a
-   * LDAP entry.
-   * @throws NamingException if there is an error processing the entry.
-   */
-  public static String getFirstValue(SearchResult entry, String attrName)
-  throws NamingException
-  {
-    String v = null;
-    Attributes attrs = entry.getAttributes();
-    if (attrs != null)
-    {
-      Attribute attr = attrs.get(attrName);
-      if (attr != null && attr.size() > 0)
-      {
-        Object o = attr.get();
-        if (o instanceof String)
-        {
-          v = (String)o;
-        }
-        else
-        {
-          v = String.valueOf(o);
-        }
-      }
-    }
-    return v;
-  }
-
-  /**
-   * Returns a Set with the String representation of the values of an attribute
-   * in a LDAP entry.  The returned Set will never be null.
-   * @param entry the entry.
-   * @param attrName the attribute name.
-   * @return a Set with the String representation of the values of an attribute
-   * in a LDAP entry.
-   * @throws NamingException if there is an error processing the entry.
-   */
-  public static Set<String> getValues(SearchResult entry, String attrName)
-  throws NamingException
-  {
-    Set<String> values = new HashSet<>();
-    Attributes attrs = entry.getAttributes();
-    if (attrs != null)
-    {
-      Attribute attr = attrs.get(attrName);
-      if (attr != null)
-      {
-        for (int i=0; i<attr.size(); i++)
-        {
-          values.add((String)attr.get(i));
-        }
-      }
-    }
-    return values;
   }
 
   /**

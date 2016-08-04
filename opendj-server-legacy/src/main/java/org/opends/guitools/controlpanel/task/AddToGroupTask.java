@@ -14,30 +14,35 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.task;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.guitools.controlpanel.browser.BrowserController.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.swing.SwingUtilities;
 
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.guitools.controlpanel.browser.BrowserController;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
@@ -45,9 +50,6 @@ import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.DN;
-import org.opends.server.util.ServerConstants;
 
 /** The class that is in charge of adding a set of entries to a set of static groups. */
 public class AddToGroupTask extends Task
@@ -154,14 +156,11 @@ public class AddToGroupTask extends Task
     {
       for (final DN groupDn : groupDns)
       {
-        final Collection<ModificationItem> modifications =
-          getModifications(groupDn, dns);
+        ModifyRequest request = newModifyRequest(groupDn);
+        addModifications(groupDn, dns, request);
+        final List<Modification> modifications = request.getModifications();
         if (!modifications.isEmpty())
         {
-          ModificationItem[] mods =
-          new ModificationItem[modifications.size()];
-          modifications.toArray(mods);
-
           SwingUtilities.invokeLater(new Runnable()
           {
             @Override
@@ -175,8 +174,7 @@ public class AddToGroupTask extends Task
             }
           });
 
-          getInfo().getConnection().getLdapContext().modifyAttributes(
-              Utilities.getJNDIName(groupDn.toString()), mods);
+          getInfo().getConnection().getConnection().modify(request);
 
           SwingUtilities.invokeLater(new Runnable()
           {
@@ -203,89 +201,36 @@ public class AddToGroupTask extends Task
    * Returns the modifications that must be made to the provided group.
    * @param groupDn the DN of the static group that must be updated.
    * @param dns the list of entry DNs that must be added to the group.
-   * @return the list of modifications (in form of ModificationItem) that
-   *  must be made to the provided group.
-   * @throws NamingException if an error occurs.
+   * @param modRequest
+   * @throws IOException if an error occurs.
    */
-  private Collection<ModificationItem> getModifications(DN groupDn,
-  Set<DN> dns) throws NamingException
+  private void addModifications(DN groupDn, Set<DN> dns, ModifyRequest modRequest) throws IOException
   {
-    ArrayList<ModificationItem> modifications = new ArrayList<>();
-
     // Search for the group entry
-    SearchControls ctls = new SearchControls();
-    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    ctls.setReturningAttributes(
-        new String[] {
-            ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME,
-            ServerConstants.ATTR_MEMBER,
-            ServerConstants.ATTR_UNIQUE_MEMBER
-        });
-    String filter = BrowserController.ALL_OBJECTS_FILTER;
-    NamingEnumeration<SearchResult> result =
-      getInfo().getConnection().getLdapContext().search(
-          Utilities.getJNDIName(groupDn.toString()),
-          filter, ctls);
+    SearchRequest searchRequest = newSearchRequest(groupDn, BASE_OBJECT, Filter.valueOf(ALL_OBJECTS_FILTER),
+        OBJECTCLASS_ATTRIBUTE_TYPE_NAME,
+        ATTR_MEMBER,
+        ATTR_UNIQUE_MEMBER);
 
-    try
+    try (ConnectionEntryReader reader = getInfo().getConnection().getConnection().search(searchRequest))
     {
-      String memberAttr = ServerConstants.ATTR_MEMBER;
-      while (result.hasMore())
+      String memberAttr = ATTR_MEMBER;
+      while (reader.hasNext())
       {
-        SearchResult sr = result.next();
-        Set<String> objectClasses =
-          ConnectionUtils.getValues(sr, ServerConstants
-            .OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-        if (objectClasses.contains(ServerConstants.OC_GROUP_OF_UNIQUE_NAMES))
+        SearchResultEntry sr = reader.readEntry();
+        Set<String> objectClasses = asSetOfString(sr, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+        if (objectClasses.contains(OC_GROUP_OF_UNIQUE_NAMES))
         {
-          memberAttr = ServerConstants.ATTR_UNIQUE_MEMBER;
+          memberAttr = ATTR_UNIQUE_MEMBER;
         }
-        Set<String> values = ConnectionUtils.getValues(sr, memberAttr);
-        Set<String> dnsToAdd = new LinkedHashSet<>();
-        if (values != null)
-        {
-          for (DN newDn : dns)
-          {
-            boolean found = false;
-            for (String dn : values)
-            {
-              if (Utilities.areDnsEqual(dn, newDn.toString()))
-              {
-                found = true;
-                break;
-              }
-            }
-            if (!found)
-            {
-              dnsToAdd.add(newDn.toString());
-            }
-          }
-        }
-        else
-        {
-          for (DN newDn : dns)
-          {
-            dnsToAdd.add(newDn.toString());
-          }
-        }
+        Set<DN> dnsToAdd = new LinkedHashSet<>(dns);
+        // remove all existing members
+        dnsToAdd.removeAll(asSetOfDN(sr, memberAttr));
         if (!dnsToAdd.isEmpty())
         {
-          Attribute attribute = new BasicAttribute(memberAttr);
-          for (String dn : dnsToAdd)
-          {
-            attribute.add(dn);
-          }
-          modifications.add(new ModificationItem(
-              DirContext.ADD_ATTRIBUTE,
-              attribute));
+          modRequest.addModification(ADD, memberAttr, dnsToAdd.toArray());
         }
       }
     }
-    finally
-    {
-      result.close();
-    }
-    return modifications;
   }
 }
-

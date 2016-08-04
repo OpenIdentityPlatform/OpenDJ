@@ -16,6 +16,8 @@
  */
 package org.opends.guitools.controlpanel.task;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 
@@ -26,11 +28,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.ModificationItem;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
@@ -39,7 +36,12 @@ import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -65,8 +67,8 @@ public class ModifyEntryTask extends Task
   private boolean hasModifications;
   private org.forgerock.opendj.ldap.Entry oldEntry;
   private DN oldDn;
-  private ArrayList<ModificationItem> modifications;
-  private ModificationItem passwordModification;
+  private List<Modification> modifications;
+  private Modification passwordModification;
   private Entry newEntry;
   private BrowserController controller;
   private TreePath treePath;
@@ -109,9 +111,9 @@ public class ModifyEntryTask extends Task
     modifications = getModifications(newEntry, oldEntry, getInfo());
 
     // Find password modifications
-    for (ModificationItem mod : modifications)
+    for (Modification mod : modifications)
     {
-      if ("userPassword".equalsIgnoreCase(mod.getAttribute().getID()))
+      if ("userPassword".equalsIgnoreCase(mod.getAttribute().getAttributeDescriptionAsString()))
       {
         passwordModification = mod;
         break;
@@ -208,10 +210,6 @@ public class ModifyEntryTask extends Task
       if (!mustRename)
       {
         if (!modifications.isEmpty()) {
-          ModificationItem[] mods =
-          new ModificationItem[modifications.size()];
-          modifications.toArray(mods);
-
           SwingUtilities.invokeLater(new Runnable()
           {
             @Override
@@ -226,7 +224,7 @@ public class ModifyEntryTask extends Task
             }
           });
 
-          conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(oldEntry.getName().toString()), mods);
+          conn.getConnection().modify(newModifyRequest0(oldEntry.getName(), modifications));
 
           SwingUtilities.invokeLater(new Runnable()
           {
@@ -264,49 +262,25 @@ public class ModifyEntryTask extends Task
         && state == State.FINISHED_SUCCESSFULLY
         && passwordModification != null)
     {
-      try
+      String sPwd = passwordModification.getAttribute().firstValueAsString();
+      ResetUserPasswordTask newTask = new ResetUserPasswordTask(getInfo(),
+          getProgressDialog(), (BasicNode)treePath.getLastPathComponent(),
+          controller, sPwd.toCharArray());
+      if (!modifications.isEmpty() || mustRename)
       {
-        Object o = passwordModification.getAttribute().get();
-        String sPwd;
-        if (o instanceof byte[])
-        {
-          try
-          {
-            sPwd = new String((byte[])o, "UTF-8");
-          }
-          catch (Throwable t)
-          {
-            throw new RuntimeException("Unexpected error: "+t, t);
-          }
-        }
-        else
-        {
-          sPwd = String.valueOf(o);
-        }
-        ResetUserPasswordTask newTask = new ResetUserPasswordTask(getInfo(),
-            getProgressDialog(), (BasicNode)treePath.getLastPathComponent(),
-            controller, sPwd.toCharArray());
-        if (!modifications.isEmpty() || mustRename)
-        {
-          getProgressDialog().appendProgressHtml("<br><br>");
-        }
-        StatusGenericPanel.launchOperation(newTask,
-            INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUMMARY.get(),
-            INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUCCESSFUL_SUMMARY.get(),
-            INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUCCESSFUL_DETAILS.get(),
-            ERR_CTRL_PANEL_RESETTING_USER_PASSWORD_ERROR_SUMMARY.get(),
-            ERR_CTRL_PANEL_RESETTING_USER_PASSWORD_ERROR_DETAILS.get(),
-            null,
-            getProgressDialog(),
-            false,
-            getInfo());
-        getProgressDialog().setVisible(true);
+        getProgressDialog().appendProgressHtml("<br><br>");
       }
-      catch (NamingException ne)
-      {
-        // This should not happen
-        throw new RuntimeException("Unexpected exception: "+ne, ne);
-      }
+      StatusGenericPanel.launchOperation(newTask,
+          INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUMMARY.get(),
+          INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUCCESSFUL_SUMMARY.get(),
+          INFO_CTRL_PANEL_RESETTING_USER_PASSWORD_SUCCESSFUL_DETAILS.get(),
+          ERR_CTRL_PANEL_RESETTING_USER_PASSWORD_ERROR_SUMMARY.get(),
+          ERR_CTRL_PANEL_RESETTING_USER_PASSWORD_ERROR_DETAILS.get(),
+          null,
+          getProgressDialog(),
+          false,
+          getInfo());
+      getProgressDialog().setVisible(true);
     }
   }
 
@@ -319,12 +293,12 @@ public class ModifyEntryTask extends Task
    * @param originalMods the original modifications (these are required since
    * we might want to update them).
    * @throws CannotRenameException if we cannot perform the modification.
-   * @throws NamingException if an error performing the modification occurs.
+   * @throws LdapException if an error performing the modification occurs.
    */
   private void modifyAndRename(ConnectionWrapper conn, final DN oldDN,
       org.forgerock.opendj.ldap.Entry originalEntry,
-      final Entry newEntry, final ArrayList<ModificationItem> originalMods)
-      throws CannotRenameException, NamingException
+      final Entry newEntry, final List<Modification> originalMods)
+      throws CannotRenameException, LdapException
   {
     RDN oldRDN = oldDN.rdn();
     RDN newRDN = newEntry.getName().rdn();
@@ -351,8 +325,7 @@ public class ModifyEntryTask extends Task
       }
     });
 
-    conn.getLdapContext().rename(Utilities.getJNDIName(oldDn.toString()),
-        Utilities.getJNDIName(newEntry.getName().toString()));
+    conn.getConnection().modifyDN(newModifyDNRequest(oldDn, newRDN));
 
     final TreePath[] newPath = {null};
 
@@ -372,9 +345,7 @@ public class ModifyEntryTask extends Task
       }
     });
 
-    ModificationItem[] mods = new ModificationItem[originalMods.size()];
-    originalMods.toArray(mods);
-    if (mods.length > 0)
+    if (originalMods.size() > 0)
     {
       SwingUtilities.invokeLater(new Runnable()
       {
@@ -390,7 +361,7 @@ public class ModifyEntryTask extends Task
         }
       });
 
-      conn.getLdapContext().modifyAttributes(Utilities.getJNDIName(newEntry.getName().toString()), mods);
+      conn.getConnection().modify(newModifyRequest0(newEntry.getName(), originalMods));
 
       SwingUtilities.invokeLater(new Runnable()
       {
@@ -406,6 +377,16 @@ public class ModifyEntryTask extends Task
         }
       });
     }
+  }
+
+  private ModifyRequest newModifyRequest0(DN dn, final Collection<Modification> mods)
+  {
+    ModifyRequest modRequest = newModifyRequest(dn);
+    for (Modification mod : mods)
+    {
+      modRequest.addModification(mod);
+    }
+    return modRequest;
   }
 
   private boolean rdnTypeChanged(RDN oldRDN, RDN newRDN)
@@ -437,11 +418,11 @@ public class ModifyEntryTask extends Task
     return false;
   }
 
-  private boolean userChangedObjectclass(final ArrayList<ModificationItem> mods)
+  private boolean userChangedObjectclass(final List<Modification> mods)
   {
-    for (ModificationItem mod : mods)
+    for (Modification mod : mods)
     {
-      if (ATTR_OBJECTCLASS.equalsIgnoreCase(mod.getAttribute().getID()))
+      if (ATTR_OBJECTCLASS.equalsIgnoreCase(mod.getAttribute().getAttributeDescriptionAsString()))
       {
         return true;
       }
@@ -469,9 +450,9 @@ public class ModifyEntryTask extends Task
    * @param info the ControlPanelInfo, used to retrieve the schema for instance.
    * @return the modifications to apply between two entries.
    */
-  public static ArrayList<ModificationItem> getModifications(Entry newEntry,
+  public static List<Modification> getModifications(Entry newEntry,
       org.forgerock.opendj.ldap.Entry oldEntry, ControlPanelInfo info) {
-    ArrayList<ModificationItem> modifications = new ArrayList<>();
+    List<Modification> modifications = new ArrayList<>();
     Schema schema = info.getServerDescriptor().getSchema();
 
     List<org.opends.server.types.Attribute> newAttrs = newEntry.getAttributes();
@@ -479,7 +460,6 @@ public class ModifyEntryTask extends Task
     for (org.opends.server.types.Attribute attr : newAttrs)
     {
       AttributeDescription attrDesc = attr.getAttributeDescription();
-      final String attrName = attrDesc.toString();
       if (!ViewEntryPanel.isEditable(attrDesc, schema))
       {
         continue;
@@ -541,9 +521,7 @@ public class ModifyEntryTask extends Task
         }
         if (!vs.isEmpty())
         {
-          modifications.add(new ModificationItem(
-              DirContext.ADD_ATTRIBUTE,
-              createAttribute(attrName, newValues)));
+          modifications.add(newModification(ADD, attrDesc, newValues));
         }
       } else {
         final List<ByteString> oldValues = toList(oldAttr);
@@ -560,17 +538,13 @@ public class ModifyEntryTask extends Task
         if (toDelete.size() + toAdd.size() >= newValues.size() &&
             !isAttributeInNewRdn)
         {
-          modifications.add(new ModificationItem(
-              DirContext.REPLACE_ATTRIBUTE,
-              createAttribute(attrName, newValues)));
+          modifications.add(newModification(REPLACE, attrDesc, newValues));
         }
         else
         {
           if (!toDelete.isEmpty())
           {
-            modifications.add(new ModificationItem(
-                DirContext.REMOVE_ATTRIBUTE,
-                createAttribute(attrName, toDelete)));
+            modifications.add(newModification(DELETE, attrDesc, toDelete));
           }
           if (!toAdd.isEmpty())
           {
@@ -581,9 +555,7 @@ public class ModifyEntryTask extends Task
             }
             if (!vs.isEmpty())
             {
-              modifications.add(new ModificationItem(
-                  DirContext.ADD_ATTRIBUTE,
-                  createAttribute(attrName, vs)));
+              modifications.add(newModification(ADD, attrDesc, vs));
             }
           }
         }
@@ -602,12 +574,21 @@ public class ModifyEntryTask extends Task
 
       if (!newEntry.hasAttribute(AttributeDescription.valueOf(attrDesc.getNameOrOID())) && !oldAttr.isEmpty())
       {
-        modifications.add(new ModificationItem(
-            DirContext.REMOVE_ATTRIBUTE,
-            new BasicAttribute(attrDesc.toString())));
+        modifications.add(newModification(DELETE, attrDesc));
       }
     }
     return modifications;
+  }
+
+  private static Modification newModification(ModificationType modType, AttributeDescription attrDesc)
+  {
+    return new Modification(modType, new LinkedAttribute(attrDesc));
+  }
+
+  private static Modification newModification(
+      ModificationType modType, AttributeDescription attrDesc, Collection<?> values)
+  {
+    return new Modification(modType, new LinkedAttribute(attrDesc, values));
   }
 
   private static List<ByteString> toList(org.forgerock.opendj.ldap.Attribute oldAttr)
@@ -618,21 +599,6 @@ public class ModifyEntryTask extends Task
       results.add(v);
     }
     return results;
-  }
-
-  /**
-   * Creates a JNDI attribute using an attribute name and a set of values.
-   * @param attrName the attribute name.
-   * @param values the values.
-   * @return a JNDI attribute using an attribute name and a set of values.
-   */
-  private static Attribute createAttribute(String attrName, List<ByteString> values) {
-    Attribute attribute = new BasicAttribute(attrName);
-    for (ByteString value : values)
-    {
-      attribute.add(value.toByteArray());
-    }
-    return attribute;
   }
 
   private static List<ByteString> disjunction(List<ByteString> values2, List<ByteString> values1)

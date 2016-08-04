@@ -30,12 +30,7 @@ import java.util.List;
 
 import javax.naming.InterruptedNamingException;
 import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.SizeLimitExceededException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.LdapName;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 
@@ -345,41 +340,35 @@ public class NodeRefresher extends AbstractNodeTask {
    * Performs the search in the case the user specified a custom filter.
    * @param dn the parent DN we perform the search from.
    * @param conn the connection to be used.
-   * @throws NamingException if a problem occurred.
+   * @throws IOException if a problem occurred.
    */
-  private void searchForCustomFilter(String dn, ConnectionWrapper conn)
-  throws NamingException
+  private void searchForCustomFilter(String dn, ConnectionWrapper conn) throws IOException
   {
-    SearchControls ctls = controller.getBasicSearchControls();
-    ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    ctls.setReturningAttributes(new String[]{});
-    ctls.setCountLimit(1);
-    NamingEnumeration<SearchResult> s = conn.getLdapContext().search(new LdapName(dn),
-              controller.getFilter(),
-              ctls);
-    try
+    SearchRequest request = newSearchRequest(dn, WHOLE_SUBTREE, controller.getFilter())
+        .setSizeLimit(1);
+    try (ConnectionEntryReader entryReader = conn.getConnection().search(request))
     {
-      if (!s.hasMore())
+      if (!entryReader.hasNext())
       {
-        throw new NameNotFoundException("Entry "+dn+
+        throw LdapException.newLdapException(ResultCode.NO_SUCH_OBJECT, "Entry " + dn +
             " does not verify filter "+controller.getFilter());
       }
-      while (s.hasMore())
+      while (entryReader.hasNext())
       {
-        s.next();
+        entryReader.readEntry();
       }
     }
-    catch (SizeLimitExceededException slme)
+    catch (LdapException e)
     {
+      if (!e.getResult().getResultCode().equals(ResultCode.SIZE_LIMIT_EXCEEDED))
+      {
+        throw e;
+      }
       // We are just searching for an entry, but if there is more than one
       // this exception will be thrown.  We call sr.hasMore after the
       // first entry has been retrieved to avoid sending a systematic
       // abandon when closing the s NamingEnumeration.
       // See CR 6976906.
-    }
-    finally
-    {
-      s.close();
     }
   }
 

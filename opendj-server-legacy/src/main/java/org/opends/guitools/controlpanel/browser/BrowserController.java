@@ -62,7 +62,6 @@ import org.opends.guitools.controlpanel.ui.nodes.RootNode;
 import org.opends.guitools.controlpanel.ui.nodes.SuffixNode;
 import org.opends.guitools.controlpanel.ui.renderer.BrowserCellRenderer;
 import org.opends.guitools.controlpanel.util.NumSubordinateHacker;
-import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDAPURL;
@@ -914,15 +913,14 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (node instanceof SuffixNode)
     {
       DN dn = node.getDN();
-      String dnStr = dn.toString();
-      return dn.equals(ADSContext.getAdministrationSuffixDN()) ||
-          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT) ||
-          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_TASK_ROOT) ||
-          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_CONFIG_ROOT) ||
-          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_MONITOR_ROOT) ||
-          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_TRUST_STORE_ROOT) ||
-          Utilities.areDnsEqual(dnStr, ConfigConstants.DN_BACKUP_ROOT) ||
-          Utilities.areDnsEqual(dnStr, DN_EXTERNAL_CHANGELOG_ROOT);
+      return dn.equals(ADSContext.getAdministrationSuffixDN())
+          || dn.equals(DN.valueOf(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT))
+          || dn.equals(DN.valueOf(ConfigConstants.DN_TASK_ROOT))
+          || dn.equals(DN.valueOf(ConfigConstants.DN_CONFIG_ROOT))
+          || dn.equals(DN.valueOf(ConfigConstants.DN_MONITOR_ROOT))
+          || dn.equals(DN.valueOf(ConfigConstants.DN_TRUST_STORE_ROOT))
+          || dn.equals(DN.valueOf(ConfigConstants.DN_BACKUP_ROOT))
+          || dn.equals(DN.valueOf(DN_EXTERNAL_CHANGELOG_ROOT));
     }
     else
     {
