@@ -36,10 +36,9 @@ import javax.swing.tree.TreePath;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.forgerock.opendj.ldap.Entry;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.Base64;
@@ -76,7 +75,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   private JScrollPane readOnlyScroll;
   private JTextArea editableAttributes;
   private JTextArea readOnlyAttributes;
-  private CustomSearchResult searchResult;
+  private Entry searchResult;
 
   /** Default constructor. */
   public LDIFViewEntryPanel()
@@ -151,7 +150,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
+  public void update(Entry sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
     if (searchResult != null && sr != null)
@@ -261,16 +260,13 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public Entry getEntry() throws OpenDsException
+  public org.opends.server.types.Entry getEntry() throws OpenDsException
   {
-    LDIFImportConfig ldifImportConfig = null;
-    try
+    String ldif = getLDIF();
+    try (LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
+        LDIFReader reader = new LDIFReader(ldifImportConfig))
     {
-      String ldif = getLDIF();
-
-      ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-      LDIFReader reader = new LDIFReader(ldifImportConfig);
-      Entry entry = reader.readEntry(checkSchema());
+      org.opends.server.types.Entry entry = reader.readEntry(checkSchema());
       addValuesInRDN(entry);
       return entry;
     }
@@ -278,13 +274,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     {
       throw new OfflineUpdateException(
           ERR_CTRL_PANEL_ERROR_CHECKING_ENTRY.get(ioe), ioe);
-    }
-    finally
-    {
-      if (ldifImportConfig != null)
-      {
-        ldifImportConfig.close();
-      }
     }
   }
 

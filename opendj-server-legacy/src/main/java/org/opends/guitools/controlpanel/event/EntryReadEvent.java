@@ -12,28 +12,27 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.event;
 
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.forgerock.opendj.ldap.Entry;
 
 /**
  * The class used to notify that a new entry has been successfully read.  Used
  * in the LDAP entry browser.
- *
  */
 public class EntryReadEvent
 {
   private Object source;
-  private CustomSearchResult sr;
+  private Entry sr;
 
   /**
    * The event constructor.
    * @param source the source of the event.
    * @param sr the search result containing the entry that was read.
    */
-  public EntryReadEvent(Object source, CustomSearchResult sr)
+  public EntryReadEvent(Object source, Entry sr)
   {
     this.source = source;
     this.sr = sr;
@@ -52,7 +51,7 @@ public class EntryReadEvent
    * Returns the search result containing the entry that was read.
    * @return the search result containing the entry that was read.
    */
-  public CustomSearchResult getSearchResult()
+  public Entry getSearchResult()
   {
     return sr;
   }

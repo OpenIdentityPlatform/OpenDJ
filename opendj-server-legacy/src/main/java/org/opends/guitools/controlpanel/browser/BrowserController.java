@@ -52,7 +52,6 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionWrapper;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowserEvent;
 import org.opends.guitools.controlpanel.event.BrowserEventListener;
@@ -1780,18 +1779,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return getNumSubOrdinates(entry) > 0;
   }
 
-  /**
-   * Get the value of the numSubordinates attribute.
-   * If numSubordinates is not present, returns 0.
-   * @param entry the entry to analyze.
-   * @return the value of the numSubordinates attribute.  0 if the attribute
-   * could not be found.
-   */
-  private static int getNumSubOrdinates(CustomSearchResult entry)
-  {
-    return getNumSubOrdinates(entry.getSdkEntry());
-  }
-
   private static int toInt(String v)
   {
     if (v == null)
@@ -1806,19 +1793,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     {
       return 0;
     }
-  }
-
-  /**
-   * Returns whether the entry has subordinates or not.  It uses an algorithm
-   * based in hasSubordinates and numSubordinates attributes.
-   * @param entry the entry to analyze.
-   * @return {@code true} if the entry has subordinates according to the values
-   * of hasSubordinates and numSubordinates, returns {@code false} if none of
-   * the attributes could be found.
-   */
-  public static boolean getHasSubOrdinates(CustomSearchResult entry)
-  {
-    return getHasSubOrdinates(entry.getSdkEntry());
   }
 
   /**

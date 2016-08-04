@@ -43,9 +43,9 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
@@ -71,7 +71,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   private GenericDialog browseDlg;
   private LDAPEntrySelectionPanel browsePanel;
 
-  private CustomSearchResult entryToDuplicate;
+  private Entry entryToDuplicate;
   private String rdnAttribute;
 
   /** Default constructor. */
@@ -444,11 +444,10 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   private void readEntry(final BasicNode node)
   {
     final long t1 = System.currentTimeMillis();
-    BackgroundTask<CustomSearchResult> task =
-      new BackgroundTask<CustomSearchResult>()
+    BackgroundTask<Entry> task = new BackgroundTask<Entry>()
     {
       @Override
-      public CustomSearchResult processBackgroundTask() throws Throwable
+      public Entry processBackgroundTask() throws Throwable
       {
         ConnectionWrapper conn = controller.findConnectionForDisplayedEntry(node);
         LDAPEntryReader reader = new LDAPEntryReader(node.getDN(), conn);
@@ -457,8 +456,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       }
 
       @Override
-      public void backgroundTaskCompleted(CustomSearchResult sr,
-          Throwable throwable)
+      public void backgroundTaskCompleted(Entry sr, Throwable throwable)
       {
         if (throwable != null)
         {

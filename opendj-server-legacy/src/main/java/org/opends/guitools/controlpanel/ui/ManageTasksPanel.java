@@ -51,11 +51,10 @@ import javax.swing.event.ListSelectionListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.TaskTableModel;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -459,7 +458,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     int numberTasks = r.nextInt(10);
     for (int i= 0; i<numberTasks; i++)
     {
-      CustomSearchResult csr = new CustomSearchResult(DN.valueOf("cn=mytask" + i + ",cn=tasks"));
+      Entry csr = new LinkedHashMapEntry("cn=mytask" + i + ",cn=tasks");
       String p = "ds-task-";
       String[] attrNames =
       {
@@ -499,13 +498,12 @@ public class ManageTasksPanel extends StatusGenericPanel
       {
         final LinkedAttribute attr = new LinkedAttribute(attrNames[j]);
         attr.add(values[j] + r.nextInt());
-        Entry entry = csr.getSdkEntry();
-        entry.removeAttribute(attr.getAttributeDescription());
-        entry.addAttribute(attr);
+        csr.removeAttribute(attr.getAttributeDescription());
+        csr.addAttribute(attr);
       }
       try
       {
-        list.add(new TaskEntry(Converters.to(csr.getSdkEntry())));
+        list.add(new TaskEntry(Converters.to(csr)));
       }
       catch (Throwable t)
       {
@@ -525,7 +523,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     Set<TaskEntry> list = new HashSet<>();
     for (int i= 0; i<10; i++)
     {
-      CustomSearchResult csr = new CustomSearchResult(DN.valueOf("cn=mytask" + i + ",cn=tasks"));
+      Entry csr = new LinkedHashMapEntry("cn=mytask" + i + ",cn=tasks");
       String p = "ds-task-";
       String[] attrNames =
       {
@@ -565,13 +563,12 @@ public class ManageTasksPanel extends StatusGenericPanel
       {
         final LinkedAttribute attr = new LinkedAttribute(attrNames[j]);
         attr.add(values[j]);
-        Entry entry = csr.getSdkEntry();
-        entry.removeAttribute(attr.getAttributeDescription());
-        entry.addAttribute(attr);
+        csr.removeAttribute(attr.getAttributeDescription());
+        csr.addAttribute(attr);
       }
       try
       {
-        list.add(new TaskEntry(Converters.to(csr.getSdkEntry())));
+        list.add(new TaskEntry(Converters.to(csr)));
       }
       catch (Throwable t)
       {

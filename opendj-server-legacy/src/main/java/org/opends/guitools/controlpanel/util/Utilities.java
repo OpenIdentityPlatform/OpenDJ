@@ -98,6 +98,7 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -113,7 +114,6 @@ import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
 import org.opends.guitools.controlpanel.datamodel.VLVIndexDescriptor;
@@ -2263,7 +2263,7 @@ public class Utilities
   public static void deleteConfigSubtree(ConfigurationHandler confHandler, DN dn)
   throws OpenDsException, ConfigException
   {
-    org.forgerock.opendj.ldap.Entry confEntry = confHandler.getEntry(dn);
+    Entry confEntry = confHandler.getEntry(dn);
     if (confEntry != null)
     {
       // Copy the values to avoid problems with this recursive method.
@@ -2416,7 +2416,7 @@ public class Utilities
    * @return the first value as a String for a given attribute in the provided
    *         entry.
    */
-  public static String getFirstValueAsString(CustomSearchResult sr, String attrName)
+  public static String getFirstValueAsString(Entry sr, String attrName)
   {
     if (sr != null)
     {

@@ -51,19 +51,19 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
 import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
@@ -74,7 +74,7 @@ import org.opends.server.util.ServerConstants;
 class TableViewEntryPanel extends ViewEntryPanel
 {
   private static final long serialVersionUID = 2135331526526472175L;
-  private CustomSearchResult searchResult;
+  private Entry searchResult;
   private LDAPEntryTableModel tableModel;
   private LDAPEntryTableCellRenderer renderer;
   private JTable table;
@@ -158,7 +158,7 @@ class TableViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
+  public void update(Entry sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
     if (searchResult != null && sr != null)
@@ -200,7 +200,7 @@ class TableViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public Entry getEntry() throws OpenDsException
+  public org.opends.server.types.Entry getEntry() throws OpenDsException
   {
     if (SwingUtilities.isEventDispatchThread())
     {
@@ -228,7 +228,7 @@ class TableViewEntryPanel extends ViewEntryPanel
     try (LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
         LDIFReader reader = new LDIFReader(ldifImportConfig))
     {
-      Entry entry = reader.readEntry(checkSchema());
+      org.opends.server.types.Entry entry = reader.readEntry(checkSchema());
       addValuesInRDN(entry);
       return entry;
     }
@@ -717,8 +717,8 @@ class TableViewEntryPanel extends ViewEntryPanel
 
     private void updateObjectClass(ObjectClassValue newValue)
     {
-      CustomSearchResult oldResult = searchResult;
-      CustomSearchResult newResult = new CustomSearchResult(searchResult.getName());
+      Entry oldResult = searchResult;
+      Entry newResult = new LinkedHashMapEntry(searchResult.getName());
 
       for (String attrName : schemaReadOnlyAttributesLowerCase)
       {
@@ -726,9 +726,8 @@ class TableViewEntryPanel extends ViewEntryPanel
         if (attr != null && !attr.isEmpty())
         {
           final Attribute newAttr = new LinkedAttribute(attr);
-          org.forgerock.opendj.ldap.Entry entry = newResult.getSdkEntry();
-          entry.removeAttribute(newAttr.getAttributeDescription());
-          entry.addAttribute(newAttr);
+          newResult.removeAttribute(newAttr.getAttributeDescription());
+          newResult.addAttribute(newAttr);
         }
       }
       ignoreEntryChangeEvents = true;

@@ -14,7 +14,6 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
@@ -51,7 +50,6 @@ import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
@@ -322,8 +320,7 @@ public class DeleteEntryTask extends Task
         SearchResultEntry sr = entryDNs.readEntry();
         if (!sr.getName().equals(""))
         {
-          CustomSearchResult res = new CustomSearchResult(sr);
-          deleteSubtreeRecursively(conn, res.getName(), null, toNotify);
+          deleteSubtreeRecursively(conn, sr.getName(), null, toNotify);
         }
       }
     }

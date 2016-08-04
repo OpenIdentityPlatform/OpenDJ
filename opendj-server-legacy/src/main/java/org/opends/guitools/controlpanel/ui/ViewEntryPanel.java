@@ -40,12 +40,12 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.LDAPEntryChangedEvent;
@@ -54,7 +54,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
@@ -94,7 +93,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @throws OpenDsException if the entry cannot be generated (in particular if
    * the user provided invalid data).
    */
-  public abstract Entry getEntry() throws OpenDsException;
+  public abstract org.opends.server.types.Entry getEntry() throws OpenDsException;
 
   /**
    * Updates the contents of the panel.
@@ -102,7 +101,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @param isReadOnly whether the entry is read-only or not.
    * @param path the tree path associated with the entry in the tree.
    */
-  public abstract void update(CustomSearchResult sr, boolean isReadOnly, TreePath path);
+  public abstract void update(Entry sr, boolean isReadOnly, TreePath path);
 
   /**
    * Adds a title panel to the container.
@@ -182,7 +181,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @param path the path to the node of the entry selected in the tree.  Used
    * to display the same icon as in the tree.
    */
-  protected void updateTitle(CustomSearchResult sr, TreePath path)
+  protected void updateTitle(Entry sr, TreePath path)
   {
     final DN dn = sr.getName();
     if (dn != null && dn.size() > 0)
@@ -275,7 +274,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * Adds the values in the RDN to the entry definition.
    * @param entry the entry to be updated.
    */
-  protected void addValuesInRDN(Entry entry)
+  protected void addValuesInRDN(org.opends.server.types.Entry entry)
   {
     // Add the values in the RDN if they are not there
     for (AVA ava : entry.getName().rdn())
@@ -441,7 +440,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @param sr the search result to be updated.
    * @param attrName the attribute name.
    */
-  protected void setValues(CustomSearchResult sr, String attrName)
+  protected void setValues(Entry sr, String attrName)
   {
     List<Object> values = getValues(attrName);
     final LinkedAttribute attr = new LinkedAttribute(attrName);
@@ -486,9 +485,8 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     }
     if (!attr.isEmpty())
     {
-      org.forgerock.opendj.ldap.Entry entry = sr.getSdkEntry();
-      entry.removeAttribute(attr.getAttributeDescription());
-      entry.addAttribute(attr);
+      sr.removeAttribute(attr.getAttributeDescription());
+      sr.addAttribute(attr);
     }
   }
 

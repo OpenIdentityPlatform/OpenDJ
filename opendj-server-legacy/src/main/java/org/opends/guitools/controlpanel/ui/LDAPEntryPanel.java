@@ -37,10 +37,10 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
@@ -53,7 +53,6 @@ import org.opends.guitools.controlpanel.task.ModifyEntryTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
@@ -74,7 +73,7 @@ implements EntryReadListener
 
   private ViewEntryPanel displayedEntryPanel;
 
-  private CustomSearchResult searchResult;
+  private Entry searchResult;
   private BrowserController controller;
   private TreePath treePath;
 
@@ -247,8 +246,7 @@ implements EntryReadListener
    * @param searchResult the search result corresponding to the selected node.
    * @param treePath the tree path of the selected node.
    */
-  private void updateEntryView(CustomSearchResult searchResult,
-      TreePath treePath)
+  private void updateEntryView(Entry searchResult, TreePath treePath)
   {
     boolean isReadOnly = isReadOnly(searchResult.getName());
     boolean canDelete = canDelete(searchResult.getName());
@@ -499,9 +497,8 @@ implements EntryReadListener
           Utilities.getFrame(this),
           INFO_CTRL_PANEL_MODIFYING_ENTRY_CHANGES_TITLE.get(), getInfo());
       dlg.setModal(modal);
-      Entry entry = displayedEntryPanel.getEntry();
-      newTask = new ModifyEntryTask(getInfo(), dlg, entry,
-            searchResult, controller, treePath);
+      org.opends.server.types.Entry entry = displayedEntryPanel.getEntry();
+      newTask = new ModifyEntryTask(getInfo(), dlg, entry, searchResult, controller, treePath);
       for (Task task : getInfo().getTasks())
       {
         task.canLaunch(newTask, errors);

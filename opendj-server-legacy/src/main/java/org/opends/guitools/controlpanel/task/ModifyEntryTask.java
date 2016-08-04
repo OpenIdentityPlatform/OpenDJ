@@ -47,7 +47,6 @@ import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.CannotRenameException;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.StatusGenericPanel;
@@ -64,7 +63,7 @@ public class ModifyEntryTask extends Task
   private Set<String> backendSet;
   private boolean mustRename;
   private boolean hasModifications;
-  private CustomSearchResult oldEntry;
+  private org.forgerock.opendj.ldap.Entry oldEntry;
   private DN oldDn;
   private ArrayList<ModificationItem> modifications;
   private ModificationItem passwordModification;
@@ -84,7 +83,7 @@ public class ModifyEntryTask extends Task
    * want to modify.
    */
   public ModifyEntryTask(ControlPanelInfo info, ProgressDialog dlg,
-      Entry newEntry, CustomSearchResult oldEntry,
+      Entry newEntry, org.forgerock.opendj.ldap.Entry oldEntry,
       BrowserController controller, TreePath path)
   {
     super(info, dlg);
@@ -323,9 +322,9 @@ public class ModifyEntryTask extends Task
    * @throws NamingException if an error performing the modification occurs.
    */
   private void modifyAndRename(ConnectionWrapper conn, final DN oldDN,
-  CustomSearchResult originalEntry, final Entry newEntry,
-  final ArrayList<ModificationItem> originalMods)
-  throws CannotRenameException, NamingException
+      org.forgerock.opendj.ldap.Entry originalEntry,
+      final Entry newEntry, final ArrayList<ModificationItem> originalMods)
+      throws CannotRenameException, NamingException
   {
     RDN oldRDN = oldDN.rdn();
     RDN newRDN = newEntry.getName().rdn();
@@ -450,7 +449,7 @@ public class ModifyEntryTask extends Task
     return false;
   }
 
-  private boolean entryContainsRdnTypes(CustomSearchResult entry, RDN rdn)
+  private boolean entryContainsRdnTypes(org.forgerock.opendj.ldap.Entry entry, RDN rdn)
   {
     for (AVA ava : rdn)
     {
@@ -471,7 +470,7 @@ public class ModifyEntryTask extends Task
    * @return the modifications to apply between two entries.
    */
   public static ArrayList<ModificationItem> getModifications(Entry newEntry,
-      CustomSearchResult oldEntry, ControlPanelInfo info) {
+      org.forgerock.opendj.ldap.Entry oldEntry, ControlPanelInfo info) {
     ArrayList<ModificationItem> modifications = new ArrayList<>();
     Schema schema = info.getServerDescriptor().getSchema();
 

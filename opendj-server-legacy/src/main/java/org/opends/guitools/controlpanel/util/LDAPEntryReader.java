@@ -23,12 +23,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.util.ConnectionWrapper;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
 import org.opends.guitools.controlpanel.event.EntryReadEvent;
 import org.opends.guitools.controlpanel.event.EntryReadListener;
@@ -38,7 +38,7 @@ import org.opends.guitools.controlpanel.event.EntryReadListener;
  * entries browser.  When the entry is read it notifies to the EntryReadListener
  * objects that have been registered.
  */
-public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
+public class LDAPEntryReader extends BackgroundTask<Entry>
 {
   private final DN dn;
   private final ConnectionWrapper conn;
@@ -59,7 +59,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   }
 
   @Override
-  public CustomSearchResult processBackgroundTask() throws Throwable
+  public Entry processBackgroundTask() throws Throwable
   {
     isOver = false;
     final Filter filter = Filter.valueOf("(|(objectclass=*)(objectclass=ldapsubentry))");
@@ -69,12 +69,11 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
     {
       isOver = true;
     }
-    return new CustomSearchResult(sr);
+    return sr;
   }
 
   @Override
-  public void backgroundTaskCompleted(CustomSearchResult sr,
-      Throwable throwable)
+  public void backgroundTaskCompleted(Entry sr, Throwable throwable)
   {
     if (!isInterrupted() && isNotifyListeners())
     {
@@ -127,7 +126,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
    * Notifies listeners that a new entry was read.
    * @param sr the new entry in form of CustomSearchResult.
    */
-  private void notifyListeners(CustomSearchResult sr)
+  private void notifyListeners(Entry sr)
   {
     EntryReadEvent ev = new EntryReadEvent(this, sr);
     for (EntryReadListener listener : listeners)

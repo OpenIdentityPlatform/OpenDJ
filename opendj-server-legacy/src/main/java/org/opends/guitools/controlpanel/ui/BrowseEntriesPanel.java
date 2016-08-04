@@ -63,12 +63,12 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.NodeRefresher;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.EntryReadErrorEvent;
@@ -580,7 +580,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       entryReaderThread = new Thread(new Runnable()
       {
         LDAPEntryReader reader;
-        CustomSearchResult sr;
+        Entry sr;
         Throwable t;
         @Override
         public void run()

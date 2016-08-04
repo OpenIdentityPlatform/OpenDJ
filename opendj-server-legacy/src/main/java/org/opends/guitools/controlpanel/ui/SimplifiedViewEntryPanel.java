@@ -77,14 +77,15 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CheckEntrySyntaxException;
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.OnlineUpdateException;
@@ -94,7 +95,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
@@ -123,7 +123,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private final Map<String, List<String>> lastUserPasswords = new HashMap<>();
 
-  private CustomSearchResult searchResult;
+  private Entry searchResult;
   private boolean isReadOnly;
   private TreePath treePath;
   private JScrollPane scrollAttributes;
@@ -406,7 +406,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
+  public void update(Entry sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
     if (searchResult != null && sr != null)
@@ -614,7 +614,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     return GridBagConstraints.WEST;
   }
 
-  private JLabel getLabelForAttribute(String attrName, CustomSearchResult sr)
+  private JLabel getLabelForAttribute(String attrName, Entry sr)
   {
     int index = attrName.indexOf(";");
     String basicAttrName;
@@ -666,12 +666,12 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     return Utilities.createPrimaryLabel(l.toMessage());
   }
 
-  private LinkedHashSet<AttributeDescription> getSortedAttributes(CustomSearchResult sr, boolean isReadOnly)
+  private LinkedHashSet<AttributeDescription> getSortedAttributes(Entry sr, boolean isReadOnly)
   {
     // Get all attributes that the entry can have
     List<AttributeDescription> entryAttrs = new ArrayList<>();
     List<String> attrsWithNoOptions = new ArrayList<>();
-    for (Attribute attr : sr.getSdkEntry().getAllAttributes())
+    for (Attribute attr : sr.getAllAttributes())
     {
       AttributeDescription attrDesc = attr.getAttributeDescription();
       entryAttrs.add(attrDesc);
@@ -1139,7 +1139,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     return false;
   }
 
-  private boolean isRequired(AttributeDescription attrDesc, CustomSearchResult sr)
+  private boolean isRequired(AttributeDescription attrDesc, Entry sr)
   {
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (schema != null)
@@ -1167,7 +1167,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public Entry getEntry() throws OpenDsException
+  public org.opends.server.types.Entry getEntry() throws OpenDsException
   {
     final List<LocalizableMessage> errors = new ArrayList<>();
 
@@ -1219,7 +1219,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     try (LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
         LDIFReader reader = new LDIFReader(ldifImportConfig))
     {
-      final Entry entry = reader.readEntry(checkSchema());
+      final org.opends.server.types.Entry entry = reader.readEntry(checkSchema());
       addValuesInRDN(entry);
       return entry;
     }
@@ -1337,7 +1337,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     return sb.toString();
   }
 
-  private boolean isAttrName(String attrName, CustomSearchResult sr)
+  private boolean isAttrName(String attrName, Entry sr)
   {
     for (ByteString ocName : sr.getAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
     {
@@ -1591,8 +1591,8 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private void updatePanel(ObjectClassValue newValue)
   {
-    CustomSearchResult oldResult = searchResult;
-    CustomSearchResult newResult = new CustomSearchResult(searchResult.getName());
+    Entry oldResult = searchResult;
+    Entry newResult = new LinkedHashMapEntry(searchResult.getName());
 
     for (String attrName : schemaReadOnlyAttributesLowerCase)
     {
@@ -1600,9 +1600,8 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       if (attr != null && !attr.isEmpty())
       {
         final Attribute newAttr = new LinkedAttribute(attr);
-        org.forgerock.opendj.ldap.Entry entry = newResult.getSdkEntry();
-        entry.removeAttribute(newAttr.getAttributeDescription());
-        entry.addAttribute(newAttr);
+        newResult.removeAttribute(newAttr.getAttributeDescription());
+        newResult.addAttribute(newAttr);
       }
     }
     ignoreEntryChangeEvents = true;
@@ -1654,9 +1653,8 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
             Attribute oldValues = searchResult.getAttribute(attrName);
             final Attribute newAttr =
                 oldValues != null ? new LinkedAttribute(oldValues) : new LinkedAttribute(attrName);
-            org.forgerock.opendj.ldap.Entry entry = newResult.getSdkEntry();
-            entry.removeAttribute(newAttr.getAttributeDescription());
-            entry.addAttribute(newAttr);
+            newResult.removeAttribute(newAttr.getAttributeDescription());
+            newResult.addAttribute(newAttr);
           }
           else
           {
