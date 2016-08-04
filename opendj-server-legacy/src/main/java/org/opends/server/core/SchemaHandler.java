@@ -15,11 +15,10 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl.*;
-import static org.opends.server.schema.AciSyntax.*;
-import static org.opends.server.schema.SubtreeSpecificationSyntax.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -27,14 +26,21 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
+import org.opends.server.schema.AciSyntax;
+import org.opends.server.schema.SubtreeSpecificationSyntax;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldif.EntryReader;
@@ -42,6 +48,7 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.server.config.meta.SchemaProviderCfgDefn;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.SchemaProviderCfg;
+import org.forgerock.util.Option;
 import org.forgerock.util.Utils;
 import org.opends.server.schema.SchemaProvider;
 import org.opends.server.types.DirectoryException;
@@ -67,6 +74,16 @@ public final class SchemaHandler
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private ServerContext serverContext;
+
+  /**
+   * The schema.
+   * <p>
+   * @GuardedBy("exclusiveLock")
+   */
+  private volatile Schema schemaNG;
+
+  /** Guards updates to the schema. */
+  private final Lock exclusiveLock = new ReentrantLock();
 
   private long oldestModificationTime = -1L;
 
@@ -96,9 +113,7 @@ public final class SchemaHandler
   {
     this.serverContext = serverContext;
 
-    final org.opends.server.types.Schema schema = serverContext.getSchema();
-
-    schema.exclusiveLock();
+    exclusiveLock.lock();
     try
     {
       // Start from the core schema (TODO: or start with empty schema and add core schema in core schema provider ?)
@@ -112,21 +127,12 @@ public final class SchemaHandler
 
       try
       {
-        schema.updateSchema(new SchemaUpdater()
-        {
-          @Override
-          public Schema update(SchemaBuilder ignored)
-          {
-            // see RemoteSchemaLoader.readSchema()
-            addAciSyntax(schemaBuilder);
-            addSubtreeSpecificationSyntax(schemaBuilder);
-            addHistoricalCsnOrderingMatchingRule(schemaBuilder);
+        // see RemoteSchemaLoader.readSchema()
+        AciSyntax.addAciSyntax(schemaBuilder);
+        SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
+        HistoricalCsnOrderingMatchingRuleImpl.addHistoricalCsnOrderingMatchingRule(schemaBuilder);
 
-            // Uses the builder incrementally updated instead of the default provided by the method.
-            // This is why it is necessary to explicitly lock/unlock the schema updater.
-            return schemaBuilder.toSchema();
-          }
-        });
+        switchSchema(schemaBuilder.toSchema());
       }
       catch (DirectoryException e)
       {
@@ -135,8 +141,71 @@ public final class SchemaHandler
     }
     finally
     {
-      schema.exclusiveUnlock();
+      exclusiveLock.unlock();
     }
+  }
+
+  /**
+   * Update the schema using the provided schema updater.
+   * <p>
+   * An implicit lock is performed, so it is in general not necessary
+   * to call the {code lock()}  and {code unlock() methods.
+   * However, these method should be used if/when the SchemaBuilder passed
+   * as an argument to the updater is not used to return the schema
+   * (see for example usage in {@code CoreSchemaProvider} class). This
+   * case should remain exceptional.
+   *
+   * @param updater
+   *          the updater that returns a new schema
+   * @throws DirectoryException if there is any problem updating the schema
+   */
+  public void updateSchema(SchemaUpdater updater) throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      switchSchema(updater.update(new SchemaBuilder(schemaNG)));
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  /**
+   * Updates the schema option  if the new value differs from the old value.
+   *
+   * @param <T> the schema option's type
+   * @param option the schema option to update
+   * @param newValue the new value for the schema option
+   * @throws DirectoryException if there is any problem updating the schema
+   */
+  public <T> void updateSchemaOption(final Option<T> option, final T newValue) throws DirectoryException
+  {
+    final T oldValue = schemaNG.getOption(option);
+    if (!oldValue.equals(newValue))
+    {
+      updateSchema(new SchemaUpdater()
+      {
+        @Override
+        public Schema update(SchemaBuilder builder)
+        {
+          return builder.setOption(option, newValue).toSchema();
+        }
+      });
+    }
+  }
+
+  /** Takes an exclusive lock on the schema. */
+  public void exclusiveLock()
+  {
+    exclusiveLock.lock();
+  }
+
+  /** Releases an exclusive lock on the schema. */
+  public void exclusiveUnlock()
+  {
+    exclusiveLock.unlock();
   }
 
   /**
@@ -382,6 +451,23 @@ public final class SchemaHandler
     }
   }
 
+  private void switchSchema(Schema newSchema) throws DirectoryException
+  {
+    rejectSchemaWithWarnings(newSchema);
+    schemaNG = newSchema.asNonStrictSchema();
+    Schema.setDefaultSchema(schemaNG);
+  }
+
+  private void rejectSchemaWithWarnings(Schema newSchema) throws DirectoryException
+  {
+    Collection<LocalizableMessage> warnings = newSchema.getWarnings();
+    if (!warnings.isEmpty())
+    {
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+          ERR_SCHEMA_HAS_WARNINGS.get(warnings.size(), Utils.joinAsString("; ", warnings)));
+    }
+  }
+
   /** A file filter implementation that accepts only LDIF files. */
   private static class SchemaFileFilter implements FilenameFilter
   {
@@ -392,5 +478,18 @@ public final class SchemaHandler
     {
       return filename.endsWith(LDIF_SUFFIX);
     }
+  }
+
+  /** Interface to update a schema provided a schema builder. */
+  public interface SchemaUpdater
+  {
+    /**
+     * Returns an updated schema.
+     *
+     * @param builder
+     *          The builder on the current schema
+     * @return the new schema
+     */
+    Schema update(SchemaBuilder builder);
   }
 }
