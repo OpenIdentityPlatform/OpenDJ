@@ -15,6 +15,7 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 import static org.opends.messages.ConfigMessages.WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE;
 import static org.opends.messages.ConfigMessages.WARN_CONFIG_SCHEMA_CANNOT_PARSE_DEFINITIONS_IN_SCHEMA_FILE;
@@ -24,6 +25,7 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -66,6 +68,7 @@ import org.opends.server.schema.SchemaProvider;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Responsible for loading the server schema.
@@ -129,7 +132,7 @@ public final class SchemaHandler
     exclusiveLock.lock();
     try
     {
-      // Start from the core schema (TODO: or start with empty schema and add core schema in core schema provider ?)
+      // Start from the core schema
       final SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
       // Take providers into account.
@@ -140,9 +143,7 @@ public final class SchemaHandler
 
       try
       {
-        // see RemoteSchemaLoader.readSchema() ==> why ??
-
-        // Add server specific syntaxes and matching rules
+        // Add server specific syntaxes and matching rules not provided by the SDK
         AciSyntax.addAciSyntax(schemaBuilder);
         SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
         HistoricalCsnOrderingMatchingRuleImpl.addHistoricalCsnOrderingMatchingRule(schemaBuilder);
@@ -244,8 +245,7 @@ public final class SchemaHandler
       }
       else if (name.equals(CORE_SCHEMA_PROVIDER_NAME))
       {
-        // TODO : use correct message ERR_CORE_SCHEMA_NOT_ENABLED
-        throw new ConfigException(LocalizableMessage.raw("Core Schema can't be disabled"));
+        throw new ConfigException(ERR_CONFIG_CORE_SCHEMA_PROVIDER_DISABLED.get(config.dn()));
       }
     }
   }
@@ -276,16 +276,14 @@ public final class SchemaHandler
         if (!provider.isConfigurationAcceptable(config, unacceptableReasons))
         {
           final String reasons = Utils.joinAsString(".  ", unacceptableReasons);
-          // TODO : fix message, eg CONFIG SCHEMA PROVIDER CONFIG NOT ACCEPTABLE
-          throw new InitializationException(ERR_CONFIG_ALERTHANDLER_CONFIG_NOT_ACCEPTABLE.get(config.dn(), reasons));
+          throw new InitializationException(ERR_CONFIG_SCHEMA_PROVIDER_CONFIG_NOT_ACCEPTABLE.get(config.dn(), reasons));
         }
       }
       return provider;
     }
     catch (Exception e)
     {
-      // TODO : fix message
-      throw new InitializationException(ERR_CONFIG_SCHEMA_SYNTAX_CANNOT_INITIALIZE.get(
+      throw new InitializationException(ERR_CONFIG_SCHEMA_PROVIDER_CANT_BE_INITIALIZED.get(
           className, config.dn(), stackTraceToSingleLineString(e)), e);
     }
   }
@@ -324,10 +322,10 @@ public final class SchemaHandler
       reader.setSchemaValidationPolicy(SchemaValidationPolicy.ignoreAll());
       return reader;
     }
-    catch (Exception e)
+    catch (FileNotFoundException e)
     {
-      // TODO : fix message
-      throw new InitializationException(ERR_CONFIG_FILE_CANNOT_OPEN_FOR_READ.get(ldifFile.getAbsolutePath(), e), e);
+      throw new InitializationException(WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE.get(ldifFile.getPath(),
+          ldifFile.getParent(), StaticUtils.getExceptionMessage(e)));
     }
   }
 
@@ -402,33 +400,26 @@ public final class SchemaHandler
     }
   }
 
-  /** Returns the schema entry from the provided reader. */
+  /** Returns the schema entry from the provided reader, which may be {@code null} if file is empty. */
   private Entry readSchemaEntry(final EntryReader reader, final File schemaFile) throws InitializationException {
     try
     {
-      Entry entry = null;
+      if (!reader.hasNext())
+      {
+        // empty file, just skip it
+        return null;
+      }
+      Entry entry = reader.readEntry();
       if (reader.hasNext())
       {
-        entry = reader.readEntry();
-        if (reader.hasNext())
-        {
-          // TODO : fix message
-          logger.warn(WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE, schemaFile, "");
-        }
-        return entry;
+        logger.warn(WARN_CONFIG_SCHEMA_MULTIPLE_ENTRIES_IN_FILE, schemaFile.getPath(), schemaFile.getParent());
       }
-      else
-      {
-        // TODO : fix message - should be SCHEMA NO LDIF ENTRY
-        throw new InitializationException(WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
-            schemaFile, "", ""));
-      }
+      return entry;
     }
     catch (IOException e)
     {
-      // TODO : fix message
       throw new InitializationException(WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
-              schemaFile, "", getExceptionMessage(e)), e);
+              schemaFile.getPath(), schemaFile.getParent(), getExceptionMessage(e)), e);
     }
     finally
     {
@@ -458,8 +449,11 @@ public final class SchemaHandler
     {
       reader = getLDIFReader(schemaFile, readSchema);
       final Entry entry = readSchemaEntry(reader, schemaFile);
-      boolean failOnError = true;
-      updateSchemaBuilderWithEntry(schemaBuilder, entry, schemaFile.getName(), failOnError);
+      if (entry != null)
+      {
+        boolean failOnError = true;
+        updateSchemaBuilderWithEntry(schemaBuilder, entry, schemaFile.getName(), failOnError);
+      }
     }
     finally {
       Utils.closeSilently(reader);
@@ -482,22 +476,20 @@ public final class SchemaHandler
     {
       if (!overwriteCoreSchemaDefinitions)
       {
-        // TODO: use correct message = warnings for schema file
-        logger.warn(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE, schemaFile, warnings);
+        logger.warn(WARN_CONFIG_SCHEMA_FILE_HAS_SCHEMA_WARNING, schemaFile, warnings);
         // try to update again with overwriting
         updateSchemaBuilderWithEntry0(schemaBuilder, schemaEntry, schemaFile, true);
         warnings = schemaBuilder.toSchema().getWarnings();
         if (!warnings.isEmpty())
         {
-          // TODO: use correct message: warnings for schema file with overwrite=true
-          reportSchemaWarnings(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE.get(schemaFile, warnings),
+          reportSchemaWarnings(WARN_CONFIG_SCHEMA_FILE_HAS_SCHEMA_WARNING_WITH_OVERWRITE.get(schemaFile, warnings),
               failOnError);
         }
       }
       else
       {
-        // TODO: use correct message: warnings for schema file with overwrite=true
-        reportSchemaWarnings(WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE.get(schemaFile, warnings), failOnError);
+        reportSchemaWarnings(WARN_CONFIG_SCHEMA_FILE_HAS_SCHEMA_WARNING_WITH_OVERWRITE.get(schemaFile, warnings),
+            failOnError);
       }
     }
   }
