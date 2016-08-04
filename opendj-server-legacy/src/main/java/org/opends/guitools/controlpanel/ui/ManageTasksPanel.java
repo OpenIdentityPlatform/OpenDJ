@@ -19,7 +19,6 @@ package org.opends.guitools.controlpanel.ui;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.LDIFReader.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -28,7 +27,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,11 +51,8 @@ import javax.swing.event.ListSelectionListener;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -68,12 +63,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.renderer.TaskCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.Entry;
-import org.opends.server.types.OpenDsException;
 
 /** The panel displaying the list of scheduled tasks. */
 public class ManageTasksPanel extends StatusGenericPanel
@@ -511,9 +501,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       try
       {
-        Entry entry = getEntry(csr);
-        TaskEntry task = new TaskEntry(entry);
-        list.add(task);
+        list.add(new TaskEntry(csr.getEntry()));
       }
       catch (Throwable t)
       {
@@ -576,9 +564,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       }
       try
       {
-        Entry entry = getEntry(csr);
-        TaskEntry task = new TaskEntry(entry);
-        list.add(task);
+        list.add(new TaskEntry(csr.getEntry()));
       }
       catch (Throwable t)
       {
@@ -619,60 +605,6 @@ public class ManageTasksPanel extends StatusGenericPanel
         dlg.setVisible(true);
       }
     }
-  }
-
-  /**
-   * Gets the Entry object equivalent to the provided CustomSearchResult.
-   * The method assumes that the schema in DirectoryServer has been initialized.
-   * @param csr the search result.
-   * @return the Entry object equivalent to the provided CustomSearchResult.
-   * @throws OpenDsException if there is an error parsing the DN or retrieving
-   * the attributes definition and objectclasses in the schema of the server.
-   * TODO: move somewhere better.
-   */
-  private static Entry getEntry(CustomSearchResult csr) throws OpenDsException
-  {
-    DN dn = csr.getDN();
-    Map<ObjectClass,String> objectClasses = new HashMap<>();
-    Map<AttributeType,List<Attribute>> userAttributes = new HashMap<>();
-    Map<AttributeType,List<Attribute>> operationalAttributes = new HashMap<>();
-
-    for (String wholeName : csr.getAttributeNames())
-    {
-      final AttributeDescription attrDesc = parseAttrDescription(wholeName);
-      final AttributeType attrType = attrDesc.getAttributeType();
-
-      // See if this is an objectclass or an attribute.  Then get the
-      // corresponding definition and add the value to the appropriate hash.
-      if (attrType.isObjectClass())
-      {
-        for (ByteString value : csr.getAttributeValues(attrType.getNameOrOID()))
-        {
-          String ocName = value.toString().trim();
-          objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
-        }
-      }
-      else
-      {
-        AttributeBuilder builder = new AttributeBuilder(attrDesc);
-        for (ByteString bs : csr.getAttributeValues(attrType.getNameOrOID()))
-        {
-          builder.add(bs);
-        }
-
-        List<Attribute> attrList = builder.toAttributeList();
-        if (attrType.isOperational())
-        {
-          operationalAttributes.put(attrType, attrList);
-        }
-        else
-        {
-          userAttributes.put(attrType, attrList);
-        }
-      }
-    }
-
-    return new Entry(dn, objectClasses, userAttributes, operationalAttributes);
   }
 
   /**
