@@ -381,7 +381,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       ByteString v = (ByteString) value;
       if (v.length() > 0)
       {
-        appendBase64(sb, attrName, Base64.encode(v.toByteArray()));
+        appendBase64(sb, attrName, v.toBase64String());
       }
     }
     else if (value instanceof byte[])

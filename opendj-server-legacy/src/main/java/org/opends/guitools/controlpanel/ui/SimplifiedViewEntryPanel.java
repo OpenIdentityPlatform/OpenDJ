@@ -98,7 +98,6 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
-import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFReader;
 
 /** The panel displaying a simplified view of an entry. */
@@ -1579,14 +1578,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private String getPasswordStringValue(String attrName, ByteString v)
   {
-    if (isBinary(attrName))
-    {
-      return Base64.encode(v.toByteArray());
-    }
-    else
-    {
-      return v.toString();
-    }
+    return isBinary(attrName) ? v.toBase64String() : v.toString();
   }
 
   private void updatePanel(ObjectClassValue newValue)

@@ -50,7 +50,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.util.Base64;
 import org.opends.server.util.LDIFException;
 
 /** The panel used to duplicate an entry. */
@@ -371,8 +370,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
           sb.append("\n");
           if (isBinary(attrName))
           {
-            final String base64 = Base64.encode(value.toByteArray());
-            sb.append(attrName).append(":: ").append(base64);
+            sb.append(attrName).append(":: ").append(value.toBase64String());
           }
           else
           {
