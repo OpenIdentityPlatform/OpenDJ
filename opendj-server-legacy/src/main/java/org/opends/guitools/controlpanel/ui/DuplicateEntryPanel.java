@@ -475,7 +475,8 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
             rdnAttribute = sr.getName().rdn().getFirstAVA().getAttributeType().getNameOrOID();
 
             updateDNValue();
-            boolean hasPassword = !sr.getAttributeValues(ATTR_USER_PASSWORD).isEmpty();
+            Attribute userPwdAttr = sr.getAttribute(ATTR_USER_PASSWORD);
+            boolean hasPassword = userPwdAttr != null && !userPwdAttr.isEmpty();
             lPassword.setVisible(hasPassword);
             password.setVisible(hasPassword);
             lconfirmPassword.setVisible(hasPassword);

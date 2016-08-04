@@ -208,14 +208,18 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
       sb = new StringBuilder();
       for (String attrName : schemaReadOnlyAttributes)
       {
-        for (ByteString v : sr.getAttributeValues(attrName))
+        Attribute attr = sr.getAttribute(attrName);
+        if (attr != null)
         {
-          if (oneLineAdded)
+          for (ByteString v : attr)
           {
-            sb.append("\n");
+            if (oneLineAdded)
+            {
+              sb.append("\n");
+            }
+            oneLineAdded = true;
+            sb.append(getLDIFLine(attrName, v));
           }
-          oneLineAdded = true;
-          sb.append(getLDIFLine(attrName, v));
         }
       }
       final Point p2 = sameEntry ?

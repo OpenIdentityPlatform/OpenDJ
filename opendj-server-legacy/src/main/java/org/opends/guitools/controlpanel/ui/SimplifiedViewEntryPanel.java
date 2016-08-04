@@ -676,11 +676,9 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
     // Put first the attributes associated with the objectclass in hmOrderedAttrNames
     LinkedHashSet<String> attrNames = new LinkedHashSet<>();
-    List<ByteString> values = sr.getAttributeValues(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-    for (ByteString oc : values)
+    for (ByteString ocName : sr.getAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
     {
-      String ocName = oc.toString();
-      String[] attrs = hmOrdereredAttrNames.get(ocName.toLowerCase());
+      String[] attrs = hmOrdereredAttrNames.get(ocName.toString().toLowerCase());
       if (attrs != null)
       {
         for (String attr : attrs)
@@ -718,10 +716,9 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
       if (schema != null)
       {
-        List<ByteString> ocs = sr.getAttributeValues(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-        for (ByteString oc : ocs)
+        for (ByteString ocName : sr.getAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
         {
-          ObjectClass objectClass = schema.getObjectClass(oc.toString());
+          ObjectClass objectClass = schema.getObjectClass(ocName.toString());
           if (!objectClass.isPlaceHolder())
           {
             for (AttributeType attr : objectClass.getRequiredAttributes())
@@ -1147,8 +1144,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       AttributeType attrType = attrDesc.getAttributeType();
       if (!attrType.isPlaceHolder())
       {
-        List<ByteString> ocs = sr.getAttributeValues(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-        for (ByteString oc : ocs)
+        for (ByteString oc : sr.getAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
         {
           ObjectClass objectClass = schema.getObjectClass(oc.toString());
           if (!objectClass.isPlaceHolder() && objectClass.isRequired(attrType))
@@ -1340,10 +1336,9 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean isAttrName(String attrName, CustomSearchResult sr)
   {
-    for (ByteString v : sr.getAttributeValues(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+    for (ByteString ocName : sr.getAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
     {
-      String ocName = v.toString();
-      String attr = hmNameAttrNames.get(ocName.toLowerCase());
+      String attr = hmNameAttrNames.get(ocName.toString().toLowerCase());
       if (attr != null && attr.equalsIgnoreCase(attrName))
       {
         return true;

@@ -41,6 +41,7 @@ import javax.net.ssl.TrustManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
@@ -555,7 +556,7 @@ public class ConnectionUtils
    *          the attribute description
    * @return The first attribute value in this attribute decoded as a UTF-8 string.
    */
-  public static String firstValueAsString(SearchResultEntry sr, String attrDesc)
+  public static String firstValueAsString(Entry sr, String attrDesc)
   {
     org.forgerock.opendj.ldap.Attribute attr = sr.getAttribute(attrDesc);
     return (attr != null && !attr.isEmpty()) ? attr.firstValueAsString() : null;

@@ -25,7 +25,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -48,8 +47,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -1756,11 +1755,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Get the value of the numSubordinates attribute.
    * If numSubordinates is not present, returns 0.
    * @param entry the entry to analyze.
-   * @throws NamingException if an error occurs.
    * @return the value of the numSubordinates attribute.  0 if the attribute
    * could not be found.
    */
-  private static int getNumSubOrdinates(SearchResultEntry entry) throws NamingException
+  private static int getNumSubOrdinates(Entry entry)
   {
     return toInt(firstValueAsString(entry, NUMSUBORDINATES_ATTR));
   }
@@ -1769,13 +1767,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Returns whether the entry has subordinates or not.  It uses an algorithm
    * based in hasSubordinates and numSubordinates attributes.
    * @param entry the entry to analyze.
-   * @throws NamingException if an error occurs.
    * @return {@code true} if the entry has subordinates according to the values
    * of hasSubordinates and numSubordinates, returns {@code false} if none of
    * the attributes could be found.
    */
-  public static boolean getHasSubOrdinates(SearchResultEntry entry)
-  throws NamingException
+  public static boolean getHasSubOrdinates(Entry entry)
   {
     String v = firstValueAsString(entry, HASSUBORDINATES_ATTR);
     if (v != null) {
@@ -1793,9 +1789,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   private static int getNumSubOrdinates(CustomSearchResult entry)
   {
-    List<ByteString> vs = entry.getAttributeValues(NUMSUBORDINATES_ATTR);
-    String v = !vs.isEmpty() ? vs.get(0).toString() : null;
-    return toInt(v);
+    return getNumSubOrdinates(entry.getSdkEntry());
   }
 
   private static int toInt(String v)
@@ -1824,13 +1818,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public static boolean getHasSubOrdinates(CustomSearchResult entry)
   {
-    List<ByteString> vs = entry.getAttributeValues(HASSUBORDINATES_ATTR);
-    String v = !vs.isEmpty() ? vs.get(0).toString() : null;
-    if (v != null)
-    {
-      return "true".equalsIgnoreCase(v);
-    }
-    return getNumSubOrdinates(entry) > 0;
+    return getHasSubOrdinates(entry.getSdkEntry());
   }
 
   /**

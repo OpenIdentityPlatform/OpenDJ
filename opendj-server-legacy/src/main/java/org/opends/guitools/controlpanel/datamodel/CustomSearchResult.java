@@ -112,6 +112,11 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     return entry.getAllAttributes();
   }
 
+  public Entry getSdkEntry()
+  {
+    return entry;
+  }
+
   /**
    * Returns all the attribute names of the entry.
    * @return the attribute names of the entry.

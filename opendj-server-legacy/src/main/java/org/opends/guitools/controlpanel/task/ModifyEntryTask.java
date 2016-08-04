@@ -454,7 +454,8 @@ public class ModifyEntryTask extends Task
   {
     for (AVA ava : rdn)
     {
-      if (entry.getAttributeValues(ava.getAttributeName()).isEmpty())
+      org.forgerock.opendj.ldap.Attribute attr = entry.getAttribute(ava.getAttributeName());
+      if (attr == null || attr.isEmpty())
       {
         return false;
       }

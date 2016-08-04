@@ -2420,10 +2420,10 @@ public class Utilities
   {
     if (sr != null)
     {
-      final List<ByteString> values = sr.getAttributeValues(attrName);
-      if (!values.isEmpty())
+      final Attribute attr = sr.getAttribute(attrName);
+      if (attr != null && !attr.isEmpty())
       {
-        final ByteString v = values.get(0);
+        final ByteString v = attr.iterator().next();
         if (v != null)
         {
           return v.toString();
