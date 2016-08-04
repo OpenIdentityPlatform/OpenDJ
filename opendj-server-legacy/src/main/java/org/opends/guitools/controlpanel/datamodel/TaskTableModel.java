@@ -22,6 +22,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -50,15 +51,17 @@ implements Comparator<TaskEntry>
       INFO_TASKINFO_FIELD_STATUS.get(),
       INFO_CTRL_PANEL_TASK_CANCELABLE.get()
   );
-  private LinkedHashSet<LocalizableMessage> allAttributes = newLinkedHashSet(
+  private LinkedHashSet<LocalizableMessage> allAttributes = new LinkedHashSet<>(defaultAttributes);
+  {
+    allAttributes.addAll(Arrays.asList(
       INFO_TASKINFO_FIELD_SCHEDULED_START.get(),
       INFO_TASKINFO_FIELD_ACTUAL_START.get(),
       INFO_TASKINFO_FIELD_COMPLETION_TIME.get(),
       INFO_TASKINFO_FIELD_DEPENDENCY.get(),
       INFO_TASKINFO_FIELD_FAILED_DEPENDENCY_ACTION.get(),
       INFO_TASKINFO_FIELD_NOTIFY_ON_COMPLETION.get(),
-      INFO_TASKINFO_FIELD_NOTIFY_ON_ERROR.get()
-  );
+      INFO_TASKINFO_FIELD_NOTIFY_ON_ERROR.get()));
+  }
 
   private String[] columnNames = {};
 
