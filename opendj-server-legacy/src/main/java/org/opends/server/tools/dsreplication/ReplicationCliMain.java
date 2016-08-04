@@ -292,7 +292,7 @@ public class ReplicationCliMain extends ConsoleApplication
      * @return whether the current task should continue
      */
     boolean confirmOperation(SourceDestinationServerUserData uData, ConnectionWrapper connSource,
-        ConnectionWrapper connDestination, final boolean defaultValue);
+        ConnectionWrapper connDestination, boolean defaultValue);
   }
 
   /** The argument parser to be used. */
@@ -2690,7 +2690,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
     try
     {
-
       List<DN> suffixes = toDNs(argParser.getBaseDNs());
       checkSuffixesForInitializeReplication(suffixes, conn, true);
       if (suffixes.isEmpty())
@@ -3095,7 +3094,8 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     uData.setBaseDNs(toDNs(argParser.getBaseDNs()));
     String adminUid = argParser.getAdministratorUID();
-    DN bindDn = DN.valueOf(argParser.getBindDNToDisable());
+    String bindDnStr = argParser.getBindDNToDisable();
+    DN bindDn = bindDnStr != null ? DN.valueOf(bindDnStr) : null;
     if (bindDn == null && adminUid == null)
     {
       adminUid = argParser.getAdministratorUIDOrDefault();
@@ -5680,7 +5680,6 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-
     boolean somethingDisplayed = false;
     if (!oneReplicated && displayAll)
     {
@@ -6252,7 +6251,6 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_CONFIGURING_REPLICATION_SERVER.get(conn.getHostPort())));
-
 
     /* Configure Synchronization plugin. */
     ReplicationSynchronizationProviderCfgClient sync = null;
