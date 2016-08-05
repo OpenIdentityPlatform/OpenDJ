@@ -824,7 +824,7 @@ public abstract class Task implements Comparable<Task>
       logMessages.add(messageString);
 
       final AttributeType type = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_LOG_MESSAGES);
-      final Attribute attr = taskEntry.getExactAttribute(AttributeDescription.create(type));
+      final Attribute attr = taskEntry.getAttribute(AttributeDescription.create(type));
       final AttributeBuilder builder = attr != null ? new AttributeBuilder(attr) : new AttributeBuilder(type);
       builder.add(messageString);
       taskEntry.putAttribute(type, builder.toAttributeList());

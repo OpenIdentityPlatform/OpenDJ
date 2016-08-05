@@ -158,7 +158,7 @@ public final class TimeBasedMatchingRuleTest
     Collection<DN> results = new ArrayList<>();
     for (Entry entry : makeEntries())
     {
-      Attribute attribute = entry.getExactAttribute(AttributeDescription.create(attrType));
+      Attribute attribute = entry.getAttribute(AttributeDescription.create(attrType));
       if (attribute != null)
       {
         ByteString attrValue = rule.normalizeAttributeValue(attribute.iterator().next());

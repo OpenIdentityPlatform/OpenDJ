@@ -332,7 +332,7 @@ public class HistoricalTest extends ReplicationTestCase
   private String getEntryValue(final DN dn, AttributeDescription attrDesc) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    Attribute attr = entry.getExactAttribute(attrDesc);
+    Attribute attr = entry.getAttribute(attrDesc);
     Assertions.assertThat(attr).hasSize(1);
     return attr.iterator().next().toString();
   }

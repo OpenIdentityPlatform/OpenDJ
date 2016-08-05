@@ -365,7 +365,7 @@ public class ModifyReplaySingleValuedAttributeTest extends ReplicationTestCase
     entryHistorical.replayOperation(op, entry);
     entry.applyModification(new Modification(REPLACE, entryHistorical.encodeAndPurge()));
 
-    Attribute actual = entry.getExactAttribute(expectedDsSyncHist.getAttributeDescription());
+    Attribute actual = entry.getAttribute(expectedDsSyncHist.getAttributeDescription());
     Assert.assertEquals(actual, expectedDsSyncHist, "wrong final value for ds-sync-hist attribute");
   }
 
@@ -401,7 +401,7 @@ public class ModifyReplaySingleValuedAttributeTest extends ReplicationTestCase
       entry.applyModification(new Modification(REPLACE, entryHistorical.encodeAndPurge()));
     }
 
-    Attribute actual = entry.getExactAttribute(expectedDsSyncHist.getAttributeDescription());
+    Attribute actual = entry.getAttribute(expectedDsSyncHist.getAttributeDescription());
     Assert.assertEquals(actual, expectedDsSyncHist, "wrong final value for ds-sync-hist attribute");
   }
 

@@ -1399,7 +1399,7 @@ public class LocalBackendModifyOperation
     }
 
     // Get the attribute that is to be incremented.
-    Attribute modifiedAttr = modifiedEntry.getExactAttribute(attrDesc);
+    Attribute modifiedAttr = modifiedEntry.getAttribute(attrDesc);
     if (modifiedAttr == null)
     {
       throw newDirectoryException(modifiedEntry,

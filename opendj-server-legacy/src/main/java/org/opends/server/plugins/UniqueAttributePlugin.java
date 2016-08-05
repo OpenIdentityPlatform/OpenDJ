@@ -259,7 +259,7 @@ public class UniqueAttributePlugin
 
         case INCREMENT:
           // We could calculate the new value, but we'll just take it from the updated entry.
-          Attribute updatedAttr = modifyOperation.getModifiedEntry().getExactAttribute(a.getAttributeDescription());
+          Attribute updatedAttr = modifyOperation.getModifiedEntry().getAttribute(a.getAttributeDescription());
           if (updatedAttr != null)
           {
             for (ByteString v : updatedAttr)
@@ -441,7 +441,7 @@ public class UniqueAttributePlugin
 
         case INCREMENT:
           // We could calculate the new value, but we'll just take it from the updated entry.
-          Attribute updatedAttr = modifyOperation.getModifiedEntry().getExactAttribute(a.getAttributeDescription());
+          Attribute updatedAttr = modifyOperation.getModifiedEntry().getAttribute(a.getAttributeDescription());
           if (updatedAttr != null)
           {
             for (ByteString v : updatedAttr)
@@ -813,7 +813,7 @@ public class UniqueAttributePlugin
 
         case INCREMENT:
           // We could calculate the new value, but we'll just take it from the updated entry.
-          Attribute updatedAttr = modifyOperation.getModifiedEntry().getExactAttribute(a.getAttributeDescription());
+          Attribute updatedAttr = modifyOperation.getModifiedEntry().getAttribute(a.getAttributeDescription());
           if (updatedAttr != null)
           {
             for (ByteString v : updatedAttr)

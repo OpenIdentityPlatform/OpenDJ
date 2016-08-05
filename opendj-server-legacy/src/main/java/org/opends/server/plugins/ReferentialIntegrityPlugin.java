@@ -1006,7 +1006,7 @@ public class ReferentialIntegrityPlugin
         break;
       }
 
-      Attribute modifiedAttribute = entry.getExactAttribute(mod.getAttribute().getAttributeDescription());
+      Attribute modifiedAttribute = entry.getAttribute(mod.getAttribute().getAttributeDescription());
       if (modifiedAttribute != null)
       {
         PluginResult.PreOperation result =

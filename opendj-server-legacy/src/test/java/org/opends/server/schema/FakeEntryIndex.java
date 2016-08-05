@@ -72,7 +72,7 @@ class FakeEntryIndex
 
   void add(Entry entry) throws DecodeException
   {
-    Attribute attribute = entry.getExactAttribute(AttributeDescription.create(attrType));
+    Attribute attribute = entry.getAttribute(AttributeDescription.create(attrType));
     for (ByteString key : index(attribute))
     {
       Set<Entry> entries = index.get(key);

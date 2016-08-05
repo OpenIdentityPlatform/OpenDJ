@@ -535,7 +535,7 @@ public class Entry
     {
       // It's possible that there could be an attribute without any
       // values, which we should treat as not having the requested attribute.
-      Attribute attribute = getExactAttribute(attributeDescription);
+      Attribute attribute = getAttribute(attributeDescription);
       return attribute != null && !attribute.isEmpty();
     }
 
@@ -1069,7 +1069,7 @@ public class Entry
   public void incrementAttribute(Attribute attribute) throws DirectoryException
   {
     AttributeDescription attrDesc = attribute.getAttributeDescription();
-    Attribute a = getExactAttribute(attrDesc);
+    Attribute a = getAttribute(attrDesc);
     if (a == null)
     {
       LocalizableMessage message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(attrDesc);
@@ -1306,7 +1306,7 @@ public class Entry
    */
   public boolean hasValue(AttributeDescription attributeDescription, ByteString value)
   {
-    Attribute attr = getExactAttribute(attributeDescription);
+    Attribute attr = getAttribute(attributeDescription);
     return attr != null && attr.contains(value);
   }
 
@@ -2929,7 +2929,7 @@ public class Entry
           {
             if (inheritFromEntry != null)
             {
-              collectiveAttr = inheritFromEntry.getExactAttribute(collectiveAttr.getAttributeDescription());
+              collectiveAttr = inheritFromEntry.getAttribute(collectiveAttr.getAttributeDescription());
               if (collectiveAttr == null || collectiveAttr.isEmpty())
               {
                 continue;
@@ -4152,7 +4152,7 @@ public class Entry
    *         specified attribute type is not present in this entry
    *         with the provided set of options.
    */
-  public Attribute getExactAttribute(AttributeDescription attributeDescription)
+  public Attribute getAttribute(AttributeDescription attributeDescription)
   {
     List<Attribute> attributes = getAllAttributes0(attributeDescription.getAttributeType());
     if (attributes != null)

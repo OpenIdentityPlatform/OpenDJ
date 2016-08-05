@@ -1195,7 +1195,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getExactAttribute(AttributeDescription.create(getSchema().getAttributeType(attrName)));
+    Attribute attr = entry.getAttribute(AttributeDescription.create(getSchema().getAttributeType(attrName)));
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {
