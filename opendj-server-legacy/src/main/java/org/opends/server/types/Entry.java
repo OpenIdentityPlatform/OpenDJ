@@ -1021,7 +1021,7 @@ public class Entry
    * @param duplicateValues
    *          A list to which any duplicate values will be added.
    */
-  public void addAttribute(Attribute attribute, List<ByteString> duplicateValues)
+  public void addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues)
   {
     setAttribute(attribute, duplicateValues, false /* merge */);
   }
@@ -1172,7 +1172,7 @@ public class Entry
    *         attribute, then this method will return {@code true}
    *         but will add those values to the provided list.
    */
-  public boolean removeAttribute(Attribute attribute, List<ByteString> missingValues)
+  public boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues)
   {
     attachment = null;
 
@@ -1186,7 +1186,7 @@ public class Entry
     return removeNonObjectClassAttribute(attribute, missingValues);
   }
 
-  private boolean removeObjectClassAttribute(Attribute attribute, List<ByteString> missingValues)
+  private boolean removeObjectClassAttribute(Attribute attribute, Collection<? super ByteString> missingValues)
   {
     AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     if (attribute.isEmpty())
@@ -1218,7 +1218,7 @@ public class Entry
     return allSuccessful;
   }
 
-  private boolean removeNonObjectClassAttribute(Attribute attribute, List<ByteString> missingValues)
+  private boolean removeNonObjectClassAttribute(Attribute attribute, Collection<? super ByteString> missingValues)
   {
     AttributeDescription attrDesc = attribute.getAttributeDescription();
     AttributeType attrType = attrDesc.getAttributeType();
@@ -4185,7 +4185,7 @@ public class Entry
    *          existing attribute.
    */
   private void setAttribute(Attribute attribute,
-      List<ByteString> duplicateValues, boolean replace)
+      Collection<? super ByteString> duplicateValues, boolean replace)
   {
     attachment = null;
 
@@ -4199,7 +4199,8 @@ public class Entry
     }
   }
 
-  private void setObjectClassAttribute(Attribute attribute, List<ByteString> duplicateValues, boolean replace)
+  private void setObjectClassAttribute(
+      Attribute attribute, Collection<? super ByteString> duplicateValues, boolean replace)
   {
     AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
     // We will not do any validation of the object classes - this is
@@ -4236,7 +4237,8 @@ public class Entry
     }
   }
 
-  private void setNonObjectClassAttribute(Attribute attribute, List<ByteString> duplicateValues, boolean replace)
+  private void setNonObjectClassAttribute(
+      Attribute attribute, Collection<? super ByteString> duplicateValues, boolean replace)
   {
     AttributeDescription attrDesc = attribute.getAttributeDescription();
     AttributeType attrType = attrDesc.getAttributeType();
