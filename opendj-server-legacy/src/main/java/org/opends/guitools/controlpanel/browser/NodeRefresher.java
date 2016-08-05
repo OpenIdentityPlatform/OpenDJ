@@ -424,7 +424,7 @@ public class NodeRefresher extends AbstractNodeTask {
     }
     if (referral != null)
     {
-      throwAbandonIfNeeded(new ReferralLimitExceededException(
+      throwAbandonIfNeeded(newLdapException(CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED,
           AdminToolMessages.ERR_REFERRAL_LIMIT_EXCEEDED.get(hopCount)));
     }
   }
@@ -924,7 +924,8 @@ public class NodeRefresher extends AbstractNodeTask {
             && hp.equals(controller.getUserDataConnection().getConnectionWrapper().getHostPort());
         if (!checkSucceeded)
         {
-          Exception cause = new ReferralLimitExceededException(ERR_CTRL_PANEL_REFERRAL_LOOP.get(url.getRawBaseDN()));
+          LdapException cause = newLdapException(CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED,
+              ERR_CTRL_PANEL_REFERRAL_LOOP.get(url.getRawBaseDN()));
           throw new SearchAbandonException(State.FAILED, cause, referral);
         }
       }

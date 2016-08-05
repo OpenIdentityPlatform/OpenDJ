@@ -808,6 +808,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
     /**
      * Returns the RDN of this DN, or {@code null} if this DN is the Root DN.
+     * <p>
+     * This is the equivalent of calling {@code dn.rdn(0)}.
      *
      * @return The RDN of this DN, or {@code null} if this DN is the Root DN.
      */

@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NamingException;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
@@ -278,7 +277,7 @@ public class DeleteEntryTask extends Task
   }
 
   private void deleteSubtreeRecursively(ConnectionWithControls conn, DN dnToRemove, TreePath path,
-      List<BrowserNodeInfo> toNotify) throws NamingException, IOException, DirectoryException
+      List<BrowserNodeInfo> toNotify) throws IOException, DirectoryException
   {
     lastDn = dnToRemove;
 
@@ -371,7 +370,7 @@ public class DeleteEntryTask extends Task
   }
 
   private void deleteSubtreeWithControl(ConnectionWithControls conn, DN dn, TreePath path,
-      List<BrowserNodeInfo> toNotify) throws LdapException, NamingException
+      List<BrowserNodeInfo> toNotify) throws LdapException
   {
     lastDn = dn;
     long t = System.currentTimeMillis();

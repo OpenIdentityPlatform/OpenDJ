@@ -22,7 +22,6 @@ import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-import javax.naming.NamingException;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -31,6 +30,7 @@ import javax.swing.SwingUtilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
@@ -265,7 +265,7 @@ public class LoginPanel extends StatusGenericPanel
                 handleCertificateException = true;
               }
             }
-            else if (throwable instanceof NamingException)
+            else if (throwable instanceof LdapException)
             {
               boolean found = false;
               String providedDn = dn.getText();
@@ -273,7 +273,7 @@ public class LoginPanel extends StatusGenericPanel
               getAdministrativeUsers().iterator();
               while (it.hasNext() && !found)
               {
-                found = Utils.areDnsEqual(providedDn, it.next().toString());
+                found = DN.valueOf(providedDn).equals(it.next());
               }
               if (!found)
               {
@@ -281,8 +281,7 @@ public class LoginPanel extends StatusGenericPanel
               }
               else
               {
-                errors.add(Utils.getMessageForException(
-                    (NamingException)throwable));
+                errors.add(Utils.getMessageForException((LdapException) throwable));
               }
 
               setPrimaryInvalid(dnLabel);

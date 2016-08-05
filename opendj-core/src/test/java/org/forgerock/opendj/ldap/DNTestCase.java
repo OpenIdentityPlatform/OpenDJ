@@ -503,6 +503,7 @@ public class DNTestCase extends SdkTestCase {
         assertEquals(c.toString(), e.toString());
 
         assertEquals(c.rdn(), RDN.valueOf("dc=foo"));
+        assertEquals(c.rdn(), c.rdn(0));
 
         assertEquals(c.parent(), DN.valueOf("dc=opendj,dc=org"));
         assertEquals(c.parent(), e.parent());

@@ -52,20 +52,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import javax.naming.AuthenticationException;
-import javax.naming.CommunicationException;
-import javax.naming.NamingException;
-import javax.naming.NamingSecurityException;
-import javax.naming.NoPermissionException;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
@@ -87,6 +84,7 @@ import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.server.tools.BackendTypeHelper;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.ArgumentConstants;
@@ -370,17 +368,27 @@ public class Utils
   /**
    * Returns whether the provided string is a configuration DN.
    *
-   * @param dn
+   * @param dnStr
    *          the String we are analyzing.
    * @return {@code true} if the provided string is a configuration DN and {@code false} otherwise.
    */
-  public static boolean isConfigurationDn(String dn)
+  public static boolean isConfigurationDn(String dnStr)
   {
+    DN dn;
+    try
+    {
+      dn = DN.valueOf(dnStr);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      return false;
+    }
+
     boolean isConfigurationDn = false;
-    String[] configDns = { "cn=config", Constants.SCHEMA_DN.toString() };
+    DN[] configDns = { DN.valueOf("cn=config"), Constants.SCHEMA_DN };
     for (int i = 0; i < configDns.length && !isConfigurationDn; i++)
     {
-      isConfigurationDn = areDnsEqual(dn, configDns[i]);
+      isConfigurationDn = dn.equals(configDns[i]);
     }
     return isConfigurationDn;
   }
@@ -553,18 +561,17 @@ public class Utils
   {
     LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
 
-    String ldapUrl = te.getLdapUrl();
-    if (ldapUrl != null)
+    HostPort hp = te.getHostPort();
+    if (hp != null)
     {
-      String hostName = ldapUrl.substring(ldapUrl.indexOf("://") + 3);
-      buf.append(INFO_SERVER_ERROR.get(hostName));
+      buf.append(INFO_SERVER_ERROR.get(hp.getHost()));
       buf.append(" ");
     }
     if (te.getType() == TopologyCacheException.Type.TIMEOUT)
     {
       buf.append(INFO_ERROR_CONNECTING_TIMEOUT.get());
     }
-    else if (te.getCause() instanceof NamingException)
+    else if (te.getCause() instanceof LdapException)
     {
       buf.append(getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), te.getCause()));
     }
@@ -643,43 +650,6 @@ public class Utils
   public static boolean isCli()
   {
     return "true".equals(System.getProperty(Constants.CLI_JAVA_PROPERTY));
-  }
-
-  /**
-   * Returns a message object for the given NamingException. The code assume
-   * that we are trying to connect to the local server.
-   *
-   * @param ne
-   *          the NamingException.
-   * @return a message object for the given NamingException.
-   */
-  public static LocalizableMessage getMessageForException(NamingException ne)
-  {
-    final String detailedException = ne.toString(true);
-    if (isCertificateException(ne))
-    {
-      return INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(detailedException);
-    }
-    else if (ne instanceof AuthenticationException)
-    {
-      return ERR_CANNOT_CONNECT_TO_LOCAL_AUTHENTICATION.get(detailedException);
-    }
-    else if (ne instanceof NoPermissionException)
-    {
-      return ERR_CANNOT_CONNECT_TO_LOCAL_PERMISSIONS.get(detailedException);
-    }
-    else if (ne instanceof NamingSecurityException)
-    {
-      return ERR_CANNOT_CONNECT_TO_LOCAL_PERMISSIONS.get(detailedException);
-    }
-    else if (ne instanceof CommunicationException)
-    {
-      return ERR_CANNOT_CONNECT_TO_LOCAL_COMMUNICATION.get(detailedException);
-    }
-    else
-    {
-      return ERR_CANNOT_CONNECT_TO_LOCAL_GENERIC.get(detailedException);
-    }
   }
 
   /**

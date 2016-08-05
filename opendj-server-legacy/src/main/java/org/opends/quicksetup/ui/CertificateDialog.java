@@ -36,8 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -55,6 +53,7 @@ import javax.swing.event.HyperlinkListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 
@@ -663,9 +662,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     String name = cert.getSubjectX500Principal().getName();
     try
     {
-      LdapName dn = new LdapName(name);
-      Rdn rdn = dn.getRdn(0);
-      return rdn.getValue().toString();
+      DN dn = DN.valueOf(name);
+      return dn.rdn().getFirstAVA().getAttributeValue().toString();
     }
     catch (Throwable t)
     {

@@ -26,14 +26,13 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.Platform;
 
 /**
@@ -364,10 +363,8 @@ public class ApplicationTrustManager implements X509TrustManager
       boolean matches = false;
       try
       {
-        LdapName dn =
-          new LdapName(chain[0].getSubjectX500Principal().getName());
-        Rdn rdn = dn.getRdn(dn.getRdns().size() - 1);
-        String value = rdn.getValue().toString();
+        DN dn = DN.valueOf(chain[0].getSubjectX500Principal().getName());
+        String value = dn.rdn(dn.size() - 1).getFirstAVA().getAttributeValue().toString();
         matches = hostMatch(value, host);
         if (!matches)
         {

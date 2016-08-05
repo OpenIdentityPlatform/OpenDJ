@@ -639,7 +639,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                 Iterator<DN> it = info.getServerDescriptor().getAdministrativeUsers().iterator();
                 while (it.hasNext() && !found)
                 {
-                  found = Utils.areDnsEqual(providedDn, it.next().toString());
+                  found = DN.valueOf(providedDn).equals(it.next());
                 }
                 if (!found)
                 {

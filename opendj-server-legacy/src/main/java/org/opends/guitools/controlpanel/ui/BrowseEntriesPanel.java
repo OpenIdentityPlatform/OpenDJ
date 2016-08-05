@@ -39,10 +39,10 @@ import java.awt.dnd.DragSourceListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import javax.naming.InterruptedNamingException;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -1463,16 +1463,18 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
 
   private boolean isInterruptedException(Throwable t)
   {
-    boolean isInterruptedException = false;
-    isInterruptedException = t instanceof java.io.InterruptedIOException ||
-    t instanceof InterruptedNamingException;
+    boolean isInterruptedException = isInterrupted(t);
     while (t != null && !isInterruptedException)
     {
       t = t.getCause();
-      isInterruptedException = t instanceof java.io.InterruptedIOException ||
-      t instanceof InterruptedNamingException;
+      isInterruptedException = isInterrupted(t);
     }
     return isInterruptedException;
+  }
+
+  private boolean isInterrupted(Throwable t)
+  {
+    return t instanceof InterruptedIOException || t instanceof InterruptedException;
   }
 
   private void refreshClicked()
