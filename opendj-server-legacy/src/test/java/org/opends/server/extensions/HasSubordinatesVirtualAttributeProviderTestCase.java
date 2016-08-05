@@ -212,7 +212,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     assertNotNull(e);
     assertTrue(e.hasAttribute(hasSubordinatesType));
 
-    List<Attribute> attrList = e.getAttribute(hasSubordinatesType);
+    List<Attribute> attrList = e.getAllAttributes(hasSubordinatesType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {

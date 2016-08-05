@@ -379,7 +379,7 @@ public class BackupBackend
       Entry backupDirEntry = getBackupDirectoryEntry(entryDN);
 
       AttributeType t = getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
-      List<Attribute> attrList = backupDirEntry.getAttribute(t);
+      List<Attribute> attrList = backupDirEntry.getAllAttributes(t);
       for (ByteString v : attrList.get(0))
       {
         try
@@ -743,7 +743,7 @@ public class BackupBackend
 
           if (scope != SearchScope.SINGLE_LEVEL)
           {
-            List<Attribute> attrList = backupDirEntry.getAttribute(backupPathType);
+            List<Attribute> attrList = backupDirEntry.getAllAttributes(backupPathType);
             returnEntries(searchOperation, backupDirDN, filter, attrList);
           }
         }
@@ -762,7 +762,7 @@ public class BackupBackend
       if (scope != SearchScope.BASE_OBJECT)
       {
         AttributeType t = getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
-        List<Attribute> attrList = backupDirEntry.getAttribute(t);
+        List<Attribute> attrList = backupDirEntry.getAllAttributes(t);
         returnEntries(searchOperation, baseDN, filter, attrList);
       }
     }

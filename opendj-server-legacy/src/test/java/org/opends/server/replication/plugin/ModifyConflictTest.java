@@ -648,7 +648,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(mod.getAttribute(), values3and4);
 
     // check that the entry now contains value1 and value2 and no other values.
-    Attribute resultEntryAttr = entry.getAttribute(DESCRIPTION).get(0);
+    Attribute resultEntryAttr = entry.getAllAttributes(DESCRIPTION).get(0);
     assertEquals(resultEntryAttr, values1and2);
 
     Attribute attr = buildSyncHist(DESCRIPTION,
@@ -1216,7 +1216,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private String getEntryUUID(Entry entry)
   {
-    List<Attribute> uuidAttrs = entry.getAttribute(getEntryUUIDAttributeType());
+    List<Attribute> uuidAttrs = entry.getAllAttributes(getEntryUUIDAttributeType());
     return uuidAttrs.get(0).iterator().next().toString();
   }
 
@@ -1241,7 +1241,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     testModify(entry, hist, 1, true, newModification(DELETE, DISPLAYNAME, "aValue"));
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1271,7 +1271,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1313,7 +1313,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1357,7 +1357,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
+    List<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
     assertEquals(attrs.get(0), Attributes.create(DESCRIPTION, "value2", "value3", "value4"));
   }
 
@@ -1404,7 +1404,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAttribute(DESCRIPTION);
+    List<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
     assertEquals(attrs.get(0), Attributes.create(DESCRIPTION, "value3", "value4"));
   }
 
@@ -1447,7 +1447,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1477,7 +1477,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1507,7 +1507,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1546,7 +1546,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**
@@ -1585,7 +1585,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attrDel);
 
     // The entry should have no value
-    assertThat(entry.getAttribute(DISPLAYNAME)).isEmpty();
+    assertThat(entry.getAllAttributes(DISPLAYNAME)).isEmpty();
   }
 
   /**

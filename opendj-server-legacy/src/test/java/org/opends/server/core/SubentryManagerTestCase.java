@@ -225,14 +225,14 @@ public class SubentryManagerTestCase extends CoreTestCase
       Entry e = DirectoryServer.getEntry(DN.valueOf("uid=normal user,ou=people,o=test"));
       assertNotNull(e);
 
-      List<Attribute> description = e.getAttribute("description");
+      List<Attribute> description = e.getAllAttributes("description");
       assertThat(description).isEmpty();
 
       // Collective user will inherit the collective description attribute.
       e = DirectoryServer.getEntry(DN.valueOf("uid=collective user,ou=people,o=test"));
       assertNotNull(e);
 
-      description = e.getAttribute("description");
+      description = e.getAllAttributes("description");
       assertThat(description).hasSize(1);
       Attribute attribute = description.get(0);
       assertEquals(attribute.size(), 1);

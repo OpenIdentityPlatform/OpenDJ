@@ -135,7 +135,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(structuralObjectClassType));
 
-    List<Attribute> attrList = e.getAttribute(structuralObjectClassType);
+    List<Attribute> attrList = e.getAllAttributes(structuralObjectClassType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {

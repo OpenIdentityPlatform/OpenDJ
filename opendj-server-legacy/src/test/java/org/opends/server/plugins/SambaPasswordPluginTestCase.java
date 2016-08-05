@@ -247,7 +247,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
   private boolean contains(Entry entry, String attrName, String password)
   {
     boolean foundPwd = false;
-    for (Attribute a : entry.getAttribute(attrName))
+    for (Attribute a : entry.getAllAttributes(attrName))
     {
       for (ByteString val : a)
       {
@@ -338,8 +338,8 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
-    assertThat(entry.getAttribute("sambantpassword")).isEmpty();
-    assertThat(entry.getAttribute("sambalmpassword")).isEmpty();
+    assertThat(entry.getAllAttributes("sambantpassword")).isEmpty();
+    assertThat(entry.getAllAttributes("sambalmpassword")).isEmpty();
 
     TestCaseUtils.deleteEntry(entry);
   }
@@ -538,8 +538,8 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
     assertNotNull(entry);
-    assertThat(entry.getAttribute("sambantpassword")).isEmpty();
-    assertThat(entry.getAttribute("sambalmpassword")).isEmpty();
+    assertThat(entry.getAllAttributes("sambantpassword")).isEmpty();
+    assertThat(entry.getAllAttributes("sambalmpassword")).isEmpty();
 
     TestCaseUtils.deleteEntry(entry);
   }
@@ -786,7 +786,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
       Attribute sambaPwdLastSetAttr =
         Attributes.create("sambapwdlastset", String.valueOf(1339012789L));
 
-      assertThat(entry.getAttribute("sambapwdlastset")).contains(sambaPwdLastSetAttr);
+      assertThat(entry.getAllAttributes("sambapwdlastset")).contains(sambaPwdLastSetAttr);
       TestCaseUtils.deleteEntry(testEntry);
     }
     finally

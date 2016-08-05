@@ -95,7 +95,7 @@ public abstract class AuthenticationPolicyState
   protected static ConditionResult getBoolean(final Entry entry,
       final AttributeType attributeType) throws DirectoryException
   {
-    for (final Attribute a : entry.getAttribute(attributeType))
+    for (final Attribute a : entry.getAllAttributes(attributeType))
     {
       if (a.isEmpty())
       {
@@ -170,7 +170,7 @@ public abstract class AuthenticationPolicyState
   {
     long timeValue = -1;
 
-    for (final Attribute a : entry.getAttribute(attributeType))
+    for (final Attribute a : entry.getAllAttributes(attributeType))
     {
       if (a.isEmpty())
       {

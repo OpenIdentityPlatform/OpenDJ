@@ -233,7 +233,7 @@ public class LocalBackendCompareOperation
 
       // Actually perform the compare operation.
       AttributeDescription attrDesc = getAttributeDescription();
-      List<Attribute> attrList = entry.getAttribute(attrDesc);
+      List<Attribute> attrList = entry.getAllAttributes(attrDesc);
       if (attrList.isEmpty())
       {
         setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);

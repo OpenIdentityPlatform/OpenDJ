@@ -353,7 +353,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private ByteString getActualValue(Entry entry, Modification mod)
   {
-    return getActualValue(entry.getAttribute(mod.getAttribute().getAttributeDescription()));
+    return getActualValue(entry.getAllAttributes(mod.getAttribute().getAttributeDescription()));
   }
 
   private ByteString getActualValue(List<Attribute> attributes)
@@ -382,7 +382,7 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
 
   private void assertAttributeValue(Entry entry, String expectedValue)
   {
-    ByteString actualValue = getActualValue(entry.getAttribute(ATTRIBUTE_NAME));
+    ByteString actualValue = getActualValue(entry.getAllAttributes(ATTRIBUTE_NAME));
     assertEquals(actualValue, expectedValue != null ? ByteString.valueOfUtf8(expectedValue) : null);
   }
 

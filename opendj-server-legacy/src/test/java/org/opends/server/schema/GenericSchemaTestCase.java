@@ -193,7 +193,7 @@ public class GenericSchemaTestCase
   {
     Entry e = readSchemaEntry(f);
     return e != null
-        ? e.getAttribute(attributeType)
+        ? e.getAllAttributes(attributeType)
         // An empty schema file. This is OK.
         : Collections.<Attribute> emptyList();
   }

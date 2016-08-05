@@ -181,7 +181,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   private Attribute getFirstAttributeNotEmpty(AttributeType attributeType)
   {
-    for (Attribute a : userEntry.getAttribute(attributeType))
+    for (Attribute a : userEntry.getAllAttributes(attributeType))
     {
       if (!a.isEmpty())
       {
@@ -205,7 +205,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     ArrayList<Long> timeValues = new ArrayList<>();
 
-    for (Attribute a : userEntry.getAttribute(attributeType))
+    for (Attribute a : userEntry.getAllAttributes(attributeType))
     {
       for (ByteString v : a)
       {
@@ -926,7 +926,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     boolean isGeneralizedTime = SYNTAX_GENERALIZED_TIME_NAME.equals(type.getSyntax().getName());
     lastLoginTime = -1;
-    for (Attribute a : userEntry.getAttribute(type))
+    for (Attribute a : userEntry.getAllAttributes(type))
     {
       if (a.isEmpty())
       {
@@ -1887,7 +1887,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public List<ByteString> getClearPasswords()
   {
-    final List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
+    final List<Attribute> attrList = userEntry.getAllAttributes(passwordPolicy.getPasswordAttribute());
     if (attrList.isEmpty())
     {
       return Collections.emptyList();
@@ -1946,7 +1946,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   @Override
   public boolean passwordMatches(ByteString password)
   {
-    List<Attribute> attrList = userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
+    List<Attribute> attrList = userEntry.getAllAttributes(passwordPolicy.getPasswordAttribute());
     if (attrList.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -2117,7 +2117,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     AttributeType type = passwordPolicy.getPasswordAttribute();
-    List<Attribute> attrList = userEntry.getAttribute(type);
+    List<Attribute> attrList = userEntry.getAllAttributes(type);
     if (attrList.isEmpty())
     {
       logger.trace("Doing nothing for entry %s because no password values were found.", userDNString);
@@ -2348,7 +2348,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     TreeMap<Long, ByteString> historyMap = new TreeMap<>();
     AttributeType historyType = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
-    for (Attribute a : userEntry.getAttribute(historyType))
+    for (Attribute a : userEntry.getAllAttributes(historyType))
     {
       for (ByteString v : a)
       {
@@ -2497,7 +2497,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public void updatePasswordHistory()
   {
-    for (Attribute a : userEntry.getAttribute(passwordPolicy.getPasswordAttribute()))
+    for (Attribute a : userEntry.getAllAttributes(passwordPolicy.getPasswordAttribute()))
     {
       ByteString insecurePassword = null;
       for (ByteString v : a)
@@ -2660,7 +2660,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     ArrayList<String> historyValues = new ArrayList<>();
     AttributeType historyType = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
-    for (Attribute a : userEntry.getAttribute(historyType))
+    for (Attribute a : userEntry.getAllAttributes(historyType))
     {
       for (ByteString v : a)
       {

@@ -257,8 +257,8 @@ public class LastModPluginTestCase
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-    assertThat(e.getAttribute("creatorsname")).isNotEmpty();
-    assertThat(e.getAttribute("createtimestamp")).isNotEmpty();
+    assertThat(e.getAllAttributes("creatorsname")).isNotEmpty();
+    assertThat(e.getAllAttributes("createtimestamp")).isNotEmpty();
   }
 
 
@@ -286,8 +286,8 @@ public class LastModPluginTestCase
 
     Entry e = DirectoryConfig.getEntry(DN.valueOf("o=test"));
     assertNotNull(e);
-    assertThat(e.getAttribute("modifiersname")).isNotEmpty();
-    assertThat(e.getAttribute("modifytimestamp")).isNotEmpty();
+    assertThat(e.getAllAttributes("modifiersname")).isNotEmpty();
+    assertThat(e.getAllAttributes("modifytimestamp")).isNotEmpty();
   }
 
 
@@ -313,7 +313,7 @@ public class LastModPluginTestCase
 
     e = DirectoryConfig.getEntry(DN.valueOf("cn=test2,o=test"));
     assertNotNull(e);
-    assertThat(e.getAttribute("modifiersname")).isNotEmpty();
-    assertThat(e.getAttribute("modifytimestamp")).isNotEmpty();
+    assertThat(e.getAllAttributes("modifiersname")).isNotEmpty();
+    assertThat(e.getAllAttributes("modifytimestamp")).isNotEmpty();
   }
 }

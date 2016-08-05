@@ -129,7 +129,7 @@ public final class SevenBitCleanPlugin
     // Make sure all configured attributes have clean values.
     for (AttributeType t : config.getAttributeType())
     {
-      for (Attribute a : entry.getAttribute(t))
+      for (Attribute a : entry.getAllAttributes(t))
       {
         for (ByteString v : a)
         {

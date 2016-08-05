@@ -96,7 +96,7 @@ public class RebuildTask extends Task
     isClearDegradedState = Boolean.parseBoolean(val);
 
     AttributeType typeIndex = getSchema().getAttributeType(ATTR_REBUILD_INDEX);
-    List<Attribute> attrList = taskEntry.getAttribute(typeIndex);
+    List<Attribute> attrList = taskEntry.getAllAttributes(typeIndex);
     indexes = TaskUtils.getMultiValueString(attrList);
 
     rebuildMode = getRebuildMode(indexes);
@@ -114,7 +114,7 @@ public class RebuildTask extends Task
   private String asString(Entry taskEntry, String attrName)
   {
     final AttributeType attrType = getSchema().getAttributeType(attrName);
-    final List<Attribute> attrList = taskEntry.getAttribute(attrType);
+    final List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
     return TaskUtils.getSingleValueString(attrList);
   }
 

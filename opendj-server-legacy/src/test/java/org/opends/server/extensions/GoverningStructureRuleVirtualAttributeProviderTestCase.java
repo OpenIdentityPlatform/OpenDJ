@@ -175,7 +175,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(governingStructureRuleType));
 
-    List<Attribute> attrList = e.getAttribute(governingStructureRuleType);
+    List<Attribute> attrList = e.getAllAttributes(governingStructureRuleType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {

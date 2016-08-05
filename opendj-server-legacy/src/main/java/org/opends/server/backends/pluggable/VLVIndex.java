@@ -805,7 +805,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     final AttributeDescription attrDesc = AttributeDescription.valueOf(sortKey.getAttributeDescription());
     final MatchingRule matchingRule = getEffectiveOrderingRule(sortKey);
     ByteString sortValue = null;
-    for (Attribute a : entry.getAttribute(attrDesc.getAttributeType()))
+    for (Attribute a : entry.getAllAttributes(attrDesc.getAttributeType()))
     {
       for (ByteString v : a)
       {

@@ -118,7 +118,7 @@ public class BackendToolUtils
    */
   public static String getStringSingleValuedAttribute(Entry entry, String attrName)
   {
-    List<Attribute> attributes = entry.getAttribute(attrName);
+    List<Attribute> attributes = entry.getAllAttributes(attrName);
     if (!attributes.isEmpty())
     {
       Attribute attribute = attributes.get(0);
@@ -134,7 +134,7 @@ public class BackendToolUtils
   {
     try
     {
-      List<Attribute> attributes = configEntry.getAttribute(ATTR_BACKEND_BASE_DN);
+      List<Attribute> attributes = configEntry.getAllAttributes(ATTR_BACKEND_BASE_DN);
       if (!attributes.isEmpty())
       {
         Attribute attribute = attributes.get(0);

@@ -88,7 +88,7 @@ public class AddSchemaFileTask
     // Get the attribute that specifies which schema file(s) to add.
     Entry taskEntry = getTaskEntry();
     AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
-    List<Attribute> attrList = taskEntry.getAttribute(attrType);
+    List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
     if (attrList.isEmpty())
     {
       LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(

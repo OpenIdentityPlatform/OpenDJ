@@ -197,7 +197,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
     assertNotNull(e);
-    List<Attribute> attrs = e.getAttribute("usercertificate");
+    List<Attribute> attrs = e.getAllAttributes("usercertificate");
     Attribute a = attrs.get(0);
     assertNotNull(a);
     assertThat(a.getAttributeDescription().getOptions()).contains("binary");

@@ -943,7 +943,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private String readCookieFromNthEntry(List<SearchResultEntry> entries, int i)
   {
     SearchResultEntry entry = entries.get(i);
-    return entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
+    return entry.getAllAttributes("changelogcookie").get(0).iterator().next().toString();
   }
 
   private String assertEntriesContainsCSNsAndReadLastCookie(String test, List<SearchResultEntry> entries,
@@ -1403,7 +1403,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private static void assertAttributeValues(Entry entry, String attrName, Set<String> expectedValues)
   {
     final Set<String> values = new HashSet<>();
-    for (Attribute attr : entry.getAttribute(attrName))
+    for (Attribute attr : entry.getAllAttributes(attrName))
     {
       for (ByteString value : attr)
       {
@@ -1479,7 +1479,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   private static String getAttributeValue(Entry entry, String attrName)
   {
-    List<Attribute> attrs = entry.getAttribute(attrName);
+    List<Attribute> attrs = entry.getAllAttributes(attrName);
     if (attrs.isEmpty())
     {
       return null;

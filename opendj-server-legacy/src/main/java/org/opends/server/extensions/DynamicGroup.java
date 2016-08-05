@@ -114,7 +114,7 @@ public class DynamicGroup
     // out the LDAP URLs that it contains.
     LinkedHashSet<LDAPURL> memberURLs = new LinkedHashSet<>();
     AttributeType memberURLType = DirectoryServer.getSchema().getAttributeType(ATTR_MEMBER_URL_LC);
-    for (Attribute a : groupEntry.getAttribute(memberURLType))
+    for (Attribute a : groupEntry.getAllAttributes(memberURLType))
     {
       for (ByteString v : a)
       {

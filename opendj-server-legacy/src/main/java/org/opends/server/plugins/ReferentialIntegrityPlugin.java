@@ -1043,7 +1043,7 @@ public class ReferentialIntegrityPlugin
 
     for (AttributeType attrType : attributeTypes)
     {
-      final List<Attribute> attrs = entry.getAttribute(attrType, false);
+      final List<Attribute> attrs = entry.getAllAttributes(attrType, false);
       PluginResult.PreOperation result = isIntegrityMaintained(attrs, entryDN, entryBaseDN);
       if (result.getResultCode() != ResultCode.SUCCESS)
       {

@@ -2569,7 +2569,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeDescription);
+    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -2673,7 +2673,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeDescription);
+    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -2774,7 +2774,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeDescription);
+    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -2872,7 +2872,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeDescription);
+    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -3015,7 +3015,7 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAttribute(attributeDescription);
+    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
     if (attrs.isEmpty())
     {
       if (logger.isTraceEnabled())
@@ -3236,7 +3236,7 @@ public final class SearchFilter
     }
     else
     {
-      final Iterable<Attribute> attrs = entry.getAttribute(attributeDescription);
+      final Iterable<Attribute> attrs = entry.getAllAttributes(attributeDescription);
       result = assertionMatchesAnyAttribute(matchingRule, assertion, attrs, result, entry, completeFilter);
       if (ConditionResult.TRUE.equals(result))
       {

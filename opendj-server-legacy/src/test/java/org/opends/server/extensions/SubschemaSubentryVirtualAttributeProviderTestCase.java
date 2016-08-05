@@ -118,7 +118,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(subschemaSubentryType));
 
-    List<Attribute> attrList = e.getAttribute(subschemaSubentryType);
+    List<Attribute> attrList = e.getAllAttributes(subschemaSubentryType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {

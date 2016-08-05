@@ -298,7 +298,7 @@ public final class PasswordPolicyImportPlugin
 
     // See if the entry explicitly states the password policy that it should
     // use.  If so, then only use it to perform the encoding.
-    List<Attribute> attrList = entry.getAttribute(customPolicyAttribute);
+    List<Attribute> attrList = entry.getAllAttributes(customPolicyAttribute);
     if (!attrList.isEmpty())
     {
       DN policyDN = null;
@@ -337,7 +337,7 @@ policyLoop:
         PasswordStorageScheme<?>[] schemes = schemesByPolicy.get(policyDN);
         if (schemes != null)
         {
-          attrList = entry.getAttribute(policy.getPasswordAttribute());
+          attrList = entry.getAllAttributes(policy.getPasswordAttribute());
           if (attrList.isEmpty())
           {
             return PluginResult.ImportLDIF.continueEntryProcessing();
@@ -418,7 +418,7 @@ policyLoop:
     // appropriate schemes.
     for (AttributeType t : authPasswordTypes)
     {
-      for (Attribute a : entry.getAttribute(t))
+      for (Attribute a : entry.getAllAttributes(t))
       {
         AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
         boolean gotError = false;
@@ -461,7 +461,7 @@ policyLoop:
     // appropriate schemes.
     for (AttributeType t : userPasswordTypes)
     {
-      for (Attribute a : entry.getAttribute(t))
+      for (Attribute a : entry.getAllAttributes(t))
       {
         AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
         boolean gotError = false;

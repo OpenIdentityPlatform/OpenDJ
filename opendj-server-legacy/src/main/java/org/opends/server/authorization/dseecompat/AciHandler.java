@@ -688,7 +688,7 @@ public final class AciHandler extends
           && resourceEntry.hasAttribute(modAttrType))
       {
         container.setCurrentAttributeType(modAttrType);
-        for (Attribute a : resourceEntry.getAttribute(modAttr.getAttributeDescription()))
+        for (Attribute a : resourceEntry.getAllAttributes(modAttr.getAttributeDescription()))
         {
           for (ByteString v : a)
           {
@@ -728,7 +728,7 @@ public final class AciHandler extends
             break;
           case INCREMENT:
             Entry modifiedEntry = operation.getModifiedEntry();
-            for (Attribute attr : modifiedEntry.getAttribute(modAttr.getAttributeDescription()))
+            for (Attribute attr : modifiedEntry.getAllAttributes(modAttr.getAttributeDescription()))
             {
               for (ByteString val : attr)
               {

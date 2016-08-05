@@ -118,7 +118,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(entryDNType));
 
-    List<Attribute> attrList = e.getAttribute(entryDNType);
+    List<Attribute> attrList = e.getAllAttributes(entryDNType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {

@@ -117,7 +117,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
-    for (Attribute a : e.getAttribute(isMemberOfType))
+    for (Attribute a : e.getAllAttributes(isMemberOfType))
     {
       assertEquals(a.size(), 1);
 
@@ -175,7 +175,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
-    for (Attribute a : e.getAttribute(isMemberOfType))
+    for (Attribute a : e.getAllAttributes(isMemberOfType))
     {
       assertEquals(a.size(), 1);
 
@@ -232,7 +232,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
-    for (Attribute a : e.getAttribute(isMemberOfType))
+    for (Attribute a : e.getAllAttributes(isMemberOfType))
     {
       assertEquals(a.size(), 1);
 
@@ -313,7 +313,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
-    for (Attribute a : e.getAttribute(isMemberOfType))
+    for (Attribute a : e.getAllAttributes(isMemberOfType))
     {
       assertEquals(a.size(), 2);
 
@@ -416,7 +416,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
-    for (Attribute a : e.getAttribute(isMemberOfType))
+    for (Attribute a : e.getAllAttributes(isMemberOfType))
     {
       assertEquals(a.size(), 4);
 

@@ -215,7 +215,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       assertThat(entries).isNotEmpty();
       SearchResultEntry e = entries.get(0);
       assertNotNull(e);
-      Attribute attr = e.getAttribute("ldapsyntaxes").get(0);
+      Attribute attr = e.getAllAttributes("ldapsyntaxes").get(0);
 
       //There are other ways of doing it but we will extract the OID
       //from the attribute values and then check to see if our

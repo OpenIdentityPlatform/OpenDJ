@@ -226,7 +226,7 @@ public final class TestEntry extends TypesTestCase {
 
     Entry entry = createTestEntry(type, values);
     Set<SubtreeSpecification> result = new HashSet<>();
-    List<Attribute> attributes = entry.getAttribute(type, true);
+    List<Attribute> attributes = entry.getAllAttributes(type, true);
     for (Attribute a : attributes)
     {
       for (ByteString value : a)
@@ -456,56 +456,56 @@ public final class TestEntry extends TypesTestCase {
     AttributeType uidType = getUIDAttributeType();
     AttributeType mnType = getModifiersNameAttributeType();
 
-    assertThat(e.getAttribute(ocType)).hasSize(1);
-    assertThat(e.getAttribute(cnType)).hasSize(2);
-    assertThat(e.getAttribute(nameType)).hasSize(6);
+    assertThat(e.getAllAttributes(ocType)).hasSize(1);
+    assertThat(e.getAllAttributes(cnType)).hasSize(2);
+    assertThat(e.getAllAttributes(nameType)).hasSize(6);
 
-    assertThat(e.getAttribute(nameType, false)).isEmpty();
-    assertThat(e.getAttribute(uidType)).isEmpty();
-    assertThat(e.getAttribute(mnType)).hasSize(1);
-    assertThat(e.getAttribute("objectclass")).hasSize(1);
-    assertThat(e.getAttribute("cn")).hasSize(2);
-    assertThat(e.getAttribute("uid")).isEmpty();
-    assertThat(e.getAttribute("modifiersname")).hasSize(1);
+    assertThat(e.getAllAttributes(nameType, false)).isEmpty();
+    assertThat(e.getAllAttributes(uidType)).isEmpty();
+    assertThat(e.getAllAttributes(mnType)).hasSize(1);
+    assertThat(e.getAllAttributes("objectclass")).hasSize(1);
+    assertThat(e.getAllAttributes("cn")).hasSize(2);
+    assertThat(e.getAllAttributes("uid")).isEmpty();
+    assertThat(e.getAllAttributes("modifiersname")).hasSize(1);
 
     LinkedHashSet<String> options = null;
-    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).hasSize(1);
-    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).hasSize(2);
-    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).hasSize(6);
+    assertThat(e.getAllAttributes(AttributeDescription.create(ocType, options))).hasSize(1);
+    assertThat(e.getAllAttributes(AttributeDescription.create(cnType, options))).hasSize(2);
+    assertThat(e.getAllAttributes(AttributeDescription.create(nameType, options))).hasSize(6);
 
-    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).hasSize(1);
+    assertThat(e.getAllAttributes(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(mnType, options))).hasSize(1);
 
     options = new LinkedHashSet<>();
-    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).hasSize(1);
-    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).hasSize(2);
-    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).hasSize(6);
+    assertThat(e.getAllAttributes(AttributeDescription.create(ocType, options))).hasSize(1);
+    assertThat(e.getAllAttributes(AttributeDescription.create(cnType, options))).hasSize(2);
+    assertThat(e.getAllAttributes(AttributeDescription.create(nameType, options))).hasSize(6);
 
-    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).hasSize(1);
+    assertThat(e.getAllAttributes(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(mnType, options))).hasSize(1);
 
     options.add("lang-en-US");
-    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).hasSize(1);
-    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).hasSize(3);
+    assertThat(e.getAllAttributes(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(cnType, options))).hasSize(1);
+    assertThat(e.getAllAttributes(AttributeDescription.create(nameType, options))).hasSize(3);
 
-    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(mnType, options))).isEmpty();
 
     options.add("lang-en-GB");
-    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(mnType, options))).isEmpty();
 
     options.clear();
     options.add("lang-en-GB");
-    assertThat(e.getAttribute(AttributeDescription.create(ocType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(cnType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(nameType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(uidType, options))).isEmpty();
-    assertThat(e.getAttribute(AttributeDescription.create(mnType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(ocType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(cnType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(nameType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(uidType, options))).isEmpty();
+    assertThat(e.getAllAttributes(AttributeDescription.create(mnType, options))).isEmpty();
   }
 
 

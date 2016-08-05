@@ -459,7 +459,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Read the entry back to get its UUID.
       Entry entry = DirectoryServer.getEntry(dn1);
-      List<Attribute> attrs = entry.getAttribute(entryuuidType);
+      List<Attribute> attrs = entry.getAllAttributes(entryuuidType);
       String entryuuid = attrs.get(0).iterator().next().toString();
 
       // A change on a first server.
@@ -491,7 +491,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Read the entry to see how the conflict was resolved.
       entry = DirectoryServer.getEntry(dn1);
-      attrs = entry.getAttribute(attrType);
+      attrs = entry.getAllAttributes(attrType);
       String attrValue1 = attrs.get(0).iterator().next().toString();
 
       // the value should be the last (time t2) value added
@@ -529,7 +529,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Read the entry to see how the conflict was resolved.
       entry = DirectoryServer.getEntry(dn1);
-      attrs = entry.getAttribute(attrType);
+      attrs = entry.getAllAttributes(attrType);
 
       // there should not be a value (delete at time t2)
       assertNull(attrs);
@@ -1087,7 +1087,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   private boolean assertConflictAttributeExists(Entry entry)
   {
-    return !entry.getAttribute("ds-sync-confict").isEmpty();
+    return !entry.getAllAttributes("ds-sync-confict").isEmpty();
   }
 
   @DataProvider(name="assured")

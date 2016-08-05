@@ -200,7 +200,7 @@ public class UniqueAttributePlugin
     List<ByteString> recordedValues = new LinkedList<>();
     for (AttributeType t : config.getType())
     {
-      for (Attribute a : entry.getAttribute(t))
+      for (Attribute a : entry.getAllAttributes(t))
       {
         for (ByteString v : a)
         {
@@ -393,7 +393,7 @@ public class UniqueAttributePlugin
     DN entryDN = entry.getName();
     for (AttributeType t : config.getType())
     {
-      for (Attribute a : entry.getAttribute(t))
+      for (Attribute a : entry.getAllAttributes(t))
       {
         for (ByteString v : a)
         {
@@ -763,7 +763,7 @@ public class UniqueAttributePlugin
     //Remove the attribute value from the map.
     for (AttributeType t : config.getType())
     {
-      for (Attribute a : entry.getAttribute(t))
+      for (Attribute a : entry.getAllAttributes(t))
       {
         for (ByteString v : a)
         {

@@ -416,7 +416,7 @@ public class TaskEntry {
   }
 
   private String getSingleStringValue(Entry entry, String attrName) {
-    List<Attribute> attrList = entry.getAttribute(attrName);
+    List<Attribute> attrList = entry.getAllAttributes(attrName);
     if (attrList.size() == 1) {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty()) {
@@ -428,7 +428,7 @@ public class TaskEntry {
 
   private List<String> getMultiStringValue(Entry entry, String attrName) {
     List<String> valuesList = new ArrayList<>();
-    for (Attribute attr : entry.getAttribute(attrName)) {
+    for (Attribute attr : entry.getAllAttributes(attrName)) {
       for (ByteString value : attr) {
         valuesList.add(value.toString());
       }

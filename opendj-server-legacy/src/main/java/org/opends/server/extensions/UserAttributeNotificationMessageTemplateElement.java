@@ -49,7 +49,7 @@ public class UserAttributeNotificationMessageTemplateElement
                             AccountStatusNotification notification)
   {
     Entry userEntry = notification.getUserEntry();
-    for (Attribute a : userEntry.getAttribute(attributeType))
+    for (Attribute a : userEntry.getAllAttributes(attributeType))
     {
       for (ByteString v : a)
       {

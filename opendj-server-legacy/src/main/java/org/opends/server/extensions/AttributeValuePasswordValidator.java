@@ -136,7 +136,7 @@ public class AttributeValuePasswordValidator
     final ByteString vr = ByteString.valueOfUtf8(reversed);
     for (AttributeType t : matchAttributes)
     {
-      for (Attribute a : userEntry.getAttribute(t))
+      for (Attribute a : userEntry.getAllAttributes(t))
       {
         if (a.contains(vf) ||
             (config.isTestReversedPassword() && a.contains(vr)) ||

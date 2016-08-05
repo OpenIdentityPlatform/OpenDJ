@@ -87,7 +87,7 @@ public class PurgeConflictsHistoricalTask extends Task
     Entry taskEntry = getTaskEntry();
 
     AttributeType typeDomainBase = getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN);
-    List<Attribute> attrList = taskEntry.getAttribute(typeDomainBase);
+    List<Attribute> attrList = taskEntry.getAllAttributes(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
 
     try
@@ -105,7 +105,7 @@ public class PurgeConflictsHistoricalTask extends Task
     }
 
     AttributeType typeMaxDuration = getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION);
-    attrList = taskEntry.getAttribute(typeMaxDuration);
+    attrList = taskEntry.getAllAttributes(typeMaxDuration);
     String maxDurationStringInSec = TaskUtils.getSingleValueString(attrList);
 
     if (maxDurationStringInSec != null)

@@ -311,7 +311,7 @@ public abstract class Task implements Comparable<Task>
   private String getAttributeValue(String attributeName, boolean isRequired)
           throws InitializationException
   {
-    List<Attribute> attrList = taskEntry.getAttribute(attributeName);
+    List<Attribute> attrList = taskEntry.getAllAttributes(attributeName);
     if (attrList.isEmpty())
     {
       if (isRequired)
@@ -360,7 +360,7 @@ public abstract class Task implements Comparable<Task>
   private LinkedList<String> getAttributeValues(String attributeName) throws InitializationException
   {
     LinkedList<String> valueStrings = new LinkedList<>();
-    List<Attribute> attrList = taskEntry.getAttribute(attributeName);
+    List<Attribute> attrList = taskEntry.getAllAttributes(attributeName);
     if (attrList.isEmpty())
     {
       return valueStrings;

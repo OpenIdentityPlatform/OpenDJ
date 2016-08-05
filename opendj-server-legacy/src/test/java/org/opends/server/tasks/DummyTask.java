@@ -56,7 +56,7 @@ public class DummyTask extends Task
     Entry taskEntry = getTaskEntry();
     if (taskEntry != null)
     {
-      for (Attribute a : taskEntry.getAttribute(TASK_SLEEP_TIME_ATTRIBUTE))
+      for (Attribute a : taskEntry.getAllAttributes(TASK_SLEEP_TIME_ATTRIBUTE))
       {
         for (ByteString v : a)
         {

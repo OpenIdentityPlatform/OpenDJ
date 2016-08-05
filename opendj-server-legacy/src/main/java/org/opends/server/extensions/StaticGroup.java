@@ -195,7 +195,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    List<Attribute> memberAttrList = groupEntry.getAttribute(someMemberAttributeType);
+    List<Attribute> memberAttrList = groupEntry.getAllAttributes(someMemberAttributeType);
     int membersCount = 0;
     for (Attribute a : memberAttrList)
     {

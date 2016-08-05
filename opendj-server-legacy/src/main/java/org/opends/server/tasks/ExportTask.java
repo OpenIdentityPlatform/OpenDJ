@@ -152,7 +152,7 @@ public class ExportTask extends Task
     includeBranchStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_INCLUDE_BRANCH);
     excludeBranchStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_EXCLUDE_BRANCH);
 
-    List<Attribute> attrList = taskEntry.getAttribute(typeWrapColumn);
+    List<Attribute> attrList = taskEntry.getAllAttributes(typeWrapColumn);
     wrapColumn = TaskUtils.getSingleValueInteger(attrList, 0);
 
     includeOperationalAttributes = toBoolean(taskEntry, true, ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES);
@@ -161,21 +161,21 @@ public class ExportTask extends Task
   private boolean toBoolean(Entry entry, boolean defaultValue, String attrName)
   {
     final AttributeType attrType = getSchema().getAttributeType(attrName);
-    final List<Attribute> attrs = entry.getAttribute(attrType);
+    final List<Attribute> attrs = entry.getAllAttributes(attrType);
     return TaskUtils.getBoolean(attrs, defaultValue);
   }
 
   private ArrayList<String> toListOfString(Entry entry, String attrName)
   {
     final AttributeType attrType = getSchema().getAttributeType(attrName);
-    final List<Attribute> attrs = entry.getAttribute(attrType);
+    final List<Attribute> attrs = entry.getAllAttributes(attrType);
     return TaskUtils.getMultiValueString(attrs);
   }
 
   private String toString(Entry entry, String attrName)
   {
     final AttributeType attrType = getSchema().getAttributeType(attrName);
-    final List<Attribute> attrs = entry.getAttribute(attrType);
+    final List<Attribute> attrs = entry.getAllAttributes(attrType);
     return TaskUtils.getSingleValueString(attrs);
   }
 

@@ -129,7 +129,7 @@ class GroupDN implements KeywordBindRule {
     public static boolean evaluate (Entry e, AciEvalContext evalCtx,
                                            AttributeType attributeType,
                                            DN suffixDN) {
-        List<Attribute> attrs = e.getAttribute(attributeType);
+        List<Attribute> attrs = e.getAllAttributes(attributeType);
         for(ByteString v : attrs.get(0)) {
             try {
                 DN groupDN = DN.valueOf(v.toString());

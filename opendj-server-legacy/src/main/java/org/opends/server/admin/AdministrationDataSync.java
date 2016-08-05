@@ -223,7 +223,7 @@ public final class AdministrationDataSync
     {
       SearchResultEntry adminConnectorEntry = result.getFirst();
       AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
-      List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
+      List<Attribute> attrs = adminConnectorEntry.getAllAttributes(attrType);
       if (!attrs.isEmpty())
       {
         // Get the attribute value

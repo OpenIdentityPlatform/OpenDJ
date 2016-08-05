@@ -75,7 +75,7 @@ public class ShutdownTask
     shutdownMessage = INFO_TASK_SHUTDOWN_DEFAULT_MESSAGE.get(taskEntry.getName());
 
     AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_SHUTDOWN_MESSAGE);
-    List<Attribute> attrList = taskEntry.getAttribute(attrType);
+    List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
     if (!attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);
@@ -87,7 +87,7 @@ public class ShutdownTask
     }
 
     attrType = DirectoryServer.getSchema().getAttributeType(ATTR_RESTART_SERVER);
-    attrList = taskEntry.getAttribute(attrType);
+    attrList = taskEntry.getAllAttributes(attrType);
     if (!attrList.isEmpty())
     {
       Attribute attr = attrList.get(0);

@@ -662,7 +662,7 @@ public class EntryHistorical
    */
   public static List<Attribute> getHistoricalAttr(Entry entry)
   {
-    return entry.getAttribute(HISTORICAL_ATTRIBUTE_NAME);
+    return entry.getAllAttributes(HISTORICAL_ATTRIBUTE_NAME);
   }
 
   /**

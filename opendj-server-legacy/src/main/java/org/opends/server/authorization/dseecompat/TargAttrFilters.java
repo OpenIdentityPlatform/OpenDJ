@@ -358,7 +358,7 @@ public class TargAttrFilters {
     {
       // Found a match in the entry, iterate over each attribute
       // type in the entry and check its values against the filter.
-      for (Attribute a : entry.getAttribute(attrType))
+      for (Attribute a : entry.getAllAttributes(attrType))
       {
         if (!matchFilterAttributeValues(a, attrType, f))
         {

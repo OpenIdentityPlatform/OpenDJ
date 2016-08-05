@@ -357,7 +357,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    List<Attribute> attrList = e.getAttribute(a.getAttributeDescription());
+    List<Attribute> attrList = e.getAllAttributes(a.getAttributeDescription());
     assertFalse(attrList.isEmpty());
 
     boolean foundFoo = false;
@@ -408,7 +408,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    assertThat(e.getAttribute(a.getAttributeDescription().getAttributeType())).isNotEmpty();
+    assertThat(e.getAllAttributes(a.getAttributeDescription().getAttributeType())).isNotEmpty();
 
     UpdatePreOpPlugin.reset();
   }
@@ -440,7 +440,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    assertThat(e.getAttribute(attrType)).isEmpty();
+    assertThat(e.getAllAttributes(attrType)).isEmpty();
 
     UpdatePreOpPlugin.reset();
   }
@@ -793,7 +793,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    List<Attribute> attrList = e.getAttribute("ou");
+    List<Attribute> attrList = e.getAllAttributes("ou");
     assertThat(attrList).isNotEmpty();
   }
 
@@ -845,7 +845,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,o=test"));
-    List<Attribute> attrList = e.getAttribute(getObjectClassAttributeType());
+    List<Attribute> attrList = e.getAllAttributes(getObjectClassAttributeType());
     assertTrue(findAttributeValueIgnoreCase(attrList, "top"));
   }
 

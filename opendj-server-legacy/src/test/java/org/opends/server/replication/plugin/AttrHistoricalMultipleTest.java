@@ -426,7 +426,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
 
   private List<ByteString> getValues(Entry entry, Modification mod)
   {
-    return getValues(entry.getAttribute(mod.getAttribute().getAttributeDescription()));
+    return getValues(entry.getAllAttributes(mod.getAttribute().getAttributeDescription()));
   }
 
   private List<ByteString> getValues(List<Attribute> attributes)
@@ -463,7 +463,7 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
 
   private void assertAttributeValues(Entry entry, String... expectedValues)
   {
-    List<ByteString> actualValues = getValues(entry.getAttribute(ATTRIBUTE_NAME));
+    List<ByteString> actualValues = getValues(entry.getAllAttributes(ATTRIBUTE_NAME));
     assertThat(actualValues).containsOnly(toByteStrings(expectedValues));
   }
 

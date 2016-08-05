@@ -524,7 +524,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         final Entry newEntry = DirectoryServer.getEntry(dn);
         assertNotNull(newEntry);
-        List<Attribute> attrList = newEntry.getAttribute(attrTypeStr);
+        List<Attribute> attrList = newEntry.getAllAttributes(attrTypeStr);
         Assertions.assertThat(attrList).isNotEmpty();
         Attribute attr = attrList.get(0);
         boolean foundAttributeValue = attr.contains(ByteString.valueOfUtf8(valueString));
@@ -781,7 +781,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         Entry newEntry = DirectoryServer.getEntry(dn);
         assertNotNull(newEntry);
-        Attribute attribute = newEntry.getAttribute("entryuuid").get(0);
+        Attribute attribute = newEntry.getAllAttributes("entryuuid").get(0);
         String found = attribute.iterator().next().toString();
         assertNotNull(found, "Entry: " + dn + " Could not be found.");
         return found;

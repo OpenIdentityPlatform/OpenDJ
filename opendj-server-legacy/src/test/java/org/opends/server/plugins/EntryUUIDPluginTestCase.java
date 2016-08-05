@@ -243,7 +243,7 @@ public class EntryUUIDPluginTestCase
          DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);
     plugin.doLDIFImport(importConfig, e);
 
-    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
+    assertThat(e.getAllAttributes("entryuuid")).isNotEmpty();
   }
 
 
@@ -284,7 +284,7 @@ public class EntryUUIDPluginTestCase
          DirectoryServer.getPluginConfigManager().getRegisteredPlugin(dn);
     plugin.doLDIFImport(importConfig, e);
 
-    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
+    assertThat(e.getAllAttributes("entryuuid")).isNotEmpty();
   }
 
 
@@ -303,7 +303,7 @@ public class EntryUUIDPluginTestCase
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
+    assertThat(e.getAllAttributes("entryuuid")).isNotEmpty();
   }
 
 
@@ -325,6 +325,6 @@ public class EntryUUIDPluginTestCase
                                       "objectClass: device",
                                       "cn: test",
                                       "entryUUID: " + UUID.randomUUID());
-    assertThat(e.getAttribute("entryuuid")).isNotEmpty();
+    assertThat(e.getAllAttributes("entryuuid")).isNotEmpty();
   }
 }

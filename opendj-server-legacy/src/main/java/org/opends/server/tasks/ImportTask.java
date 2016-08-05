@@ -342,25 +342,25 @@ public class ImportTask extends Task
 
   private int asInt(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
+    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
     return TaskUtils.getSingleValueInteger(attrList, 0);
   }
 
   private boolean asBoolean(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
+    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
     return TaskUtils.getBoolean(attrList, false);
   }
 
   private String asString(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
+    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
     return TaskUtils.getSingleValueString(attrList);
   }
 
   private ArrayList<String> asListOfStrings(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAttribute(attributeType);
+    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
     return TaskUtils.getMultiValueString(attrList);
   }
 

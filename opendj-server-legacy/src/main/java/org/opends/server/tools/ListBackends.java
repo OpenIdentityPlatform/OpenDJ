@@ -418,7 +418,7 @@ public class ListBackends
       Set<DN> baseDNs = new TreeSet<>();
       try
       {
-        List<Attribute> attributes = configEntry.getAttribute(ATTR_BACKEND_BASE_DN);
+        List<Attribute> attributes = configEntry.getAllAttributes(ATTR_BACKEND_BASE_DN);
         if (!attributes.isEmpty())
         {
           Attribute attribute = attributes.get(0);

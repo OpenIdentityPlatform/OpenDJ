@@ -234,7 +234,7 @@ public class RecurringTask
       Arg1<Object> multipleEntriesErrorMsg, Arg1<Object> noAttrValueErrorMsg) throws DirectoryException
   {
     AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
-    List<Attribute> attrList = taskEntry.getAttribute(attrType);
+    List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
     if (attrList.isEmpty())
     {
       LocalizableMessage message = noEntryErrorMsg.get(attrName);

@@ -212,7 +212,7 @@ class PersistentServerState
   private void updateStateFromEntry(SearchResultEntry resultEntry)
   {
     AttributeType synchronizationStateType = DirectoryServer.getSchema().getAttributeType(REPLICATION_STATE);
-    List<Attribute> attrs = resultEntry.getAttribute(synchronizationStateType);
+    List<Attribute> attrs = resultEntry.getAllAttributes(synchronizationStateType);
     if (!attrs.isEmpty())
     {
       for (ByteString value : attrs.get(0))
@@ -344,7 +344,7 @@ class PersistentServerState
       CSN dbMaxCSN = serverStateMaxCSN;
       for (SearchResultEntry resEntry : op.getSearchEntries())
       {
-        for (ByteString attrValue : resEntry.getAttribute(histType).get(0))
+        for (ByteString attrValue : resEntry.getAllAttributes(histType).get(0))
         {
           HistoricalAttributeValue histVal =
               new HistoricalAttributeValue(attrValue.toString());

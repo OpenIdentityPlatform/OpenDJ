@@ -1809,7 +1809,7 @@ public class TaskScheduler
   {
     // Get the name of the class that implements the task logic.
     AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_CLASS);
-    List<Attribute> attrList = entry.getAttribute(attrType);
+    List<Attribute> attrList = entry.getAllAttributes(attrType);
     if (attrList.isEmpty())
     {
       LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_ID);

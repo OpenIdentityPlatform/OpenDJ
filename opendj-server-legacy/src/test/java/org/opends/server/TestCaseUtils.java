@@ -1806,7 +1806,7 @@ public final class TestCaseUtils {
   public static HashSet<PluginType> getPluginTypes(Entry e)
   {
     HashSet<PluginType> pluginTypes = new HashSet<>();
-    for (Attribute a : e.getAttribute("ds-cfg-plugin-type"))
+    for (Attribute a : e.getAllAttributes("ds-cfg-plugin-type"))
     {
       for (ByteString v : a)
       {

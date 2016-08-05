@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012 profiq, s.r.o.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -204,7 +204,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     SearchResultEntry entry = entries.get(0);
     assertNotNull(entry);
 
-    List<Attribute> attrs = entry.getAttribute(attributeName);
+    List<Attribute> attrs = entry.getAllAttributes(attributeName);
     assertEquals(attrs.size(), 1);
 
     Attribute attr = attrs.get(0);

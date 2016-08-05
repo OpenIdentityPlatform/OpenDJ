@@ -740,7 +740,7 @@ public class VirtualStaticGroupTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(memberType));
 
-    Attribute a = e.getAttribute(memberType).get(0);
+    Attribute a = e.getAllAttributes(memberType).get(0);
     assertEquals(a.size(), 4);
     assertTrue(a.contains(ByteString.valueOfUtf8(u1.toString())));
 
@@ -768,7 +768,7 @@ public class VirtualStaticGroupTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(memberType));
 
-    Attribute a = e.getAttribute(memberType).get(0);
+    Attribute a = e.getAllAttributes(memberType).get(0);
     assertEquals(a.size(), 1);
 
     ByteString v = ByteString.valueOfUtf8(u4.toString());
@@ -779,7 +779,7 @@ public class VirtualStaticGroupTestCase
     ModifyOperation modifyOperation = getRootConnection().processModify(d1, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-    a = e.getAttribute(memberType).get(0);
+    a = e.getAllAttributes(memberType).get(0);
     assertEquals(a.size(), 4);
     assertTrue(a.contains(v));
 
@@ -804,7 +804,7 @@ public class VirtualStaticGroupTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(memberType));
 
-    Attribute a = e.getAttribute(memberType).get(0);
+    Attribute a = e.getAllAttributes(memberType).get(0);
     assertEquals(a.size(), 1);
 
     ByteString v = ByteString.valueOfUtf8(u4.toString());
@@ -825,7 +825,7 @@ public class VirtualStaticGroupTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(memberType));
 
-    a = e.getAttribute(memberType).get(0);
+    a = e.getAllAttributes(memberType).get(0);
     assertEquals(a.size(), 0);
 
     v = ByteString.valueOfUtf8(u4.toString());

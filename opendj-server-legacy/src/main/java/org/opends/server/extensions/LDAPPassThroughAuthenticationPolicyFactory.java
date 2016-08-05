@@ -1451,7 +1451,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             // The bind DN is contained in an attribute in the user's entry.
             mapBind: for (final AttributeType at : cfg.getMappedAttribute())
             {
-              for (final Attribute attribute : userEntry.getAttribute(at))
+              for (final Attribute attribute : userEntry.getAllAttributes(at))
               {
                 if (!attribute.isEmpty())
                 {
@@ -1486,7 +1486,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             final LinkedList<SearchFilter> filterComponents = new LinkedList<>();
             for (final AttributeType at : cfg.getMappedAttribute())
             {
-              for (final Attribute attribute : userEntry.getAttribute(at))
+              for (final Attribute attribute : userEntry.getAllAttributes(at))
               {
                 for (final ByteString value : attribute)
                 {
@@ -1622,7 +1622,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         boolean foundValidCachedPasswordTime = false;
 
         foundCachedPasswordTime:
-        for (Attribute attribute : userEntry.getAttribute(cachedPasswordTimeAttribute))
+        for (Attribute attribute : userEntry.getAllAttributes(cachedPasswordTimeAttribute))
         {
           // Ignore any attributes with options.
           if (!attribute.getAttributeDescription().hasOptions())
@@ -1656,7 +1656,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // Next determine if there is a cached password.
         ByteString cachedPassword = null;
         foundCachedPassword:
-        for (Attribute attribute : userEntry.getAttribute(cachedPasswordAttribute))
+        for (Attribute attribute : userEntry.getAllAttributes(cachedPasswordAttribute))
         {
           // Ignore any attributes with options.
           if (!attribute.getAttributeDescription().hasOptions())

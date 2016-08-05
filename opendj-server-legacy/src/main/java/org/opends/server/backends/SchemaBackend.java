@@ -2609,7 +2609,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // loop on the attribute types in the entry just received
     // and add them in the existing schema.
     Set<String> oidList = new HashSet<>(1000);
-    for (Attribute a : newSchemaEntry.getAttribute(attributeTypesType))
+    for (Attribute a : newSchemaEntry.getAllAttributes(attributeTypesType))
     {
       // Look for attribute types that could have been added to the schema
       // or modified in the schema
@@ -2660,7 +2660,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // loop on the objectClasses from the entry, search if they are
     // already in the current schema, add them if not.
     oidList.clear();
-    for (Attribute a : newSchemaEntry.getAttribute(objectClassesType))
+    for (Attribute a : newSchemaEntry.getAllAttributes(objectClassesType))
     {
       for (ByteString v : a)
       {

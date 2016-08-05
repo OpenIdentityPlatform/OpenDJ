@@ -413,7 +413,7 @@ public class OpenidmAccountStatusNotificationHandler
 
         Set<AttributeType> notificationAttrs = config.getAttributeType();
         for (AttributeType t : notificationAttrs) {
-            for (Attribute a : userEntry.getAttribute(t)) {
+            for (Attribute a : userEntry.getAllAttributes(t)) {
                 List<String> attrVals = new ArrayList<>();
                 String attrName = a.getAttributeDescription().getAttributeType().getNameOrOID();
                 for (ByteString v : a) {

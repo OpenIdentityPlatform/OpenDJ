@@ -337,8 +337,8 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
    */
   private void modifyEntry(Entry srcEntry, Entry dstEntry)
   {
-    List<Attribute> srcList = srcEntry.getAttribute(attrCert);
-    List<Attribute> dstList = dstEntry.getAttribute(attrCert);
+    List<Attribute> srcList = srcEntry.getAllAttributes(attrCert);
+    List<Attribute> dstList = dstEntry.getAllAttributes(attrCert);
 
     // Check for changes to the certificate value.
     if (!srcList.equals(dstList))
@@ -392,7 +392,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   private void putAttributeTypeIfExist(Map<AttributeType, List<Attribute>> userAttrs, Entry srcEntry,
       AttributeType attrType)
   {
-    List<Attribute> attrList = srcEntry.getAttribute(attrType);
+    List<Attribute> attrList = srcEntry.getAllAttributes(attrType);
     if (!attrList.isEmpty())
     {
       userAttrs.put(attrType, new ArrayList<>(attrList));

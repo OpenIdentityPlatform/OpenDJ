@@ -214,7 +214,7 @@ public class UserAttr implements KeywordBindRule {
     private EnumEvalResult evalURL(AciEvalContext evalCtx) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrStr);
-        List<Attribute> attrs=evalCtx.getResourceEntry().getAttribute(attrType);
+        List<Attribute> attrs=evalCtx.getResourceEntry().getAllAttributes(attrType);
         for(Attribute a : attrs) {
             for(ByteString v : a) {
                 LDAPURL url;

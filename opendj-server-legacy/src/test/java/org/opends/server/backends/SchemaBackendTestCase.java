@@ -4494,7 +4494,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(mtType));
 
     ByteString oldMTValue =
-         schemaEntry.getAttribute(mtType).get(0).iterator().next();
+         schemaEntry.getAllAttributes(mtType).get(0).iterator().next();
 
     String ldif = toLdif(
          "dn: cn=schema",
@@ -4518,7 +4518,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(mtType));
 
     ByteString newMTValue =
-         schemaEntry.getAttribute(mtType).get(0).iterator().next();
+         schemaEntry.getAllAttributes(mtType).get(0).iterator().next();
     assertNotEquals(oldMTValue, newMTValue);
   }
 

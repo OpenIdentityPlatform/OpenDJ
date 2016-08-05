@@ -76,7 +76,7 @@ public class InitializeTask extends Task
     AttributeType typeSourceScope = getSchema().getAttributeType(ATTR_TASK_INITIALIZE_SOURCE);
 
     List<Attribute> attrList;
-    attrList = taskEntry.getAttribute(typeDomainBase);
+    attrList = taskEntry.getAllAttributes(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
 
     try
@@ -93,7 +93,7 @@ public class InitializeTask extends Task
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);
     }
 
-    attrList = taskEntry.getAttribute(typeSourceScope);
+    attrList = taskEntry.getAllAttributes(typeSourceScope);
     String sourceString = TaskUtils.getSingleValueString(attrList);
     source = domain.decodeSource(sourceString);
 

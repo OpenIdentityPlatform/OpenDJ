@@ -148,7 +148,7 @@ public class NamingConflictTest extends ReplicationTestCase
     assertEquals(getEntryUUID(resultEntry.getName()),
         "c9cb8c3c-615a-4122-865d-50323aaaed48",
         "The wrong entry has been renamed");
-    assertThat(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT)).isEmpty();
+    assertThat(resultEntry.getAllAttributes(LDAPReplicationDomain.DS_SYNC_CONFLICT)).isEmpty();
   }
 
   private AddMsg addMsg(Entry entry, CSN csn, String parentUUID, String childUUID)
@@ -189,7 +189,7 @@ public class NamingConflictTest extends ReplicationTestCase
     assertEquals(getEntryUUID(resultEntry.getName()),
         "c9cb8c3c-615a-4122-865d-50323aaaed48",
         "The wrong entry has been renamed");
-    assertThat(resultEntry.getAttribute(LDAPReplicationDomain.DS_SYNC_CONFLICT)).isEmpty();
+    assertThat(resultEntry.getAllAttributes(LDAPReplicationDomain.DS_SYNC_CONFLICT)).isEmpty();
   }
 
   private Entry createAndAddEntry(String commonName) throws Exception

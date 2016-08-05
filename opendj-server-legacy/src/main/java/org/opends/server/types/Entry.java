@@ -568,7 +568,7 @@ public class Entry
    *          the attribute type
    * @return the List of user or operational attributes
    */
-  private List<Attribute> getAttributes(AttributeType attrType)
+  private List<Attribute> getAllAttributes0(AttributeType attrType)
   {
     return getUserOrOperationalAttributes(attrType).get(attrType);
   }
@@ -612,9 +612,9 @@ public class Entry
    *         attribute type, or an empty list if the specified
    *         attribute type is not present in this entry.
    */
-  public List<Attribute> getAttribute(AttributeType attributeType)
+  public List<Attribute> getAllAttributes(AttributeType attributeType)
   {
-    return getAttribute(attributeType, true);
+    return getAllAttributes(attributeType, true);
   }
 
 
@@ -633,7 +633,7 @@ public class Entry
    *          attribute type, or an empty list if the specified
    *          attribute type is not present in this entry.
    */
-  public List<Attribute> getAttribute(AttributeType attributeType,
+  public List<Attribute> getAllAttributes(AttributeType attributeType,
                                       boolean includeSubordinates)
   {
     if (includeSubordinates && !attributeType.isObjectClass())
@@ -734,13 +734,13 @@ public class Entry
    *          attribute type, or an empty list if the specified
    *          attribute type is not present in this entry.
    */
-  public List<Attribute> getAttribute(String nameOrOID)
+  public List<Attribute> getAllAttributes(String nameOrOID)
   {
     for (AttributeType attr : userAttributes.keySet())
     {
       if (attr.hasNameOrOID(nameOrOID))
       {
-        return getAttribute(attr);
+        return getAllAttributes(attr);
       }
     }
 
@@ -748,7 +748,7 @@ public class Entry
     {
       if (attr.hasNameOrOID(nameOrOID))
       {
-        return getAttribute(attr);
+        return getAllAttributes(attr);
       }
     }
 
@@ -773,7 +773,7 @@ public class Entry
    *          attribute type is not present in this entry with the
    *          provided set of options.
    */
-  public List<Attribute> getAttribute(AttributeDescription attributeDescription)
+  public List<Attribute> getAllAttributes(AttributeDescription attributeDescription)
   {
     AttributeType attributeType = attributeDescription.getAttributeType();
 
@@ -826,7 +826,7 @@ public class Entry
   public AttributeParser parseAttribute(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    final List<Attribute> attribute = getAttribute(attributeDescription);
+    final List<Attribute> attribute = getAllAttributes(attributeDescription);
     return AttributeParser.parseAttribute(!attribute.isEmpty() ? attribute.get(0) : null);
   }
 
@@ -862,10 +862,10 @@ public class Entry
    */
   public List<Attribute> getUserAttribute(AttributeType attributeType)
   {
-    return getAttribute(attributeType, userAttributes);
+    return getAllAttributes(attributeType, userAttributes);
   }
 
-  private List<Attribute> getAttribute(AttributeType attributeType,
+  private List<Attribute> getAllAttributes(AttributeType attributeType,
       Map<AttributeType, List<Attribute>> attrs)
   {
     List<Attribute> results = new LinkedList<>();
@@ -873,7 +873,7 @@ public class Entry
     return results;
   }
 
-  private List<Attribute> getAttribute(AttributeDescription attributeDescription,
+  private List<Attribute> getAllAttributes(AttributeDescription attributeDescription,
       Map<AttributeType, List<Attribute>> attrs)
   {
     List<Attribute> results = new LinkedList<>();
@@ -942,7 +942,7 @@ public class Entry
    */
   public List<Attribute> getOperationalAttribute(AttributeType attributeType)
   {
-    return getAttribute(attributeType, operationalAttributes);
+    return getAllAttributes(attributeType, operationalAttributes);
   }
 
 
@@ -962,7 +962,7 @@ public class Entry
    */
   public List<Attribute> getOperationalAttribute(AttributeDescription attributeDescription)
   {
-    return getAttribute(attributeDescription, operationalAttributes);
+    return getAllAttributes(attributeDescription, operationalAttributes);
   }
 
 
@@ -1222,7 +1222,7 @@ public class Entry
   {
     AttributeDescription attrDesc = attribute.getAttributeDescription();
     AttributeType attrType = attrDesc.getAttributeType();
-    List<Attribute> attributes = getAttributes(attrType);
+    List<Attribute> attributes = getAllAttributes0(attrType);
     if (attributes == null)
     {
       // There are no attributes with the same attribute type.
@@ -1322,7 +1322,7 @@ public class Entry
    */
   public boolean hasValue(AttributeType attributeType, ByteString value)
   {
-    for (Attribute a : getAttribute(attributeType))
+    for (Attribute a : getAllAttributes(attributeType))
     {
       if (!a.getAttributeDescription().hasOptions() && a.contains(value))
       {
@@ -2857,7 +2857,7 @@ public class Entry
             try
             {
               DN inheritFromDN = null;
-              for (Attribute attr : getAttribute(subEntry.getInheritFromDNType()))
+              for (Attribute attr : getAllAttributes(subEntry.getInheritFromDNType()))
               {
                 for (ByteString value : attr)
                 {
@@ -2892,7 +2892,7 @@ public class Entry
             {
               try
               {
-                for (Attribute attr : getAttribute(subEntry.getInheritFromRDNAttrType()))
+                for (Attribute attr : getAllAttributes(subEntry.getInheritFromRDNAttrType()))
                 {
                   inheritFromDN = subEntry.getInheritFromBaseDN();
                   for (ByteString value : attr)
@@ -4154,7 +4154,7 @@ public class Entry
    */
   public Attribute getExactAttribute(AttributeDescription attributeDescription)
   {
-    List<Attribute> attributes = getAttributes(attributeDescription.getAttributeType());
+    List<Attribute> attributes = getAllAttributes0(attributeDescription.getAttributeType());
     if (attributes != null)
     {
       for (Attribute attribute : attributes)
@@ -4240,7 +4240,7 @@ public class Entry
   {
     AttributeDescription attrDesc = attribute.getAttributeDescription();
     AttributeType attrType = attrDesc.getAttributeType();
-    List<Attribute> attributes = getAttributes(attrType);
+    List<Attribute> attributes = getAllAttributes0(attrType);
     if (attributes == null)
     {
       // Do nothing if we are deleting a non-existing attribute.

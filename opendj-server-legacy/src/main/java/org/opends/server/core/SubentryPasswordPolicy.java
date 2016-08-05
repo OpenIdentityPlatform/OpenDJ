@@ -251,7 +251,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     {
       AttributeType pwdAttrType =
           DirectoryServer.getSchema().getAttributeType(PWD_ATTR_VALIDATOR);
-      for (Attribute attr : entry.getAttribute(pwdAttrType))
+      for (Attribute attr : entry.getAllAttributes(pwdAttrType))
       {
         for (ByteString val : attr)
         {
@@ -370,7 +370,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   private String getAttrValue(Entry entry, String pwdAttrName)
   {
     AttributeType pwdAttrType = DirectoryServer.getSchema().getAttributeType(pwdAttrName);
-    for (Attribute attr : entry.getAttribute(pwdAttrType))
+    for (Attribute attr : entry.getAllAttributes(pwdAttrType))
     {
       for (ByteString value : attr)
       {

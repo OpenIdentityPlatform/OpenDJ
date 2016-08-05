@@ -316,7 +316,7 @@ public class MakeLDIFTestCase extends ToolsTestCase
 
     Entry e = readEntry(outLdifFilePath);
     assertNotNull(e);
-    List<Attribute> attrs = e.getAttribute(attrName);
+    List<Attribute> attrs = e.getAllAttributes(attrName);
     assertFalse(attrs.isEmpty());
     Attribute a = attrs.get(0);
     Attribute expectedRes = Attributes.create(attrName, expectedValue);
@@ -365,7 +365,7 @@ public class MakeLDIFTestCase extends ToolsTestCase
 
     Entry e = readEntry(outLdifFilePath);
     assertNotNull(e);
-    List<Attribute> attrs = e.getAttribute("cn");
+    List<Attribute> attrs = e.getAllAttributes("cn");
     assertFalse(attrs.isEmpty());
     Attribute a = attrs.get(0);
     assertTrue(a.iterator().next().toString().matches("Foo <[A-Z]>\\{1\\}Bar"),

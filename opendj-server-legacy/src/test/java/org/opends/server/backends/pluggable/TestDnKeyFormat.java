@@ -348,8 +348,8 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
 
         // check the user attributes were not changed
         for (AttributeType attrType : entryBefore.getUserAttributes().keySet()) {
-          List<Attribute> listBefore = entryBefore.getAttribute(attrType);
-          List<Attribute> listAfter = entryAfter.getAttribute(attrType);
+          List<Attribute> listBefore = entryBefore.getAllAttributes(attrType);
+          List<Attribute> listAfter = entryAfter.getAllAttributes(attrType);
           assertThat(listBefore).hasSameSizeAs(listAfter);
 
           for (Attribute attrBefore : listBefore) {

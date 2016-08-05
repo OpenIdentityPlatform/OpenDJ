@@ -417,7 +417,7 @@ public class TestModifyDNOperation extends OperationTestCase
   private void assertAttrValue(Entry newEntry, String attrName, String expectedAttrValue)
   {
     AttributeType at = DirectoryServer.getSchema().getAttributeType(attrName);
-    List<Attribute> attrList = newEntry.getAttribute(at);
+    List<Attribute> attrList = newEntry.getAllAttributes(at);
     assertThat(attrList).hasSize(1);
 
     // Because deleteOldRDN is true, the values from RDN and the entry have to be identical
@@ -547,14 +547,14 @@ public class TestModifyDNOperation extends OperationTestCase
         runModifyDNOp(oldEntryDN, "cn=Aaccf Amar Test", true, "dc=example,dc=com");
     assertSuccess(modifyDNOperation);
     Entry entry = assertCnAttrValues(newEntryDN, oldEntryDN);
-    assertThat(entry.getAttribute("uid")).isEmpty();
+    assertThat(entry.getAllAttributes("uid")).isEmpty();
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
 
     InvocationCounterPlugin.resetAllCounters();
     modifyDNOperation = runModifyDNOp(newEntryDN, "uid=user.0", false, "ou=People,dc=example,dc=com");
     assertSuccess(modifyDNOperation);
     Entry newOldEntry = assertCnAttrValues(oldEntryDN, newEntryDN);
-    for(Attribute attribute : newOldEntry.getAttribute("uid"))
+    for(Attribute attribute : newOldEntry.getAllAttributes("uid"))
     {
       assertTrue(attribute.contains(b("user.0")));
     }
@@ -567,7 +567,7 @@ public class TestModifyDNOperation extends OperationTestCase
     assertNotNull(entry);
     assertNull(DirectoryServer.getEntry(dn(entryDN2)));
 
-    for (Attribute attribute : entry.getAttribute("cn"))
+    for (Attribute attribute : entry.getAllAttributes("cn"))
     {
       assertTrue(attribute.contains(b("Aaccf Amar Test")));
       assertTrue(attribute.contains(b("Aaccf Amar")));

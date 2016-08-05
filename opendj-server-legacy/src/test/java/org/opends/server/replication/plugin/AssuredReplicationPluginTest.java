@@ -1480,7 +1480,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         throw new Exception("Unknown assured type");
     }
 
-    List<Attribute> attrs = entry.getAttribute(assuredAttr);
+    List<Attribute> attrs = entry.getAllAttributes(assuredAttr);
     if (attrs.isEmpty())
     {
       return Collections.emptyMap();

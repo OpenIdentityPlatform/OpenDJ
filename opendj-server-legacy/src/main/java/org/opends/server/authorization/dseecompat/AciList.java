@@ -203,13 +203,13 @@ public class AciList {
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
       if(hasGlobalAci && entry.getName().equals(configDN)) {
-          List<Attribute> attributeList = entry.getAttribute(globalAciType);
+          List<Attribute> attributeList = entry.getAllAttributes(globalAciType);
           validAcis = addAciAttributeList(aciList, DN.rootDN(), configDN,
                                           attributeList, failedACIMsgs);
       }
 
       if(hasAci) {
-          List<Attribute> attributeList = entry.getAttribute(aciType);
+          List<Attribute> attributeList = entry.getAllAttributes(aciType);
           validAcis += addAciAttributeList(aciList, entry.getName(), configDN,
                                            attributeList, failedACIMsgs);
       }
@@ -299,7 +299,7 @@ public class AciList {
       //attributes are skipped.
       if(hasGlobalAci && oldEntry.getName().equals(configDN)) {
           aciList.remove(DN.rootDN());
-          List<Attribute> attributeList = newEntry.getAttribute(globalAciType);
+          List<Attribute> attributeList = newEntry.getAllAttributes(globalAciType);
           addAciAttributeList(aciList, DN.rootDN(), configDN,
                               attributeList, failedACIMsgs);
       }

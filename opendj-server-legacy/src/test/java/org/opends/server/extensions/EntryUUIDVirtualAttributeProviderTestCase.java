@@ -111,7 +111,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     assertNotNull(e);
     assertTrue(e.hasAttribute(entryUUIDType));
 
-    List<Attribute> attrList = e.getAttribute(entryUUIDType);
+    List<Attribute> attrList = e.getAllAttributes(entryUUIDType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {
@@ -145,7 +145,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
       "dc: example");
     assertTrue(e.hasAttribute(entryUUIDType));
 
-    List<Attribute> attrList = e.getAttribute(entryUUIDType);
+    List<Attribute> attrList = e.getAllAttributes(entryUUIDType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {

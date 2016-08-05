@@ -259,6 +259,6 @@ public class LDAPADListPluginTestCase
     assertFalse(searchOperation.getSearchEntries().isEmpty());
 
     Entry e = searchOperation.getSearchEntries().get(0);
-    assertThat(e.getAttribute("o")).isNotEmpty();
+    assertThat(e.getAllAttributes("o")).isNotEmpty();
   }
 }

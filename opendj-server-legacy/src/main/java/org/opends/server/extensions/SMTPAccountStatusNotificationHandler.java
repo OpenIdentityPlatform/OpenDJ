@@ -489,7 +489,7 @@ public class SMTPAccountStatusNotificationHandler
       Entry userEntry = notification.getUserEntry();
       for (AttributeType t : addressAttrs)
       {
-        for (Attribute a : userEntry.getAttribute(t))
+        for (Attribute a : userEntry.getAllAttributes(t))
         {
           for (ByteString v : a)
           {

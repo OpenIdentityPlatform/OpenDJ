@@ -209,7 +209,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     assertNotNull(e);
     assertTrue(e.hasAttribute(numSubordinatesType));
 
-    List<Attribute> attrList = e.getAttribute(numSubordinatesType);
+    List<Attribute> attrList = e.getAllAttributes(numSubordinatesType);
     assertThat(attrList).isNotEmpty();
     for (Attribute a : attrList)
     {

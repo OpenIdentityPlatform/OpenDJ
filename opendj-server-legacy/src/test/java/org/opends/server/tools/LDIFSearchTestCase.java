@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.server.tools;
@@ -111,7 +111,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     Entry e = readEntry();
-    assertThat(e.getAttribute("objectclass")).isNotEmpty();
+    assertThat(e.getAllAttributes("objectclass")).isNotEmpty();
   }
 
   /**
@@ -133,7 +133,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     Entry e = readEntry();
-    assertThat(e.getAttribute("objectclass")).isEmpty();
+    assertThat(e.getAllAttributes("objectclass")).isEmpty();
   }
 
   /**
@@ -156,9 +156,9 @@ public class LDIFSearchTestCase extends ToolsTestCase {
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     Entry e = readEntry();
-    assertThat(e.getAttribute("objectclass")).isEmpty();
-    assertThat(e.getAttribute("mail")).isNotEmpty();
-    assertThat(e.getAttribute("uid")).isNotEmpty();
+    assertThat(e.getAllAttributes("objectclass")).isEmpty();
+    assertThat(e.getAllAttributes("mail")).isNotEmpty();
+    assertThat(e.getAllAttributes("uid")).isNotEmpty();
   }
 
 
@@ -193,8 +193,8 @@ public class LDIFSearchTestCase extends ToolsTestCase {
     };
     assertEquals(LDIFSearch.mainSearch(args, false, System.out, System.err), 0);
     Entry e = readEntry();
-    assertThat(e.getAttribute("objectclass")).isEmpty();
-    assertThat(e.getAttribute("mail")).isNotEmpty();
-    assertThat(e.getAttribute("uid")).isNotEmpty();
+    assertThat(e.getAllAttributes("objectclass")).isEmpty();
+    assertThat(e.getAllAttributes("mail")).isNotEmpty();
+    assertThat(e.getAllAttributes("uid")).isNotEmpty();
   }
 }

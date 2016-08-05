@@ -344,7 +344,7 @@ public class UserDN implements KeywordBindRule {
      */
     public static boolean evaluate(Entry e, DN clientDN,
                                            AttributeType attrType) {
-        List<Attribute> attrs =  e.getAttribute(attrType);
+        List<Attribute> attrs =  e.getAllAttributes(attrType);
         for(ByteString v : attrs.get(0)) {
             try {
                 DN dn = DN.valueOf(v.toString());

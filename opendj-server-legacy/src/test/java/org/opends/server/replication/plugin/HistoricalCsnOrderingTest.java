@@ -167,7 +167,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     // Read the entry back to get its historical and included CSN
     Entry entry = DirectoryServer.getEntry(dn1);
-    List<Attribute> attrs1 = entry.getAttribute(histType);
+    List<Attribute> attrs1 = entry.getAllAttributes(histType);
       Assertions.assertThat(attrs1).isNotEmpty();
 
     String histValue = attrs1.get(0).iterator().next().toString();
@@ -184,7 +184,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     assertEquals(resultCode, 0);
 
     Entry entry2 = DirectoryServer.getEntry(dn1);
-    List<Attribute> attrs2 = entry2.getAttribute(histType);
+    List<Attribute> attrs2 = entry2.getAllAttributes(histType);
       Assertions.assertThat(attrs2).isNotEmpty();
 
     for (ByteString av : attrs2.get(0)) {

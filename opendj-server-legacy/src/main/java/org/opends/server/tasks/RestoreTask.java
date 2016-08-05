@@ -114,7 +114,7 @@ public class RestoreTask extends Task
 
     List<Attribute> attrList;
 
-    attrList = taskEntry.getAttribute(typeBackupDirectory);
+    attrList = taskEntry.getAllAttributes(typeBackupDirectory);
     String backupDirectoryPath = TaskUtils.getSingleValueString(attrList);
     backupDirectory = new File(backupDirectoryPath);
     if (! backupDirectory.isAbsolute())
@@ -123,10 +123,10 @@ public class RestoreTask extends Task
            new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
     }
 
-    attrList = taskEntry.getAttribute(typebackupID);
+    attrList = taskEntry.getAllAttributes(typebackupID);
     backupID = TaskUtils.getSingleValueString(attrList);
 
-    attrList = taskEntry.getAttribute(typeVerifyOnly);
+    attrList = taskEntry.getAllAttributes(typeVerifyOnly);
     verifyOnly = TaskUtils.getBoolean(attrList, false);
 
   }

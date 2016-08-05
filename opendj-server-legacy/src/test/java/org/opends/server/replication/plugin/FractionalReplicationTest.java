@@ -544,7 +544,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       AttributeType synchronizationGenIDType =
           DirectoryServer.getSchema().getAttributeType(REPLICATION_GENERATION_ID);
-      List<Attribute> attrs = resultEntry.getAttribute(synchronizationGenIDType);
+      List<Attribute> attrs = resultEntry.getAllAttributes(synchronizationGenIDType);
       if (!attrs.isEmpty())
       {
         Attribute attr = attrs.get(0);
@@ -753,7 +753,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    */
   private static void checkEntryAttributeValue(Entry entry, String attributeName, String attributeValue)
   {
-    List<Attribute> attrs = entry.getAttribute(attributeName);
+    List<Attribute> attrs = entry.getAllAttributes(attributeName);
     assertThat(attrs).as("Was expecting attribute " + attributeName + "=" + attributeValue).hasSize(1);
     Attribute attr = attrs.get(0);
     Iterator<ByteString> attrValues = attr.iterator();
@@ -1434,7 +1434,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       assertEquals(newEntryDn, newEntry.getName());
       assertTrue(newEntry.hasObjectClass(getInetOrgPersonObjectClass()));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
-      assertThat(newEntry.getAttribute("givenName")).isEmpty();
+      assertThat(newEntry.getAllAttributes("givenName")).isEmpty();
     }
     finally
     {
@@ -1515,7 +1515,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       assertEquals(newEntryDn, newEntry.getName());
       assertTrue(newEntry.hasObjectClass(getInetOrgPersonObjectClass()));
       checkEntryAttributeValue(newEntry, "displayName", "ValueToBeKept");
-      assertThat(newEntry.getAttribute("description")).isEmpty();
+      assertThat(newEntry.getAllAttributes("description")).isEmpty();
     }
     finally
     {

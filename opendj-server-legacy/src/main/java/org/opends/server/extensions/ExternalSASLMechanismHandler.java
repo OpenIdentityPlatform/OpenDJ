@@ -206,7 +206,7 @@ public class ExternalSASLMechanismHandler
 
     // Get the userCertificate attribute from the user's entry for use in the
     // validation process.
-    List<Attribute> certAttrList = userEntry.getAttribute(certificateAttributeType);
+    List<Attribute> certAttrList = userEntry.getAllAttributes(certificateAttributeType);
     switch (validationPolicy)
     {
       case ALWAYS:

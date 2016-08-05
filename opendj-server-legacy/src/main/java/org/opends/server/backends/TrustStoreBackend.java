@@ -1077,7 +1077,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       }
       else
       {
-        List<Attribute> certAttrs = entry.getAttribute(
+        List<Attribute> certAttrs = entry.getAllAttributes(
              ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
         if (certAttrs.isEmpty())
         {

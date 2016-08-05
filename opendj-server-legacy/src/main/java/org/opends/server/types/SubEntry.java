@@ -189,7 +189,7 @@ public class SubEntry {
     {
       if (this.isInheritedFromDNCollective)
       {
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_DN_LC))
+        for (Attribute attr : entry.getAllAttributes(ATTR_INHERIT_COLLECTIVE_FROM_DN_LC))
         {
           for (ByteString value : attr)
           {
@@ -202,7 +202,7 @@ public class SubEntry {
 
       if (this.isInheritedFromRDNCollective)
       {
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_LC))
+        for (Attribute attr : entry.getAllAttributes(ATTR_INHERIT_COLLECTIVE_FROM_RDN_LC))
         {
           for (ByteString value : attr)
           {
@@ -211,7 +211,7 @@ public class SubEntry {
             break;
           }
         }
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE_LC))
+        for (Attribute attr : entry.getAllAttributes(ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE_LC))
         {
           for (ByteString value : attr)
           {
@@ -219,7 +219,7 @@ public class SubEntry {
             break;
           }
         }
-        for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_FROM_BASE_LC))
+        for (Attribute attr : entry.getAllAttributes(ATTR_INHERIT_COLLECTIVE_FROM_BASE_LC))
         {
           for (ByteString value : attr)
           {
@@ -231,7 +231,7 @@ public class SubEntry {
         }
       }
 
-      for (Attribute attr : entry.getAttribute(ATTR_INHERIT_COLLECTIVE_ATTR_LC))
+      for (Attribute attr : entry.getAllAttributes(ATTR_INHERIT_COLLECTIVE_ATTR_LC))
       {
         for (ByteString value : attr)
         {
@@ -244,7 +244,7 @@ public class SubEntry {
     // Establish collective attribute conflict behavior.
     if (this.isCollective || this.isInheritedCollective)
     {
-      for (Attribute attr : entry.getAttribute(ATTR_COLLECTIVE_CONFLICT_BEHAVIOR_LC))
+      for (Attribute attr : entry.getAllAttributes(ATTR_COLLECTIVE_CONFLICT_BEHAVIOR_LC))
       {
         for (ByteString value : attr)
         {
@@ -266,7 +266,7 @@ public class SubEntry {
     String specString = null;
     boolean isValidSpec = true;
     AttributeType specAttrType = DirectoryServer.getSchema().getAttributeType(ATTR_SUBTREE_SPEC_LC);
-    for (Attribute attr : entry.getAttribute(specAttrType))
+    for (Attribute attr : entry.getAllAttributes(specAttrType))
     {
       for (ByteString value : attr)
       {

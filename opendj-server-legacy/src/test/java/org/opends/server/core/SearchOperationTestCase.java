@@ -980,7 +980,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     for (String attrType : virtualAttrTypes)
     {
-      List<Attribute> attrList = entry.getAttribute(attrType);
+      List<Attribute> attrList = entry.getAllAttributes(attrType);
 
       if (stripVirtualAttributes)
       {
@@ -1037,7 +1037,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     for (String attrType : realAttrTypes)
     {
-      List<Attribute> attrList = entry.getAttribute(attrType);
+      List<Attribute> attrList = entry.getAllAttributes(attrType);
 
       if (stripRealAttributes)
       {

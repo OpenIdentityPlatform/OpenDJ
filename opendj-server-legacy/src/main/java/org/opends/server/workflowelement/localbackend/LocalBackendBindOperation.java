@@ -404,7 +404,7 @@ public class LocalBackendBindOperation
       PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
       AttributeType pwType = policy.getPasswordAttribute();
-      if (userEntry.getAttribute(pwType).isEmpty())
+      if (userEntry.getAllAttributes(pwType).isEmpty())
       {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
             ERR_BIND_OPERATION_NO_PASSWORD.get());
@@ -1008,7 +1008,7 @@ public class LocalBackendBindOperation
       Arg2<Object, Object> cannotProcessAttributeMessage)
   {
     AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attributeTypeName);
-    List<Attribute> attrList = userEntry.getAttribute(attrType);
+    List<Attribute> attrList = userEntry.getAllAttributes(attrType);
     if (attrList.size() == 1)
     {
       Attribute a = attrList.get(0);

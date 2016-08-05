@@ -160,7 +160,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
 
     void indexEntry(Entry entry, Set<ByteString> keys)
     {
-      for (Attribute attr : entry.getAttribute(attributeType))
+      for (Attribute attr : entry.getAllAttributes(attributeType))
       {
         if (!attr.isVirtual())
         {

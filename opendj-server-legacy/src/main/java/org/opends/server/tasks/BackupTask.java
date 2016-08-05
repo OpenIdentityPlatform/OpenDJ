@@ -148,23 +148,23 @@ public class BackupTask extends Task
     AttributeType typeBackupDirectory = getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
     AttributeType typeIncrementalBaseID = getSchema().getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID);
 
-    backUpAll = TaskUtils.getBoolean(taskEntry.getAttribute(typeBackupAll), false);
-    compress = TaskUtils.getBoolean(taskEntry.getAttribute(typeCompress), false);
-    encrypt = TaskUtils.getBoolean(taskEntry.getAttribute(typeEncrypt), false);
-    hash = TaskUtils.getBoolean(taskEntry.getAttribute(typeHash), false);
-    incremental = TaskUtils.getBoolean(taskEntry.getAttribute(typeIncremental), false);
-    signHash = TaskUtils.getBoolean(taskEntry.getAttribute(typeSignHash), false);
-    backendIDList = TaskUtils.getMultiValueString(taskEntry.getAttribute(typeBackendID));
-    backupID = TaskUtils.getSingleValueString(taskEntry.getAttribute(typeBackupID));
+    backUpAll = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeBackupAll), false);
+    compress = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeCompress), false);
+    encrypt = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeEncrypt), false);
+    hash = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeHash), false);
+    incremental = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeIncremental), false);
+    signHash = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeSignHash), false);
+    backendIDList = TaskUtils.getMultiValueString(taskEntry.getAllAttributes(typeBackendID));
+    backupID = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(typeBackupID));
 
-    String backupDirectoryPath = TaskUtils.getSingleValueString(taskEntry.getAttribute(typeBackupDirectory));
+    String backupDirectoryPath = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(typeBackupDirectory));
     backupDirectory = new File(backupDirectoryPath);
     if (! backupDirectory.isAbsolute())
     {
       backupDirectory = new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
     }
 
-    incrementalBase = TaskUtils.getSingleValueString(taskEntry.getAttribute(typeIncrementalBaseID));
+    incrementalBase = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(typeIncrementalBaseID));
 
     configEntries = TaskUtils.getBackendConfigEntries();
   }

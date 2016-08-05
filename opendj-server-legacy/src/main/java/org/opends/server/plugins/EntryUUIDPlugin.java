@@ -100,7 +100,7 @@ public final class EntryUUIDPlugin
   {
     // See if the entry being imported already contains an entryUUID attribute.
     // If so, then leave it alone.
-    List<Attribute> uuidList = entry.getAttribute(entryUUIDType);
+    List<Attribute> uuidList = entry.getAllAttributes(entryUUIDType);
     if (!uuidList.isEmpty())
     {
       return PluginResult.ImportLDIF.continueEntryProcessing();
