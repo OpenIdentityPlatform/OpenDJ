@@ -61,6 +61,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RawAttribute;
@@ -502,8 +503,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.toString(), generatedMsg.toString());
 
     //Create an Add operation and generate and Add msg from it
-    AddOperation addOpB = new AddOperationBasis(conn,
-        1, 1, null, dn, objectClassList, userAttList, opList);
+    Entry e = new Entry(dn, objectClassList, userAttList, opList);
+    AddOperation addOpB = new AddOperationBasis(conn, 1, 1, null, e);
     LocalBackendAddOperation localAddOp = new LocalBackendAddOperation(addOpB);
     OperationContext opCtx = new AddContext(csn, "thisIsaUniqueID",
         "parentUniqueId");
@@ -1206,8 +1207,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       t1 = System.nanoTime();
 
       // create op
-      AddOperation addOpB = new AddOperationBasis(connection,
-          1, 1, null, dn, objectClassList, userAttList, opList);
+      Entry e = new Entry(dn, objectClassList, userAttList, opList);
+      AddOperation addOpB = new AddOperationBasis(connection, 1, 1, null, e);
       LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpB);
       OperationContext opCtx = new AddContext(csn, "thisIsaUniqueID",
           "parentUniqueId");

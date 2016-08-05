@@ -36,9 +36,9 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.forgerock.opendj.server.config.meta.RootDNCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
@@ -1155,9 +1155,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
-    AddOperation addOperation = new AddOperationBasis(conn, nextOperationID(), nextMessageID(),
-                          controls, e.getName(), e.getObjectClasses(),
-                          e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = new AddOperationBasis(conn, nextOperationID(), nextMessageID(), controls, e);
     addOperation.run();
     assertProxyPrivilege(addOperation.getResultCode(), hasProxyPrivilege);
 
@@ -1297,10 +1295,7 @@ public class PrivilegeTestCase extends TypesTestCase
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
-    AddOperation addOperation =
-         new AddOperationBasis(conn, nextOperationID(), nextMessageID(),
-                          controls, e.getName(), e.getObjectClasses(),
-                          e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = new AddOperationBasis(conn, nextOperationID(), nextMessageID(), controls, e);
     addOperation.run();
     assertProxyPrivilege(addOperation.getResultCode(), hasProxyPrivilege);
 

@@ -524,9 +524,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
-    AddOperationBasis addOp = new AddOperationBasis(
-        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        e.getName(), e.getObjectClasses(), e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperationBasis addOp = new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(), controls, e);
     assertSuccess(hasProxyPrivilege, addOp);
     if (!hasProxyPrivilege)
     {
@@ -636,9 +634,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
     DN authDN = conn.getAuthenticationInfo().getAuthenticationDN();
-    AddOperationBasis addOp = new AddOperationBasis(
-        conn, conn.nextOperationID(), conn.nextMessageID(), controls,
-        e.getName(), e.getObjectClasses(), e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperationBasis addOp = new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(), controls, e);
     assertSuccess(hasProxyPrivilege, authDN, addOp);
     if (!hasProxyPrivilege)
     {

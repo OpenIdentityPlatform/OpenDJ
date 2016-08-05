@@ -28,6 +28,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -39,7 +40,6 @@ import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawAttribute;
@@ -121,36 +121,29 @@ public class AddOperationBasis
     objectClasses         = null;
   }
 
-
-
   /**
    * Creates a new add operation with the provided information.
    *
-   * @param  clientConnection       The client connection with which this
-   *                                operation is associated.
-   * @param  operationID            The operation ID for this operation.
-   * @param  messageID              The message ID of the request with which
-   *                                this operation is associated.
-   * @param  requestControls        The set of controls included in the request.
-   * @param  entryDN                The DN for the entry.
-   * @param  objectClasses          The set of objectclasses for the entry.
-   * @param  userAttributes         The set of user attributes for the entry.
-   * @param  operationalAttributes  The set of operational attributes for the
-   *                                entry.
+   * @param clientConnection
+   *          The client connection with which this operation is associated.
+   * @param operationID
+   *          The operation ID for this operation.
+   * @param messageID
+   *          The message ID of the request with which this operation is associated.
+   * @param requestControls
+   *          The set of controls included in the request.
+   * @param entry
+   *          The entry to add.
    */
   public AddOperationBasis(ClientConnection clientConnection, long operationID,
-                      int messageID, List<Control> requestControls,
-                      DN entryDN, Map<ObjectClass,String> objectClasses,
-                      Map<AttributeType,List<Attribute>> userAttributes,
-                      Map<AttributeType,List<Attribute>> operationalAttributes)
+                      int messageID, List<Control> requestControls, Entry entry)
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
-    this.entryDN               = entryDN;
-    this.objectClasses         = objectClasses;
-    this.userAttributes        = userAttributes;
-    this.operationalAttributes = operationalAttributes;
+    this.entryDN               = entry.getName();
+    this.objectClasses         = entry.getObjectClasses();
+    this.userAttributes        = entry.getUserAttributes();
+    this.operationalAttributes = entry.getOperationalAttributes();
 
     rawEntryDN = ByteString.valueOfUtf8(entryDN.toString());
 

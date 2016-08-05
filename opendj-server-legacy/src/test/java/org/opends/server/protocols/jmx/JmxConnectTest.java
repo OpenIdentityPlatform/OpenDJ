@@ -16,6 +16,7 @@
  */
 package org.opends.server.protocols.jmx;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -36,20 +37,19 @@ import javax.management.ObjectName;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.JMXConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.JMXConnectionHandlerCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -136,15 +136,10 @@ public class JmxConnectTest extends JmxTestCase {
   @AfterClass
   public void afterClass() throws Exception
   {
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
-
-    DeleteOperation deleteOperation = conn.processDelete(DN
-        .valueOf("cn=Privileged User,o=test"));
+    DeleteOperation deleteOperation = getRootConnection().processDelete(DN.valueOf("cn=Privileged User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation = conn.processDelete(DN
-        .valueOf("cn=Unprivileged JMX User,o=test"));
+    deleteOperation = getRootConnection().processDelete(DN.valueOf("cn=Unprivileged JMX User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -292,15 +287,8 @@ public class JmxConnectTest extends JmxTestCase {
             "ds-cfg-enabled: true",
             "ds-cfg-use-ssl: false", "ds-cfg-listen-port: "
                 + serverJmxPort, "cn: JMX Connection Handler");
-    InternalClientConnection connection =
-      InternalClientConnection.getRootConnection();
-    AddOperationBasis addOp = new AddOperationBasis(connection,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(), null,
-        newJmxConnectionJmx.getName(), newJmxConnectionJmx
-            .getObjectClasses(), newJmxConnectionJmx
-            .getUserAttributes(), newJmxConnectionJmx
-            .getOperationalAttributes());
+    AddOperationBasis addOp = new AddOperationBasis(
+        getRootConnection(), nextOperationID(), nextMessageID(), null, newJmxConnectionJmx);
     addOp.run();
     Thread.sleep(200);
     OpendsJmxConnector newJmxConnector = connect(
@@ -329,10 +317,8 @@ public class JmxConnectTest extends JmxTestCase {
     // cleanup client connection
     connector.close();
     jmxcDisabled.close();
-    DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(), null,
-        newJmxConnectionJmx.getName());
+    DeleteOperationBasis delOp = new DeleteOperationBasis(
+        getRootConnection(), nextOperationID(), nextMessageID(), null, newJmxConnectionJmx.getName());
     delOp.run();
   }
 

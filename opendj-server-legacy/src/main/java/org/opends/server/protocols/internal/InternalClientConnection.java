@@ -758,74 +758,6 @@ public final class InternalClientConnection
    * Processes an internal add operation with the provided
    * information.
    *
-   * @param  entryDN                The entry DN for the add
-   *                                operation.
-   * @param  objectClasses          The set of object classes for the
-   *                                add operation.
-   * @param  userAttributes         The set of user attributes for the
-   *                                add operation.
-   * @param  operationalAttributes  The set of operational attributes
-   *                                for the add operation.
-   *
-   * @return  A reference to the add operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public AddOperation processAdd(DN entryDN,
-                           Map<ObjectClass,String> objectClasses,
-                           Map<AttributeType,List<Attribute>>
-                                userAttributes,
-                           Map<AttributeType,List<Attribute>>
-                                operationalAttributes)
-  {
-    return processAdd(entryDN, objectClasses, userAttributes,
-                      operationalAttributes, null);
-  }
-
-
-
-  /**
-   * Processes an internal add operation with the provided
-   * information.
-   *
-   * @param  entryDN                The entry DN for the add
-   *                                operation.
-   * @param  objectClasses          The set of object classes for the
-   *                                add operation.
-   * @param  userAttributes         The set of user attributes for the
-   *                                add operation.
-   * @param  operationalAttributes  The set of operational attributes
-   *                                for the add operation.
-   * @param  controls               The set of controls to include in
-   *                                the request.
-   *
-   * @return  A reference to the add operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public AddOperation processAdd(DN entryDN,
-                           Map<ObjectClass,String> objectClasses,
-                           Map<AttributeType,List<Attribute>>
-                                userAttributes,
-                           Map<AttributeType,List<Attribute>>
-                                operationalAttributes,
-                           List<Control> controls)
-  {
-    AddOperationBasis addOperation =
-         new AddOperationBasis(this, nextOperationID(),
-                          nextMessageID(), controls, entryDN,
-                          objectClasses, userAttributes,
-                          operationalAttributes);
-    addOperation.setInternalOperation(true);
-
-    addOperation.run();
-    return addOperation;
-  }
-
-
-
-  /**
-   * Processes an internal add operation with the provided
-   * information.
-   *
    * @param  entry  The entry to be added.
    *
    * @return  A reference to the add operation that was processed and
@@ -850,10 +782,10 @@ public final class InternalClientConnection
    */
   public AddOperation processAdd(Entry entry, List<Control> controls)
   {
-    return processAdd(entry.getName(), entry.getObjectClasses(),
-                      entry.getUserAttributes(),
-                      entry.getOperationalAttributes(),
-                      controls);
+    AddOperationBasis addOperation = new AddOperationBasis(this, nextOperationID(), nextMessageID(), controls, entry);
+    addOperation.setInternalOperation(true);
+    addOperation.run();
+    return addOperation;
   }
 
 
@@ -892,7 +824,9 @@ public final class InternalClientConnection
       }
     }
 
-    return processAdd(addRecord.getDN(), objectClasses, userAttrs, opAttrs);
+    // TODO JNR can we directly pass e instead of addEntry()?
+    Entry addEntry = new Entry(addRecord.getDN(), objectClasses, userAttrs, opAttrs);
+    return processAdd(addEntry, null);
   }
 
 

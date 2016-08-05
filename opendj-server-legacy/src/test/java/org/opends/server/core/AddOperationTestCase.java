@@ -114,8 +114,7 @@ public class AddOperationTestCase
 
   private AddOperationBasis newAddOperationBasis(Entry e, List<Control> controls)
   {
-    return new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(), controls,
-        e.getName(), e.getObjectClasses(), e.getUserAttributes(), e.getOperationalAttributes());
+    return new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(), controls, e);
   }
 
   @Override
