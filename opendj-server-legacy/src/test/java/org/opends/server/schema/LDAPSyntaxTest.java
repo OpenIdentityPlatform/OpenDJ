@@ -478,11 +478,11 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         "sn: xyz",
         "test-attr-enum: tuesday");
 
-      SearchRequest request = newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE, "test-attr-enum>=tuesday");
+      SearchRequest request = newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE, "test-attr-enum>=wednesday");
       InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertThat(entries).as("expected one entry to be returned").isNotEmpty();
+      assertThat(entries).hasSize(1);
       assertThat((Object) entries.get(0).getName()).isEqualTo(DN.valueOf("cn=test1,o=test"));
     }
     finally

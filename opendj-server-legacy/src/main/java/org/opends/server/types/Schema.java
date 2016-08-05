@@ -1107,7 +1107,33 @@ public final class Schema
     return schemaNG.getDITContentRule(objectClass);
   }
 
+  /**
+   * Retrieves the DIT content rule definition for the provided name or OID.
+   *
+   * @param nameOrOid
+   *          The name or OID of the DIT content rule to retrieve.
+   * @return The requested DIT content rule, or {@code null}
+   * @throws UnknownSchemaElementException if no DIT content rule is registered
+   *         with the provided name or OID.
+   */
+  public DITContentRule getDITContentRule(String nameOrOid)
+  {
+    return schemaNG.getDITContentRule(nameOrOid);
+  }
 
+  /**
+   * Indicates whether this schema definition includes an DIT content rule with the provided name or
+   * OID.
+   *
+   * @param nameOrOid
+   *          The name or OID for which to make the determination
+   * @return {@code true} if this schema contains a DIT content rule with the provided name or OID,
+   *         or {@code false} if not.
+   */
+  public boolean hasDITContentRule(String nameOrOid)
+  {
+    return schemaNG.hasDITContentRule(nameOrOid);
+  }
 
   /**
    * Registers the provided DIT content rule definition with this schema.

@@ -969,33 +969,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addAttributeType(AttributeType attributeType, Schema schema, Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // Check if there is only a single attribute type for each name
-    // This is not checked by the SDK schema.
     AttributeType existingType = schema.getAttributeType(attributeType.getOID());
-    for (String name : attributeType.getNames())
-    {
-      AttributeType t = schema.getAttributeType(name);
-      if (t.isPlaceHolder())
-      {
-        continue;
-      }
-      if (existingType.isPlaceHolder())
-      {
-        existingType = t;
-      }
-      else if (existingType != t)
-      {
-        // NOTE:  We really do want to use "!=" instead of "! t.equals()"
-        // because we want to check whether it's the same object instance, not
-        // just a logical equivalent.
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_ATTRTYPE.get(
-            attributeType.getNameOrOID(), existingType.getNameOrOID(), t.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
-    // If there is no existing type, then we're adding a new attribute.
-    // Otherwise, we're replacing an existing one.
     if (existingType.isPlaceHolder())
     {
       String schemaFile = addNewSchemaElement(modifiedSchemaFiles, attributeType);
@@ -1080,10 +1054,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void removeAttributeType(String atOID, Schema schema, List<Modification> modifications,
       int currentPosition, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    // See if the specified attribute type is actually defined in the server
-    // schema.  If not, then fail.
-    AttributeType removeType = schema.getAttributeType(atOID);
-    if (removeType.isPlaceHolder() || !removeType.getOID().equals(atOID))
+    if (! schema.hasAttributeType(atOID))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(atOID);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -1126,6 +1097,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     // If we've gotten here, then it's OK to remove the attribute type from the schema.
+    AttributeType removeType = schema.getAttributeType(atOID);
     schema.deregisterAttributeType(removeType);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeType));
   }
@@ -1150,44 +1122,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // First, see if the specified objectclass already exists.  We'll check the
-    // OID and all of the names, which means that it's possible there could be
-    // more than one match (although if there is, then we'll refuse the operation).
-    ObjectClass existingClass = schema.getObjectClass(objectClass.getOID());
-    for (String name : objectClass.getNames())
-    {
-      ObjectClass oc = schema.getObjectClass(name);
-      if (oc.isPlaceHolder())
-      {
-        continue;
-      }
-      else if (existingClass == null)
-      {
-        existingClass = oc;
-      }
-      else if (existingClass != oc)
-      {
-        // NOTE:  We really do want to use "!=" instead of "! t.equals()"
-        // because we want to check whether it's the same object instance, not
-        // just a logical equivalent.
-        LocalizableMessage message =
-                ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_OBJECTCLASS
-                        .get(objectClass.getNameOrOID(),
-                                existingClass.getNameOrOID(),
-                                oc.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-    }
-
-    // If there is no existing class, then we're adding a new objectclass.
-    // Otherwise, we're replacing an existing one.
-    if (existingClass.isPlaceHolder())
+    if (!schema.hasObjectClass(objectClass.getOID()))
     {
       String schemaFile = addNewSchemaElement(modifiedSchemaFiles, objectClass);
       schema.registerObjectClass(objectClass, schemaFile, false);
     }
     else
     {
+      ObjectClass existingClass = schema.getObjectClass(objectClass.getOID());
       final String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, objectClass, existingClass);
       schema.replaceObjectClass(objectClass, existingClass, schemaFile);
     }
@@ -1225,10 +1167,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                  Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // See if the specified objectclass is actually defined in the server
-    // schema.  If not, then fail.
-    ObjectClass removeClass = schema.getObjectClass(ocOID);
-    if (removeClass.isPlaceHolder() || !removeClass.getOID().equals(ocOID))
+    if (!schema.hasObjectClass(ocOID))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(ocOID);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -1271,6 +1210,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     // If we've gotten here, then it's OK to remove the objectclass from the schema.
+    ObjectClass removeClass = schema.getObjectClass(ocOID);
     schema.deregisterObjectClass(removeClass);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeClass));
   }
@@ -1295,16 +1235,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                            Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // If there is no existing class, then we're adding a new name form.
-    // Otherwise, we're replacing an existing one.
-    if (!schema.hasNameForm(nameForm.getNameOrOID()))
+    if (!schema.hasNameForm(nameForm.getOID()))
     {
       String schemaFile = addNewSchemaElement(modifiedSchemaFiles, nameForm);
       schema.registerNameForm(nameForm, schemaFile, false);
     }
     else
     {
-      NameForm existingNF = schema.getNameForm(nameForm.getNameOrOID());
+      NameForm existingNF = schema.getNameForm(nameForm.getOID());
       schema.deregisterNameForm(existingNF);
       String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, nameForm, existingNF);
       schema.registerNameForm(nameForm, schemaFile, false);
@@ -1375,10 +1313,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         {
           logger.traceException(de);
 
-          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-              v, de.getMessageObject());
-          throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
+          LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(v, de.getMessageObject());
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
         }
 
         if (nfOID.equals(nf.getOID()))
@@ -1416,44 +1352,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                  Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // First, see if the specified DIT content rule already exists.  We'll check
-    // all of the names, which means that it's possible there could be more than
-    // one match (although if there is, then we'll refuse the operation).
-    DITContentRule existingDCR = null;
-    for (DITContentRule dcr : schema.getDITContentRules())
-    {
-      for (String name : ditContentRule.getNames())
-      {
-        if (dcr.hasName(name))
-        {
-          if (existingDCR == null)
-          {
-            existingDCR = dcr;
-            break;
-          }
-          else
-          {
-            LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR.
-                get(ditContentRule.getNameOrOID(), existingDCR.getNameOrOID(),
-                    dcr.getNameOrOID());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
-          }
-        }
-      }
-    }
-
-    // If there is no existing rule, then we're adding a new DIT content rule.
-    // Otherwise, we're replacing an existing one.
-    if (existingDCR == null)
+    if (!schema.hasDITContentRule(ditContentRule.getStructuralClassOID()))
     {
       String schemaFile = addNewSchemaElement(modifiedSchemaFiles, ditContentRule);
       schema.registerDITContentRule(ditContentRule, schemaFile, false);
     }
     else
     {
-      schema.deregisterDITContentRule(existingDCR);
-      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, ditContentRule, existingDCR);
+      DITContentRule existingRule = schema.getDITContentRule(ditContentRule.getStructuralClassOID());
+      schema.deregisterDITContentRule(existingRule);
+      String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, ditContentRule, existingRule);
       schema.registerDITContentRule(ditContentRule, schemaFile, false);
     }
   }
@@ -1483,11 +1391,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void removeDITContentRule(DITContentRule ditContentRule,
       Schema schema, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    // See if the specified DIT content rule is actually defined in the server
-    // schema.  If not, then fail.
-    DITContentRule removeDCR =
-         schema.getDITContentRule(ditContentRule.getStructuralClass());
-    if (removeDCR == null || !removeDCR.equals(ditContentRule))
+    if (! schema.hasDITContentRule(ditContentRule.getStructuralClassOID()))
     {
       LocalizableMessage message =
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR.get(ditContentRule.getNameOrOID());
@@ -1498,6 +1402,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // to worry about the difference between a remove or a replace.  We can
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
+    DITContentRule removeDCR = schema.getDITContentRule(ditContentRule.getStructuralClassOID());
     schema.deregisterDITContentRule(removeDCR);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeDCR));
   }
@@ -1524,57 +1429,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                    Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // First, see if the specified DIT structure rule already exists.  We'll
-    // check the rule ID and all of the names, which means that it's possible
-    // there could be more than one match (although if there is, then we'll
-    // refuse the operation).
     final org.forgerock.opendj.ldap.schema.Schema schemaNG = schema.getSchemaNG();
     final Integer ruleID = ditStructureRule.getRuleID();
-    DITStructureRule existingDSR = schemaNG.hasDITStructureRule(ruleID) ? schemaNG.getDITStructureRule(ruleID) : null;
-
-    boolean newRuleIsInUse = false;
-    for (DITStructureRule dsr : schema.getDITStructureRules())
-    {
-      for (String name : ditStructureRule.getNames())
-      {
-        if (dsr.hasName(name))
-        {
-          // We really do want to use the "!=" operator here because it's
-          // acceptable if we find match for the same object instance.
-          if (existingDSR != null && existingDSR != dsr)
-          {
-            LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR.
-                get(ditStructureRule.getNameOrRuleID(),
-                    existingDSR.getNameOrRuleID(), dsr.getNameOrRuleID());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
-          }
-          newRuleIsInUse = true;
-        }
-      }
-    }
-
-    if (existingDSR != null && !newRuleIsInUse)
-    {
-      //We have an existing DSR with the same rule id but we couldn't find
-      //any existing rules sharing this name. It means that it is a
-      //new rule with a conflicting rule id.Raise an Exception as the
-      //rule id should be unique.
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_RULEID_CONFLICTS_FOR_ADD_DSR.
-                get(ditStructureRule.getNameOrRuleID(),
-                    existingDSR.getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    // If there is no existing rule, then we're adding a new DIT structure rule.
-    // Otherwise, we're replacing an existing one.
-    if (existingDSR == null)
+    if (! schemaNG.hasDITStructureRule(ruleID))
     {
       String schemaFile = addNewSchemaElement(modifiedSchemaFiles, ditStructureRule);
       schema.registerDITStructureRule(ditStructureRule, schemaFile, false);
     }
     else
     {
+      DITStructureRule existingDSR = schemaNG.getDITStructureRule(ruleID);
       schema.deregisterDITStructureRule(existingDSR);
       String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, ditStructureRule, existingDSR);
       schema.registerDITStructureRule(ditStructureRule, schemaFile, false);
@@ -1614,10 +1478,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                       Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // See if the specified DIT structure rule is actually defined in the server
-    // schema.  If not, then fail.
-    DITStructureRule removeDSR = schema.getDITStructureRule(ruleID);
-    if (removeDSR == null || !removeDSR.getRuleID().equals(ruleID))
+    if (!schema.getSchemaNG().hasDITStructureRule(ruleID))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR.get(ruleID);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -1650,6 +1511,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     // If we've gotten here, then it's OK to remove the DIT structure rule from the schema.
+    DITStructureRule removeDSR = schema.getDITStructureRule(ruleID);
     schema.deregisterDITStructureRule(removeDSR);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeDSR));
   }
@@ -1676,38 +1538,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                   Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // First, see if the specified matching rule use already exists.  We'll
-    // check all of the names, which means that it's possible that there could
-    // be more than one match (although if there is, then we'll refuse the
-    // operation).
-    MatchingRuleUse existingMRU = null;
-    for (MatchingRuleUse mru : schema.getMatchingRuleUses())
-    {
-      for (String name : matchingRuleUse.getNames())
-      {
-        if (mru.hasName(name))
-        {
-          if (existingMRU == null)
-          {
-            existingMRU = mru;
-            break;
-          }
-          LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE.get(
-              matchingRuleUse.getNameOrOID(), existingMRU.getNameOrOID(), mru.getNameOrOID());
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-        }
-      }
-    }
-
-    // If there is no existing matching rule use, then we're adding a new one.
-    // Otherwise, we're replacing an existing matching rule use.
-    if (existingMRU == null)
+    org.forgerock.opendj.ldap.schema.Schema schemaNG = schema.getSchemaNG();
+    if (!schemaNG.hasMatchingRuleUse(matchingRuleUse.getMatchingRuleOID()))
     {
       String schemaFile = addNewSchemaElement(modifiedSchemaFiles, matchingRuleUse);
       schema.registerMatchingRuleUse(matchingRuleUse, schemaFile, false);
     }
     else
     {
+      MatchingRuleUse existingMRU = schemaNG.getMatchingRuleUse(matchingRuleUse.getMatchingRuleOID());
       schema.deregisterMatchingRuleUse(existingMRU);
       String schemaFile = replaceExistingSchemaElement(modifiedSchemaFiles, matchingRuleUse, existingMRU);
       schema.registerMatchingRuleUse(matchingRuleUse, schemaFile, false);
@@ -1741,11 +1580,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                      Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    // See if the specified DIT content rule is actually defined in the server
-    // schema.  If not, then fail.
-    MatchingRuleUse removeMRU =
-         schema.getMatchingRuleUse(matchingRuleUse.getMatchingRule());
-    if (removeMRU == null || !removeMRU.equals(matchingRuleUse))
+    org.forgerock.opendj.ldap.schema.Schema schemaNG = schema.getSchemaNG();
+    if (!schemaNG.hasMatchingRuleUse(matchingRuleUse.getMatchingRuleOID()))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE.get(
           matchingRuleUse.getNameOrOID());
@@ -1756,6 +1592,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // to worry about the difference between a remove or a replace.  We can
     // just remove the DIT content rule now, and if it is added back later then
     // there still won't be any conflict.
+    MatchingRuleUse removeMRU = schemaNG.getMatchingRuleUse(matchingRuleUse.getMatchingRuleOID());
     schema.deregisterMatchingRuleUse(removeMRU);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeMRU));
   }
@@ -1789,8 +1626,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     Syntax existingLS = schema.getSyntax(oid);
-    // If there is no existing ldapsyntax, then we're adding a new one.
-    // Otherwise, we're replacing an existing one.
     if (existingLS == null)
     {
       String def = Schema.addSchemaFileToElementDefinitionIfAbsent(definition, FILE_USER_SCHEMA_ELEMENTS);
@@ -1800,6 +1635,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
     else
     {
+      // TODO : This block is never executed. If existingLS != null then test on hasSyntax always fails
+      // Is it OK ? Otherwise this method must be modified.
       schema.deregisterSyntax(existingLS);
 
       String oldSchemaFile = getElementSchemaFile(existingLS);
@@ -1825,15 +1662,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * hence never deleted.
      */
     String oid = Schema.parseSyntaxOID(definition);
-
-    Syntax removeLS = schema.getSyntax(oid);
-    if (removeLS == null)
+    if (!schema.hasSyntax(oid))
     {
       LocalizableMessage message =
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_LSD.get(oid);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
+    Syntax removeLS = schema.getSyntax(oid);
     schema.deregisterSyntax(removeLS);
     addIfNotNull(modifiedSchemaFiles, getElementSchemaFile(removeLS));
   }

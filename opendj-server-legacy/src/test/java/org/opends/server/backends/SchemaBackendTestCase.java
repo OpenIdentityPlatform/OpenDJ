@@ -3480,7 +3480,7 @@ public class SchemaBackendTestCase extends BackendTestCase
         "-",
         "add: dITStructureRules",
         "dITStructureRules: ( 1 NAME 'dummyStructureRule' FORM domainNameForm )");
-    runModify(argsPermissive(), ldif, UNWILLING_TO_PERFORM);
+    runModify(argsPermissive(), ldif, CONSTRAINT_VIOLATION);
   }
 
   /**

@@ -17,8 +17,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
-import static org.opends.messages.ConfigMessages.WARN_CONFIG_CONFLICTING_DEFINITIONS_IN_SCHEMA_FILE;
-import static org.opends.messages.ConfigMessages.WARN_CONFIG_SCHEMA_CANNOT_PARSE_DEFINITIONS_IN_SCHEMA_FILE;
 import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -45,6 +43,7 @@ import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -135,11 +134,7 @@ public final class SchemaHandler
       // Start from the core schema
       final SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
-      // Take providers into account.
       loadSchemaFromProviders(serverContext.getRootConfig(), schemaBuilder);
-
-      // Take schema files into account
-      completeSchemaFromFiles(schemaBuilder);
 
       try
       {
@@ -147,7 +142,16 @@ public final class SchemaHandler
         AciSyntax.addAciSyntax(schemaBuilder);
         SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
         HistoricalCsnOrderingMatchingRuleImpl.addHistoricalCsnOrderingMatchingRule(schemaBuilder);
+      }
+      catch (ConflictingSchemaElementException e)
+      {
+        throw new ConfigException(e.getMessageObject(), e);
+      }
 
+      completeSchemaFromFiles(schemaBuilder);
+
+      try
+      {
         switchSchema(schemaBuilder.toSchema());
       }
       catch (DirectoryException e)
