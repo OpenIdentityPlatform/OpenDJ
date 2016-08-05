@@ -22,7 +22,6 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.Point;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -37,11 +36,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.LDIFReader;
 
 /** The panel displaying an LDIF view of an entry. */
 public class LDIFViewEntryPanel extends ViewEntryPanel
@@ -258,13 +256,12 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public org.opends.server.types.Entry getEntry() throws OpenDsException
+  public Entry getEntry() throws OpenDsException
   {
     String ldif = getLDIF();
-    try (LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        LDIFReader reader = new LDIFReader(ldifImportConfig))
+    try (LDIFEntryReader reader = new LDIFEntryReader(ldif))
     {
-      org.opends.server.types.Entry entry = reader.readEntry(checkSchema());
+      Entry entry = reader.readEntry();
       addValuesInRDN(entry);
       return entry;
     }

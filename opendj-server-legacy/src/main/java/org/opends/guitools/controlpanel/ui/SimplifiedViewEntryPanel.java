@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -38,7 +39,6 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,6 +84,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CheckEntrySyntaxException;
 import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
@@ -95,10 +96,8 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
-import org.opends.server.util.LDIFReader;
 
 /** The panel displaying a simplified view of an entry. */
 class SimplifiedViewEntryPanel extends ViewEntryPanel
@@ -1166,7 +1165,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   }
 
   @Override
-  public org.opends.server.types.Entry getEntry() throws OpenDsException
+  public Entry getEntry() throws OpenDsException
   {
     final List<LocalizableMessage> errors = new ArrayList<>();
 
@@ -1215,10 +1214,10 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
 
     final String ldif = getLDIF();
-    try (LDIFImportConfig ldifImportConfig = new LDIFImportConfig(new StringReader(ldif));
-        LDIFReader reader = new LDIFReader(ldifImportConfig))
+    try (LDIFEntryReader reader = new LDIFEntryReader(ldif)
+        .setSchemaValidationPolicy(checkSchema() ? defaultPolicy():ignoreAll()))
     {
-      final org.opends.server.types.Entry entry = reader.readEntry(checkSchema());
+      final Entry entry = reader.readEntry();
       addValuesInRDN(entry);
       return entry;
     }

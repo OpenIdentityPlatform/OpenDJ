@@ -12,16 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2016 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.event;
 
-import org.opends.server.types.Entry;
+import org.forgerock.opendj.ldap.Entry;
 
 /**
- * Method that describes that an entry has changed.  This is used by the LDAP
- * entry editors.
- *
+ * Method that describes that an entry has changed. This is used by the LDAP entry editors.
  */
 public class LDAPEntryChangedEvent
 {

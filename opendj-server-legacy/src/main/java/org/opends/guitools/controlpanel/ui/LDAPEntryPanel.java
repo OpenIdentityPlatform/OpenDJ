@@ -182,7 +182,8 @@ implements EntryReadListener
             !authenticationRequired(getInfo().getServerDescriptor());
         if (enable)
         {
-          if (ev.getEntry() == null)
+          Entry entry = ev .getEntry();
+          if (entry == null)
           {
             // Something changed that is wrong: assume the entry has been
             // modified, when the user tries to save we will inform of the
@@ -191,8 +192,8 @@ implements EntryReadListener
           }
           else
           {
-            boolean modified = !ev.getEntry().getName().equals(searchResult.getName())
-                || !ModifyEntryTask.getModifications(ev .getEntry(), searchResult, getInfo()).isEmpty();
+            boolean modified = !entry.getName().equals(searchResult.getName())
+                || !ModifyEntryTask.getModifications(entry, searchResult, getInfo()).isEmpty();
             enable = modified;
           }
         }
@@ -497,7 +498,7 @@ implements EntryReadListener
           Utilities.getFrame(this),
           INFO_CTRL_PANEL_MODIFYING_ENTRY_CHANGES_TITLE.get(), getInfo());
       dlg.setModal(modal);
-      org.opends.server.types.Entry entry = displayedEntryPanel.getEntry();
+      Entry entry = displayedEntryPanel.getEntry();
       newTask = new ModifyEntryTask(getInfo(), dlg, entry, searchResult, controller, treePath);
       for (Task task : getInfo().getTasks())
       {

@@ -53,7 +53,6 @@ import org.opends.guitools.controlpanel.event.LDAPEntryChangedListener;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
@@ -93,7 +92,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * @throws OpenDsException if the entry cannot be generated (in particular if
    * the user provided invalid data).
    */
-  public abstract org.opends.server.types.Entry getEntry() throws OpenDsException;
+  public abstract Entry getEntry() throws OpenDsException;
 
   /**
    * Updates the contents of the panel.
@@ -274,7 +273,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    * Adds the values in the RDN to the entry definition.
    * @param entry the entry to be updated.
    */
-  protected void addValuesInRDN(org.opends.server.types.Entry entry)
+  protected void addValuesInRDN(Entry entry)
   {
     // Add the values in the RDN if they are not there
     for (AVA ava : entry.getName().rdn())
@@ -282,7 +281,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       String attrName = ava.getAttributeName();
       ByteString value = ava.getAttributeValue();
       boolean done = false;
-      for (org.opends.server.types.Attribute attr : entry.getAttribute(attrName))
+      for (Attribute attr : entry.getAllAttributes(attrName))
       {
         // TODO JNR use Entry.getAttribute(AttributeDescription) instead?
         if (attr.getAttributeDescription().toString().equals(attrName))
@@ -296,12 +295,13 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       }
       if (!done)
       {
-        entry.addAttribute(Attributes.create(ava.getAttributeType(), value), newArrayList(value));
+        AttributeDescription attrDesc = AttributeDescription.create(ava.getAttributeType());
+        entry.addAttribute(new LinkedAttribute(attrDesc, value), newArrayList(value));
       }
     }
   }
 
-  private List<ByteString> getValues(org.opends.server.types.Attribute attr)
+  private List<ByteString> getValues(Attribute attr)
   {
     List<ByteString> newValues = new ArrayList<>();
     Iterator<ByteString> it = attr.iterator();

@@ -33,9 +33,11 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
@@ -56,7 +58,6 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.opends.server.types.Entry;
 import org.opends.server.types.Schema;
 
 /** The task that is called when we must modify an entry. */
@@ -65,7 +66,7 @@ public class ModifyEntryTask extends Task
   private Set<String> backendSet;
   private boolean mustRename;
   private boolean hasModifications;
-  private org.forgerock.opendj.ldap.Entry oldEntry;
+  private Entry oldEntry;
   private DN oldDn;
   private List<Modification> modifications;
   private Modification passwordModification;
@@ -85,7 +86,7 @@ public class ModifyEntryTask extends Task
    * want to modify.
    */
   public ModifyEntryTask(ControlPanelInfo info, ProgressDialog dlg,
-      Entry newEntry, org.forgerock.opendj.ldap.Entry oldEntry,
+      Entry newEntry, Entry oldEntry,
       BrowserController controller, TreePath path)
   {
     super(info, dlg);
@@ -296,7 +297,7 @@ public class ModifyEntryTask extends Task
    * @throws LdapException if an error performing the modification occurs.
    */
   private void modifyAndRename(ConnectionWithControls conn, final DN oldDN,
-      org.forgerock.opendj.ldap.Entry originalEntry,
+      Entry originalEntry,
       final Entry newEntry, final List<Modification> originalMods)
       throws CannotRenameException, LdapException
   {
@@ -430,11 +431,11 @@ public class ModifyEntryTask extends Task
     return false;
   }
 
-  private boolean entryContainsRdnTypes(org.forgerock.opendj.ldap.Entry entry, RDN rdn)
+  private boolean entryContainsRdnTypes(Entry entry, RDN rdn)
   {
     for (AVA ava : rdn)
     {
-      org.forgerock.opendj.ldap.Attribute attr = entry.getAttribute(ava.getAttributeName());
+      Attribute attr = entry.getAttribute(ava.getAttributeName());
       if (attr == null || attr.isEmpty())
       {
         return false;
@@ -450,14 +451,12 @@ public class ModifyEntryTask extends Task
    * @param info the ControlPanelInfo, used to retrieve the schema for instance.
    * @return the modifications to apply between two entries.
    */
-  public static List<Modification> getModifications(Entry newEntry,
-      org.forgerock.opendj.ldap.Entry oldEntry, ControlPanelInfo info) {
+  public static List<Modification> getModifications(Entry newEntry, Entry oldEntry, ControlPanelInfo info)
+  {
     List<Modification> modifications = new ArrayList<>();
     Schema schema = info.getServerDescriptor().getSchema();
 
-    List<org.opends.server.types.Attribute> newAttrs = newEntry.getAttributes();
-    newAttrs.add(newEntry.getObjectClassAttribute());
-    for (org.opends.server.types.Attribute attr : newAttrs)
+    for (Attribute attr : newEntry.getAllAttributes())
     {
       AttributeDescription attrDesc = attr.getAttributeDescription();
       if (!ViewEntryPanel.isEditable(attrDesc, schema))
@@ -469,7 +468,7 @@ public class ModifyEntryTask extends Task
       {
         newValues.add(v);
       }
-      org.forgerock.opendj.ldap.Attribute oldAttr = oldEntry.getAttribute(attrDesc);
+      Attribute oldAttr = oldEntry.getAttribute(attrDesc);
 
       ByteString rdnValue = null;
       for (AVA ava : newEntry.getName().rdn())
@@ -563,16 +562,16 @@ public class ModifyEntryTask extends Task
     }
 
     /* Check if there are attributes to delete */
-    for (org.forgerock.opendj.ldap.Attribute attr : oldEntry.getAllAttributes())
+    for (Attribute attr : oldEntry.getAllAttributes())
     {
       AttributeDescription attrDesc = attr.getAttributeDescription();
       if (!ViewEntryPanel.isEditable(attrDesc, schema))
       {
         continue;
       }
-      org.forgerock.opendj.ldap.Attribute oldAttr = oldEntry.getAttribute(attrDesc);
+      Attribute oldAttr = oldEntry.getAttribute(attrDesc);
 
-      if (!newEntry.hasAttribute(AttributeDescription.valueOf(attrDesc.getNameOrOID())) && !oldAttr.isEmpty())
+      if (!newEntry.containsAttribute(attrDesc.getNameOrOID()) && !oldAttr.isEmpty())
       {
         modifications.add(newModification(DELETE, attrDesc));
       }
@@ -591,7 +590,7 @@ public class ModifyEntryTask extends Task
     return new Modification(modType, new LinkedAttribute(attrDesc, values));
   }
 
-  private static List<ByteString> toList(org.forgerock.opendj.ldap.Attribute oldAttr)
+  private static List<ByteString> toList(Attribute oldAttr)
   {
     List<ByteString> results = new ArrayList<>();
     for (ByteString v : oldAttr)
