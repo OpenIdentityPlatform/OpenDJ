@@ -16,26 +16,30 @@
  */
 package org.opends.admin.ads.util;
 
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.AuthenticationException;
-import javax.naming.NamingException;
-import javax.naming.NoPermissionException;
-import javax.naming.TimeLimitExceededException;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AuthenticationException;
+import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheException.Type;
 import org.opends.admin.ads.TopologyCacheFilter;
+import org.opends.server.types.HostPort;
 
 import com.forgerock.opendj.cli.Utils;
 
@@ -50,7 +54,7 @@ public class ServerLoader extends Thread
   private final Map<ServerProperty, Object> serverProperties;
   private boolean isOver;
   private boolean isInterrupted;
-  private String lastLdapUrl;
+  private HostPort lastLdapHostPort;
   private TopologyCacheException lastException;
   private ServerDescriptor serverDescriptor;
   private final ApplicationTrustManager trustManager;
@@ -123,20 +127,31 @@ public class ServerLoader extends Thread
     if (!isOver)
     {
       isInterrupted = true;
-      String ldapUrl = lastLdapUrl;
+      HostPort ldapUrl = lastLdapHostPort;
       if (ldapUrl == null)
       {
-        LinkedHashSet<PreferredConnection> urls = getLDAPURLsByPreference();
-        if (!urls.isEmpty())
+        try
         {
-          ldapUrl = urls.iterator().next().getLDAPURL();
+          LinkedHashSet<PreferredConnection> urls = getLDAPURLsByPreference();
+          if (!urls.isEmpty())
+          {
+            ldapUrl = urls.iterator().next().getHostPort();
+          }
+        }
+        catch (LdapException e)
+        {
+          lastException = new TopologyCacheException(
+              TopologyCacheException.Type.GENERIC_READING_SERVER,
+              newLdapException(ResultCode.CLIENT_SIDE_PARAM_ERROR,
+              e.getLocalizedMessage()), trustManager, ldapUrl);
         }
       }
+      final String diagnosticMsg = "Timeout reading server: " + ldapUrl;
       lastException = new TopologyCacheException(
           TopologyCacheException.Type.TIMEOUT,
-          new TimeLimitExceededException("Timeout reading server: "+ldapUrl),
+          newLdapException(ResultCode.TIME_LIMIT_EXCEEDED, diagnosticMsg),
           trustManager, ldapUrl);
-      logger.warn(LocalizableMessage.raw("Timeout reading server: "+ldapUrl));
+      logger.warn(LocalizableMessage.raw(diagnosticMsg));
     }
     super.interrupt();
   }
@@ -154,35 +169,35 @@ public class ServerLoader extends Thread
       serverDescriptor.setAdsProperties(serverProperties);
       serverDescriptor.updateAdsPropertiesWithServerProperties();
     }
-    catch (NoPermissionException e)
+    catch (AuthorizationException e)
     {
-      logger.warn(LocalizableMessage.raw("Permissions error reading server: " + lastLdapUrl, e));
+      logger.warn(LocalizableMessage.raw("Permissions error reading server: " + lastLdapHostPort, e));
       Type type = isAdministratorDn()
           ? TopologyCacheException.Type.NO_PERMISSIONS
           : TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR;
-      lastException = new TopologyCacheException(type, e, trustManager, lastLdapUrl);
+      lastException = new TopologyCacheException(type, e, trustManager, lastLdapHostPort);
     }
     catch (AuthenticationException e)
     {
-      logger.warn(LocalizableMessage.raw("Authentication exception: " + lastLdapUrl, e));
+      logger.warn(LocalizableMessage.raw("Authentication exception: " + lastLdapHostPort, e));
       Type type = isAdministratorDn()
           ? TopologyCacheException.Type.GENERIC_READING_SERVER
           : TopologyCacheException.Type.NOT_GLOBAL_ADMINISTRATOR;
-      lastException = new TopologyCacheException(type, e, trustManager, lastLdapUrl);
+      lastException = new TopologyCacheException(type, e, trustManager, lastLdapHostPort);
     }
-    catch (NamingException e)
+    catch (LdapException e)
     {
-      logger.warn(LocalizableMessage.raw("NamingException error reading server: " + lastLdapUrl, e));
+      logger.warn(LocalizableMessage.raw("LdapException error reading server: " + lastLdapHostPort, e));
       Type type = connCreated
           ? TopologyCacheException.Type.GENERIC_READING_SERVER
           : TopologyCacheException.Type.GENERIC_CREATING_CONNECTION;
-      lastException = new TopologyCacheException(type, e, trustManager, lastLdapUrl);
+      lastException = new TopologyCacheException(type, e, trustManager, lastLdapHostPort);
     }
     catch (Throwable t)
     {
       if (!isInterrupted)
       {
-        logger.warn(LocalizableMessage.raw("Generic error reading server: " + lastLdapUrl, t));
+        logger.warn(LocalizableMessage.raw("Generic error reading server: " + lastLdapHostPort, t));
         logger.warn(LocalizableMessage.raw("server Properties: " + serverProperties));
         lastException = new TopologyCacheException(TopologyCacheException.Type.BUG, t);
       }
@@ -197,10 +212,10 @@ public class ServerLoader extends Thread
    * Returns a Connection Wrapper.
    *
    * @return the connection wrapper
-   * @throws NamingException
+   * @throws LdapException
    *           If an error occurs.
    */
-  public ConnectionWrapper createConnectionWrapper() throws NamingException
+  public ConnectionWrapper createConnectionWrapper() throws LdapException
   {
     if (trustManager != null)
     {
@@ -213,15 +228,10 @@ public class ServerLoader extends Thread
     /* Try to connect to the server in a certain order of preference.  If an
      * URL fails, we will try with the others.
      */
-    for (PreferredConnection connection : getLDAPURLsByPreference())
+    for (PreferredConnection conn : getLDAPURLsByPreference())
     {
-      lastLdapUrl = connection.getLDAPURL();
-      ConnectionWrapper conn =
-          new ConnectionWrapper(lastLdapUrl, connection.getType(), dn, pwd, timeout, trustManager);
-      if (conn.getLdapContext() != null)
-      {
-        return conn;
-      }
+      lastLdapHostPort = conn.getHostPort();
+      return new ConnectionWrapper(conn.getHostPort(), conn.getType(), dn, pwd, timeout, trustManager);
     }
     return null;
   }
@@ -361,8 +371,9 @@ public class ServerLoader extends Thread
    * They are ordered so that the first URL is the preferred URL to be used.
    * @return the list of LDAP URLs that can be used to connect to the server.
    * They are ordered so that the first URL is the preferred URL to be used.
+   * @throws LdapException if a problem occurs decoding the ldapURLs
    */
-  private LinkedHashSet<PreferredConnection> getLDAPURLsByPreference()
+  private LinkedHashSet<PreferredConnection> getLDAPURLsByPreference() throws LdapException
   {
     LinkedHashSet<PreferredConnection> ldapUrls = new LinkedHashSet<>();
 
@@ -387,20 +398,47 @@ public class ServerLoader extends Thread
 
     if (adminConnectorUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(adminConnectorUrl, LDAPS));
+      ldapUrls.add(newPreferredConnection(adminConnectorUrl, LDAPS));
     }
     if (ldapsUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(ldapsUrl, LDAPS));
+      ldapUrls.add(newPreferredConnection(ldapsUrl, LDAPS));
     }
     if (startTLSUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(startTLSUrl, START_TLS));
+      ldapUrls.add(newPreferredConnection(startTLSUrl, START_TLS));
     }
     if (ldapUrl != null)
     {
-      ldapUrls.add(new PreferredConnection(ldapUrl, LDAP));
+      ldapUrls.add(newPreferredConnection(ldapUrl, LDAP));
     }
     return ldapUrls;
+  }
+
+  private PreferredConnection newPreferredConnection(String ldapUrl, PreferredConnection.Type type) throws LdapException
+  {
+    return new PreferredConnection(toHostPort(ldapUrl), type);
+  }
+
+  /**
+   * Converts an ldapUrl to a HostPort.
+   *
+   * @param ldapUrl
+   *          the ldapUrl to convert
+   * @return the host and port extracted from the ldapUrl
+   * @throws LdapException
+   *           if the ldapUrl is not a valid URL
+   */
+  public static HostPort toHostPort(String ldapUrl) throws LdapException
+  {
+    try
+    {
+      URI uri = new URI(ldapUrl);
+      return new HostPort(uri.getHost(), uri.getPort());
+    }
+    catch (URISyntaxException e)
+    {
+      throw newLdapException(CLIENT_SIDE_PARAM_ERROR, e.getLocalizedMessage() + ". LDAP URL was: \"" + ldapUrl + "\"");
+    }
   }
 }

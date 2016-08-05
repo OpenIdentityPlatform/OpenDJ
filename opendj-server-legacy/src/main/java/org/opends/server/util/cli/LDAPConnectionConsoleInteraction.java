@@ -16,10 +16,8 @@
  */
 package org.opends.server.util.cli;
 
-import static com.forgerock.opendj.cli.Utils.portValidationCallback;
-import static com.forgerock.opendj.cli.Utils.isDN;
-import static com.forgerock.opendj.cli.Utils.getAdministratorDN;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.ToolMessages.*;
 
 import java.io.File;
@@ -27,8 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -48,6 +44,7 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
@@ -1580,15 +1577,14 @@ public class LDAPConnectionConsoleInteraction
    *          the error raised because the certificate was not trusted.
    * @param usedTrustManager
    *          the trustManager used when trying to establish the connection.
-   * @param usedUrl
-   *          the LDAP URL used to connect to the server.
+   * @param hostPort
+   *          the HostPort used to connect to the server.
    * @param logger
    *          the Logger used to log messages.
-   * @return {@code true} if the user accepted the certificate and
-   *         {@code false} otherwise.
+   * @return {@code true} if the user accepted the certificate and {@code false} otherwise.
    */
   public boolean promptForCertificateConfirmation(Throwable errorRaised,
-      ApplicationTrustManager usedTrustManager, String usedUrl, LocalizedLogger logger)
+      ApplicationTrustManager usedTrustManager, HostPort hostPort, LocalizedLogger logger)
   {
     final ApplicationTrustManager.Cause cause = usedTrustManager != null ? usedTrustManager.getLastRefusedCause()
                                                                          : null;
@@ -1600,21 +1596,8 @@ public class LDAPConnectionConsoleInteraction
       return false;
     }
 
-    String host;
-    int port;
-    try
-    {
-      URI uri = new URI(usedUrl);
-      host = uri.getHost();
-      port = uri.getPort();
-    }
-    catch (URISyntaxException e)
-    {
-      logger.warn(ERROR_CERTIFICATE_PARSING_URL.get(usedUrl, e));
-      host = INFO_NOT_AVAILABLE_LABEL.get().toString();
-      port = -1;
-    }
-
+    String host = hostPort.getHost();
+    int port = hostPort.getPort();
     final String authType = usedTrustManager.getLastRefusedAuthType();
     if (authType == null)
     {

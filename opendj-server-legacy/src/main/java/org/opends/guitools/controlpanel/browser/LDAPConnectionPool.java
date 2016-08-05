@@ -21,10 +21,10 @@ import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.naming.NamingException;
 import javax.net.ssl.KeyManager;
 
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.ManageDsaITRequestControl;
 import org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl;
@@ -123,11 +123,10 @@ public class LDAPConnectionPool {
    *
    * @param conn
    *          the connection to be unregistered.
-   * @throws NamingException
+   * @throws LdapException
    *           if there is a problem unregistering the connection.
    */
-  public void unregisterConnection(ConnectionWrapper conn)
-  throws NamingException
+  public void unregisterConnection(ConnectionWrapper conn) throws LdapException
   {
     LDAPURL url = makeLDAPUrl(conn);
     unRegisterAuth(url);
@@ -153,15 +152,14 @@ public class LDAPConnectionPool {
    * of the URL, getConnection() makes a new one and call connect().
    * If authentication data available for this protocol/host/port,
    * getConnection() call bind() on the new connection.
-   * If connect() or bind() failed, getConnection() forward the
-   * NamingException.
+   * If connect() or bind() failed, getConnection() forward the LdapException.
    * When getConnection() succeeds, the returned connection must
    * be passed to releaseConnection() after use.
    * @param ldapUrl the LDAP URL to which the connection must connect.
    * @return a connection to the provided LDAP URL.
-   * @throws NamingException if there was an error connecting.
+   * @throws LdapException if there was an error connecting.
    */
-  public ConnectionWithControls getConnection(LDAPURL ldapUrl) throws NamingException
+  public ConnectionWithControls getConnection(LDAPURL ldapUrl) throws LdapException
   {
     String key = makeKeyFromLDAPUrl(ldapUrl);
     ConnectionRecord cr;
@@ -198,7 +196,7 @@ public class LDAPConnectionPool {
           }
         }
       }
-      catch(NamingException x) {
+      catch (LdapException x) {
         synchronized (this) {
           cr.counter--;
           if (cr.counter == 0) {
@@ -280,17 +278,17 @@ public class LDAPConnectionPool {
    * specified in the LDAPURl, they are replaced by the new data.
    * If true is passed as 'connect' parameter, registerAuth() creates the
    * connection and attempts to connect() and bind() . If connect() or bind()
-   * fail, registerAuth() forwards the NamingException and does not register
+   * fail, registerAuth() forwards the LdapException and does not register
    * the authentication data.
    * @param ldapUrl the LDAP URL of the server.
    * @param dn the bind DN.
    * @param pw the password.
    * @param connect whether to connect or not to the server with the
    * provided authentication (for testing purposes).
-   * @throws NamingException if an error occurs connecting.
+   * @throws LdapException if an error occurs connecting.
    */
   private void registerAuth(LDAPURL ldapUrl, DN dn, String pw,
-      boolean connect) throws NamingException {
+      boolean connect) throws LdapException {
 
     String key = makeKeyFromLDAPUrl(ldapUrl);
     final AuthRecord ar = new AuthRecord();
@@ -314,7 +312,6 @@ public class LDAPConnectionPool {
       }
     }
     notifyListeners();
-
   }
 
 
@@ -329,7 +326,7 @@ public class LDAPConnectionPool {
     try {
       registerAuth(url, conn.getBindDn(), conn.getBindPassword(), false);
     }
-    catch (NamingException x) {
+    catch (LdapException x) {
       throw new RuntimeException("Bug");
     }
   }
@@ -338,11 +335,11 @@ public class LDAPConnectionPool {
   /**
    * Unregister authentication data.
    * If for the given url there's a connection, try to bind as anonymous.
-   * If unbind fails throw NamingException.
+   * If unbind fails throw LdapException.
    * @param ldapUrl the url associated with the authentication to be unregistered.
-   * @throws NamingException if the unbind fails.
+   * @throws LdapException if the unbind fails.
    */
-  private void unRegisterAuth(LDAPURL ldapUrl) throws NamingException {
+  private void unRegisterAuth(LDAPURL ldapUrl) throws LdapException {
     String key = makeKeyFromLDAPUrl(ldapUrl);
 
     authTable.remove(key);
@@ -396,9 +393,9 @@ public class LDAPConnectionPool {
    * @param ldapUrl the LDAP URL.
    * @param ar the authentication information.
    * @return a connection.
-   * @throws NamingException if an error occurs when connecting.
+   * @throws LdapException if an error occurs when connecting.
    */
-  private ConnectionWithControls createLDAPConnection(LDAPURL ldapUrl, AuthRecord ar) throws NamingException
+  private ConnectionWithControls createLDAPConnection(LDAPURL ldapUrl, AuthRecord ar) throws LdapException
   {
     final HostPort hostPort = new HostPort(ldapUrl.getHost(), ldapUrl.getPort());
     final Type connectiontype = isSecureLDAPUrl(ldapUrl) ? LDAPS : LDAP;

@@ -36,11 +36,6 @@ import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import javax.naming.AuthenticationException;
-import javax.naming.CommunicationException;
-import javax.naming.NamingException;
-import javax.naming.NamingSecurityException;
-import javax.naming.NoPermissionException;
 import javax.net.ssl.SSLHandshakeException;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -433,40 +428,6 @@ public final class Utils {
     }
 
     /**
-     * Returns a message object for the given NamingException.
-     *
-     * @param ne
-     *            The NamingException.
-     * @param hostPort
-     *            The hostPort representation of the server we were contacting when the NamingException occurred.
-     * @return A message object for the given NamingException.
-     */
-    public static LocalizableMessage getMessageForException(NamingException ne, String hostPort) {
-        String arg;
-        if (ne.getLocalizedMessage() != null) {
-            arg = ne.getLocalizedMessage();
-        } else if (ne.getExplanation() != null) {
-            arg = ne.getExplanation();
-        } else {
-            arg = ne.toString(true);
-        }
-
-        if (Utils.isCertificateException(ne)) {
-            return INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(hostPort, arg);
-        } else if (ne instanceof AuthenticationException) {
-            return INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
-        } else if (ne instanceof NoPermissionException) {
-            return INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
-        } else if (ne instanceof NamingSecurityException) {
-            return INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
-        } else if (ne instanceof CommunicationException) {
-            return ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
-        } else {
-            return INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
-        }
-    }
-
-    /**
      * Returns a message object for the given IOException.
      *
      * @param e
@@ -639,13 +600,13 @@ public final class Utils {
     }
 
     /**
-     * Repeats the given {@link char} n times.
+     * Repeats the given {@code char} n times.
      *
      * @param charToRepeat
-     *      The {@link char} to repeat.
+     *      The {code char} to repeat.
      * @param length
      *      The repetition count.
-     * @return The given {@link char} n times.
+     * @return The given {code char} n times.
      */
     public static String repeat(final char charToRepeat, final int length) {
         final char[] str = new char[length];
@@ -654,11 +615,11 @@ public final class Utils {
     }
 
     /**
-     * Return a {@link ValidationCallback<Integer>} which can be used to validate a port number.
+     * Return a {code ValidationCallback<Integer>} which can be used to validate a port number.
      *
      * @param defaultPort
      *        The default value to suggest to the user.
-     * @return a {@link ValidationCallback<Integer>} which can be used to validate a port number.
+     * @return a {code ValidationCallback<Integer>} which can be used to validate a port number.
      */
     public static ValidationCallback<Integer> portValidationCallback(final int defaultPort) {
         return new ValidationCallback<Integer>() {
@@ -707,7 +668,7 @@ public final class Utils {
      * if both provided {@link Argument} are presents in the command line arguments.
      *
      * @param errors
-     *         The {@link Collection<LocalizableMessage>} to use to add the conflict error (if occurs).
+     *         The {@code Collection<LocalizableMessage>} to use to add the conflict error (if occurs).
      * @param arg1
      *         The first {@link Argument} which should not be present if {@literal arg2} is.
      * @param arg2

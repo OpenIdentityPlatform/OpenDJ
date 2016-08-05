@@ -40,7 +40,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URI;
 import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,8 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
-import javax.naming.NamingSecurityException;
 import javax.naming.ldap.Rdn;
 import javax.swing.JPanel;
 
@@ -63,6 +60,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.ldap.AuthenticationException;
+import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
@@ -1946,7 +1945,7 @@ public class Installer extends GuiApplication
             backendTypes.get(backendId).getBackend());
       }
     }
-    catch (NamingException e)
+    catch (LdapException e)
     {
       LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), e);
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, failedMsg, e);
@@ -2064,7 +2063,7 @@ public class Installer extends GuiApplication
       localTime = Utils.getServerClock(conn);
       localServerDisplay = conn.getHostPort();
     }
-    catch (NamingException ne)
+    catch (LdapException ne)
     {
       LocalizableMessage failedMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, failedMsg, ne);
@@ -2615,8 +2614,8 @@ public class Installer extends GuiApplication
     ADSContext adsContext = null; // Bound to ADS host (via one of above).
 
     /*
-     * Outer try-catch-finally to convert occurrences of NamingException and
-     * ADSContextException to ApplicationException and clean up JNDI contexts.
+     * Outer try-catch-finally to convert occurrences of LdapException and ADSContextException to
+     * ApplicationException and clean up connections.
      */
     try
     {
@@ -2726,6 +2725,19 @@ public class Installer extends GuiApplication
         }
       }
     }
+    catch (LdapException ne)
+    {
+      LocalizableMessage msg;
+      if (isRemoteServer)
+      {
+        msg = getMessageForException(ne, auth.getHostPort().toString());
+      }
+      else
+      {
+        msg = Utils.getMessageForException(ne);
+      }
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
+    }
     catch (IOException e)
     {
       LocalizableMessage msg;
@@ -2739,19 +2751,6 @@ public class Installer extends GuiApplication
       }
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, e);
     }
-    catch (NamingException ne)
-    {
-      LocalizableMessage msg;
-      if (isRemoteServer)
-      {
-        msg = getMessageForException(ne, auth.getHostPort().toString());
-      }
-      else
-      {
-        msg = Utils.getMessageForException(ne);
-      }
-      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
-    }
     catch (ADSContextException ace)
     {
       throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, (isRemoteServer ? INFO_REMOTE_ADS_EXCEPTION.get(
@@ -2763,21 +2762,21 @@ public class Installer extends GuiApplication
     }
   }
 
-  private ConnectionWrapper createConnection(AuthenticationData auth) throws NamingException
+  private ConnectionWrapper createConnection(AuthenticationData auth) throws LdapException
   {
-    String ldapUrl = auth.getLdapUrl();
+    HostPort hostPort = auth.getHostPort();
     DN dn = auth.getDn();
     String pwd = auth.getPwd();
 
     if (auth.useSecureConnection())
     {
       ApplicationTrustManager trustManager = getTrustManager();
-      trustManager.setHost(auth.getHostPort().getHost());
-      return new ConnectionWrapper(ldapUrl, LDAPS, dn, pwd, getConnectTimeout(), getTrustManager());
+      trustManager.setHost(hostPort.getHost());
+      return new ConnectionWrapper(hostPort, LDAPS, dn, pwd, getConnectTimeout(), getTrustManager());
     }
     else
     {
-      return new ConnectionWrapper(ldapUrl, LDAP, dn, pwd, getConnectTimeout(), getTrustManager());
+      return new ConnectionWrapper(hostPort, LDAP, dn, pwd, getConnectTimeout(), getTrustManager());
     }
   }
 
@@ -2913,16 +2912,7 @@ public class Installer extends GuiApplication
       AuthenticationData auth = repl.getAuthenticationData();
       if (auth != null)
       {
-        PreferredConnection.Type type;
-        if (auth.useSecureConnection())
-        {
-          type = PreferredConnection.Type.LDAPS;
-        }
-        else
-        {
-          type = PreferredConnection.Type.LDAP;
-        }
-        cnx.add(new PreferredConnection(auth.getLdapUrl(), type));
+        cnx.add(new PreferredConnection(auth.getHostPort(), auth.getConnectionType()));
       }
     }
     return cnx;
@@ -3430,20 +3420,9 @@ public class Installer extends GuiApplication
               excType = toUserDataCertificateExceptionType(cause);
               if (excType != null)
               {
-                String h;
-                int p;
-                try
-                {
-                  URI uri = new URI(e.getLdapUrl());
-                  h = uri.getHost();
-                  p = uri.getPort();
-                }
-                catch (Throwable t)
-                {
-                  logger.warn(LocalizableMessage.raw("Error parsing ldap url of TopologyCacheException.", t));
-                  h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-                  p = -1;
-                }
+                HostPort hostPort2 = e.getHostPort();
+                String h = hostPort2.getHost();
+                int p = hostPort2.getPort();
                 throw new UserDataCertificateException(Step.REPLICATION_OPTIONS, INFO_CERTIFICATE_EXCEPTION.get(h, p),
                     e.getCause(), h, p, e.getTrustManager().getLastRefusedChain(), e.getTrustManager()
                         .getLastRefusedAuthType(), excType);
@@ -3491,12 +3470,12 @@ public class Installer extends GuiApplication
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
         errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(host + ":" + port, t));
       }
-      else if (t instanceof NamingException)
+      else if (t instanceof LdapException)
       {
-        errorMsgs.add(getMessageForException((NamingException) t, host + ":" + port));
+        errorMsgs.add(getMessageForException((LdapException) t, host + ":" + port));
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
-        if (!(t instanceof NamingSecurityException))
+        if (!(t instanceof AuthorizationException) && !(t instanceof AuthenticationException))
         {
           qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
           qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
@@ -4083,7 +4062,7 @@ public class Installer extends GuiApplication
     return servers;
   }
 
-  private ConnectionWrapper createLocalConnection() throws NamingException
+  private ConnectionWrapper createLocalConnection() throws LdapException
   {
     UserData uData = getUserData();
     HostPort hostPort = new HostPort(uData.getHostName(), uData.getAdminConnectorPort());

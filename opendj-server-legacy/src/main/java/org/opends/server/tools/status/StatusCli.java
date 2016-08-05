@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -40,8 +39,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
-import javax.naming.AuthenticationException;
-import javax.naming.NamingException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
@@ -53,6 +50,7 @@ import org.forgerock.opendj.config.AdminException;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
@@ -84,7 +82,6 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -248,17 +245,7 @@ public class StatusCli extends ConsoleApplication
       // LDAPConnectionConsoleInteraction, this done, it will not prompt
       // the user for them.
       controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-      String ldapUrl = controlInfo.getAdminConnectorURL();
-      int port = CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-      try
-      {
-        final URI uri = new URI(ldapUrl);
-        port = uri.getPort();
-      }
-      catch (Throwable t)
-      {
-        logger.error(LocalizableMessage.raw("Error parsing url: " + ldapUrl));
-      }
+      int port = controlInfo.getAdminConnectorHostPort().getPort();
       final SecureConnectionCliArgs secureArgsList = argParser.getSecureArgsList();
       final StringArgument hostNameArg = secureArgsList.getHostNameArg();
       hostNameArg.setPresent(true);
@@ -325,7 +312,7 @@ public class StatusCli extends ConsoleApplication
           if (!controlInfo.getServerDescriptor().getExceptions().isEmpty()) {
             return ReturnCode.ERROR_INITIALIZING_SERVER.get();
           }
-        } catch (NamingException |IOException e) {
+        } catch (IOException e) {
           // This should not happen but this is useful information to
           // diagnose the error.
           println();

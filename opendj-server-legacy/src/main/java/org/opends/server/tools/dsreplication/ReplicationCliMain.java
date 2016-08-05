@@ -64,7 +64,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.naming.NamingException;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
@@ -1108,7 +1107,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           return newConnectionWrapper(ci, LDAPS, ci.getConnectTimeout());
         }
-        catch (NamingException e)
+        catch (LdapException e)
         {
           if (promptForCertificate)
           {
@@ -1160,7 +1159,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           return newConnectionWrapper(ci, START_TLS, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT);
         }
-        catch (NamingException e)
+        catch (LdapException e)
         {
           if (!promptForCertificate)
           {
@@ -1191,7 +1190,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         return newConnectionWrapper(ci, LDAP, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT);
       }
-      catch (NamingException e)
+      catch (LdapException e)
       {
         throw failedToConnect(hostName, portNumber);
       }
@@ -1199,7 +1198,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private ConnectionWrapper newConnectionWrapper(
-      LDAPConnectionConsoleInteraction ci, Type connType, int connectTimeout) throws NamingException
+      LDAPConnectionConsoleInteraction ci, Type connType, int connectTimeout) throws LdapException
   {
     return new ConnectionWrapper(getHostPort(ci), connType, ci.getBindDN(), ci.getBindPassword(),
         connectTimeout, ci.getTrustManager(), ci.getKeyManager());
@@ -1482,7 +1481,7 @@ public class ReplicationCliMain extends ConsoleApplication
       return new ConnectionWrapper(uData.getHostPort(), connectionType,
           bindDn, uData.getAdminPwd(), getConnectTimeout(), getTrustManager(sourceServerCI));
     }
-    catch (NamingException e)
+    catch (LdapException e)
     {
       errPrintln();
       errPrintln(getMessageForException(e, uData.getHostPort().toString()));
@@ -3328,7 +3327,7 @@ public class ReplicationCliMain extends ConsoleApplication
               {
                 reloadTopology = true;
                 cancelled = !ci.promptForCertificateConfirmation(e.getCause(),
-                    e.getTrustManager(), e.getLdapUrl(), logger);
+                    e.getTrustManager(), e.getHostPort(), logger);
               }
               else
               {
@@ -3765,7 +3764,7 @@ public class ReplicationCliMain extends ConsoleApplication
       return new ConnectionWrapper(server.getHostPort(), connectionType, server.getBindDn(), server.getPwd(),
           getConnectTimeout(), getTrustManager(sourceServerCI));
     }
-    catch (NamingException e)
+    catch (LdapException e)
     {
       errorMessages.add(getMessageForException(e, server.getHostPort().toString()));
       logger.error(LocalizableMessage.raw("Error when creating connection for:" + server.getHostPort()));
@@ -3954,7 +3953,7 @@ public class ReplicationCliMain extends ConsoleApplication
       return new ConnectionWrapper(server, connectionType, getAdministratorDN(uData.getAdminUid()),
           uData.getAdminPwd(), getConnectTimeout(), getTrustManager(sourceServerCI));
     }
-    catch (NamingException ne)
+    catch (LdapException ne)
     {
       errPrintln();
       errPrintln(getMessageForException(ne, server.toString()));
@@ -6565,11 +6564,11 @@ public class ReplicationCliMain extends ConsoleApplication
           updateReplicationServer(conn, allRepServers);
         }
       }
-      catch (NamingException ne)
+      catch (LdapException e)
       {
         HostPort hostPort = getHostPort2(s, cache.getPreferredConnections());
-        LocalizableMessage msg = getMessageForException(ne, hostPort.toString());
-        throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
+        LocalizableMessage msg = getMessageForException(e, hostPort.toString());
+        throw new ReplicationCliException(msg, ERROR_CONNECTING, e);
       }
       catch (Exception ode)
       {
@@ -7236,7 +7235,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
     }
-    catch (NamingException ne)
+    catch (LdapException ne)
     {
       hostPort = getHostPort2(server, cnx);
       LocalizableMessage msg = getMessageForException(ne, hostPort.toString());
@@ -7483,27 +7482,7 @@ public class ReplicationCliMain extends ConsoleApplication
     Throwable c = rce.getCause();
     if (c != null)
     {
-      String s;
-      if (c instanceof NamingException)
-      {
-        s = ((NamingException)c).toString(true);
-      }
-      else if (c instanceof OpenDsException)
-      {
-        LocalizableMessage msg = ((OpenDsException)c).getMessageObject();
-        if (msg != null)
-        {
-          s = msg.toString();
-        }
-        else
-        {
-          s = c.toString();
-        }
-      }
-      else
-      {
-        s = c.toString();
-      }
+      String s = toString(c);
       if (!mb.toString().contains(s))
       {
         mb.append(Constants.LINE_SEPARATOR);
@@ -9072,8 +9051,15 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private String toString(Throwable t)
   {
-    return (t instanceof OpenDsException) ?
-        ((OpenDsException) t).getMessageObject().toString() : t.toString();
+    if (t instanceof OpenDsException)
+    {
+      LocalizableMessage msg = ((OpenDsException) t).getMessageObject();
+      if (msg != null)
+      {
+        return msg.toString();
+      }
+    }
+    return t.toString();
   }
 
   private TopologyCache createTopologyCache(ADSContext adsCtx, Set<PreferredConnection> cnx)
@@ -9095,7 +9081,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private ConnectionWrapper getConnection(TopologyCache cache, ServerDescriptor server) throws NamingException
+  private ConnectionWrapper getConnection(TopologyCache cache, ServerDescriptor server) throws LdapException
   {
     ConnectionWrapper conn = cache.getAdsContext().getConnection();
 

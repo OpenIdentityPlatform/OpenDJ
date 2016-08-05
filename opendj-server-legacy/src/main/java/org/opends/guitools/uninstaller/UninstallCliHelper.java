@@ -17,6 +17,7 @@
 package org.opends.guitools.uninstaller;
 
 import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.ADSContext.getAdministratorDN;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -28,19 +29,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.naming.NamingException;
 import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
@@ -237,8 +236,8 @@ public class UninstallCliHelper extends ConsoleApplication {
       info.setConnectTimeout(getConnectTimeout());
       info.regenerateDescriptor();
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-      String adminConnectorUrl = info.getAdminConnectorURL();
-      if (adminConnectorUrl == null)
+      HostPort adminConnectorHostPort = info.getAdminConnectorHostPort();
+      if (adminConnectorHostPort == null)
       {
         logger.warn(LocalizableMessage.raw(
         "Error retrieving a valid LDAP URL in conf file."));
@@ -248,7 +247,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
         }
       }
-      userData.setLocalServerUrl(adminConnectorUrl);
+      userData.setLocalServer(adminConnectorHostPort, true);
       userData.setReferencedHostName(referencedHostName);
 
       /*
@@ -830,30 +829,23 @@ public class UninstallCliHelper extends ConsoleApplication {
         userData.setAdminPwd(ci.getBindPassword());
 
         info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-        String adminConnectorUrl = info.getAdminConnectorURL();
-        if (adminConnectorUrl == null)
+        HostPort adminConnectorHostPort = info.getAdminConnectorHostPort();
+        if (adminConnectorHostPort == null)
         {
           logger.warn(LocalizableMessage.raw("Error retrieving a valid Administration Connector URL in conf file."));
           LocalizableMessage msg = ERR_COULD_NOT_FIND_VALID_LDAPURL.get();
           throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
         }
-        try
-        {
-          URI uri = new URI(adminConnectorUrl);
-          int port = uri.getPort();
-          portArg.clearValues();
-          portArg.addValue(String.valueOf(port));
-          ci.setPortNumber(port);
-        }
-        catch (Throwable t)
-        {
-          logger.error(LocalizableMessage.raw("Error parsing url: "+adminConnectorUrl));
-        }
+        int port = adminConnectorHostPort.getPort();
+        portArg.clearValues();
+        portArg.addValue(String.valueOf(port));
+        ci.setPortNumber(port);
+
         updateTrustManager(userData, ci);
 
         info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-        adminConnectorUrl = info.getAdminConnectorURL();
-        if (adminConnectorUrl == null)
+        adminConnectorHostPort = info.getAdminConnectorHostPort();
+        if (adminConnectorHostPort == null)
         {
           logger.warn(LocalizableMessage.raw(
          "Error retrieving a valid Administration Connector URL in conf file."));
@@ -861,7 +853,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
         }
 
-        userData.setLocalServerUrl(adminConnectorUrl);
+        userData.setLocalServer(adminConnectorHostPort, true);
         couldConnect = true;
       }
       catch (ArgumentException e)
@@ -1085,25 +1077,10 @@ public class UninstallCliHelper extends ConsoleApplication {
     {
       info.setTrustManager(userData.getTrustManager());
       info.setConnectTimeout(getConnectTimeout());
-      String host = "localhost";
-      int port = 389;
-      String adminUid = userData.getAdminUID();
-      String pwd = userData.getAdminPwd();
-      DN dn = ADSContext.getAdministratorDN(adminUid);
-
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-      String adminConnectorUrl = info.getAdminConnectorURL();
-      try
-      {
-        URI uri = new URI(adminConnectorUrl);
-        host = uri.getHost();
-        port = uri.getPort();
-      }
-      catch (Throwable t)
-      {
-        logger.error(LocalizableMessage.raw("Error parsing url: "+adminConnectorUrl));
-      }
-      conn = new ConnectionWrapper(new HostPort(host, port), connectionType, dn, pwd,
+      conn = new ConnectionWrapper(
+          info.getAdminConnectorHostPort(), connectionType,
+          getAdministratorDN(userData.getAdminUID()), userData.getAdminPwd(),
           getConnectTimeout(), userData.getTrustManager());
 
       ADSContext adsContext = new ADSContext(conn);
@@ -1126,18 +1103,17 @@ public class UninstallCliHelper extends ConsoleApplication {
 
       exceptionOccurred = false;
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
-      logger.warn(LocalizableMessage.raw("Error connecting to server: "+ne, ne));
-      if (isCertificateException(ne))
+      logger.warn(LocalizableMessage.raw("Error connecting to server: " + e, e));
+      if (isCertificateException(e))
       {
-        String details = ne.getMessage() != null ?
-            ne.getMessage() : ne.toString();
+        String details = e.getMessage() != null ? e.getMessage() : e.toString();
         exceptionMsg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(details);
       }
       else
       {
-        exceptionMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
+        exceptionMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), e);
       }
     } catch (TopologyCacheException te)
     {
@@ -1261,7 +1237,7 @@ public class UninstallCliHelper extends ConsoleApplication {
             println();
             stopProcessing = true;
             if (ci.promptForCertificateConfirmation(e.getCause(),
-                e.getTrustManager(), e.getLdapUrl(), logger))
+                e.getTrustManager(), e.getHostPort(), logger))
             {
               reloadTopologyCache = true;
               updateTrustManager(userData, ci);

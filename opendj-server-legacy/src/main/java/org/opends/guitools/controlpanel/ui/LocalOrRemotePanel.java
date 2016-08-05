@@ -22,13 +22,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-import javax.naming.NamingException;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -41,10 +39,10 @@ import javax.swing.SwingUtilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.ControlPanelArgumentParser;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
@@ -87,7 +85,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   private JTextField dn;
   private JLabel pwdLabel;
   private JLabel dnLabel;
-  private String usedUrl;
+  private HostPort usedHostPort;
   private JLabel localInstallLabel;
   private JEditorPane localInstall;
   private JLabel localNotRunning;
@@ -542,14 +540,13 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             String bindPwd = String.valueOf(pwd.getPassword());
             if (isLocal)
             {
-              usedUrl = info.getAdminConnectorURL();
+              usedHostPort = info.getAdminConnectorHostPort();
               conn = Utilities.getAdminDirContext(info, bindDn, bindPwd);
             }
             else
             {
-              HostPort hostPort = new HostPort(hostName.getText().trim(), Integer.valueOf(port.getText().trim()));
-              usedUrl = ConnectionUtils.getLDAPUrl(hostPort, true);
-              conn = new ConnectionWrapper(hostPort, LDAPS, bindDn, bindPwd,
+              usedHostPort = getHostPort();
+              conn = new ConnectionWrapper(usedHostPort, LDAPS, bindDn, bindPwd,
                   info.getConnectTimeout(), info.getTrustManager());
               checkVersion(conn);
             }
@@ -574,6 +571,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             StaticUtils.close(conn);
             throw t;
           }
+        }
+
+        private HostPort getHostPort()
+        {
+          return new HostPort(hostName.getText().trim(), Integer.valueOf(port.getText().trim()));
         }
 
         @Override
@@ -613,21 +615,8 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
               if (excType != null)
               {
-                String h;
-                int p;
-                try
-                {
-                  URI uri = new URI(usedUrl);
-                  h = uri.getHost();
-                  p = uri.getPort();
-                }
-                catch (Throwable t)
-                {
-                  logger.warn(LocalizableMessage.raw(
-                      "Error parsing ldap url of ldap url.", t));
-                  h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-                  p = -1;
-                }
+                String h = usedHostPort.getHost();
+                int p = usedHostPort.getPort();
                 ApplicationTrustManager trustMgr = info.getTrustManager();
                 UserDataCertificateException udce =
                   new UserDataCertificateException(null,
@@ -641,14 +630,13 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                 handleCertificateException = true;
               }
             }
-            else if (throwable instanceof NamingException)
+            else if (throwable instanceof LdapException)
             {
               boolean found = false;
               String providedDn = dn.getText();
               if (isLocal)
               {
-                Iterator<DN> it = info.getServerDescriptor().
-                getAdministrativeUsers().iterator();
+                Iterator<DN> it = info.getServerDescriptor().getAdministrativeUsers().iterator();
                 while (it.hasNext() && !found)
                 {
                   found = Utils.areDnsEqual(providedDn, it.next().toString());
@@ -659,18 +647,14 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                 }
                 else
                 {
-                  errors.add(Utils.getMessageForException(
-                      (NamingException)throwable));
+                  errors.add(Utils.getMessageForException((LdapException) throwable));
                 }
                 localServerErrorConnecting = true;
               }
               else
               {
-                HostPort hostPort = new HostPort(
-                    hostName.getText().trim(),
-                    Integer.valueOf(port.getText().trim()));
-                NamingException ne = (NamingException)throwable;
-                errors.add(getMessageForException(ne, hostPort.toString()));
+                LdapException ne = (LdapException) throwable;
+                errors.add(getMessageForException(ne, getHostPort().toString()));
                 setPrimaryInvalid(portLabel);
               }
               setPrimaryInvalid(dnLabel);

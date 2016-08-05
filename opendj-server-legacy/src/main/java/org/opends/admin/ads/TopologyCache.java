@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
@@ -205,7 +203,7 @@ public class TopologyCache
           {
             updateReplicas(server, candidateReplicas, updatedReplicas);
           }
-          catch (NamingException | IOException e)
+          catch (IOException e)
           {
             server.setLastException(new TopologyCacheException(
                 TopologyCacheException.Type.GENERIC_READING_SERVER, e));
@@ -457,7 +455,7 @@ public class TopologyCache
   private void updateReplicas(ServerDescriptor replicationServer,
                               Collection<ReplicaDescriptor> candidateReplicas,
                               Collection<ReplicaDescriptor> updatedReplicas)
-      throws NamingException, IOException
+      throws IOException
   {
     ServerLoader loader = getServerLoader(replicationServer.getAdsProperties());
     // only replicas have "server-id", but not replication servers
@@ -505,7 +503,7 @@ public class TopologyCache
     }
   }
 
-  private void setMissingChanges(ReplicaDescriptor replica, SearchResultEntry sr) throws NamingException
+  private void setMissingChanges(ReplicaDescriptor replica, SearchResultEntry sr)
   {
     Integer value = asInteger(sr, "missing-changes");
     if (value != null)
@@ -522,7 +520,7 @@ public class TopologyCache
     }
   }
 
-  private void setAgeOfOldestMissingChange(ReplicaDescriptor replica, SearchResultEntry sr) throws NamingException
+  private void setAgeOfOldestMissingChange(ReplicaDescriptor replica, SearchResultEntry sr)
   {
     String s = firstValueAsString(sr, "approx-older-change-not-synchronized-millis");
     if (s != null)

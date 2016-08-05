@@ -16,9 +16,9 @@
  */
 package org.opends.admin.ads;
 
-import javax.naming.NamingException;
-
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
 
 /**
@@ -29,7 +29,7 @@ public class TopologyCacheException extends OpenDsException {
 
   private static final long serialVersionUID = 1709535837273360382L;
   private final Type type;
-  private final String ldapUrl;
+  private final HostPort ldapHostPort;
   private final ApplicationTrustManager trustManager;
 
   /** Error type. */
@@ -60,7 +60,7 @@ public class TopologyCacheException extends OpenDsException {
   {
     super(ace);
     type = Type.GENERIC_READING_ADS;
-    ldapUrl = null;
+    ldapHostPort = null;
     trustManager = null;
   }
 
@@ -73,26 +73,24 @@ public class TopologyCacheException extends OpenDsException {
   {
     super(t);
     this.type = type;
-    this.ldapUrl = null;
+    this.ldapHostPort = null;
     this.trustManager = null;
   }
 
   /**
-   * Constructor for the exception that must be generated when a
-   * NamingException occurs.
+   * Constructor for the exception that must be generated when a LdapException occurs.
    * @param type the type of this exception.
-   * @param ne the NamingException that generated this exception.
-   * @param trustManager the ApplicationTrustManager used when the
-   * NamingException occurred.
-   * @param ldapUrl the LDAP URL of the server we where connected to (or trying
-   * to connect) when the NamingException was generated.
+   * @param e the LdapException that generated this exception.
+   * @param trustManager the ApplicationTrustManager used when the LdapException occurred.
+   * @param ldapHostPort the LDAP HostPort of the server we where connected to (or trying
+   * to connect) when the LdapException was generated.
    */
-  public TopologyCacheException(Type type, NamingException ne,
-      ApplicationTrustManager trustManager, String ldapUrl)
+  public TopologyCacheException(Type type, LdapException e,
+      ApplicationTrustManager trustManager, HostPort ldapHostPort)
   {
-    super(ne);
+    super(e);
     this.type = type;
-    this.ldapUrl = ldapUrl;
+    this.ldapHostPort = ldapHostPort;
     this.trustManager = trustManager;
   }
 
@@ -106,26 +104,14 @@ public class TopologyCacheException extends OpenDsException {
   }
 
   /**
-   * Returns the LDAP URL of the server we where connected to (or trying
-   * to connect) when this exception was generated.
-   * @return the LDAP URL of the server we where connected to (or trying
-   * to connect) when this exception was generated.
-   */
-  public String getLdapUrl()
-  {
-    return ldapUrl;
-  }
-
-  /**
    * Returns the host port representation of the server we where connected to
    * (or trying to connect) when this exception was generated.
    * @return the host port representation of the server we where connected to
    * (or trying to connect) when this exception was generated.
    */
-  public String getHostPort()
+  public HostPort getHostPort()
   {
-    int index = ldapUrl.indexOf("//");
-    return ldapUrl.substring(index + 2);
+    return ldapHostPort;
   }
 
   /**

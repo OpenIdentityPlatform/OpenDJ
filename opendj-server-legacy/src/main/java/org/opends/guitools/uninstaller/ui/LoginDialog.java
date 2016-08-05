@@ -14,7 +14,6 @@
  * Copyright 2008-2010 Sun Microsystems, Inc.
  * Portions Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.uninstaller.ui;
 
 import java.awt.Dimension;
@@ -22,11 +21,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
-import javax.naming.NamingException;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -40,6 +37,7 @@ import javax.swing.text.JTextComponent;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -60,8 +58,10 @@ import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.HostPort;
 
 import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -93,8 +93,7 @@ public class LoginDialog extends JDialog
   private final int timeout;
 
   private ConnectionWrapper connWrapper;
-
-  private String usedUrl;
+  private HostPort usedHostPort;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -369,7 +368,7 @@ public class LoginDialog extends JDialog
     BackgroundTask<Boolean> worker = new BackgroundTask<Boolean>()
     {
       @Override
-      public Boolean processBackgroundTask() throws NamingException, ApplicationException
+      public Boolean processBackgroundTask() throws LdapException, ApplicationException
       {
         connWrapper = null;
         try
@@ -383,19 +382,20 @@ public class LoginDialog extends JDialog
           DN dn = ADSContext.getAdministratorDN(tfUid.getText());
           String pwd = tfPwd.getText();
           info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-          usedUrl = info.getAdminConnectorURL();
-          if (usedUrl == null)
+          usedHostPort = info.getAdminConnectorHostPort();
+          if (usedHostPort == null)
           {
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
                 ERR_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
           }
           connWrapper = org.opends.guitools.controlpanel.util.Utilities.getAdminDirContext(info, dn, pwd);
           return true; // server is running
-        } catch (NamingException ne)
+        }
+        catch (LdapException e)
         {
           if (isServerRunning())
           {
-            throw ne;
+            throw e;
           }
           return false;
         } catch (ApplicationException | IllegalStateException e)
@@ -439,21 +439,8 @@ public class LoginDialog extends JDialog
 
             if (excType != null)
             {
-              String h;
-              int p;
-              try
-              {
-                URI uri = new URI(usedUrl);
-                h = uri.getHost();
-                p = uri.getPort();
-              }
-              catch (Throwable t)
-              {
-                logger.warn(LocalizableMessage.raw(
-                    "Error parsing ldap url of ldap url.", t));
-                h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-                p = -1;
-              }
+              String h = usedHostPort.getHost();
+              int p = usedHostPort.getPort();
               UserDataCertificateException udce =
               new UserDataCertificateException(Step.REPLICATION_OPTIONS,
                   INFO_CERTIFICATE_EXCEPTION.get(h, p),
@@ -464,7 +451,7 @@ public class LoginDialog extends JDialog
               handleCertificateException(udce);
             }
           }
-          else if (throwable instanceof NamingException)
+          else if (throwable instanceof LdapException)
           {
             boolean uidInvalid = false;
             boolean pwdInvalid = false;
@@ -515,7 +502,7 @@ public class LoginDialog extends JDialog
             {
               // Generic message
               displayError(
-                  Utils.getMessageForException((NamingException)throwable),
+                  Utils.getMessageForException((LdapException) throwable),
                   INFO_ERROR_TITLE.get());
             }
           }

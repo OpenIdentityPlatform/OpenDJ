@@ -28,9 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.InterruptedNamingException;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingException;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 
@@ -266,9 +263,9 @@ public class NodeRefresher extends AbstractNodeTask {
         }
       }
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
-      exception = ne;
+      exception = e;
       exceptionArg = null;
     }
     catch(SearchAbandonException x) {
@@ -396,7 +393,7 @@ public class NodeRefresher extends AbstractNodeTask {
           changeStateTo(State.FINISHED);
       }
     }
-    catch(IOException | NamingException x) {
+    catch (IOException x) {
       throwAbandonIfNeeded(x);
     }
     finally {
@@ -414,10 +411,9 @@ public class NodeRefresher extends AbstractNodeTask {
    * limiting the number of hops.
    * @throws SearchAbandonException if the hop count limit for referrals has
    * been exceeded.
-   * @throws NamingException if an error occurred searching the entry.
+   * @throws LdapException if an error occurred searching the entry.
    */
-  private void runSolveReferral()
-  throws SearchAbandonException, NamingException {
+  private void runSolveReferral() throws SearchAbandonException, LdapException {
     int hopCount = 0;
     String[] referral = getNode().getReferral();
     while (referral != null && hopCount < 10)
@@ -504,7 +500,7 @@ public class NodeRefresher extends AbstractNodeTask {
           }
           if (!found)
           {
-            throw new NameNotFoundException();
+            throw newLdapException(NO_SUCH_OBJECT);
           }
         }
         catch (LdapException e)
@@ -524,10 +520,7 @@ public class NodeRefresher extends AbstractNodeTask {
         }
         throwAbandonIfNeeded(null);
       }
-      catch (InterruptedNamingException x) {
-        throwAbandonIfNeeded(x);
-      }
-      catch (NamingException | IOException | LocalizedIllegalArgumentException | DirectoryException x)
+      catch (IOException | LocalizedIllegalArgumentException | DirectoryException x)
       {
         lastException = x;
         lastExceptionArg = referral[i];
@@ -584,10 +577,9 @@ public class NodeRefresher extends AbstractNodeTask {
   /**
    * Detects whether the entries has children or not.
    * @throws SearchAbandonException if the search was abandoned.
-   * @throws NamingException if an error during the search occurred.
+   * @throws LdapException if an error during the search occurred.
    */
-  private void runDetectChildren()
-  throws SearchAbandonException, NamingException {
+  private void runDetectChildren() throws SearchAbandonException, LdapException {
     if (controller.isShowContainerOnly() || !isNumSubOrdinatesUsable()) {
       runDetectChildrenManually();
     }
@@ -638,10 +630,6 @@ public class NodeRefresher extends AbstractNodeTask {
         throwAbandonIfNeeded(e);
       }
     }
-    catch (NamingException x)
-    {
-      throwAbandonIfNeeded(x);
-    }
     finally {
       if (conn != null) {
         controller.releaseLDAPConnection(conn);
@@ -655,7 +643,7 @@ public class NodeRefresher extends AbstractNodeTask {
    * is listed in in the hacker.
    * Note: *usable* means *usable for detecting children presence*.
    */
-  private boolean isNumSubOrdinatesUsable() throws NamingException {
+  private boolean isNumSubOrdinatesUsable() throws LdapException {
     SearchResultEntry entry = getDisplayedEntry();
     boolean hasSubOrdinates = BrowserController.getHasSubOrdinates(entry);
     if (!hasSubOrdinates)
@@ -749,7 +737,7 @@ public class NodeRefresher extends AbstractNodeTask {
         throwAbandonIfNeeded(e);
       }
     }
-    catch (NamingException | IOException e)
+    catch (IOException e)
     {
       throwAbandonIfNeeded(e);
     }
@@ -815,9 +803,9 @@ public class NodeRefresher extends AbstractNodeTask {
    * The code assumes that the request controls are set in the connection.
    * @param conn the connection to be used.
    * @param dn the DN of the entry to be searched.
-   * @throws NamingException if an error occurs.
+   * @throws LdapException if an error occurs.
    */
-  private SearchResultEntry searchManuallyEntry(ConnectionWithControls conn, DN dn) throws IOException
+  private SearchResultEntry searchManuallyEntry(ConnectionWithControls conn, DN dn) throws LdapException
   {
     SearchRequest request =
         newSearchRequest(dn, BASE_OBJECT, controller.getObjectSearchFilter(), controller.getAttrsForRedSearch())
@@ -854,7 +842,7 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private void throwAbandonIfNeeded(Exception x) throws SearchAbandonException {
     if (x != null) {
-      if (x instanceof InterruptedException || x instanceof InterruptedNamingException)
+      if (x instanceof InterruptedException)
       {
         throw new SearchAbandonException(State.INTERRUPTED, x, null);
       }
@@ -888,9 +876,8 @@ public class NodeRefresher extends AbstractNodeTask {
    * @param entry the search result.
    * @return {@code true} if the entry's objectClass contains 'referral'
    * and the attribute 'ref' is present and {@code false} otherwise.
-   * @throws NamingException if an error occurs.
    */
-  private static boolean isReferralEntry(SearchResultEntry entry) throws NamingException
+  private static boolean isReferralEntry(SearchResultEntry entry)
   {
     for (String value : asSetOfString(entry, "objectClass"))
     {

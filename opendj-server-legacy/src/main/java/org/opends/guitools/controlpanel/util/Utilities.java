@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import javax.naming.NamingException;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -128,6 +127,7 @@ import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.SchemaUtils;
@@ -2115,16 +2115,14 @@ public class Utilities
    * @param bindDN the base DN to be used to bind.
    * @param pwd the password to be used to bind.
    * @return the connection to the server.
-   * @throws NamingException if there was a problem connecting to the server
-   * or the provided credentials do not have enough rights.
    * @throws IOException if there was a problem connecting to the server
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
   public static ConnectionWrapper getAdminDirContext(ControlPanelInfo controlInfo, DN bindDN, String pwd)
-      throws NamingException, IOException, ConfigReadException
+      throws IOException, ConfigReadException
   {
-    return createConnection(controlInfo.getAdminConnectorURL(), LDAPS, bindDN, pwd, controlInfo);
+    return createConnection(controlInfo.getAdminConnectorHostPort(), LDAPS, bindDN, pwd, controlInfo);
   }
 
   /**
@@ -2136,38 +2134,36 @@ public class Utilities
    * @param bindDN the base DN to be used to bind.
    * @param pwd the password to be used to bind.
    * @return the connection to the server.
-   * @throws NamingException if there was a problem connecting to the server
-   * or the provided credentials do not have enough rights.
    * @throws IOException if there was a problem connecting to the server
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
   public static ConnectionWrapper getUserDataDirContext(ControlPanelInfo controlInfo,
-      DN bindDN, String pwd) throws NamingException, IOException, ConfigReadException
+      DN bindDN, String pwd) throws IOException, ConfigReadException
   {
     if (controlInfo.connectUsingStartTLS())
     {
-      return createConnection(controlInfo.getStartTLSURL(), START_TLS, bindDN, pwd, controlInfo);
+      return createConnection(controlInfo.getStartTlsHostPort(), START_TLS, bindDN, pwd, controlInfo);
     }
     else if (controlInfo.connectUsingLDAPS())
     {
-      return createConnection(controlInfo.getLDAPSURL(), LDAPS, bindDN, pwd, controlInfo);
+      return createConnection(controlInfo.getLdapsHostPort(), LDAPS, bindDN, pwd, controlInfo);
     }
     else
     {
-      return createConnection(controlInfo.getLDAPURL(), LDAP, bindDN, pwd, controlInfo);
+      return createConnection(controlInfo.getLdapHostPort(), LDAP, bindDN, pwd, controlInfo);
     }
   }
 
-  private static ConnectionWrapper createConnection(String usedUrl, Type connectionType, DN bindDN, String bindPwd,
-      ControlPanelInfo controlInfo) throws NamingException, IOException, ConfigReadException
+  private static ConnectionWrapper createConnection(HostPort hostPort, Type connectionType, DN bindDN, String bindPwd,
+      ControlPanelInfo controlInfo) throws IOException, ConfigReadException
   {
-    if (usedUrl == null)
+    if (hostPort == null)
     {
       throw new ConfigReadException(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
     }
 
-    ConnectionWrapper conn = new ConnectionWrapper(usedUrl, connectionType,
+    ConnectionWrapper conn = new ConnectionWrapper(hostPort, connectionType,
         bindDN, bindPwd, controlInfo.getConnectTimeout(), controlInfo.getTrustManager());
     checkCanReadConfig(conn);
     return conn;
@@ -2195,10 +2191,8 @@ public class Utilities
    *
    * @param connWrapper
    *          the connection to be "pinged".
-   * @throws NamingException
-   *           if the ping could not be performed.
    */
-  public static void ping(ConnectionWrapper connWrapper) throws NamingException
+  public static void ping(ConnectionWrapper connWrapper)
   {
     SearchRequest request = newSearchRequest("", BASE_OBJECT, "objectClass=*", NO_ATTRIBUTES)
         .setSizeLimit(0)

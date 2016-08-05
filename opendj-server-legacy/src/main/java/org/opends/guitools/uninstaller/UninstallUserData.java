@@ -12,21 +12,19 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.opends.guitools.uninstaller;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.UserData;
+import org.opends.server.types.HostPort;
 
-import java.util.Set;
-import java.util.HashSet;
-
-/**
- * UserData with specific properties for Uninstall.
- */
+/** UserData with specific properties for Uninstall. */
 public class UninstallUserData extends UserData {
 
   private Set<String> externalDbsToRemove = new HashSet<>();
@@ -41,8 +39,9 @@ public class UninstallUserData extends UserData {
   private ApplicationTrustManager trustManager = new ApplicationTrustManager(null);
   private String adminUID;
   private String adminPwd;
-  private String localServerUrl;
-  private HashSet<ServerDescriptor> remoteServers = new HashSet<>();
+  private HostPort localServerHostPort;
+  private boolean localServerSecure;
+  private Set<ServerDescriptor> remoteServers = new HashSet<>();
   private String replicationServer;
   private String referencedHostName;
 
@@ -312,20 +311,34 @@ public class UninstallUserData extends UserData {
   }
 
   /**
-   * Returns the LDAP URL that we used to connect to the local server.
-   * @return the LDAP URL that we used to connect to the local server.
+   * Returns the LDAP HostPort that we used to connect to the local server.
+   * @return the LDAP HostPort that we used to connect to the local server.
    */
-  public String getLocalServerUrl() {
-    return localServerUrl;
+  public HostPort getLocalServerHostPort() {
+    return localServerHostPort;
   }
 
   /**
-   * Sets the LDAP URL that we used to connect to the local server.
-   * @param localServerUrl the LDAP URL that we used to connect to the local
-   * server.
+   * Returns whether the LDAP connection to the local server uses LDAPS.
+   * @return whether the LDAP connection to the local server uses LDAPS
    */
-  public void setLocalServerUrl(String localServerUrl) {
-    this.localServerUrl = localServerUrl;
+  public boolean isLocalServerSecure()
+  {
+    return localServerSecure;
+  }
+
+  /**
+   * Sets the LDAP HostPort that we used to connect to the local server.
+   *
+   * @param hostPort
+   *          the LDAP HostPort that we used to connect to the local server.
+   * @param isSecure
+   *          whether the local server uses a secure connection
+   */
+  public void setLocalServer(HostPort hostPort, boolean isSecure)
+  {
+    this.localServerHostPort = hostPort;
+    this.localServerSecure = isSecure;
   }
 
   /**
@@ -349,5 +362,4 @@ public class UninstallUserData extends UserData {
     this.remoteServers.clear();
     this.remoteServers.addAll(remoteServers);
   }
-
 }

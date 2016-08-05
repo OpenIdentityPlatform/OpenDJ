@@ -44,9 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
@@ -2269,34 +2266,6 @@ public final class StaticUtils
         catch (IOException ignored)
         {
           logger.traceException(ignored);
-        }
-      }
-    }
-  }
-
-  /**
-   * Closes the provided {@link InitialContext}'s ignoring any errors which occurred.
-   *
-   * @param ctxs
-   *          The contexts to be closed, which may be {@code null}.
-   */
-  public static void close(InitialContext... ctxs)
-  {
-    if (ctxs == null)
-    {
-      return;
-    }
-    for (InitialContext ctx : ctxs)
-    {
-      if (ctx != null)
-      {
-        try
-        {
-          ctx.close();
-        }
-        catch (NamingException ignored)
-        {
-          // ignore
         }
       }
     }

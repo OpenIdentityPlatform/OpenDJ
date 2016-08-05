@@ -25,13 +25,12 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
@@ -613,20 +612,18 @@ public abstract class Application implements ProgressNotifier, Runnable {
     filter.setSearchBaseDNInformation(false);
     ServerLoader loader = new ServerLoader(adsProperties, dn, pwd, getTrustManager(), timeout, cnx, filter);
 
-    ConnectionWrapper connection;
     try
     {
-      connection = loader.createConnectionWrapper();
+      return loader.createConnectionWrapper();
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
-      Arg2<Object, Object> arg2 = isCertificateException(ne)
+      Arg2<Object, Object> arg2 = isCertificateException(e)
           ? INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER
           : INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC;
-      LocalizableMessage msg = arg2.get(server.getHostPort(true), ne.toString(true));
-      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
+      LocalizableMessage msg = arg2.get(server.getHostPort(true), e.getLocalizedMessage());
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, e);
     }
-    return connection;
   }
 
   /**

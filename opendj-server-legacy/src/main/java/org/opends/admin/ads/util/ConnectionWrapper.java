@@ -17,28 +17,20 @@ package org.opends.admin.ads.util;
 
 import static org.forgerock.opendj.config.client.ldap.LDAPManagementContext.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.util.time.Duration.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
-import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.Closeable;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.TimeUnit;
 
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.NoPermissionException;
-import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
@@ -63,11 +55,8 @@ import org.opends.server.util.StaticUtils;
  */
 public class ConnectionWrapper implements Closeable
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   private final LDAPConnectionFactory connectionFactory;
   private final Connection connection;
-  private final InitialLdapContext ldapContext;
   private final HostPort hostPort;
   private DN bindDn;
   private String bindPwd;
@@ -75,52 +64,6 @@ public class ConnectionWrapper implements Closeable
   private final TrustManager trustManager;
   private final KeyManager keyManager;
   private Type connectionType;
-
-  /**
-   * Creates a connection wrapper.
-   *
-   * @param ldapUrl
-   *          the ldap URL containing the host name and port number to connect to
-   * @param connectionType
-   *          the type of connection (LDAP, LDAPS, START_TLS)
-   * @param bindDn
-   *          the bind DN
-   * @param bindPwd
-   *          the bind password
-   * @param connectTimeout
-   *          connect timeout to use for the connection
-   * @param trustManager
-   *          trust manager to use for a secure connection
-   * @throws NamingException
-   *           If an error occurs
-   */
-  public ConnectionWrapper(String ldapUrl, Type connectionType, DN bindDn, String bindPwd, int connectTimeout,
-      TrustManager trustManager) throws NamingException
-  {
-    this(toHostPort(ldapUrl), connectionType, bindDn, bindPwd, connectTimeout, trustManager, null);
-  }
-
-  /**
-   * Converts an ldapUrl to a HostPort.
-   *
-   * @param ldapUrl
-   *          the ldapUrl to convert
-   * @return the host and port extracted from the ldapUrl
-   * @throws NamingException
-   *           if the ldapUrl is not a valid URL
-   */
-  public static HostPort toHostPort(String ldapUrl) throws NamingException
-  {
-    try
-    {
-      URI uri = new URI(ldapUrl);
-      return new HostPort(uri.getHost(), uri.getPort());
-    }
-    catch (URISyntaxException e)
-    {
-      throw new NamingException(e.getLocalizedMessage() + ". LDAP URL was: \"" + ldapUrl + "\"");
-    }
-  }
 
   /**
    * Creates a connection wrapper.
@@ -137,11 +80,11 @@ public class ConnectionWrapper implements Closeable
    *          connect timeout to use for the connection
    * @param trustManager
    *          trust manager to use for a secure connection
-   * @throws NamingException
+   * @throws LdapException
    *           If an error occurs
    */
   public ConnectionWrapper(HostPort hostPort, Type connectionType, DN bindDn, String bindPwd, int connectTimeout,
-      TrustManager trustManager) throws NamingException
+      TrustManager trustManager) throws LdapException
   {
     this(hostPort, connectionType, bindDn, bindPwd, connectTimeout, trustManager, null);
   }
@@ -151,10 +94,10 @@ public class ConnectionWrapper implements Closeable
    *
    * @param other
    *          the {@link ConnectionWrapper} to copy
-   * @throws NamingException
+   * @throws LdapException
    *           If an error occurs
    */
-  public ConnectionWrapper(ConnectionWrapper other) throws NamingException
+  public ConnectionWrapper(ConnectionWrapper other) throws LdapException
   {
     this(other.hostPort, other.connectionType, other.bindDn, other.bindPwd, other.connectTimeout,
         other.trustManager, other.keyManager);
@@ -177,11 +120,11 @@ public class ConnectionWrapper implements Closeable
    *          trust manager to use for a secure connection
    * @param keyManager
    *          key manager to use for a secure connection
-   * @throws NamingException
+   * @throws LdapException
    *           If an error occurs
    */
   public ConnectionWrapper(HostPort hostPort, PreferredConnection.Type connectionType, DN bindDn, String bindPwd,
-      int connectTimeout, TrustManager trustManager, KeyManager keyManager) throws NamingException
+      int connectTimeout, TrustManager trustManager, KeyManager keyManager) throws LdapException
   {
     this.hostPort = hostPort;
     this.connectionType = connectionType;
@@ -192,13 +135,12 @@ public class ConnectionWrapper implements Closeable
     this.keyManager = keyManager;
 
     final Options options = toOptions(connectionType, bindDn, bindPwd, connectTimeout, trustManager, keyManager);
-    ldapContext = createAdministrativeContext();
     connectionFactory = new LDAPConnectionFactory(hostPort.getHost(), hostPort.getPort(), options);
-    connection = buildConnection();
+    connection = connectionFactory.getConnection();
   }
 
   private static Options toOptions(Type connectionType, DN bindDn, String bindPwd, long connectTimeout,
-      TrustManager trustManager, KeyManager keyManager) throws NamingException
+      TrustManager trustManager, KeyManager keyManager) throws LdapException
   {
     final boolean isStartTls = START_TLS.equals(connectionType);
     final boolean isLdaps = LDAPS.equals(connectionType);
@@ -217,7 +159,7 @@ public class ConnectionWrapper implements Closeable
     return options;
   }
 
-  private static SSLContext getSSLContext(TrustManager trustManager, KeyManager keyManager) throws NamingException
+  private static SSLContext getSSLContext(TrustManager trustManager, KeyManager keyManager) throws LdapException
   {
     try
     {
@@ -228,7 +170,7 @@ public class ConnectionWrapper implements Closeable
     }
     catch (GeneralSecurityException e)
     {
-      throw new NamingException("Unable to perform SSL initialization:" + e.getMessage());
+      throw newLdapException(CLIENT_SIDE_PARAM_ERROR, "Unable to perform SSL initialization:" + e.getMessage());
     }
   }
 
@@ -259,21 +201,7 @@ public class ConnectionWrapper implements Closeable
    */
   public String getLdapUrl()
   {
-    return getEnvProperty(ldapContext, Context.PROVIDER_URL);
-  }
-
-  private static String getEnvProperty(InitialLdapContext ctx, String property)
-  {
-    try
-    {
-      return (String) ctx.getEnvironment().get(property);
-    }
-    catch (NamingException ne)
-    {
-      // This is really strange. Seems like a bug somewhere.
-      logger.warn(LocalizableMessage.raw("Naming exception getting environment of " + ctx, ne));
-      return null;
-    }
+    return (isLdaps() ? "ldaps" : "ldap") + "://" + getHostPort();
   }
 
   /**
@@ -296,45 +224,6 @@ public class ConnectionWrapper implements Closeable
     return getConnectionType() == START_TLS;
   }
 
-  private InitialLdapContext createAdministrativeContext() throws NamingException
-  {
-    final InitialLdapContext ctx = createAdministrativeContext0();
-    if (!connectedAsAdministrativeUser(ctx))
-    {
-      throw new NoPermissionException(ERR_NOT_ADMINISTRATIVE_USER.get().toString());
-    }
-    return ctx;
-  }
-
-  private InitialLdapContext createAdministrativeContext0() throws NamingException
-  {
-    final String ldapUrl = getLDAPUrl(getHostPort(), isLdaps());
-    final String bindDnStr = bindDn.toString();
-    switch (connectionType)
-    {
-    case LDAPS:
-      return createLdapsContext(ldapUrl, bindDnStr, bindPwd, connectTimeout, null, trustManager, keyManager);
-    case START_TLS:
-      return createStartTLSContext(ldapUrl, bindDnStr, bindPwd, connectTimeout, null, trustManager, keyManager, null);
-    case LDAP:
-      return createLdapContext(ldapUrl, bindDnStr, bindPwd, connectTimeout, null);
-    default:
-      throw new RuntimeException("Not implemented for connection type: " + connectionType);
-    }
-  }
-
-  private Connection buildConnection() throws NamingException
-  {
-    try
-    {
-      return connectionFactory.getConnection();
-    }
-    catch (LdapException e)
-    {
-      throw new NamingException("Unable to get a connection from connection factory:" + e.getMessage());
-    }
-  }
-
   /**
    * Returns the connection.
    *
@@ -353,16 +242,6 @@ public class ConnectionWrapper implements Closeable
   public PreferredConnection.Type getConnectionType()
   {
     return this.connectionType;
-  }
-
-  /**
-   * Returns the ldap context (JNDI).
-   *
-   * @return the ldap context
-   */
-  public InitialLdapContext getLdapContext()
-  {
-    return ldapContext;
   }
 
   /**
@@ -389,7 +268,6 @@ public class ConnectionWrapper implements Closeable
   public void close()
   {
     StaticUtils.close(connectionFactory, connection);
-    StaticUtils.close(ldapContext);
   }
 
   @Override

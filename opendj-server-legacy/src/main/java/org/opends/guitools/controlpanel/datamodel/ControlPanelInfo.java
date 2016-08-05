@@ -16,10 +16,8 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.server.tools.ConfigureWindowsService.*;
 
@@ -34,13 +32,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 
-import javax.naming.NamingException;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -63,6 +60,7 @@ import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -98,15 +96,14 @@ public class ControlPanelInfo
     ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE;
 
   private ServerDescriptor serverDesc;
-  private String ldapURL;
-  private String startTLSURL;
-  private String ldapsURL;
-  private String adminConnectorURL;
-  private String localAdminConnectorURL;
+  private HostPort ldapHostPort;
+  private HostPort startTlsHostPort;
+  private HostPort ldapsHostPort;
+  private HostPort adminConnectorHostPort;
+  private HostPort localAdminConnectorHostPort;
   private DN lastWorkingBindDN;
   private String lastWorkingBindPwd;
-  private String lastRemoteHostName;
-  private String lastRemoteAdministrationURL;
+  private HostPort lastRemoteHostPort;
 
   private boolean isLocal = true;
 
@@ -296,8 +293,7 @@ public class ControlPanelInfo
     {
       lastWorkingBindDN = connWrapper.getBindDn();
       lastWorkingBindPwd = connWrapper.getBindPassword();
-      lastRemoteHostName = connWrapper.getHostPort().getHost();
-      lastRemoteAdministrationURL = connWrapper.getLdapUrl();
+      lastRemoteHostPort = connWrapper.getHostPort();
     }
   }
 
@@ -313,12 +309,14 @@ public class ControlPanelInfo
   }
 
   /**
-   * Sets the dir context to be used by the ControlPanelInfo to retrieve
-   * user data.
-   * @param conn the connection.
-   * @throws NamingException if there is a problem updating the connection pool.
+   * Sets the connection to be used by the ControlPanelInfo to retrieve user data.
+   *
+   * @param conn
+   *          the connection.
+   * @throws LdapException
+   *           if there is a problem updating the connection pool.
    */
-  public void setUserDataDirContext(ConnectionWrapper conn) throws NamingException
+  public void setUserDataDirContext(ConnectionWrapper conn) throws LdapException
   {
     if (userDataConn != null)
     {
@@ -412,9 +410,9 @@ public class ControlPanelInfo
       desc.setInstancePath(Utils.getInstancePathFromInstallPath(installPath));
       desc.setWindowsServiceEnabled(isWindows() && serviceState() == SERVICE_STATE_ENABLED);
     }
-    else if (lastRemoteHostName != null)
+    else if (lastRemoteHostPort != null)
     {
-      desc.setHostname(lastRemoteHostName);
+      desc.setHostname(lastRemoteHostPort.getHost());
     }
 
     ConfigReader reader;
@@ -457,14 +455,14 @@ public class ControlPanelInfo
           {
             connWrapper = Utilities.getAdminDirContext(this, lastWorkingBindDN, lastWorkingBindPwd);
           }
-          else if (lastRemoteAdministrationURL != null)
+          else if (lastRemoteHostPort != null)
           {
             connWrapper = new ConnectionWrapper(
-                lastRemoteAdministrationURL, LDAPS, lastWorkingBindDN, lastWorkingBindPwd,
+                lastRemoteHostPort, LDAPS, lastWorkingBindDN, lastWorkingBindPwd,
                 getConnectTimeout(), getTrustManager());
           }
         }
-        catch (ConfigReadException | NamingException | IOException ignored)
+        catch (ConfigReadException | IOException ignored)
         {
           // Ignore: we will ask the user for credentials.
         }
@@ -549,14 +547,14 @@ public class ControlPanelInfo
     if (serverDesc == null || !serverDesc.equals(desc))
     {
       serverDesc = desc;
-      ldapURL = getURL(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAP);
-      ldapsURL = getURL(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAPS);
-      adminConnectorURL = getAdminConnectorURL(serverDesc);
+      ldapHostPort = getHostPort(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAP);
+      ldapsHostPort = getHostPort(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAPS);
+      adminConnectorHostPort = getAdminConnectorHostPort(serverDesc);
       if (serverDesc.isLocal())
       {
-        localAdminConnectorURL = adminConnectorURL;
+        localAdminConnectorHostPort = adminConnectorHostPort;
       }
-      startTLSURL = getURL(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAP_STARTTLS);
+      startTlsHostPort = getHostPort(serverDesc, ConnectionHandlerDescriptor.Protocol.LDAP_STARTTLS);
       ConfigurationChangeEvent ev = new ConfigurationChangeEvent(this, desc);
       for (ConfigChangeListener listener : configListeners)
       {
@@ -816,80 +814,79 @@ public class ControlPanelInfo
   }
 
   /**
-   * Gets the LDAPS URL based in what is read in the configuration. It
-   * returns {@code null} if no LDAPS URL was found.
-   * @return the LDAPS URL to be used to connect to the server.
+   * Gets the LDAPS HostPort based in what is read in the configuration. It
+   * returns {@code null} if no LDAPS HostPort was found.
+   * @return the LDAPS HostPort to be used to connect to the server.
    */
-  public String getLDAPSURL()
+  public HostPort getLdapsHostPort()
   {
-    return ldapsURL;
+    return ldapsHostPort;
   }
 
   /**
-   * Gets the Administration Connector URL based in what is read in the
+   * Gets the Administration Connector HostPort based in what is read in the
    * configuration. It returns {@code null} if no Administration
-   * Connector URL was found.
-   * @return the Administration Connector URL to be used to connect
+   * Connector HostPort was found.
+   * @return the Administration Connector HostPort to be used to connect
    * to the server.
    */
-  public String getAdminConnectorURL()
+  public HostPort getAdminConnectorHostPort()
   {
     if (isLocal)
     {
-      // If the user set isLocal to true, we want to return the localAdminConnectorURL
+      // If the user set isLocal to true, we want to return the localAdminConnectorHostPort
       // (in particular if regenerateDescriptor has not been called).
-      return localAdminConnectorURL;
+      return localAdminConnectorHostPort;
     }
-    return adminConnectorURL;
+    return adminConnectorHostPort;
   }
 
   /**
-   * Gets the Administration Connector URL based in what is read in the local
+   * Gets the Administration Connector HostPort based in what is read in the local
    * configuration. It returns {@code null} if no Administration
-   * Connector URL was found.
-   * @return the Administration Connector URL to be used to connect
+   * Connector HostPort was found.
+   * @return the Administration Connector HostPort to be used to connect
    * to the local server.
    */
-  public String getLocalAdminConnectorURL()
+  public HostPort getLocalAdminConnectorHostPort()
   {
-    return localAdminConnectorURL;
+    return localAdminConnectorHostPort;
   }
 
   /**
-   * Gets the LDAP URL based in what is read in the configuration.
-   * It returns {@code null} if no LDAP URL was found.
-   * @return the LDAP URL to be used to connect to the server.
+   * Gets the LDAP HostPort based in what is read in the configuration.
+   * It returns {@code null} if no LDAP HostPort was found.
+   * @return the LDAP HostPort to be used to connect to the server.
    */
-  public String getLDAPURL()
+  public HostPort getLdapHostPort()
   {
-    return ldapURL;
+    return ldapHostPort;
   }
 
   /**
-   * Gets the Start TLS URL based in what is read in the configuration. It
-   * returns {@code null} if no Start TLS URL is found.
-   * @return the Start TLS URL to be used to connect to the server.
+   * Gets the Start TLS HostPort based in what is read in the configuration. It
+   * returns {@code null} if no Start TLS HostPort is found.
+   * @return the Start TLS HostPort to be used to connect to the server.
    */
-  public String getStartTLSURL()
+  public HostPort getStartTlsHostPort()
   {
-    return startTLSURL;
+    return startTlsHostPort;
   }
 
   /**
-   * Returns the LDAP URL to be used to connect to a given ServerDescriptor
-   * using a certain protocol. It returns {@code null} if URL for the
+   * Returns the HostPort to be used to connect to a given ServerDescriptor
+   * using a certain protocol. It returns {@code null} if HostPort for the
    * protocol is not found.
    * @param server the server descriptor.
    * @param protocol the protocol to be used.
-   * @return the LDAP URL to be used to connect to a given ServerDescriptor
+   * @return the HostPort to be used to connect to a given ServerDescriptor
    * using a certain protocol.
    */
-  private static String getURL(ServerDescriptor server,
-      ConnectionHandlerDescriptor.Protocol protocol)
+  private static HostPort getHostPort(ServerDescriptor server, ConnectionHandlerDescriptor.Protocol protocol)
   {
-    String sProtocol = toString(protocol);
+    toString(protocol);
 
-    String url = null;
+    HostPort hp = null;
     for (ConnectionHandlerDescriptor desc : server.getConnectionHandlers())
     {
       if (desc.getState() == ConnectionHandlerDescriptor.State.ENABLED
@@ -903,22 +900,22 @@ public class ControlPanelInfo
             SortedSet<InetAddress> addresses = desc.getAddresses();
             if (addresses.isEmpty())
             {
-              url = sProtocol +"://localhost:"+port;
+              hp = new HostPort("localhost", port);
             }
             else
             {
               InetAddress address = addresses.first();
-              url = sProtocol + "://" + getHostNameForLdapUrl(address.getHostAddress()) + ":" + port;
+              hp = new HostPort(address.getHostAddress(), port);
             }
           }
           else
           {
-            url = sProtocol + "://" + getHostNameForLdapUrl(server.getHostname()) + ":" + port;
+            hp = new HostPort(server.getHostname(), port);
           }
         }
       }
     }
-    return url;
+    return hp;
   }
 
   private static String toString(ConnectionHandlerDescriptor.Protocol protocol)
@@ -940,12 +937,12 @@ public class ControlPanelInfo
   }
 
   /**
-   * Returns the Administration Connector URL.
-   * It returns {@code null} if URL for the protocol is not found.
+   * Returns the Administration Connector HostPort.
+   * It returns {@code null} if HostPort for the protocol is not found.
    * @param server the server descriptor.
-   * @return the Administration Connector URL.
+   * @return the Administration Connector HostPort.
    */
-  private static String getAdminConnectorURL(ServerDescriptor server) {
+  private static HostPort getAdminConnectorHostPort(ServerDescriptor server) {
     ConnectionHandlerDescriptor desc = server.getAdminConnector();
     if (desc != null)
     {
@@ -954,12 +951,11 @@ public class ControlPanelInfo
         SortedSet<InetAddress> addresses = desc.getAddresses();
         if (!addresses.isEmpty())
         {
-          String hostAddr = addresses.first().getHostAddress();
-          return getLDAPUrl(hostAddr, port, true);
+          return new HostPort(addresses.first().getHostAddress(), port);
         }
         else
         {
-          return getLDAPUrl("localhost", port, true);
+          return new HostPort("localhost", port);
         }
       }
     }
@@ -973,7 +969,7 @@ public class ControlPanelInfo
    */
   public boolean connectUsingStartTLS()
   {
-    return startTLSURL != null && startTLSURL.equals(getURLToConnect());
+    return startTlsHostPort != null && startTlsHostPort.equals(getHostPortToConnect());
   }
 
   /**
@@ -982,49 +978,49 @@ public class ControlPanelInfo
    */
   public boolean connectUsingLDAPS()
   {
-    return ldapsURL != null && ldapsURL.equals(getURLToConnect());
+    return ldapsHostPort != null && ldapsHostPort.equals(getHostPortToConnect());
   }
 
   /**
-   * Returns the URL that must be used to connect to the server based on the
+   * Returns the HostPort that must be used to connect to the server based on the
    * available enabled connection handlers in the server and the connection
    * policy.
-   * @return the URL that must be used to connect to the server.
+   * @return the HostPort that must be used to connect to the server.
    */
-  public String getURLToConnect()
+  private HostPort getHostPortToConnect()
   {
     switch (getConnectionPolicy())
     {
     case USE_STARTTLS:
-      return startTLSURL;
+      return startTlsHostPort;
     case USE_LDAP:
-      return ldapURL;
+      return ldapHostPort;
     case USE_LDAPS:
-      return ldapsURL;
+      return ldapsHostPort;
     case USE_ADMIN:
-      return getAdminConnectorURL();
+      return getAdminConnectorHostPort();
     case USE_MOST_SECURE_AVAILABLE:
-      String url1 = ldapsURL;
-      if (url1 == null)
+      HostPort hp1 = ldapsHostPort;
+      if (hp1 == null)
       {
-        url1 = startTLSURL;
+        hp1 = startTlsHostPort;
       }
-      if (url1 == null)
+      if (hp1 == null)
       {
-        url1 = ldapURL;
+        hp1 = ldapHostPort;
       }
-      return url1;
+      return hp1;
     case USE_LESS_SECURE_AVAILABLE:
-      String url2 = ldapURL;
-      if (url2 == null)
+      HostPort hp2 = ldapHostPort;
+      if (hp2 == null)
       {
-        url2 = startTLSURL;
+        hp2 = startTlsHostPort;
       }
-      if (url2 == null)
+      if (hp2 == null)
       {
-        url2 = ldapsURL;
+        hp2 = ldapsHostPort;
       }
-      return url2;
+      return hp2;
     default:
       throw new RuntimeException("Unknown policy: "+getConnectionPolicy());
     }
@@ -1190,7 +1186,7 @@ public class ControlPanelInfo
         }
         return true;
       }
-      catch (NamingException ne)
+      catch (RuntimeException ignored)
       {
         try
         {

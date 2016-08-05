@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.ui;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -43,6 +42,7 @@ import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
@@ -58,7 +58,7 @@ public class LoginPanel extends StatusGenericPanel
   private JTextField dn;
   private JLabel pwdLabel;
   private JLabel dnLabel;
-  private String usedUrl;
+  private HostPort usedHostPort;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -187,7 +187,7 @@ public class LoginPanel extends StatusGenericPanel
           try
           {
             ControlPanelInfo info = getInfo();
-            usedUrl = info.getAdminConnectorURL();
+            usedHostPort = info.getAdminConnectorHostPort();
             conn = Utilities.getAdminDirContext(info, DN.valueOf(dn.getText()), String.valueOf(pwd.getPassword()));
 
             org.forgerock.util.Utils.closeSilently(info.getConnection(), info.getUserDataDirContext());
@@ -251,21 +251,8 @@ public class LoginPanel extends StatusGenericPanel
 
               if (excType != null)
               {
-                String h;
-                int p;
-                try
-                {
-                  URI uri = new URI(usedUrl);
-                  h = uri.getHost();
-                  p = uri.getPort();
-                }
-                catch (Throwable t)
-                {
-                  logger.warn(LocalizableMessage.raw(
-                      "Error parsing ldap url of ldap url.", t));
-                  h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-                  p = -1;
-                }
+                String h = usedHostPort.getHost();
+                int p = usedHostPort.getPort();
                 UserDataCertificateException udce =
                   new UserDataCertificateException(null,
                       INFO_CERTIFICATE_EXCEPTION.get(h, p),

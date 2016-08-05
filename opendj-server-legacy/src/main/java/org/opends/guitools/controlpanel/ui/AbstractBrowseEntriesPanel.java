@@ -34,7 +34,6 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -46,7 +45,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.naming.NamingException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -74,6 +72,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -98,6 +97,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.ServerConstants;
 
 /**
@@ -1225,7 +1225,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           }
           displayNodes = true;
         }
-        catch (IOException | NamingException e)
+        catch (IOException e)
         {
           errorTitle = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_DETAILS.get();
           errorDetails = INFO_CTRL_PANEL_ERROR_CONNECT_BROWSE_SUMMARY.get(e);
@@ -1379,33 +1379,31 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
   }
 
   /**
-   * Creates the context to be used to retrieve user data for some given
-   * credentials.
+   * Creates the context to be used to retrieve user data for some given credentials.
    *
    * @param bindDN
    *          the bind DN.
    * @param bindPassword
    *          the bind password.
-   * @return the context to be used to retrieve user data for some given
-   *         credentials.
-   * @throws NamingException
+   * @return the context to be used to retrieve user data for some given credentials.
+   * @throws IOException
    *           if an error occurs connecting to the server.
    * @throws ConfigReadException
    *           if an error occurs reading the configuration.
    */
   private ConnectionWrapper createUserDataDirContext(final DN bindDN, final String bindPassword)
-      throws NamingException, IOException, ConfigReadException
+      throws IOException, ConfigReadException
   {
     createdUserDataConn = null;
     try
     {
       createdUserDataConn = Utilities.getUserDataDirContext(getInfo(), bindDN, bindPassword);
     }
-    catch (NamingException ne)
+    catch (LdapException e)
     {
-      if (!isCertificateException(ne))
+      if (!isCertificateException(e))
       {
-        throw ne;
+        throw e;
       }
 
       ApplicationTrustManager trustManager = getInfo().getTrustManager();
@@ -1424,22 +1422,11 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
 
       if (excType != null)
       {
-        String h;
-        int p;
-        try
-        {
-          URI uri = new URI(getInfo().getAdminConnectorURL());
-          h = uri.getHost();
-          p = uri.getPort();
-        }
-        catch (Throwable t)
-        {
-          logger.warn(LocalizableMessage.raw("Error parsing ldap url of ldap url.", t));
-          h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-          p = -1;
-        }
+        HostPort hp = getInfo().getAdminConnectorHostPort();
+        String h = hp.getHost();
+        int p = hp.getPort();
         final UserDataCertificateException udce = new UserDataCertificateException(
-            null, INFO_CERTIFICATE_EXCEPTION.get(h, p), ne, h, p, trustManager.getLastRefusedChain(),
+            null, INFO_CERTIFICATE_EXCEPTION.get(h, p), e, h, p, trustManager.getLastRefusedChain(),
             trustManager.getLastRefusedAuthType(), excType);
 
         handleCertificateExceptionInSwing(bindDN, bindPassword, udce);
@@ -1449,7 +1436,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
   }
 
   private void handleCertificateExceptionInSwing(final DN bindDN, final String bindPassword,
-      final UserDataCertificateException udce) throws NamingException, IOException, ConfigReadException
+      final UserDataCertificateException udce) throws IOException, ConfigReadException
   {
     if (SwingUtilities.isEventDispatchThread())
     {
@@ -1458,7 +1445,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
     else
     {
       final ConfigReadException[] fcre = { null };
-      final NamingException[] fne = { null };
+      final LdapException[] fne = { null };
       final IOException[] fioe = { null };
       try
       {
@@ -1475,9 +1462,9 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
             {
               fcre[0] = cre;
             }
-            catch (NamingException ne)
+            catch (LdapException e)
             {
-              fne[0] = ne;
+              fne[0] = e;
             }
             catch (IOException ioe)
             {
@@ -1517,7 +1504,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    *          the bind password.
    */
   private void handleCertificateException(UserDataCertificateException ce, DN bindDN, String bindPassword)
-      throws NamingException, IOException, ConfigReadException
+      throws IOException, ConfigReadException
   {
     CertificateDialog dlg = new CertificateDialog(null, ce);
     dlg.pack();

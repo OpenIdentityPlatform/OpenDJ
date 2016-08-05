@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.PrintStream;
 import java.net.InetAddress;
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1468,8 +1467,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       getUninstallUserData().setAdminUID(loginDialog.getAdministratorUid());
       getUninstallUserData().setAdminPwd(loginDialog.getAdministratorPwd());
-      final ConnectionWrapper connWrapper = loginDialog.getConnection();
-      getUninstallUserData().setLocalServerUrl(connWrapper.getLdapUrl());
+      final ConnectionWrapper conn = loginDialog.getConnection();
+      getUninstallUserData().setLocalServer(conn.getHostPort(), conn.isLdaps());
       getUninstallUserData().setReplicationServer(
           loginDialog.getHostName() + ":" +
           conf.getReplicationServerPort());
@@ -1481,7 +1480,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         public TopologyCache processBackgroundTask() throws Throwable
         {
           logger.info(LocalizableMessage.raw("Loading Topology Cache in askForAuthentication"));
-          ADSContext adsContext = new ADSContext(connWrapper);
+          ADSContext adsContext = new ADSContext(conn);
           TopologyCache cache = new TopologyCache(adsContext,
               getTrustManager(), getConnectTimeout());
           cache.getFilter().setSearchMonitoringInformation(false);
@@ -1586,21 +1585,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           UserDataCertificateException.Type excType = getCertificateExceptionType(cause);
           if (excType != null)
           {
-            String h;
-            int p;
-            try
-            {
-              URI uri = new URI(e.getLdapUrl());
-              h = uri.getHost();
-              p = uri.getPort();
-            }
-            catch (Throwable t)
-            {
-              logger.warn(LocalizableMessage.raw(
-                  "Error parsing ldap url of TopologyCacheException.", t));
-              h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-              p = -1;
-            }
+            HostPort hp = e.getHostPort();
+            String h = hp.getHost();
+            int p = hp.getPort();
             UserDataCertificateException exc =
               new UserDataCertificateException(Step.REPLICATION_OPTIONS,
                 INFO_CERTIFICATE_EXCEPTION.get(h, p),
@@ -2044,21 +2031,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       // Compare the port of the URL we used.
       try
       {
-        String usedUrl = getUninstallUserData().getLocalServerUrl();
-        boolean isSecure = usedUrl.toLowerCase().startsWith("ldaps");
-        URI uri = new URI(usedUrl);
-        int port = uri.getPort();
-        ServerDescriptor.ServerProperty property;
-        if (isSecure)
-        {
-          property = ServerDescriptor.ServerProperty.ADMIN_PORT;
-        }
-        else
-        {
-          property = ServerDescriptor.ServerProperty.LDAP_PORT;
-        }
-        ArrayList<?> ports =
-          (ArrayList<?>)server.getServerProperties().get(property);
+        UninstallUserData uData = getUninstallUserData();
+        HostPort usedHostPort = uData.getLocalServerHostPort();
+        boolean isSecure = uData.isLocalServerSecure();
+        int port = usedHostPort.getPort();
+        ServerDescriptor.ServerProperty property = isSecure
+            ? ServerDescriptor.ServerProperty.ADMIN_PORT
+            : ServerDescriptor.ServerProperty.LDAP_PORT;
+        ArrayList<?> ports = (ArrayList<?>) server.getServerProperties().get(property);
         if (ports != null)
         {
           isServerToUninstall = ports.contains(port);
@@ -2066,15 +2046,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         else
         {
           // This occurs if the instance could not be loaded.
-          ADSContext.ServerProperty adsProperty;
-          if (isSecure)
-          {
-            adsProperty = ADSContext.ServerProperty.ADMIN_PORT;
-          }
-          else
-          {
-            adsProperty = ADSContext.ServerProperty.LDAP_PORT;
-          }
+          ADSContext.ServerProperty adsProperty = isSecure
+              ? ADSContext.ServerProperty.ADMIN_PORT
+              : ADSContext.ServerProperty.LDAP_PORT;
           String v = (String)server.getAdsProperties().get(adsProperty);
           if (v != null)
           {

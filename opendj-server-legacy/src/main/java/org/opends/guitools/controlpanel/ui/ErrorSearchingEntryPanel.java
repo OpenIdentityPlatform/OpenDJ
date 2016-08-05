@@ -20,14 +20,12 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingException;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
-import org.opends.guitools.controlpanel.browser.ReferralLimitExceededException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.LDAPURL;
@@ -35,6 +33,7 @@ import org.opends.server.types.OpenDsException;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 /** The panel that is displayed when there is an error searching an entry. */
@@ -124,10 +123,10 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
     }
     details.append(INFO_CTRL_PANEL_ERROR_RESOLVING_REFERRAL_MSG.get(dn, sb));
     Exception ex = error.getException();
-    if (ex instanceof NamingException)
+    if (ex instanceof LdapException)
     {
       Object arg = error.getArg();
-      LocalizableMessage msg = getErrorMsg(ex, arg);
+      LocalizableMessage msg = getErrorMsg((LdapException) ex, arg);
       if (arg != null)
       {
         details.append("<br><br>").append(ERR_CTRL_PANEL_RESOLVING_REFERRAL_DETAILS.get(arg, msg));
@@ -151,24 +150,24 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
         details.toMessage(), ColorAndFontConstants.defaultFont);
   }
 
-  private LocalizableMessage getErrorMsg(Exception ex, Object arg)
+  private LocalizableMessage getErrorMsg(LdapException ex, Object arg)
   {
     LocalizableMessage msg = getErrorMsg0(ex, arg);
     if (msg != null)
     {
       return msg;
     }
-    else if (ex instanceof ReferralLimitExceededException)
+    else if (CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.equals(ex.getResult().getResultCode()))
     {
       return LocalizableMessage.raw(ex.getLocalizedMessage());
     }
     else
     {
-      return Utils.getMessageForException((NamingException) ex);
+      return Utils.getMessageForException(ex);
     }
   }
 
-  private LocalizableMessage getErrorMsg0(Exception ex, Object arg)
+  private LocalizableMessage getErrorMsg0(LdapException ex, Object arg)
   {
     if (arg == null)
     {
@@ -182,30 +181,30 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
       if (url.getHost() != null)
       {
         String hostPort = url.getHost() + ":" + url.getPort();
-        if (ex instanceof ReferralLimitExceededException)
+        if (CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.equals(ex.getResult().getResultCode()))
         {
           return LocalizableMessage.raw(ex.getLocalizedMessage());
         }
-        else if (ex instanceof NameNotFoundException)
+        else if (ex instanceof EntryNotFoundException)
         {
           return ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL.get(arg, hostPort);
         }
         else
         {
-          return getMessageForException((NamingException) ex, hostPort);
+          return getMessageForException(ex, hostPort);
         }
       }
-      else if (ex instanceof ReferralLimitExceededException)
+      else if (CLIENT_SIDE_REFERRAL_LIMIT_EXCEEDED.equals(ex.getResult().getResultCode()))
       {
         return LocalizableMessage.raw(ex.getLocalizedMessage());
       }
-      else if (ex instanceof NameNotFoundException)
+      else if (ex instanceof EntryNotFoundException)
       {
         return ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL_NO_HOST.get(arg);
       }
       else
       {
-        return Utils.getMessageForException((NamingException) ex);
+        return Utils.getMessageForException(ex);
       }
     }
     catch (Throwable t)

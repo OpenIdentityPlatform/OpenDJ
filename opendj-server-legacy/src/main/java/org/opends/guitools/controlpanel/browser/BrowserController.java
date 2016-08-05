@@ -24,17 +24,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
 import javax.swing.Icon;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -46,9 +41,10 @@ import javax.swing.tree.TreePath;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.SortKey;
-import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ManageDsaITRequestControl;
 import org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -861,10 +857,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /**
    * Return the LDAP connection to reading the base entry of a node.
    * @param node the node for which we want the LDAP connection.
-   * @throws NamingException if there is an error retrieving the connection.
+   * @throws LdapException if there is an error retrieving the connection.
    * @return the LDAP connection to reading the base entry of a node.
    */
-  ConnectionWithControls findConnectionForLocalEntry(BasicNode node) throws NamingException {
+  ConnectionWithControls findConnectionForLocalEntry(BasicNode node) throws LdapException {
     return findConnectionForLocalEntry(node, isConfigurationNode(node));
   }
 
@@ -872,11 +868,11 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * Return the LDAP connection to reading the base entry of a node.
    * @param node the node for which we want toe LDAP connection.
    * @param isConfigurationNode whether the node is a configuration node or not.
-   * @throws NamingException if there is an error retrieving the connection.
+   * @throws LdapException if there is an error retrieving the connection.
    * @return the LDAP connection to reading the base entry of a node.
    */
   private ConnectionWithControls findConnectionForLocalEntry(BasicNode node,
-      boolean isConfigurationNode) throws NamingException
+      boolean isConfigurationNode) throws LdapException
   {
     if (node == rootNode) {
       return connConfig;
@@ -893,8 +889,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   /**
    * Returns whether a given node is a configuration node or not.
    * @param node the node to analyze.
-   * @return {@code true} if the node is a configuration node and
-   * {@code false} otherwise.
+   * @return {@code true} if the node is a configuration node, {@code false} otherwise.
    */
   public boolean isConfigurationNode(BasicNode node)
   {
@@ -926,9 +921,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * local or remote entry).
    * @param node the node for which we want toe LDAP connection.
    * @return the LDAP connection to search the displayed entry.
-   * @throws NamingException if there is an error retrieving the connection.
+   * @throws LdapException if there is an error retrieving the connection.
    */
-  public ConnectionWithControls findConnectionForDisplayedEntry(BasicNode node) throws NamingException {
+  public ConnectionWithControls findConnectionForDisplayedEntry(BasicNode node) throws LdapException {
     return findConnectionForDisplayedEntry(node, isConfigurationNode(node));
   }
 
@@ -938,10 +933,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    * @param node the node for which we want toe LDAP connection.
    * @param isConfigurationNode whether the node is a configuration node or not.
    * @return the LDAP connection to search the displayed entry.
-   * @throws NamingException if there is an error retrieving the connection.
+   * @throws LdapException if there is an error retrieving the connection.
    */
   private ConnectionWithControls findConnectionForDisplayedEntry(BasicNode node,
-      boolean isConfigurationNode) throws NamingException {
+      boolean isConfigurationNode) throws LdapException {
     if (isFollowReferrals() && node.getRemoteUrl() != null)
     {
       return connectionPool.getConnection(node.getRemoteUrl());
@@ -1078,34 +1073,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   }
 
   /**
-   * Returns the basic search controls.
-   * @return the basic search controls.
-   */
-  SearchControls getBasicSearchControls() {
-    SearchControls searchControls = new SearchControls();
-    searchControls.setCountLimit(maxChildren);
-    return searchControls;
-  }
-
-  /**
-   * Returns the request controls to search user data.
-   * @return the request controls to search user data.
-   */
-  private List<Control> getRequestControls()
-  {
-    List<Control> controls = new LinkedList<>();
-    if (sortControl != null)
-    {
-      controls.add(sortControl);
-    }
-    if (isFollowReferrals())
-    {
-      controls.add(followReferralsControl);
-    }
-    return controls;
-  }
-
-  /**
    * Callbacks invoked by task classes
    * =================================
    *
@@ -1145,11 +1112,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     }
 
     if (newState == NodeRefresher.State.FAILED) {
-      // In case of NameNotFoundException, we simply remove the node from the
-      // tree.
+      // In case of EntryNotFoundException, we simply remove the node from the tree.
       // Except when it's due a to referral resolution: we keep the node
       // in order the user can fix the referral.
-      if (isNameNotFoundException(task.getException())
+      if (task.getException() instanceof EntryNotFoundException
           && oldState != NodeRefresher.State.SOLVING_REFERRAL) {
         removeOneNode(node);
       }
@@ -1697,14 +1663,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     // A node matches suffixDn however it's not a suffix node.
     // There's a bug in the caller.
     throw new IllegalArgumentException(suffixDn + " is not a suffix node");
-  }
-
-  /**
-   * Return {@code true} if x is a non {@code null} NameNotFoundException.
-   * @return {@code true} if x is a non {@code null} NameNotFoundException.
-   */
-  private boolean isNameNotFoundException(Object x) {
-    return x instanceof NameNotFoundException;
   }
 
   /**

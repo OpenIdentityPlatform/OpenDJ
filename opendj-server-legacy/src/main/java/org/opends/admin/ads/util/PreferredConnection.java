@@ -16,8 +16,13 @@
  */
 package org.opends.admin.ads.util;
 
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
+
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
+
+import org.opends.server.types.HostPort;
 
 /**
  * A simple class that is used to be able to specify which URL and connection
@@ -36,18 +41,18 @@ public class PreferredConnection
     START_TLS
   }
 
-  private final String ldapUrl;
+  private final HostPort hostPort;
   private final Type type;
 
   /**
    * The constructor of the PreferredConnection.
-   * @param ldapUrl the LDAP URL to connect to the server.
+   * @param hostPort the host and port to connect to the server.
    * @param type the type of connection to be used to connect (required to
    * differentiate StartTLS and regular LDAP).
    */
-  public PreferredConnection(String ldapUrl, Type type)
+  public PreferredConnection(HostPort hostPort, Type type)
   {
-    this.ldapUrl = ldapUrl;
+    this.hostPort = hostPort;
     this.type = type;
   }
 
@@ -57,11 +62,22 @@ public class PreferredConnection
    */
   public String getLDAPURL()
   {
-    return ldapUrl;
+    return (type == LDAPS ? "ldaps" : "ldap") + "://" + hostPort;
+  }
+
+  /**
+   * Returns the host name and port number.
+   *
+   * @return the hostPort
+   */
+  public HostPort getHostPort()
+  {
+    return hostPort;
   }
 
   /**
    * Returns the type of the connection.
+   *
    * @return the type of the connection.
    */
   public Type getType()
@@ -72,7 +88,7 @@ public class PreferredConnection
   @Override
   public int hashCode()
   {
-    return (type + ldapUrl.toLowerCase()).hashCode();
+    return Objects.hash(type, hostPort);
   }
 
   @Override
@@ -85,8 +101,8 @@ public class PreferredConnection
     if (o instanceof PreferredConnection)
     {
       PreferredConnection p = (PreferredConnection)o;
-      return type == p.type
-          && ldapUrl.equalsIgnoreCase(p.getLDAPURL());
+      return Objects.equals(type, p.type)
+          && Objects.equals(hostPort, p.hostPort);
     }
     return false;
   }
@@ -94,7 +110,7 @@ public class PreferredConnection
   @Override
   public String toString()
   {
-    return type + ": " + ldapUrl;
+    return getLDAPURL();
   }
 
   /**
@@ -105,7 +121,7 @@ public class PreferredConnection
    */
   private static PreferredConnection getPreferredConnection(ConnectionWrapper conn)
   {
-    return new PreferredConnection(conn.getLdapUrl(), conn.getConnectionType());
+    return new PreferredConnection(conn.getHostPort(), conn.getConnectionType());
   }
 
   /**

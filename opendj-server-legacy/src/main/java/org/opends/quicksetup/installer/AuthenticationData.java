@@ -16,7 +16,10 @@
  */
 package org.opends.quicksetup.installer;
 
+import static org.opends.admin.ads.util.PreferredConnection.Type.*;
+
 import org.forgerock.opendj.ldap.DN;
+import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.server.types.HostPort;
 
 /**
@@ -30,7 +33,7 @@ public class AuthenticationData
   private HostPort hostPort = new HostPort(null, 0);
   private DN dn;
   private String pwd;
-  private boolean useSecureConnection;
+  private Type connectionType;
 
   /**
    * Sets the server LDAP port.
@@ -106,12 +109,11 @@ public class AuthenticationData
 
   /**
    * Returns whether to use a secure connection or not.
-   * @return <CODE>true</CODE> if we must use a secure connection and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if we must use a secure connection, {@code false} otherwise.
    */
   public boolean useSecureConnection()
   {
-    return useSecureConnection;
+    return connectionType == LDAPS;
   }
 
   /**
@@ -120,13 +122,11 @@ public class AuthenticationData
    */
   public void setUseSecureConnection(boolean useSecureConnection)
   {
-    this.useSecureConnection = useSecureConnection;
+    connectionType = useSecureConnection ? LDAPS : LDAP;
   }
 
-  String getLdapUrl()
+  Type getConnectionType()
   {
-    HostPort hostPort = getHostPort();
-    String scheme = useSecureConnection() ? "ldaps" : "ldap";
-    return scheme + "://" + hostPort.getHost() + ":" + hostPort.getPort();
+    return connectionType;
   }
 }
