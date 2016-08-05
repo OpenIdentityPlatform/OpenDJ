@@ -188,39 +188,6 @@ public class ConnectionUtils
   }
 
   /**
-   * Clones the provided InitialLdapContext and returns a connection using
-   * the same parameters.
-   * @param conn the connection to be cloned.
-   * @param timeout the timeout to establish the connection in milliseconds.
-   * Use {@code 0} to express no timeout.
-   * @param trustManager the trust manager to be used to connect.
-   * @param keyManager the key manager to be used to connect.
-   * @return the new InitialLdapContext connected to the server.
-   * @throws NamingException if there was an error creating the new connection.
-   */
-  public static ConnectionWrapper cloneConnectionWrapper(
-      final ConnectionWrapper conn, int timeout, final TrustManager trustManager,
-      final KeyManager keyManager) throws NamingException
-  {
-    final Object[] pair = { null, null };
-    Thread t = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          if (conn.isLdaps() || conn.isStartTls())
-          {
-            TrustedSocketFactory.setCurrentThreadTrustManager(trustManager, keyManager);
-          }
-          pair[0] = new ConnectionWrapper(conn);
-        } catch (NamingException | RuntimeException ne) {
-          pair[1] = ne;
-        }
-      }
-    });
-    return ConnectionUtils.<ConnectionWrapper> getConnection(t, pair, timeout);
-  }
-
-  /**
    * Creates an LDAP+StartTLS connection and returns the corresponding
    * LdapContext.
    * This method first creates an LdapContext with anonymous bind. Then it
@@ -392,11 +359,6 @@ public class ConnectionUtils
   private static InitialLdapContext getInitialLdapContext(Thread t,
       Object[] pair, int timeout) throws NamingException
   {
-    return ConnectionUtils.<InitialLdapContext> getConnection(t, pair, timeout);
-  }
-
-  private static <T> T getConnection(Thread t, Object[] pair, int timeout) throws NamingException
-  {
     try
     {
       if (timeout > 0)
@@ -449,7 +411,7 @@ public class ConnectionUtils
         throw new IllegalStateException("Unexpected throwable occurred", (Throwable) ex);
       }
     }
-    return (T) connection;
+    return (InitialLdapContext) connection;
   }
 
   private static NamingException connectionTimedOut()

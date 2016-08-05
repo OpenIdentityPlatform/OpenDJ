@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.task;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
@@ -41,11 +40,9 @@ import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
-import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
-import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -396,16 +393,9 @@ public class DeleteEntryTask extends Task
                     ColorAndFontConstants.defaultFont)));
       }
     });
-    // Use a copy of the connection since we are using a specific
-    // control to delete the subtree and this can cause
-    // synchronization problems when the tree is refreshed.
-    ControlPanelInfo info = getInfo();
-    try (ConnectionWrapper conn1 =
-        cloneConnectionWrapper(conn.getConnectionWrapper(), info.getConnectTimeout(), info.getTrustManager(), null))
-    {
-      DeleteRequest request = newDeleteRequest(dn).addControl(SubtreeDeleteRequestControl.newControl(true));
-      conn1.getConnection().delete(request);
-    }
+
+    conn.delete(newDeleteRequest(dn).addControl(SubtreeDeleteRequestControl.newControl(true)));
+
     nDeleted ++;
     lastProgressTime = t;
     if (path != null)

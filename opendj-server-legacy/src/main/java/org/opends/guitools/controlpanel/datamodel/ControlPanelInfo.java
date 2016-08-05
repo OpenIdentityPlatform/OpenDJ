@@ -327,8 +327,7 @@ public class ControlPanelInfo
     this.userDataConn = conn;
     if (conn != null)
     {
-      ConnectionWrapper cloneConn = cloneConnectionWrapper(userDataConn, getConnectTimeout(), getTrustManager(), null);
-      connectionPool.registerConnection(cloneConn);
+      connectionPool.registerConnection(new ConnectionWrapper(userDataConn));
     }
   }
 
