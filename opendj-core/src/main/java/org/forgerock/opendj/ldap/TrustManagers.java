@@ -136,7 +136,7 @@ public final class TrustManagers {
                 }
                 throw new CertificateException(ERR_CERT_NO_MATCH_SUBJECT.get(principal, hostName).toString());
             } catch (final CertificateException e) {
-                logger.warn(LocalizableMessage.raw("Certificate verification problem for: " + principal), e);
+                logger.warn(LocalizableMessage.raw("Certificate verification problem for: %s", principal), e);
                 throw e;
             }
         }
@@ -349,12 +349,12 @@ public final class TrustManagers {
                 } catch (final CertificateExpiredException e) {
                     logger.warn(LocalizableMessage.raw(
                             "Refusing to trust security certificate \'%s\' because it expired on %s",
-                            c.getSubjectDN().getName(), String.valueOf(c.getNotAfter())));
+                            c.getSubjectDN().getName(), c.getNotAfter()));
                     throw e;
                 } catch (final CertificateNotYetValidException e) {
                     logger.warn(LocalizableMessage.raw(
                             "Refusing to trust security  certificate \'%s\' because it is not valid until %s",
-                            c.getSubjectDN().getName(), String.valueOf(c.getNotBefore())));
+                            c.getSubjectDN().getName(), c.getNotBefore()));
                     throw e;
                 }
             }
@@ -391,7 +391,6 @@ public final class TrustManagers {
 
     /** An X509TrustManager which trusts all certificates. */
     private static final class TrustAll implements X509TrustManager {
-
         /** Single instance. */
         private static final TrustAll INSTANCE = new TrustAll();
 
@@ -510,19 +509,12 @@ public final class TrustManagers {
                 TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         tmf.init(keyStore);
 
-        X509TrustManager x509tm = null;
         for (final TrustManager tm : tmf.getTrustManagers()) {
             if (tm instanceof X509TrustManager) {
-                x509tm = (X509TrustManager) tm;
-                break;
+                return (X509TrustManager) tm;
             }
         }
-
-        if (x509tm == null) {
-            throw new NoSuchAlgorithmException();
-        }
-
-        return x509tm;
+        throw new NoSuchAlgorithmException();
     }
 
     /**
@@ -561,9 +553,8 @@ public final class TrustManagers {
         return TrustAll.INSTANCE;
     }
 
-    /** Prevent insantiation. */
+    /** Prevent instantiation. */
     private TrustManagers() {
         // Nothing to do.
     }
-
 }

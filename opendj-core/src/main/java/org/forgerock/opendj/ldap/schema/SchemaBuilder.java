@@ -105,7 +105,7 @@ public final class SchemaBuilder {
         if (subentryAttr == null || subentryAttr.isEmpty()) {
             // Did not get the subschema sub-entry attribute.
             throw newLdapException(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
-                    ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString()).toString());
+                    ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name).toString());
         }
 
         final String dnString = subentryAttr.iterator().next().toString();
@@ -114,8 +114,7 @@ public final class SchemaBuilder {
             subschemaDN = DN.valueOf(dnString);
         } catch (final LocalizedIllegalArgumentException e) {
             throw newLdapException(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
-                    ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(), dnString,
-                            e.getMessageObject()).toString());
+                    ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name, dnString, e.getMessageObject()).toString());
         }
         return subschemaDN;
     }
@@ -798,8 +797,7 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    final List<String> extensions = readExtensions(reader);
-                    matchingRuleBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
+                    matchingRuleBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_MR_ILLEGAL_TOKEN1.get(definition, tokenName));
@@ -1112,8 +1110,7 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    final List<String> extensions = readExtensions(reader);
-                    nameFormBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
+                    nameFormBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_TOKEN1.get(definition, tokenName));
@@ -1439,8 +1436,7 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    final List<String> extensions = readExtensions(reader);
-                    ocBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
+                    ocBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_TOKEN1.get(definition, tokenName));
@@ -1915,8 +1911,7 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    final List<String> extensions = readExtensions(reader);
-                    syntaxBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
+                    syntaxBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName));
@@ -2491,8 +2486,8 @@ public final class SchemaBuilder {
         if (numericOID2Syntaxes.containsKey(syntax.getOID())) {
             conflictingSyntax = numericOID2Syntaxes.get(syntax.getOID());
             if (!overwrite) {
-                final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.get(syntax.toString(),
-                        syntax.getOID(), conflictingSyntax.getOID());
+                final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.get(
+                        syntax, syntax.getOID(), conflictingSyntax.getOID());
                 throw new ConflictingSchemaElementException(message);
             }
             removeSyntax(conflictingSyntax, null);
@@ -2711,8 +2706,7 @@ public final class SchemaBuilder {
                 syntax.validate(schema, warnings);
             } catch (final SchemaException e) {
                 removeSyntax(syntax, names);
-                warnings.add(ERR_SYNTAX_VALIDATION_FAIL
-                        .get(syntax.toString(), e.getMessageObject()));
+                warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(syntax, e.getMessageObject()));
             }
         }
 
@@ -2722,7 +2716,7 @@ public final class SchemaBuilder {
                 rule.validate(schema, warnings);
             } catch (final SchemaException e) {
                 removeMatchingRule(rule, names);
-                warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(), e.getMessageObject()));
+                warnings.add(ERR_MR_VALIDATION_FAIL.get(rule, e.getMessageObject()));
             }
         }
 
@@ -2754,7 +2748,7 @@ public final class SchemaBuilder {
                 use.validate(schema, warnings);
             } catch (final SchemaException e) {
                 removeMatchingRuleUse(use, names);
-                warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(), e.getMessageObject()));
+                warnings.add(ERR_MRU_VALIDATION_FAIL.get(use, e.getMessageObject()));
             }
         }
 
@@ -2777,8 +2771,7 @@ public final class SchemaBuilder {
                 }
             } catch (final SchemaException e) {
                 removeNameForm(form, names);
-                warnings.add(ERR_NAMEFORM_VALIDATION_FAIL
-                        .get(form.toString(), e.getMessageObject()));
+                warnings.add(ERR_NAMEFORM_VALIDATION_FAIL.get(form, e.getMessageObject()));
             }
         }
 
@@ -2788,7 +2781,7 @@ public final class SchemaBuilder {
                 rule.validate(schema, warnings);
             } catch (final SchemaException e) {
                 removeDITContentRule(rule, names);
-                warnings.add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(), e.getMessageObject()));
+                warnings.add(ERR_DCR_VALIDATION_FAIL.get(rule, e.getMessageObject()));
             }
         }
 
