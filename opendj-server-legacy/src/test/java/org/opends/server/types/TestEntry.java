@@ -21,8 +21,10 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -632,5 +634,55 @@ public final class TestEntry extends TypesTestCase {
     assertThat(e.getOperationalAttribute(AttributeDescription.create(nameType, options))).isEmpty();
     assertThat(e.getOperationalAttribute(AttributeDescription.create(uidType, options))).isEmpty();
     assertThat(e.getOperationalAttribute(AttributeDescription.create(mnType, options))).isEmpty();
+  }
+
+  @Test
+  public void testGetAllAttributes() throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    List<String> expectedAttrNames = newArrayList(
+        "cn", "cn;lang-en-US", "sn", "sn;lang-en-US", "givenName", "givenName;lang-en-US", "creatorsName",
+        "createTimestamp", "modifyTimestamp", "modifiersName");
+
+    Iterator<Attribute> allAttrsIt = e.getAllAttributes().iterator();
+    Iterator<String> expectedAttrNameIt = expectedAttrNames.iterator();
+    do
+    {
+      assertThat(getNames(e.getAllAttributes())).containsOnly(expectedAttrNames.toArray(new String[0]));
+      assertThat(getName(allAttrsIt.next())).isEqualTo(expectedAttrNameIt.next());
+    }
+    while (allAttrsIt.hasNext());
+    System.out.println();
+  }
+
+  private List<String> getNames(Iterable<Attribute> allAttributes)
+  {
+    List<String> results = new ArrayList<>();
+    for (Attribute attr : allAttributes)
+    {
+      results.add(getName(attr));
+    }
+    return results;
+  }
+
+  private String getName(Attribute attr)
+  {
+    return attr.getAttributeDescription().toString();
   }
 }

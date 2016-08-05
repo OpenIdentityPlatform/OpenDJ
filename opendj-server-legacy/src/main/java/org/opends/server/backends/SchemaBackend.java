@@ -214,8 +214,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // attributes that we don't recognize will be included directly in the
     // schema entry.
     userDefinedAttributes = new ArrayList<>();
-    addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getUserAttributes().values());
-    addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getOperationalAttributes().values());
+    addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getAllAttributes());
 
     currentConfig = cfg;
   }
@@ -2802,8 +2801,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     try
     {
       Entry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
-      addAllNonSchemaConfigAttributes(newUserAttrs, configEntry.getUserAttributes().values());
-      addAllNonSchemaConfigAttributes(newUserAttrs, configEntry.getOperationalAttributes().values());
+      addAllNonSchemaConfigAttributes(newUserAttrs, configEntry.getAllAttributes());
     }
     catch (ConfigException e)
     {
@@ -2870,16 +2868,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return ccr;
   }
 
-  private void addAllNonSchemaConfigAttributes(List<Attribute> newUserAttrs, Collection<List<Attribute>> attributes)
+  private void addAllNonSchemaConfigAttributes(List<Attribute> newUserAttrs, Iterable<Attribute> attributes)
   {
-    for (List<Attribute> attrs : attributes)
+    for (Attribute a : attributes)
     {
-      for (Attribute a : attrs)
+      if (!isSchemaConfigAttribute(a))
       {
-        if (!isSchemaConfigAttribute(a))
-        {
-          newUserAttrs.add(a);
-        }
+        newUserAttrs.add(a);
       }
     }
   }

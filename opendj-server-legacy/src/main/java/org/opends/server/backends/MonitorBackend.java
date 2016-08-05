@@ -26,7 +26,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -133,8 +132,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     try
     {
       final Entry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
-      addAllNonMonitorConfigAttributes(userAttrs, configEntry.getUserAttributes().values());
-      addAllNonMonitorConfigAttributes(userAttrs, configEntry.getOperationalAttributes().values());
+      addAllNonMonitorConfigAttributes(userAttrs, configEntry.getAllAttributes());
     }
     catch (final Exception e)
     {
@@ -153,16 +151,13 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     return ccr;
   }
 
-  private void addAllNonMonitorConfigAttributes(final List<Attribute> userAttrs, Collection<List<Attribute>> attrbutes)
+  private void addAllNonMonitorConfigAttributes(List<Attribute> userAttrs, Iterable<Attribute> attributes)
   {
-    for (final List<Attribute> attrs : attrbutes)
+    for (final Attribute a : attributes)
     {
-      for (final Attribute a : attrs)
+      if (!isMonitorConfigAttribute(a))
       {
-        if (!isMonitorConfigAttribute(a))
-        {
-          userAttrs.add(a);
-        }
+        userAttrs.add(a);
       }
     }
   }
@@ -190,8 +185,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     // attributes that we don't recognize will be included directly in the base
     // monitor entry.
     userDefinedAttributes = new ArrayList<>();
-    addAll(userDefinedAttributes, configEntry.getUserAttributes().values());
-    addAll(userDefinedAttributes, configEntry.getOperationalAttributes().values());
+    addAllNonMonitorConfigAttributes(userDefinedAttributes, configEntry.getAllAttributes());
 
     // Construct the set of objectclasses to include in the base monitor entry.
     monitorObjectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
@@ -215,11 +209,6 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     this.baseDNs = Collections.singleton(baseMonitorDN);
 
     currentConfig = cfg;
-  }
-
-  private void addAll(ArrayList<Attribute> attributes, Collection<List<Attribute>> attributesToAdd)
-  {
-    addAllNonMonitorConfigAttributes(attributes, attributesToAdd);
   }
 
   @Override

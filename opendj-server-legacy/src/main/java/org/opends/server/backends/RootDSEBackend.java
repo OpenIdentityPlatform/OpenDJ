@@ -238,24 +238,11 @@ public class RootDSEBackend
    */
   private void addAllUserDefinedAttrs(List<Attribute> userDefinedAttrs, Entry configEntry)
   {
-    for (List<Attribute> attrs : configEntry.getUserAttributes().values())
+    for (Attribute a : configEntry.getAllAttributes())
     {
-      for (Attribute a : attrs)
+      if (!isDSEConfigAttribute(a))
       {
-        if (!isDSEConfigAttribute(a))
-        {
-          userDefinedAttrs.add(a);
-        }
-      }
-    }
-    for (List<Attribute> attrs : configEntry.getOperationalAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (!isDSEConfigAttribute(a))
-        {
-          userDefinedAttrs.add(a);
-        }
+        userDefinedAttrs.add(a);
       }
     }
   }

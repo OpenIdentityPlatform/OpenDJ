@@ -121,52 +121,33 @@ public class Branch
       }
     }
 
-    for (List<Attribute> attrList : entry.getUserAttributes().values())
-    {
-      for (Attribute a : attrList)
-      {
-        for (ByteString v : a)
-        {
-          try
-          {
-            String[] valueStrings = new String[] { v.toString() };
-            Tag[] tags = new Tag[] { new StaticTextTag() };
-            tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
-            lineList.add(new TemplateLine(a.getAttributeDescription().getAttributeType(), 0, tags));
-          }
-          catch (Exception e)
-          {
-            // This should never happen.
-            e.printStackTrace();
-          }
-        }
-      }
-    }
-
-    for (List<Attribute> attrList : entry.getOperationalAttributes().values())
-    {
-      for (Attribute a : attrList)
-      {
-        for (ByteString v : a)
-        {
-          try
-          {
-            String[] valueStrings = new String[] { v.toString() };
-            Tag[] tags = new Tag[] { new StaticTextTag() };
-            tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
-            lineList.add(new TemplateLine(a.getAttributeDescription().getAttributeType(), 0, tags));
-          }
-          catch (Exception e)
-          {
-            // This should never happen.
-            e.printStackTrace();
-          }
-        }
-      }
-    }
+    addLines(lineList, entry.getAllAttributes(), templateFile, warnings);
 
     rdnLines = new TemplateLine[lineList.size()];
     lineList.toArray(rdnLines);
+  }
+
+  private void addLines(List<TemplateLine> lineList, Iterable<Attribute> attrs, TemplateFile templateFile,
+      List<LocalizableMessage> warnings)
+  {
+    for (Attribute a : attrs)
+    {
+      for (ByteString v : a)
+      {
+        try
+        {
+          String[] valueStrings = new String[] { v.toString() };
+          Tag[] tags = new Tag[] { new StaticTextTag() };
+          tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
+          lineList.add(new TemplateLine(a.getAttributeDescription().getAttributeType(), 0, tags));
+        }
+        catch (Exception e)
+        {
+          // This should never happen.
+          e.printStackTrace();
+        }
+      }
+    }
   }
 
 

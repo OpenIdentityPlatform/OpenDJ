@@ -22,7 +22,6 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.Map;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -170,38 +169,16 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     buffer.appendBytes(bsb);
 
 
-    // Encode the user attributes in the appropriate manner.
-    encodeV1Attributes(buffer, entry.getUserAttributes());
-
-
-    // The operational attributes will be encoded in the same way as
-    // the user attributes.
-    encodeV1Attributes(buffer, entry.getOperationalAttributes());
+    encodeV1Attributes(buffer, entry.getAllAttributes(), false);
+    encodeV1Attributes(buffer, entry.getAllAttributes(), true);
   }
 
-  private void encodeV1Attributes(ByteStringBuilder buffer,
-                                Map<AttributeType,List<Attribute>> attributes)
+  private void encodeV1Attributes(ByteStringBuilder buffer, Iterable<Attribute> attributes, boolean isOperational)
   {
-    int numAttributes = 0;
-
-    // First count how many attributes are there to encode.
-    for (List<Attribute> attrList : attributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        if (a.isVirtual() || a.isEmpty())
-        {
-          continue;
-        }
-
-        numAttributes++;
-      }
-    }
-
     // Encoded one-to-five byte number of attributes
-    buffer.appendBERLength(numAttributes);
+    buffer.appendBERLength(countNbAttrsToEncode(attributes, isOperational));
 
-    append(buffer, attributes);
+    append(buffer, attributes, isOperational);
   }
 
     /**
@@ -258,62 +235,51 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
       buffer.appendBytes(bsb);
     }
 
-
-    // Encode the user attributes in the appropriate manner.
-    encodeV2Attributes(buffer, entry.getUserAttributes(), config);
-
-
-    // The operational attributes will be encoded in the same way as
-    // the user attributes.
-    encodeV2Attributes(buffer, entry.getOperationalAttributes(), config);
+    encodeV2Attributes(buffer, entry.getAllAttributes(), config, false);
+    encodeV2Attributes(buffer, entry.getAllAttributes(), config, true);
   }
 
-  private void encodeV2Attributes(ByteStringBuilder buffer,
-                                Map<AttributeType,List<Attribute>> attributes,
-                                EntryEncodeConfig config)
+  private void encodeV2Attributes(
+      ByteStringBuilder buffer, Iterable<Attribute> attributes, EntryEncodeConfig config, boolean isOperational)
       throws DirectoryException
   {
-    int numAttributes = 0;
+    // Encoded one-to-five byte number of attributes
+    buffer.appendBERLength(countNbAttrsToEncode(attributes, isOperational));
 
-    // First count how many attributes are there to encode.
-    for (List<Attribute> attrList : attributes.values())
+    if (config.compressAttributeDescriptions())
     {
-      for (Attribute a : attrList)
+      for (Attribute a : attributes)
       {
         if (a.isVirtual() || a.isEmpty())
         {
           continue;
         }
 
-        numAttributes++;
-      }
-    }
-
-    // Encoded one-to-five byte number of attributes
-    buffer.appendBERLength(numAttributes);
-
-    if (config.compressAttributeDescriptions())
-    {
-      for (List<Attribute> attrList : attributes.values())
-      {
-        for (Attribute a : attrList)
-        {
-          if (a.isVirtual() || a.isEmpty())
-          {
-            continue;
-          }
-
-          ByteStringBuilder bsb = new ByteStringBuilder();
-          config.getCompressedSchema().encodeAttribute(bsb, a);
-          buffer.appendBERLength(bsb.length());
-          buffer.appendBytes(bsb);
-        }
+        ByteStringBuilder bsb = new ByteStringBuilder();
+        config.getCompressedSchema().encodeAttribute(bsb, a);
+        buffer.appendBERLength(bsb.length());
+        buffer.appendBytes(bsb);
       }
     }
     else
     {
-      append(buffer, attributes);
+      append(buffer, attributes, isOperational);
     }
+  }
+
+  private int countNbAttrsToEncode(Iterable<Attribute> attributes, boolean isOperational)
+  {
+    int result = 0;
+    for (Attribute a : attributes)
+    {
+      if (!a.isVirtual()
+          && !a.isEmpty()
+          && a.getAttributeDescription().getAttributeType().isOperational() == isOperational)
+      {
+        result++;
+      }
+    }
+    return result;
   }
 
   /**
@@ -325,22 +291,23 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
    *   - A one-to-five byte length for the value
    *   - A UTF-8 byte representation for the value
    */
-  private void append(ByteStringBuilder buffer,
-      Map<AttributeType, List<Attribute>> attributes)
+  private void append(ByteStringBuilder buffer, Iterable<Attribute> attributes, boolean isOperational)
   {
-    for (List<Attribute> attrList : attributes.values())
+    for (Attribute a : attributes)
     {
-      for (Attribute a : attrList)
+      if (a.getAttributeDescription().getAttributeType().isOperational() != isOperational)
       {
-        buffer.appendBytes(getBytes(a.getAttributeDescription().toString()));
-        buffer.appendByte(0x00);
+        break;
+      }
 
-        buffer.appendBERLength(a.size());
-        for (ByteString v : a)
-        {
-          buffer.appendBERLength(v.length());
-          buffer.appendBytes(v);
-        }
+      buffer.appendBytes(getBytes(a.getAttributeDescription().toString()));
+      buffer.appendByte(0x00);
+
+      buffer.appendBERLength(a.size());
+      for (ByteString v : a)
+      {
+        buffer.appendBERLength(v.length());
+        buffer.appendBytes(v);
       }
     }
   }

@@ -3097,8 +3097,7 @@ public final class SearchFilter
                                Entry entry)
           throws DirectoryException
   {
-    // We must have an assertion value for which to make the
-    // determination.
+    // We must have an assertion value for which to make the determination.
     if (assertionValue == null)
     {
       LocalizableMessage message =
@@ -3184,8 +3183,7 @@ public final class SearchFilter
     {
       logger.traceException(e);
 
-      // We can't normalize the assertion value, so the result must be
-      // undefined.
+      // We can't normalize the assertion value, so the result must be undefined.
       return ConditionResult.UNDEFINED;
     }
 
@@ -3196,86 +3194,11 @@ public final class SearchFilter
     ConditionResult result = ConditionResult.FALSE;
     if (getAttributeType() == null)
     {
-      for (List<Attribute> attrList :
-           entry.getUserAttributes().values())
+      final Iterable<Attribute> attrs = entry.getAllAttributes();
+      result = assertionMatchesAnyAttribute(matchingRule, assertion, attrs, result, entry, completeFilter);
+      if (ConditionResult.TRUE.equals(result))
       {
-        for (Attribute a : attrList)
-        {
-          for (ByteString v : a)
-          {
-            try
-            {
-              ByteString nv = matchingRule.normalizeAttributeValue(v);
-              ConditionResult r = assertion.matches(nv);
-              switch (r)
-              {
-                case TRUE:
-                  return ConditionResult.TRUE;
-                case FALSE:
-                  break;
-                case UNDEFINED:
-                  result = ConditionResult.UNDEFINED;
-                  break;
-                default:
-                  LocalizableMessage message =
-                      ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                        get(entry.getName(), completeFilter, r);
-                  throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message);
-              }
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              // We couldn't normalize one of the values.  If we don't
-              // find a definite match, then we should return
-              // undefined.
-              result = ConditionResult.UNDEFINED;
-            }
-          }
-        }
-      }
-
-      for (List<Attribute> attrList :
-           entry.getOperationalAttributes().values())
-      {
-        for (Attribute a : attrList)
-        {
-          for (ByteString v : a)
-          {
-            try
-            {
-              ByteString nv = matchingRule.normalizeAttributeValue(v);
-              ConditionResult r = assertion.matches(nv);
-              switch (r)
-              {
-                case TRUE:
-                  return ConditionResult.TRUE;
-                case FALSE:
-                  break;
-                case UNDEFINED:
-                  result = ConditionResult.UNDEFINED;
-                  break;
-                default:
-                  LocalizableMessage message =
-                      ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                        get(entry.getName(), completeFilter, r);
-                  throw new DirectoryException(
-                                 ResultCode.PROTOCOL_ERROR, message);
-              }
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              // We couldn't normalize one of the values.  If we don't
-              // find a definite match, then we should return
-              // undefined.
-              result = ConditionResult.UNDEFINED;
-            }
-          }
-        }
+        return ConditionResult.TRUE;
       }
 
       Attribute a = entry.getObjectClassAttribute();
@@ -3313,45 +3236,17 @@ public final class SearchFilter
     }
     else
     {
-      for (Attribute a : entry.getAttribute(attributeDescription))
+      final Iterable<Attribute> attrs = entry.getAttribute(attributeDescription);
+      result = assertionMatchesAnyAttribute(matchingRule, assertion, attrs, result, entry, completeFilter);
+      if (ConditionResult.TRUE.equals(result))
       {
-        for (ByteString v : a)
-        {
-          try
-          {
-            ByteString nv = matchingRule.normalizeAttributeValue(v);
-            ConditionResult r = assertion.matches(nv);
-            switch (r)
-            {
-            case TRUE:
-              return ConditionResult.TRUE;
-            case FALSE:
-              break;
-            case UNDEFINED:
-              result = ConditionResult.UNDEFINED;
-              break;
-            default:
-              LocalizableMessage message =
-                  ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.get(entry.getName(), completeFilter, r);
-              throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
-            }
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-
-            // We couldn't normalize one of the values.
-            // If we don't find a definite match, then we should return undefined.
-            result = ConditionResult.UNDEFINED;
-          }
-        }
+        return ConditionResult.TRUE;
       }
     }
 
 
     // If we've gotten here, then we know that there is no definite
-    // match in the set of attributes.  If we should check DN
-    // attributes, then do so.
+    // match in the set of attributes. If we should check DN attributes, then do so.
     if (dnAttributes)
     {
       for (RDN rdn : entry.getName())
@@ -3401,6 +3296,42 @@ public final class SearchFilter
     return result;
   }
 
+  private ConditionResult assertionMatchesAnyAttribute(MatchingRule matchingRule, Assertion assertion,
+      Iterable<Attribute> attributes, ConditionResult result, Entry entry, SearchFilter filter)
+  {
+    for (Attribute a : attributes)
+    {
+      for (ByteString v : a)
+      {
+        try
+        {
+          ConditionResult r = assertion.matches(matchingRule.normalizeAttributeValue(v));
+          switch (r)
+          {
+          case TRUE:
+            return ConditionResult.TRUE;
+          case FALSE:
+            break;
+          case UNDEFINED:
+            result = ConditionResult.UNDEFINED;
+            break;
+          default:
+            LocalizableMessage message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.get(entry.getName(), filter, r);
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+          }
+        }
+        catch (Exception e)
+        {
+          logger.traceException(e);
+
+          // We couldn't normalize one of the values.
+          // If we don't find a definite match, then we should return undefined.
+          result = ConditionResult.UNDEFINED;
+        }
+      }
+    }
+    return result;
+  }
 
   /**
    * Indicates whether this search filter is equal to the provided

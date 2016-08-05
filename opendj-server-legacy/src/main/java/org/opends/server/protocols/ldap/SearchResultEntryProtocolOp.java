@@ -34,12 +34,12 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
 
@@ -163,82 +163,16 @@ public class SearchResultEntryProtocolOp
       {
         if (ldapVersion == 2)
         {
-          // Merge attributes having the same type into a single
-          // attribute.
-          boolean needsMerge;
-          Map<AttributeType, List<Attribute>> attrs =
-              entry.getUserAttributes();
-          for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
-              .entrySet())
-          {
-            needsMerge = true;
-
-            if (attrList != null && attrList.getValue().size() == 1)
-            {
-              Attribute a = attrList.getValue().get(0);
-              if (!a.getAttributeDescription().hasOptions())
-              {
-                needsMerge = false;
-                tmp.add(new LDAPAttribute(a));
-              }
-            }
-
-            if (needsMerge)
-            {
-              AttributeBuilder builder =
-                  new AttributeBuilder(attrList.getKey());
-              for (Attribute a : attrList.getValue())
-              {
-                builder.addAll(a);
-              }
-              tmp.add(new LDAPAttribute(builder.toAttribute()));
-            }
-          }
-
-          attrs = entry.getOperationalAttributes();
-          for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs
-              .entrySet())
-          {
-            needsMerge = true;
-
-            if (attrList != null && attrList.getValue().size() == 1)
-            {
-              Attribute a = attrList.getValue().get(0);
-              if (!a.getAttributeDescription().hasOptions())
-              {
-                needsMerge = false;
-                tmp.add(new LDAPAttribute(a));
-              }
-            }
-
-            if (needsMerge)
-            {
-              AttributeBuilder builder = new AttributeBuilder(attrList.getKey());
-              for (Attribute a : attrList.getValue())
-              {
-                builder.addAll(a);
-              }
-              tmp.add(new LDAPAttribute(builder.toAttribute()));
-            }
-          }
+          // Merge attributes having the same type into a single attribute.
+          merge(tmp, entry.getUserAttributes());
+          merge(tmp, entry.getOperationalAttributes());
         }
         else
         {
           // LDAPv3
-          for (List<Attribute> attrList : entry.getUserAttributes().values())
+          for (Attribute a : entry.getAllAttributes())
           {
-            for (Attribute a : attrList)
-            {
-              tmp.add(new LDAPAttribute(a));
-            }
-          }
-
-          for (List<Attribute> attrList : entry.getOperationalAttributes().values())
-          {
-            for (Attribute a : attrList)
-            {
-              tmp.add(new LDAPAttribute(a));
-            }
+            tmp.add(new LDAPAttribute(a));
           }
         }
       }
@@ -249,6 +183,36 @@ public class SearchResultEntryProtocolOp
       entry = null;
     }
     return attributes;
+  }
+
+  private void merge(LinkedList<LDAPAttribute> tmp, Map<AttributeType, List<Attribute>> attrs)
+  {
+    boolean needsMerge;
+    for (Map.Entry<AttributeType, List<Attribute>> attrList : attrs.entrySet())
+    {
+      needsMerge = true;
+
+      if (attrList != null && attrList.getValue().size() == 1)
+      {
+        Attribute a = attrList.getValue().get(0);
+        if (!a.getAttributeDescription().hasOptions())
+        {
+          needsMerge = false;
+          tmp.add(new LDAPAttribute(a));
+        }
+      }
+
+      if (needsMerge)
+      {
+        AttributeBuilder builder =
+            new AttributeBuilder(attrList.getKey());
+        for (Attribute a : attrList.getValue())
+        {
+          builder.addAll(a);
+        }
+        tmp.add(new LDAPAttribute(builder.toAttribute()));
+      }
+    }
   }
 
 

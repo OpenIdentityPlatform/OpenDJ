@@ -54,6 +54,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ProtocolElement;
@@ -121,10 +122,7 @@ public class Entry
   /** The DN for this entry. */
   private DN dn;
 
-  /**
-   * A generic attachment that may be used to associate this entry with some
-   * other object.
-   */
+  /** A generic attachment that may be used to associate this entry with some other object. */
   private transient Object attachment;
 
   /**
@@ -324,6 +322,113 @@ public class Entry
       attributes.addAll(attrs);
     }
     return attributes;
+  }
+
+  /** Iterator over a {@code Collection<List<Attribute>>}. */
+  private static final class CollectionListIterator implements Iterator<Attribute>
+  {
+    private final Iterator<List<Attribute>> parentIt;
+    private List<Attribute> subList = Collections.emptyList();
+    private Iterator<Attribute> subIt = subList.iterator();
+
+    private CollectionListIterator(Collection<List<Attribute>> list)
+    {
+      this.parentIt = Reject.checkNotNull(list).iterator();
+      advance();
+    }
+
+    private void advance()
+    {
+      while (!subIt.hasNext())
+      {
+        if (!parentIt.hasNext())
+        {
+          return;
+        }
+        subList = parentIt.next();
+        subIt = subList.iterator();
+      }
+    }
+
+    @Override
+    public boolean hasNext()
+    {
+      return subIt.hasNext();
+    }
+
+    @Override
+    public Attribute next()
+    {
+      final Attribute result = subIt.next();
+      if (!subIt.hasNext())
+      {
+        advance();
+      }
+      return result;
+    }
+
+    @Override
+    public void remove()
+    {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  /**
+   * Returns an {@code Iterable} containing all of the attributes in this entry,
+   * excluding the objectClass attribute.
+   * <p>
+   * The returned {@code Iterable} may NOT be used to remove attributes.
+   *
+   * @return An {@code Iterable} containing all of the attributes.
+   */
+  public Iterable<Attribute> getAllAttributes()
+  {
+    /** Iterator over all the attributes of this entry. */
+    final class AllAttributesIterator implements Iterator<Attribute>
+    {
+      private boolean iteratesOnOperationalAttributes;
+      private Iterator<Attribute> currentIterator = new CollectionListIterator(getUserAttributes().values());
+
+      @Override
+      public boolean hasNext()
+      {
+        if (currentIterator.hasNext())
+        {
+          return true;
+        }
+        if (iteratesOnOperationalAttributes)
+        {
+          return false;
+        }
+        iteratesOnOperationalAttributes = true;
+        currentIterator = new CollectionListIterator(getOperationalAttributes().values());
+        return currentIterator.hasNext();
+      }
+
+      @Override
+      public Attribute next()
+      {
+        return currentIterator.next();
+      }
+
+      @Override
+      public void remove()
+      {
+        currentIterator.remove();
+      }
+    }
+
+    /** Can return an iterator over all the attributes of this entry. */
+    final class AllAttributesIterable implements Iterable<Attribute>
+    {
+      @Override
+      public Iterator<Attribute> iterator()
+      {
+        return new AllAttributesIterator();
+      }
+    }
+    return new AllAttributesIterable();
   }
 
   /**
@@ -1567,7 +1672,7 @@ public class Entry
         Collection<NameForm> forms = DirectoryServer.getSchema().getNameForm(structuralClass);
         if (forms != null)
         {
-          List<NameForm> listForms = new ArrayList<NameForm>(forms);
+          List<NameForm> listForms = new ArrayList<>(forms);
           boolean matchFound = false;
           boolean obsolete = true;
           for(int index=0; index <listForms.size(); index++)
