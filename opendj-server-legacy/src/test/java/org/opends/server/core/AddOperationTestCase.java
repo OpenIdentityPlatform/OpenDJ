@@ -357,8 +357,8 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    List<Attribute> attrList = e.getAllAttributes(a.getAttributeDescription());
-    assertFalse(attrList.isEmpty());
+    Iterable<Attribute> attrList = e.getAllAttributes(a.getAttributeDescription());
+    assertThat(attrList).isNotEmpty();
 
     boolean foundFoo = false;
     boolean foundBar = false;

@@ -429,12 +429,13 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     return getValues(entry.getAllAttributes(mod.getAttribute().getAttributeDescription()));
   }
 
-  private List<ByteString> getValues(List<Attribute> attributes)
+  private List<ByteString> getValues(Iterable<Attribute> attributes)
   {
-    if (!attributes.isEmpty())
+    Iterator<Attribute> it = attributes.iterator();
+    if (it.hasNext())
     {
       assertThat(attributes).hasSize(1);
-      return getValues(attributes.get(0));
+      return getValues(it.next());
     }
     return Collections.emptyList();
   }

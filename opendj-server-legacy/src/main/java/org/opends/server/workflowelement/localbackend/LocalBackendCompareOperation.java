@@ -16,7 +16,13 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-import java.util.List;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.types.AbstractOperation.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -45,12 +51,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.types.AbstractOperation.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation that may be used to determine whether a
@@ -233,8 +233,8 @@ public class LocalBackendCompareOperation
 
       // Actually perform the compare operation.
       AttributeDescription attrDesc = getAttributeDescription();
-      List<Attribute> attrList = entry.getAllAttributes(attrDesc);
-      if (attrList.isEmpty())
+      Iterable<Attribute> attrList = entry.getAllAttributes(attrDesc);
+      if (isEmpty(attrList))
       {
         setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
         Arg2<Object, Object> errorMsg = attrDesc.hasOptions()
@@ -255,7 +255,7 @@ public class LocalBackendCompareOperation
     }
   }
 
-  private ResultCode matchExists(List<Attribute> attrList, ByteString value)
+  private ResultCode matchExists(Iterable<Attribute> attrList, ByteString value)
   {
     for (Attribute a : attrList)
     {

@@ -125,4 +125,16 @@ public final class CollectionUtils
     }
     return outputCollection;
   }
+
+  /**
+   * Returns whether the provided iterable is empty, i.e. whether it has not elements.
+   *
+   * @param iterable
+   *          the iterable for which to omake the determination
+   * @return {@code true} if the iterable is empty, {@code false} otherwise.
+   */
+  public static boolean isEmpty(Iterable<?> iterable)
+  {
+    return !iterable.iterator().hasNext();
+  }
 }

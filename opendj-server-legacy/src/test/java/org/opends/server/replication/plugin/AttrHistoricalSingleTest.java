@@ -21,7 +21,6 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import java.util.Iterator;
-import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
@@ -356,12 +355,13 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
     return getActualValue(entry.getAllAttributes(mod.getAttribute().getAttributeDescription()));
   }
 
-  private ByteString getActualValue(List<Attribute> attributes)
+  private ByteString getActualValue(Iterable<Attribute> attributes)
   {
-    if (!attributes.isEmpty())
+    Iterator<Attribute> it = attributes.iterator();
+    if (it.hasNext())
     {
       assertThat(attributes).hasSize(1);
-      Attribute attribute = attributes.get(0);
+      Attribute attribute = it.next();
       assertThat(attribute).hasSize(1);
       return attribute.iterator().next();
     }

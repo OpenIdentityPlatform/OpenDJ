@@ -18,6 +18,7 @@
 package org.opends.server.types;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -2569,8 +2570,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
-    if (attrs.isEmpty())
+    Iterable<Attribute> attrs = entry.getAllAttributes(attributeDescription);
+    if (isEmpty(attrs))
     {
       if (logger.isTraceEnabled())
       {
@@ -2673,8 +2674,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
-    if (attrs.isEmpty())
+    Iterable<Attribute> attrs = entry.getAllAttributes(attributeDescription);
+    if (isEmpty(attrs))
     {
       if (logger.isTraceEnabled())
       {
@@ -2774,8 +2775,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
-    if (attrs.isEmpty())
+    Iterable<Attribute> attrs = entry.getAllAttributes(attributeDescription);
+    if (isEmpty(attrs))
     {
       if (logger.isTraceEnabled())
       {
@@ -2872,8 +2873,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
-    if (attrs.isEmpty())
+    Iterable<Attribute> attrs = entry.getAllAttributes(attributeDescription);
+    if (isEmpty(attrs))
     {
       if (logger.isTraceEnabled())
       {
@@ -3015,8 +3016,8 @@ public final class SearchFilter
     }
 
     // See if the entry has an attribute with the requested type.
-    List<Attribute> attrs = entry.getAllAttributes(attributeDescription);
-    if (attrs.isEmpty())
+    Iterable<Attribute> attrs = entry.getAllAttributes(attributeDescription);
+    if (isEmpty(attrs))
     {
       if (logger.isTraceEnabled())
       {

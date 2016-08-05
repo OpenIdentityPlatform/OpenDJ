@@ -16,6 +16,15 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.LDIFWriter.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,15 +73,6 @@ import org.opends.server.core.SubentryManager;
 import org.opends.server.types.SubEntry.CollectiveConflictBehavior;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
-
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.LDIFWriter.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data structure for a Directory Server entry.
@@ -773,7 +773,7 @@ public class Entry
    *          attribute type is not present in this entry with the
    *          provided set of options.
    */
-  public List<Attribute> getAllAttributes(AttributeDescription attributeDescription)
+  public Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription)
   {
     AttributeType attributeType = attributeDescription.getAttributeType();
 
