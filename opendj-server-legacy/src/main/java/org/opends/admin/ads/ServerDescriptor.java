@@ -264,32 +264,31 @@ public class ServerDescriptor
   }
 
   /**
-   * Returns the URL to access this server using LDAP.
-   * @return the URL to access this server using LDAP,
+   * Returns the HostPort to access this server using LDAP.
+   * @return the HostPort to access this server using LDAP,
    *         {@code null} if the server is not configured to listen on an LDAP port.
    */
-  public String getLDAPURL()
+  public HostPort getLdapHostPort()
   {
-    return getLDAPUrl0(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT, false);
+    return getHostPort0(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT, false);
   }
 
   /**
-   * Returns the URL to access this server using LDAPS.
-   * @return the URL to access this server using LDAP,
+   * Returns the HostPort to access this server using LDAPS.
+   * @return the HostPort to access this server using LDAPS,
    *         {@code null} if the server is not configured to listen on an LDAPS port.
    */
-  public String getLDAPsURL()
+  public HostPort getLdapsHostPort()
   {
-    return getLDAPUrl0(ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT, true);
+    return getHostPort0(ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT, true);
   }
 
-  private String getLDAPUrl0(ServerProperty enabledProp, ServerProperty portProp, boolean useSSL)
+  private HostPort getHostPort0(ServerProperty enabledProp, ServerProperty portProp, boolean useSSL)
   {
     int port = getPort(enabledProp, portProp);
     if (port != -1)
     {
-      String host = getHostName();
-      return getLDAPUrl(host, port, useSSL);
+      return new HostPort(getHostName(), port);
     }
     return null;
   }
@@ -304,13 +303,13 @@ public class ServerDescriptor
   }
 
   /**
-   * Returns the URL to access this server using the administration connector.
-   * @return the URL to access this server using the administration connector,
+   * Returns the HostPort to access this server using the administration connector.
+   * @return the HostPort to access this server using the administration connector,
    *         {@code null} if the server cannot get the administration connector.
    */
-  public String getAdminConnectorURL()
+  public HostPort getAdminConnectorHostPort()
   {
-    return getLDAPUrl0(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT, true);
+    return getHostPort0(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT, true);
   }
 
   /**

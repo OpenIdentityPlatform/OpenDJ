@@ -4545,12 +4545,12 @@ public class Installer extends GuiApplication
 
     for (PreferredConnection connection : getPreferredConnections())
     {
-      String url = connection.getLDAPURL();
-      if (url.equals(server.getLDAPURL()))
+      HostPort hp = connection.getHostPort();
+      if (hp.equals(server.getLdapHostPort()))
       {
         hostPort = server.getHostPort(false);
       }
-      else if (url.equals(server.getLDAPsURL()))
+      else if (hp.equals(server.getLdapsHostPort()))
       {
         hostPort = server.getHostPort(true);
       }

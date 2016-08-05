@@ -7698,12 +7698,12 @@ public class ReplicationCliMain extends ConsoleApplication
     HostPort hostPort = null;
     for (PreferredConnection connection : cnx)
     {
-      String url = connection.getLDAPURL();
-      if (url.equals(server.getLDAPURL()))
+      HostPort hp = connection.getHostPort();
+      if (hp.equals(server.getLdapHostPort()))
       {
         hostPort = server.getHostPort(false);
       }
-      else if (url.equals(server.getLDAPsURL()))
+      else if (hp.equals(server.getLdapsHostPort()))
       {
         hostPort = server.getHostPort(true);
       }

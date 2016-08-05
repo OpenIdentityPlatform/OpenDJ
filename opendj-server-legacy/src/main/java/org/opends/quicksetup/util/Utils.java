@@ -72,7 +72,6 @@ import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
@@ -1586,7 +1585,7 @@ public class Utils
     }
     for (ServerDescriptor s : userData.getRemoteWithNoReplicationPort().keySet())
     {
-      if (s.getAdminConnectorURL().equals(server.getAdminConnectorURL()))
+      if (s.getAdminConnectorHostPort().equals(server.getAdminConnectorHostPort()))
       {
         AuthenticationData remoteRepl = userData.getRemoteWithNoReplicationPort().get(server);
 
@@ -1760,14 +1759,14 @@ public class Utils
 
     Set<SuffixDescriptor> suffixes = userData.getSuffixesToReplicateOptions().getSuffixes();
     AuthenticationData authData = userData.getReplicationOptions().getAuthenticationData();
-    String ldapURL = ConnectionUtils.getLDAPUrl(authData.getHostPort(), authData.useSecureConnection());
+    HostPort hostPort = authData.getHostPort();
 
     suffixLoop:
     for (SuffixDescriptor suffix : suffixes)
     {
       for (ReplicaDescriptor replica : suffix.getReplicas())
       {
-        if (ldapURL.equalsIgnoreCase(replica.getServer().getAdminConnectorURL()))
+        if (hostPort.equals(replica.getServer().getAdminConnectorHostPort()))
         {
           // This is the server we're configuring
           Set<DN> baseDNs = hm.get(replica.getServer());

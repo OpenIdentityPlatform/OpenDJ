@@ -18,6 +18,7 @@ package org.opends.guitools.controlpanel.util;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -722,11 +723,10 @@ public class ConfigFromConnection extends ConfigReader
     {
       Attribute backendIdAttr = sr.getAttribute("ds-backend-id");
       Attribute entryCount = sr.getAttribute("ds-backend-entry-count");
-      Attribute baseDnEntriesAttr = sr.getAttribute("ds-base-dn-entry-count");
-      if (backendIdAttr != null && (entryCount != null || !baseDnEntriesAttr.isEmpty()))
+      Set<String> baseDnEntries = asSetOfString(sr, "ds-base-dn-entry-count");
+      if (backendIdAttr != null && (entryCount != null || !baseDnEntries.isEmpty()))
       {
         String backendID = backendIdAttr.firstValueAsString();
-        Set<String> baseDnEntries = baseDnEntriesAttr.parse().asSetOfString();
         for (BackendDescriptor backend : backends)
         {
           if (backend.getBackendID().equalsIgnoreCase(backendID))
