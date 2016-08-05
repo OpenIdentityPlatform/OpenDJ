@@ -197,9 +197,9 @@ public class ResetUserPasswordTask extends Task
           // is what we use to clone connections and to launch scripts.
           // The environment will also be used if we want to reconnect.
           rebind(getInfo().getConnection());
-          if (getInfo().getUserDataDirContext() != null)
+          if (getInfo().getUserDataConnection() != null)
           {
-            rebind(getInfo().getUserDataDirContext());
+            rebind(getInfo().getUserDataConnection());
           }
         }
         state = State.FINISHED_SUCCESSFULLY;

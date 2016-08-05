@@ -27,7 +27,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
-import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
+import org.opends.guitools.controlpanel.util.ConfigFromConnection;
 import org.opends.guitools.controlpanel.util.Utilities;
 
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
@@ -156,8 +156,8 @@ class RootMonitoringPanel extends GeneralMonitoringPanel
       {
         String start = sr.getAttribute(START_DATE.getAttributeName()).firstValueAsString();
         String current = sr.getAttribute(CURRENT_DATE.getAttributeName()).firstValueAsString();
-        Date startTime = ConfigFromDirContext.utcParser.parse(start);
-        Date currentTime = ConfigFromDirContext.utcParser.parse(current);
+        Date startTime = ConfigFromConnection.utcParser.parse(start);
+        Date currentTime = ConfigFromConnection.utcParser.parse(current);
 
         long upSeconds = (currentTime.getTime() - startTime.getTime()) / 1000;
         long upDays = upSeconds / 86400;

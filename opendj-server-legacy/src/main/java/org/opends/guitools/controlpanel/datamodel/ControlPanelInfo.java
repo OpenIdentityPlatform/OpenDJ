@@ -54,7 +54,7 @@ import org.opends.guitools.controlpanel.event.IndexModifiedListener;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.task.Task.State;
 import org.opends.guitools.controlpanel.task.Task.Type;
-import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
+import org.opends.guitools.controlpanel.util.ConfigFromConnection;
 import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -316,7 +316,7 @@ public class ControlPanelInfo
    * @throws LdapException
    *           if there is a problem updating the connection pool.
    */
-  public void setUserDataDirContext(ConnectionWrapper conn) throws LdapException
+  public void setUserDataConnection(ConnectionWrapper conn) throws LdapException
   {
     if (userDataConn != null)
     {
@@ -334,7 +334,7 @@ public class ControlPanelInfo
    *
    * @return the connection to be used by the ControlPanelInfo to retrieve user data.
    */
-  public ConnectionWrapper getUserDataDirContext()
+  public ConnectionWrapper getUserDataConnection()
   {
     return userDataConn;
   }
@@ -453,7 +453,7 @@ public class ControlPanelInfo
         {
           if (isLocal)
           {
-            connWrapper = Utilities.getAdminDirContext(this, lastWorkingBindDN, lastWorkingBindPwd);
+            connWrapper = Utilities.getAdminConnection(this, lastWorkingBindDN, lastWorkingBindPwd);
           }
           else if (lastRemoteHostPort != null)
           {
@@ -507,13 +507,13 @@ public class ControlPanelInfo
 
       if (reader != null)
       {
-        desc.setAuthenticated(reader instanceof ConfigFromDirContext);
+        desc.setAuthenticated(reader instanceof ConfigFromConnection);
         desc.setJavaVersion(reader.getJavaVersion());
         desc.setOpenConnections(reader.getOpenConnections());
         desc.setTaskEntries(reader.getTaskEntries());
-        if (reader instanceof ConfigFromDirContext)
+        if (reader instanceof ConfigFromConnection)
         {
-          ConfigFromDirContext rCtx = (ConfigFromDirContext)reader;
+          ConfigFromConnection rCtx = (ConfigFromConnection)reader;
           desc.setRootMonitor(rCtx.getRootMonitor());
           desc.setEntryCachesMonitor(rCtx.getEntryCaches());
           desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
@@ -565,7 +565,7 @@ public class ControlPanelInfo
 
   private ConfigReader newRemoteConfigReader()
   {
-    ConfigFromDirContext reader = new ConfigFromDirContext();
+    ConfigFromConnection reader = new ConfigFromConnection();
     reader.setIsLocal(isLocal);
     reader.readConfiguration(connWrapper);
     return reader;

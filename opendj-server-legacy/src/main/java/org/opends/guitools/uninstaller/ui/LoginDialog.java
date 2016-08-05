@@ -388,7 +388,7 @@ public class LoginDialog extends JDialog
             throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
                 ERR_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
           }
-          connWrapper = org.opends.guitools.controlpanel.util.Utilities.getAdminDirContext(info, dn, pwd);
+          connWrapper = org.opends.guitools.controlpanel.util.Utilities.getAdminConnection(info, dn, pwd);
           return true; // server is running
         }
         catch (LdapException e)

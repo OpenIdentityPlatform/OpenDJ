@@ -256,10 +256,10 @@ public class DeleteIndexTask extends Task
    * Deletes an index. The code assumes that the server is running and that the
    * provided connection is active.
    *
+   * @param connWrapper
+   *          the connection to the server.
    * @param index
    *          the index to be deleted.
-   * @param ctx
-   *          the connection to the server.
    * @throws OpenDsException
    *           if an error occurs.
    */

@@ -32,31 +32,28 @@ public interface BrowserNodeInfo {
 
 
   /**
-   * Returns  <CODE>true</CODE> if the displayed entry is the top entry of a
-   * suffix and <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if the displayed entry is the top entry of a
-   * suffix and <CODE>false</CODE> otherwise.
+   * Returns whether the displayed entry is the top entry of a suffix.
+   * @return {@code true} if the displayed entry is the top entry of a suffix,
+   *         {@code false} otherwise.
    */
   boolean isSuffix();
 
 
   /**
-   * Returns <CODE>true</CODE> if the displayed entry is the root node of the
-   * server (the dn="" entry) and <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if the displayed entry is the root node of the
-   * server (the dn="" entry) and <CODE>false</CODE> otherwise.
+   * Returns whether the displayed entry is the root node of the
+   * server (the dn="" entry)..
+   * @return {@code true} if the displayed entry is the root node of the
+   * server (the dn="" entry) and {@code false} otherwise.
    */
   boolean isRootNode();
 
   /**
-   * Returns <CODE>true</CODE> if the displayed entry is not located on the
+   * Returns whether the displayed entry is not located on the
    * current server. An entry is declared 'remote' when the host/port of
-   * getURL() is different from the host/port of the DirContext associated to
-   * the browser controller. Returns <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if the displayed entry is not located on the
-   * current server. An entry is declared 'remote' when the host/port of
-   * getURL() is different from the host/port of the DirContext associated to
-   * the browser controller. Returns <CODE>false</CODE> otherwise.
+   * getURL() is different from the host/port of the connection associated to
+   * the browser controller.
+   * @return {@code true} if the displayed entry is not located on the
+   * current server, {@code false} otherwise.
    */
   boolean isRemote();
 

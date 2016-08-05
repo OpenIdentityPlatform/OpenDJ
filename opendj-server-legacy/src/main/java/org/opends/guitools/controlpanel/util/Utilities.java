@@ -2119,7 +2119,7 @@ public class Utilities
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
-  public static ConnectionWrapper getAdminDirContext(ControlPanelInfo controlInfo, DN bindDN, String pwd)
+  public static ConnectionWrapper getAdminConnection(ControlPanelInfo controlInfo, DN bindDN, String pwd)
       throws IOException, ConfigReadException
   {
     return createConnection(controlInfo.getAdminConnectorHostPort(), LDAPS, bindDN, pwd, controlInfo);
@@ -2138,7 +2138,7 @@ public class Utilities
    * or the provided credentials do not have enough rights.
    * @throws ConfigReadException if there is an error reading the configuration.
    */
-  public static ConnectionWrapper getUserDataDirContext(ControlPanelInfo controlInfo,
+  public static ConnectionWrapper getUserDataConnection(ControlPanelInfo controlInfo,
       DN bindDN, String pwd) throws IOException, ConfigReadException
   {
     if (controlInfo.connectUsingStartTLS())
@@ -2413,7 +2413,7 @@ public class Utilities
       }
       Long l = Long.parseLong(monitoringValue);
       Date date = new Date(l);
-      return ConfigFromDirContext.formatter.format(date);
+      return ConfigFromConnection.formatter.format(date);
     }
     else if (attr.isTime())
     {
@@ -2427,8 +2427,8 @@ public class Utilities
     {
       try
       {
-        Date date = ConfigFromDirContext.utcParser.parse(monitoringValue);
-        return ConfigFromDirContext.formatter.format(date);
+        Date date = ConfigFromConnection.utcParser.parse(monitoringValue);
+        return ConfigFromConnection.formatter.format(date);
       }
       catch (Throwable t)
       {

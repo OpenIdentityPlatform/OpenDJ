@@ -657,7 +657,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * Modifies index using the provided connection.
      *
-     * @param ctx
+     * @param connWrapper
      *          the connection to be used to update the index configuration.
      * @throws Exception
      *           if there is an error updating the server.

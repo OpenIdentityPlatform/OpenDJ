@@ -41,7 +41,7 @@ public class TopologyCacheException extends OpenDsException {
     GENERIC_CREATING_CONNECTION,
     /** Error reading the configuration of a particular server. */
     GENERIC_READING_SERVER,
-    /** The DN provided in the DirContext of ADS is not of a global administrator. */
+    /** The DN provided in the connection of ADS is not of a global administrator. */
     NOT_GLOBAL_ADMINISTRATOR,
     /** Not enough permissions to read the server configuration. */
     NO_PERMISSIONS,

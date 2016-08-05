@@ -188,9 +188,9 @@ public class LoginPanel extends StatusGenericPanel
           {
             ControlPanelInfo info = getInfo();
             usedHostPort = info.getAdminConnectorHostPort();
-            conn = Utilities.getAdminDirContext(info, DN.valueOf(dn.getText()), String.valueOf(pwd.getPassword()));
+            conn = Utilities.getAdminConnection(info, DN.valueOf(dn.getText()), String.valueOf(pwd.getPassword()));
 
-            org.forgerock.util.Utils.closeSilently(info.getConnection(), info.getUserDataDirContext());
+            org.forgerock.util.Utils.closeSilently(info.getConnection(), info.getUserDataConnection());
             try
             {
               Thread.sleep(500);
@@ -208,7 +208,7 @@ public class LoginPanel extends StatusGenericPanel
               }
             });
             info.setConnection(conn);
-            info.setUserDataDirContext(null);
+            info.setUserDataConnection(null);
             info.regenerateDescriptor();
             return conn;
           } catch (Throwable t)

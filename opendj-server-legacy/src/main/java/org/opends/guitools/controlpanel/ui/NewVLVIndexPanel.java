@@ -269,9 +269,9 @@ class NewVLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    private void createVLVIndexOnline(ConnectionWrapper ctx) throws Exception
+    private void createVLVIndexOnline(ConnectionWrapper conn) throws Exception
     {
-      final BackendCfgClient backend = ctx.getRootConfiguration().getBackend(backendName.getText());
+      final BackendCfgClient backend = conn.getRootConfiguration().getBackend(backendName.getText());
       createBackendVLVIndexOnline((PluggableBackendCfgClient) backend);
     }
 

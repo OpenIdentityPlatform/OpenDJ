@@ -541,7 +541,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             if (isLocal)
             {
               usedHostPort = info.getAdminConnectorHostPort();
-              conn = Utilities.getAdminDirContext(info, bindDn, bindPwd);
+              conn = Utilities.getAdminConnection(info, bindDn, bindPwd);
             }
             else
             {
@@ -563,7 +563,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             closeInfoConnections();
             info.setIsLocal(isLocal);
             info.setConnection(conn);
-            info.setUserDataDirContext(null);
+            info.setUserDataConnection(null);
             info.regenerateDescriptor();
             return conn;
           } catch (Throwable t)
@@ -913,6 +913,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   private void closeInfoConnections()
   {
     StaticUtils.close(getInfo().getConnection());
-    StaticUtils.close(getInfo().getUserDataDirContext());
+    StaticUtils.close(getInfo().getUserDataConnection());
   }
 }

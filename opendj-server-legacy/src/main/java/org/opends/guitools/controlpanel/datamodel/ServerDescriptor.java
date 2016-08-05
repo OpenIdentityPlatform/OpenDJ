@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
+import org.opends.guitools.controlpanel.util.ConfigFromConnection;
 import org.opends.quicksetup.UserData;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Schema;
@@ -694,8 +694,8 @@ public class ServerDescriptor
       {
         String start = rootMonitor.getAttribute(START_DATE.getAttributeName()).firstValueAsString();
         String current = rootMonitor.getAttribute(CURRENT_DATE.getAttributeName()).firstValueAsString();
-        Date startTime = ConfigFromDirContext.utcParser.parse(start);
-        Date currentTime = ConfigFromDirContext.utcParser.parse(current);
+        Date startTime = ConfigFromConnection.utcParser.parse(start);
+        Date currentTime = ConfigFromConnection.utcParser.parse(current);
         return currentTime.getTime() - startTime.getTime();
       }
       catch (Throwable t)

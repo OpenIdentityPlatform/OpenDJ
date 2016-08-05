@@ -1194,10 +1194,9 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
           updateNumSubordinateHacker(desc);
           if (setConnection)
           {
-            if (getInfo().getUserDataDirContext() == null)
+            if (getInfo().getUserDataConnection() == null)
             {
-              ConnectionWrapper connUserData = createUserDataDirContext(conn.getBindDn(), conn.getBindPassword());
-              getInfo().setUserDataDirContext(connUserData);
+              getInfo().setUserDataConnection(createUserDataConnection(conn.getBindDn(), conn.getBindPassword()));
             }
             Runnable runnable = new Runnable()
             {
@@ -1206,7 +1205,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
               {
                 ControlPanelInfo info = getInfo();
                 controller.setConnections(
-                    info.getServerDescriptor(), info.getConnection(), info.getUserDataDirContext());
+                    info.getServerDescriptor(), info.getConnection(), info.getUserDataConnection());
                 applyButtonClicked();
               }
             };
@@ -1391,13 +1390,13 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
    * @throws ConfigReadException
    *           if an error occurs reading the configuration.
    */
-  private ConnectionWrapper createUserDataDirContext(final DN bindDN, final String bindPassword)
+  private ConnectionWrapper createUserDataConnection(final DN bindDN, final String bindPassword)
       throws IOException, ConfigReadException
   {
     createdUserDataConn = null;
     try
     {
-      createdUserDataConn = Utilities.getUserDataDirContext(getInfo(), bindDN, bindPassword);
+      createdUserDataConn = Utilities.getUserDataConnection(getInfo(), bindDN, bindPassword);
     }
     catch (LdapException e)
     {
@@ -1520,7 +1519,7 @@ abstract class AbstractBrowseEntriesPanel extends StatusGenericPanel implements 
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host " + host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
-        createdUserDataConn = createUserDataDirContext(bindDN, bindPassword);
+        createdUserDataConn = createUserDataConnection(bindDN, bindPassword);
       }
       else
       {

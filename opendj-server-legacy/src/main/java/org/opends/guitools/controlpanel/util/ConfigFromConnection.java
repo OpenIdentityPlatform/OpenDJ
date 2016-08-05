@@ -86,11 +86,8 @@ import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
-/**
- * A class that reads the configuration and monitoring information using a
- * DirContext through LDAP.
- */
-public class ConfigFromDirContext extends ConfigReader
+/** A class that reads the configuration and monitoring information using an LDAP connection. */
+public class ConfigFromConnection extends ConfigReader
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

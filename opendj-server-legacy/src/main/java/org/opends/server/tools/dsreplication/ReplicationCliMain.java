@@ -117,7 +117,7 @@ import org.opends.admin.ads.util.PreferredConnection.Type;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
-import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
+import org.opends.guitools.controlpanel.util.ConfigFromConnection;
 import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.ProcessReader;
@@ -1979,7 +1979,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     List<TaskEntry> taskEntries = new ArrayList<>();
     List<Exception> exceptions = new ArrayList<>();
-    ConfigFromDirContext cfg = new ConfigFromDirContext();
+    ConfigFromConnection cfg = new ConfigFromConnection();
     cfg.updateTaskInformation(conn, exceptions, taskEntries);
     for (Exception ode : exceptions)
     {

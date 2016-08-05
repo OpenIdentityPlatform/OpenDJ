@@ -677,7 +677,7 @@ public abstract class Task
   {
     ConnectionWrapper conn = useAdminConnector
         ? getInfo().getConnection()
-        : getInfo().getUserDataDirContext();
+        : getInfo().getUserDataConnection();
 
     List<String> args = new ArrayList<>();
     if (isServerRunning() && conn != null)
