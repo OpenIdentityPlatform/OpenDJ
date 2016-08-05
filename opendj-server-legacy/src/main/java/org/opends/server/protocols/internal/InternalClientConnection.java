@@ -801,11 +801,7 @@ public final class InternalClientConnection
    */
   public AddOperation processAdd(AddChangeRecordEntry addRecord)
   {
-    LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
-    LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
-    LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>();
-
-    Entry e = new Entry(addRecord.getDN(), objectClasses, userAttrs, opAttrs);
+    Entry e = newEntry(addRecord.getDN());
 
     ArrayList<ByteString> duplicateValues = new ArrayList<>();
     for (Attribute a : addRecord.getAttributes())
@@ -815,7 +811,7 @@ public final class InternalClientConnection
         for (ByteString v : a)
         {
           String ocName = v.toString();
-          objectClasses.put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
+          e.getObjectClasses().put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
         }
       }
       else
@@ -824,9 +820,15 @@ public final class InternalClientConnection
       }
     }
 
-    // TODO JNR can we directly pass e instead of addEntry()?
-    Entry addEntry = new Entry(addRecord.getDN(), objectClasses, userAttrs, opAttrs);
-    return processAdd(addEntry, null);
+    return processAdd(e, null);
+  }
+
+  private Entry newEntry(DN dn)
+  {
+    return new Entry(dn,
+        new LinkedHashMap<ObjectClass, String>(),
+        new LinkedHashMap<AttributeType, List<Attribute>>(),
+        new LinkedHashMap<AttributeType, List<Attribute>>());
   }
 
 
