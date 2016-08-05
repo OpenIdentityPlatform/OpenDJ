@@ -4411,7 +4411,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       final Set<String> expandedNames = getExpandedNames(names);
       final Entry filteredEntry =
           entry.filterEntry(expandedNames, false, false, false);
-      return filteredEntry.getAttributes();
+      return collect(filteredEntry.getAllAttributes(), new ArrayList<Attribute>());
     }
   }
 

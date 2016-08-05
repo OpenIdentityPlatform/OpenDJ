@@ -1444,7 +1444,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
   private AddMsg newAddMsg(Entry e, String entryUUID)
   {
-    return new AddMsg(gen.newCSN(), e.getName(), entryUUID, null, e.getObjectClassAttribute(), e.getAttributes(), null);
+    return new AddMsg(gen.newCSN(), e.getName(), entryUUID, null,
+        e.getObjectClassAttribute(), e.getAllAttributes(), null);
   }
 
   /**

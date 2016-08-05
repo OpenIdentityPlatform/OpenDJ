@@ -12,22 +12,27 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.types.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
+
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.io.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.
-     OP_TYPE_SEARCH_RESULT_ENTRY;
-import static org.testng.Assert.*;
-import org.testng.annotations.Test;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 public class TestSearchResultEntryProtocolOp extends LdapTestCase
 {
@@ -115,7 +120,7 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
   {
     SearchResultEntryProtocolOp protocolOp =
          new SearchResultEntryProtocolOp(new SearchResultEntry(from));
-    Entry to = protocolOp.toSearchResultEntry();
+    protocolOp.toSearchResultEntry();
 
     // FIXME Issue 660: Need to provide Entry.equals(Object)
 //    assertEquals(to, from);
@@ -138,7 +143,7 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
          new SearchResultEntryProtocolOp(new SearchResultEntry(from));
     StringBuilder builder = new StringBuilder();
     protocolOp.toLDIF(builder, wrapColumn);
-    Entry to = TestCaseUtils.entryFromLdifString(builder.toString());
+    TestCaseUtils.entryFromLdifString(builder.toString());
 
     // FIXME Issue 660: Need to provide Entry.equals(Object)
 //    assertEquals(to, from);
@@ -164,7 +169,7 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
       }
     }
 
-    Entry to = TestCaseUtils.entryFromLdifString(builder.toString());
+    TestCaseUtils.entryFromLdifString(builder.toString());
 
     // FIXME Issue 660: Need to provide Entry.equals(Object)
 //    assertEquals(to, from);
@@ -223,7 +228,7 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
     writer.writeOctetString(entry.getName().toString());
 
     writer.writeStartSequence();
-    for(Attribute attr : entry.getAttributes())
+    for (Attribute attr : entry.getAllAttributes())
     {
       new LDAPAttribute(attr).write(writer);
     }
@@ -242,7 +247,7 @@ public class TestSearchResultEntryProtocolOp extends LdapTestCase
     writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
 
     writer.writeStartSequence();
-    for(Attribute attr : entry.getAttributes())
+    for (Attribute attr : entry.getAllAttributes())
     {
       new LDAPAttribute(attr).write(writer);
     }

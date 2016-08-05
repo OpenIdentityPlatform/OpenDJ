@@ -118,7 +118,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
         SearchResultEntry result = to(entry);
         assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
         assertThat(result.getControls()).hasSize(entry.getControls().size());
-        assertThat(result.getAttributes()).hasSize(2);
+        assertThat(result.getAllAttributes()).hasSize(2);
     }
 
     /**
@@ -134,7 +134,7 @@ public class ConvertersTestCase extends DirectoryServerTestCase {
 
         org.opends.server.types.Entry result = to(entry);
         assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
-        assertThat(result.getAttributes()).hasSize(2);
+        assertThat(result.getAllAttributes()).hasSize(2);
     }
 
     @Test

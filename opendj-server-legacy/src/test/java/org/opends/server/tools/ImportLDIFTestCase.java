@@ -17,19 +17,22 @@
 package org.opends.server.tools;
 
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.RootCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -496,7 +499,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
       assertNotNull(entry);
       for (Attribute a : attrs)
       {
-        assertEquals(entry.getAttributes().contains(a), attrsShouldExistInEntry);
+        final List<Attribute> attributes = collect(entry.getAllAttributes(), new ArrayList<Attribute>());
+        assertEquals(attributes.contains(a), attrsShouldExistInEntry);
       }
     }
   }

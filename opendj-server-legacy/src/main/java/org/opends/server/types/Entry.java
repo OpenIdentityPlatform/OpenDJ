@@ -296,34 +296,6 @@ public class Entry
 
 
 
-  /**
-   * Retrieves the entire set of attributes for this entry.  This will
-   * include both user and operational attributes.  The caller must
-   * not modify the contents of this list.  Also note that this method
-   * is less efficient than calling either (or both)
-   * <CODE>getUserAttributes</CODE> or
-   * <CODE>getOperationalAttributes</CODE>, so it should only be used
-   * when calls to those methods are not appropriate.
-   *
-   * @return  The entire set of attributes for this entry.
-   */
-  public List<Attribute> getAttributes()
-  {
-    // Estimate the size.
-    int size = userAttributes.size() + operationalAttributes.size();
-
-    final List<Attribute> attributes = new ArrayList<>(size);
-    for (List<Attribute> attrs : userAttributes.values())
-    {
-      attributes.addAll(attrs);
-    }
-    for (List<Attribute> attrs : operationalAttributes.values())
-    {
-      attributes.addAll(attrs);
-    }
-    return attributes;
-  }
-
   /** Iterator over a {@code Collection<List<Attribute>>}. */
   private static final class CollectionListIterator implements Iterator<Attribute>
   {

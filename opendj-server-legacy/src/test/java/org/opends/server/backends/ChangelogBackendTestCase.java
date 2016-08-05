@@ -34,7 +34,6 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -732,7 +731,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           if ("delete".equals(changeType))
           {
             // We are using "*" for deletes so should get back 4 attributes.
-            assertThat(targetEntry.getAttributes()).hasSize(4);
+            assertThat(targetEntry.getAllAttributes()).hasSize(4);
             assertAttributeValue(targetEntry, "uid", "robert");
             assertAttributeValue(targetEntry, "cn", "Robert Hue2");
             assertAttributeValue(targetEntry, "telephonenumber", "555555");
@@ -740,14 +739,14 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           }
           else
           {
-            assertThat(targetEntry.getAttributes()).isEmpty();
+            assertThat(targetEntry.getAllAttributes()).isEmpty();
           }
         }
         else if (targetdn.endsWith("cn=fiona jensen,o=" + backendId4))
         {
           Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
 
-          assertThat(targetEntry.getAttributes()).hasSize(2);
+          assertThat(targetEntry.getAllAttributes()).hasSize(2);
           assertAttributeValue(targetEntry,"sn","jensen");
           assertAttributeValue(targetEntry,"cn","Fiona Jensen");
         }
@@ -1202,8 +1201,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         user1entryUUID,
         baseUUID,
         entry.getObjectClassAttribute(),
-        entry.getAttributes(),
-        Collections.<Attribute> emptyList());
+        entry.getAllAttributes(),
+        null);
   }
 
   private UpdateMsg generateModMsg(ReplicaId replicaId, CSN csn, String testName) throws Exception

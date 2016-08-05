@@ -24,7 +24,6 @@ import static org.testng.Assert.*;
 
 import java.io.File;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -560,7 +559,7 @@ public class GenerationIdTest extends ReplicationTestCase
         user1entryUUID,
         null,
         personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+        personWithUUIDEntry.getAllAttributes(), null);
   }
 
   /** Check that the expected number of changes are in the replication server database. */

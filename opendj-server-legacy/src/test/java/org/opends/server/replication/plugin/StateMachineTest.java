@@ -24,7 +24,6 @@ import static org.testng.Assert.*;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -55,7 +54,6 @@ import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.AfterClass;
@@ -1041,7 +1039,7 @@ public class StateMachineTest extends ReplicationTestCase
         userEntryUUID,
         null,
         personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+        personWithUUIDEntry.getAllAttributes(), null);
     }
   }
 

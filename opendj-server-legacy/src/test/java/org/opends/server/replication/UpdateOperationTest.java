@@ -350,8 +350,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   private AddMsg addMsg(CSNGenerator gen, Entry entry, String uniqueId, String parentId)
   {
     return new AddMsg(gen.newCSN(), entry.getName(), uniqueId, parentId,
-        entry.getObjectClassAttribute(), entry.getAttributes(),
-        new ArrayList<Attribute>());
+        entry.getObjectClassAttribute(), entry.getAllAttributes(), null);
   }
 
   /**
@@ -722,7 +721,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         user1entryUUID,
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+        personWithUUIDEntry.getAllAttributes(), null);
     updateMonitorCount(baseDN, resolvedMonitorAttr);
       alertCount = DummyAlertHandler.getAlertCount();
     broker.publish(addMsg);
@@ -870,7 +869,7 @@ public class UpdateOperationTest extends ReplicationTestCase
         user1entryUUID,
         getEntryUUID(baseDN1),
         personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+        personWithUUIDEntry.getAllAttributes(), null);
 
     // - MODDN parent entry 1 to baseDn2 in the LDAP server
     ModifyDNRequest modifyDNRequest = newModifyDNRequest(baseDN1.toString(), "ou=baseDn2")

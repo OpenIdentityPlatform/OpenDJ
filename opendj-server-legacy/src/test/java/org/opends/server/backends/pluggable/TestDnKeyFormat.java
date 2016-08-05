@@ -336,9 +336,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
         entryAfter = id2entry.entryFromDatabase(bytes, DirectoryServer.getDefaultCompressedSchema());
 
         // check DN and number of attributes
-        assertEquals(entryBefore.getAttributes().size(), entryAfter
-            .getAttributes().size());
-
+        assertThat(entryBefore.getAllAttributes()).hasSameSizeAs(entryAfter.getAllAttributes());
         assertEquals(entryBefore.getName(), entryAfter.getName());
 
         // check the object classes were not changed

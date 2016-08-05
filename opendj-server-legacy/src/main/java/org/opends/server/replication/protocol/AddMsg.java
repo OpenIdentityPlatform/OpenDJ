@@ -19,7 +19,6 @@ package org.opends.server.replication.protocol;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
@@ -121,8 +120,8 @@ public class AddMsg extends LDAPUpdateMsg
                 String uniqueId,
                 String parentId,
                 Attribute objectClass,
-                Collection<Attribute> userAttributes,
-                Collection<Attribute> operationalAttributes)
+                Iterable<Attribute> userAttributes,
+                Iterable<Attribute> operationalAttributes)
   {
     super (csn, uniqueId, dn);
 
@@ -260,8 +259,8 @@ public class AddMsg extends LDAPUpdateMsg
 
   private byte[] encodeAttributes(
       Attribute objectClass,
-      Collection<Attribute> userAttributes,
-      Collection<Attribute> operationalAttributes)
+      Iterable<Attribute> userAttributes,
+      Iterable<Attribute> operationalAttributes)
   {
     ByteStringBuilder byteBuilder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(byteBuilder);

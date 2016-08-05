@@ -579,7 +579,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       AddMsg addMsg = new AddMsg(
           gen.newCSN(), entry.getName(), UUID.randomUUID().toString(),
-          parentUid, entry.getObjectClassAttribute(), entry.getAttributes(), null);
+          parentUid, entry.getObjectClassAttribute(), entry.getAllAttributes(), null);
 
       // Send add message in assured mode
       addMsg.setAssured(isAssured);

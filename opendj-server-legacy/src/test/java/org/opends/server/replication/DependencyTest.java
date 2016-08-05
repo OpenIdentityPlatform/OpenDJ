@@ -16,6 +16,11 @@
  */
 package org.opends.server.replication;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -44,11 +49,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test that the dependencies are computed correctly when replaying
@@ -206,7 +206,7 @@ public class DependencyTest extends ReplicationTestCase
   private AddMsg addMsg(DN addDN, Entry entry, int uniqueId, int parentId, CSNGenerator gen)
   {
     return new AddMsg(gen.newCSN(), addDN, stringUID(uniqueId), stringUID(parentId),
-        entry.getObjectClassAttribute(), entry.getAttributes(), null);
+        entry.getObjectClassAttribute(), entry.getAllAttributes(), null);
   }
 
   private ModifyMsg modifyMsg(DN dn, int entryUUID, List<Modification> mods, CSNGenerator gen)

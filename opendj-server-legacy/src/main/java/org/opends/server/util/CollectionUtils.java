@@ -11,11 +11,17 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.TreeSet;
 
 /**
  * Utility class for {@link Collection}s.
@@ -96,5 +102,27 @@ public final class CollectionUtils
   public static <E> TreeSet<E> newTreeSet(E... elements)
   {
     return new TreeSet<>(Arrays.asList(elements));
+  }
+
+  /**
+   * Collects all the elements from the provided iterable into the provided collection.
+   *
+   * @param <C>
+   *          The type of the collection
+   * @param <E>
+   *          The type of the iterable's elements
+   * @param iterable
+   *          the iterable from which to read elements
+   * @param outputCollection
+   *          the collection where to add the iterable's elements
+   * @return the provided collection
+   */
+  public static <C extends Collection<E>, E> C collect(Iterable<E> iterable, C outputCollection)
+  {
+    for (E e : iterable)
+    {
+      outputCollection.add(e);
+    }
+    return outputCollection;
   }
 }

@@ -16,8 +16,12 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
 
-import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,17 +40,10 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.testng.Assert.*;
 
 /** Test the naming conflict resolution code. */
 @SuppressWarnings("javadoc")
@@ -314,8 +311,7 @@ public class NamingConflictTest extends ReplicationTestCase
         childUUID,
         parentUUID,
         childEntry.getObjectClassAttribute(),
-        childEntry.getAttributes(),
-        new ArrayList<Attribute>());
+        childEntry.getAllAttributes(), null);
 
     // Put the message in the replay queue
     replayMsg(addMsg);

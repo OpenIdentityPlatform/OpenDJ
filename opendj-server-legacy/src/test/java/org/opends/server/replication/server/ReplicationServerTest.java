@@ -59,7 +59,6 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.protocol.WindowProbeMsg;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
@@ -793,7 +792,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         "objectClass: domain",
         "entryUUID: " + user1entryUUID);
     return new AddMsg(csnGen.newCSN(), EXAMPLE_DN, user1entryUUID, baseUUID,
-        entry.getObjectClassAttribute(), entry.getAttributes(), new ArrayList<Attribute>());
+        entry.getObjectClassAttribute(), entry.getAllAttributes(), null);
   }
 
   private List<ReplicationMsg> receiveReplicationMsgs(ReplicationBroker broker2, int nbMessagesExpected)

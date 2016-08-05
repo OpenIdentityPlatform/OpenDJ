@@ -483,7 +483,7 @@ public final class Converters {
 
         final SearchResultEntry searchResultEntry =
                 Responses.newSearchResultEntry(srvResultEntry.getName().toString());
-        for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
+        for (org.opends.server.types.Attribute a : srvResultEntry.getAllAttributes()) {
             searchResultEntry.addAttribute(from(a));
         }
         for (org.opends.server.types.Control c : srvResultEntry.getControls()) {
@@ -506,7 +506,7 @@ public final class Converters {
 
         final org.forgerock.opendj.ldap.Entry entry = new LinkedHashMapEntry(srvResultEntry.getName().toString());
         entry.addAttribute(from(srvResultEntry.getObjectClassAttribute()));
-        for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
+        for (org.opends.server.types.Attribute a : srvResultEntry.getAllAttributes()) {
             entry.addAttribute(from(a));
         }
         return entry;

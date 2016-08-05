@@ -160,8 +160,7 @@ public class SubEntry {
     // Process collective attributes.
     if (this.isCollective)
     {
-      List<Attribute> subAttrList = entry.getAttributes();
-      for (Attribute subAttr : subAttrList)
+      for (Attribute subAttr : entry.getAllAttributes())
       {
         AttributeType attrType = subAttr.getAttributeDescription().getAttributeType();
         if (attrType.isCollective())

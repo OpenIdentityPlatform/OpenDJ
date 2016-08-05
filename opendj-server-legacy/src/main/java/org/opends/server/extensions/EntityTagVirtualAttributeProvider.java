@@ -15,6 +15,10 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.CollectionUtils.*;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,10 +30,10 @@ import java.util.zip.Checksum;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
@@ -39,8 +43,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class implements a virtual attribute provider which ensures that all
@@ -263,7 +265,7 @@ public final class EntityTagVirtualAttributeProvider extends
 
     // The attribute order may vary between replicas so we need to make sure
     // that we always process them in the same order.
-    final List<Attribute> attributes = entry.getAttributes();
+    final List<Attribute> attributes = collect(entry.getAllAttributes(), new ArrayList<Attribute>());
     Collections.sort(attributes, ATTRIBUTE_COMPARATOR);
     for (final Attribute attribute : attributes)
     {

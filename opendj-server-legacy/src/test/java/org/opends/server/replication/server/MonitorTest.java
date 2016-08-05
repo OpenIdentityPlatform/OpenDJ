@@ -21,7 +21,6 @@ import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -41,7 +40,6 @@ import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredi
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -303,7 +301,7 @@ public class MonitorTest extends ReplicationTestCase
         user1entryUUID,
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+        personWithUUIDEntry.getAllAttributes(), null);
   }
 
   @Test(enabled=true)

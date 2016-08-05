@@ -219,7 +219,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
     assertNotNull(e);
-    assertThat(e.getAttributes()).isEmpty();
+    assertThat(e.getAllAttributes()).isEmpty();
   }
 
 

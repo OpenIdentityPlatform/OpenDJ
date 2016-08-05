@@ -31,6 +31,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.MatchedValuesFilter;
@@ -54,7 +55,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -133,7 +133,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     // Calculate the total number of LDAP attributes in this entry.
     ldapAttrCount = 1; // For the objectclass attribute.
-    for (Attribute a : testEntry.getAttributes())
+    for (Attribute a : testEntry.getAllAttributes())
     {
       ldapAttrCount += a.size();
     }
@@ -1160,7 +1160,7 @@ public class SearchOperationTestCase extends OperationTestCase
   private Set<String> getAttributeNames(Entry entry)
   {
     Set<String> actualNames = new HashSet<>();
-    for (Attribute attribute : entry.getAttributes())
+    for (Attribute attribute : entry.getAllAttributes())
     {
       actualNames.add(attribute.getAttributeDescription().toString());
     }
