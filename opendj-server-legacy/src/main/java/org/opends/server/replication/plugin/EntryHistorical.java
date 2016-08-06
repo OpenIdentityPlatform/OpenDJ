@@ -19,6 +19,7 @@ package org.opends.server.replication.plugin;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.HistAttrModificationKey.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -515,11 +516,11 @@ public class EntryHistorical
   public static EntryHistorical newInstanceFromEntry(Entry entry)
   {
     // Read the DB historical attribute from the entry
-    List<Attribute> histAttrWithOptionsFromEntry = getHistoricalAttr(entry);
+    Iterable<Attribute> histAttrWithOptionsFromEntry = getHistoricalAttr(entry);
 
     // Now we'll build the Historical object we want to construct
     final EntryHistorical newHistorical = new EntryHistorical();
-    if (histAttrWithOptionsFromEntry.isEmpty())
+    if (isEmpty(histAttrWithOptionsFromEntry))
     {
       // No historical attribute in the entry, return empty object
       return newHistorical;
@@ -660,7 +661,7 @@ public class EntryHistorical
    *          Several values on the list if several options for this attribute.
    *          Null if not present.
    */
-  public static List<Attribute> getHistoricalAttr(Entry entry)
+  public static Iterable<Attribute> getHistoricalAttr(Entry entry)
   {
     return entry.getAllAttributes(HISTORICAL_ATTRIBUTE_NAME);
   }

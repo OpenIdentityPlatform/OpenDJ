@@ -16,6 +16,17 @@
  */
 package org.opends.server.replication;
 
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.backends.task.TaskState.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,17 +78,6 @@ import org.opends.server.util.TestTimer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static java.util.concurrent.TimeUnit.*;
-
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.forgerock.opendj.ldap.SearchScope.*;
-import static org.opends.server.backends.task.TaskState.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.testng.Assert.*;
 
 /** An abstract class that all Replication unit test should extend. */
 @SuppressWarnings("javadoc")
@@ -524,9 +524,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         final Entry newEntry = DirectoryServer.getEntry(dn);
         assertNotNull(newEntry);
-        List<Attribute> attrList = newEntry.getAllAttributes(attrTypeStr);
-        Assertions.assertThat(attrList).isNotEmpty();
-        Attribute attr = attrList.get(0);
+        Iterable<Attribute> attrs = newEntry.getAllAttributes(attrTypeStr);
+        Assertions.assertThat(attrs).isNotEmpty();
+        Attribute attr = attrs.iterator().next();
         boolean foundAttributeValue = attr.contains(ByteString.valueOfUtf8(valueString));
         assertEquals(foundAttributeValue, expectedAttributeValueFound, foundMsg);
         return null;
@@ -781,10 +781,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         Entry newEntry = DirectoryServer.getEntry(dn);
         assertNotNull(newEntry);
-        Attribute attribute = newEntry.getAllAttributes("entryuuid").get(0);
-        String found = attribute.iterator().next().toString();
+        Attribute attribute = newEntry.getAllAttributes("entryuuid").iterator().next();
+        ByteString found = attribute.iterator().next();
         assertNotNull(found, "Entry: " + dn + " Could not be found.");
-        return found;
+        return found.toString();
       }
     });
   }

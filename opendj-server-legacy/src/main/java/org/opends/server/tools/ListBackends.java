@@ -418,10 +418,10 @@ public class ListBackends
       Set<DN> baseDNs = new TreeSet<>();
       try
       {
-        List<Attribute> attributes = configEntry.getAllAttributes(ATTR_BACKEND_BASE_DN);
-        if (!attributes.isEmpty())
+        Iterator<Attribute> attributes = configEntry.getAllAttributes(ATTR_BACKEND_BASE_DN).iterator();
+        if (attributes.hasNext())
         {
-          Attribute attribute = attributes.get(0);
+          Attribute attribute = attributes.next();
           for (ByteString byteString : attribute)
           {
             baseDNs.add(DN.valueOf(byteString.toString()));

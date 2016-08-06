@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1480,15 +1481,15 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         throw new Exception("Unknown assured type");
     }
 
-    List<Attribute> attrs = entry.getAllAttributes(assuredAttr);
-    if (attrs.isEmpty())
+    Iterator<Attribute> attrs = entry.getAllAttributes(assuredAttr).iterator();
+    if (!attrs.hasNext())
     {
       return Collections.emptyMap();
     }
 
     // Parse and store values
     Map<Integer,Integer> resultMap = new HashMap<>();
-    for (ByteString val : attrs.get(0))
+    for (ByteString val : attrs.next())
     {
       StringTokenizer strtok = new StringTokenizer(val.toString(), ":");
 

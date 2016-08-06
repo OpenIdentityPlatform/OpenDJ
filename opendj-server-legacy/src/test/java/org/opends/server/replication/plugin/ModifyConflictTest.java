@@ -648,7 +648,9 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(mod.getAttribute(), values3and4);
 
     // check that the entry now contains value1 and value2 and no other values.
-    Attribute resultEntryAttr = entry.getAllAttributes(DESCRIPTION).get(0);
+    Iterable<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
+    assertThat(attrs).hasSize(1);
+    Attribute resultEntryAttr = attrs.iterator().next();
     assertEquals(resultEntryAttr, values1and2);
 
     Attribute attr = buildSyncHist(DESCRIPTION,
@@ -1357,8 +1359,8 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
-    assertEquals(attrs.get(0), Attributes.create(DESCRIPTION, "value2", "value3", "value4"));
+    Iterable<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
+    assertThat(attrs).containsOnly(Attributes.create(DESCRIPTION, "value2", "value3", "value4"));
   }
 
   /**
@@ -1404,8 +1406,8 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(hist.encodeAndPurge(), attr);
 
     // The entry should have no value
-    List<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
-    assertEquals(attrs.get(0), Attributes.create(DESCRIPTION, "value3", "value4"));
+    Iterable<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
+    assertThat(attrs).containsOnly(Attributes.create(DESCRIPTION, "value3", "value4"));
   }
 
   /**

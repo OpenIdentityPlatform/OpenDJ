@@ -3242,10 +3242,11 @@ public class ModifyOperationTestCase
     // @formatter:on
 
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
-    List<Attribute> attrList = e.getAllAttributes("userpassword");
-    assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
-    assertThat(attrList.get(0)).hasSize(1);
+    Iterable<Attribute> attrs = e.getAllAttributes("userpassword");
+    assertThat(attrs).hasSize(1);
+    Attribute attr = attrs.iterator().next();
+    assertFalse(attr.getAttributeDescription().hasOptions());
+    assertThat(attr).hasSize(1);
   }
 
   /**
@@ -3282,10 +3283,11 @@ public class ModifyOperationTestCase
     // @formatter:on
 
     e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
-    List<Attribute> attrList = e.getAllAttributes("userpassword");
-    assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
-    assertThat(attrList.get(0)).hasSize(1);
+    Iterable<Attribute> attrs = e.getAllAttributes("userpassword");
+    assertThat(attrs).hasSize(1);
+    Attribute attr = attrs.iterator().next();
+    assertFalse(attr.getAttributeDescription().hasOptions());
+    assertThat(attr).hasSize(1);
   }
 
   /**
@@ -3318,10 +3320,11 @@ public class ModifyOperationTestCase
     // @formatter:on
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
-    List<Attribute> attrList = e.getAllAttributes("userpassword");
-    assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
-    assertThat(attrList.get(0)).hasSize(1);
+    Iterable<Attribute> attrs = e.getAllAttributes("userpassword");
+    assertThat(attrs).hasSize(1);
+    Attribute attr = attrs.iterator().next();
+    assertFalse(attr.getAttributeDescription().hasOptions());
+    assertThat(attr).hasSize(1);
   }
 
   /**
@@ -3354,10 +3357,11 @@ public class ModifyOperationTestCase
     // @formatter:on
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
-    List<Attribute> attrList = e.getAllAttributes("userpassword");
-    assertThat(attrList).hasSize(1);
-    assertFalse(attrList.get(0).getAttributeDescription().hasOptions());
-    assertThat(attrList.get(0)).hasSize(1);
+    Iterable<Attribute> attrs = e.getAllAttributes("userpassword");
+    assertThat(attrs).hasSize(1);
+    Attribute attr = attrs.iterator().next();
+    assertFalse(attr.getAttributeDescription().hasOptions());
+    assertThat(attr).hasSize(1);
   }
 
   /**

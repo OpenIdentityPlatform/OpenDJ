@@ -17,6 +17,7 @@
 package org.opends.server.tools;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -118,10 +119,10 @@ public class BackendToolUtils
    */
   public static String getStringSingleValuedAttribute(Entry entry, String attrName)
   {
-    List<Attribute> attributes = entry.getAllAttributes(attrName);
-    if (!attributes.isEmpty())
+    Iterator<Attribute> attributes = entry.getAllAttributes(attrName).iterator();
+    if (attributes.hasNext())
     {
-      Attribute attribute = attributes.get(0);
+      Attribute attribute = attributes.next();
       for (ByteString byteString : attribute)
       {
         return byteString.toString();
@@ -134,10 +135,10 @@ public class BackendToolUtils
   {
     try
     {
-      List<Attribute> attributes = configEntry.getAllAttributes(ATTR_BACKEND_BASE_DN);
-      if (!attributes.isEmpty())
+      Iterator<Attribute> attributes = configEntry.getAllAttributes(ATTR_BACKEND_BASE_DN).iterator();
+      if (attributes.hasNext())
       {
-        Attribute attribute = attributes.get(0);
+        Attribute attribute = attributes.next();
         List<DN> dns = new ArrayList<>();
         for (ByteString byteString : attribute)
         {

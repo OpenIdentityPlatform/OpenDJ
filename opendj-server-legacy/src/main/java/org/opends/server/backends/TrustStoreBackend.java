@@ -63,6 +63,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.TrustStoreBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.Backend;
@@ -86,7 +87,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.CertificateManager;
@@ -1077,16 +1077,16 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       }
       else
       {
-        List<Attribute> certAttrs = entry.getAllAttributes(
-             ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-        if (certAttrs.isEmpty())
+        Iterator<Attribute> certAttrs = entry.getAllAttributes(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE).iterator();
+        if (!certAttrs.hasNext())
         {
           LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_ATTR.get(entryDN, ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message);
         }
-        if (certAttrs.size() != 1)
+        Attribute certAttr = certAttrs.next();
+        if (certAttrs.hasNext())
         {
           LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_ATTRS.get(entryDN, ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
@@ -1094,7 +1094,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
                DirectoryServer.getServerErrorResultCode(), message);
         }
 
-        Attribute certAttr = certAttrs.get(0);
         Iterator<ByteString> i = certAttr.iterator();
 
         if (!i.hasNext())

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -416,9 +417,12 @@ public class TaskEntry {
   }
 
   private String getSingleStringValue(Entry entry, String attrName) {
-    List<Attribute> attrList = entry.getAllAttributes(attrName);
-    if (attrList.size() == 1) {
-      Attribute attr = attrList.get(0);
+    Iterator<Attribute> attrs = entry.getAllAttributes(attrName).iterator();
+    if (attrs.hasNext()) {
+      Attribute attr = attrs.next();
+      if (attrs.hasNext()) {
+        return "";
+      }
       if (!attr.isEmpty()) {
         return attr.iterator().next().toString();
       }

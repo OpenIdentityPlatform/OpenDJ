@@ -36,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -943,7 +944,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private String readCookieFromNthEntry(List<SearchResultEntry> entries, int i)
   {
     SearchResultEntry entry = entries.get(i);
-    return entry.getAllAttributes("changelogcookie").get(0).iterator().next().toString();
+    Attribute attr = entry.getAllAttributes("changelogcookie").iterator().next();
+    return attr.iterator().next().toString();
   }
 
   private String assertEntriesContainsCSNsAndReadLastCookie(String test, List<SearchResultEntry> entries,
@@ -1479,12 +1481,12 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   private static String getAttributeValue(Entry entry, String attrName)
   {
-    List<Attribute> attrs = entry.getAllAttributes(attrName);
-    if (attrs.isEmpty())
+    Iterator<Attribute> attrs = entry.getAllAttributes(attrName).iterator();
+    if (!attrs.hasNext())
     {
       return null;
     }
-    Attribute attr = attrs.iterator().next();
+    Attribute attr = attrs.next();
     ByteString value = attr.iterator().next();
     return value.toString();
   }

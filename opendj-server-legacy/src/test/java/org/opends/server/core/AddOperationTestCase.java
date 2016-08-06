@@ -793,7 +793,7 @@ public class AddOperationTestCase
     retrieveCompletedOperationElements(addOperation);
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("ou=People,o=test"));
-    List<Attribute> attrList = e.getAllAttributes("ou");
+    Iterable<Attribute> attrList = e.getAllAttributes("ou");
     assertThat(attrList).isNotEmpty();
   }
 

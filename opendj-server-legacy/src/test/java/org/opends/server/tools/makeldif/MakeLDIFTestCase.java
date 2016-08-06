@@ -17,6 +17,10 @@
  */
 package org.opends.server.tools.makeldif;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,9 +42,6 @@ import org.opends.server.util.LDIFReader;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.testng.Assert.*;
 
 /** A set of test cases for the MakeLDIF tool. */
 @SuppressWarnings("javadoc")
@@ -316,9 +317,9 @@ public class MakeLDIFTestCase extends ToolsTestCase
 
     Entry e = readEntry(outLdifFilePath);
     assertNotNull(e);
-    List<Attribute> attrs = e.getAllAttributes(attrName);
-    assertFalse(attrs.isEmpty());
-    Attribute a = attrs.get(0);
+    Iterable<Attribute> attrs = e.getAllAttributes(attrName);
+    assertThat(attrs).isNotEmpty();
+    Attribute a = attrs.iterator().next();
     Attribute expectedRes = Attributes.create(attrName, expectedValue);
     assertEquals(a, expectedRes);
   }
@@ -365,9 +366,9 @@ public class MakeLDIFTestCase extends ToolsTestCase
 
     Entry e = readEntry(outLdifFilePath);
     assertNotNull(e);
-    List<Attribute> attrs = e.getAllAttributes("cn");
-    assertFalse(attrs.isEmpty());
-    Attribute a = attrs.get(0);
+    Iterable<Attribute> attrs = e.getAllAttributes("cn");
+    assertThat(attrs).isNotEmpty();
+    Attribute a = attrs.iterator().next();
     assertTrue(a.iterator().next().toString().matches("Foo <[A-Z]>\\{1\\}Bar"),
         "cn value doesn't match the expected value");
   }

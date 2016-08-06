@@ -16,6 +16,11 @@
  */
 package org.opends.server.schema;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,11 +39,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.testng.Assert.*;
 
 /** Test the LDAPSyntaxDescriptionSyntax. */
 @RemoveOnceSDKSchemaIsUsed
@@ -215,7 +215,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       assertThat(entries).isNotEmpty();
       SearchResultEntry e = entries.get(0);
       assertNotNull(e);
-      Attribute attr = e.getAllAttributes("ldapsyntaxes").get(0);
+      Attribute attr = e.getAllAttributes("ldapsyntaxes").iterator().next();
 
       //There are other ways of doing it but we will extract the OID
       //from the attribute values and then check to see if our

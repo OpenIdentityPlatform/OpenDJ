@@ -16,9 +16,17 @@
  */
 package org.opends.server.core;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,13 +70,6 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class SearchOperationTestCase extends OperationTestCase
@@ -980,18 +981,18 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     for (String attrType : virtualAttrTypes)
     {
-      List<Attribute> attrList = entry.getAllAttributes(attrType);
+      Iterable<Attribute> attrs = entry.getAllAttributes(attrType);
 
       if (stripVirtualAttributes)
       {
-        if (!attrList.isEmpty())
+        if (!isEmpty(attrs))
         {
           messages.add("Unexpected virtual attribute: " + attrType);
         }
       }
       else if (filterType == AttributeFilterType.DEFAULT)
       {
-        if (!attrList.isEmpty())
+        if (!isEmpty(attrs))
         {
           messages.add("Unexpected operational attribute: " + attrType);
         }
@@ -999,20 +1000,21 @@ public class SearchOperationTestCase extends OperationTestCase
       else if ("ismemberof".equals(attrType))
       {
         // isMemberOf should never be returned as user is not in any groups.
-        if (!attrList.isEmpty())
+        if (!isEmpty(attrs))
         {
           messages.add("Unexpected isMemberOf attribute");
         }
       }
       else
       {
-        if (attrList.isEmpty())
+        Iterator<Attribute> attrsIt = attrs.iterator();
+        if (!attrsIt.hasNext())
         {
           messages.add("Missing virtual attribute: " + attrType);
         }
         else
         {
-          Attribute attr = attrList.get(0);
+          Attribute attr = attrsIt.next();
           if (typesOnly)
           {
             if (!attr.isEmpty())
@@ -1037,24 +1039,25 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     for (String attrType : realAttrTypes)
     {
-      List<Attribute> attrList = entry.getAllAttributes(attrType);
+      Iterable<Attribute> attrs = entry.getAllAttributes(attrType);
 
       if (stripRealAttributes)
       {
-        if (!attrList.isEmpty())
+        if (!isEmpty(attrs))
         {
           messages.add("Unexpected real attribute: " + attrType);
         }
       }
       else
       {
-        if (attrList.isEmpty())
+        Iterator<Attribute> attrsIt = attrs.iterator();
+        if (!attrsIt.hasNext())
         {
           messages.add("Missing real attribute: " + attrType);
         }
         else
         {
-          Attribute attr = attrList.get(0);
+          Attribute attr = attrsIt.next();
           if (typesOnly)
           {
             if (!attr.isEmpty())

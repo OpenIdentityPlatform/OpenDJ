@@ -16,6 +16,17 @@
  */
 package org.opends.server.replication;
 
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
+
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,17 +70,6 @@ import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static java.util.concurrent.TimeUnit.*;
-
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test synchronization of update operations on the directory server and through
@@ -1087,7 +1087,7 @@ public class UpdateOperationTest extends ReplicationTestCase
    */
   private boolean assertConflictAttributeExists(Entry entry)
   {
-    return !entry.getAllAttributes("ds-sync-confict").isEmpty();
+    return !isEmpty(entry.getAllAttributes("ds-sync-confict"));
   }
 
   @DataProvider(name="assured")

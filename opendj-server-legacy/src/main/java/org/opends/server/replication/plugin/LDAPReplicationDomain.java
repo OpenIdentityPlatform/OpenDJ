@@ -3287,10 +3287,10 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       SearchResultEntry resultEntry = result.get(0);
       if (resultEntry != null)
       {
-        List<Attribute> attrs = resultEntry.getAllAttributes(REPLICATION_GENERATION_ID);
-        if (!attrs.isEmpty())
+        Iterator<Attribute> attrs = resultEntry.getAllAttributes(REPLICATION_GENERATION_ID).iterator();
+        if (attrs.hasNext())
         {
-          Attribute attr = attrs.get(0);
+          Attribute attr = attrs.next();
           if (attr.size()>1)
           {
             String errorMsg = "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString();

@@ -17,6 +17,15 @@
 
 package org.opends.server.core;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,15 +52,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class SubentryManagerTestCase extends CoreTestCase
@@ -225,7 +225,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       Entry e = DirectoryServer.getEntry(DN.valueOf("uid=normal user,ou=people,o=test"));
       assertNotNull(e);
 
-      List<Attribute> description = e.getAllAttributes("description");
+      Iterable<Attribute> description = e.getAllAttributes("description");
       assertThat(description).isEmpty();
 
       // Collective user will inherit the collective description attribute.
@@ -234,7 +234,7 @@ public class SubentryManagerTestCase extends CoreTestCase
 
       description = e.getAllAttributes("description");
       assertThat(description).hasSize(1);
-      Attribute attribute = description.get(0);
+      Attribute attribute = description.iterator().next();
       assertEquals(attribute.size(), 1);
       assertFalse(attribute.getAttributeDescription().hasOptions());
       assertTrue(attribute.contains(ByteString.valueOfUtf8("inherited description")));

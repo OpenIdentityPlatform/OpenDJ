@@ -16,8 +16,22 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import java.io.*;
-import java.util.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
@@ -26,6 +40,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.ModificationItem;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
@@ -39,7 +54,6 @@ import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.testng.Assert;
@@ -47,10 +61,6 @@ import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
 
 @SuppressWarnings("javadoc")
 @Test(groups = {"precommit", "dseecompat"}, sequential = true)
@@ -69,12 +79,12 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
 
     // Save Global ACI.
     Entry e = DirectoryServer.getEntry(DN.valueOf(ACCESS_HANDLER_DN));
-    List<Attribute> attrs = e.getAllAttributes(ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI);
-    if (!attrs.isEmpty())
+    Iterator<Attribute> attrs = e.getAllAttributes(ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI).iterator();
+    if (attrs.hasNext())
     {
       Reporter.log("Saved global ACI attribute");
 
-      globalACIAttribute = attrs.iterator().next();
+      globalACIAttribute = attrs.next();
     }
   }
 

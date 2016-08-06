@@ -16,6 +16,15 @@
  */
 package org.opends.server.replication.plugin;
 
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.testng.Assert.*;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -44,15 +53,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.util.TestTimer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static java.util.concurrent.TimeUnit.*;
-
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.forgerock.opendj.ldap.SearchScope.*;
-import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.testng.Assert.*;
 
 /** Tests the Historical class. */
 @SuppressWarnings("javadoc")
@@ -172,8 +172,8 @@ public class HistoricalTest extends ReplicationTestCase
     DN dn = DN.valueOf("uid=user.1," + TEST_ROOT_DN_STRING);
     Entry entry = DirectoryServer.getEntry(dn);
 
-    List<Attribute> attrs = EntryHistorical.getHistoricalAttr(entry);
-    Attribute before = attrs.get(0);
+    Iterable<Attribute> attrs = EntryHistorical.getHistoricalAttr(entry);
+    Attribute before = attrs.iterator().next();
 
     // Check that encoding and decoding preserves the history information.
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);

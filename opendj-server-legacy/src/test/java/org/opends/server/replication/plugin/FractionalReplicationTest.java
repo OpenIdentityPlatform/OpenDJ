@@ -139,12 +139,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     replServerPort = TestCaseUtils.findFreePort();
   }
 
-  /**
-   * Returns a bunch of single values for fractional-exclude configuration
-   * attribute
-   */
-  @SuppressWarnings("unused")
-  @DataProvider(name = "testExcludePrecommitProvider")
+  /** Returns a bunch of single values for fractional-exclude configuration attribute. */
+  @DataProvider
   private Object[][] testExcludePrecommitProvider()
   {
     return new Object[][]
@@ -753,9 +749,11 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    */
   private static void checkEntryAttributeValue(Entry entry, String attributeName, String attributeValue)
   {
-    List<Attribute> attrs = entry.getAllAttributes(attributeName);
-    assertThat(attrs).as("Was expecting attribute " + attributeName + "=" + attributeValue).hasSize(1);
-    Attribute attr = attrs.get(0);
+    Iterable<Attribute> attrs = entry.getAllAttributes(attributeName);
+    assertThat(attrs)
+        .as("Was expecting attribute " + attributeName + "=" + attributeValue)
+        .hasSize(1);
+    Attribute attr = attrs.iterator().next();
     Iterator<ByteString> attrValues = attr.iterator();
     assertTrue(attrValues.hasNext());
     ByteString attrValue = attrValues.next();

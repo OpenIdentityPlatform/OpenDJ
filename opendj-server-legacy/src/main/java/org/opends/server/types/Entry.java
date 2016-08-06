@@ -734,7 +734,7 @@ public class Entry
    *          attribute type, or an empty list if the specified
    *          attribute type is not present in this entry.
    */
-  public List<Attribute> getAllAttributes(String nameOrOID)
+  public Iterable<Attribute> getAllAttributes(String nameOrOID)
   {
     for (AttributeType attr : userAttributes.keySet())
     {
@@ -826,8 +826,9 @@ public class Entry
   public AttributeParser parseAttribute(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    final List<Attribute> attribute = getAllAttributes(attributeDescription);
-    return AttributeParser.parseAttribute(!attribute.isEmpty() ? attribute.get(0) : null);
+    final Iterable<Attribute> attribute = getAllAttributes(attributeDescription);
+    Iterator<Attribute> it = attribute.iterator();
+    return AttributeParser.parseAttribute(it.hasNext() ? it.next() : null);
   }
 
 

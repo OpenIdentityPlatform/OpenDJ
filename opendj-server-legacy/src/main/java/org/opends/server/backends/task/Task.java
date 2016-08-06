@@ -311,8 +311,8 @@ public abstract class Task implements Comparable<Task>
   private String getAttributeValue(String attributeName, boolean isRequired)
           throws InitializationException
   {
-    List<Attribute> attrList = taskEntry.getAllAttributes(attributeName);
-    if (attrList.isEmpty())
+    Iterator<Attribute> attrList = taskEntry.getAllAttributes(attributeName).iterator();
+    if (!attrList.hasNext())
     {
       if (isRequired)
       {
@@ -321,13 +321,13 @@ public abstract class Task implements Comparable<Task>
       return null;
     }
 
-    if (attrList.size() > 1)
+    final Iterator<ByteString> values = attrList.next().iterator();
+    if (attrList.hasNext())
     {
       throw new InitializationException(ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(attributeName, taskEntry.getName()));
     }
 
-    Iterator<ByteString> iterator = attrList.get(0).iterator();
-    if (! iterator.hasNext())
+    if (!values.hasNext())
     {
       if (isRequired)
       {
@@ -336,8 +336,8 @@ public abstract class Task implements Comparable<Task>
       return null;
     }
 
-    ByteString value = iterator.next();
-    if (iterator.hasNext())
+    ByteString value = values.next();
+    if (values.hasNext())
     {
       throw new InitializationException(ERR_TASK_MULTIPLE_VALUES_FOR_ATTR.get(attributeName, taskEntry.getName()));
     }
@@ -359,21 +359,21 @@ public abstract class Task implements Comparable<Task>
    */
   private LinkedList<String> getAttributeValues(String attributeName) throws InitializationException
   {
-    LinkedList<String> valueStrings = new LinkedList<>();
-    List<Attribute> attrList = taskEntry.getAllAttributes(attributeName);
-    if (attrList.isEmpty())
+    final LinkedList<String> valueStrings = new LinkedList<>();
+    final Iterator<Attribute> attrList = taskEntry.getAllAttributes(attributeName).iterator();
+    if (!attrList.hasNext())
     {
       return valueStrings;
     }
-    if (attrList.size() > 1)
+    final Iterator<ByteString> values = attrList.next().iterator();
+    if (attrList.hasNext())
     {
       throw new InitializationException(ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(attributeName, taskEntry.getName()));
     }
 
-    Iterator<ByteString> iterator = attrList.get(0).iterator();
-    while (iterator.hasNext())
+    while (values.hasNext())
     {
-      valueStrings.add(iterator.next().toString());
+      valueStrings.add(values.next().toString());
     }
     return valueStrings;
   }

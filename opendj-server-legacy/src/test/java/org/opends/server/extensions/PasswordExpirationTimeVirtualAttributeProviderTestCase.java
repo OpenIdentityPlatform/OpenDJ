@@ -16,9 +16,13 @@
  */
 package org.opends.server.extensions;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
+
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
@@ -36,10 +40,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class PasswordExpirationTimeVirtualAttributeProviderTestCase
@@ -204,10 +204,10 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     SearchResultEntry entry = entries.get(0);
     assertNotNull(entry);
 
-    List<Attribute> attrs = entry.getAllAttributes(attributeName);
-    assertEquals(attrs.size(), 1);
+    Iterable<Attribute> attrs = entry.getAllAttributes(attributeName);
+    assertThat(attrs).hasSize(1);
 
-    Attribute attr = attrs.get(0);
+    Attribute attr = attrs.iterator().next();
     assertNotNull(attr);
 
     Iterator<ByteString> it = attr.iterator();
