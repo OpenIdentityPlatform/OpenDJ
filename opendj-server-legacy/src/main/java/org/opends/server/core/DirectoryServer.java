@@ -575,6 +575,9 @@ public final class DirectoryServer
   /** The schema for the Directory Server. */
   private volatile Schema schema;
 
+  /** The schema handler provides management of the schema, including its memory and files representations. */
+  private SchemaHandler schemaHandler;
+
   /** The schema configuration manager for the Directory Server. */
   private SchemaConfigManager schemaConfigManager;
 
@@ -1014,6 +1017,12 @@ public final class DirectoryServer
     }
 
     @Override
+    public SchemaHandler getSchemaHandler()
+    {
+      return directoryServer.schemaHandler;
+    }
+
+    @Override
     public DirectoryEnvironmentConfig getEnvironment()
     {
       return directoryServer.environmentConfig;
@@ -1359,22 +1368,6 @@ public final class DirectoryServer
   {
     environmentConfig.setConfigFile(new File(configFile));
     initializeConfiguration();
-  }
-
-  /** Initialize the schema of this server. */
-  @ActivateOnceSDKSchemaIsUsed
-  private void initializeSchemaNG() throws InitializationException
-  {
-    SchemaHandler schemaHandler = new SchemaHandler();
-    try
-    {
-      schemaHandler.initialize(serverContext);
-    }
-    catch (ConfigException e)
-    {
-      // TODO : fix message
-      throw new InitializationException(LocalizableMessage.raw("Cannot initialize schema handler"), e);
-    }
   }
 
   /**
@@ -1761,6 +1754,22 @@ public final class DirectoryServer
 
     // With server schema in place set compressed schema.
     compressedSchema = new DefaultCompressedSchema(serverContext);
+  }
+
+  /** Initialize the schema of this server. */
+  @ActivateOnceSDKSchemaIsUsed
+  private void initializeSchemaNG() throws InitializationException
+  {
+    schemaHandler = new SchemaHandler();
+    try
+    {
+      schemaHandler.initialize(serverContext);
+    }
+    catch (ConfigException e)
+    {
+      // TODO : fix message
+      throw new InitializationException(LocalizableMessage.raw("Cannot initialize schema handler"), e);
+    }
   }
 
   /**

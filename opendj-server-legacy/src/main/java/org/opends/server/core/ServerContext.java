@@ -60,6 +60,13 @@ public interface ServerContext
   org.forgerock.opendj.ldap.schema.Schema getSchemaNG();
 
   /**
+   * Returns the schema handler, which provides schema management.
+   *
+   * @return the schema handler
+   */
+  SchemaHandler getSchemaHandler();
+
+  /**
    * Returns the environment of the server.
    *
    * @return the environment
@@ -126,4 +133,5 @@ public interface ServerContext
    * @return the Crypto Manager for the instance
    */
   CryptoManager getCryptoManager();
+
 }

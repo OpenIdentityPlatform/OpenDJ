@@ -83,6 +83,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AttributeTypeSyntax;
@@ -167,6 +168,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   private ServerContext serverContext;
 
+  private SchemaHandler schemaHandler;
+
   /**
    * Creates a new backend with the provided information.  All backend
    * implementations must implement a default constructor that use
@@ -175,8 +178,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   public SchemaBackend()
   {
     super();
-
-    // Perform all initialization in initializeBackend.
   }
 
   @Override
@@ -216,6 +217,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     userDefinedAttributes = new ArrayList<>();
     addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getAllAttributes());
 
+    schemaHandler = serverContext.getSchemaHandler();
+
     currentConfig = cfg;
   }
 
@@ -237,10 +240,21 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    // Identify any differences that may exist between the concatenated schema
-    // file from the last online modification and the current schema files.  If
-    // there are any differences, then they should be from making changes to the
-    // schema files with the server offline.
+    updateConcatenatedSchema();
+
+    // Register with the Directory Server as a configurable component.
+    currentConfig.addSchemaChangeListener(this);
+  }
+
+  /**
+   * Updates the concatenated schema if changes are detected in the current schema files.
+   * <p>
+   * Identify any differences that may exist between the concatenated schema file from the last
+   * online modification and the current schema files. If there are any differences, then they
+   * should be from making changes to the schema files with the server offline.
+   */
+  private void updateConcatenatedSchema() throws InitializationException
+  {
     try
     {
       // First, generate lists of elements from the current schema.
@@ -299,9 +313,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
       logger.error(ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES, getExceptionMessage(e));
     }
-
-    // Register with the Directory Server as a configurable component.
-    currentConfig.addSchemaChangeListener(this);
   }
 
   private File getConcatFile() throws InitializationException
@@ -474,7 +485,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     /* Add the schema definition attributes. */
-    Schema schema = DirectoryServer.getSchema();
+    org.forgerock.opendj.ldap.schema.Schema schema = serverContext.getSchemaNG();
     buildSchemaAttribute(schema.getAttributeTypes(), userAttrs,
         operationalAttrs, attributeTypesType, includeSchemaFile,
         AttributeTypeSyntax.isStripSyntaxMinimumUpperBound(),
@@ -500,7 +511,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         operationalAttrs, nameFormsType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getDITContentRules(), userAttrs,
         operationalAttrs, ditContentRulesType, includeSchemaFile, false, true);
-    buildSchemaAttribute(schema.getDITStructureRules(), userAttrs,
+    buildSchemaAttribute(schema.getDITStuctureRules(), userAttrs,
         operationalAttrs, ditStructureRulesType, includeSchemaFile, false, true);
     buildSchemaAttribute(schema.getMatchingRuleUses(), userAttrs,
         operationalAttrs, matchingRuleUsesType, includeSchemaFile, false, true);
