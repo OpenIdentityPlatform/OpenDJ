@@ -85,7 +85,6 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SchemaHandler;
-import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AttributeTypeSyntax;
@@ -113,8 +112,6 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.StaticUtils;
-
-import sun.util.locale.ParseStatus;
 
 /**
  * This class defines a backend to hold the Directory Server schema information.
@@ -2427,11 +2424,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *
    * @param newSchemaEntry   The entry to be imported.
    */
-  private void importEntry(Entry newSchemaEntry)
-          throws DirectoryException
+  private void importEntry(Entry newSchemaEntry) throws DirectoryException
   {
-    Schema schema = serverContext.getSchema();
-    Schema newSchema = schema.duplicate();
+    org.forgerock.opendj.ldap.schema.Schema schema = schemaHandler.getSchema();
+    SchemaBuilder newSchemaBuilder = new SchemaBuilder(schema);
     TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
     // loop on the attribute types in the entry just received
@@ -2443,34 +2439,35 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       // or modified in the schema
       for (ByteString v : a)
       {
-        AttributeType attrType = schema.parseAttributeType(v.toString());
-        String schemaFile = getElementSchemaFile(attrType);
+        String definition = v.toString();
+        String schemaFile = SchemaHandler.parseSchemaFileFromElementDefinition(definition);
         if (is02ConfigLdif(schemaFile))
         {
           continue;
         }
 
-        oidList.add(attrType.getOID());
+        String oid = SchemaHandler.parseAttributeTypeOID(definition);
+        oidList.add(oid);
         try
         {
           // Register this attribute type in the new schema
           // unless it is already defined with the same syntax.
-          if (hasDefinitionChanged(schema, attrType))
+          if (hasAttributeTypeDefinitionChanged(schema, oid, definition))
           {
-            newSchema.registerAttributeType(attrType, schemaFile, true);
+            newSchemaBuilder.addAttributeType(definition, true);
             addElementIfNotNull(modifiedSchemaFiles, schemaFile);
           }
         }
         catch (Exception e)
         {
-          logger.info(NOTE_SCHEMA_IMPORT_FAILED, attrType, e.getMessage());
+          logger.info(NOTE_SCHEMA_IMPORT_FAILED, definition, e.getMessage());
         }
       }
     }
 
     // loop on all the attribute types in the current schema and delete
     // them from the new schema if they are not in the imported schema entry.
-    for (AttributeType removeType : newSchema.getAttributeTypes())
+    for (AttributeType removeType : schema.getAttributeTypes())
     {
       String schemaFile = getElementSchemaFile(removeType);
       if (is02ConfigLdif(schemaFile) || CORE_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
@@ -2480,7 +2477,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
       if (!oidList.contains(removeType.getOID()))
       {
-        newSchema.deregisterAttributeType(removeType);
+        newSchemaBuilder.removeAttributeType(removeType.getOID());
         addElementIfNotNull(modifiedSchemaFiles, schemaFile);
       }
     }
@@ -2494,34 +2491,34 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       {
         // It IS important here to allow the unknown elements that could
         // appear in the new config schema.
-        ObjectClass newObjectClass = newSchema.parseObjectClass(v.toString());
-        String schemaFile = getElementSchemaFile(newObjectClass);
+        String definition = v.toString();
+        String schemaFile = SchemaHandler.parseSchemaFileFromElementDefinition(definition);
         if (is02ConfigLdif(schemaFile))
         {
           continue;
         }
-
-        oidList.add(newObjectClass.getOID());
+        String oid = SchemaHandler.parseObjectClassOID(definition);
+        oidList.add(oid);
         try
         {
           // Register this ObjectClass in the new schema
           // unless it is already defined with the same syntax.
-          if (hasDefinitionChanged(schema, newObjectClass))
+          if (hasObjectClassDefinitionChanged(schema, oid, definition))
           {
-            newSchema.registerObjectClass(newObjectClass, schemaFile, true);
+            newSchemaBuilder.addObjectClass(definition, true);
             addElementIfNotNull(modifiedSchemaFiles, schemaFile);
           }
         }
         catch (Exception e)
         {
-          logger.info(NOTE_SCHEMA_IMPORT_FAILED, newObjectClass, e.getMessage());
+          logger.info(NOTE_SCHEMA_IMPORT_FAILED, definition, e.getMessage());
         }
       }
     }
 
     // loop on all the object classes in the current schema and delete
     // them from the new schema if they are not in the imported schema entry.
-    for (ObjectClass removeClass : newSchema.getObjectClasses())
+    for (ObjectClass removeClass : schema.getObjectClasses())
     {
       String schemaFile = getElementSchemaFile(removeClass);
       if (is02ConfigLdif(schemaFile))
@@ -2530,17 +2527,17 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
       if (!oidList.contains(removeClass.getOID()))
       {
-        newSchema.deregisterObjectClass(removeClass);
+        newSchemaBuilder.removeObjectClass(removeClass.getOID());
         addElementIfNotNull(modifiedSchemaFiles, schemaFile);
       }
     }
 
     // Finally, if there were some modifications, save the new schema
-    // in the Schema Files and update DirectoryServer.
     if (!modifiedSchemaFiles.isEmpty())
     {
+      org.forgerock.opendj.ldap.schema.Schema newSchema = newSchemaBuilder.toSchema();
+      schemaHandler.updateSchema(newSchema);
       updateSchemaFiles(newSchema, modifiedSchemaFiles);
-      DirectoryServer.setSchema(newSchema);
     }
   }
 
@@ -2561,16 +2558,27 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  private boolean hasDefinitionChanged(Schema schema, AttributeType newAttrType)
+  private boolean hasAttributeTypeDefinitionChanged(org.forgerock.opendj.ldap.schema.Schema schema, String oid,
+      String definition)
   {
-    AttributeType oldAttrType = schema.getAttributeType(newAttrType.getOID());
-    return oldAttrType.isPlaceHolder() || !oldAttrType.toString().equals(newAttrType.toString());
+    if (schema.hasAttributeType(oid))
+    {
+      AttributeType oldAttrType = schema.getAttributeType(oid);
+      return !oldAttrType.toString().equals(definition);
+
+    }
+    return true;
   }
 
-  private boolean hasDefinitionChanged(Schema schema, ObjectClass newObjectClass)
+  private boolean hasObjectClassDefinitionChanged(org.forgerock.opendj.ldap.schema.Schema schema, String oid,
+      String definition)
   {
-    ObjectClass oldObjectClass = schema.getObjectClass(newObjectClass.getOID());
-    return oldObjectClass.isPlaceHolder() || !oldObjectClass.toString().equals(newObjectClass.toString());
+    if (schema.hasObjectClass(oid))
+    {
+      ObjectClass oldObjectClass = schema.getObjectClass(oid);
+      return !oldObjectClass.toString().equals(definition);
+    }
+    return true;
   }
 
   @Override
