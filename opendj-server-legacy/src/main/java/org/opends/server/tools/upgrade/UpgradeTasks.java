@@ -15,17 +15,17 @@
  */
 package org.opends.server.tools.upgrade;
 
+import static org.opends.server.util.SchemaUtils.addSchemaFileToElementDefinitionIfAbsent;
+
 import static java.nio.charset.StandardCharsets.*;
 import static java.nio.file.StandardOpenOption.*;
 import static javax.security.auth.callback.ConfirmationCallback.NO;
 import static javax.security.auth.callback.ConfirmationCallback.YES;
 import static javax.security.auth.callback.TextOutputCallback.*;
-
 import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.copyRecursively;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
-import static org.opends.server.types.Schema.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
@@ -67,6 +67,7 @@ import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
+import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ClientException;

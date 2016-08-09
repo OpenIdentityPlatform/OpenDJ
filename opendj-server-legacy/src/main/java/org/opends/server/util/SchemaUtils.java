@@ -15,7 +15,9 @@
  */
 package org.opends.server.util;
 
-import static org.opends.server.types.Schema.addSchemaFileToElementDefinitionIfAbsent;
+import static org.opends.messages.SchemaMessages.*;
+
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_USER_PASSWORD_OID;
 
@@ -24,12 +26,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.DirectoryException;
+
+import com.forgerock.opendj.util.SubstringReader;
 
 /** Utility methods related to schema. */
 public class SchemaUtils
@@ -188,5 +196,245 @@ public class SchemaUtils
       return builder.addToSchemaOverwrite().toSchema().getAttributeType(attributeType.getNameOrOID());
     }
     return attributeType;
+  }
+
+  /**
+   * Adds the provided schema file to the provided schema element definition.
+   *
+   * @param definition
+   *            The schema element definition
+   * @param schemaFile
+   *            The name of the schema file to include in the definition
+   * @return  The definition string of the element
+   *          including the X-SCHEMA-FILE extension.
+   */
+  public static String addSchemaFileToElementDefinitionIfAbsent(String definition, String schemaFile)
+  {
+    if (schemaFile != null && !definition.contains(SCHEMA_PROPERTY_FILENAME))
+    {
+      int pos = definition.lastIndexOf(')');
+      return definition.substring(0, pos).trim() + " " + SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
+    }
+    return definition;
+  }
+
+  /**
+   * Parses the schema file (value of X-SCHEMA-FILE extension) from the provided schema element
+   * definition.
+   * <p>
+   * It expects a single value for the X-SCHEMA-FILE extension, e.g.:
+   * "X-SCHEMA-FILE '99-user.ldif'", as there is no sensible meaning for multiple values.
+   *
+   * @param definition
+   *          The definition of a schema element
+   * @return the value of the schema file or {@code null} if the X-SCHEMA-FILE extension is not
+   *         present in the definition
+   * @throws DirectoryException
+   *            If an error occurs while parsing the schema element definition
+   */
+  public static String parseSchemaFileFromElementDefinition(String definition) throws DirectoryException
+  {
+    int pos = definition.lastIndexOf(SCHEMA_PROPERTY_FILENAME);
+    if (pos == -1)
+    {
+      return null;
+    }
+
+    SubstringReader reader = new SubstringReader(definition);
+    reader.read(pos + SCHEMA_PROPERTY_FILENAME.length());
+
+    int length = 0;
+    reader.skipWhitespaces();
+    reader.mark();
+    try
+    {
+      // Accept both a quoted value or an unquoted value
+      char c = reader.read();
+      if (c == '\'')
+      {
+        reader.mark();
+        // Parse until the closing quote.
+        while (reader.read() != '\'')
+        {
+          length++;
+        }
+      }
+      else
+      {
+        // Parse until the next space.
+        do
+        {
+          length++;
+        }
+        while (reader.read() != ' ');
+      }
+      reader.reset();
+      return reader.read(length);
+    }
+    catch (final StringIndexOutOfBoundsException e)
+    {
+      // TODO : write the correct message = Error when trying to parse the schema file from a schema
+      // element definition
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, LocalizableMessage.raw(""));
+    }
+  }
+
+  /**
+   * Returns the OID from the provided attribute type definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of an attribute type, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseAttributeTypeOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ERR_PARSING_ATTRIBUTE_TYPE_OID);
+  }
+
+  /**
+   * Returns the OID from the provided object class definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a object class, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseObjectClassOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ERR_PARSING_OBJECTCLASS_OID);
+  }
+
+  /**
+   * Returns the OID from the provided name form definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a name form, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseNameFormOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ERR_PARSING_NAME_FORM_OID);
+  }
+
+  /**
+   * Returns the OID from the provided DIT content rule definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a DIT content rule, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseDITContentRuleOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ERR_PARSING_DIT_CONTENT_RULE_OID);
+  }
+
+  /**
+   * Returns the ruleID from the provided DIT structure rule definition, assuming the definition is
+   * valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a DIT structure rule, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static int parseRuleID(String definition) throws DirectoryException
+  {
+    // Reuse code of parseOID, even though this is not an OID
+    return Integer.parseInt(parseOID(definition, ERR_PARSING_DIT_STRUCTURE_RULE_RULEID));
+  }
+
+  /**
+   * Returns the OID from the provided matching rule use definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a matching rule use, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseMatchingRuleUseOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ERR_PARSING_MATCHING_RULE_USE_OID);
+  }
+
+  /**
+   * Returns the OID from the provided syntax definition, assuming the definition is valid.
+   * <p>
+   * This method does not perform any check.
+   *
+   * @param definition
+   *          The definition of a syntax, assumed to be valid
+   * @return the OID, which is never {@code null}
+   * @throws DirectoryException
+   *           If a problem occurs while parsing the definition
+   */
+  public static String parseSyntaxOID(String definition) throws DirectoryException
+  {
+    return parseOID(definition, ERR_PARSING_LDAP_SYNTAX_OID);
+  }
+
+  /**
+   * Returns the OID from the provided definition, using the provided message if an error occurs.
+   *
+   * @param definition
+   *            The definition of a schema element
+   * @param parsingErrorMsg
+   *            Error message to use in case of failure (should be related to
+   *            the specific schema element parsed)
+   * @return the OID corresponding to the definition
+   * @throws DirectoryException
+   *            If the parsing of the definition fails
+   *
+   * */
+  public static String parseOID(String definition, Arg1<Object> parsingErrorMsg) throws DirectoryException
+  {
+    try
+    {
+      int pos = 0;
+      int length = definition.length();
+      // Skip over any leading whitespace.
+      while (pos < length && (definition.charAt(pos) == ' '))
+      {
+        pos++;
+      }
+      // Skip the open parenthesis.
+      pos++;
+      // Skip over any spaces immediately following the opening parenthesis.
+      while (pos < length && definition.charAt(pos) == ' ')
+      {
+        pos++;
+      }
+      // The next set of characters must be the OID.
+      int oidStartPos = pos;
+      while (pos < length && definition.charAt(pos) != ' ' && definition.charAt(pos) != ')')
+      {
+        pos++;
+      }
+      return definition.substring(oidStartPos, pos);
+    }
+    catch (IndexOutOfBoundsException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, parsingErrorMsg.get(definition), e);
+    }
   }
 }

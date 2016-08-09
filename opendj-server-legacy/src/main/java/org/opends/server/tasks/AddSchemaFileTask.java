@@ -44,6 +44,8 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.Schema;
+import org.opends.server.types.SchemaWriter;
+import org.opends.server.util.SchemaUtils;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -181,7 +183,7 @@ public class AddSchemaFileTask
             AttributeBuilder builder = new AttributeBuilder(a.getAttributeDescription());
             for (ByteString v : a)
             {
-              builder.add(Schema.addSchemaFileToElementDefinitionIfAbsent(v.toString(), schemaFile));
+              builder.add(SchemaUtils.addSchemaFileToElementDefinitionIfAbsent(v.toString(), schemaFile));
             }
 
             mods.add(new Modification(m.getModificationType(), builder.toAttribute()));
@@ -213,7 +215,7 @@ public class AddSchemaFileTask
           }
         }
 
-        Schema.writeConcatenatedSchema();
+        SchemaWriter.writeConcatenatedSchema();
       }
 
       schema.setYoungestModificationTime(System.currentTimeMillis());

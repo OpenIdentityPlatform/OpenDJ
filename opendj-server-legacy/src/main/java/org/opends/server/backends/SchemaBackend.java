@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -104,13 +103,13 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.Schema;
+import org.opends.server.types.SchemaWriter;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BackupManager;
-import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -241,107 +240,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    updateConcatenatedSchema();
+    SchemaWriter.updateConcatenatedSchema();
 
     // Register with the Directory Server as a configurable component.
     currentConfig.addSchemaChangeListener(this);
-  }
-
-  /**
-   * Updates the concatenated schema if changes are detected in the current schema files.
-   * <p>
-   * Identify any differences that may exist between the concatenated schema file from the last
-   * online modification and the current schema files. If there are any differences, then they
-   * should be from making changes to the schema files with the server offline.
-   */
-  private void updateConcatenatedSchema() throws InitializationException
-  {
-    try
-    {
-      // First, generate lists of elements from the current schema.
-      Set<String> newATs  = new LinkedHashSet<>();
-      Set<String> newOCs  = new LinkedHashSet<>();
-      Set<String> newNFs  = new LinkedHashSet<>();
-      Set<String> newDCRs = new LinkedHashSet<>();
-      Set<String> newDSRs = new LinkedHashSet<>();
-      Set<String> newMRUs = new LinkedHashSet<>();
-      Set<String> newLSs = new LinkedHashSet<>();
-      Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs, newMRUs, newLSs);
-
-      // Next, generate lists of elements from the previous concatenated schema.
-      // If there isn't a previous concatenated schema, then use the base
-      // schema for the current revision.
-      File concatFile = getConcatFile();
-
-      Set<String> oldATs  = new LinkedHashSet<>();
-      Set<String> oldOCs  = new LinkedHashSet<>();
-      Set<String> oldNFs  = new LinkedHashSet<>();
-      Set<String> oldDCRs = new LinkedHashSet<>();
-      Set<String> oldDSRs = new LinkedHashSet<>();
-      Set<String> oldMRUs = new LinkedHashSet<>();
-      Set<String> oldLSs = new LinkedHashSet<>();
-      Schema.readConcatenatedSchema(concatFile, oldATs, oldOCs, oldNFs,
-                                    oldDCRs, oldDSRs, oldMRUs,oldLSs);
-
-      // Create a list of modifications and add any differences between the old
-      // and new schema into them.
-      List<Modification> mods = new LinkedList<>();
-      Schema.compareConcatenatedSchema(oldATs, newATs, attributeTypesType, mods);
-      Schema.compareConcatenatedSchema(oldOCs, newOCs, objectClassesType, mods);
-      Schema.compareConcatenatedSchema(oldNFs, newNFs, nameFormsType, mods);
-      Schema.compareConcatenatedSchema(oldDCRs, newDCRs, ditContentRulesType, mods);
-      Schema.compareConcatenatedSchema(oldDSRs, newDSRs, ditStructureRulesType, mods);
-      Schema.compareConcatenatedSchema(oldMRUs, newMRUs, matchingRuleUsesType, mods);
-      Schema.compareConcatenatedSchema(oldLSs, newLSs, ldapSyntaxesType, mods);
-      if (! mods.isEmpty())
-      {
-        // TODO : Raise an alert notification.
-
-        DirectoryServer.setOfflineSchemaChanges(mods);
-
-        // Write a new concatenated schema file with the most recent information
-        // so we don't re-find these same changes on the next startup.
-        Schema.writeConcatenatedSchema();
-      }
-    }
-    catch (InitializationException ie)
-    {
-      throw ie;
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      logger.error(ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES, getExceptionMessage(e));
-    }
-  }
-
-  private File getConcatFile() throws InitializationException
-  {
-    File configDirectory  = new File(DirectoryServer.getConfigFile()).getParentFile();
-    File upgradeDirectory = new File(configDirectory, "upgrade");
-    File concatFile       = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
-    if (concatFile.exists())
-    {
-      return concatFile.getAbsoluteFile();
-    }
-
-    String fileName = SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION + BuildVersion.instanceVersion().getRevision();
-    concatFile = new File(upgradeDirectory, fileName);
-    if (concatFile.exists())
-    {
-      return concatFile.getAbsoluteFile();
-    }
-
-    String runningUnitTestsStr = System.getProperty(PROPERTY_RUNNING_UNIT_TESTS);
-    if ("true".equalsIgnoreCase(runningUnitTestsStr))
-    {
-      Schema.writeConcatenatedSchema();
-      concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
-      return concatFile.getAbsoluteFile();
-    }
-    throw new InitializationException(ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.get(
-        upgradeDirectory.getAbsolutePath(), SCHEMA_CONCAT_FILE_NAME, concatFile.getName()));
   }
 
   @Override
@@ -949,7 +851,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Create a single file with all of the concatenated schema information
     // that we can use on startup to detect whether the schema files have been
     // edited with the server offline.
-    Schema.writeConcatenatedSchema();
+    SchemaWriter.writeConcatenatedSchema();
   }
 
   /**
@@ -973,7 +875,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
-    String oid = SchemaHandler.parseAttributeTypeOID(definition);
+    String oid = SchemaUtils.parseAttributeTypeOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasAttributeType(oid))
     {
@@ -994,10 +896,10 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private String completeDefinitionWhenAddingSchemaElement(String definition, Set<String> modifiedSchemaFiles)
       throws DirectoryException
   {
-    String givenSchemaFile = SchemaHandler.parseSchemaFileFromElementDefinition(definition);
+    String givenSchemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
     String finalSchemaFile = givenSchemaFile == null ? FILE_USER_SCHEMA_ELEMENTS : givenSchemaFile;
     modifiedSchemaFiles.add(finalSchemaFile);
-    return SchemaHandler.addSchemaFileToElementDefinitionIfAbsent(definition, finalSchemaFile);
+    return SchemaUtils.addSchemaFileToElementDefinitionIfAbsent(definition, finalSchemaFile);
   }
 
   /**
@@ -1009,7 +911,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private String completeDefinitionWhenReplacingSchemaElement(String definition, SchemaElement existingElement,
       Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    String givenSchemaFile = SchemaHandler.parseSchemaFileFromElementDefinition(definition);
+    String givenSchemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
     String oldSchemaFile = getElementSchemaFile(existingElement);
 
     if (givenSchemaFile == null)
@@ -1019,7 +921,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         oldSchemaFile = FILE_USER_SCHEMA_ELEMENTS;
       }
       modifiedSchemaFiles.add(oldSchemaFile);
-      return SchemaHandler.addSchemaFileToElementDefinitionIfAbsent(definition, oldSchemaFile);
+      return SchemaUtils.addSchemaFileToElementDefinitionIfAbsent(definition, oldSchemaFile);
     }
     else if (oldSchemaFile == null || oldSchemaFile.equals(givenSchemaFile))
     {
@@ -1064,7 +966,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       int currentPosition, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
-    String atOID = SchemaHandler.parseAttributeTypeOID(definition);
+    String atOID = SchemaUtils.parseAttributeTypeOID(definition);
 
     if (!currentSchema.hasAttributeType(atOID))
     {
@@ -1090,7 +992,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       {
         try
         {
-          String oid = SchemaHandler.parseAttributeTypeOID(v.toString());
+          String oid = SchemaUtils.parseAttributeTypeOID(v.toString());
           if (atOID.equals(oid))
           {
             // We found a match where the attribute type is added back later,
@@ -1131,7 +1033,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
-    String oid = SchemaHandler.parseObjectClassOID(definition);
+    String oid = SchemaUtils.parseObjectClassOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasObjectClass(oid))
     {
@@ -1178,7 +1080,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
-    String ocOID = SchemaHandler.parseObjectClassOID(definition);
+    String ocOID = SchemaUtils.parseObjectClassOID(definition);
 
     if (!currentSchema.hasObjectClass(ocOID))
     {
@@ -1205,7 +1107,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         String oid;
         try
         {
-          oid = SchemaHandler.parseObjectClassOID(v.toString());
+          oid = SchemaUtils.parseObjectClassOID(v.toString());
         }
         catch (DirectoryException de)
         {
@@ -1247,7 +1149,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
-    String oid = SchemaHandler.parseNameFormOID(definition);
+    String oid = SchemaUtils.parseNameFormOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasNameForm(oid))
     {
@@ -1293,7 +1195,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
-    String nfOID = SchemaHandler.parseNameFormOID(definition);
+    String nfOID = SchemaUtils.parseNameFormOID(definition);
 
     if (!currentSchema.hasNameForm(nfOID))
     {
@@ -1319,7 +1221,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       {
         try
         {
-          String oid = SchemaHandler.parseNameFormOID(v.toString());
+          String oid = SchemaUtils.parseNameFormOID(v.toString());
           if (nfOID.equals(oid))
           {
             // We found a match where the name form is added back later, so we
@@ -1361,7 +1263,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
-    String oid = SchemaHandler.parseDITContentRuleOID(definition);
+    String oid = SchemaUtils.parseDITContentRuleOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasDITContentRule(oid))
     {
@@ -1401,7 +1303,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       SchemaBuilder newSchemaBuilder, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
-    String ruleOid = SchemaHandler.parseDITContentRuleOID(definition);
+    String ruleOid = SchemaUtils.parseDITContentRuleOID(definition);
 
     if (! currentSchema.hasDITContentRule(ruleOid))
     {
@@ -1439,7 +1341,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
-    int ruleId = SchemaHandler.parseRuleID(definition);
+    int ruleId = SchemaUtils.parseRuleID(definition);
     final String finalDefinition;
     if (!currentSchema.hasDITStructureRule(ruleId))
     {
@@ -1487,7 +1389,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
-    int ruleID = SchemaHandler.parseRuleID(definition);
+    int ruleID = SchemaUtils.parseRuleID(definition);
 
     if (!currentSchema.hasDITStructureRule(ruleID))
     {
@@ -1511,7 +1413,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
       for (ByteString v : a)
       {
-        int id = SchemaHandler.parseRuleID(v.toString());
+        int id = SchemaUtils.parseRuleID(v.toString());
         if (ruleID == id)
         {
           // We found a match where the DIT structure rule is added back later,
@@ -1547,7 +1449,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
-    String oid = SchemaHandler.parseMatchingRuleUseOID(definition);
+    String oid = SchemaUtils.parseMatchingRuleUseOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasMatchingRuleUse(oid))
     {
@@ -1589,7 +1491,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
           throws DirectoryException
   {
     org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
-    String mruOid = SchemaHandler.parseMatchingRuleUseOID(definition);
+    String mruOid = SchemaUtils.parseMatchingRuleUseOID(definition);
 
     if (!currentSchema.hasMatchingRuleUse(mruOid))
     {
@@ -1628,7 +1530,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // reject a change if a syntax with oid already exists, but I don't understand why.
     // I kept an implementation that behave like other schema elements.
     org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
-    String oid = SchemaHandler.parseSyntaxOID(definition);
+    String oid = SchemaUtils.parseSyntaxOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasSyntax(oid))
     {
@@ -1652,7 +1554,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * hence never deleted.
      */
     org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
-    String oid = SchemaHandler.parseSyntaxOID(definition);
+    String oid = SchemaUtils.parseSyntaxOID(definition);
 
     if (!currentSchema.hasSyntax(oid))
     {
@@ -2440,13 +2342,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       for (ByteString v : a)
       {
         String definition = v.toString();
-        String schemaFile = SchemaHandler.parseSchemaFileFromElementDefinition(definition);
+        String schemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
         if (is02ConfigLdif(schemaFile))
         {
           continue;
         }
 
-        String oid = SchemaHandler.parseAttributeTypeOID(definition);
+        String oid = SchemaUtils.parseAttributeTypeOID(definition);
         oidList.add(oid);
         try
         {
@@ -2492,12 +2394,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         // It IS important here to allow the unknown elements that could
         // appear in the new config schema.
         String definition = v.toString();
-        String schemaFile = SchemaHandler.parseSchemaFileFromElementDefinition(definition);
+        String schemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
         if (is02ConfigLdif(schemaFile))
         {
           continue;
         }
-        String oid = SchemaHandler.parseObjectClassOID(definition);
+        String oid = SchemaUtils.parseObjectClassOID(definition);
         oidList.add(oid);
         try
         {
