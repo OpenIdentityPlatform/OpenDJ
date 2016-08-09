@@ -32,6 +32,7 @@ import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.quicksetup.Constants.LINE_SEPARATOR;
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.*;
@@ -945,34 +946,30 @@ public class ReplicationCliMain extends ConsoleApplication
           : purgeHistoricalLocally(uData);
   }
 
-  private ReplicationCliReturnCode purgeHistoricalLocally(
-      PurgeHistoricalUserData uData)
+  private ReplicationCliReturnCode purgeHistoricalLocally(PurgeHistoricalUserData uData)
   {
     List<DN> baseDNs = uData.getBaseDNs();
     checkSuffixesForLocalPurgeHistorical(baseDNs, false);
-    if (!baseDNs.isEmpty())
-    {
-      uData.setBaseDNs(baseDNs);
-      if (mustPrintCommandBuilder())
-      {
-        printNewCommandBuilder(PURGE_HISTORICAL_SUBCMD_NAME, uData);
-      }
-
-      try
-      {
-        return purgeHistoricalLocallyTask(uData);
-      }
-      catch (ReplicationCliException rce)
-      {
-        errPrintln();
-        errPrintln(getCriticalExceptionMessage(rce));
-        logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-        return rce.getErrorCode();
-      }
-    }
-    else
+    if (baseDNs.isEmpty())
     {
       return HISTORICAL_CANNOT_BE_PURGED_ON_BASEDN;
+    }
+    uData.setBaseDNs(baseDNs);
+    if (mustPrintCommandBuilder())
+    {
+      printNewCommandBuilder(PURGE_HISTORICAL_SUBCMD_NAME, uData);
+    }
+
+    try
+    {
+      return purgeHistoricalLocallyTask(uData);
+    }
+    catch (ReplicationCliException rce)
+    {
+      errPrintln();
+      errPrintln(getCriticalExceptionMessage(rce));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+      return rce.getErrorCode();
     }
   }
 
@@ -4590,102 +4587,25 @@ public class ReplicationCliMain extends ConsoleApplication
   private void updateConfiguration(ConnectionWrapper conn1, ConnectionWrapper conn2, EnableReplicationUserData uData)
       throws ReplicationCliException
   {
-    final Set<String> twoReplServers = new LinkedHashSet<>();
-    final Set<String> allRepServers = new LinkedHashSet<>();
-    final Map<DN, Set<String>> hmRepServers = new HashMap<>();
-    final Set<Integer> usedReplicationServerIds = new HashSet<>();
-    final Map<DN, Set<Integer>> hmUsedReplicationDomainIds = new HashMap<>();
-
-    TopologyCacheFilter filter = new TopologyCacheFilter();
+    final TopologyCacheFilter filter = new TopologyCacheFilter();
     filter.setSearchMonitoringInformation(false);
     filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
     filter.addBaseDNToSearch(Constants.SCHEMA_DN);
     filter.addBaseDNsToSearch(uData.getBaseDNs());
-    ServerDescriptor serverDesc1 = createStandalone(conn1, filter);
-    ServerDescriptor serverDesc2 = createStandalone(conn2, filter);
 
-    ADSContext adsCtx1 = new ADSContext(conn1);
-    ADSContext adsCtx2 = new ADSContext(conn2);
+    final ServerDescriptor serverDesc1 = createStandalone(conn1, filter);
+    final ServerDescriptor serverDesc2 = createStandalone(conn2, filter);
+
+    final ADSContext adsCtx1 = new ADSContext(conn1);
+    final ADSContext adsCtx2 = new ADSContext(conn2);
 
     if (!argParser.isInteractive())
     {
-      // Inform the user of the potential errors that we found in the already
-      // registered servers.
-      final Set<LocalizableMessage> messages = new LinkedHashSet<>();
-      try
-      {
-        final Set<PreferredConnection> cnx = new LinkedHashSet<>();
-        cnx.addAll(getPreferredConnections(conn1));
-        cnx.addAll(getPreferredConnections(conn2));
-        TopologyCache cache1 = createTopologyCache(adsCtx1, cnx, uData);
-        if (cache1 != null)
-        {
-          messages.addAll(cache1.getErrorMessages());
-        }
-        TopologyCache cache2 = createTopologyCache(adsCtx2, cnx, uData);
-        if (cache2 != null)
-        {
-          messages.addAll(cache2.getErrorMessages());
-        }
-      }
-      catch (TopologyCacheException tce)
-      {
-        throw new ReplicationCliException(
-            ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
-            ERROR_READING_TOPOLOGY_CACHE, tce);
-      }
-      catch (ADSContextException adce)
-      {
-        throw new ReplicationCliException(
-            ERR_REPLICATION_READING_ADS.get(adce.getMessage()),
-            ERROR_READING_ADS, adce);
-      }
-      if (!messages.isEmpty())
-      {
-        errPrintln(ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
-                getMessageFromCollection(messages,
-                    Constants.LINE_SEPARATOR)));
-      }
+      // Inform the user of the potential errors that we found in the already registered servers.
+      printErrorWhenServersAlreadyHaveErrors(conn1, conn2, uData, adsCtx1, adsCtx2);
     }
-    // Check whether there is more than one replication server in the topology.
-    Set<DN> baseDNsWithOneReplicationServer = new TreeSet<>();
-    Set<DN> baseDNsWithNoReplicationServer = new TreeSet<>();
-    updateBaseDnsWithNotEnoughReplicationServer(adsCtx1, adsCtx2, uData,
-       baseDNsWithNoReplicationServer, baseDNsWithOneReplicationServer);
+    warnIfOnlyOneReplicationServerInTopology(uData, adsCtx1, adsCtx2);
 
-    if (!baseDNsWithNoReplicationServer.isEmpty())
-    {
-      LocalizableMessage errorMsg =
-        ERR_REPLICATION_NO_REPLICATION_SERVER.get(toSingleLine(baseDNsWithNoReplicationServer));
-      throw new ReplicationCliException(errorMsg, ERROR_USER_DATA, null);
-    }
-    else if (!baseDNsWithOneReplicationServer.isEmpty())
-    {
-      if (isInteractive())
-      {
-        LocalizableMessage confirmMsg = INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_CONFIRM.get(
-            toSingleLine(baseDNsWithOneReplicationServer));
-        try
-        {
-          if (!confirmAction(confirmMsg, false))
-          {
-            throw new ReplicationCliException(
-                ERR_REPLICATION_USER_CANCELLED.get(), USER_CANCELLED, null);
-          }
-        }
-        catch (Throwable t)
-        {
-          throw new ReplicationCliException(
-              ERR_REPLICATION_USER_CANCELLED.get(), USER_CANCELLED, t);
-        }
-      }
-      else
-      {
-        errPrintln(INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
-            toSingleLine(baseDNsWithOneReplicationServer)));
-        errPrintln();
-      }
-    }
 
     // These are used to identify which server we use to initialize
     // the contents of the other server (if any).
@@ -4706,17 +4626,7 @@ public class ReplicationCliMain extends ConsoleApplication
         Set<Map<ServerProperty, Object>> registry2 = adsCtx2.readServerRegistry();
         if (registry2.size() <= 1)
         {
-          if (!hasAdministrator(adsCtx1.getConnection(), uData))
-          {
-            adsCtx1.createAdministrator(getAdministratorProperties(uData));
-          }
-          serverDesc2.updateAdsPropertiesWithServerProperties();
-          registerServer(adsCtx1, serverDesc2.getAdsProperties());
-          if (!ADSContext.isRegistered(serverDesc1, registry1))
-          {
-            serverDesc1.updateAdsPropertiesWithServerProperties();
-            registerServer(adsCtx1, serverDesc1.getAdsProperties());
-          }
+          registerServers(adsCtx1, serverDesc2, serverDesc1, uData);
 
           connSource = conn1;
           connDestination = conn2;
@@ -4724,18 +4634,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else if (registry1.size() <= 1)
         {
-          if (!hasAdministrator(adsCtx2.getConnection(), uData))
-          {
-            adsCtx2.createAdministrator(getAdministratorProperties(uData));
-          }
-          serverDesc1.updateAdsPropertiesWithServerProperties();
-          registerServer(adsCtx2, serverDesc1.getAdsProperties());
-
-          if (!ADSContext.isRegistered(serverDesc2, registry2))
-          {
-            serverDesc2.updateAdsPropertiesWithServerProperties();
-            registerServer(adsCtx2, serverDesc2.getAdsProperties());
-          }
+          registerServers(adsCtx2, serverDesc1, serverDesc2, uData);
 
           connSource = conn2;
           connDestination = conn1;
@@ -4773,19 +4672,7 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             else if (isADS1Replicated || !isADS2Replicated)
             {
-              // The case where only the first ADS is replicated or none
-              // is replicated.
-              if (!hasAdministrator(adsCtx1.getConnection(), uData))
-              {
-                adsCtx1.createAdministrator(getAdministratorProperties(uData));
-              }
-              serverDesc2.updateAdsPropertiesWithServerProperties();
-              registerServer(adsCtx1, serverDesc2.getAdsProperties());
-              if (!ADSContext.isRegistered(serverDesc1, registry1))
-              {
-                serverDesc1.updateAdsPropertiesWithServerProperties();
-                registerServer(adsCtx1, serverDesc1.getAdsProperties());
-              }
+              registerServers(adsCtx1, serverDesc2, serverDesc1, uData);
 
               connSource = conn1;
               connDestination = conn2;
@@ -4793,17 +4680,7 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             else if (isADS2Replicated)
             {
-              if (!hasAdministrator(adsCtx2.getConnection(), uData))
-              {
-                adsCtx2.createAdministrator(getAdministratorProperties(uData));
-              }
-              serverDesc1.updateAdsPropertiesWithServerProperties();
-              registerServer(adsCtx2, serverDesc1.getAdsProperties());
-              if (!ADSContext.isRegistered(serverDesc2, registry2))
-              {
-                serverDesc2.updateAdsPropertiesWithServerProperties();
-                registerServer(adsCtx2, serverDesc2.getAdsProperties());
-              }
+              registerServers(adsCtx2, serverDesc1, serverDesc2, uData);
 
               connSource = conn2;
               connDestination = conn1;
@@ -4814,18 +4691,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (!adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
-        if (!hasAdministrator(adsCtx2.getConnection(), uData))
-        {
-          adsCtx2.createAdministrator(getAdministratorProperties(uData));
-        }
-        serverDesc1.updateAdsPropertiesWithServerProperties();
-        registerServer(adsCtx2, serverDesc1.getAdsProperties());
-        Set<Map<ServerProperty, Object>> registry2 = adsCtx2.readServerRegistry();
-        if (!ADSContext.isRegistered(serverDesc2, registry2))
-        {
-          serverDesc2.updateAdsPropertiesWithServerProperties();
-          registerServer(adsCtx2, serverDesc2.getAdsProperties());
-        }
+        registerServers(adsCtx2, serverDesc1, serverDesc2, uData);
 
         connSource = conn2;
         connDestination = conn1;
@@ -4833,18 +4699,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       else if (adsCtx1.hasAdminData() && !adsCtx2.hasAdminData())
       {
-        if (!hasAdministrator(adsCtx1.getConnection(), uData))
-        {
-          adsCtx1.createAdministrator(getAdministratorProperties(uData));
-        }
-        serverDesc2.updateAdsPropertiesWithServerProperties();
-        registerServer(adsCtx1, serverDesc2.getAdsProperties());
-        Set<Map<ServerProperty, Object>> registry1 = adsCtx1.readServerRegistry();
-        if (!ADSContext.isRegistered(serverDesc1, registry1))
-        {
-          serverDesc1.updateAdsPropertiesWithServerProperties();
-          registerServer(adsCtx1, serverDesc1.getAdsProperties());
-        }
+        registerServers(adsCtx1, serverDesc2, serverDesc1, uData);
 
         connSource = conn1;
         connDestination = conn2;
@@ -4895,23 +4750,18 @@ public class ReplicationCliMain extends ConsoleApplication
       print(formatter.getFormattedDone());
       println();
     }
-    List<DN> baseDNs = uData.getBaseDNs();
-    if (!adsAlreadyReplicated
-        && !baseDNs.contains(ADSContext.getAdministrationSuffixDN()))
+    if (!adsAlreadyReplicated)
     {
-      baseDNs.add(ADSContext.getAdministrationSuffixDN());
-      uData.setBaseDNs(baseDNs);
+      uData.addBaseDN(ADSContext.getAdministrationSuffixDN());
     }
-
     if (uData.replicateSchema())
     {
-      baseDNs = uData.getBaseDNs();
-      baseDNs.add(Constants.SCHEMA_DN);
-      uData.setBaseDNs(baseDNs);
+      uData.addBaseDN(Constants.SCHEMA_DN);
     }
 
-    TopologyCache cache1 = null;
-    TopologyCache cache2 = null;
+    final Set<Integer> usedReplicationServerIds = new HashSet<>();
+    final TopologyCache cache1;
+    final TopologyCache cache2;
     try
     {
       Set<PreferredConnection> cnx = new LinkedHashSet<>();
@@ -4941,9 +4791,12 @@ public class ReplicationCliMain extends ConsoleApplication
           ERROR_READING_TOPOLOGY_CACHE, tce);
     }
 
+    final Set<String> twoReplServers = new LinkedHashSet<>();
     addToSets(serverDesc1, uData.getServer1(), conn1, twoReplServers, usedReplicationServerIds);
     addToSets(serverDesc2, uData.getServer2(), conn2, twoReplServers, usedReplicationServerIds);
 
+    final Map<DN, Set<String>> hmRepServers = new HashMap<>();
+    final Map<DN, Set<Integer>> hmUsedReplicationDomainIds = new HashMap<>();
     for (DN baseDN : uData.getBaseDNs())
     {
       Set<String> repServersForBaseDN = new LinkedHashSet<>();
@@ -4971,6 +4824,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       hmUsedReplicationDomainIds.put(baseDN, ids);
     }
+
+    final Set<String> allRepServers = new LinkedHashSet<>();
     for (Set<String> v : hmRepServers.values())
     {
       allRepServers.addAll(v);
@@ -4984,7 +4839,7 @@ public class ReplicationCliMain extends ConsoleApplication
         usedReplicationServerIds, allRepServers, alreadyConfiguredReplicationServers,
         WARN_SECOND_REPLICATION_SERVER_ALREADY_CONFIGURED);
 
-    for (DN baseDN : baseDNs)
+    for (DN baseDN : uData.getBaseDNs())
     {
       Set<String> repServers = hmRepServers.get(baseDN);
       Set<Integer> usedIds = hmUsedReplicationDomainIds.get(baseDN);
@@ -4992,7 +4847,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
       configureToReplicateBaseDN(uData.getServer1(), conn1, serverDesc1, cache1, baseDN,
           usedIds, alreadyConfiguredServers, repServers, allRepServers, alreadyConfiguredReplicationServers);
-
       configureToReplicateBaseDN(uData.getServer2(), conn2, serverDesc2, cache2, baseDN,
           usedIds, alreadyConfiguredServers, repServers, allRepServers, alreadyConfiguredReplicationServers);
     }
@@ -5064,6 +4918,105 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       print(formatter.getFormattedDone());
       println();
+    }
+  }
+
+  private void printErrorWhenServersAlreadyHaveErrors(ConnectionWrapper conn1, ConnectionWrapper conn2,
+      EnableReplicationUserData uData, final ADSContext adsCtx1, final ADSContext adsCtx2)
+      throws ReplicationCliException
+  {
+    final Set<LocalizableMessage> messages = new LinkedHashSet<>();
+    try
+    {
+      final Set<PreferredConnection> cnx = new LinkedHashSet<>();
+      cnx.addAll(getPreferredConnections(conn1));
+      cnx.addAll(getPreferredConnections(conn2));
+      final TopologyCache cache1 = createTopologyCache(adsCtx1, cnx, uData);
+      if (cache1 != null)
+      {
+        messages.addAll(cache1.getErrorMessages());
+      }
+      final TopologyCache cache2 = createTopologyCache(adsCtx2, cnx, uData);
+      if (cache2 != null)
+      {
+        messages.addAll(cache2.getErrorMessages());
+      }
+    }
+    catch (TopologyCacheException tce)
+    {
+      throw new ReplicationCliException(
+          ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
+          ERROR_READING_TOPOLOGY_CACHE, tce);
+    }
+    catch (ADSContextException adce)
+    {
+      throw new ReplicationCliException(
+          ERR_REPLICATION_READING_ADS.get(adce.getMessage()),
+          ERROR_READING_ADS, adce);
+    }
+    if (!messages.isEmpty())
+    {
+      errPrintln(ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
+          getMessageFromCollection(messages, LINE_SEPARATOR)));
+    }
+  }
+
+  private void warnIfOnlyOneReplicationServerInTopology(EnableReplicationUserData uData, final ADSContext adsCtx1,
+      final ADSContext adsCtx2) throws ReplicationCliException
+  {
+    final Set<DN> baseDNsWithOneReplicationServer = new TreeSet<>();
+    final Set<DN> baseDNsWithNoReplicationServer = new TreeSet<>();
+    updateBaseDnsWithNotEnoughReplicationServer(adsCtx1, adsCtx2, uData,
+       baseDNsWithNoReplicationServer, baseDNsWithOneReplicationServer);
+
+    if (!baseDNsWithNoReplicationServer.isEmpty())
+    {
+      LocalizableMessage errorMsg =
+        ERR_REPLICATION_NO_REPLICATION_SERVER.get(toSingleLine(baseDNsWithNoReplicationServer));
+      throw new ReplicationCliException(errorMsg, ERROR_USER_DATA, null);
+    }
+    else if (!baseDNsWithOneReplicationServer.isEmpty())
+    {
+      if (isInteractive())
+      {
+        LocalizableMessage prompt = INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_CONFIRM.get(
+            toSingleLine(baseDNsWithOneReplicationServer));
+        try
+        {
+          if (!confirmAction(prompt, false))
+          {
+            throw new ReplicationCliException(ERR_REPLICATION_USER_CANCELLED.get(), USER_CANCELLED, null);
+          }
+        }
+        catch (Throwable t)
+        {
+          throw new ReplicationCliException(ERR_REPLICATION_USER_CANCELLED.get(), USER_CANCELLED, t);
+        }
+      }
+      else
+      {
+        errPrintln(INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
+            toSingleLine(baseDNsWithOneReplicationServer)));
+        errPrintln();
+      }
+    }
+  }
+
+  private void registerServers(final ADSContext adsCtx2, final ServerDescriptor serverDesc1,
+      final ServerDescriptor serverDesc2, EnableReplicationUserData uData) throws ADSContextException
+  {
+    if (!hasAdministrator(adsCtx2.getConnection(), uData))
+    {
+      adsCtx2.createAdministrator(getAdministratorProperties(uData));
+    }
+    serverDesc1.updateAdsPropertiesWithServerProperties();
+    registerServer(adsCtx2, serverDesc1.getAdsProperties());
+
+    Set<Map<ServerProperty, Object>> registry2 = adsCtx2.readServerRegistry();
+    if (!ADSContext.isRegistered(serverDesc2, registry2))
+    {
+      serverDesc2.updateAdsPropertiesWithServerProperties();
+      registerServer(adsCtx2, serverDesc2.getAdsProperties());
     }
   }
 
@@ -6432,21 +6385,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       domainNames = new String[]{};
     }
-    ReplicationDomainCfgClient[] domains =
-      new ReplicationDomainCfgClient[domainNames.length];
-    for (int i=0; i<domains.length; i++)
-    {
-      domains[i] = sync.getReplicationDomain(domainNames[i]);
-    }
-    ReplicationDomainCfgClient domain = null;
-    for (ReplicationDomainCfgClient domain2 : domains)
-    {
-      if (baseDN.equals(domain2.getBaseDN()))
-      {
-        domain = domain2;
-        break;
-      }
-    }
+    ReplicationDomainCfgClient domain = findDomainByBaseDN(sync, baseDN, domainNames);
     boolean mustCommit = false;
     if (domain == null)
     {
@@ -6455,7 +6394,7 @@ public class ReplicationCliMain extends ConsoleApplication
       String domainName = InstallerHelper.getDomainName(domainNames, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
-          new ArrayList<PropertyException>());
+          null);
       domain.setServerId(domainId);
       domain.setBaseDN(baseDN);
       domain.setReplicationServer(replicationServers);
@@ -6483,6 +6422,24 @@ public class ReplicationCliMain extends ConsoleApplication
 
     print(formatter.getFormattedDone());
     println();
+  }
+
+  private ReplicationDomainCfgClient findDomainByBaseDN(ReplicationSynchronizationProviderCfgClient sync, DN baseDN,
+      String[] domainNames) throws OperationsException, LdapException
+  {
+    ReplicationDomainCfgClient[] domains = new ReplicationDomainCfgClient[domainNames.length];
+    for (int i=0; i<domains.length; i++)
+    {
+      domains[i] = sync.getReplicationDomain(domainNames[i]);
+    }
+    for (ReplicationDomainCfgClient domain : domains)
+    {
+      if (baseDN.equals(domain.getBaseDN()))
+      {
+        return domain;
+      }
+    }
+    return null;
   }
 
   /**

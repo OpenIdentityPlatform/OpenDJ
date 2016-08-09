@@ -86,4 +86,29 @@ public abstract class ReplicationUserData
     this.baseDNs.clear();
     this.baseDNs.addAll(baseDNs);
   }
+
+  /**
+   * Adds the provided base DN to the base DNs to replicate if not already present.
+   *
+   * @param baseDN
+   *          the new base DN to replicate.
+   */
+  public void addBaseDN(DN baseDN)
+  {
+    if (!baseDNs.contains(baseDN))
+    {
+      baseDNs.add(baseDN);
+    }
+  }
+
+  @Override
+  public String toString()
+  {
+    return "ReplicationUserData(" + fieldsToString() + ")";
+  }
+
+  String fieldsToString()
+  {
+    return "baseDNs=" + baseDNs + ", adminUid=" + adminUid + ", adminPwd=" + adminPwd;
+  }
 }

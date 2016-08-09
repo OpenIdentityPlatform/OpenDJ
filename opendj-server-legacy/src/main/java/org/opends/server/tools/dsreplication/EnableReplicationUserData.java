@@ -204,6 +204,20 @@ public class EnableReplicationUserData extends ReplicationUserData
     {
       this.configureReplicationDomain = configureReplicationDomain;
     }
+
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName()
+          + "(hostPort=" + hostPort
+          + ", bindDn=" + bindDn
+          + ", bindPassword=" + pwd
+          + ", replicationPort=" + replicationPort
+          + ", secureReplication=" + secureReplication
+          + ", configureReplicationServer=" + configureReplicationServer
+          + ", configureReplicationDomain=" + configureReplicationDomain
+          + ")";
+    }
   }
 
   private final EnableReplicationServerData server1 = new EnableReplicationServerData();
@@ -246,5 +260,17 @@ public class EnableReplicationUserData extends ReplicationUserData
   EnableReplicationServerData getServer2()
   {
     return server2;
+  }
+
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName()
+        + "("
+        + fieldsToString()
+        + ", replicateSchema=" + replicateSchema
+        + ", server1=" + server1
+        + ", server2=" + server2
+        + ")";
   }
 }
