@@ -95,7 +95,7 @@ public class TopologyCacheFilter
    */
   public void addBaseDNsToSearch(Collection<DN> dns)
   {
-    dns.addAll(dns);
+    baseDNs.addAll(dns);
   }
 
   /**
