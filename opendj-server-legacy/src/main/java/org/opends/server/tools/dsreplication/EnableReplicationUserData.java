@@ -208,10 +208,10 @@ public class EnableReplicationUserData extends ReplicationUserData
     @Override
     public String toString()
     {
+      // do not add password to avoid accidental logging
       return getClass().getSimpleName()
           + "(hostPort=" + hostPort
           + ", bindDn=" + bindDn
-          + ", bindPassword=" + pwd
           + ", replicationPort=" + replicationPort
           + ", secureReplication=" + secureReplication
           + ", configureReplicationServer=" + configureReplicationServer

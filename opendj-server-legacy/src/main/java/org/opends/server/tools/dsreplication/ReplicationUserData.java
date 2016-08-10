@@ -109,6 +109,7 @@ public abstract class ReplicationUserData
 
   String fieldsToString()
   {
-    return "baseDNs=" + baseDNs + ", adminUid=" + adminUid + ", adminPwd=" + adminPwd;
+    // do not add password to avoid accidental logging
+    return "baseDNs=" + baseDNs + ", adminUid=" + adminUid;
   }
 }
