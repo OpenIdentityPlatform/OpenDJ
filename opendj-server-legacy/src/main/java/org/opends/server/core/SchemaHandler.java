@@ -15,7 +15,6 @@
  */
 package org.opends.server.core;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TRUNCATED_VALUE1;
 import static org.opends.messages.ConfigMessages.WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
@@ -34,9 +33,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.server.api.AlertGenerator;
 import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
 import org.opends.server.schema.AciSyntax;
 import org.opends.server.schema.SubtreeSpecificationSyntax;
@@ -44,7 +45,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
@@ -71,6 +71,7 @@ import org.opends.server.schema.SchemaProvider;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.SchemaWriter;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.StaticUtils;
 
@@ -216,7 +217,7 @@ public final class SchemaHandler
   }
 
   /**
-   * Update this handler with the provided schema.
+   * Replaces the schema with the provided schema.
    *
    * @param schema
    *          the new schema to use
@@ -229,6 +230,33 @@ public final class SchemaHandler
     try
     {
       switchSchema(schema);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  /**
+   * Replaces the schema with the provided schema and update provided schema files.
+   *
+   * @param schema
+   *            The new schema to use
+   * @param modifiedSchemaFiles
+   *            The set of schema files to update
+   * @param alertGenerator
+   *            The generator to use for alerts
+   * @throws DirectoryException
+   *            If an error occurs during update of schema or schema files
+   */
+  public void updateSchemaAndSchemaFiles(Schema schema, TreeSet<String> modifiedSchemaFiles,
+      AlertGenerator alertGenerator) throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      switchSchema(schema);
+      new SchemaWriter().updateSchemaFiles(schemaNG, getExtraAttributes(), modifiedSchemaFiles, alertGenerator);
     }
     finally
     {

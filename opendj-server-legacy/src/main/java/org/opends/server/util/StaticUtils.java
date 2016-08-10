@@ -1768,6 +1768,29 @@ public final class StaticUtils
     return false;
   }
 
+  /**
+   * Deletes all provided files.
+   * <p>
+   * Does not handle directories.
+   *
+   * @param files
+   *            The files to delete.
+   * @return {@code true} if deletion is successful for all files, false otherwise
+   */
+  public static boolean deleteFiles(Iterable<File> files)
+  {
+    boolean allDeleted = true;
+    if (files != null)
+    {
+      for (File f : files)
+      {
+          if (!f.isDirectory())
+            allDeleted = f.delete() && allDeleted;
+          }
+      }
+    return allDeleted;
+  }
+
 
 
   /**

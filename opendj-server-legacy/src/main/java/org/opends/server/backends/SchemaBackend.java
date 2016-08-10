@@ -31,17 +31,12 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -69,6 +64,7 @@ import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -94,7 +90,6 @@ import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
@@ -388,7 +383,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     /* Add the schema definition attributes. */
-    org.forgerock.opendj.ldap.schema.Schema schema = serverContext.getSchemaNG();
+    Schema schema = serverContext.getSchemaNG();
     buildSchemaAttribute(schema.getAttributeTypes(), userAttrs,
         operationalAttrs, attributeTypesType, includeSchemaFile,
         AttributeTypeSyntax.isStripSyntaxMinimumUpperBound(),
@@ -553,10 +548,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     SchemaBuilder schemaBuilder = new SchemaBuilder(schemaHandler.getSchema());
     applyModifications(schemaBuilder, mods, modifiedSchemaFiles, modifyOperation.isSynchronizationOperation());
-    org.forgerock.opendj.ldap.schema.Schema newSchema = schemaBuilder.toSchema();
-    schemaHandler.updateSchema(newSchema);
-
-    updateSchemaFiles(newSchema, modifiedSchemaFiles);
+    Schema newSchema = schemaBuilder.toSchema();
+    schemaHandler.updateSchemaAndSchemaFiles(newSchema, modifiedSchemaFiles, this);
 
     DN authzDN = modifyOperation.getAuthorizationDN();
     if (authzDN == null)
@@ -802,59 +795,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   }
 
   /**
-   * Re-write all schema files using the provided new Schema and list of
-   * modified files.
-   *
-   * @param newSchema            The new schema that should be used.
-   *
-   * @param modifiedSchemaFiles  The list of files that should be modified.
-   *
-   * @throws DirectoryException  When the new file cannot be written.
-   */
-  private void updateSchemaFiles(org.forgerock.opendj.ldap.schema.Schema newSchema, TreeSet<String> modifiedSchemaFiles)
-          throws DirectoryException
-  {
-    // We'll re-write all
-    // impacted schema files by first creating them in a temporary location
-    // and then replacing the existing schema files with the new versions.
-    // If all that goes successfully, then activate the new schema.
-    HashMap<String, File> tempSchemaFiles = new HashMap<>();
-    try
-    {
-      for (String schemaFile : modifiedSchemaFiles)
-      {
-        File tempSchemaFile = writeTempSchemaFile(newSchema, schemaFile);
-        tempSchemaFiles.put(schemaFile, tempSchemaFile);
-      }
-
-      installSchemaFiles(tempSchemaFiles);
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      throw de;
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message =
-          ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-    }
-    finally
-    {
-      cleanUpTempSchemaFiles(tempSchemaFiles);
-    }
-
-    // Create a single file with all of the concatenated schema information
-    // that we can use on startup to detect whether the schema files have been
-    // edited with the server offline.
-    SchemaWriter.writeConcatenatedSchema();
-  }
-
-  /**
    * Handles all processing required for adding the provided attribute type to
    * the given schema, replacing an existing type if necessary, and ensuring all
    * other metadata is properly updated.
@@ -874,7 +814,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addAttributeType(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
+    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseAttributeTypeOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasAttributeType(oid))
@@ -965,7 +905,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void removeAttributeType(String definition, SchemaBuilder newSchemaBuilder, List<Modification> modifications,
       int currentPosition, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
+    Schema currentSchema = newSchemaBuilder.toSchema();
     String atOID = SchemaUtils.parseAttributeTypeOID(definition);
 
     if (!currentSchema.hasAttributeType(atOID))
@@ -1032,7 +972,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addObjectClass(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
+    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseObjectClassOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasObjectClass(oid))
@@ -1079,7 +1019,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                  Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
+    Schema currentSchema = newSchemaBuilder.toSchema();
     String ocOID = SchemaUtils.parseObjectClassOID(definition);
 
     if (!currentSchema.hasObjectClass(ocOID))
@@ -1148,7 +1088,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addNameForm(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
+    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseNameFormOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasNameForm(oid))
@@ -1194,7 +1134,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                               Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
+    Schema currentSchema = newSchemaBuilder.toSchema();
     String nfOID = SchemaUtils.parseNameFormOID(definition);
 
     if (!currentSchema.hasNameForm(nfOID))
@@ -1262,7 +1202,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addDITContentRule(String definition, SchemaBuilder schemaBuilder,
       Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
+    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseDITContentRuleOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasDITContentRule(oid))
@@ -1302,7 +1242,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void removeDITContentRule(String definition,
       SchemaBuilder newSchemaBuilder, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
+    Schema currentSchema = newSchemaBuilder.toSchema();
     String ruleOid = SchemaUtils.parseDITContentRuleOID(definition);
 
     if (! currentSchema.hasDITContentRule(ruleOid))
@@ -1340,7 +1280,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addDITStructureRule(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
       throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
+    Schema currentSchema = schemaHandler.getSchema();
     int ruleId = SchemaUtils.parseRuleID(definition);
     final String finalDefinition;
     if (!currentSchema.hasDITStructureRule(ruleId))
@@ -1388,7 +1328,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                       Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
+    Schema currentSchema = newSchemaBuilder.toSchema();
     int ruleID = SchemaUtils.parseRuleID(definition);
 
     if (!currentSchema.hasDITStructureRule(ruleID))
@@ -1448,7 +1388,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private void addMatchingRuleUse(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
       throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
+    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseMatchingRuleUseOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasMatchingRuleUse(oid))
@@ -1490,7 +1430,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
                                      Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
+    Schema currentSchema = newSchemaBuilder.toSchema();
     String mruOid = SchemaUtils.parseMatchingRuleUseOID(definition);
 
     if (!currentSchema.hasMatchingRuleUse(mruOid))
@@ -1529,7 +1469,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // TODO: not sure of the correct implementation here. There was previously a check that would
     // reject a change if a syntax with oid already exists, but I don't understand why.
     // I kept an implementation that behave like other schema elements.
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = schemaHandler.getSchema();
+    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseSyntaxOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasSyntax(oid))
@@ -1553,7 +1493,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
      * part of the ldapsyntaxes attribute. A virtual value is not searched and
      * hence never deleted.
      */
-    org.forgerock.opendj.ldap.schema.Schema currentSchema = newSchemaBuilder.toSchema();
+    Schema currentSchema = newSchemaBuilder.toSchema();
     String oid = SchemaUtils.parseSyntaxOID(definition);
 
     if (!currentSchema.hasSyntax(oid))
@@ -1564,567 +1504,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     newSchemaBuilder.removeSyntax(oid);
     addElementIfNotNull(modifiedSchemaFiles, getElementSchemaFile(currentSchema.getSyntax(oid)));
-  }
-
-  /**
-   * Creates an empty entry that may be used as the basis for a new schema file.
-   *
-   * @return  An empty entry that may be used as the basis for a new schema
-   *          file.
-   */
-  private Entry createEmptySchemaEntry()
-  {
-    Map<ObjectClass,String> objectClasses = new LinkedHashMap<>();
-    objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    objectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
-    objectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
-
-    Map<AttributeType,List<Attribute>> userAttributes = new LinkedHashMap<>();
-    Map<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
-
-    DN  dn  = DirectoryServer.getSchemaDN();
-    for (AVA ava : dn.rdn())
-    {
-      AttributeType type = ava.getAttributeType();
-      Map<AttributeType, List<Attribute>> attrs = type.isOperational() ? operationalAttributes : userAttributes;
-      attrs.put(type, newLinkedList(Attributes.create(type, ava.getAttributeValue())));
-    }
-
-    return new Entry(dn, objectClasses,  userAttributes, operationalAttributes);
-  }
-
-  /**
-   * Writes a temporary version of the specified schema file.
-   *
-   * @param  schema      The schema from which to take the definitions to be
-   *                     written.
-   * @param  schemaFile  The name of the schema file to be written.
-   *
-   * @throws  DirectoryException  If an unexpected problem occurs while
-   *                              identifying the schema definitions to include
-   *                              in the schema file.
-   *
-   * @throws  IOException  If an unexpected error occurs while attempting to
-   *                       write the temporary schema file.
-   *
-   * @throws  LDIFException  If an unexpected problem occurs while generating
-   *                         the LDIF representation of the schema entry.
-   */
-  private File writeTempSchemaFile(org.forgerock.opendj.ldap.schema.Schema schema, String schemaFile)
-          throws DirectoryException, IOException, LDIFException
-  {
-    Entry schemaEntry = createEmptySchemaEntry();
-
-     /*
-     * Add all of the ldap syntax descriptions to the schema entry. We do
-     * this only for the real part of the ldapsyntaxes attribute. The real part
-     * is read and write to/from the schema files.
-     */
-    Set<ByteString> values = getValuesForSchemaFile(getCustomSyntaxes(schema), schemaFile);
-    addAttribute(schemaEntry, ldapSyntaxesType, values);
-
-    // Add all of the appropriate attribute types to the schema entry.  We need
-    // to be careful of the ordering to ensure that any superior types in the
-    // same file are written before the subordinate types.
-    values = getAttributeTypeValuesForSchemaFile(schema, schemaFile);
-    addAttribute(schemaEntry, attributeTypesType, values);
-
-    // Add all of the appropriate objectclasses to the schema entry.  We need
-    // to be careful of the ordering to ensure that any superior classes in the
-    // same file are written before the subordinate classes.
-    values = getObjectClassValuesForSchemaFile(schema, schemaFile);
-    addAttribute(schemaEntry, objectClassesType, values);
-
-    // Add all of the appropriate name forms to the schema entry.  Since there
-    // is no hierarchical relationship between name forms, we don't need to
-    // worry about ordering.
-    values = getValuesForSchemaFile(schema.getNameForms(), schemaFile);
-    addAttribute(schemaEntry, nameFormsType, values);
-
-    // Add all of the appropriate DIT content rules to the schema entry.  Since
-    // there is no hierarchical relationship between DIT content rules, we don't
-    // need to worry about ordering.
-    values = getValuesForSchemaFile(schema.getDITContentRules(), schemaFile);
-    addAttribute(schemaEntry, ditContentRulesType, values);
-
-    // Add all of the appropriate DIT structure rules to the schema entry.  We
-    // need to be careful of the ordering to ensure that any superior rules in
-    // the same file are written before the subordinate rules.
-    values = getDITStructureRuleValuesForSchemaFile(schema, schemaFile);
-    addAttribute(schemaEntry, ditStructureRulesType, values);
-
-    // Add all of the appropriate matching rule uses to the schema entry.  Since
-    // there is no hierarchical relationship between matching rule uses, we
-    // don't need to worry about ordering.
-    values = getValuesForSchemaFile(schema.getMatchingRuleUses(), schemaFile);
-    addAttribute(schemaEntry, matchingRuleUsesType, values);
-
-    if (FILE_USER_SCHEMA_ELEMENTS.equals(schemaFile))
-    {
-      for (Attribute attribute : schemaHandler.getExtraAttributes())
-      {
-        AttributeType attributeType = attribute.getAttributeDescription().getAttributeType();
-        schemaEntry.putAttribute(attributeType, newArrayList(attribute));
-      }
-    }
-
-    // Create a temporary file to which we can write the schema entry.
-    File tempFile = File.createTempFile(schemaFile, "temp");
-    LDIFExportConfig exportConfig =
-         new LDIFExportConfig(tempFile.getAbsolutePath(),
-                              ExistingFileBehavior.OVERWRITE);
-    try (LDIFWriter ldifWriter = new LDIFWriter(exportConfig))
-    {
-      ldifWriter.writeEntry(schemaEntry);
-    }
-
-    return tempFile;
-  }
-
-  /**
-   * Returns custom syntaxes defined by OpenDJ configuration or by users.
-   * <p>
-   * These are non-standard syntaxes.
-   *
-   * @param schema
-   *          the schema where to extract custom syntaxes from
-   * @return custom, non-standard syntaxes
-   */
-  private Collection<Syntax> getCustomSyntaxes(org.forgerock.opendj.ldap.schema.Schema schema)
-  {
-    List<Syntax> results = new ArrayList<>();
-    for (Syntax syntax : schema.getSyntaxes())
-    {
-      for (String propertyName : syntax.getExtraProperties().keySet())
-      {
-        if ("x-subst".equalsIgnoreCase(propertyName)
-            || "x-pattern".equalsIgnoreCase(propertyName)
-            || "x-enum".equalsIgnoreCase(propertyName)
-            || "x-schema-file".equalsIgnoreCase(propertyName))
-        {
-          results.add(syntax);
-          break;
-        }
-      }
-    }
-    return results;
-  }
-
-  private Set<ByteString> getValuesForSchemaFile(Collection<? extends SchemaElement> schemaElements, String schemaFile)
-  {
-    Set<ByteString> values = new LinkedHashSet<>();
-    for (SchemaElement schemaElement : schemaElements)
-    {
-      if (schemaFile.equals(getElementSchemaFile(schemaElement)))
-      {
-        values.add(ByteString.valueOfUtf8(schemaElement.toString()));
-      }
-    }
-    return values;
-  }
-
-  private Set<ByteString> getAttributeTypeValuesForSchemaFile(org.forgerock.opendj.ldap.schema.Schema schema,
-      String schemaFile) throws DirectoryException
-  {
-    Set<AttributeType> addedTypes = new HashSet<>();
-    Set<ByteString> values = new LinkedHashSet<>();
-    for (AttributeType at : schema.getAttributeTypes())
-    {
-      if (schemaFile.equals(getElementSchemaFile(at)))
-      {
-        addAttrTypeToSchemaFile(schemaFile, at, values, addedTypes, 0);
-      }
-    }
-    return values;
-  }
-
-  private Set<ByteString> getObjectClassValuesForSchemaFile(org.forgerock.opendj.ldap.schema.Schema schema,
-      String schemaFile) throws DirectoryException
-  {
-    Set<ObjectClass> addedClasses = new HashSet<>();
-    Set<ByteString> values = new LinkedHashSet<>();
-    for (ObjectClass oc : schema.getObjectClasses())
-    {
-      if (schemaFile.equals(getElementSchemaFile(oc)))
-      {
-        addObjectClassToSchemaFile(schemaFile, oc, values, addedClasses, 0);
-      }
-    }
-    return values;
-  }
-
-  private Set<ByteString> getDITStructureRuleValuesForSchemaFile(org.forgerock.opendj.ldap.schema.Schema schema,
-      String schemaFile) throws DirectoryException
-  {
-    Set<DITStructureRule> addedDSRs = new HashSet<>();
-    Set<ByteString> values = new LinkedHashSet<>();
-    for (DITStructureRule dsr : schema.getDITStuctureRules())
-    {
-      if (schemaFile.equals(getElementSchemaFile(dsr)))
-      {
-        addDITStructureRuleToSchemaFile(schemaFile, dsr, values, addedDSRs, 0);
-      }
-    }
-    return values;
-  }
-
-  private void addAttribute(Entry schemaEntry, AttributeType attrType, Set<ByteString> values)
-  {
-    if (!values.isEmpty())
-    {
-      AttributeBuilder builder = new AttributeBuilder(attrType);
-      builder.addAll(values);
-      schemaEntry.putAttribute(attrType, newArrayList(builder.toAttribute()));
-    }
-  }
-
-  /**
-   * Adds the definition for the specified attribute type to the provided set of
-   * attribute values, recursively adding superior types as appropriate.
-   *
-   * @param  schema         The schema containing the attribute type.
-   * @param  schemaFile     The schema file with which the attribute type is
-   *                        associated.
-   * @param  attributeType  The attribute type whose definition should be added
-   *                        to the value set.
-   * @param  values         The set of values for attribute type definitions
-   *                        already added.
-   * @param  addedTypes     The set of attribute types whose definitions have
-   *                        already been added to the set of values.
-   * @param  depth          A depth counter to use in an attempt to detect
-   *                        circular references.
-   */
-  private void addAttrTypeToSchemaFile(String schemaFile,
-                                       AttributeType attributeType,
-                                       Set<ByteString> values,
-                                       Set<AttributeType> addedTypes,
-                                       int depth)
-          throws DirectoryException
-  {
-    if (depth > 20)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_AT.get(
-          attributeType.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    if (addedTypes.contains(attributeType))
-    {
-      return;
-    }
-
-    AttributeType superiorType = attributeType.getSuperiorType();
-    if (superiorType != null &&
-        schemaFile.equals(getElementSchemaFile(attributeType)) &&
-        !addedTypes.contains(superiorType))
-    {
-      addAttrTypeToSchemaFile(schemaFile, superiorType, values, addedTypes, depth+1);
-    }
-
-    values.add(ByteString.valueOfUtf8(attributeType.toString()));
-    addedTypes.add(attributeType);
-  }
-
-  /**
-   * Adds the definition for the specified objectclass to the provided set of
-   * attribute values, recursively adding superior classes as appropriate.
-   *
-   * @param  schemaFile    The schema file with which the objectclass is
-   *                       associated.
-   * @param  objectClass   The objectclass whose definition should be added to
-   *                       the value set.
-   * @param  values        The set of values for objectclass definitions
-   *                       already added.
-   * @param  addedClasses  The set of objectclasses whose definitions have
-   *                       already been added to the set of values.
-   * @param  depth         A depth counter to use in an attempt to detect
-   *                       circular references.
-   */
-  private void addObjectClassToSchemaFile(String schemaFile,
-                                          ObjectClass objectClass,
-                                          Set<ByteString> values,
-                                          Set<ObjectClass> addedClasses,
-                                          int depth)
-          throws DirectoryException
-  {
-    if (depth > 20)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_OC.get(
-          objectClass.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    if (addedClasses.contains(objectClass))
-    {
-      return;
-    }
-
-    for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
-    {
-      if (schemaFile.equals(getElementSchemaFile(superiorClass)) &&
-          !addedClasses.contains(superiorClass))
-      {
-        addObjectClassToSchemaFile(schemaFile, superiorClass, values,
-                                   addedClasses, depth+1);
-      }
-    }
-    values.add(ByteString.valueOfUtf8(objectClass.toString()));
-    addedClasses.add(objectClass);
-  }
-
-  /**
-   * Adds the definition for the specified DIT structure rule to the provided
-   * set of attribute values, recursively adding superior rules as appropriate.
-   *
-   * @param  schema            The schema containing the DIT structure rule.
-   * @param  schemaFile        The schema file with which the DIT structure rule
-   *                           is associated.
-   * @param  ditStructureRule  The DIT structure rule whose definition should be
-   *                           added to the value set.
-   * @param  values            The set of values for DIT structure rule
-   *                           definitions already added.
-   * @param  addedDSRs         The set of DIT structure rules whose definitions
-   *                           have already been added added to the set of
-   *                           values.
-   * @param  depth             A depth counter to use in an attempt to detect
-   *                           circular references.
-   */
-  private void addDITStructureRuleToSchemaFile(String schemaFile,
-                    DITStructureRule ditStructureRule,
-                    Set<ByteString> values,
-                    Set<DITStructureRule> addedDSRs, int depth)
-          throws DirectoryException
-  {
-    if (depth > 20)
-    {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_CIRCULAR_REFERENCE_DSR.get(
-          ditStructureRule.getNameOrRuleID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-
-    if (addedDSRs.contains(ditStructureRule))
-    {
-      return;
-    }
-
-    for (DITStructureRule dsr : ditStructureRule.getSuperiorRules())
-    {
-      if (schemaFile.equals(getElementSchemaFile(dsr)) && !addedDSRs.contains(dsr))
-      {
-        addDITStructureRuleToSchemaFile(schemaFile, dsr, values,
-                                        addedDSRs, depth+1);
-      }
-    }
-
-    values.add(ByteString.valueOfUtf8(ditStructureRule.toString()));
-    addedDSRs.add(ditStructureRule);
-  }
-
-  /**
-   * Moves the specified temporary schema files in place of the active versions.
-   * If an error occurs in the process, then this method will attempt to restore
-   * the original schema files if possible.
-   *
-   * @param  tempSchemaFiles  The set of temporary schema files to be activated.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              install the temporary schema files.
-   */
-  private void installSchemaFiles(HashMap<String,File> tempSchemaFiles)
-          throws DirectoryException
-  {
-    // Create lists that will hold the three types of files we'll be dealing
-    // with (the temporary files that will be installed, the installed schema
-    // files, and the previously-installed schema files).
-    ArrayList<File> installedFileList = new ArrayList<>();
-    ArrayList<File> tempFileList      = new ArrayList<>();
-    ArrayList<File> origFileList      = new ArrayList<>();
-
-    File schemaInstanceDir =
-      new File(SchemaConfigManager.getSchemaDirectoryPath());
-
-    for (String name : tempSchemaFiles.keySet())
-    {
-      installedFileList.add(new File(schemaInstanceDir, name));
-      tempFileList.add(tempSchemaFiles.get(name));
-      origFileList.add(new File(schemaInstanceDir, name + ".orig"));
-    }
-
-    // If there are any old ".orig" files laying around from a previous
-    // attempt, then try to clean them up.
-    for (File f : origFileList)
-    {
-      if (f.exists())
-      {
-        f.delete();
-      }
-    }
-
-    // Copy all of the currently-installed files with a ".orig" extension.  If
-    // this fails, then try to clean up the copies.
-    try
-    {
-      for (int i=0; i < installedFileList.size(); i++)
-      {
-        File installedFile = installedFileList.get(i);
-        File origFile      = origFileList.get(i);
-
-        if (installedFile.exists())
-        {
-          copyFile(installedFile, origFile);
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      boolean allCleaned = true;
-      for (File f : origFileList)
-      {
-        try
-        {
-          if (f.exists() && !f.delete())
-          {
-            allCleaned = false;
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.traceException(e2);
-
-          allCleaned = false;
-        }
-      }
-
-      LocalizableMessage message;
-      if (allCleaned)
-      {
-        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED.get(getExceptionMessage(e));
-      }
-      else
-      {
-        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED.get(getExceptionMessage(e));
-
-        DirectoryServer.sendAlertNotification(this,
-                             ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES,
-                             message);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-    }
-
-    // Try to copy all of the temporary files into place over the installed
-    // files.  If this fails, then try to restore the originals.
-    try
-    {
-      for (int i=0; i < installedFileList.size(); i++)
-      {
-        File installedFile = installedFileList.get(i);
-        File tempFile      = tempFileList.get(i);
-        copyFile(tempFile, installedFile);
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      deleteFiles(installedFileList);
-
-      boolean allRestored = true;
-      for (int i=0; i < installedFileList.size(); i++)
-      {
-        File installedFile = installedFileList.get(i);
-        File origFile      = origFileList.get(i);
-
-        try
-        {
-          if (origFile.exists() && !origFile.renameTo(installedFile))
-          {
-            allRestored = false;
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.traceException(e2);
-
-          allRestored = false;
-        }
-      }
-
-      LocalizableMessage message;
-      if (allRestored)
-      {
-        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED.get(getExceptionMessage(e));
-      }
-      else
-      {
-        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED.get(getExceptionMessage(e));
-
-        DirectoryServer.sendAlertNotification(this,
-                             ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES,
-                             message);
-      }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-    }
-
-    deleteFiles(origFileList);
-    deleteFiles(tempFileList);
-  }
-
-  private void deleteFiles(Iterable<File> files)
-  {
-    if (files != null)
-    {
-      for (File f : files)
-      {
-        try
-        {
-          if (f.exists())
-          {
-            f.delete();
-          }
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-        }
-      }
-    }
-  }
-
-  /**
-   * Creates a copy of the specified file.
-   *
-   * @param  from  The source file to be copied.
-   * @param  to    The destination file to be created.
-   *
-   * @throws  IOException  If a problem occurs.
-   */
-  private void copyFile(File from, File to) throws IOException
-  {
-    try (FileInputStream inputStream = new FileInputStream(from);
-        FileOutputStream outputStream = new FileOutputStream(to, false))
-    {
-      byte[] buffer = new byte[4096];
-      int bytesRead = inputStream.read(buffer);
-      while (bytesRead > 0)
-      {
-        outputStream.write(buffer, 0, bytesRead);
-        bytesRead = inputStream.read(buffer);
-      }
-    }
-  }
-
-  /**
-   * Performs any necessary cleanup in an attempt to delete any temporary schema
-   * files that may have been left over after trying to install the new schema.
-   *
-   * @param  tempSchemaFiles  The set of temporary schema files that have been
-   *                          created and are candidates for cleanup.
-   */
-  private void cleanUpTempSchemaFiles(HashMap<String,File> tempSchemaFiles)
-  {
-    deleteFiles(tempSchemaFiles.values());
   }
 
   @Override
@@ -2328,7 +1707,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   private void importEntry(Entry newSchemaEntry) throws DirectoryException
   {
-    org.forgerock.opendj.ldap.schema.Schema schema = schemaHandler.getSchema();
+    Schema schema = schemaHandler.getSchema();
     SchemaBuilder newSchemaBuilder = new SchemaBuilder(schema);
     TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
@@ -2437,9 +1816,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Finally, if there were some modifications, save the new schema
     if (!modifiedSchemaFiles.isEmpty())
     {
-      org.forgerock.opendj.ldap.schema.Schema newSchema = newSchemaBuilder.toSchema();
-      schemaHandler.updateSchema(newSchema);
-      updateSchemaFiles(newSchema, modifiedSchemaFiles);
+      Schema newSchema = newSchemaBuilder.toSchema();
+      schemaHandler.updateSchemaAndSchemaFiles(newSchema, modifiedSchemaFiles, this);
     }
   }
 
@@ -2460,7 +1838,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  private boolean hasAttributeTypeDefinitionChanged(org.forgerock.opendj.ldap.schema.Schema schema, String oid,
+  private boolean hasAttributeTypeDefinitionChanged(Schema schema, String oid,
       String definition)
   {
     if (schema.hasAttributeType(oid))
@@ -2472,7 +1850,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     return true;
   }
 
-  private boolean hasObjectClassDefinitionChanged(org.forgerock.opendj.ldap.schema.Schema schema, String oid,
+  private boolean hasObjectClassDefinitionChanged(Schema schema, String oid,
       String definition)
   {
     if (schema.hasObjectClass(oid))
