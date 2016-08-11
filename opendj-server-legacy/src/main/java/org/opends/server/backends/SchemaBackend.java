@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -420,7 +421,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         userAttrs, operationalAttrs);
 
     // Add the extra attributes.
-    for (Attribute attribute : schemaHandler.getExtraAttributes())
+    for (Attribute attribute : schemaHandler.getExtraAttributes().values())
     {
       addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
     }
@@ -525,18 +526,21 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS, message);
     }
 
-    final List<Modification> mods = new ArrayList<>(modifyOperation.getModifications());
-    if (mods.isEmpty())
+    final List<Modification> modifications = new ArrayList<>(modifyOperation.getModifications());
+    if (modifications.isEmpty())
     {
       // There aren't any modifications, so we don't need to do anything.
       return;
     }
     final TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
-    SchemaBuilder schemaBuilder = new SchemaBuilder(schemaHandler.getSchema());
-    applyModifications(schemaBuilder, mods, modifiedSchemaFiles, modifyOperation.isSynchronizationOperation());
-    Schema newSchema = schemaBuilder.toSchema();
-    schemaHandler.updateSchemaAndSchemaFiles(newSchema, modifiedSchemaFiles, this);
+    Schema currentSchema = schemaHandler.getSchema();
+    Map<String, Attribute> extraAttributes = schemaHandler.getExtraAttributes();
+    SchemaBuilder newSchemaBuilder = new SchemaBuilder(currentSchema);
+    applyModificationsToNewSchemaBuilder(currentSchema, newSchemaBuilder, extraAttributes, modifications,
+        modifiedSchemaFiles, modifyOperation.isSynchronizationOperation());
+    Schema newSchema = newSchemaBuilder.toSchema();
+    schemaHandler.updateSchemaAndSchemaFiles(newSchema, extraAttributes, modifiedSchemaFiles, this);
 
     DN authzDN = modifyOperation.getAuthorizationDN();
     if (authzDN == null)
@@ -547,8 +551,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     modifiersName = ByteString.valueOfUtf8(authzDN.toString());
   }
 
-  private void applyModifications(SchemaBuilder newSchemaBuilder, List<Modification> mods,
-      Set<String> modifiedSchemaFiles, boolean isSynchronizationOperation) throws DirectoryException
+  private void applyModificationsToNewSchemaBuilder(Schema currentSchema, SchemaBuilder newSchemaBuilder,
+      Map<String, Attribute> extraAttributes, List<Modification> mods, Set<String> modifiedSchemaFiles,
+      boolean isSynchronizationOperation) throws DirectoryException
   {
     int pos = -1;
     for (Modification m : mods)
@@ -559,16 +564,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       // delete operations in the schema, and we will also support the ability
       // to add a schema element that already exists and treat it as a
       // replacement of that existing element.
-      Attribute a = m.getAttribute();
-      AttributeType at = a.getAttributeDescription().getAttributeType();
+      Attribute attribute = m.getAttribute();
+      AttributeType attributeType = attribute.getAttributeDescription().getAttributeType();
       switch (m.getModificationType().asEnum())
       {
         case ADD:
-          addAttribute(newSchemaBuilder, a, modifiedSchemaFiles);
+          addAttribute(currentSchema, newSchemaBuilder, attribute, modifiedSchemaFiles);
           break;
 
         case DELETE:
-          deleteAttribute(newSchemaBuilder, a, mods, pos, modifiedSchemaFiles);
+          deleteAttribute(newSchemaBuilder, attribute, mods, pos, modifiedSchemaFiles);
           break;
 
         case REPLACE:
@@ -577,15 +582,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                 ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(m.getModificationType()));
           }
-          else  if (isSchemaAttribute(a))
+          else  if (isSchemaAttribute(attribute))
           {
-            logger.error(ERR_SCHEMA_INVALID_REPLACE_MODIFICATION, a.getAttributeDescription());
+            logger.error(ERR_SCHEMA_INVALID_REPLACE_MODIFICATION, attribute.getAttributeDescription());
           }
           else
           {
             // If this is not a Schema attribute, we put it
             // in the extraAttribute map. This in fact acts as a replace.
-            schemaHandler.putExtraAttribute(at.getNameOrOID(), a);
+            extraAttributes.put(attributeType.getNameOrOID(), attribute);
             modifiedSchemaFiles.add(FILE_USER_SCHEMA_ELEMENTS);
           }
           break;
@@ -597,59 +602,59 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
   }
 
-  private void addAttribute(SchemaBuilder newSchemaBuilder, Attribute a, Set<String> modifiedSchemaFiles)
-      throws DirectoryException
+  private void addAttribute(Schema currentSchema, SchemaBuilder newSchemaBuilder, Attribute attribute,
+      Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    AttributeType at = a.getAttributeDescription().getAttributeType();
+    AttributeType at = attribute.getAttributeDescription().getAttributeType();
     if (at.equals(attributeTypesType))
     {
-      for (ByteString v : a)
+      for (ByteString v : attribute)
       {
-        addAttributeType(v.toString(), newSchemaBuilder, modifiedSchemaFiles);
+        addAttributeType(v.toString(), currentSchema, newSchemaBuilder, modifiedSchemaFiles);
       }
     }
     else if (at.equals(objectClassesType))
     {
-      for (ByteString v : a)
+      for (ByteString v : attribute)
       {
-        addObjectClass(v.toString(), newSchemaBuilder, modifiedSchemaFiles);
+        addObjectClass(v.toString(), currentSchema, newSchemaBuilder, modifiedSchemaFiles);
       }
     }
     else if (at.equals(nameFormsType))
     {
-      for (ByteString v : a)
+      for (ByteString v : attribute)
       {
-        addNameForm(v.toString(), newSchemaBuilder, modifiedSchemaFiles);
+        addNameForm(v.toString(), currentSchema, newSchemaBuilder, modifiedSchemaFiles);
       }
     }
     else if (at.equals(ditContentRulesType))
     {
-      for (ByteString v : a)
+      for (ByteString v : attribute)
       {
-        addDITContentRule(v.toString(), newSchemaBuilder, modifiedSchemaFiles);
+        addDITContentRule(v.toString(), currentSchema, newSchemaBuilder, modifiedSchemaFiles);
       }
     }
     else if (at.equals(ditStructureRulesType))
     {
-      for (ByteString v : a)
+      for (ByteString v : attribute)
       {
-        addDITStructureRule(v.toString(), newSchemaBuilder, modifiedSchemaFiles);
+        addDITStructureRule(v.toString(), currentSchema, newSchemaBuilder, modifiedSchemaFiles);
       }
     }
     else if (at.equals(matchingRuleUsesType))
     {
-      for (ByteString v : a)
+      for (ByteString v : attribute)
       {
-        addMatchingRuleUse(v.toString(), newSchemaBuilder, modifiedSchemaFiles);
+        addMatchingRuleUse(v.toString(), currentSchema, newSchemaBuilder, modifiedSchemaFiles);
       }
     }
     else if (at.equals(ldapSyntaxesType))
     {
-      for (ByteString v : a)
+      for (ByteString v : attribute)
       {
         try
         {
-          addLdapSyntaxDescription(v.toString(), newSchemaBuilder, modifiedSchemaFiles);
+          addLdapSyntaxDescription(v.toString(), currentSchema, newSchemaBuilder, modifiedSchemaFiles);
         }
         catch (DirectoryException de)
         {
@@ -664,13 +669,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
     else
     {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(a.getAttributeDescription());
+      LocalizableMessage message = ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(attribute.getAttributeDescription());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
   }
 
-  private void deleteAttribute(SchemaBuilder newSchema, Attribute attribute, List<Modification> mods, int pos,
-      Set<String> modifiedSchemaFiles) throws DirectoryException
+  private void deleteAttribute(SchemaBuilder newSchema, Attribute attribute,
+      List<Modification> mods, int pos, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     AttributeType at = attribute.getAttributeDescription().getAttributeType();
     if (attribute.isEmpty())
@@ -797,10 +802,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided attribute type to the server
    *                              schema.
    */
-  private void addAttributeType(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
-          throws DirectoryException
+  private void addAttributeType(String definition, Schema currentSchema, SchemaBuilder schemaBuilder,
+      Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseAttributeTypeOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasAttributeType(oid))
@@ -888,8 +892,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided attribute type from the server
    *                              schema.
    */
-  private void removeAttributeType(String definition, SchemaBuilder newSchemaBuilder, List<Modification> modifications,
-      int currentPosition, Set<String> modifiedSchemaFiles) throws DirectoryException
+  private void removeAttributeType(String definition, SchemaBuilder newSchemaBuilder,
+      List<Modification> modifications, int currentPosition, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     Schema currentSchema = newSchemaBuilder.toSchema();
     String atOID = SchemaUtils.parseAttributeTypeOID(definition);
@@ -955,10 +959,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * @throws  DirectoryException  If a problem occurs while attempting to add
    *                              the provided objectclass to the server schema.
    */
-  private void addObjectClass(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
-          throws DirectoryException
+  private void addObjectClass(String definition, Schema currentSchema, SchemaBuilder schemaBuilder,
+      Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseObjectClassOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasObjectClass(oid))
@@ -1071,10 +1074,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    * @throws  DirectoryException  If a problem occurs while attempting to add
    *                              the provided name form to the server schema.
    */
-  private void addNameForm(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
-          throws DirectoryException
+  private void addNameForm(String definition, Schema currentSchema, SchemaBuilder schemaBuilder,
+      Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseNameFormOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasNameForm(oid))
@@ -1185,10 +1187,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided DIT content rule to the server
    *                              schema.
    */
-  private void addDITContentRule(String definition, SchemaBuilder schemaBuilder,
+  private void addDITContentRule(String definition, Schema currentSchema, SchemaBuilder schemaBuilder,
       Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseDITContentRuleOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasDITContentRule(oid))
@@ -1225,12 +1226,11 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided DIT content rule from the server
    *                              schema.
    */
-  private void removeDITContentRule(String definition,
-      SchemaBuilder newSchemaBuilder, Set<String> modifiedSchemaFiles) throws DirectoryException
+  private void removeDITContentRule(String definition, SchemaBuilder newSchemaBuilder, Set<String> modifiedSchemaFiles)
+      throws DirectoryException
   {
     Schema currentSchema = newSchemaBuilder.toSchema();
     String ruleOid = SchemaUtils.parseDITContentRuleOID(definition);
-
     if (! currentSchema.hasDITContentRule(ruleOid))
     {
       LocalizableMessage message =
@@ -1263,10 +1263,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided DIT structure rule to the server
    *                              schema.
    */
-  private void addDITStructureRule(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
-      throws DirectoryException
+  private void addDITStructureRule(String definition, Schema currentSchema, SchemaBuilder schemaBuilder,
+      Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    Schema currentSchema = schemaHandler.getSchema();
     int ruleId = SchemaUtils.parseRuleID(definition);
     final String finalDefinition;
     if (!currentSchema.hasDITStructureRule(ruleId))
@@ -1371,10 +1370,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *                              the provided matching rule use to the server
    *                              schema.
    */
-  private void addMatchingRuleUse(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
-      throws DirectoryException
+  private void addMatchingRuleUse(String definition, Schema currentSchema, SchemaBuilder schemaBuilder,
+      Set<String> modifiedSchemaFiles) throws DirectoryException
   {
-    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseMatchingRuleUseOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasMatchingRuleUse(oid))
@@ -1449,13 +1447,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    *           If a problem occurs while attempting to add the provided ldap syntax description to
    *           the server schema.
    */
-  private void addLdapSyntaxDescription(String definition, SchemaBuilder schemaBuilder, Set<String> modifiedSchemaFiles)
-          throws DirectoryException
+  private void addLdapSyntaxDescription(String definition, Schema currentSchema, SchemaBuilder schemaBuilder,
+      Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     // TODO: not sure of the correct implementation here. There was previously a check that would
     // reject a change if a syntax with oid already exists, but I don't understand why.
     // I kept an implementation that behave like other schema elements.
-    Schema currentSchema = schemaHandler.getSchema();
     String oid = SchemaUtils.parseSyntaxOID(definition);
     final String finalDefinition;
     if (!currentSchema.hasSyntax(oid))

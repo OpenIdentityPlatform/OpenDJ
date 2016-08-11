@@ -114,13 +114,13 @@ public final class SchemaHandler
    * <p>
    * @GuardedBy("exclusiveLock")
    */
-  private volatile Schema schemaNG;
+  private volatile Schema schema;
 
   /**
    * A set of extra attributes that are not used directly by the schema but may
    * be used by other component to store information in the schema.
    * <p>
-   * ex : Replication uses this to store its state and GenerationID.
+   * Example: replication uses this to store its state and GenerationID.
    */
   private Map<String, Attribute> extraAttributes = new HashMap<>();
 
@@ -223,7 +223,7 @@ public final class SchemaHandler
    */
   public Schema getSchema()
   {
-    return schemaNG;
+    return schema;
   }
 
   /**
@@ -245,7 +245,7 @@ public final class SchemaHandler
     exclusiveLock.lock();
     try
     {
-      switchSchema(updater.update(new SchemaBuilder(schemaNG)));
+      switchSchema(updater.update(new SchemaBuilder(schema)));
     }
     finally
     {
@@ -277,23 +277,27 @@ public final class SchemaHandler
   /**
    * Replaces the schema with the provided schema and update provided schema files.
    *
-   * @param schema
+   * @param newSchema
    *            The new schema to use
-   * @param modifiedSchemaFiles
-   *            The set of schema files to update
+   * @param newExtraAttributes
+   *            The new map of extra attributes
+   * @param modifiedSchemaFileNames
+   *            The set of names of schema files that need to be updated
    * @param alertGenerator
    *            The generator to use for alerts
    * @throws DirectoryException
    *            If an error occurs during update of schema or schema files
    */
-  public void updateSchemaAndSchemaFiles(Schema schema, TreeSet<String> modifiedSchemaFiles,
-      AlertGenerator alertGenerator) throws DirectoryException
+  public void updateSchemaAndSchemaFiles(Schema newSchema, Map<String, Attribute> newExtraAttributes,
+      TreeSet<String> modifiedSchemaFileNames, AlertGenerator alertGenerator) throws DirectoryException
   {
     exclusiveLock.lock();
     try
     {
-      switchSchema(schema);
-      new SchemaWriter().updateSchemaFiles(schemaNG, getExtraAttributes(), modifiedSchemaFiles, alertGenerator);
+      switchSchema(newSchema);
+      this.extraAttributes = newExtraAttributes;
+      new SchemaWriter()
+        .updateSchemaFiles(schema, newExtraAttributes.values(), modifiedSchemaFileNames, alertGenerator);
       youngestModificationTime = System.currentTimeMillis();
     }
     finally
@@ -312,7 +316,7 @@ public final class SchemaHandler
    */
   public <T> void updateSchemaOption(final Option<T> option, final T newValue) throws DirectoryException
   {
-    final T oldValue = schemaNG.getOption(option);
+    final T oldValue = schema.getOption(option);
     if (!oldValue.equals(newValue))
     {
       updateSchema(new SchemaUpdater()
@@ -327,26 +331,13 @@ public final class SchemaHandler
   }
 
   /**
-   * Put (add or replace) a new extra Attribute to this schema handler.
+   * Returns the extra attributes stored in this schema handler.
    *
-   * @param  name     The identifier of the extra Attribute.
-   *
-   * @param  attr     The extra attribute that must be added to
-   *                  this schema handler.
+   * @return  The extra attributes.
    */
-  public void putExtraAttribute(String name, Attribute attr)
+  public Map<String, Attribute> getExtraAttributes()
   {
-    extraAttributes.put(name, attr);
-  }
-
-  /**
-   * Returns the extra Attributes stored in this schema handler.
-   *
-   * @return  The extra Attributes.
-   */
-  public Collection<Attribute> getExtraAttributes()
-  {
-    return extraAttributes.values();
+    return new HashMap<>(extraAttributes);
   }
 
   /** Takes an exclusive lock on the schema. */
@@ -362,26 +353,30 @@ public final class SchemaHandler
   }
 
   /**
-   * Import an entry in the schema by :
-   *   - iterating over each element of the newSchemaEntry and comparing
-   *     with the existing schema
-   *   - if the new schema element does not exist: add it
-   *   - if an element is not in the current schema: delete it
-   *
-   *   FIXME : attributeTypes and objectClasses are the only elements
-   *   currently taken into account.
+   * Imports the provided schema entry in the schema.
+   * <p>
+   * The behavior is:
+   * <ul>
+   *  <li>iterate over each element of the newSchemaEntry and compare with the existing schema</li>
+   *  <li>if the new schema element does not exist in current schema, add it to the schema</li>
+   *  <li>if an element of current schema is not in the new schema entry: delete it</li>
+   * </ul>
+   * <p>
+   * FIXME: currently, attributeTypes and objectClasses are the only elements taken into account.
    *
    * @param newSchemaEntry
-   *            The entry to be imported.
+   *          The schema entry to be imported.
    * @param alertGenerator
-   *            Alert generator to use.
+   *          Alert generator to use.
    * @throws DirectoryException
+   *           If an error occurs during the import
    */
   public void importEntry(org.opends.server.types.Entry newSchemaEntry, AlertGenerator alertGenerator)
       throws DirectoryException
   {
-    Schema schema = schemaNG;
-    SchemaBuilder newSchemaBuilder = new SchemaBuilder(schema);
+    // work on a fixed schema version
+    Schema currentSchema = schema;
+    SchemaBuilder newSchemaBuilder = new SchemaBuilder(currentSchema);
     TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
 
     // loop on the attribute types in the entry just received
@@ -408,7 +403,7 @@ public final class SchemaHandler
         {
           // Register this attribute type in the new schema
           // unless it is already defined with the same syntax.
-          if (hasAttributeTypeDefinitionChanged(schema, oid, definition))
+          if (hasAttributeTypeDefinitionChanged(currentSchema, oid, definition))
           {
             newSchemaBuilder.addAttributeType(definition, true);
             addElementIfNotNull(modifiedSchemaFiles, schemaFile);
@@ -423,7 +418,7 @@ public final class SchemaHandler
 
     // loop on all the attribute types in the current schema and delete
     // them from the new schema if they are not in the imported schema entry.
-    for (AttributeType removeType : schema.getAttributeTypes())
+    for (AttributeType removeType : currentSchema.getAttributeTypes())
     {
       String schemaFile = getElementSchemaFile(removeType);
       if (is02ConfigLdif(schemaFile) || CORE_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
@@ -459,7 +454,7 @@ public final class SchemaHandler
         {
           // Register this ObjectClass in the new schema
           // unless it is already defined with the same syntax.
-          if (hasObjectClassDefinitionChanged(schema, oid, definition))
+          if (hasObjectClassDefinitionChanged(currentSchema, oid, definition))
           {
             newSchemaBuilder.addObjectClass(definition, true);
             addElementIfNotNull(modifiedSchemaFiles, schemaFile);
@@ -474,7 +469,7 @@ public final class SchemaHandler
 
     // loop on all the object classes in the current schema and delete
     // them from the new schema if they are not in the imported schema entry.
-    for (ObjectClass removeClass : schema.getObjectClasses())
+    for (ObjectClass removeClass : currentSchema.getObjectClasses())
     {
       String schemaFile = getElementSchemaFile(removeClass);
       if (is02ConfigLdif(schemaFile))
@@ -492,7 +487,7 @@ public final class SchemaHandler
     if (!modifiedSchemaFiles.isEmpty())
     {
       Schema newSchema = newSchemaBuilder.toSchema();
-      updateSchemaAndSchemaFiles(newSchema, modifiedSchemaFiles, alertGenerator);
+      updateSchemaAndSchemaFiles(newSchema, getExtraAttributes(), modifiedSchemaFiles, alertGenerator);
     }
   }
 
@@ -873,8 +868,8 @@ public final class SchemaHandler
   private void switchSchema(Schema newSchema) throws DirectoryException
   {
     rejectSchemaWithWarnings(newSchema);
-    schemaNG = newSchema.asNonStrictSchema();
-    Schema.setDefaultSchema(schemaNG);
+    schema = newSchema.asNonStrictSchema();
+    Schema.setDefaultSchema(schema);
   }
 
   private void rejectSchemaWithWarnings(Schema newSchema) throws DirectoryException
