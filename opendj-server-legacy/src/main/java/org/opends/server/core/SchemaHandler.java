@@ -15,12 +15,12 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.ConfigMessages.WARN_CONFIG_SCHEMA_CANNOT_OPEN_FILE;
-import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
-import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
-import static org.forgerock.util.Utils.*;
+import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
+import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -114,16 +114,40 @@ public final class SchemaHandler
   /** Guards updates to the schema. */
   private final Lock exclusiveLock = new ReentrantLock();
 
-  private long oldestModificationTime = -1L;
+  /** The oldest modification time for any schema configuration file, as a byte string. */
+  private long oldestModificationTime;
 
-  private long youngestModificationTime = -1L;
+  /** The youngest modification time for any schema configuration file. */
+  private long youngestModificationTime;
+
 
   /**
    * Creates a new instance.
    */
   public SchemaHandler()
   {
-    // no implementation.
+    oldestModificationTime = System.currentTimeMillis();
+    youngestModificationTime = oldestModificationTime;
+  }
+
+  /**
+   * Returns the youngest modification time for schema files.
+   *
+   * @return the youngest modification time for any schema configuration file
+   */
+  public long getYoungestModificationTime()
+  {
+    return youngestModificationTime;
+  }
+
+  /**
+   * Returns the oldest modification time for schema files.
+   *
+   * @return the oldest modification time for any schema configuration file
+   */
+  public long getOldestModificationTime()
+  {
+    return oldestModificationTime;
   }
 
   /**
@@ -257,6 +281,7 @@ public final class SchemaHandler
     {
       switchSchema(schema);
       new SchemaWriter().updateSchemaFiles(schemaNG, getExtraAttributes(), modifiedSchemaFiles, alertGenerator);
+      youngestModificationTime = System.currentTimeMillis();
     }
     finally
     {
@@ -429,7 +454,7 @@ public final class SchemaHandler
   }
 
   /**
-   * Complete the schema with schema files.
+   * Completes the schema with schema files.
    *
    * @param schemaBuilder
    *          The schema builder to update with the content of the schema files.
@@ -444,58 +469,73 @@ public final class SchemaHandler
       throws ConfigException, InitializationException
   {
     final File schemaDirectory = getSchemaDirectoryPath();
-    for (String schemaFile : getSchemaFileNames(schemaDirectory))
+    final File[] schemaFiles = getSchemaFiles(schemaDirectory);
+    final List<String> schemaFileNames = getSchemaFileNames(schemaFiles);
+    updateModificationTimes(schemaFiles);
+
+    for (String schemaFile : schemaFileNames)
     {
       loadSchemaFile(new File(schemaDirectory, schemaFile), schemaBuilder, Schema.getDefaultSchema());
     }
   }
 
-  /** Returns the list of names of schema files contained in the provided directory. */
-  private List<String> getSchemaFileNames(final File schemaDirectory) throws InitializationException {
+  private File[] getSchemaFiles(File schemaDirectory) throws InitializationException
+  {
     try
     {
-      final File[] schemaFiles = schemaDirectory.listFiles(new SchemaFileFilter());
-      final List<String> schemaFileNames = new ArrayList<>(schemaFiles.length);
-
-      for (final File f : schemaFiles)
-      {
-        if (f.isFile())
-        {
-          schemaFileNames.add(f.getName());
-        }
-
-        final long modificationTime = f.lastModified();
-        if (oldestModificationTime <= 0L
-            || modificationTime < oldestModificationTime)
-        {
-          oldestModificationTime = modificationTime;
-        }
-
-        if (youngestModificationTime <= 0
-            || modificationTime > youngestModificationTime)
-        {
-          youngestModificationTime = modificationTime;
-        }
-      }
-      // If the oldest and youngest modification timestamps didn't get set
-      // then set them to the current time.
-      if (oldestModificationTime <= 0)
-      {
-        oldestModificationTime = System.currentTimeMillis();
-      }
-
-      if (youngestModificationTime <= 0)
-      {
-        youngestModificationTime = oldestModificationTime;
-      }
-      Collections.sort(schemaFileNames);
-      return schemaFileNames;
+      return schemaDirectory.listFiles(new SchemaFileFilter());
     }
     catch (Exception e)
     {
       logger.traceException(e);
-      throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES
-          .get(schemaDirectory, getExceptionMessage(e)), e);
+      throw new InitializationException(
+          ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDirectory, getExceptionMessage(e)), e);
+    }
+  }
+
+  /** Returns the sorted list of names of schema files contained in the provided directory. */
+  private List<String> getSchemaFileNames(final File[] schemaFiles)
+  {
+    final List<String> schemaFileNames = new ArrayList<>(schemaFiles.length);
+    for (final File f : schemaFiles)
+    {
+      if (f.isFile())
+      {
+        schemaFileNames.add(f.getName());
+      }
+    }
+    Collections.sort(schemaFileNames);
+    return schemaFileNames;
+  }
+
+  private void updateModificationTimes(final File[] schemaFiles)
+  {
+    for (final File file : schemaFiles)
+    {
+
+      final long modificationTime = file.lastModified();
+      if (oldestModificationTime <= 0L
+          || oldestModificationTime >= modificationTime)
+      {
+        oldestModificationTime = modificationTime;
+      }
+
+      if (youngestModificationTime <= 0
+          || youngestModificationTime <= modificationTime)
+      {
+        youngestModificationTime = modificationTime;
+      }
+    }
+    // If the oldest and youngest modification timestamps didn't get set
+    // then set them to the current time.
+    if (oldestModificationTime <= 0)
+    {
+      oldestModificationTime = System.currentTimeMillis();
+    }
+
+    if (youngestModificationTime <= 0)
+    {
+      youngestModificationTime = oldestModificationTime;
     }
   }
 

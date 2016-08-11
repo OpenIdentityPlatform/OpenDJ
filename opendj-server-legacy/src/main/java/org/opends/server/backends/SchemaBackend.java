@@ -22,7 +22,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.SchemaUtils.*;
@@ -136,12 +135,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   private ByteString creatorsName;
   /** The value containing the DN of the last user to modify the configuration. */
   private ByteString modifiersName;
-  /** The timestamp that will be used for the schema creation time. */
-  private ByteString createTimestamp;
-  /** The timestamp that will be used for the latest schema modification time. */
-  private ByteString modifyTimestamp;
-  /** The time that the schema was last modified. */
-  private long modifyTime;
 
   /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
@@ -179,6 +172,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   public void configureBackend(SchemaBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
     this.serverContext = serverContext;
+    this.schemaHandler = serverContext.getSchemaHandler();
 
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
@@ -203,8 +197,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     ByteString newBaseDN = ByteString.valueOfUtf8(baseDNs.iterator().next().toString());
     creatorsName = newBaseDN;
     modifiersName = newBaseDN;
-    createTimestamp = createGeneralizedTimeValue(getSchema().getOldestModificationTime());
-    modifyTimestamp = createGeneralizedTimeValue(getSchema().getYoungestModificationTime());
 
     // Get the set of user-defined attributes for the configuration entry.  Any
     // attributes that we don't recognize will be included directly in the
@@ -212,7 +204,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     userDefinedAttributes = new ArrayList<>();
     addAllNonSchemaConfigAttributes(userDefinedAttributes, configEntry.getAllAttributes());
 
-    schemaHandler = serverContext.getSchemaHandler();
 
     currentConfig = cfg;
   }
@@ -415,22 +406,20 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         operationalAttrs, matchingRuleUsesType, includeSchemaFile, false, true);
 
     // Add the lastmod attributes.
-    if (DirectoryServer.getSchema().getYoungestModificationTime() != modifyTime)
-    {
-      synchronized (this)
-      {
-        modifyTime = DirectoryServer.getSchema().getYoungestModificationTime();
-        modifyTimestamp = createGeneralizedTimeValue(modifyTime);
-      }
-    }
     addAttributeToSchemaEntry(
-        Attributes.create(getCreatorsNameAttributeType(), creatorsName), userAttrs, operationalAttrs);
+        Attributes.create(getCreatorsNameAttributeType(), creatorsName),
+        userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(getCreateTimestampAttributeType(), createTimestamp), userAttrs, operationalAttrs);
+        Attributes.create(getCreateTimestampAttributeType(),
+            createGeneralizedTimeValue(schemaHandler.getOldestModificationTime())),
+        userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(getModifiersNameAttributeType(), modifiersName), userAttrs, operationalAttrs);
+        Attributes.create(getModifiersNameAttributeType(), modifiersName),
+        userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(getModifyTimestampAttributeType(), modifyTimestamp), userAttrs, operationalAttrs);
+        Attributes.create(getModifyTimestampAttributeType(),
+            createGeneralizedTimeValue(schemaHandler.getYoungestModificationTime())),
+        userAttrs, operationalAttrs);
 
     // Add the extra attributes.
     for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes())
@@ -558,7 +547,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     modifiersName = ByteString.valueOfUtf8(authzDN.toString());
-    modifyTimestamp = createGeneralizedTimeValue(System.currentTimeMillis());
   }
 
   private void applyModifications(SchemaBuilder newSchemaBuilder, List<Modification> mods,
