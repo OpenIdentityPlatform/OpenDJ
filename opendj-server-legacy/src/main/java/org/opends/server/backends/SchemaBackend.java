@@ -20,7 +20,6 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -119,9 +118,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = "org.opends.server.backends.SchemaBackend";
 
-  private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
-  private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
-
   private static final AttributeType attributeTypesType = getAttributeTypesAttributeType();
   private static final AttributeType ditStructureRulesType = getDITStructureRulesAttributeType();
   private static final AttributeType ditContentRulesType = getDITContentRulesAttributeType();
@@ -154,6 +150,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
    */
   private final Pattern stripMinUpperBoundRegEx = Pattern.compile("\\{\\d+\\}");
 
+  /** Will be used in the future to remove static calls to DirectoryServer. */
   private ServerContext serverContext;
 
   private SchemaHandler schemaHandler;
@@ -1683,140 +1680,17 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   }
 
   /**
-   * Import an entry in a new schema by :
-   *   - duplicating the schema
-   *   - iterating over each element of the newSchemaEntry and comparing
-   *     with the existing schema
-   *   - if the new schema element do not exist : add it
+   * Import an entry in the schema.
+   * <p>
+   * FIXME : attributeTypes and objectClasses are the only elements
+   * currently taken into account.
    *
-   *   FIXME : attributeTypes and objectClasses are the only elements
-   *   currently taken into account.
-   *
-   * @param newSchemaEntry   The entry to be imported.
+   * @param newSchemaEntry
+   *            The entry to be imported.
    */
   private void importEntry(Entry newSchemaEntry) throws DirectoryException
   {
-    Schema schema = schemaHandler.getSchema();
-    SchemaBuilder newSchemaBuilder = new SchemaBuilder(schema);
-    TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
-
-    // loop on the attribute types in the entry just received
-    // and add them in the existing schema.
-    Set<String> oidList = new HashSet<>(1000);
-    for (Attribute a : newSchemaEntry.getAllAttributes(attributeTypesType))
-    {
-      // Look for attribute types that could have been added to the schema
-      // or modified in the schema
-      for (ByteString v : a)
-      {
-        String definition = v.toString();
-        String schemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
-        if (is02ConfigLdif(schemaFile))
-        {
-          continue;
-        }
-
-        String oid = SchemaUtils.parseAttributeTypeOID(definition);
-        oidList.add(oid);
-        try
-        {
-          // Register this attribute type in the new schema
-          // unless it is already defined with the same syntax.
-          if (hasAttributeTypeDefinitionChanged(schema, oid, definition))
-          {
-            newSchemaBuilder.addAttributeType(definition, true);
-            addElementIfNotNull(modifiedSchemaFiles, schemaFile);
-          }
-        }
-        catch (Exception e)
-        {
-          logger.info(NOTE_SCHEMA_IMPORT_FAILED, definition, e.getMessage());
-        }
-      }
-    }
-
-    // loop on all the attribute types in the current schema and delete
-    // them from the new schema if they are not in the imported schema entry.
-    for (AttributeType removeType : schema.getAttributeTypes())
-    {
-      String schemaFile = getElementSchemaFile(removeType);
-      if (is02ConfigLdif(schemaFile) || CORE_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
-      {
-        // Also never delete anything from the core schema file.
-        continue;
-      }
-      if (!oidList.contains(removeType.getOID()))
-      {
-        newSchemaBuilder.removeAttributeType(removeType.getOID());
-        addElementIfNotNull(modifiedSchemaFiles, schemaFile);
-      }
-    }
-
-    // loop on the objectClasses from the entry, search if they are
-    // already in the current schema, add them if not.
-    oidList.clear();
-    for (Attribute a : newSchemaEntry.getAllAttributes(objectClassesType))
-    {
-      for (ByteString v : a)
-      {
-        // It IS important here to allow the unknown elements that could
-        // appear in the new config schema.
-        String definition = v.toString();
-        String schemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
-        if (is02ConfigLdif(schemaFile))
-        {
-          continue;
-        }
-        String oid = SchemaUtils.parseObjectClassOID(definition);
-        oidList.add(oid);
-        try
-        {
-          // Register this ObjectClass in the new schema
-          // unless it is already defined with the same syntax.
-          if (hasObjectClassDefinitionChanged(schema, oid, definition))
-          {
-            newSchemaBuilder.addObjectClass(definition, true);
-            addElementIfNotNull(modifiedSchemaFiles, schemaFile);
-          }
-        }
-        catch (Exception e)
-        {
-          logger.info(NOTE_SCHEMA_IMPORT_FAILED, definition, e.getMessage());
-        }
-      }
-    }
-
-    // loop on all the object classes in the current schema and delete
-    // them from the new schema if they are not in the imported schema entry.
-    for (ObjectClass removeClass : schema.getObjectClasses())
-    {
-      String schemaFile = getElementSchemaFile(removeClass);
-      if (is02ConfigLdif(schemaFile))
-      {
-        continue;
-      }
-      if (!oidList.contains(removeClass.getOID()))
-      {
-        newSchemaBuilder.removeObjectClass(removeClass.getOID());
-        addElementIfNotNull(modifiedSchemaFiles, schemaFile);
-      }
-    }
-
-    // Finally, if there were some modifications, save the new schema
-    if (!modifiedSchemaFiles.isEmpty())
-    {
-      Schema newSchema = newSchemaBuilder.toSchema();
-      schemaHandler.updateSchemaAndSchemaFiles(newSchema, modifiedSchemaFiles, this);
-    }
-  }
-
-  /**
-   * Do not import the file containing the definitions of the Schema elements used for configuration
-   * because these definitions may vary between versions of OpenDJ.
-   */
-  private boolean is02ConfigLdif(String schemaFile)
-  {
-    return CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile);
+    schemaHandler.importEntry(newSchemaEntry, this);
   }
 
   private <T> void addElementIfNotNull(Collection<T> col, T element)
@@ -1825,29 +1699,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       col.add(element);
     }
-  }
-
-  private boolean hasAttributeTypeDefinitionChanged(Schema schema, String oid,
-      String definition)
-  {
-    if (schema.hasAttributeType(oid))
-    {
-      AttributeType oldAttrType = schema.getAttributeType(oid);
-      return !oldAttrType.toString().equals(definition);
-
-    }
-    return true;
-  }
-
-  private boolean hasObjectClassDefinitionChanged(Schema schema, String oid,
-      String definition)
-  {
-    if (schema.hasObjectClass(oid))
-    {
-      ObjectClass oldObjectClass = schema.getObjectClass(oid);
-      return !oldObjectClass.toString().equals(definition);
-    }
-    return true;
   }
 
   @Override

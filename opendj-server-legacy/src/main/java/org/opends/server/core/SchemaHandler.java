@@ -15,6 +15,9 @@
  */
 package org.opends.server.core;
 
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.messages.SchemaMessages.NOTE_SCHEMA_IMPORT_FAILED;
+import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
@@ -31,8 +34,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -45,8 +50,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
@@ -73,6 +80,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SchemaWriter;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
+import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -93,6 +101,11 @@ public final class SchemaHandler
   private static final String CORE_SCHEMA_PROVIDER_NAME = "Core Schema";
   private static final String CORE_SCHEMA_FILE = "00-core.ldif";
   private static final String RFC_3112_SCHEMA_FILE = "03-rfc3112.ldif";
+  private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
+  private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
+
+  private static final AttributeType attributeTypesType = getAttributeTypesAttributeType();
+  private static final AttributeType objectClassesType = getObjectClassesAttributeType();
 
   private ServerContext serverContext;
 
@@ -346,6 +359,175 @@ public final class SchemaHandler
   public void exclusiveUnlock()
   {
     exclusiveLock.unlock();
+  }
+
+  /**
+   * Import an entry in the schema by :
+   *   - iterating over each element of the newSchemaEntry and comparing
+   *     with the existing schema
+   *   - if the new schema element does not exist: add it
+   *   - if an element is not in the current schema: delete it
+   *
+   *   FIXME : attributeTypes and objectClasses are the only elements
+   *   currently taken into account.
+   *
+   * @param newSchemaEntry
+   *            The entry to be imported.
+   * @param alertGenerator
+   *            Alert generator to use.
+   * @throws DirectoryException
+   */
+  public void importEntry(org.opends.server.types.Entry newSchemaEntry, AlertGenerator alertGenerator)
+      throws DirectoryException
+  {
+    Schema schema = schemaNG;
+    SchemaBuilder newSchemaBuilder = new SchemaBuilder(schema);
+    TreeSet<String> modifiedSchemaFiles = new TreeSet<>();
+
+    // loop on the attribute types in the entry just received
+    // and add them in the existing schema.
+    Set<String> oidList = new HashSet<>(1000);
+    for (Attribute a : newSchemaEntry.getAllAttributes(attributeTypesType))
+    {
+      // Look for attribute types that could have been added to the schema
+      // or modified in the schema
+      for (ByteString v : a)
+      {
+        String definition = v.toString();
+        String schemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
+        if (is02ConfigLdif(schemaFile))
+        {
+          // Do not import the file containing the definitions of the Schema elements used for configuration
+          // because these definitions may vary between versions of OpenDJ.
+          continue;
+        }
+
+        String oid = SchemaUtils.parseAttributeTypeOID(definition);
+        oidList.add(oid);
+        try
+        {
+          // Register this attribute type in the new schema
+          // unless it is already defined with the same syntax.
+          if (hasAttributeTypeDefinitionChanged(schema, oid, definition))
+          {
+            newSchemaBuilder.addAttributeType(definition, true);
+            addElementIfNotNull(modifiedSchemaFiles, schemaFile);
+          }
+        }
+        catch (Exception e)
+        {
+          logger.info(NOTE_SCHEMA_IMPORT_FAILED, definition, e.getMessage());
+        }
+      }
+    }
+
+    // loop on all the attribute types in the current schema and delete
+    // them from the new schema if they are not in the imported schema entry.
+    for (AttributeType removeType : schema.getAttributeTypes())
+    {
+      String schemaFile = getElementSchemaFile(removeType);
+      if (is02ConfigLdif(schemaFile) || CORE_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
+      {
+        // Also never delete anything from the core schema file.
+        continue;
+      }
+      if (!oidList.contains(removeType.getOID()))
+      {
+        newSchemaBuilder.removeAttributeType(removeType.getOID());
+        addElementIfNotNull(modifiedSchemaFiles, schemaFile);
+      }
+    }
+
+    // loop on the objectClasses from the entry, search if they are
+    // already in the current schema, add them if not.
+    oidList.clear();
+    for (Attribute a : newSchemaEntry.getAllAttributes(objectClassesType))
+    {
+      for (ByteString v : a)
+      {
+        // It IS important here to allow the unknown elements that could
+        // appear in the new config schema.
+        String definition = v.toString();
+        String schemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
+        if (is02ConfigLdif(schemaFile))
+        {
+          continue;
+        }
+        String oid = SchemaUtils.parseObjectClassOID(definition);
+        oidList.add(oid);
+        try
+        {
+          // Register this ObjectClass in the new schema
+          // unless it is already defined with the same syntax.
+          if (hasObjectClassDefinitionChanged(schema, oid, definition))
+          {
+            newSchemaBuilder.addObjectClass(definition, true);
+            addElementIfNotNull(modifiedSchemaFiles, schemaFile);
+          }
+        }
+        catch (Exception e)
+        {
+          logger.info(NOTE_SCHEMA_IMPORT_FAILED, definition, e.getMessage());
+        }
+      }
+    }
+
+    // loop on all the object classes in the current schema and delete
+    // them from the new schema if they are not in the imported schema entry.
+    for (ObjectClass removeClass : schema.getObjectClasses())
+    {
+      String schemaFile = getElementSchemaFile(removeClass);
+      if (is02ConfigLdif(schemaFile))
+      {
+        continue;
+      }
+      if (!oidList.contains(removeClass.getOID()))
+      {
+        newSchemaBuilder.removeObjectClass(removeClass.getOID());
+        addElementIfNotNull(modifiedSchemaFiles, schemaFile);
+      }
+    }
+
+    // Finally, if there were some modifications, save the new schema
+    if (!modifiedSchemaFiles.isEmpty())
+    {
+      Schema newSchema = newSchemaBuilder.toSchema();
+      updateSchemaAndSchemaFiles(newSchema, modifiedSchemaFiles, alertGenerator);
+    }
+  }
+
+  private boolean is02ConfigLdif(String schemaFile)
+  {
+    return CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile);
+  }
+
+  private <T> void addElementIfNotNull(Collection<T> col, T element)
+  {
+    if (element != null)
+    {
+      col.add(element);
+    }
+  }
+
+  private boolean hasAttributeTypeDefinitionChanged(Schema schema, String oid, String definition)
+  {
+    if (schema.hasAttributeType(oid))
+    {
+      AttributeType oldAttrType = schema.getAttributeType(oid);
+      return !oldAttrType.toString().equals(definition);
+
+    }
+    return true;
+  }
+
+  private boolean hasObjectClassDefinitionChanged(Schema schema, String oid, String definition)
+  {
+    if (schema.hasObjectClass(oid))
+    {
+      ObjectClass oldObjectClass = schema.getObjectClass(oid);
+      return !oldObjectClass.toString().equals(definition);
+    }
+    return true;
   }
 
   /**
