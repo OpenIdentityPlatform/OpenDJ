@@ -189,6 +189,13 @@ public class MemberVirtualAttributeProvider
   }
 
   @Override
+  public ConditionResult matchesEqualityAssertion(Entry entry,
+                                                  VirtualAttributeRule rule, ByteString assertionValue)
+  {
+    return ConditionResult.valueOf(hasValue(entry, rule, assertionValue));
+  }
+
+  @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
                                           ByteString subInitial,
