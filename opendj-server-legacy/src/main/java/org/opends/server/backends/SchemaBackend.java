@@ -188,8 +188,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // Construct the set of objectclasses to include in the schema entry.
     schemaObjectClasses = new LinkedHashMap<>(3);
     schemaObjectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    schemaObjectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
-    schemaObjectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
+    Schema schema = schemaHandler.getSchema();
+    schemaObjectClasses.put(schema.getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
+    schemaObjectClasses.put(schema.getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
 
     configEntryDN = configEntry.getName();
     baseDNs = cfg.getBaseDN();
@@ -374,7 +375,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     /* Add the schema definition attributes. */
-    Schema schema = serverContext.getSchemaNG();
+    Schema schema = schemaHandler.getSchema();
     buildSchemaAttribute(schema.getAttributeTypes(), userAttrs,
         operationalAttrs, attributeTypesType, includeSchemaFile,
         AttributeTypeSyntax.isStripSyntaxMinimumUpperBound(),
@@ -422,7 +423,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         userAttrs, operationalAttrs);
 
     // Add the extra attributes.
-    for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes())
+    for (Attribute attribute : schemaHandler.getExtraAttributes())
     {
       addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
     }
