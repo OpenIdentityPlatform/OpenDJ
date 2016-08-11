@@ -77,7 +77,6 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
@@ -1872,7 +1871,15 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   @Override
   public File getDirectory()
   {
-    return new File(SchemaConfigManager.getSchemaDirectoryPath());
+    try
+    {
+      return schemaHandler.getSchemaDirectoryPath();
+    }
+    catch (InitializationException e)
+    {
+      logger.traceException(e);
+      return null;
+    }
   }
 
   private static final FileFilter BACKUP_FILES_FILTER = new FileFilter()

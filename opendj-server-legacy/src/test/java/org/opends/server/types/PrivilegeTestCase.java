@@ -56,7 +56,6 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
@@ -909,7 +908,7 @@ public class PrivilegeTestCase extends TypesTestCase
           + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )"
     };
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = DirectoryServer.getEnvironmentConfig().getSchemaDirectory().getPath();
     File validFile = new File(schemaDirectory, "05-" + identifier + ".ldif");
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(validFile)))
     {

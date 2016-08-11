@@ -32,7 +32,6 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.SchemaTestMatchingRuleImpl;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -107,7 +106,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     registerNewMatchingRule("testAddValidSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.23");
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = getSchemaDirectory();
 
     String[] fileLines =
     {
@@ -197,7 +196,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
            "APPLIES testAddMultipleValidSchemaFiles1AT )"
     };
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = getSchemaDirectory();
     File validFile1 = new File(schemaDirectory, "05-multiple-valid-1.ldif");
     writeLines(validFile1, fileLines1);
 
@@ -332,7 +331,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     Thread.sleep(2);
 
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = getSchemaDirectory();
 
     File emptyFile = new File(schemaDirectory, "05-empty.ldif");
     emptyFile.createNewFile();
@@ -364,7 +363,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
   public void testAddInvalidSchemaFile()
          throws Exception
   {
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = getSchemaDirectory();
 
     File invalidFile = new File(schemaDirectory, "05-invalid.ldif");
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(invalidFile)))
@@ -385,5 +384,10 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
          "ds-task-schema-file-name: 05-invalid.ldif");
     assertFalse(resultCode == 0);
     invalidFile.delete();
+  }
+
+  private String getSchemaDirectory()
+  {
+    return DirectoryServer.getEnvironmentConfig().getSchemaDirectory().getPath();
   }
 }

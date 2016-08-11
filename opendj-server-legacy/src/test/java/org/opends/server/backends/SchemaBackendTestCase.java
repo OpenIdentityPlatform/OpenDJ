@@ -55,7 +55,6 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -3766,7 +3765,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private File assertSchemaFileExists(String schemaFileName, boolean expectExists)
   {
-    File schemaFile = new File(SchemaConfigManager.getSchemaDirectoryPath(), schemaFileName);
+    File schemaFile = new File(DirectoryServer.getEnvironmentConfig().getSchemaDirectory(), schemaFileName);
     assertEquals(schemaFile.exists(), expectExists);
     return schemaFile;
   }

@@ -56,7 +56,7 @@ import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.core.SchemaHandler;
 import org.opends.server.util.ChangeOperationType;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
@@ -632,7 +632,7 @@ final class UpgradeUtils
     // and add all attribute/object classes in this new super entry which
     // will be read at start-up.
     Entry theNewSchemaEntry = new LinkedHashMapEntry();
-    final FilenameFilter filter = new SchemaConfigManager.SchemaFileFilter();
+    final FilenameFilter filter = new SchemaHandler.SchemaFileFilter();
     for (final File f : folder.listFiles(filter))
     {
       logger.debug(LocalizableMessage.raw("Processing %s", f.getAbsolutePath()));

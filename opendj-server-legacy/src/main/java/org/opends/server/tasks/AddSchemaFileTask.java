@@ -100,8 +100,7 @@ public class AddSchemaFileTask
 
     // Get the name(s) of the schema files to add and make sure they exist in
     // the schema directory.
-    String schemaInstanceDirectory =
-      SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaInstanceDirectory = DirectoryServer.getEnvironmentConfig().getSchemaDirectory().getPath();
     filesToAdd = new TreeSet<>();
     for (Attribute a : attrList)
     {

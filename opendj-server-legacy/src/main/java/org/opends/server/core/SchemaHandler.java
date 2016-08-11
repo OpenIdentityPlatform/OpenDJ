@@ -15,6 +15,9 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR;
+
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.SchemaMessages.NOTE_SCHEMA_IMPORT_FAILED;
 import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
@@ -227,6 +230,31 @@ public final class SchemaHandler
   }
 
   /**
+   * Retrieves the path to the directory containing the server schema files.
+   *
+   * @return The path to the directory containing the server schema files.
+   * @throws InitializationException
+   *            If the directory path does not exists or is not a directory
+   */
+  public File getSchemaDirectoryPath() throws InitializationException
+  {
+    final File dir = serverContext.getEnvironment().getSchemaDirectory();
+    if (dir == null)
+    {
+      throw new InitializationException(ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(null));
+    }
+    if (!dir.exists())
+    {
+      throw new InitializationException(ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(dir.getPath()));
+    }
+    if (!dir.isDirectory())
+    {
+      throw new InitializationException(ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(dir.getPath()));
+    }
+    return dir;
+  }
+
+  /**
    * Update the schema using the provided schema updater.
    * <p>
    * An implicit lock is performed, so it is in general not necessary
@@ -296,7 +324,7 @@ public final class SchemaHandler
     {
       switchSchema(newSchema);
       this.extraAttributes = newExtraAttributes;
-      new SchemaWriter()
+      new SchemaWriter(serverContext)
         .updateSchemaFiles(schema, newExtraAttributes.values(), modifiedSchemaFileNames, alertGenerator);
       youngestModificationTime = System.currentTimeMillis();
     }
@@ -589,29 +617,6 @@ public final class SchemaHandler
     }
   }
 
-  /**
-   * Retrieves the path to the directory containing the server schema files.
-   *
-   * @return The path to the directory containing the server schema files.
-   */
-  private File getSchemaDirectoryPath() throws InitializationException
-  {
-    final File dir = serverContext.getEnvironment().getSchemaDirectory();
-    if (dir == null)
-    {
-      throw new InitializationException(ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(null));
-    }
-    if (!dir.exists())
-    {
-      throw new InitializationException(ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(dir.getPath()));
-    }
-    if (!dir.isDirectory())
-    {
-      throw new InitializationException(ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(dir.getPath()));
-    }
-    return dir;
-  }
-
   /** Returns the LDIF reader on provided LDIF file. The caller must ensure the reader is closed. */
   private EntryReader getLDIFReader(final File ldifFile, final Schema schema)
       throws InitializationException
@@ -892,7 +897,7 @@ public final class SchemaHandler
   }
 
   /** A file filter implementation that accepts only LDIF files. */
-  private static class SchemaFileFilter implements FilenameFilter
+  public static class SchemaFileFilter implements FilenameFilter
   {
     private static final String LDIF_SUFFIX = ".ldif";
 

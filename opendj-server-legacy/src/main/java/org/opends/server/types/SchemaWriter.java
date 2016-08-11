@@ -66,7 +66,8 @@ import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.ServerContext;
 import org.opends.server.util.Base64;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFException;
@@ -87,6 +88,19 @@ public class SchemaWriter
   private static final AttributeType matchingRuleUsesType = getMatchingRuleUseAttributeType();
   private static final AttributeType nameFormsType = getNameFormsAttributeType();
   private static final AttributeType objectClassesType = getObjectClassesAttributeType();
+
+  private final ServerContext serverContext;
+
+  /**
+   * Creates a schema writer.
+   *
+   * @param serverContext
+   *            The server context.
+   */
+  public SchemaWriter(ServerContext serverContext)
+  {
+    this.serverContext = serverContext;
+  }
 
   /**
    * Compares the provided sets of schema element definitions and writes any differences found into
@@ -139,9 +153,9 @@ public class SchemaWriter
   {
     // Get a sorted list of the files in the schema directory.
     TreeSet<File> schemaFiles = new TreeSet<>();
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = getSchemaDirectoryPath();
 
-    final FilenameFilter filter = new SchemaConfigManager.SchemaFileFilter();
+    final FilenameFilter filter = new SchemaHandler.SchemaFileFilter();
     for (File f : new File(schemaDirectory).listFiles(filter))
     {
       if (f.isFile())
@@ -168,6 +182,12 @@ public class SchemaWriter
             ditStructureRules, matchingRuleUses, ldapSyntaxes);
       }
     }
+  }
+
+  private static String getSchemaDirectoryPath()
+  {
+    File schemaDir = DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+    return schemaDir != null ? schemaDir.getAbsolutePath() : null;
   }
 
   /**
@@ -914,9 +934,11 @@ public class SchemaWriter
    *          The set of temporary schema files to be activated.
    * @throws DirectoryException
    *           If a problem occurs while attempting to install the temporary schema files.
+   * @throws InitializationException
+   *           If directory of schema files can't be retrieved
    */
   private void installSchemaFiles(AlertGenerator alertGenerator, HashMap<String,File> tempSchemaFiles)
-          throws DirectoryException
+          throws DirectoryException, InitializationException
   {
     // Create lists that will hold the three types of files we'll be dealing
     // with (the temporary files that will be installed, the installed schema
@@ -925,8 +947,7 @@ public class SchemaWriter
     ArrayList<File> tempFileList      = new ArrayList<>();
     ArrayList<File> origFileList      = new ArrayList<>();
 
-    File schemaInstanceDir =
-      new File(SchemaConfigManager.getSchemaDirectoryPath());
+    File schemaInstanceDir = serverContext.getSchemaHandler().getSchemaDirectoryPath();
 
     for (String name : tempSchemaFiles.keySet())
     {

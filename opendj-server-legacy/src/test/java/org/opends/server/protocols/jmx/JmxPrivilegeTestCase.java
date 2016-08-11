@@ -42,7 +42,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attributes;
@@ -450,7 +449,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.JMX_WRITE, null), hasPrivilege);
 
-    String schemaDirectory = SchemaConfigManager.getSchemaDirectoryPath();
+    String schemaDirectory = DirectoryServer.getEnvironmentConfig().getSchemaDirectory().getPath();
 
     String identifier;
     Entry authNEntry = conn.getAuthenticationInfo().getAuthenticationEntry();
