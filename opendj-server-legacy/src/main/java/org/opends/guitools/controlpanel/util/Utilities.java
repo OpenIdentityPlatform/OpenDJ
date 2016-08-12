@@ -129,7 +129,7 @@ import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.SchemaUtils.PasswordType;
 import org.opends.server.util.ServerConstants;

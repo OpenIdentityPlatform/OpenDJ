@@ -99,7 +99,7 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** The pane that is displayed when the user clicks on 'Browse Schema'. */
 class BrowseSchemaPanel extends StatusGenericPanel

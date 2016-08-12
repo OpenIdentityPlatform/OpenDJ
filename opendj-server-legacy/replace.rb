@@ -415,10 +415,21 @@ class Replace
         '\1',
       ]
   }
+  
+  ## Replacements for Schema
+  SDK_SCHEMA = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+         /import org.opends.server.types.Schema;/,
+        'import org.forgerock.opendj.ldap.schema.Schema;',
+      ]
+  }
 
   ###############################  List of replacements to run #################################
 
-  REPLACEMENTS = [ NEW_CONFIG ]
+  REPLACEMENTS = [ SDK_SCHEMA ]
 
   ################################### Processing methods ########################################
 

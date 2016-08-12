@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.util.ConfigFromConnection;
 import org.opends.quicksetup.UserData;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;
 

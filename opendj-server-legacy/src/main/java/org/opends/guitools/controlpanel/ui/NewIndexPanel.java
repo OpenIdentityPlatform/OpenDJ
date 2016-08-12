@@ -52,7 +52,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** Panel that appears when the user defines a new index. */
 public class NewIndexPanel extends AbstractIndexPanel

@@ -36,7 +36,7 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 import static org.opends.messages.AdminToolMessages.*;
 

@@ -32,7 +32,7 @@ import javax.swing.JTextField;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** The panel used to display a binary value. */
 public class BinaryValuePanel extends StatusGenericPanel

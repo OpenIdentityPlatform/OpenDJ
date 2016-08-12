@@ -34,7 +34,7 @@ import org.opends.guitools.controlpanel.datamodel.ObjectClassValue;
 import org.opends.guitools.controlpanel.ui.components.BinaryCellPanel;
 import org.opends.guitools.controlpanel.ui.components.ObjectClassCellPanel;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** The renderer used by the table in the 'Attribute View' of the LDAP entry browser. */
 public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer

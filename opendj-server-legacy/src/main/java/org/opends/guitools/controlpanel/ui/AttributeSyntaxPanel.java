@@ -39,7 +39,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** Panel containing information about an attribute syntax. */
 public class AttributeSyntaxPanel extends SchemaElementPanel

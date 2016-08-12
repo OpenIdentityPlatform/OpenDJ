@@ -49,7 +49,7 @@ import org.opends.guitools.controlpanel.ui.SelectObjectClassesPanel;
 import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** A panel that can be used to select one (or several) object classes. */
 public class SuperiorObjectClassesEditor extends JPanel

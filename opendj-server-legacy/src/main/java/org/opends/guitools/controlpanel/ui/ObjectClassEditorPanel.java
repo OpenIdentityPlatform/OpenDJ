@@ -37,7 +37,7 @@ import org.opends.guitools.controlpanel.datamodel.SortableListModel;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * This is the class used to edit the object class of a given entry, it displays

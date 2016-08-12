@@ -153,7 +153,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;

@@ -102,7 +102,7 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 

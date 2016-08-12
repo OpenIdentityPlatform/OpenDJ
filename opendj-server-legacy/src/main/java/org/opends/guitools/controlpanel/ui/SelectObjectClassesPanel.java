@@ -35,7 +35,7 @@ import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.ui.renderer.
  SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * This is a class where the user can choose from a list of available object

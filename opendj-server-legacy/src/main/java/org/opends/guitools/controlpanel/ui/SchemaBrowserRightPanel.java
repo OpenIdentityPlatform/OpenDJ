@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** The panel on the right of the 'Manage Schema' panel. */
 public class SchemaBrowserRightPanel extends StatusGenericPanel

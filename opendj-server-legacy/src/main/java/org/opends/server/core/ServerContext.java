@@ -22,7 +22,7 @@ import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** Context for the server, giving access to global properties of the server. */
 public interface ServerContext

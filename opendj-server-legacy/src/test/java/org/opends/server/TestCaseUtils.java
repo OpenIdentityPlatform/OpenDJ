@@ -96,7 +96,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;

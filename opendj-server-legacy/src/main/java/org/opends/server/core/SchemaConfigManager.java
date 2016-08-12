@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.Schema.SchemaUpdater;
 
 import static org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.*;

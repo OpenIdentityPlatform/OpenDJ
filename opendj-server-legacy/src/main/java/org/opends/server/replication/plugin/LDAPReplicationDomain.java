@@ -142,7 +142,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawModification;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;

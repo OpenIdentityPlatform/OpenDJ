@@ -37,7 +37,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.LDIFReader;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

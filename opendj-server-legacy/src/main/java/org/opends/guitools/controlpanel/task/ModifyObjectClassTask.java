@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * The task that is in charge of modifying an object class definition (and all

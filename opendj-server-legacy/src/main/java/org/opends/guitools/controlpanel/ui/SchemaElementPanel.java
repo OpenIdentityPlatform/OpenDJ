@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionEvent;
 import org.opends.guitools.controlpanel.event.SchemaElementSelectionListener;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * Abstract class used to re-factor some code among the panels that display the

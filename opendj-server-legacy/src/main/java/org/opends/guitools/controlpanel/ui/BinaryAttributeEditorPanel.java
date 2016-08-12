@@ -43,7 +43,7 @@ import org.opends.guitools.controlpanel.event.BrowseActionListener;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * Panel that is displayed in the dialog where the user can specify the value

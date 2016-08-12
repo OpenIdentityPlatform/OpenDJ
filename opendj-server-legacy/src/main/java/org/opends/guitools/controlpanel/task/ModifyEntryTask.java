@@ -58,7 +58,7 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** The task that is called when we must modify an entry. */
 public class ModifyEntryTask extends Task

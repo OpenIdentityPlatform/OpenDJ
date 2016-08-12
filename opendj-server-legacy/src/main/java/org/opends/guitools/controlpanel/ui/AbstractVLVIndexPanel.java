@@ -84,7 +84,7 @@ import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.RawFilter;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * Abstract class used to re-factor some code between the classes that are used

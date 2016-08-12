@@ -54,7 +54,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CommandBuilder;

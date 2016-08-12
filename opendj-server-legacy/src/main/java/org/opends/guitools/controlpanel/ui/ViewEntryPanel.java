@@ -54,7 +54,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.Base64;
 
 /**

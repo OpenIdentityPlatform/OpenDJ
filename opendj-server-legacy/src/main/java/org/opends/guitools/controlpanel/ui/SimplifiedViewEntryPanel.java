@@ -97,7 +97,7 @@ import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.Schema;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 /** The panel displaying a simplified view of an entry. */
 class SimplifiedViewEntryPanel extends ViewEntryPanel
