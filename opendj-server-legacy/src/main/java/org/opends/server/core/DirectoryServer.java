@@ -17,7 +17,6 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -156,7 +155,6 @@ import org.opends.server.types.RestoreConfig;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.RuntimeInformation;
@@ -572,14 +570,8 @@ public final class DirectoryServer
   /** The SASL mechanism config manager for the Directory Server. */
   private SASLConfigManager saslConfigManager;
 
-  /** The schema for the Directory Server. */
-  private volatile Schema schema;
-
   /** The schema handler provides management of the schema, including its memory and files representations. */
   private SchemaHandler schemaHandler;
-
-  /** The schema configuration manager for the Directory Server. */
-  private SchemaConfigManager schemaConfigManager;
 
   /** The set of disabled privileges. */
   private Set<Privilege> disabledPrivileges;
@@ -1007,13 +999,13 @@ public final class DirectoryServer
     @Override
     public Schema getSchema()
     {
-      return directoryServer.schema;
+      return directoryServer.schemaHandler.getSchema();
     }
 
     @Override
     public org.forgerock.opendj.ldap.schema.Schema getSchemaNG()
     {
-      return directoryServer.schema.getSchemaNG();
+      return directoryServer.schemaHandler.getSchema();
     }
 
     @Override
@@ -1201,17 +1193,8 @@ public final class DirectoryServer
       // Set default values for variables that may be needed during schema processing.
       directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
 
-      // Create the server schema and initialize and register a minimal set of
-      // matching rules and attribute syntaxes.
-      try
-      {
-        setSchema(new Schema(org.forgerock.opendj.ldap.schema.Schema.getCoreSchema()));
-      }
-      catch (DirectoryException unexpected)
-      {
-        // the core schema should not have any warning
-        throw new RuntimeException(unexpected);
-      }
+      // Schema handler contains a default schema to start with
+      directoryServer.schemaHandler = new SchemaHandler();
 
       // Perform any additional initialization that might be necessary before
       // loading the configuration.
@@ -1480,12 +1463,12 @@ public final class DirectoryServer
 
       initializeSchema();
 
-      // At this point, it is necessary to reload the configuration because it was
-      // loaded with an incomplete schema (meaning some attributes types and objectclasses
-      // were defined by default, using a non-strict schema).
+      // At this point, it is necessary to reload the configuration with a complete schema
+      // because it was loaded with an incomplete schema (meaning some attributes types and
+      // objectclasses were defined by default, using a non-strict schema).
       // Configuration add/delete/change listeners are preserved by calling this method,
       // so schema elements listeners already registered are not lost.
-      configurationHandler.reinitializeWithFullSchema(schema.getSchemaNG());
+      configurationHandler.reinitializeWithFullSchema(schemaHandler.getSchema());
 
       commonAudit = new CommonAudit(serverContext);
       httpRouter = new Router();
@@ -1730,46 +1713,21 @@ public final class DirectoryServer
   }
 
   /**
-   * Initializes the schema elements for the Directory Server, including the
-   * matching rules, attribute syntaxes, attribute types, and object classes.
+   * Initializes the schema handler, which is responsible for building the complete schema for the
+   * server.
    *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the schema elements.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the schema elements that is not related
-   *                                   to the server configuration.
+   * @throws ConfigException
+   *           If there is a configuration problem with any of the schema elements.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the schema that is not related to the server
+   *           configuration.
    */
-  public void initializeSchema()
-         throws ConfigException, InitializationException
+  public void initializeSchema() throws InitializationException, ConfigException
   {
-    // Create the schema configuration manager, and initialize the schema from
-    // the configuration.
-    schemaConfigManager = new SchemaConfigManager(serverContext);
-    setSchema(schemaConfigManager.getSchema());
-
-    schemaConfigManager.initializeMatchingRules();
-    schemaConfigManager.initializeAttributeSyntaxes();
-    schemaConfigManager.initializeSchemaFromFiles();
+    schemaHandler.initialize(serverContext);
 
     // With server schema in place set compressed schema.
     compressedSchema = new DefaultCompressedSchema(serverContext);
-  }
-
-  /** Initialize the schema of this server. */
-  @ActivateOnceSDKSchemaIsUsed
-  private void initializeSchemaNG() throws InitializationException
-  {
-    schemaHandler = new SchemaHandler();
-    try
-    {
-      schemaHandler.initialize(serverContext);
-    }
-    catch (ConfigException e)
-    {
-      // TODO : fix message
-      throw new InitializationException(LocalizableMessage.raw("Cannot initialize schema handler"), e);
-    }
   }
 
   /**
@@ -2235,20 +2193,19 @@ public final class DirectoryServer
    */
   public static Schema getSchema()
   {
-    return directoryServer.schema;
+    return directoryServer.schemaHandler.getSchema();
   }
 
   /**
    * Replaces the Directory Server schema with the provided schema.
    *
-   * @param  schema  The new schema to use for the Directory Server.
+   * @param  newSchema  The new schema to use for the Directory Server.
+   * @throws DirectoryException
+   *            If the new schema contains warnings.
    */
-  public static void setSchema(Schema schema)
+  public static void setSchema(Schema newSchema) throws DirectoryException
   {
-    directoryServer.schema = schema;
-    org.forgerock.opendj.ldap.schema.Schema.setDefaultSchema(schema != null
-        ? schema.getSchemaNG()
-        : org.forgerock.opendj.ldap.schema.Schema.getCoreSchema());
+    directoryServer.schemaHandler.updateSchema(newSchema);
   }
 
   /**
@@ -5371,10 +5328,10 @@ public final class DirectoryServer
       backends = null;
     }
 
-    if (schema != null)
+    if (schemaHandler != null)
     {
-      schema.destroy();
-      setSchema(null);
+      schemaHandler.destroy();
+      schemaHandler = null;
     }
   }
 
@@ -6273,24 +6230,10 @@ public final class DirectoryServer
     {
       theDirectoryServer.startServer();
     }
-    catch (InitializationException ie)
-    {
-      logger.traceException(ie);
-
-      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(stackTraceToSingleLineString(ie));
-      shutDown(theDirectoryServer.getClass().getName(), message);
-    }
-    catch (ConfigException ce)
-    {
-      logger.traceException(ce);
-
-      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(stackTraceToSingleLineString(ce));
-      shutDown(theDirectoryServer.getClass().getName(), message);
-    }
     catch (Exception e)
     {
-      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(
-              stackTraceToSingleLineString(e));
+      logger.traceException(e);
+      LocalizableMessage message = ERR_DSCORE_CANNOT_START.get(stackTraceToSingleLineString(e));
       shutDown(theDirectoryServer.getClass().getName(), message);
     }
 

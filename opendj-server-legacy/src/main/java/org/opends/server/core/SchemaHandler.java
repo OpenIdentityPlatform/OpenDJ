@@ -155,6 +155,8 @@ public final class SchemaHandler
   {
     oldestModificationTime = System.currentTimeMillis();
     youngestModificationTime = oldestModificationTime;
+    // use a default schema
+    schema = Schema.getCoreSchema();
   }
 
   /**
@@ -412,6 +414,33 @@ public final class SchemaHandler
   public void exclusiveUnlock()
   {
     exclusiveLock.unlock();
+  }
+
+  /**
+   * Destroys the structures maintained by this handler so that they are no longer usable.
+   * <p>
+   * This should only be called at the end of the server shutdown process, and it can help detect
+   * inappropriate cached references.
+   */
+  public void destroy()
+  {
+    exclusiveLock.lock();
+    try
+    {
+      if (schema != null)
+      {
+        schema = null;
+      }
+      if (extraAttributes != null)
+      {
+        extraAttributes.clear();
+        extraAttributes = null;
+      }
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
   }
 
   /**
