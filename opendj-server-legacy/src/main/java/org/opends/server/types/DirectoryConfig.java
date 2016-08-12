@@ -105,16 +105,6 @@ public final class DirectoryConfig
   }
 
   /**
-   * Retrieves a reference to the Directory Server schema.
-   *
-   * @return  A reference to the Directory Server schema.
-   */
-  public static Schema getSchema()
-  {
-    return DirectoryServer.getSchema();
-  }
-
-  /**
    * Registers the provided alert generator with the Directory Server.
    *
    * @param  alertGenerator  The alert generator to register.

@@ -42,9 +42,10 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CollationMatchingRuleCfg;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Schema.SchemaUpdater;
 import org.opends.server.util.CollectionUtils;
 
 /**
@@ -83,14 +84,14 @@ public final class CollationMatchingRuleFactory extends
   {
     // The core schema contains all supported collation matching rules so read it for initialization.
     // The server's schemaNG may have different things configured slightly differently
-    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
+    SchemaHandler schemaHandler = DirectoryServer.getInstance().getServerContext().getSchemaHandler();
     Schema coreSchema = CoreSchema.getInstance();
 
     // on startup, the SDK already has existing matching rules
     // remove them all before letting the server set them all up
     // according to what this factory decides must be setup
     final Set<MatchingRule> defaultMatchingRules = getCollationMatchingRules(coreSchema.getMatchingRules());
-    unregisterMatchingRules(schema, defaultMatchingRules);
+    unregisterMatchingRules(schemaHandler, defaultMatchingRules);
     matchingRules.putAll(collectConfiguredMatchingRules(configuration, coreSchema));
 
     // Save this configuration.
@@ -100,21 +101,20 @@ public final class CollationMatchingRuleFactory extends
     currentConfig.addCollationChangeListener(this);
   }
 
-  private void unregisterMatchingRules(org.opends.server.types.Schema schema,
-      final Collection<MatchingRule> matchingRules) throws ConfigException
+  private void unregisterMatchingRules(SchemaHandler schemaHandler, final Collection<MatchingRule> matchingRules)
+      throws ConfigException
   {
     try
     {
-      schema.updateSchema(new SchemaUpdater()
+      schemaHandler.updateSchema(new SchemaUpdater()
       {
         @Override
-        public Schema update(SchemaBuilder builder)
+        public void update(SchemaBuilder builder)
         {
           for (final MatchingRule rule : matchingRules)
           {
             builder.removeMatchingRule(rule.getNameOrOID());
           }
-          return builder.toSchema();
         }
       });
     }
@@ -200,8 +200,9 @@ public final class CollationMatchingRuleFactory extends
 
     // Since we have come here it means that this Factory is enabled
     // and there is a change in the CollationMatchingRuleFactory's configuration.
-    final org.opends.server.types.Schema serverSchema = DirectoryServer.getSchema();
-    final Collection<MatchingRule> existingCollationRules = getCollationMatchingRules(serverSchema.getMatchingRules());
+    SchemaHandler schemaHandler = DirectoryServer.getInstance().getServerContext().getSchemaHandler();
+    final Collection<MatchingRule> existingCollationRules =
+        getCollationMatchingRules(schemaHandler.getSchema().getMatchingRules());
 
     matchingRules.clear();
     final Map<String, MatchingRule> configuredMatchingRules =
@@ -219,10 +220,10 @@ public final class CollationMatchingRuleFactory extends
     }
     try
     {
-      serverSchema.updateSchema(new SchemaUpdater()
+      schemaHandler.updateSchema(new SchemaUpdater()
       {
         @Override
-        public Schema update(SchemaBuilder builder)
+        public void update(SchemaBuilder builder)
         {
           Collection<MatchingRule> defaultMatchingRules = CoreSchema.getInstance().getMatchingRules();
           for (MatchingRule rule : defaultMatchingRules)
@@ -246,7 +247,6 @@ public final class CollationMatchingRuleFactory extends
             // removed
             builder.removeMatchingRule(ruleToRemove.getOID());
           }
-          return builder.toSchema();
         }
       });
     }

@@ -31,8 +31,8 @@ public class SchemaHandlerTestCase extends CoreTestCase
   @Test
   public void testSchemaInitialization() throws Exception
   {
-    org.opends.server.types.Schema schema = new org.opends.server.types.Schema(Schema.getCoreSchema());
-    initializeSchemaHandler(schema);
+    SchemaHandler handler = initializeSchemaHandler();
+    Schema schema = handler.getSchema();
 
     assertThat(schema.getMatchingRules()).isNotEmpty(); // some matching rules defined
     schema.getSyntax(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID);
@@ -41,17 +41,18 @@ public class SchemaHandlerTestCase extends CoreTestCase
     schema.getObjectClass("changeLogEntry"); // from file 03-changelog.ldif
   }
 
-  private void initializeSchemaHandler(org.opends.server.types.Schema schema) throws Exception
+  private SchemaHandler initializeSchemaHandler() throws Exception
   {
+    SchemaHandler schemaHandler = new SchemaHandler();
     final ServerContext serverContext = aServerContext()
         .schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema"))
         .configFile(TestCaseUtils.getTestResource("configForTests/config-small.ldif"))
         .withConfigurationBootstrapped()
-        .schema(schema)
+        .schemaHandler(schemaHandler)
         .build();
 
-    SchemaHandler schemaHandler = new SchemaHandler();
     schemaHandler.initialize(serverContext);
+    return schemaHandler;
   }
 
 }

@@ -18,12 +18,12 @@
 package org.opends.server.schema;
 
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.ServerContextBuilder;
 import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.forgerock.opendj.server.config.server.CountryStringAttributeSyntaxCfg;
+import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.ServerContext;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
 import org.testng.annotations.DataProvider;
@@ -119,7 +119,7 @@ public class CountryStringSyntaxTest extends AttributeSyntaxTest
     };
 
     ServerContext serverContext = ServerContextBuilder.aServerContext()
-        .schema(new org.opends.server.types.Schema(Schema.getCoreSchema()))
+        .schemaHandler(new SchemaHandler()) // provides core schema
         .build();
     syntax.initializeSyntax(cfg, serverContext);
     return syntax;

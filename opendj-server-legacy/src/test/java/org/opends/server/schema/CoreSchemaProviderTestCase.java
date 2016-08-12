@@ -21,6 +21,7 @@ import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
 import org.forgerock.opendj.config.ConfigurationMock;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.CoreTestCase;
+import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.ServerContext;
 import org.testng.annotations.Test;
 
@@ -44,20 +45,18 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     CoreSchemaCfg coreSchemaCfg = ConfigurationMock.mockCfg(CoreSchemaCfg.class);
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-
-    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
-    provider.initialize(getServerContext(schema), coreSchemaCfg, new SchemaBuilder());
+    provider.initialize(getServerContext(), coreSchemaCfg, new SchemaBuilder());
 
     verify(coreSchemaCfg).addCoreSchemaChangeListener(provider);
   }
 
-  private ServerContext getServerContext(org.opends.server.types.Schema schema) throws Exception
+  private ServerContext getServerContext() throws Exception
   {
     return aServerContext()
         .schemaDirectory(new File(TestCaseUtils.getBuildRoot(), "resource/schema"))
         .configFile(TestCaseUtils.getTestResource("configForTests/config-small.ldif"))
         .withConfigurationBootstrapped()
-        .schema(schema)
+        .schemaHandler(new SchemaHandler())
         .build();
   }
 
@@ -69,8 +68,7 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     SchemaBuilder schemaBuilder = new SchemaBuilder();
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
-    provider.initialize(getServerContext(schema), coreSchemaCfg, schemaBuilder);
+    provider.initialize(getServerContext(), coreSchemaCfg, schemaBuilder);
 
     assertThat(schemaBuilder.toSchema().getOption(ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS)).isTrue();
   }
@@ -83,8 +81,7 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
-    provider.initialize(getServerContext(schema), coreSchemaCfg, schemaBuilder);
+    provider.initialize(getServerContext(), coreSchemaCfg, schemaBuilder);
 
     assertThat(schemaBuilder.toSchema().hasSyntax(DIRECTORY_STRING_SYNTAX_OID)).isFalse();
   }
@@ -97,8 +94,7 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
     CoreSchemaProvider provider = new CoreSchemaProvider();
-    org.opends.server.types.Schema schema = new org.opends.server.types.Schema( Schema.getCoreSchema());
-    provider.initialize(getServerContext(schema), coreSchemaCfg, schemaBuilder);
+    provider.initialize(getServerContext(), coreSchemaCfg, schemaBuilder);
 
     assertThat(schemaBuilder.toSchema().hasMatchingRule(DIRECTORY_STRING_SYNTAX_OID)).isFalse();
   }

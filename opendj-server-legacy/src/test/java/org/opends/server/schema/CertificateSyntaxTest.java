@@ -17,12 +17,12 @@
 package org.opends.server.schema;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.ServerContextBuilder;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.forgerock.opendj.server.config.server.CertificateAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.util.Base64;
@@ -119,7 +119,7 @@ public class CertificateSyntaxTest extends BinaryAttributeSyntaxTest
     };
 
     ServerContext serverContext = ServerContextBuilder.aServerContext()
-        .schema(new org.opends.server.types.Schema(Schema.getCoreSchema()))
+        .schemaHandler(new SchemaHandler()) // provides core schema
         .build();
     syntax.initializeSyntax(cfg, serverContext);
     return syntax;

@@ -32,6 +32,8 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.SchemaTestMatchingRuleImpl;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -46,7 +48,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class AddSchemaFileTaskTestCase extends TasksTestCase
 {
-  private static List<MatchingRule> matchingRulesToRemove = new ArrayList<>();
+  private static List<String> matchingRulesToRemove = new ArrayList<>();
 
   /**
    * Make sure that the Directory Server is running.
@@ -59,29 +61,49 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     TestCaseUtils.startServer();
   }
 
+  private SchemaHandler getSchemaHandler()
+  {
+    return DirectoryServer.getInstance().getServerContext().getSchemaHandler();
+  }
+
   @AfterClass
   public void deregisterMatchingRules() throws Exception
   {
-    for (MatchingRule matchingRule : matchingRulesToRemove)
+    getSchemaHandler().updateSchema(new SchemaUpdater()
     {
-      org.opends.server.types.Schema schema = DirectoryServer.getSchema();
-      schema.deregisterMatchingRuleUse(schema.getMatchingRuleUse(matchingRule));
-      schema.deregisterMatchingRule(matchingRule);
-    }
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        for (String mrOid : matchingRulesToRemove)
+        {
+          builder.removeMatchingRule(mrOid);
+          builder.removeMatchingRuleUse(mrOid);
+        }
+      }
+    });
   }
 
-  private void registerNewMatchingRule(String name, String oid) throws DirectoryException
+  private void registerNewMatchingRule(final String name, final String oid) throws DirectoryException
   {
-    MatchingRule matchingRule = new SchemaBuilder(Schema.getCoreSchema())
-        .buildMatchingRule(oid)
-        .syntaxOID(CoreSchema.getDirectoryStringSyntax().getOID())
-        .names(name)
-        .implementation(new SchemaTestMatchingRuleImpl())
-        .addToSchema()
-        .toSchema()
-        .getMatchingRule(oid);
-    DirectoryServer.getSchema().registerMatchingRules(Arrays.asList(matchingRule), false);
-    matchingRulesToRemove.add(matchingRule);
+    getSchemaHandler().updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+          builder
+            .buildMatchingRule(oid)
+            .syntaxOID(CoreSchema.getDirectoryStringSyntax().getOID())
+            .names(name)
+            .implementation(new SchemaTestMatchingRuleImpl())
+            .addToSchema();
+      }
+    });
+    matchingRulesToRemove.add(oid);
+  }
+
+  private String getSchemaDirectory()
+  {
+    return DirectoryServer.getEnvironmentConfig().getSchemaDirectory().getPath();
   }
 
   /**
@@ -98,13 +120,10 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     // milliseconds to make sure that any potential updates to the last
     // modification time that it won't have any chance of happening in the same
     // millisecond as the last update.
-    long beforeModifyTimestamp =
-              DirectoryServer.getSchema().getYoungestModificationTime();
+    long beforeModifyTimestamp = getSchemaHandler().getYoungestModificationTime();
     Thread.sleep(2);
 
-
     registerNewMatchingRule("testAddValidSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.23");
-
 
     String schemaDirectory = getSchemaDirectory();
 
@@ -147,8 +166,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     assertEquals(resultCode, 0);
 
     waitTaskCompletedSuccessfully(DN.valueOf(taskDNStr));
-    assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
-                     beforeModifyTimestamp);
+    assertFalse(getSchemaHandler().getYoungestModificationTime() == beforeModifyTimestamp);
   }
 
   /**
@@ -165,8 +183,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     // milliseconds to make sure that any potential updates to the last
     // modification time that it won't have any chance of happening in the same
     // millisecond as the last update.
-    long beforeModifyTimestamp =
-              DirectoryServer.getSchema().getYoungestModificationTime();
+    long beforeModifyTimestamp = getSchemaHandler().getYoungestModificationTime();
     Thread.sleep(2);
 
     registerNewMatchingRule("testAddMultipleValidSchemaFiles1Match", "1.3.6.1.4.1.26027.1.999.24");
@@ -246,8 +263,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     assertEquals(resultCode, 0);
 
     waitTaskCompletedSuccessfully(DN.valueOf(taskDNStr));
-    assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
-                     beforeModifyTimestamp);
+    assertFalse(getSchemaHandler().getYoungestModificationTime() == beforeModifyTimestamp);
   }
 
   private void writeLines(File file, String[] lines) throws IOException
@@ -326,8 +342,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     // milliseconds to make sure that any potential updates to the last
     // modification time that it won't have any chance of happening in the same
     // millisecond as the last update.
-    long beforeModifyTimestamp =
-              DirectoryServer.getSchema().getYoungestModificationTime();
+    long beforeModifyTimestamp = getSchemaHandler().getYoungestModificationTime();
     Thread.sleep(2);
 
 
@@ -349,8 +364,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     assertEquals(resultCode, 0);
 
     waitTaskCompletedSuccessfully(DN.valueOf(taskDNStr));
-    assertFalse(DirectoryServer.getSchema().getYoungestModificationTime() ==
-                     beforeModifyTimestamp);
+    assertFalse(getSchemaHandler().getYoungestModificationTime() == beforeModifyTimestamp);
   }
 
   /**
@@ -384,10 +398,5 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
          "ds-task-schema-file-name: 05-invalid.ldif");
     assertFalse(resultCode == 0);
     invalidFile.delete();
-  }
-
-  private String getSchemaDirectory()
-  {
-    return DirectoryServer.getEnvironmentConfig().getSchemaDirectory().getPath();
   }
 }

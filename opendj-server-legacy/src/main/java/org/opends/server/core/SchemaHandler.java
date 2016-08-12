@@ -90,7 +90,6 @@ import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.util.OperatingSystem;
-import com.sun.corba.se.spi.ior.WriteContents;
 
 /**
  * Responsible for loading the server schema.
@@ -268,17 +267,10 @@ public final class SchemaHandler
   }
 
   /**
-   * Update the schema using the provided schema updater.
-   * <p>
-   * An implicit lock is performed, so it is in general not necessary
-   * to call the {code lock()}  and {code unlock() methods.
-   * However, these method should be used if/when the SchemaBuilder passed
-   * as an argument to the updater is not used to return the schema
-   * (see for example usage in {@code CoreSchemaProvider} class). This
-   * case should remain exceptional.
+   * Updates the schema using the provided schema updater.
    *
    * @param updater
-   *          the updater that returns a new schema
+   *          the updater that performs modifications on the schema builder
    * @throws DirectoryException if there is any problem updating the schema
    */
   public void updateSchema(SchemaUpdater updater) throws DirectoryException
@@ -286,7 +278,9 @@ public final class SchemaHandler
     exclusiveLock.lock();
     try
     {
-      switchSchema(updater.update(new SchemaBuilder(schema)));
+      SchemaBuilder schemaBuilder = new SchemaBuilder(schema);
+      updater.update(schemaBuilder);
+      switchSchema(schemaBuilder.toSchema());
     }
     finally
     {
@@ -386,9 +380,9 @@ public final class SchemaHandler
       updateSchema(new SchemaUpdater()
       {
         @Override
-        public Schema update(SchemaBuilder builder)
+        public void update(SchemaBuilder builder)
         {
-          return builder.setOption(option, newValue).toSchema();
+          builder.setOption(option, newValue);
         }
       });
     }
@@ -1051,14 +1045,13 @@ public final class SchemaHandler
   public interface SchemaUpdater
   {
     /**
-     * Returns an updated schema.
+     * Updates the schema using the provided schema builder.
      *
      * @param builder
      *          The builder on the current schema
-     * @return the new schema
      * @throws DirectoryException
      *          If an error occurs during the schema update
      */
-    Schema update(SchemaBuilder builder) throws DirectoryException;
+    void update(SchemaBuilder builder) throws DirectoryException;
   }
 }

@@ -27,10 +27,10 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Schema.SchemaUpdater;
 import org.opends.server.types.SubtreeSpecification;
 
 /**
@@ -58,12 +58,12 @@ public final class SubtreeSpecificationSyntax
       throws ConfigException, DirectoryException
   {
     // Add the subtree specification syntax to the "new" schema
-    serverContext.getSchema().updateSchema(new SchemaUpdater()
+    serverContext.getSchemaHandler().updateSchema(new SchemaUpdater()
     {
       @Override
-      public Schema update(SchemaBuilder builder)
+      public void update(SchemaBuilder builder)
       {
-        return addSubtreeSpecificationSyntax(builder).toSchema();
+        addSubtreeSpecificationSyntax(builder);
       }
     });
   }

@@ -24,9 +24,9 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Schema.SchemaUpdater;
 
 /**
  * This class implements the access control information (aci) attribute syntax.
@@ -50,12 +50,12 @@ public class AciSyntax
       throws ConfigException, DirectoryException
   {
     // Add the Aci syntax to the "new" schema
-    serverContext.getSchema().updateSchema(new SchemaUpdater()
+    serverContext.getSchemaHandler().updateSchema(new SchemaUpdater()
     {
       @Override
-      public Schema update(SchemaBuilder builder)
+      public void update(SchemaBuilder builder)
       {
-        return addAciSyntax(builder).toSchema();
+        addAciSyntax(builder);
       }
     });
   }

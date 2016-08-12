@@ -20,7 +20,9 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 
 import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.config.ConfigurationHandler;
+import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;
@@ -60,10 +62,18 @@ public class ServerContextBuilder
     return this;
   }
 
-  public ServerContextBuilder schema(org.opends.server.types.Schema schema)
+  public ServerContextBuilder schema(Schema schema)
   {
     when(serverContext.getSchema()).thenReturn(schema);
-    when(serverContext.getSchemaNG()).thenReturn(schema.getSchemaNG());
+    when(serverContext.getSchemaNG()).thenReturn(schema);
+    return this;
+  }
+
+  public ServerContextBuilder schemaHandler(SchemaHandler handler)
+  {
+    when(serverContext.getSchemaHandler()).thenReturn(handler);
+    when(serverContext.getSchema()).thenReturn(handler.getSchema());
+    when(serverContext.getSchemaNG()).thenReturn(handler.getSchema());
     return this;
   }
 

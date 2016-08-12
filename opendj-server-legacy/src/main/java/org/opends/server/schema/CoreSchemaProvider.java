@@ -23,14 +23,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Schema.SchemaUpdater;
 
 /** Provides the core schema, which includes core matching rules and syntaxes. */
 public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
@@ -123,17 +122,14 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
   public ConfigChangeResult applyConfigurationChange(final CoreSchemaCfg configuration)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-    // TODO : the server schema should probably be renamed to something like ServerSchema
-    // Even after migration to SDK schema, it will be probably be kept
     try
     {
-      serverContext.getSchema().updateSchema(new SchemaUpdater()
+      serverContext.getSchemaHandler().updateSchema(new SchemaUpdater()
       {
         @Override
-        public Schema update(SchemaBuilder builder)
+        public void update(SchemaBuilder builder)
         {
           updateSchemaFromConfiguration(builder, configuration);
-          return builder.toSchema();
         }
       });
     }

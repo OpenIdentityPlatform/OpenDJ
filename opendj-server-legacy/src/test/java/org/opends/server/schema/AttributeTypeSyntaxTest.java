@@ -112,7 +112,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
   @Test
   public void testXAPPROXExtension() throws Exception
   {
-    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     Syntax attrTypeSyntax = schema.getSyntax("1.3.6.1.4.1.1466.115.121.1.3");
     assertNotNull(attrTypeSyntax);
 
@@ -126,7 +126,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
 
     // Verify that we can decode the attribute type and that it has the
     // correct approximate matching rule.
-    Schema newSchema = new SchemaBuilder(schema.getSchemaNG())
+    Schema newSchema = new SchemaBuilder(schema)
       .addAttributeType(definition.toString(), false)
       .toSchema();
 

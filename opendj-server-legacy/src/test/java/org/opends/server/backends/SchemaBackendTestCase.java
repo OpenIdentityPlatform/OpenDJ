@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.forgerock.util.Utils;
@@ -55,6 +54,8 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -1237,23 +1238,47 @@ public class SchemaBackendTestCase extends BackendTestCase
     }
   }
 
-  private void deregisterAttributeType(String nameOrOid) throws DirectoryException
+  private void updateSchema(SchemaUpdater updater) throws DirectoryException
   {
-    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
-    schema.deregisterAttributeType(schema.getAttributeType(nameOrOid));
+    SchemaHandler schemaHandler = DirectoryServer.getInstance().getServerContext().getSchemaHandler();
+    schemaHandler.updateSchema(updater);
   }
 
-  private void deregisterMatchingRuleUse(MatchingRule matchingRule) throws DirectoryException
+  private void deregisterAttributeType(final String nameOrOid) throws DirectoryException
   {
-    org.opends.server.types.Schema schema = DirectoryServer.getSchema();
-    schema.deregisterMatchingRuleUse(schema.getMatchingRuleUse(matchingRule));
+    updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        builder.removeAttributeType(nameOrOid);
+      }
+    });
   }
 
-  private void deregisterMatchingRule(MatchingRule matchingRule) throws DirectoryException
+  private void deregisterMatchingRuleUse(final MatchingRule matchingRule) throws DirectoryException
   {
-    DirectoryServer.getSchema().deregisterMatchingRule(matchingRule);
+    updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        builder.removeMatchingRuleUse(matchingRule.getOID());
+      }
+    });
   }
 
+  private void deregisterMatchingRule(final MatchingRule matchingRule) throws DirectoryException
+  {
+    updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        builder.removeMatchingRule(matchingRule.getOID());
+      }
+    });
+  }
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -3233,7 +3258,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private void assertSchemaHasDITStructureRule(int ruleID, boolean expected)
   {
-    boolean hasDITStructureRule = DirectoryServer.getSchema().getSchemaNG().hasDITStructureRule(ruleID);
+    boolean hasDITStructureRule = DirectoryServer.getSchema().hasDITStructureRule(ruleID);
     assertEquals(hasDITStructureRule, expected, "Expected to find a DITStructureRule with ruleID " + ruleID);
   }
 
@@ -3677,19 +3702,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertSchemaHasDITStructureRule(ruleID, false);
   }
 
-  private MatchingRule getMatchingRule(String name, String oid, boolean isObsolete)
-  {
-    Schema schema =
-        new SchemaBuilder(Schema.getCoreSchema())
-          .buildMatchingRule(oid)
-            .syntaxOID(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID)
-            .names(name)
-            .implementation(new SchemaTestMatchingRuleImpl())
-            .obsolete(isObsolete)
-            .addToSchema().toSchema();
-    return schema.getMatchingRule(oid);
-  }
-
   /**
    * Tests the behavior of the schema backend when attempting to add a new
    * matching rule use that doesn't already exist.
@@ -4074,11 +4086,27 @@ public class SchemaBackendTestCase extends BackendTestCase
     }
   }
 
-  private MatchingRule registerNewMatchingRule(String name, String oid, boolean obsolete) throws DirectoryException
+  private MatchingRule registerNewMatchingRule(final String name, final String oid, final boolean obsolete)
+      throws DirectoryException
   {
-    MatchingRule matchingRule = getMatchingRule(name, oid, obsolete);
-    DirectoryServer.getSchema().registerMatchingRules(Arrays.asList(matchingRule), false);
-    return matchingRule;
+    updateSchema(new SchemaUpdater()
+    {
+
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        builder
+          .buildMatchingRule(oid)
+          .syntaxOID(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID)
+          .names(name)
+          .implementation(new SchemaTestMatchingRuleImpl())
+          .obsolete(obsolete)
+          .addToSchema();
+      }
+    });
+    SchemaHandler schemaHandler = DirectoryServer.getInstance().getServerContext().getSchemaHandler();
+    return schemaHandler.getSchema().getMatchingRule(oid);
+
   }
 
   private void runModify(String[] args, String ldifContent, ResultCode expectedRC)
