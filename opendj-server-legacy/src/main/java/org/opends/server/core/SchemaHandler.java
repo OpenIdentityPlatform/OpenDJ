@@ -17,8 +17,6 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR;
-
-import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.SchemaMessages.NOTE_SCHEMA_IMPORT_FAILED;
 import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.forgerock.util.Utils.closeSilently;
@@ -51,13 +49,17 @@ import org.opends.server.schema.AciSyntax;
 import org.opends.server.schema.SubtreeSpecificationSyntax;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ConflictingSchemaElementException;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.DITContentRule;
 import org.forgerock.opendj.ldap.schema.DITStructureRule;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -81,10 +83,13 @@ import org.opends.server.schema.SchemaProvider;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
 import org.opends.server.types.SchemaWriter;
 import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
+
+import com.sun.corba.se.spi.ior.WriteContents;
 
 /**
  * Responsible for loading the server schema.
@@ -107,8 +112,13 @@ public final class SchemaHandler
   private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
   private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
 
-  private static final AttributeType attributeTypesType = getAttributeTypesAttributeType();
-  private static final AttributeType objectClassesType = getObjectClassesAttributeType();
+  private static final AttributeType attributeTypesType = CoreSchema.getAttributeTypesAttributeType();
+  private static final AttributeType objectClassesType = CoreSchema.getObjectClassesAttributeType();
+  private static final AttributeType ditStructureRulesType = CoreSchema.getDITStructureRulesAttributeType();
+  private static final AttributeType ditContentRulesType = CoreSchema.getDITContentRulesAttributeType();
+  private static final AttributeType ldapSyntaxesType = CoreSchema.getLDAPSyntaxesAttributeType();
+  private static final AttributeType matchingRuleUsesType = CoreSchema.getMatchingRuleUseAttributeType();
+  private static final AttributeType nameFormsType = CoreSchema.getNameFormsAttributeType();
 
   private ServerContext serverContext;
 
@@ -326,6 +336,29 @@ public final class SchemaHandler
       this.extraAttributes = newExtraAttributes;
       new SchemaWriter(serverContext)
         .updateSchemaFiles(schema, newExtraAttributes.values(), modifiedSchemaFileNames, alertGenerator);
+      youngestModificationTime = System.currentTimeMillis();
+    }
+    finally
+    {
+      exclusiveLock.unlock();
+    }
+  }
+
+  /**
+   * Replaces the schema with the provided schema and update the concatened schema files.
+   *
+   * @param newSchema
+   *            The new schema to use
+   * @throws DirectoryException
+   *            If an error occurs during update of schema or schema files
+   */
+  public void updateSchemaAndConcatenatedSchemaFiles(Schema newSchema) throws DirectoryException
+  {
+    exclusiveLock.lock();
+    try
+    {
+      switchSchema(newSchema);
+      SchemaWriter.writeConcatenatedSchema();
       youngestModificationTime = System.currentTimeMillis();
     }
     finally
@@ -657,7 +690,7 @@ public final class SchemaHandler
 
     for (String schemaFile : schemaFileNames)
     {
-      loadSchemaFile(new File(schemaDirectory, schemaFile), schemaBuilder, Schema.getDefaultSchema());
+      loadSchemaFile(new File(schemaDirectory, schemaFile), schemaBuilder, Schema.getDefaultSchema(), false);
     }
   }
 
@@ -749,6 +782,75 @@ public final class SchemaHandler
   }
 
   /**
+   * Loads the contents of the provided schema file into the provided schema builder.
+   *
+   * @param schemaFile
+   *            The schema file to load.
+   * @param schemaBuilder
+   *            The schema builder to update.
+   * @param readSchema
+   *            The schema used to read the schema file.
+   * @throws InitializationException
+   *            If a problem occurs when reading the schema file.
+   * @throws ConfigException
+   *            If a problem occurs when updating the schema builder.
+   */
+  public void loadSchemaFileIntoSchemaBuilder(final File schemaFile, final SchemaBuilder schemaBuilder,
+      final Schema readSchema) throws InitializationException, ConfigException
+  {
+    loadSchemaFile(schemaFile, schemaBuilder, readSchema, true);
+  }
+
+  /**
+   * Loads the contents of the provided schema file into the provided schema builder and returns the list
+   * of modifications.
+   *
+   * @param schemaFile
+   *          The schema file to load.
+   * @param schemaBuilder
+   *            The schema builder to update.
+   * @param readSchema
+   *            The schema used to read the schema file.
+   * @return A list of the modifications that could be performed in order to obtain the contents of
+   *         the file.
+   * @throws ConfigException
+   *           If a configuration problem causes the schema element initialization to fail.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the schema elements that is not related to the
+   *           server configuration.
+   */
+  public List<Modification> loadSchemaFileIntoSchemaBuilderAndReturnModifications(final File schemaFile,
+      final SchemaBuilder schemaBuilder, final Schema readSchema) throws InitializationException, ConfigException
+  {
+    final Entry entry = loadSchemaFile(schemaFile, schemaBuilder, readSchema, true);
+    if (entry != null)
+    {
+      return createAddModifications(entry,
+          ldapSyntaxesType,
+          attributeTypesType,
+          objectClassesType,
+          nameFormsType,
+          ditContentRulesType,
+          ditStructureRulesType,
+          matchingRuleUsesType);
+    }
+    return Collections.emptyList();
+  }
+
+  private List<Modification> createAddModifications(Entry entry, AttributeType... attrTypes)
+  {
+    List<Modification> mods = new ArrayList<>(entry.getAttributeCount());
+    for (AttributeType attrType : attrTypes)
+    {
+      for (org.forgerock.opendj.ldap.Attribute a : entry.getAllAttributes(AttributeDescription.create(attrType)))
+      {
+        mods.add(new Modification(ModificationType.ADD, Converters.toAttribute(a)));
+      }
+    }
+    return mods;
+  }
+
+  /**
    * Add the schema from the provided schema file to the provided schema
    * builder.
    *
@@ -759,10 +861,16 @@ public final class SchemaHandler
    *          be loaded.
    * @param readSchema
    *          The schema used to read the file.
+   * @param failOnError
+   *          Indicates whether an exception must be thrown if an error occurs
+   * @return the schema entry that has been read from the schema file
    * @throws InitializationException
    *           If a problem occurs while initializing the schema elements.
+   * @throws ConfigException
+   *           If a problem occurs when updating the schema builder.
    */
-  private void loadSchemaFile(final File schemaFile, final SchemaBuilder schemaBuilder, final Schema readSchema)
+  private Entry loadSchemaFile(final File schemaFile, final SchemaBuilder schemaBuilder, final Schema readSchema,
+      boolean failOnError)
          throws InitializationException, ConfigException
   {
     EntryReader reader = null;
@@ -772,9 +880,9 @@ public final class SchemaHandler
       final Entry entry = readSchemaEntry(reader, schemaFile);
       if (entry != null)
       {
-        boolean failOnError = true;
         updateSchemaBuilderWithEntry(schemaBuilder, entry, schemaFile.getName(), failOnError);
       }
+      return entry;
     }
     finally {
       Utils.closeSilently(reader);

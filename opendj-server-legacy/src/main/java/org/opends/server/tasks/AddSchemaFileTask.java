@@ -27,13 +27,16 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.DirectoryException;
@@ -43,8 +46,6 @@ import org.opends.server.types.LockManager.DNLock;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.opends.server.types.Schema;
-import org.opends.server.types.SchemaWriter;
 import org.opends.server.util.SchemaUtils;
 
 import static org.opends.messages.TaskMessages.*;
@@ -89,7 +90,8 @@ public class AddSchemaFileTask
 
     // Get the attribute that specifies which schema file(s) to add.
     Entry taskEntry = getTaskEntry();
-    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
+    ServerContext serverContext = getServerContext();
+    AttributeType attrType = serverContext.getSchema().getAttributeType(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
     List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
     if (attrList.isEmpty())
     {
@@ -100,7 +102,7 @@ public class AddSchemaFileTask
 
     // Get the name(s) of the schema files to add and make sure they exist in
     // the schema directory.
-    String schemaInstanceDirectory = DirectoryServer.getEnvironmentConfig().getSchemaDirectory().getPath();
+    File schemaInstanceDirectory = getSchemaDirectory();
     filesToAdd = new TreeSet<>();
     for (Attribute a : attrList)
     {
@@ -133,17 +135,20 @@ public class AddSchemaFileTask
       }
     }
 
-    // Create a new dummy schema and make sure that we can add the contents of
-    // all the schema files into it.  Even though this duplicates work we'll
-    // have to do later, it will be good to do it now as well so we can reject
+    // Make sure that we can add the contents of all the schema files into the schema.
+    // Even though this duplicates work we'll have to do later,
+    // it will be good to do it now as well so we can reject
     // the entry immediately which will fail the attempt by the client to add it
     // to the server, rather than having to check its status after the fact.
-    Schema schema = DirectoryServer.getSchema().duplicate();
+    final SchemaHandler schemaHandler = serverContext.getSchemaHandler();
+    final Schema currentSchema = schemaHandler.getSchema();
+    final SchemaBuilder schemaBuilder = new SchemaBuilder(currentSchema);
     for (String schemaFile : filesToAdd)
     {
       try
       {
-        SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+        File file = new File(schemaInstanceDirectory, schemaFile);
+        schemaHandler.loadSchemaFileIntoSchemaBuilder(file, schemaBuilder, currentSchema);
       }
       catch (ConfigException | InitializationException e)
       {
@@ -152,6 +157,19 @@ public class AddSchemaFileTask
         LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(schemaFile, e.getMessage());
         throw new DirectoryException(getServerErrorResultCode(), message, e);
       }
+    }
+  }
+
+  private File getSchemaDirectory() throws DirectoryException
+  {
+    try
+    {
+      return getServerContext().getSchemaHandler().getSchemaDirectoryPath();
+    }
+    catch (InitializationException e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,  e.getMessageObject());
     }
   }
 
@@ -170,12 +188,16 @@ public class AddSchemaFileTask
     try
     {
       LinkedList<Modification> mods = new LinkedList<>();
-      Schema schema = DirectoryServer.getSchema().duplicate();
+      final SchemaHandler schemaHandler = getServerContext().getSchemaHandler();
+      final Schema currentSchema = schemaHandler.getSchema();
+      final SchemaBuilder schemaBuilder = new SchemaBuilder(currentSchema);
       for (String schemaFile : filesToAdd)
       {
         try
         {
-          List<Modification> modList = SchemaConfigManager.loadSchemaFileReturnModifications(schema, schemaFile);
+          File file = new File(getSchemaDirectory(), schemaFile);
+          List<Modification> modList =
+              schemaHandler.loadSchemaFileIntoSchemaBuilderAndReturnModifications(file, schemaBuilder, currentSchema);
           for (Modification m : modList)
           {
             Attribute a = m.getAttribute();
@@ -188,7 +210,7 @@ public class AddSchemaFileTask
             mods.add(new Modification(m.getModificationType(), builder.toAttribute()));
           }
         }
-        catch (ConfigException | InitializationException e)
+        catch (DirectoryException | ConfigException | InitializationException e)
         {
           logger.traceException(e);
           logger.error(ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE, schemaFile, e.getMessage());
@@ -214,11 +236,20 @@ public class AddSchemaFileTask
           }
         }
 
-        SchemaWriter.writeConcatenatedSchema();
+        final Schema newSchema = schemaBuilder.toSchema();
+        try
+        {
+          schemaHandler.updateSchemaAndConcatenatedSchemaFiles(newSchema);
+        }
+        catch (DirectoryException e)
+        {
+          // This is very unlikely to happen because each schema file was previously loaded without error
+          logger.traceException(e);
+          logger.error(ERR_TASK_ADDSCHEMAFILE_SCHEMA_VALIDATION_ERROR, e.getMessage());
+          return TaskState.STOPPED_BY_ERROR;
+        }
       }
 
-      schema.setYoungestModificationTime(System.currentTimeMillis());
-      DirectoryServer.setSchema(schema);
       return TaskState.COMPLETED_SUCCESSFULLY;
     }
     finally
