@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.server.config.client.AdministrationConnectorCfgClient;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
@@ -311,12 +312,12 @@ public class ConfigFromConnection extends ConfigReader
     {
       try
       {
-        readSchema(connWrapper);
-        if (getSchema() != null)
+        Schema schema = readSchema(connWrapper);
+        if (schema != null)
         {
           // Update the schema: so that when we call the server code the
           // latest schema read on the server we are managing is used.
-          DirectoryServer.setSchema(getSchema());
+          DirectoryServer.setSchema(schema);
         }
       }
       catch (OpenDsException oe)
@@ -629,20 +630,12 @@ public class ConfigFromConnection extends ConfigReader
    * @throws OpenDsException
    *           if an error occurs reading the schema.
    */
-  private void readSchema(ConnectionWrapper connWrapper) throws OpenDsException
+  private Schema readSchema(ConnectionWrapper connWrapper) throws OpenDsException
   {
     try
     {
-      if (isLocal)
-      {
-        super.readSchema();
-      }
-      else
-      {
-        RemoteSchemaLoader loader = new RemoteSchemaLoader();
-        loader.readSchema(connWrapper);
-        schema = loader.getSchema();
-      }
+      schema = isLocal ? super.readSchema() : new RemoteSchemaLoader().readSchema(connWrapper);
+      return schema;
     }
     catch (LdapException e)
     {

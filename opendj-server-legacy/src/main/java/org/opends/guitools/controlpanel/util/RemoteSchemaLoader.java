@@ -21,11 +21,8 @@ import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.config.ConfigConstants.ATTR_ATTRIBUTE_TYPES;
-import static org.opends.server.config.ConfigConstants.ATTR_LDAP_SYNTAXES;
 import static org.opends.server.schema.SchemaConstants.*;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -37,20 +34,15 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.admin.ads.util.ConnectionWrapper;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ServerContext;
 import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
 import org.opends.server.schema.AciSyntax;
 import org.opends.server.schema.SubtreeSpecificationSyntax;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Schema;
-import org.opends.server.types.Schema.SchemaUpdater;
 
 /** Class used to retrieve the schema from the schema files. */
 public class RemoteSchemaLoader extends SchemaLoader
@@ -70,10 +62,11 @@ public class RemoteSchemaLoader extends SchemaLoader
   }
 
   /**
-   * Reads the schema.
+   * Reads and returns the schema.
    *
    * @param connWrapper
    *          the connection to be used to load the schema.
+   * @return the schema
    * @throws LdapException
    *           if an error occurs reading the schema.
    * @throws DirectoryException
@@ -83,70 +76,43 @@ public class RemoteSchemaLoader extends SchemaLoader
    * @throws ConfigException
    *           if an error occurs loading the configuration required to use the schema classes.
    */
-  public void readSchema(ConnectionWrapper connWrapper) throws LdapException, DirectoryException,
+  public Schema readSchema(ConnectionWrapper connWrapper) throws LdapException, DirectoryException,
       InitializationException, ConfigException
   {
-    schema = getBaseSchema();
+    Schema baseSchema = getBaseSchema();
+    SchemaBuilder schemaBuilder = new SchemaBuilder(baseSchema);
+
     // Add missing matching rules and attribute syntaxes to base schema to allow read of remote server schema
     // (see OPENDJ-1122 for more details)
-    addMissingSyntaxesToBaseSchema(new AciSyntax(), new SubtreeSpecificationSyntax());
-    addMissingMatchingRuleToBaseSchema("1.3.6.1.4.1.26027.1.4.4", "historicalCsnOrderingMatch",
+    AciSyntax.addAciSyntax(schemaBuilder);
+    SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
+    addMatchingRuleIfMissing(schemaBuilder, baseSchema, "1.3.6.1.4.1.26027.1.4.4", "historicalCsnOrderingMatch",
         "1.3.6.1.4.1.1466.115.121.1.40", new HistoricalCsnOrderingMatchingRuleImpl());
 
+    // Add remote schema entry
     final SearchRequest request = newSearchRequest(
         DN.valueOf(DN_DEFAULT_SCHEMA_ROOT), BASE_OBJECT, Filter.alwaysTrue(),
         ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES, ATTR_OBJECTCLASSES);
     final SearchResultEntry entry = connWrapper.getConnection().searchSingleEntry(request);
-
     removeNonOpenDjOrOpenDsSyntaxes(entry);
-    schema.updateSchema(new SchemaUpdater()
-    {
-      @Override
-      public org.forgerock.opendj.ldap.schema.Schema update(SchemaBuilder builder)
-      {
-        builder.addSchema(entry, true);
-        return builder.toSchema();
-      }
-    });
+    schemaBuilder.addSchema(entry, true);
+
+    return buildSchema(schemaBuilder);
+
   }
 
-  private void addMissingSyntaxesToBaseSchema(final AttributeSyntax<?>... syntaxes)
-      throws DirectoryException, InitializationException, ConfigException
+  private void addMatchingRuleIfMissing(SchemaBuilder schemaBuilder, Schema baseSchema, final String oid,
+      final String name, final String syntaxOID, final MatchingRuleImpl impl) throws InitializationException,
+      ConfigException, DirectoryException
   {
-    for (AttributeSyntax<?> syntax : syntaxes)
+    if (!baseSchema.hasMatchingRule(name))
     {
-      final ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
-      final org.forgerock.opendj.ldap.schema.Schema schemaNG = serverContext.getSchemaNG();
-      if (!schemaNG.hasSyntax(syntax.getOID()))
-      {
-        syntax.initializeSyntax(null, serverContext);
-      }
-      schema.registerSyntax(syntax.getSDKSyntax(schemaNG), true);
+      schemaBuilder.buildMatchingRule(oid)
+        .names(name)
+        .syntaxOID(syntaxOID)
+        .implementation(impl)
+        .addToSchema();
     }
-  }
-
-  private void addMissingMatchingRuleToBaseSchema(final String oid, final String name, final String syntaxOID,
-      final MatchingRuleImpl impl)
-      throws InitializationException, ConfigException, DirectoryException
-  {
-    final org.forgerock.opendj.ldap.schema.Schema schemaNG = schema.getSchemaNG();
-    final MatchingRule matchingRule;
-    if (schemaNG.hasMatchingRule(name))
-    {
-      matchingRule = schemaNG.getMatchingRule(name);
-    }
-    else
-    {
-      matchingRule = new SchemaBuilder(schemaNG)
-          .buildMatchingRule(oid)
-            .names(name)
-            .syntaxOID(syntaxOID)
-            .implementation(impl)
-          .addToSchema()
-          .toSchema()
-          .getMatchingRule(oid);
-    }
-    schema.registerMatchingRules(Arrays.asList(matchingRule), true);
   }
 
   private void removeNonOpenDjOrOpenDsSyntaxes(final SearchResultEntry entry) throws DirectoryException

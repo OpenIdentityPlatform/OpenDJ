@@ -89,6 +89,7 @@ import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.util.OperatingSystem;
 import com.sun.corba.se.spi.ior.WriteContents;
 
 /**
@@ -1012,7 +1013,8 @@ public final class SchemaHandler
     @Override
     public boolean accept(File directory, String filename)
     {
-      return filename.endsWith(LDIF_SUFFIX);
+      return OperatingSystem.isWindows() ?
+          filename.toLowerCase().endsWith(LDIF_SUFFIX) : filename.endsWith(LDIF_SUFFIX);
     }
   }
 

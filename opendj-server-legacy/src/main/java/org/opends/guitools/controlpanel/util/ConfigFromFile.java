@@ -34,6 +34,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
@@ -132,12 +133,12 @@ public class ConfigFromFile extends ConfigReader
     {
       try
       {
-        readSchema();
-        if (getSchema() != null)
+        Schema schema = readSchema();
+        if (schema != null)
         {
           // Update the schema: so that when we call the server code the
           // latest schema read on the server we are managing is used.
-          DirectoryServer.setSchema(getSchema());
+          DirectoryServer.setSchema(schema);
         }
       }
       catch (final OpenDsException oe)

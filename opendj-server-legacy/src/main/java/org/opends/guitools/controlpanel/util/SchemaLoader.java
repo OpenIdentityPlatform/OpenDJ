@@ -16,11 +16,12 @@
  */
 package org.opends.guitools.controlpanel.util;
 
+import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
 import static org.opends.messages.ConfigMessages.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,17 +32,17 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Schema;
-
-import com.forgerock.opendj.util.OperatingSystem;
 
 /** Class used to retrieve the schema from the schema files. */
 public class SchemaLoader
@@ -63,13 +64,16 @@ public class SchemaLoader
   /** List of attribute syntaxes to keep in the schema. */
   protected final List<Syntax> syntaxesToKeep = new ArrayList<>();
 
+  private final ServerContext serverContext;
+
   /** Constructor. */
   public SchemaLoader()
   {
-    Schema sc = DirectoryServer.getSchema();
+    serverContext = DirectoryServer.getInstance().getServerContext();
+    Schema schema = serverContext.getSchemaHandler().getSchema();
     for (String name : OBJECTCLASS_TO_KEEP)
     {
-      ObjectClass oc = sc.getObjectClass(name);
+      ObjectClass oc = schema.getObjectClass(name);
       if (!oc.isPlaceHolder())
       {
         objectclassesToKeep.add(oc);
@@ -77,23 +81,19 @@ public class SchemaLoader
     }
     for (String name : ATTRIBUTES_TO_KEEP)
     {
-      if (sc.hasAttributeType(name))
+      if (schema.hasAttributeType(name))
       {
-        attributesToKeep.add(sc.getAttributeType(name));
+        attributesToKeep.add(schema.getAttributeType(name));
       }
     }
-    matchingRulesToKeep.addAll(sc.getMatchingRules());
-    syntaxesToKeep.addAll(sc.getSyntaxes());
-  }
-
-  private static String getSchemaDirectoryPath()
-  {
-    File schemaDir = DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
-    return schemaDir != null ? schemaDir.getAbsolutePath() : null;
+    matchingRulesToKeep.addAll(schema.getMatchingRules());
+    syntaxesToKeep.addAll(schema.getSyntaxes());
   }
 
   /**
-   * Reads the schema.
+   * Reads and returns the schema.
+   *
+   * @return the schema
    *
    * @throws ConfigException
    *           if an error occurs reading the schema.
@@ -102,44 +102,41 @@ public class SchemaLoader
    * @throws DirectoryException
    *           if there is an error registering the minimal objectclasses.
    */
-  public void readSchema() throws DirectoryException, ConfigException, InitializationException
+  public Schema readSchema() throws DirectoryException, ConfigException, InitializationException
   {
-    schema = getBaseSchema();
+    SchemaHandler schemaHandler = serverContext.getSchemaHandler();
+    final File schemaDir = schemaHandler.getSchemaDirectoryPath();
+    final List<String> fileNames = getSchemaFileNames(schemaDir);
 
-    List<String> fileNames;
-    String schemaDirPath = getSchemaDirectoryPath();
+    // build the schema from schema files
+    Schema baseSchema = getBaseSchema();
+    SchemaBuilder schemaBuilder = new SchemaBuilder(baseSchema);
+    for (String schemaFile : fileNames)
+    {
+      schemaHandler.loadSchemaFileIntoSchemaBuilder(new File(schemaDir, schemaFile), schemaBuilder, baseSchema);
+    }
+    return buildSchema(schemaBuilder);
+  }
+
+  Schema buildSchema(SchemaBuilder schemaBuilder) throws InitializationException
+  {
+    schema = schemaBuilder.toSchema();
+    Collection<LocalizableMessage> warnings = schema.getWarnings();
+    if (!warnings.isEmpty())
+    {
+      throw new InitializationException(
+          ERR_SCHEMA_HAS_WARNINGS.get(warnings.size(), Utils.joinAsString("; ", warnings)));
+    }
+    return schema;
+  }
+
+  private List<String> getSchemaFileNames(final File schemaDir)
+      throws InitializationException
+  {
+    final List<String> fileNames;
     try
     {
-      // Load install directory schema
-      File schemaDir = new File(schemaDirPath);
-      if (schemaDirPath == null || !schemaDir.exists())
-      {
-        LocalizableMessage message = ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR.get(schemaDirPath);
-        throw new InitializationException(message);
-      }
-      else if (!schemaDir.isDirectory())
-      {
-        LocalizableMessage message = ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(schemaDirPath);
-        throw new InitializationException(message);
-      }
-      FileFilter ldifFilesFilter = new FileFilter()
-      {
-        @Override
-        public boolean accept(File f)
-        {
-          if (f != null)
-          {
-            if (f.isDirectory())
-            {
-              return true;
-            }
-            return OperatingSystem.isWindows() ? f.getName().toLowerCase().endsWith(".ldif")
-                                               : f.getName().endsWith(".ldif");
-          }
-          return false;
-        }
-      };
-      File[] schemaFiles = schemaDir.listFiles(ldifFilesFilter);
+      File[] schemaFiles = schemaDir.listFiles(new SchemaHandler.SchemaFileFilter());
       fileNames = new ArrayList<>(schemaFiles.length);
       for (File f : schemaFiles)
       {
@@ -148,24 +145,12 @@ public class SchemaLoader
           fileNames.add(f.getName());
         }
       }
-
       Collections.sort(fileNames);
-    }
-    catch (InitializationException ie)
-    {
-      throw ie;
+      return fileNames;
     }
     catch (Exception e)
     {
-      throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDirPath, e.getMessage()), e);
-    }
-
-    // Iterate through the schema files and read them as an LDIF file containing a single entry.
-    // Then get the attributeTypes and objectClasses attributes from that entry
-    // and parse them to initialize the server schema.
-    for (String schemaFile : fileNames)
-    {
-      SchemaConfigManager.loadSchemaFile(schema, schemaFile);
+      throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDir, e.getMessage()), e);
     }
   }
 
@@ -198,7 +183,7 @@ public class SchemaLoader
       {
         builder.buildObjectClass(oc).addToSchemaOverwrite();
       }
-      return new Schema(builder.toSchema());
+      return builder.toSchema();
     }
     catch (LocalizedIllegalArgumentException e)
     {

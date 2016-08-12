@@ -31,6 +31,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.AdministrationConnectorCfgDefn;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
@@ -42,7 +43,6 @@ import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.Schema;
 
 /**
  * An abstract class providing some common interface for the class that read
@@ -251,18 +251,20 @@ public abstract class ConfigReader
 
   /**
    * Reads the schema from the files.
+   *
+   * @return the schema
    * @throws ConfigException if an error occurs reading the schema.
    * @throws InitializationException if an error occurs initializing
    * configuration to read schema.
    * @throws DirectoryException if there is an error registering the minimal
    * objectclasses.
    */
-  protected void readSchema() throws ConfigException, InitializationException,
+  protected Schema readSchema() throws ConfigException, InitializationException,
   DirectoryException
   {
     SchemaLoader loader = new SchemaLoader();
-    loader.readSchema();
-    schema = loader.getSchema();
+    schema = loader.readSchema();
+    return schema;
   }
 
   /**
