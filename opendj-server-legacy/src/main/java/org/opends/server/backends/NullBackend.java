@@ -18,7 +18,6 @@ package org.opends.server.backends;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -36,6 +35,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.PagedResultsControl;
@@ -44,6 +44,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.BackupConfig;
@@ -103,6 +104,9 @@ public class NullBackend extends Backend<BackendCfg>
   /** The map of null entry object classes. */
   private Map<ObjectClass,String> objectClasses;
 
+  /** The server context. */
+  private ServerContext serverContext;
+
   /**
    * Creates a new backend with the provided information.  All backend
    * implementations must implement a default constructor that use
@@ -118,6 +122,7 @@ public class NullBackend extends Backend<BackendCfg>
   @Override
   public void configureBackend(BackendCfg config, ServerContext serverContext) throws ConfigException
   {
+    this.serverContext = serverContext;
     if (config != null)
     {
       this.baseDNs = config.getBaseDN();
@@ -148,9 +153,16 @@ public class NullBackend extends Backend<BackendCfg>
     objectClasses.put(getExtensibleObjectObjectClass(), "extensibleobject");
 
     String nulOCName = "nullbackendobject";
-    ObjectClass nulOC = DirectoryServer.getSchema().getObjectClass(nulOCName);
+    final ObjectClass nulOC = serverContext.getSchema().getObjectClass(nulOCName);
     try {
-      DirectoryServer.getSchema().registerObjectClass(nulOC, getElementSchemaFile(nulOC), false);
+      serverContext.getSchemaHandler().updateSchema(new SchemaUpdater()
+      {
+        @Override
+        public void update(SchemaBuilder builder) throws DirectoryException
+        {
+          builder.buildObjectClass(nulOC);
+        }
+      });
     } catch (DirectoryException de) {
       logger.traceException(de);
       throw new InitializationException(de.getMessageObject());

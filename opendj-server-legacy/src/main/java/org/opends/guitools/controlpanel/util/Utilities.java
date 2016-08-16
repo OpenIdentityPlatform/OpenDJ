@@ -2030,7 +2030,7 @@ public class Utilities
     // Check all the attributes that we consider binaries.
     if (schema != null)
     {
-      AttributeType attrType = AttributeDescription.valueOf(attrName, schema.getSchemaNG()).getAttributeType();
+      AttributeType attrType = AttributeDescription.valueOf(attrName, schema).getAttributeType();
       if (!attrType.isPlaceHolder())
       {
         String syntaxOID = attrType.getSyntax().getOID();
@@ -2064,7 +2064,7 @@ public class Utilities
   {
     if (schema != null)
     {
-      AttributeType attrType = AttributeDescription.valueOf(attrName, schema.getSchemaNG()).getAttributeType();
+      AttributeType attrType = AttributeDescription.valueOf(attrName, schema).getAttributeType();
       if (!attrType.isPlaceHolder())
       {
         PasswordType passwordType = SchemaUtils.checkPasswordType(attrType);
@@ -2078,7 +2078,7 @@ public class Utilities
   {
     if (schema != null)
     {
-      AttributeType attrType = AttributeDescription.valueOf(attrName, schema.getSchemaNG()).getAttributeType();
+      AttributeType attrType = AttributeDescription.valueOf(attrName, schema).getAttributeType();
       if (!attrType.isPlaceHolder())
       {
         return oids.contains(attrType.getSyntax().getOID());

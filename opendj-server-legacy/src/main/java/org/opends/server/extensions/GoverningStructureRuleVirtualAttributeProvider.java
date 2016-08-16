@@ -179,7 +179,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
       return null;
     }
     Schema schema = DirectoryServer.getSchema();
-    Collection<NameForm> listForms = schema.getNameForm(oc);
+    Collection<NameForm> listForms = schema.getNameForms(oc);
     NameForm nameForm = null;
     DITStructureRule ditRule = null;
     //We iterate over all the nameforms while creating the entry and

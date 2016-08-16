@@ -964,7 +964,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private ObjectClass getNewObjectClass()
   {
-    return new SchemaBuilder(schema.getSchemaNG()).buildObjectClass(getOID())
+    return new SchemaBuilder(schema).buildObjectClass(getOID())
         .names(getAllNames())
         .description(getDescription())
         .superiorObjectClasses(getNameOrOIDsForOCs(getObjectClassSuperiors()))

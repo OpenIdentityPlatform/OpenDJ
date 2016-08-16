@@ -238,7 +238,7 @@ public final class TestCaseUtils {
   public static void startFakeServer() throws Exception
   {
     schemaBeforeStartingFakeServer = DirectoryServer.getSchema();
-    DirectoryServer.setSchema(new Schema(org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema()));
+    DirectoryServer.setSchema(Schema.getDefaultSchema());
   }
 
   /**
@@ -747,9 +747,11 @@ public final class TestCaseUtils {
   /**
    * Undo all the setup done by #startFakeServer().
    *
+   * @throws DirectoryException
+   *            If the initial schema contains warning
    * @see #startFakeServer() Matching method that starts the fake server
    */
-  public static void shutdownFakeServer()
+  public static void shutdownFakeServer() throws DirectoryException
   {
     DirectoryServer.setSchema(schemaBeforeStartingFakeServer);
   }

@@ -311,7 +311,7 @@ class TableViewEntryPanel extends ViewEntryPanel
               Object o = table.getValueAt(i, 1);
               if (o instanceof String)
               {
-                AttributeDescription attrDesc = AttributeDescription.valueOf(attrName, schema.getSchemaNG());
+                AttributeDescription attrDesc = AttributeDescription.valueOf(attrName, schema);
                 AttributeType attrType = attrDesc.getAttributeType();
                 if (!attrType.isPlaceHolder())
                 {

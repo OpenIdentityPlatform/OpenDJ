@@ -29,8 +29,6 @@ import java.util.TreeSet;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.ldap.schema.NameForm;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -39,6 +37,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.SchemaUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -111,10 +110,10 @@ public class GenericSchemaTestCase
       {
         for (ByteString v : a)
         {
-          AttributeType at = DirectoryServer.getSchema().parseAttributeType(v.toString());
-          if (! isNumericOID(at.getOID()))
+          String oid = SchemaUtils.parseAttributeTypeOID(v.toString());
+          if (! isNumericOID(oid))
           {
-            invalidOIDs.add(at.getNameOrOID());
+            invalidOIDs.add(oid);
           }
         }
       }
@@ -141,10 +140,10 @@ public class GenericSchemaTestCase
       {
         for (ByteString v : a)
         {
-          ObjectClass oc = DirectoryServer.getSchema().parseObjectClass(v.toString());
-          if (! isNumericOID(oc.getOID()))
+          String oid = SchemaUtils.parseObjectClassOID(v.toString());
+          if (! isNumericOID(oid))
           {
-            invalidOIDs.add(oc.getNameOrOID());
+            invalidOIDs.add(oid);
           }
         }
       }
@@ -170,10 +169,10 @@ public class GenericSchemaTestCase
       {
         for (ByteString v : a)
         {
-          NameForm nf = DirectoryServer.getSchema().parseNameForm(v.toString());
-          if (! isNumericOID(nf.getOID()))
+          String oid = SchemaUtils.parseNameFormOID(v.toString());
+          if (! isNumericOID(oid))
           {
-            invalidOIDs.add(nf.getNameOrOID());
+            invalidOIDs.add(oid);
           }
         }
       }

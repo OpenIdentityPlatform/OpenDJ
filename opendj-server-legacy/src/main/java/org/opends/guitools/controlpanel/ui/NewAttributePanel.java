@@ -683,7 +683,7 @@ public class NewAttributePanel extends StatusGenericPanel
   {
     AttributeType superior = getSuperior();
     Syntax selectedSyntax = (Syntax) syntax.getSelectedItem();
-    return new SchemaBuilder(schema.getSchemaNG()).buildAttributeType(getOID())
+    return new SchemaBuilder(schema).buildAttributeType(getOID())
       .names(getAllNames())
       .description(getDescription())
       .superiorType(superior != null ? superior.getNameOrOID() : null)

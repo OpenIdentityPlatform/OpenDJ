@@ -493,7 +493,7 @@ public class DeleteSchemaElementsTask extends Task
       }
       final String oid = ocToDelete.getOID();
       final Schema schema = getInfo().getServerDescriptor().getSchema();
-      return new SchemaBuilder(schema.getSchemaNG()).buildObjectClass(oid)
+      return new SchemaBuilder(schema).buildObjectClass(oid)
           .names(ocToDelete.getNames())
           .description(ocToDelete.getDescription())
           .superiorObjectClasses(getNameOrOIDsForOCs(newSuperiors))

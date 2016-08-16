@@ -680,7 +680,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
   private ObjectClass getObjectClass()
   {
-    return new SchemaBuilder(schema.getSchemaNG()).buildObjectClass(getOID())
+    return new SchemaBuilder(schema).buildObjectClass(getOID())
         .names(getAllNames())
         .description(getDescription())
         .superiorObjectClasses(getNameOrOIDsForOCs(getObjectClassSuperiors()))

@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -48,7 +49,7 @@ public class MonitorDataTestCase extends APITestCase
   }
 
   @AfterClass
-  public void tearDown()
+  public void tearDown() throws DirectoryException
   {
     TestCaseUtils.shutdownFakeServer();
   }

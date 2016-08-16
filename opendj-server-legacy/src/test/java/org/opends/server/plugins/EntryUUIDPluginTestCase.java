@@ -27,11 +27,15 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.meta.EntryUUIDPluginCfgDefn;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.extensions.InitializationUtils;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
@@ -58,7 +62,10 @@ public class EntryUUIDPluginTestCase
     TestCaseUtils.startServer();
   }
 
-
+  private SchemaHandler getSchemaHandler()
+  {
+    return DirectoryServer.getInstance().getServerContext().getSchemaHandler();
+  }
 
   /**
    * Retrieves a set of valid configuration entries that may be used to
@@ -139,17 +146,39 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType entryUUIDType = CoreSchema.getEntryUUIDAttributeType();
-    DirectoryServer.getSchema().deregisterAttributeType(entryUUIDType);
+    final AttributeType entryUUIDType = CoreSchema.getEntryUUIDAttributeType();
+    removeAttributeType(entryUUIDType);
 
     EntryUUIDPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
 
 
-    DirectoryServer.getSchema().registerAttributeType(entryUUIDType, null, false);
+    addAttributeType(entryUUIDType);
   }
 
+  private void addAttributeType(final AttributeType at) throws DirectoryException
+  {
+    getSchemaHandler().updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        builder.buildAttributeType(at).addToSchema();
+      }
+    });
+  }
 
+  private void removeAttributeType(final AttributeType at) throws DirectoryException
+  {
+    getSchemaHandler().updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        builder.removeAttributeType(at.getOID());
+      }
+    });
+  }
 
   /**
    * Retrieves a set of invalid configuration entries.

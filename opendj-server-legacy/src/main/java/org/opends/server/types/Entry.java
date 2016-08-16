@@ -1641,7 +1641,7 @@ public class Entry
          * DITStructureRules corresponding to other non-acceptable
          * nameforms are not applied.
          */
-        Collection<NameForm> forms = DirectoryServer.getSchema().getNameForm(structuralClass);
+        Collection<NameForm> forms = DirectoryServer.getSchema().getNameForms(structuralClass);
         if (forms != null)
         {
           List<NameForm> listForms = new ArrayList<>(forms);
@@ -2186,7 +2186,7 @@ public class Entry
         }
         else
         {
-          Collection<NameForm> allNFs = DirectoryServer.getSchema().getNameForm(parentStructuralClass);
+          Collection<NameForm> allNFs = DirectoryServer.getSchema().getNameForms(parentStructuralClass);
           if(allNFs != null)
           {
             for(NameForm parentNF : allNFs)

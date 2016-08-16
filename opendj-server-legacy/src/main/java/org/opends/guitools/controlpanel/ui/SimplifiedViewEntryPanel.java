@@ -1428,7 +1428,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
                 Object o = comps.iterator().next().getValue();
                 if (o instanceof String)
                 {
-                  AttributeDescription attrDesc = AttributeDescription.valueOf(attrName, schema.getSchemaNG());
+                  AttributeDescription attrDesc = AttributeDescription.valueOf(attrName, schema);
                   AttributeType attrType = attrDesc.getAttributeType();
                   if (!attrType.isPlaceHolder())
                   {

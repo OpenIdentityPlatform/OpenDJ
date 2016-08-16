@@ -16,6 +16,8 @@
  */
 package org.opends.server.backends;
 
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.STRIP_UPPER_BOUND_FOR_ATTRIBUTE_TYPE;
+
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
@@ -33,7 +35,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -80,7 +81,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
@@ -375,7 +375,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     Schema schema = schemaHandler.getSchema();
     buildSchemaAttribute(schema.getAttributeTypes(), userAttrs,
         operationalAttrs, attributeTypesType, includeSchemaFile,
-        AttributeTypeSyntax.isStripSyntaxMinimumUpperBound(),
+        schema.getOption(STRIP_UPPER_BOUND_FOR_ATTRIBUTE_TYPE),
         ignoreShowAllOption);
     buildSchemaAttribute(schema.getObjectClasses(), userAttrs,
         operationalAttrs, objectClassesType, includeSchemaFile, false,

@@ -146,7 +146,7 @@ public class CoreConfigManager
     try
     {
       final boolean allowMalformedNames = globalConfig.isAllowAttributeNameExceptions();
-      serverContext.getSchema().updateSchemaOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowMalformedNames);
+      serverContext.getSchemaHandler().updateSchemaOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowMalformedNames);
     }
     catch (DirectoryException e)
     {

@@ -17,6 +17,7 @@ package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -35,7 +36,7 @@ public class AciBodyTest extends DirectoryServerTestCase
   }
 
   @AfterClass
-  public void tearDown()
+  public void tearDown() throws DirectoryException
   {
     TestCaseUtils.shutdownFakeServer();
   }

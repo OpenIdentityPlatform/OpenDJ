@@ -183,7 +183,7 @@ public class ModifyAttributeTask extends Task
 
       Schema schema = getInfo().getServerDescriptor().getSchema();
       String oid = ocToDelete.getOID();
-      return new SchemaBuilder(schema.getSchemaNG()).buildObjectClass(oid)
+      return new SchemaBuilder(schema).buildObjectClass(oid)
           .names(ocToDelete.getNames())
           .description(ocToDelete.getDescription())
           .superiorObjectClasses(getNameOrOIDsForOCs(ocToDelete.getSuperiorClasses()))

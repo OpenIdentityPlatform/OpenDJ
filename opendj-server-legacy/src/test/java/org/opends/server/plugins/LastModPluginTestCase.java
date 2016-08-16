@@ -30,16 +30,20 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.meta.LastModPluginCfgDefn;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SchemaHandler;
+import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
@@ -66,7 +70,40 @@ public class LastModPluginTestCase
     TestCaseUtils.startServer();
   }
 
+  private SchemaHandler getSchemaHandler()
+  {
+    return DirectoryServer.getInstance().getServerContext().getSchemaHandler();
+  }
 
+  private void registerAttributeTypes(final AttributeType...types) throws Exception
+  {
+    getSchemaHandler().updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        for (AttributeType at : types)
+        {
+          builder.buildAttributeType(at).addToSchema();
+        }
+      }
+    });
+  }
+
+  private void deregisterAttributeTypes(final AttributeType...types) throws Exception
+  {
+    getSchemaHandler().updateSchema(new SchemaUpdater()
+    {
+      @Override
+      public void update(SchemaBuilder builder) throws DirectoryException
+      {
+        for (AttributeType at : types)
+        {
+          builder.removeAttributeType(at.getOID());
+        }
+      }
+    });
+  }
 
   /**
    * Retrieves a set of valid configuration entries that may be used to
@@ -164,23 +201,13 @@ public class LastModPluginTestCase
     AttributeType mtType = getModifyTimestampAttributeType();
     AttributeType mnType = getModifiersNameAttributeType();
 
-    DirectoryServer.getSchema().deregisterAttributeType(ctType);
-    DirectoryServer.getSchema().deregisterAttributeType(cnType);
-    DirectoryServer.getSchema().deregisterAttributeType(mtType);
-    DirectoryServer.getSchema().deregisterAttributeType(mnType);
-
+    deregisterAttributeTypes(ctType, cnType, mtType, mnType);
 
     LastModPlugin plugin = initializePlugin(e);
     plugin.finalizePlugin();
 
-
-    DirectoryServer.getSchema().registerAttributeType(ctType, null, false);
-    DirectoryServer.getSchema().registerAttributeType(cnType, null, false);
-    DirectoryServer.getSchema().registerAttributeType(mtType, null, false);
-    DirectoryServer.getSchema().registerAttributeType(mnType, null, false);
+    registerAttributeTypes(ctType, cnType, mtType, mnType);
   }
-
-
 
   /**
    * Retrieves a set of invalid configuration entries.
