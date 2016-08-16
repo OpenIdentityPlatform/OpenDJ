@@ -25,12 +25,10 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.util.RemoveOnceSDKSchemaIsUsed;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -39,69 +37,8 @@ import static org.testng.Assert.*;
 
 /** Test the AttributeTypeSyntax. */
 @RemoveOnceSDKSchemaIsUsed
-public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
+public class AttributeTypeSyntaxTest extends SchemaTestCase
 {
-  @Override
-  protected AttributeSyntax getRule()
-  {
-    return new AttributeTypeSyntax();
-  }
-
-  @Override
-  @DataProvider(name="acceptableValues")
-  public Object[][] createAcceptableValues()
-  {
-    return new Object [][] {
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
-          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
-          " SUBSTR caseIgnoreSubstringsMatch" +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " USAGE userApplications )",
-          true},
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
-          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
-          " SUBSTR caseIgnoreSubstringsMatch" +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " COLLECTIVE USAGE userApplications )",
-          true},
-          {"(1.2.8.5 NAME 'testtype')", true},
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type')",
-              true},
-        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)",
-              true},
-        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' )",
-              true},
-        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test')",
-              true},
-        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
-          " X-SCHEMA-FILE '33-test.ldif' )",
-              true},
-        {"(1.2.8.5 USAGE directoryOperation )",
-              true},
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
-          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
-          " SUBSTR caseIgnoreSubstringsMatch" +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " COLLECTIVE USAGE userApplications )",
-          true}, // Collective can inherit from non-collective
-        {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE " +
-          " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch" +
-          " SUBSTR caseIgnoreSubstringsMatch" +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
-          " COLLECTIVE USAGE directoryOperation )",
-          true}, // Collective can be operational
-        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
-          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
-          " X-SCHEMA-FILE '33-test.ldif' X-NAME )",
-          false}, // X-NAME is invalid extension (no value)
-    };
-  }
-
-
 
   /**
    * Tests the use of the "X-APPROX" extension to specify a particular
