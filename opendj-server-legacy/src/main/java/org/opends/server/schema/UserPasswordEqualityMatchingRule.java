@@ -16,10 +16,13 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.server.schema.SchemaConstants.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.api.PasswordStorageScheme;
 
 import static org.opends.server.core.DirectoryServer.*;
@@ -31,7 +34,7 @@ import static org.opends.server.core.DirectoryServer.*;
  * This matching rule serves a similar purpose to the equivalent
  * AuthPasswordEqualityMatchingRule defined in RFC 3112 (http://tools.ietf.org/html/rfc3112).
  */
-class UserPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingRuleImpl
+public class UserPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingRuleImpl
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -64,6 +67,21 @@ class UserPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingR
     // We support the scheme, so make the determination.
     return ConditionResult.valueOf(
         storageScheme.passwordMatches(assertionValue, ByteString.valueOfUtf8(userPWComponents[1])));
+  }
+
+  /**
+   * Adds the user password equality matching rule to the provided schema builder.
+   *
+   * @param builder
+   *          where to add the matching rule
+   */
+  public static void addUserPasswordEqualityMatchingRule(SchemaBuilder builder)
+  {
+    builder.buildMatchingRule(EMR_USER_PASSWORD_OID)
+      .names(EMR_USER_PASSWORD_NAME)
+      .syntaxOID(SYNTAX_OCTET_STRING_OID).description(EMR_USER_PASSWORD_DESCRIPTION)
+      .implementation(new UserPasswordEqualityMatchingRule())
+      .addToSchema();
   }
 
 }

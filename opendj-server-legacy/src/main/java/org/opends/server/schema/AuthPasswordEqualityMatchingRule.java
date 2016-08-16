@@ -16,15 +16,18 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.server.schema.SchemaConstants.*;
+
 import static org.opends.server.core.DirectoryServer.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.api.PasswordStorageScheme;
 
 /** This class implements the authPasswordMatch matching rule defined in RFC 3112. */
-class AuthPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingRuleImpl
+public class AuthPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingRuleImpl
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -54,5 +57,20 @@ class AuthPasswordEqualityMatchingRule extends AbstractPasswordEqualityMatchingR
     // We support the scheme, so make the determination.
     return ConditionResult.valueOf(storageScheme.authPasswordMatches(
         assertionValue, authPWComponents[1], authPWComponents[2]));
+  }
+
+  /**
+   * Adds the auth password equality matching rule to the provided schema builder.
+   *
+   * @param builder
+   *          where to add the matching rule
+   */
+  public static void addAuthPasswordEqualityMatchingRule(SchemaBuilder builder)
+  {
+    builder.buildMatchingRule(EMR_AUTH_PASSWORD_OID)
+        .names(EMR_AUTH_PASSWORD_NAME)
+        .syntaxOID(SYNTAX_AUTH_PASSWORD_OID).description(EMR_AUTH_PASSWORD_DESCRIPTION)
+        .implementation(new AuthPasswordEqualityMatchingRule())
+        .addToSchema();
   }
 }

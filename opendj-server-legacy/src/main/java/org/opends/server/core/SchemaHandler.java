@@ -46,7 +46,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
 import org.opends.server.schema.AciSyntax;
+import org.opends.server.schema.AuthPasswordEqualityMatchingRule;
 import org.opends.server.schema.SubtreeSpecificationSyntax;
+import org.opends.server.schema.UserPasswordEqualityMatchingRule;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
@@ -204,10 +206,15 @@ public final class SchemaHandler
 
       try
       {
-        // Add server specific syntaxes and matching rules not provided by the SDK
+        // Add server specific syntaxes not provided by the SDK
         AciSyntax.addAciSyntax(schemaBuilder);
         SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
+
+        // Add server specific matching rules not provided by the SDK
         HistoricalCsnOrderingMatchingRuleImpl.addHistoricalCsnOrderingMatchingRule(schemaBuilder);
+        AuthPasswordEqualityMatchingRule.addAuthPasswordEqualityMatchingRule(schemaBuilder);
+        UserPasswordEqualityMatchingRule.addUserPasswordEqualityMatchingRule(schemaBuilder);
+
       }
       catch (ConflictingSchemaElementException e)
       {
