@@ -21,13 +21,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.SchemaTestMatchingRuleImpl;

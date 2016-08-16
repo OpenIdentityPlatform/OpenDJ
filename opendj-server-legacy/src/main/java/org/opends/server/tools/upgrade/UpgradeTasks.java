@@ -67,7 +67,6 @@ import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
-import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ClientException;

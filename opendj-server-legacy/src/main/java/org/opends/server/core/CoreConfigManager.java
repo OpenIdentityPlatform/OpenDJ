@@ -23,7 +23,6 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.SchemaOptions;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn.DisabledPrivilege;

@@ -1785,9 +1785,11 @@ public final class StaticUtils
       for (File f : files)
       {
           if (!f.isDirectory())
+          {
             allDeleted = f.delete() && allDeleted;
           }
       }
+    }
     return allDeleted;
   }
 

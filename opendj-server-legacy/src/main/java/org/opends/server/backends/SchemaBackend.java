@@ -668,7 +668,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
     else
     {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(attribute.getAttributeDescription());
+      LocalizableMessage message =
+         ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(attribute.getAttributeDescription());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
   }
@@ -747,7 +748,8 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
     else
     {
-      LocalizableMessage message = ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(attribute.getAttributeDescription());
+      LocalizableMessage message =
+         ERR_SCHEMA_MODIFY_UNSUPPORTED_ATTRIBUTE_TYPE.get(attribute.getAttributeDescription());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
   }

@@ -239,6 +239,7 @@ public class SchemaWriter
    * should be from making changes to the schema files with the server offline.
    *
    * @throws InitializationException
+   *            If concatenated schema can't be updated
    */
   public static void updateConcatenatedSchema() throws InitializationException
   {

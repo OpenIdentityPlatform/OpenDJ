@@ -19,7 +19,6 @@ package org.opends.server.schema;
 import static org.opends.server.schema.SchemaConstants.*;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
