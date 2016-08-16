@@ -30,6 +30,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.CollectionUtils;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
 import static org.opends.messages.AdminToolMessages.*;
 
@@ -133,7 +134,7 @@ class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
       int index = 0;
       for (MonitoringAttributes attr : ngOperations)
       {
-        if (sr.getAttribute(attr.getAttributeName()).firstValueAsString() == null)
+        if (firstValueAsString(sr, attr.getAttributeName()) == null)
         {
           monitoringLabels.get(index).setVisible(false);
           labels.get(index).setVisible(false);

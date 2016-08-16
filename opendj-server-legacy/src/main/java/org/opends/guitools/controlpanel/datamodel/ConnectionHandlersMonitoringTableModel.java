@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 
 import java.net.InetAddress;
@@ -144,7 +145,7 @@ AddressConnectionHandlerDescriptor>
   {
     for (SearchResultEntry sr : cch.getMonitoringEntries())
     {
-      String cn = sr.getAttribute("cn").firstValueAsString();
+      String cn = firstValueAsString(sr, "cn");
       if (cn != null)
       {
         if (address == null)

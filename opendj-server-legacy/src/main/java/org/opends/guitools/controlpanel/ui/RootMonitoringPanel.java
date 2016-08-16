@@ -30,6 +30,7 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ConfigFromConnection;
 import org.opends.guitools.controlpanel.util.Utilities;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.BackendMessages.*;
@@ -154,8 +155,8 @@ class RootMonitoringPanel extends GeneralMonitoringPanel
       version.setText(server.getOpenDSVersion());
       try
       {
-        String start = sr.getAttribute(START_DATE.getAttributeName()).firstValueAsString();
-        String current = sr.getAttribute(CURRENT_DATE.getAttributeName()).firstValueAsString();
+        String start = firstValueAsString(sr, START_DATE.getAttributeName());
+        String current = firstValueAsString(sr, CURRENT_DATE.getAttributeName());
         Date startTime = ConfigFromConnection.utcParser.parse(start);
         Date currentTime = ConfigFromConnection.utcParser.parse(current);
 

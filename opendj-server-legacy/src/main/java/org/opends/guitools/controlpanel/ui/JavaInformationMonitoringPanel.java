@@ -42,6 +42,7 @@ import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.util.CollectionUtils;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -367,7 +368,7 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
 
       for (int i=0; i<memoryAttributes.size() ; i++)
       {
-        String value = csrMemory.getAttribute(memoryAttributes.get(i)).firstValueAsString();
+        String value = firstValueAsString(csrMemory, memoryAttributes.get(i));
         if (value != null)
         {
           memoryLabels.get(i).setText(value);

@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
 import static org.opends.server.util.SchemaUtils.*;
 
@@ -508,7 +509,7 @@ public class ServerDescriptor
     {
       return false;
     }
-    String os = sr.getAttribute("operatingSystem").firstValueAsString();
+    String os = firstValueAsString(sr, "operatingSystem");
     return os != null && OperatingSystem.WINDOWS.equals(OperatingSystem.forName(os));
   }
 
@@ -692,8 +693,8 @@ public class ServerDescriptor
     {
       try
       {
-        String start = rootMonitor.getAttribute(START_DATE.getAttributeName()).firstValueAsString();
-        String current = rootMonitor.getAttribute(CURRENT_DATE.getAttributeName()).firstValueAsString();
+        String start = firstValueAsString(rootMonitor, START_DATE.getAttributeName());
+        String current = firstValueAsString(rootMonitor, CURRENT_DATE.getAttributeName());
         Date startTime = ConfigFromConnection.utcParser.parse(start);
         Date currentTime = ConfigFromConnection.utcParser.parse(current);
         return currentTime.getTime() - startTime.getTime();

@@ -16,6 +16,7 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -284,8 +285,8 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
   /**
    * Returns the monitoring entry associated with the provided backend.
    * @param backend the backend.
-   * @return the monitoring entry associated with the provided backend.  Returns
-   * <CODE>null</CODE> if there is no monitoring entry associated.
+   * @return the monitoring entry associated with the provided backend,
+   * or {@code null} if there is no monitoring entry associated.
    */
   private SearchResultEntry getMonitoringEntry(BackendDescriptor backend)
   {
@@ -300,7 +301,7 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
     SearchResultEntry monitoringEntry = getMonitoringEntry(backend);
     for (String attr : attributes)
     {
-      String o = monitoringEntry.getAttribute(attr).firstValueAsString();
+      String o = firstValueAsString(monitoringEntry, attr);
       line[i] = o != null ? o : NO_VALUE_SET.toString();
       i++;
     }
