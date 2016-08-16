@@ -67,11 +67,11 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
       .setOption(ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS, configuration.isAllowZeroLengthValuesDirectoryString())
       .setOption(STRICT_FORMAT_FOR_COUNTRY_STRINGS, configuration.isStrictFormatCountryString())
       .setOption(STRIP_UPPER_BOUND_FOR_ATTRIBUTE_TYPE,
-          configuration.isStripSyntaxMinUpperBoundAttributeTypeDescription());
-    // TODO : add the missing methods in schema builder for those properties
-    // schemaBuilder.allowMalformedJPEGPhotos(configuration.)
-    // schemaBuilder.allowMalformedNamesAndOptions(configuration.)
-    // ...
+          configuration.isStripSyntaxMinUpperBoundAttributeTypeDescription())
+      .setOption(ALLOW_MALFORMED_JPEG_PHOTOS, !configuration.isStrictFormatJPEGPhotos())
+      .setOption(ALLOW_MALFORMED_CERTIFICATES, !configuration.isStrictFormatCertificates())
+      .setOption(ALLOW_NON_STANDARD_TELEPHONE_NUMBERS, !configuration.isStrictFormatTelephoneNumbers())
+      .setOption(ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX, configuration.isAllowAttributeTypesWithNoSupOrSyntax());
 
     for (final String oid : configuration.getDisabledMatchingRule())
     {

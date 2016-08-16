@@ -3365,7 +3365,10 @@ public final class DirectoryServer
    *
    * @return  <CODE>true</CODE> if the server should use a more flexible
    *          syntax for attribute names, or <CODE>false</CODE> if not.
+   * @deprecated The schema option SchemaOptions.ALLOW_MALFORMED_NAMES_AND_OPTIONS from the
+   *  schema should be used instead
    */
+  @Deprecated
   public static boolean allowAttributeNameExceptions()
   {
     return directoryServer.allowAttributeNameExceptions;

@@ -176,4 +176,88 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+    <adm:property name="strict-format-jpeg-photos" advanced="true">
+    <adm:synopsis>
+      Indicates whether to require JPEG values to strictly
+      comply with the standard definition for this syntax.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strict-format-jpeg-photos</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+    <adm:property name="strict-format-certificates" advanced="true">
+    <adm:synopsis>
+      Indicates whether X.509 Certificate values are required to
+      strictly comply with the standard definition for this syntax.
+    </adm:synopsis>
+    <adm:description>
+      When set to false, certificates will not be validated and, as a result
+      any sequence of bytes will be acceptable.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strict-format-certificates</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+    <adm:property name="strict-format-telephone-numbers" advanced="true">
+    <adm:synopsis>
+      Indicates whether to require telephone number values to strictly
+      comply with the standard definition for this syntax.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strict-format-telephone-numbers</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="allow-attribute-types-with-no-sup-or-syntax" advanced="true">
+    <adm:synopsis>
+      Indicates whether the schema should allow attribute type definitions
+      that do not declare a superior attribute type or syntax
+    </adm:synopsis>
+    <adm:description>
+      When set to true, invalid attribute type definitions will
+      use the default syntax.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-allow-attribute-types-with-no-sup-or-syntax</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>
