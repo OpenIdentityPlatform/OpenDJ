@@ -87,7 +87,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SchemaWriter;
-import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 
@@ -103,7 +102,6 @@ import com.forgerock.opendj.util.OperatingSystem;
  *   <li>Load all schema files located in the schema directory.</li>
  * </ul>
  */
-@ActivateOnceSDKSchemaIsUsed
 public final class SchemaHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

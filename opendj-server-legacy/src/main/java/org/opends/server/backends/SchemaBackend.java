@@ -17,7 +17,6 @@
 package org.opends.server.backends;
 
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.STRIP_UPPER_BOUND_FOR_ATTRIBUTE_TYPE;
-
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
@@ -69,6 +68,7 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
+import org.forgerock.util.Reject;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.Backupable;
@@ -168,6 +168,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   @Override
   public void configureBackend(SchemaBackendCfg cfg, ServerContext serverContext) throws ConfigException
   {
+    Reject.ifNull(serverContext);
     this.serverContext = serverContext;
     this.schemaHandler = serverContext.getSchemaHandler();
 
@@ -177,7 +178,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       throw new ConfigException(ERR_SCHEMA_CONFIG_ENTRY_NULL.get());
     }
-
     Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
     configEntryDN = configEntry.getName();

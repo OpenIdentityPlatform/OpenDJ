@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.forgerock.util.Utils;
+import org.opends.server.ServerContextBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperationBasis;
@@ -64,7 +65,6 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
@@ -117,13 +117,16 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { ConfigException.class,
-                               InitializationException.class })
-  public void testInitializeWithNullEntry()
-         throws Exception
+  @Test(expectedExceptions = { ConfigException.class})
+  public void testInitializeWithNullConfigEntry() throws Exception
   {
-    SchemaBackend schemaBackend = new SchemaBackend();
-    schemaBackend.configureBackend(null, null);
+    new SchemaBackend().configureBackend(null, ServerContextBuilder.aServerContext().build());
+  }
+
+  @Test(expectedExceptions = { NullPointerException.class })
+  public void testInitializeWithNullParams() throws Exception
+  {
+    new SchemaBackend().configureBackend(null, null);
   }
 
   /**

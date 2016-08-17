@@ -38,10 +38,9 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaHandler;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -205,14 +204,8 @@ public final class TestEntry extends TypesTestCase {
   @Test
   public void testParseAttributesSubtreeSpecification()
       throws Exception {
-    // Define a dummy attribute type, in case there is not one already
-    // in the core schema.
-    String string = "( 2.5.18.6 NAME 'subtreeSpecification' "
-        + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.45 )";
-
-    SchemaHandler schemaHandler = DirectoryServer.getInstance().getServerContext().getSchemaHandler();
-    SchemaBuilder builder = new SchemaBuilder(schemaHandler.getSchema());
-    AttributeType type = builder.addAttributeType(string, false).toSchema().getAttributeType("2.5.18.6");
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    AttributeType type = schema.getAttributeType("2.5.18.6");
 
     // Test values.
     String[] values = new String[] { "{ }",
