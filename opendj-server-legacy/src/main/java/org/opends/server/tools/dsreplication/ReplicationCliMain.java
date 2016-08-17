@@ -2362,7 +2362,8 @@ public class ReplicationCliMain extends ConsoleApplication
       pwdFile = getPwdFile();
     }
 
-    serverCI.initializeGlobalArguments(host, port, adminUid, DN.valueOf(bindDn), pwd, pwdFile);
+    final DN bindDN = bindDn != null ? DN.valueOf(bindDn) : null;
+    serverCI.initializeGlobalArguments(host, port, adminUid, bindDN, pwd, pwdFile);
     return doNotDisplayFirstError;
   }
 
