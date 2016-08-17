@@ -826,8 +826,7 @@ public class Entry
   public AttributeParser parseAttribute(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    final Iterable<Attribute> attribute = getAllAttributes(attributeDescription);
-    Iterator<Attribute> it = attribute.iterator();
+    Iterator<Attribute> it = getAllAttributes(attributeDescription).iterator();
     return AttributeParser.parseAttribute(it.hasNext() ? it.next() : null);
   }
 
@@ -4617,5 +4616,101 @@ public class Entry
         }
       }
     }
+  }
+
+  /**
+   * Retrieves the entire set of attributes for this entry. This includes both user and operational
+   * attributes.
+   *
+   * @return The entire set of attributes for this entry.
+   */
+  @Deprecated
+  public List<Attribute> getAttributes()
+  {
+    return collect(getAllAttributes(), new ArrayList<Attribute>());
+  }
+
+  /**
+   * Kept for ABI compatibility.
+   *
+   * @param attributeType
+   *          The attribute type to retrieve.
+   * @return The requested attributes.
+   * @see #getAllAttributes(AttributeType)
+   */
+  @Deprecated
+  public List<Attribute> getAttribute(AttributeType attributeType)
+  {
+    return getAllAttributes(attributeType);
+  }
+
+  /**
+   * Kept for ABI compatibility.
+   *
+   * @param attributeType
+   *          The attribute type to retrieve.
+   * @param includeSubordinates
+   *          Whether to include any subordinate attributes of the attribute type being retrieved.
+   * @return The requested attributes.
+   * @see #getAllAttributes(AttributeType,boolean)
+   */
+  @Deprecated
+  public List<Attribute> getAttribute(AttributeType attributeType, boolean includeSubordinates)
+  {
+    return getAllAttributes(attributeType, includeSubordinates);
+  }
+
+  /**
+   * Kept for ABI compatibility.
+   *
+   * @param nameOrOID
+   *          The name or OID of the attribute to return
+   * @return The requested attributes.
+   * @see #getAllAttributes(String)
+   */
+  @Deprecated
+  public List<Attribute> getAttribute(String nameOrOID)
+  {
+    return collect(getAllAttributes(nameOrOID), new ArrayList<Attribute>());
+  }
+
+  // Cannot preserve this API because it conflicts with another method
+  // @Deprecated
+  // public List<Attribute> getAttribute(AttributeDescription attributeDescription)
+  // {
+  // return collect(getAllAttributes(attributeDescription), new ArrayList<Attribute>());
+  // }
+
+  /**
+   * Ensures that this entry contains the provided attribute and its values.
+   *
+   * @param attribute
+   *          The attribute to add or merge with this entry.
+   * @param duplicateValues
+   *          A list to which any duplicate values will be added.
+   * @see #addAttribute(Attribute, Collection)
+   */
+  @Deprecated
+  public void addAttribute(Attribute attribute, List<ByteString> duplicateValues)
+  {
+    addAttribute(attribute, (Collection<ByteString>) duplicateValues);
+  }
+
+  /**
+   * Ensures that this entry does not contain the provided attribute values.
+   *
+   * @param attribute
+   *          The attribute containing the information to use to perform the removal.
+   * @param missingValues
+   *          A list to which any values contained in the provided attribute but not present in the
+   *          entry will be added.
+   * @return whether the attribute type was present and the specified values that were present were
+   *         removed.
+   * @see #removeAttribute(Attribute, Collection)
+   */
+  @Deprecated
+  public boolean removeAttribute(Attribute attribute, List<ByteString> missingValues)
+  {
+    return removeAttribute(attribute, (Collection<ByteString>) missingValues);
   }
 }
