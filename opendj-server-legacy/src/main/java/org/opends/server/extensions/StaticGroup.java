@@ -753,7 +753,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
      */
     public DN toDn(ServerContext serverContext)
     {
-      return DN.valueOf(toString(), serverContext.getSchemaNG());
+      return DN.valueOf(toString(), serverContext.getSchema());
     }
 
     @Override

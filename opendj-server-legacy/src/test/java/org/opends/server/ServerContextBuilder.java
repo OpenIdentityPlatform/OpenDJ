@@ -65,7 +65,6 @@ public class ServerContextBuilder
   public ServerContextBuilder schema(Schema schema)
   {
     when(serverContext.getSchema()).thenReturn(schema);
-    when(serverContext.getSchemaNG()).thenReturn(schema);
     return this;
   }
 
@@ -73,7 +72,6 @@ public class ServerContextBuilder
   {
     when(serverContext.getSchemaHandler()).thenReturn(handler);
     when(serverContext.getSchema()).thenReturn(handler.getSchema());
-    when(serverContext.getSchemaNG()).thenReturn(handler.getSchema());
     return this;
   }
 

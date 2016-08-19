@@ -99,7 +99,7 @@ abstract class HttpOAuth2AuthorizationMechanism<T extends HTTPOauth2Authorizatio
         "no_realm", config.getRequiredScope(), resolver, "u:{" + config.getAuthzidJsonPointer()+"}");
     this.delegate = newConditionalFilter(
         chainOf(oauth2Filter.getFilter(), new InternalProxyAuthzFilter(getIdentityMapper(config.getIdentityMapperDN()),
-                                                                                         serverContext.getSchemaNG())),
+                                                                                         serverContext.getSchema())),
         oauth2Filter.getCondition());
   }
 

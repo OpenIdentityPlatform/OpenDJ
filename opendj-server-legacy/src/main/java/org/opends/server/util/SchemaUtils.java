@@ -187,7 +187,7 @@ public class SchemaUtils
       String property, String...values)
   {
     SchemaBuilder schemaBuilder =
-         new SchemaBuilder(serverContext != null ? serverContext.getSchemaNG() : Schema.getDefaultSchema());
+         new SchemaBuilder(serverContext != null ? serverContext.getSchema() : Schema.getDefaultSchema());
     AttributeType.Builder builder =
         schemaBuilder.buildAttributeType(attributeType).removeExtraProperty(property, (String) null);
     if (values != null && values.length > 0)

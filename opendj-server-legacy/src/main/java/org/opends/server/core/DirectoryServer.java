@@ -1003,12 +1003,6 @@ public final class DirectoryServer
     }
 
     @Override
-    public org.forgerock.opendj.ldap.schema.Schema getSchemaNG()
-    {
-      return directoryServer.schemaHandler.getSchema();
-    }
-
-    @Override
     public SchemaHandler getSchemaHandler()
     {
       return directoryServer.schemaHandler;

@@ -43,24 +43,16 @@ public interface ServerContext
 
   /**
    * Returns the schema of the server.
+   * <p>
+   * The schema is immutable. Any change on the schema must be done using a {@code SchemaHandler}
+   * which is available through the {@code getSchemaHandler()} method.
    *
    * @return the schema
    */
   Schema getSchema();
 
   /**
-   * Returns the new schema of the server (SDK schema).
-   * <p>
-   * This method will disappear once migration to new schema
-   * is finished. Meanwhile, it is necessary to keep both the
-   * legacy version and the new version.
-   *
-   * @return the new version of the schema
-   */
-  org.forgerock.opendj.ldap.schema.Schema getSchemaNG();
-
-  /**
-   * Returns the schema handler, which provides schema management.
+   * Returns the schema handler, which provides operations to the schema.
    *
    * @return the schema handler
    */

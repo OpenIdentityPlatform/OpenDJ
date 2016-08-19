@@ -95,7 +95,7 @@ public class CompressedSchema
 
   /** Schema used to build the compressed information. */
   @GuardedBy("lock")
-  private Schema schemaNG;
+  private Schema schema;
   @GuardedBy("lock")
   private Mappings mappings = new Mappings();
 
@@ -129,15 +129,15 @@ public class CompressedSchema
     boolean shared = true;
     try
     {
-      Schema currentSchema = serverContext.getSchemaNG();
-      if (schemaNG != currentSchema)
+      Schema currentSchema = serverContext.getSchema();
+      if (schema != currentSchema)
       {
         sharedLock.unlock();
         exclusiveLock.lock();
         shared = false;
 
-        currentSchema = serverContext.getSchemaNG();
-        if (schemaNG != currentSchema)
+        currentSchema = serverContext.getSchema();
+        if (schema != currentSchema)
         {
           // build new maps from existing ones
           Mappings newMappings = new Mappings(mappings.adEncodeMap.size(), mappings.ocEncodeMap.size());
@@ -145,7 +145,7 @@ public class CompressedSchema
           reloadObjectClassesMap(mappings, newMappings);
 
           mappings = newMappings;
-          schemaNG = currentSchema;
+          schema = currentSchema;
         }
       }
       return mappings;

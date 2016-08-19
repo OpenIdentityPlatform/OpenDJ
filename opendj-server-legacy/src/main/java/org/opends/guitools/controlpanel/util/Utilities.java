@@ -2831,9 +2831,9 @@ public class Utilities
   public static SchemaElement updateSchemaElementExtraPropertyMultiplesValues(ServerContext serverContext,
       SchemaElement element, String property, List<String> values)
   {
-    org.forgerock.opendj.ldap.schema.Schema schemaNG = serverContext != null ?
-        serverContext.getSchemaNG() : org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema();
-    SchemaBuilder schemaBuilder = new SchemaBuilder(schemaNG);
+    org.forgerock.opendj.ldap.schema.Schema schema = serverContext != null ?
+        serverContext.getSchema() : org.forgerock.opendj.ldap.schema.Schema.getDefaultSchema();
+    SchemaBuilder schemaBuilder = new SchemaBuilder(schema);
     if (element instanceof AttributeType)
     {
       AttributeType attr = (AttributeType) element;
