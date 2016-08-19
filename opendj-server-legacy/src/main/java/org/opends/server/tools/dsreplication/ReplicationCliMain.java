@@ -4655,13 +4655,14 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           // They are already replicated: nothing to do in terms of ADS
           // initialization or ADS update data
-          adsAlreadyReplicated = isBaseDNReplicated(serverDesc1, serverDesc2, ADSContext.getAdministrationSuffixDN());
+          DN adminDataSuffix = ADSContext.getAdministrationSuffixDN();
+          adsAlreadyReplicated = isBaseDNReplicated(serverDesc1, serverDesc2, adminDataSuffix);
 
           if (!adsAlreadyReplicated)
           {
             // Try to merge if both are replicated
-            boolean isADS1Replicated = isBaseDNReplicated(serverDesc1, ADSContext.getAdministrationSuffixDN());
-            boolean isADS2Replicated = isBaseDNReplicated(serverDesc2, ADSContext.getAdministrationSuffixDN());
+            boolean isADS1Replicated = isBaseDNReplicated(serverDesc1, adminDataSuffix);
+            boolean isADS2Replicated = isBaseDNReplicated(serverDesc2, adminDataSuffix);
             if (isADS1Replicated && isADS2Replicated)
             {
               // Merge
@@ -4769,12 +4770,12 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<PreferredConnection> cnx = new LinkedHashSet<>();
       cnx.addAll(getPreferredConnections(conn1));
       cnx.addAll(getPreferredConnections(conn2));
-      cache1 = createTopologyCache(adsCtx1, cnx, uData);
+      cache1 = createTopologyCacheOrNull(adsCtx1, cnx, uData);
       if (cache1 != null)
       {
         usedReplicationServerIds.addAll(getReplicationServerIds(cache1));
       }
-      cache2 = createTopologyCache(adsCtx2, cnx, uData);
+      cache2 = createTopologyCacheOrNull(adsCtx2, cnx, uData);
       if (cache1 != null)
       {
         usedReplicationServerIds.addAll(getReplicationServerIds(cache1));
@@ -4933,12 +4934,12 @@ public class ReplicationCliMain extends ConsoleApplication
       final Set<PreferredConnection> cnx = new LinkedHashSet<>();
       cnx.addAll(getPreferredConnections(conn1));
       cnx.addAll(getPreferredConnections(conn2));
-      final TopologyCache cache1 = createTopologyCache(adsCtx1, cnx, uData);
+      final TopologyCache cache1 = createTopologyCacheOrNull(adsCtx1, cnx, uData);
       if (cache1 != null)
       {
         messages.addAll(cache1.getErrorMessages());
       }
-      final TopologyCache cache2 = createTopologyCache(adsCtx2, cnx, uData);
+      final TopologyCache cache2 = createTopologyCacheOrNull(adsCtx2, cnx, uData);
       if (cache2 != null)
       {
         messages.addAll(cache2.getErrorMessages());
@@ -5024,8 +5025,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void addReplicationDomainIds(Set<Integer> replicationIds, ServerDescriptor serverDesc1, DN baseDN)
   {
-    ReplicaDescriptor replica = findReplicated(baseDN, serverDesc1);
-    if (replica != null)
+    ReplicaDescriptor replica = findReplicaForSuffixDN(serverDesc1.getReplicas(), baseDN);
+    if (replica != null && replica.isReplicated())
     {
       replicationIds.add(replica.getReplicationId());
     }
@@ -5118,8 +5119,8 @@ public class ReplicationCliMain extends ConsoleApplication
         ERROR_CONFIGURING_REPLICATIONSERVER, ode);
   }
 
-  private TopologyCache createTopologyCache(ADSContext adsCtx, Set<PreferredConnection> cnx, ReplicationUserData uData)
-      throws ADSContextException, TopologyCacheException
+  private TopologyCache createTopologyCacheOrNull(ADSContext adsCtx, Set<PreferredConnection> cnx,
+      ReplicationUserData uData) throws ADSContextException, TopologyCacheException
   {
     if (adsCtx.hasAdminData())
     {
@@ -5228,8 +5229,8 @@ public class ReplicationCliMain extends ConsoleApplication
       // Figure out if this is the last replication server for a given
       // topology (containing a different replica) or there will be only
       // another replication server left (single point of failure).
-      Set<SuffixDescriptor> lastRepServer = new TreeSet<>(new SuffixComparator());
-      Set<SuffixDescriptor> beforeLastRepServer = new TreeSet<>(new SuffixComparator());
+      Set<SuffixDescriptor> lastRepServer = new TreeSet<>();
+      Set<SuffixDescriptor> beforeLastRepServer = new TreeSet<>();
 
       for (SuffixDescriptor suffix : cache.getSuffixes())
       {
@@ -5292,7 +5293,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!isBaseDNSpecified(uData.getBaseDNs(), suffix.getDN()))
           {
-            Set<ServerDescriptor> servers = new TreeSet<>(new ServerComparator());
+            Set<ServerDescriptor> servers = new TreeSet<>();
             for (ReplicaDescriptor replica : suffix.getReplicas())
             {
               servers.add(replica.getServer());
@@ -5302,7 +5303,7 @@ public class ReplicationCliMain extends ConsoleApplication
           else if (suffix.getReplicas().size() > 1)
           {
             // If there is just one replica, it is the one in this server.
-            Set<ServerDescriptor> servers = new TreeSet<>(new ServerComparator());
+            Set<ServerDescriptor> servers = new TreeSet<>();
             for (ReplicaDescriptor replica : suffix.getReplicas())
             {
               if (!replica.getServer().isSameServer(server))
@@ -5385,14 +5386,14 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    Set<DN> suffixesToDisable = new HashSet<>();
+    Set<DN> suffixesToDisable;
     if (uData.disableAll())
     {
-      addAllReplicated(suffixesToDisable, server.getReplicas());
+      suffixesToDisable = findAllReplicatedSuffixDNs(server.getReplicas());
     }
     else
     {
-      suffixesToDisable.addAll(uData.getBaseDNs());
+      suffixesToDisable = new HashSet<>(uData.getBaseDNs());
 
       if (disableAllBaseDns &&
           (disableReplicationServer || !server.isReplicationServer()))
@@ -5533,17 +5534,6 @@ public class ReplicationCliMain extends ConsoleApplication
         // This is not critical, do not send an error
         logger.warn(LocalizableMessage.raw("Error unregistering server: "+
             server.getAdsProperties(), adce));
-      }
-    }
-  }
-
-  private void addAllReplicated(Set<DN> suffixesToDisable, Set<ReplicaDescriptor> replicas)
-  {
-    for (ReplicaDescriptor replica : replicas)
-    {
-      if (replica.isReplicated())
-      {
-        suffixesToDisable.add(replica.getSuffix().getDN());
       }
     }
   }
@@ -5933,7 +5923,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         HostPort hp1 = getHostPort2(replica1.getServer(), cnx);
         HostPort hp2 = getHostPort2(replica2.getServer(), cnx);
-        return hp1.toString().compareTo(hp2.toString());
+        return hp1.compareTo(hp2);
       }
     });
     orderedReplicas.addAll(sortedReplicas);
@@ -7569,14 +7559,12 @@ public class ReplicationCliMain extends ConsoleApplication
       return true;
     }
 
-    Collection<ReplicaDescriptor> replicas = getReplicas(conn);
-    Set<DN> replicatedSuffixes = findAllReplicasForSuffixDN(replicas);
-
-    for (DN dn1 : replicatedSuffixes)
+    Set<DN> replicatedSuffixes = findAllReplicatedSuffixDNs(getReplicas(conn));
+    for (DN dn : replicatedSuffixes)
     {
-      if (!ADSContext.getAdministrationSuffixDN().equals(dn1)
-          && !Constants.SCHEMA_DN.equals(dn1)
-          && !uData.getBaseDNs().contains(dn1))
+      if (!ADSContext.getAdministrationSuffixDN().equals(dn)
+          && !Constants.SCHEMA_DN.equals(dn)
+          && !uData.getBaseDNs().contains(dn))
       {
         return false;
       }
@@ -9048,7 +9036,7 @@ public class ReplicationCliMain extends ConsoleApplication
     return null;
   }
 
-  private Set<DN> findAllReplicasForSuffixDN(Collection<ReplicaDescriptor> replicas)
+  private Set<DN> findAllReplicatedSuffixDNs(Collection<ReplicaDescriptor> replicas)
   {
     Set<DN> results = new HashSet<>();
     for (ReplicaDescriptor replica : replicas)
@@ -9059,18 +9047,6 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return results;
-  }
-
-  private ReplicaDescriptor findReplicated(DN baseDN, ServerDescriptor server)
-  {
-    for (ReplicaDescriptor replica : server.getReplicas())
-    {
-      if (replica.isReplicated() && replica.getSuffix().getDN().equals(baseDN))
-      {
-        return replica;
-      }
-    }
-    return null;
   }
 
   private boolean displayLogFileAtEnd(String subCommand)
@@ -9139,31 +9115,6 @@ class ReplicationServerComparator implements Comparator<ServerDescriptor>
   @Override
   public int compare(ServerDescriptor s1, ServerDescriptor s2)
   {
-    int compare = s1.getHostName().compareTo(s2.getHostName());
-    if (compare != 0)
-    {
-      return compare;
-    }
-    return ((Integer) s1.getReplicationServerPort()).compareTo(s2.getReplicationServerPort());
-  }
-}
-
-/** Class used to compare suffixes. */
-class SuffixComparator implements Comparator<SuffixDescriptor>
-{
-  @Override
-  public int compare(SuffixDescriptor s1, SuffixDescriptor s2)
-  {
-    return s1.getId().compareTo(s2.getId());
-  }
-}
-
-/** Class used to compare servers. */
-class ServerComparator implements Comparator<ServerDescriptor>
-{
-  @Override
-  public int compare(ServerDescriptor s1, ServerDescriptor s2)
-  {
-    return s1.getId().compareTo(s2.getId());
+    return s1.getReplicationServerHostPort().compareTo(s2.getReplicationServerHostPort());
   }
 }

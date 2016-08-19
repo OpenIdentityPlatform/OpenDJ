@@ -28,7 +28,7 @@ import org.opends.server.types.HostPort;
  * have the same suffix DN. If there is more than one replica on the suffix, the
  * contents of the replicas are replicated.
  */
-public class SuffixDescriptor
+public class SuffixDescriptor implements Comparable<SuffixDescriptor>
 {
   private DN suffixDN;
   private final Set<ReplicaDescriptor> replicas = new HashSet<>();
@@ -126,6 +126,12 @@ public class SuffixDescriptor
       buf.append("-").append(replica.getServer().getId());
     }
     return buf.toString();
+  }
+
+  @Override
+  public int compareTo(SuffixDescriptor o)
+  {
+    return getId().compareTo(o.getId());
   }
 
   @Override

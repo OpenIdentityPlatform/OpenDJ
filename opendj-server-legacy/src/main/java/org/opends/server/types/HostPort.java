@@ -44,7 +44,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public final class HostPort
+public final class HostPort implements Comparable<HostPort>
 {
 
   /** The tracer object for the debug logger. */
@@ -491,6 +491,13 @@ public final class HostPort
       // Unknown RS: should not happen
       return false;
     }
+  }
+
+  @Override
+  public int compareTo(HostPort o)
+  {
+    final int cmp = host.compareTo(o.host);
+    return cmp != 0 ? cmp : getPort() - o.getPort();
   }
 
   /**

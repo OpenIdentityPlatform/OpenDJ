@@ -178,6 +178,7 @@ public class ADSContext
 
   /** Default global admin UID. */
   public static final String GLOBAL_ADMIN_UID = "admin";
+  private static final DN ADMIN_DATA = DN.valueOf("cn=admin data");
 
   /** The list of server properties that are multivalued. */
   private static final Set<ServerProperty> MULTIVALUED_SERVER_PROPERTIES = new HashSet<>();
@@ -1071,7 +1072,7 @@ public class ADSContext
    */
   public static DN getAdministrationSuffixDN()
   {
-    return DN.valueOf("cn=admin data");
+    return ADMIN_DATA;
   }
 
   /**

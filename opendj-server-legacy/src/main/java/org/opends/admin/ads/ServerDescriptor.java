@@ -54,7 +54,7 @@ import org.opends.server.types.HostPort;
  * <p>
  * It can represent either a DS-only, a RS-only or a combined DS-RS.
  */
-public class ServerDescriptor
+public class ServerDescriptor implements Comparable<ServerDescriptor>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final String TRUSTSTORE_DN = "cn=ads-truststore";
@@ -481,6 +481,12 @@ public class ServerDescriptor
       }
     }
     return buf.toString();
+  }
+
+  @Override
+  public int compareTo(ServerDescriptor o)
+  {
+    return getId().compareTo(o.getId());
   }
 
   /**
