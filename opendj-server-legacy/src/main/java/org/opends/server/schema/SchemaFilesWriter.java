@@ -86,7 +86,7 @@ import org.opends.server.util.SchemaUtils;
 /**
  * Provides support to write schema files to disk.
  */
-class SchemaWriter
+class SchemaFilesWriter
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -106,7 +106,7 @@ class SchemaWriter
    * @param serverContext
    *            The server context.
    */
-  public SchemaWriter(ServerContext serverContext)
+  public SchemaFilesWriter(ServerContext serverContext)
   {
     this.serverContext = serverContext;
   }

@@ -15,18 +15,13 @@
  * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.schema;
+
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.DirectoryException;
 
 
@@ -47,63 +42,8 @@ import org.opends.server.types.DirectoryException;
  * </UL>
  */
 public class UserPasswordSyntax
-       extends AttributeSyntax<AttributeSyntaxCfg>
+
 {
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-  /**
-   * Creates a new instance of this syntax.  Note that the only thing that
-   * should be done here is to invoke the default constructor for the
-   * superclass.  All initialization should be performed in the
-   * <CODE>initializeSyntax</CODE> method.
-   */
-  public UserPasswordSyntax()
-  {
-    super();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Syntax getSDKSyntax(Schema schema)
-  {
-    return schema.getSyntax(SchemaConstants.SYNTAX_USER_PASSWORD_OID);
-  }
-
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
-   */
-  @Override
-  public String getName()
-  {
-    return SYNTAX_USER_PASSWORD_NAME;
-  }
-
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
-   */
-  @Override
-  public String getOID()
-  {
-    return SYNTAX_USER_PASSWORD_OID;
-  }
-
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
-  @Override
-  public String getDescription()
-  {
-    return SYNTAX_USER_PASSWORD_DESCRIPTION;
-  }
-
 
   /**
    * Decodes the provided user password value into its component parts.

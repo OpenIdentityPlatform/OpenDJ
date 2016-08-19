@@ -21,11 +21,14 @@ import org.opends.server.types.Entry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.extensions.SaltedMD5PasswordStorageScheme;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -105,17 +108,11 @@ public class UserPasswordEqualityMatchingRuleTest extends SchemaTestCase
     assertEquals(liveResult, ConditionResult.valueOf(result));
   }
 
-  private MatchingRule getRule()
+  private MatchingRule getRule() throws ConfigException
   {
-    UserPasswordEqualityMatchingRuleFactory factory = new UserPasswordEqualityMatchingRuleFactory();
-    try
-    {
-      factory.initializeMatchingRule(null);
-    }
-    catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
-    return factory.getMatchingRules().iterator().next();
+    SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
+    SchemaHandler.addServerSyntaxesAndMatchingRules(schemaBuilder);
+    return schemaBuilder.toSchema().getMatchingRule(SchemaConstants.EMR_USER_PASSWORD_OID);
   }
 }
 

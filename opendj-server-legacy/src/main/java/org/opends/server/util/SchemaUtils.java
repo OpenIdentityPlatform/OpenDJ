@@ -16,7 +16,6 @@
 package org.opends.server.util;
 
 import static org.opends.messages.SchemaMessages.*;
-
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_USER_PASSWORD_OID;
@@ -28,6 +27,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
@@ -78,6 +78,19 @@ public class SchemaUtils
       return PasswordType.USER_PASSWORD;
     }
     return PasswordType.NOT_A_PASSWORD;
+  }
+
+  /**
+   * Retrieves an attribute value containing a representation of the provided
+   * boolean value.
+   *
+   * @param  b  The boolean value for which to retrieve the attribute value.
+   *
+   * @return  The attribute value created from the provided boolean value.
+   */
+  public static ByteString createBooleanValue(boolean b)
+  {
+    return b ? ServerConstants.TRUE_VALUE : ServerConstants.FALSE_VALUE;
   }
 
   /**

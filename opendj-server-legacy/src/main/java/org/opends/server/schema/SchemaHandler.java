@@ -134,7 +134,7 @@ public final class SchemaHandler
   private volatile Schema schema;
 
   /** Writer which persists schema to disk. */
-  private SchemaWriter schemaWriter;
+  private SchemaFilesWriter schemaWriter;
 
   /**
    * The list of offline modifications made to the schema.
@@ -207,7 +207,7 @@ public final class SchemaHandler
   public void initialize(final ServerContext serverContext) throws InitializationException, ConfigException
   {
     this.serverContext = serverContext;
-    this.schemaWriter = new SchemaWriter(serverContext);
+    this.schemaWriter = new SchemaFilesWriter(serverContext);
 
     exclusiveLock.lock();
     try

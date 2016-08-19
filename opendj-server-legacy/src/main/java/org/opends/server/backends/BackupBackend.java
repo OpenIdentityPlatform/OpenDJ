@@ -20,7 +20,6 @@ import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.schema.BooleanSyntax.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -74,6 +73,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.util.SchemaUtils;
 
 /**
  * This class defines a backend used to present information about Directory
@@ -640,7 +640,7 @@ public class BackupBackend
   private void putBoolean(LinkedHashMap<AttributeType, List<Attribute>> attrsMap, String attrName, boolean value)
   {
     AttributeType t = getSchema().getAttributeType(attrName);
-    attrsMap.put(t, asList(t, createBooleanValue(value)));
+    attrsMap.put(t, asList(t, SchemaUtils.createBooleanValue(value)));
   }
 
   private List<Attribute> asList(AttributeType attrType, ByteString value)

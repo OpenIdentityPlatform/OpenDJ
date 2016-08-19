@@ -18,8 +18,7 @@
 package org.opends.server.schema;
 
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.ServerConstants.TIME_ZONE_UTC;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -31,10 +30,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -45,64 +40,12 @@ import org.opends.server.types.DirectoryException;
  * offset like "-0500" for representing values that are not in UTC.
  */
 public class GeneralizedTimeSyntax
-       extends AttributeSyntax<AttributeSyntaxCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** UTC TimeZone is assumed to never change over JVM lifetime. */
   private static final TimeZone TIME_ZONE_UTC_OBJ =
       TimeZone.getTimeZone(TIME_ZONE_UTC);
-
-  /**
-   * Creates a new instance of this syntax.  Note that the only thing that
-   * should be done here is to invoke the default constructor for the
-   * superclass.  All initialization should be performed in the
-   * <CODE>initializeSyntax</CODE> method.
-   */
-  public GeneralizedTimeSyntax()
-  {
-    super();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Syntax getSDKSyntax(Schema schema)
-  {
-    return schema.getSyntax(SchemaConstants.SYNTAX_GENERALIZED_TIME_OID);
-  }
-
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
-   */
-  @Override
-  public String getName()
-  {
-    return SYNTAX_GENERALIZED_TIME_NAME;
-  }
-
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
-   */
-  @Override
-  public String getOID()
-  {
-    return SYNTAX_GENERALIZED_TIME_OID;
-  }
-
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
-  @Override
-  public String getDescription()
-  {
-    return SYNTAX_GENERALIZED_TIME_DESCRIPTION;
-  }
 
   /**
    * Retrieves the generalized time representation of the provided date.

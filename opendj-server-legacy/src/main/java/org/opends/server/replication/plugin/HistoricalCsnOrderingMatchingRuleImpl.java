@@ -28,7 +28,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -178,20 +177,4 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     return indexers;
   }
 
-  /**
-   * Adds the historical csn ordering matching rule to the provided schema builder.
-   *
-   * @param builder
-   *          where to add the historical csn ordering matching rule
-   * @return the provided builder
-   */
-  public static SchemaBuilder addHistoricalCsnOrderingMatchingRule(SchemaBuilder builder)
-  {
-    return builder
-        .buildMatchingRule("1.3.6.1.4.1.26027.1.4.4")
-        .names("historicalCsnOrderingMatch")
-        .syntaxOID("1.3.6.1.4.1.1466.115.121.1.40")
-        .implementation(new HistoricalCsnOrderingMatchingRuleImpl())
-        .addToSchema();
-  }
 }

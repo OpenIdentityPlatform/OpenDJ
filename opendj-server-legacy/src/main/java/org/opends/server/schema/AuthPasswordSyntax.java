@@ -16,15 +16,10 @@
  */
 package org.opends.server.schema;
 import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.Syntax;
-import org.forgerock.opendj.server.config.server.AttributeSyntaxCfg;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -33,58 +28,7 @@ import org.opends.server.types.DirectoryException;
  * matching will be allowed by default.
  */
 public class AuthPasswordSyntax
-       extends AttributeSyntax<AttributeSyntaxCfg>
 {
-
-  /**
-   * Creates a new instance of this syntax.  Note that the only thing that
-   * should be done here is to invoke the default constructor for the
-   * superclass.  All initialization should be performed in the
-   * <CODE>initializeSyntax</CODE> method.
-   */
-  public AuthPasswordSyntax()
-  {
-    super();
-  }
-
-  @Override
-  public Syntax getSDKSyntax(Schema schema)
-  {
-    return schema.getSyntax(SchemaConstants.SYNTAX_AUTH_PASSWORD_OID);
-  }
-
-  /**
-   * Retrieves the common name for this attribute syntax.
-   *
-   * @return  The common name for this attribute syntax.
-   */
-  @Override
-  public String getName()
-  {
-    return SYNTAX_AUTH_PASSWORD_NAME;
-  }
-
-  /**
-   * Retrieves the OID for this attribute syntax.
-   *
-   * @return  The OID for this attribute syntax.
-   */
-  @Override
-  public String getOID()
-  {
-    return SYNTAX_AUTH_PASSWORD_OID;
-  }
-
-  /**
-   * Retrieves a description for this attribute syntax.
-   *
-   * @return  A description for this attribute syntax.
-   */
-  @Override
-  public String getDescription()
-  {
-    return SYNTAX_AUTH_PASSWORD_DESCRIPTION;
-  }
 
   /**
    * Decodes the provided authentication password value into its component parts.
