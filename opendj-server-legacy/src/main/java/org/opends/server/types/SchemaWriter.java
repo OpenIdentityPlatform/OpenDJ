@@ -40,6 +40,7 @@ import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -163,16 +164,18 @@ public class SchemaWriter
   }
 
   /**
-   * Updates the concatenated schema if changes are detected in the current schema files.
+   * Updates the concatenated schema if changes are detected in the current schema files
+   * and return the modifications.
    * <p>
    * Identify any differences that may exist between the concatenated schema file from the last
    * online modification and the current schema files. If there are any differences, then they
    * should be from making changes to the schema files with the server offline.
    *
+   * @return the list of modifications made offline on the schema.
    * @throws InitializationException
    *            If concatenated schema can't be updated
    */
-  public void updateConcatenatedSchema() throws InitializationException
+  public List<Modification> updateConcatenatedSchemaIfChangesDetected() throws InitializationException
   {
     try
     {
@@ -214,12 +217,11 @@ public class SchemaWriter
       {
         // TODO : Raise an alert notification.
 
-        DirectoryServer.setOfflineSchemaChanges(mods);
-
         // Write a new concatenated schema file with the most recent information
         // so we don't re-find these same changes on the next startup.
         writeConcatenatedSchema();
       }
+      return mods;
     }
     catch (InitializationException ie)
     {
@@ -230,6 +232,7 @@ public class SchemaWriter
       logger.traceException(e);
 
       logger.error(ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES, getExceptionMessage(e));
+      return Collections.emptyList();
     }
   }
 

@@ -19,10 +19,12 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
 import java.util.List;
 
 import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
@@ -53,6 +55,7 @@ public abstract class
    * Performs any initialization that might be necessary for this
    * synchronization provider.
    *
+   * @param serverContext The server context.
    * @param  config  The configuration information for this
    *                 synchronization provider.
    *
@@ -66,7 +69,7 @@ public abstract class
    *                                   is not related to the server
    *                                   configuration.
    */
-  public abstract void initializeSynchronizationProvider(T config)
+  public abstract void initializeSynchronizationProvider(ServerContext serverContext, T config)
          throws ConfigException, InitializationException;
 
 

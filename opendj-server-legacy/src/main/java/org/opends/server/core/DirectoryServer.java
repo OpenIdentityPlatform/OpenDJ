@@ -148,7 +148,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LockManager;
-import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
@@ -504,12 +503,6 @@ public final class DirectoryServer
 
   /** The sets of mail server properties. */
   private List<Properties> mailServerPropertySets;
-
-  /**
-   * The set of schema changes made by editing the schema configuration files
-   * with the server offline.
-   */
-  private List<Modification> offlineSchemaChanges;
 
   /** The log rotation policy config manager for the Directory Server. */
   private LogRotationPolicyConfigManager rotationPolicyConfigManager;
@@ -1221,7 +1214,6 @@ public final class DirectoryServer
       directoryServer.identityMappers = new ConcurrentHashMap<>();
       directoryServer.extendedOperationHandlers = new ConcurrentHashMap<>();
       directoryServer.saslMechanismHandlers = new ConcurrentHashMap<>();
-      directoryServer.offlineSchemaChanges = new LinkedList<>();
       directoryServer.backupTaskListeners = new CopyOnWriteArrayList<>();
       directoryServer.restoreTaskListeners = new CopyOnWriteArrayList<>();
       directoryServer.exportTaskListeners = new CopyOnWriteArrayList<>();
@@ -1719,6 +1711,7 @@ public final class DirectoryServer
   public void initializeSchema() throws InitializationException, ConfigException
   {
     schemaHandler.initialize(serverContext);
+    schemaHandler.detectChangesOnInitialization();
 
     // With server schema in place set compressed schema.
     compressedSchema = new DefaultCompressedSchema(serverContext);
@@ -2200,38 +2193,6 @@ public final class DirectoryServer
   public static void setSchema(Schema newSchema) throws DirectoryException
   {
     directoryServer.schemaHandler.updateSchema(newSchema);
-  }
-
-  /**
-   * Retrieves a list of modifications detailing any schema changes that may
-   * have been made with the server offline (e.g., by directly editing the
-   * schema configuration files).  Note that this information will not be
-   * available until the server backends (and in particular, the schema backend)
-   * have been initialized.
-   *
-   * @return  A list of modifications detailing any schema changes that may have
-   *          been made with the server offline, or an empty list if no offline
-   *          schema changes have been detected.
-   */
-  public static List<Modification> getOfflineSchemaChanges()
-  {
-    return directoryServer.offlineSchemaChanges;
-  }
-
-  /**
-   * Specifies a list of modifications detailing any schema changes that may
-   * have been made with the server offline.
-   *
-   * @param  offlineSchemaChanges  A list of modifications detailing any schema
-   *                               changes that may have been made with the
-   *                               server offline.  It must not be {@code null}.
-   */
-  public static void setOfflineSchemaChanges(List<Modification>
-                                                  offlineSchemaChanges)
-  {
-    ifNull(offlineSchemaChanges);
-
-    directoryServer.offlineSchemaChanges = offlineSchemaChanges;
   }
 
   /**

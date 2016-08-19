@@ -15,6 +15,8 @@
  */
 package org.opends.server.core;
 
+import static java.util.Collections.emptyList;
+
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR;
 import static org.opends.messages.SchemaMessages.NOTE_SCHEMA_IMPORT_FAILED;
@@ -143,6 +145,12 @@ public final class SchemaHandler
   private SchemaWriter schemaWriter;
 
   /**
+   * The list of offline modifications made to the schema.
+   * This list is built when initializing the schema handler.
+   */
+  private List<Modification> offlineSchemaModifications = emptyList();
+
+  /**
    * A set of extra attributes that are not used directly by the schema but may
    * be used by other component to store information in the schema.
    * <p>
@@ -244,11 +252,25 @@ public final class SchemaHandler
       {
         throw new ConfigException(e.getMessageObject(), e);
       }
+
     }
     finally
     {
       exclusiveLock.unlock();
     }
+  }
+
+  /**
+   * Detects offline schema changes by comparing schema files and concatenated schema.
+   * <p>
+   * Updates the concatenated schema if changes are detected.
+   *
+   * @throws InitializationException
+   *            If an error occurs while updating the concatenated schema
+   */
+  public void detectChangesOnInitialization() throws InitializationException
+  {
+    offlineSchemaModifications = schemaWriter.updateConcatenatedSchemaIfChangesDetected();
   }
 
   /**
@@ -284,6 +306,17 @@ public final class SchemaHandler
       throw new InitializationException(ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY.get(dir.getPath()));
     }
     return dir;
+  }
+
+  /**
+   * Returns the list of offline modifications made to the schema, which is built once when
+   * initializing the schema.
+   *
+   * @return the offline schema modifications list
+   */
+  public List<Modification> getOfflineSchemaModifications()
+  {
+    return Collections.unmodifiableList(offlineSchemaModifications);
   }
 
   /**

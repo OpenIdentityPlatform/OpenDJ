@@ -96,7 +96,6 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.SchemaWriter;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BackupManager;
 import org.opends.server.util.LDIFException;
@@ -224,8 +223,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         throw new InitializationException(message, e);
       }
     }
-
-    new SchemaWriter(serverContext).updateConcatenatedSchema();
 
     // Register with the Directory Server as a configurable component.
     currentConfig.addSchemaChangeListener(this);

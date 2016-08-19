@@ -314,7 +314,7 @@ public class SynchronizationProviderConfigManager
     try
     {
       // Initialize the Synchronization Provider.
-      provider.initializeSynchronizationProvider(configuration);
+      provider.initializeSynchronizationProvider(serverContext, configuration);
     } catch (Exception e)
     {
       try

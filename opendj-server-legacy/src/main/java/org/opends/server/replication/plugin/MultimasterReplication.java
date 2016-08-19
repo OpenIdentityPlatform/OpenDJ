@@ -51,6 +51,7 @@ import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
@@ -250,7 +251,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void initializeSynchronizationProvider(
+  public void initializeSynchronizationProvider(ServerContext serverContext,
       ReplicationSynchronizationProviderCfg cfg) throws ConfigException
   {
     domains.clear();
@@ -275,8 +276,7 @@ public class MultimasterReplication
     }
 
     // If any schema changes were made with the server offline, then handle them now.
-    List<Modification> offlineSchemaChanges =
-         DirectoryServer.getOfflineSchemaChanges();
+    List<Modification> offlineSchemaChanges = serverContext.getSchemaHandler().getOfflineSchemaModifications();
     if (offlineSchemaChanges != null && !offlineSchemaChanges.isEmpty())
     {
       processSchemaChange(offlineSchemaChanges);
