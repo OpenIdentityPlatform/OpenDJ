@@ -225,7 +225,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
 
-    SchemaWriter.updateConcatenatedSchema();
+    new SchemaWriter(serverContext).updateConcatenatedSchema();
 
     // Register with the Directory Server as a configurable component.
     currentConfig.addSchemaChangeListener(this);

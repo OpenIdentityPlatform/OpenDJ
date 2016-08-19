@@ -75,7 +75,7 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.SchemaUtils;
 
 /**
- * Provides support to write schema files.
+ * Provides support to write schema files to disk.
  */
 public class SchemaWriter
 {
@@ -116,7 +116,7 @@ public class SchemaWriter
    * @param mods
    *          The list of modifications into which any identified differences should be written.
    */
-  public static void compareConcatenatedSchema(Set<String> oldElements, Set<String> newElements,
+  private static void compareConcatenatedSchema(Set<String> oldElements, Set<String> newElements,
       AttributeType elementType, List<Modification> mods)
   {
     AttributeBuilder builder = new AttributeBuilder(elementType);
@@ -147,7 +147,7 @@ public class SchemaWriter
    * @throws IOException
    *           If a problem occurs while reading the schema file elements.
    */
-  public static void generateConcatenatedSchema(Set<String> attributeTypes, Set<String> objectClasses,
+  private void generateConcatenatedSchema(Set<String> attributeTypes, Set<String> objectClasses,
       Set<String> nameForms, Set<String> ditContentRules, Set<String> ditStructureRules, Set<String> matchingRuleUses,
       Set<String> ldapSyntaxes) throws IOException
   {
@@ -184,9 +184,9 @@ public class SchemaWriter
     }
   }
 
-  private static String getSchemaDirectoryPath()
+  private String getSchemaDirectoryPath()
   {
-    File schemaDir = DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
+    File schemaDir = serverContext.getEnvironment().getSchemaDirectory();
     return schemaDir != null ? schemaDir.getAbsolutePath() : null;
   }
 
@@ -216,7 +216,7 @@ public class SchemaWriter
    * @throws IOException
    *           If a problem occurs while reading the schema file elements.
    */
-  public static void readConcatenatedSchema(File concatSchemaFile, Set<String> attributeTypes,
+  private static void readConcatenatedSchema(File concatSchemaFile, Set<String> attributeTypes,
       Set<String> objectClasses, Set<String> nameForms, Set<String> ditContentRules, Set<String> ditStructureRules,
       Set<String> matchingRuleUses, Set<String> ldapSyntaxes) throws IOException
   {
@@ -241,7 +241,7 @@ public class SchemaWriter
    * @throws InitializationException
    *            If concatenated schema can't be updated
    */
-  public static void updateConcatenatedSchema() throws InitializationException
+  public void updateConcatenatedSchema() throws InitializationException
   {
     try
     {
@@ -306,7 +306,7 @@ public class SchemaWriter
    * Writes a single file containing all schema element definitions, which can be used on startup to
    * determine whether the schema files were edited with the server offline.
    */
-  public static void writeConcatenatedSchema()
+  public void writeConcatenatedSchema()
   {
     String concatFilePath = null;
     try
@@ -321,9 +321,7 @@ public class SchemaWriter
       generateConcatenatedSchema(attributeTypes, objectClasses, nameForms, ditContentRules, ditStructureRules,
           matchingRuleUses, ldapSyntaxes);
 
-      File configFile = new File(DirectoryServer.getConfigFile());
-      File configDirectory = configFile.getParentFile();
-      File upgradeDirectory = new File(configDirectory, "upgrade");
+      File upgradeDirectory = getUpgradeDirectory();
       upgradeDirectory.mkdir();
       File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
       concatFilePath = concatFile.getAbsolutePath();
@@ -362,6 +360,15 @@ public class SchemaWriter
     }
   }
 
+  /** Returns the upgrade directory of the server. */
+  private File getUpgradeDirectory()
+  {
+    File configFile = serverContext.getEnvironment().getConfigFile();
+    File configDirectory = configFile.getParentFile();
+    File upgradeDirectory = new File(configDirectory, "upgrade");
+    return upgradeDirectory;
+  }
+
   private static void addModification(List<Modification> mods, ModificationType modType, Set<String> included,
       Set<String> excluded, AttributeBuilder builder)
   {
@@ -385,10 +392,9 @@ public class SchemaWriter
     definitions.add(getSchemaDefinition(line.substring(attrName.length()), fileName));
   }
 
-  private static File getConcatenatedSchemaFile() throws InitializationException
+  private File getConcatenatedSchemaFile() throws InitializationException
   {
-    File configDirectory = new File(DirectoryServer.getConfigFile()).getParentFile();
-    File upgradeDirectory = new File(configDirectory, "upgrade");
+    File upgradeDirectory = getUpgradeDirectory();
     File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
     if (concatFile.exists())
     {
@@ -477,7 +483,7 @@ public class SchemaWriter
     }
   }
 
-  private static List<StringBuilder> readSchemaElementsFromLdif(File f) throws IOException, FileNotFoundException
+  private List<StringBuilder> readSchemaElementsFromLdif(File f) throws IOException, FileNotFoundException
   {
     final LinkedList<StringBuilder> lines = new LinkedList<>();
 

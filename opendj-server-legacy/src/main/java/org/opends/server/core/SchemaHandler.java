@@ -139,6 +139,9 @@ public final class SchemaHandler
    */
   private volatile Schema schema;
 
+  /** Writer which persists schema to disk. */
+  private SchemaWriter schemaWriter;
+
   /**
    * A set of extra attributes that are not used directly by the schema but may
    * be used by other component to store information in the schema.
@@ -164,6 +167,7 @@ public final class SchemaHandler
   {
     oldestModificationTime = System.currentTimeMillis();
     youngestModificationTime = oldestModificationTime;
+
     // use a default schema
     schema = Schema.getCoreSchema();
   }
@@ -203,6 +207,7 @@ public final class SchemaHandler
   public void initialize(final ServerContext serverContext) throws InitializationException, ConfigException
   {
     this.serverContext = serverContext;
+    this.schemaWriter = new SchemaWriter(serverContext);
 
     exclusiveLock.lock();
     try
@@ -346,8 +351,7 @@ public final class SchemaHandler
     {
       switchSchema(newSchema);
       this.extraAttributes = newExtraAttributes;
-      new SchemaWriter(serverContext)
-        .updateSchemaFiles(schema, newExtraAttributes.values(), modifiedSchemaFileNames, alertGenerator);
+      schemaWriter.updateSchemaFiles(schema, newExtraAttributes.values(), modifiedSchemaFileNames, alertGenerator);
       youngestModificationTime = System.currentTimeMillis();
     }
     finally
@@ -370,7 +374,7 @@ public final class SchemaHandler
     try
     {
       switchSchema(newSchema);
-      SchemaWriter.writeConcatenatedSchema();
+      schemaWriter.writeConcatenatedSchema();
       youngestModificationTime = System.currentTimeMillis();
     }
     finally
