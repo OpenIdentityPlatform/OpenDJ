@@ -93,14 +93,24 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.util.OperatingSystem;
 
 /**
- * Responsible for loading the server schema.
+ * Responsible for access to the server's schema.
  * <p>
- * The schema is loaded in three steps :
+ * The schema handler initializes the schema in four steps :
  * <ul>
  *   <li>Start from the core schema.</li>
+ *   <li>Add server specific syntaxes and matching rules</li>
  *   <li>Load schema elements from the schema providers defined in configuration.</li>
  *   <li>Load all schema files located in the schema directory.</li>
  * </ul>
+ * <p>
+ * The schema handler provides read and write access to the schema.
+ * <p>
+ * As schema is immutable, there is no risk to alter it outside this handler.
+ * However, no long-lived reference should be kept on the schema because further schema
+ * updates would be missed. It is advised to retrieve the server's schema from the handler
+ * for any operation.
+ * <p>
+ * The server's schema can be updated using one of the {@code updateSchema()} method.
  */
 public final class SchemaHandler
 {
@@ -179,7 +189,7 @@ public final class SchemaHandler
   }
 
   /**
-   * Initialize this schema handler.
+   * Initializes this schema handler.
    *
    * @param serverContext
    *          The server context.

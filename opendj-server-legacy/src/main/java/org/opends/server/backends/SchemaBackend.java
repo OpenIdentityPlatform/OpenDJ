@@ -153,6 +153,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   /** Will be used in the future to remove static calls to DirectoryServer. */
   private ServerContext serverContext;
 
+  /** Manages access to the schema. */
   private SchemaHandler schemaHandler;
 
   /**
