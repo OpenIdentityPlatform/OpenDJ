@@ -16,14 +16,11 @@
 package org.opends.server.schema;
 
 import static java.util.Collections.emptyList;
-
-import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_DIR_NOT_DIRECTORY;
-import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_NO_SCHEMA_DIR;
-import static org.opends.messages.SchemaMessages.NOTE_SCHEMA_IMPORT_FAILED;
-import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
+import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -220,24 +217,9 @@ public final class SchemaHandler
 
       loadSchemaFromProviders(serverContext.getRootConfig(), schemaBuilder);
 
-      try
-      {
-        // Add server specific syntaxes not provided by the SDK
-        AciSyntax.addAciSyntax(schemaBuilder);
-        SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
+      addServerSyntaxesAndMatchingRules(schemaBuilder);
 
-        // Add server specific matching rules not provided by the SDK
-        HistoricalCsnOrderingMatchingRuleImpl.addHistoricalCsnOrderingMatchingRule(schemaBuilder);
-        AuthPasswordEqualityMatchingRule.addAuthPasswordEqualityMatchingRule(schemaBuilder);
-        UserPasswordEqualityMatchingRule.addUserPasswordEqualityMatchingRule(schemaBuilder);
-
-      }
-      catch (ConflictingSchemaElementException e)
-      {
-        throw new ConfigException(e.getMessageObject(), e);
-      }
-
-      completeSchemaFromFiles(schemaBuilder);
+      loadSchemaFromFiles(schemaBuilder);
 
       try
       {
@@ -253,6 +235,78 @@ public final class SchemaHandler
     {
       exclusiveLock.unlock();
     }
+  }
+
+  /**
+   * Adds server's specific syntaxes and matching rules not provided by the SDK to the provided schema
+   * builder.
+   *
+   * @param schemaBuilder
+   *            The schema builder
+   * @throws ConfigException
+   *            If there is a schema conflict for the added elements
+   */
+  public static void addServerSyntaxesAndMatchingRules(final SchemaBuilder schemaBuilder) throws ConfigException
+  {
+    try
+    {
+      addAciSyntax(schemaBuilder);
+      addSubtreeSpecificationSyntax(schemaBuilder);
+
+      addHistoricalCsnOrderingMatchingRule(schemaBuilder);
+      addAuthPasswordEqualityMatchingRule(schemaBuilder);
+      addUserPasswordEqualityMatchingRule(schemaBuilder);
+    }
+    catch (ConflictingSchemaElementException e)
+    {
+      throw new ConfigException(e.getMessageObject(), e);
+    }
+  }
+
+  private static void addAciSyntax(SchemaBuilder builder)
+  {
+    builder
+      .buildSyntax(SYNTAX_ACI_OID)
+      .description(SYNTAX_ACI_DESCRIPTION)
+      .implementation(new AciSyntaxImpl())
+      .addToSchema();
+  }
+
+  private static void addSubtreeSpecificationSyntax(SchemaBuilder builder)
+  {
+    builder
+      .buildSyntax(SYNTAX_SUBTREE_SPECIFICATION_OID)
+      .description(SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION)
+      .implementation(new SubtreeSpecificationSyntaxImpl())
+      .addToSchema();
+  }
+
+  private static void addHistoricalCsnOrderingMatchingRule(SchemaBuilder builder)
+  {
+    builder
+      .buildMatchingRule("1.3.6.1.4.1.26027.1.4.4")
+      .names("historicalCsnOrderingMatch")
+      .syntaxOID("1.3.6.1.4.1.1466.115.121.1.40")
+      .implementation(new HistoricalCsnOrderingMatchingRuleImpl())
+      .addToSchema();
+  }
+
+  private static void addAuthPasswordEqualityMatchingRule(SchemaBuilder builder)
+  {
+    builder.buildMatchingRule(EMR_AUTH_PASSWORD_OID)
+      .names(EMR_AUTH_PASSWORD_NAME)
+      .syntaxOID(SYNTAX_AUTH_PASSWORD_OID).description(EMR_AUTH_PASSWORD_DESCRIPTION)
+      .implementation(new AuthPasswordEqualityMatchingRule())
+      .addToSchema();
+  }
+
+  private static void addUserPasswordEqualityMatchingRule(SchemaBuilder builder)
+  {
+    builder.buildMatchingRule(EMR_USER_PASSWORD_OID)
+      .names(EMR_USER_PASSWORD_NAME)
+      .syntaxOID(SYNTAX_OCTET_STRING_OID).description(EMR_USER_PASSWORD_DESCRIPTION)
+      .implementation(new UserPasswordEqualityMatchingRule())
+      .addToSchema();
   }
 
   /**
@@ -751,7 +805,7 @@ public final class SchemaHandler
    *           If a problem occurs while initializing the schema elements that
    *           is not related to the server configuration.
    */
-  private void completeSchemaFromFiles(final SchemaBuilder schemaBuilder)
+  private void loadSchemaFromFiles(final SchemaBuilder schemaBuilder)
       throws ConfigException, InitializationException
   {
     final File schemaDirectory = getSchemaDirectoryPath();

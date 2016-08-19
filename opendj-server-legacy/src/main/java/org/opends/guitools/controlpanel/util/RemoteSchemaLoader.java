@@ -38,9 +38,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.admin.ads.util.ConnectionWrapper;
-import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
-import org.opends.server.schema.AciSyntax;
-import org.opends.server.schema.SubtreeSpecificationSyntax;
+import org.opends.server.schema.SchemaHandler;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
@@ -84,10 +82,7 @@ public class RemoteSchemaLoader extends SchemaLoader
 
     // Add missing matching rules and attribute syntaxes to base schema to allow read of remote server schema
     // (see OPENDJ-1122 for more details)
-    AciSyntax.addAciSyntax(schemaBuilder);
-    SubtreeSpecificationSyntax.addSubtreeSpecificationSyntax(schemaBuilder);
-    addMatchingRuleIfMissing(schemaBuilder, baseSchema, "1.3.6.1.4.1.26027.1.4.4", "historicalCsnOrderingMatch",
-        "1.3.6.1.4.1.1466.115.121.1.40", new HistoricalCsnOrderingMatchingRuleImpl());
+    SchemaHandler.addServerSyntaxesAndMatchingRules(schemaBuilder);
 
     // Add remote schema entry
     final SearchRequest request = newSearchRequest(
