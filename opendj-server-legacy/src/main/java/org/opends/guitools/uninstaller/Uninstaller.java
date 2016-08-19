@@ -172,28 +172,28 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   @Override
   public WizardStep getNextWizardStep(WizardStep step) {
-    Step nextStep = null;
-    if (step != null && step.equals(Step.CONFIRM_UNINSTALL)) {
-      nextStep = Step.PROGRESS;
+    if (Step.CONFIRM_UNINSTALL.equals(step))
+    {
+      return Step.PROGRESS;
     }
     else if (Step.PROGRESS.equals(step))
     {
-      nextStep = Step.FINISHED;
+      return Step.FINISHED;
     }
-    return nextStep;
+    return null;
   }
 
   @Override
   public WizardStep getPreviousWizardStep(WizardStep step) {
-    Step prevStep = null;
-    if (step != null && step.equals(Step.PROGRESS)) {
-      prevStep = Step.CONFIRM_UNINSTALL;
+    if (Step.PROGRESS.equals(step))
+    {
+      return Step.CONFIRM_UNINSTALL;
     }
     else if (Step.FINISHED.equals(step))
     {
-      prevStep = Step.PROGRESS;
+      return Step.PROGRESS;
     }
-    return prevStep;
+    return null;
   }
 
   @Override
@@ -396,22 +396,20 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
 
         @Override
-        public void backgroundTaskCompleted(UninstallData returnValue,
-                                            Throwable throwable) {
+        public void backgroundTaskCompleted(UninstallData returnValue, Throwable t) {
           qs.getDialog().workerFinished();
-          if (throwable != null) {
-            if (throwable instanceof UserDataException)
+          if (t != null) {
+            LocalizableMessage msg;
+            if (t instanceof UserDataException)
             {
-              qs.displayError(LocalizableMessage.raw(throwable.getLocalizedMessage()),
-                    INFO_ERROR_TITLE.get());
+              msg = LocalizableMessage.raw(t.getLocalizedMessage());
             }
             else
             {
-              logger.warn(LocalizableMessage.raw("Error processing task: "+throwable,
-                  throwable));
-              qs.displayError(LocalizableMessage.raw(throwable.toString()),
-                      INFO_ERROR_TITLE.get());
+              logger.warn(LocalizableMessage.raw("Error processing task: " + t, t));
+              msg = LocalizableMessage.raw(t.toString());
             }
+            qs.displayError(msg, INFO_ERROR_TITLE.get());
           } else {
             conf = returnValue;
             if (conf.isADS() && conf.isReplicationServer())
@@ -540,10 +538,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   /**
    * Returns the ApplicationException that might occur during installation or
-   * <CODE>null</CODE> if no exception occurred.
+   * {@code null} if no exception occurred.
    *
    * @return the ApplicationException that might occur during installation or
-   *         <CODE>null</CODE> if no exception occurred.
+   *         {@code null} if no exception occurred.
    */
   @Override
   public ApplicationException getRunError() {
@@ -1087,13 +1085,11 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
 
     File[] rootFiles = null;
-
     if (installFiles == null)
     {
       rootFiles = new File(instancePath).listFiles();
     }
-    else
-    if (instanceFiles == null)
+    else if (instanceFiles == null)
     {
       rootFiles = installFiles;
     }
@@ -1113,24 +1109,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       for (File f : rootFiles) {
         if (filter.accept(f)) {
           Installation installation = getInstallation();
-          int relativeRatio;
-          if (equalsOrDescendant(f, installation.getLibrariesDirectory())) {
-            relativeRatio = 10;
-          } else if (equalsOrDescendant(f, installation.getBinariesDirectory())) {
-            relativeRatio = 5;
-          } else if (equalsOrDescendant(f, installation.getConfigurationDirectory())) {
-            relativeRatio = 5;
-          } else if (equalsOrDescendant(f, installation.getBackupDirectory())) {
-            relativeRatio = 20;
-          } else if (equalsOrDescendant(f, installation.getLdifDirectory())) {
-            relativeRatio = 20;
-          } else if (equalsOrDescendant(f, installation.getDatabasesDirectory())) {
-            relativeRatio = 50;
-          } else if (equalsOrDescendant(f, installation.getLogsDirectory())) {
-            relativeRatio = 30;
-          } else {
-            relativeRatio = 2;
-          }
+          int relativeRatio = getRelativeRatio(f, installation);
           cumulatedRatio.add(totalRatio);
           totalRatio += relativeRatio;
         } else {
@@ -1150,6 +1129,27 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (!isVerbose())
     {
       notifyListeners(getFormattedDone());
+    }
+  }
+
+  private int getRelativeRatio(File f, Installation installation)
+  {
+    if (equalsOrDescendant(f, installation.getLibrariesDirectory())) {
+      return 10;
+    } else if (equalsOrDescendant(f, installation.getBinariesDirectory())) {
+      return 5;
+    } else if (equalsOrDescendant(f, installation.getConfigurationDirectory())) {
+      return 5;
+    } else if (equalsOrDescendant(f, installation.getBackupDirectory())) {
+      return 20;
+    } else if (equalsOrDescendant(f, installation.getLdifDirectory())) {
+      return 20;
+    } else if (equalsOrDescendant(f, installation.getDatabasesDirectory())) {
+      return 50;
+    } else if (equalsOrDescendant(f, installation.getLogsDirectory())) {
+      return 30;
+    } else {
+      return 2;
     }
   }
 
@@ -1184,13 +1184,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     if (cfile.exists()) {
       if (cfile.isFile()) {
-        if (filter != null) {
-          if (filter.accept(cfile)) {
-            delete(cfile);
-          }
-        } else {
-          delete(cfile);
-        }
+        maybeDeleteFile(filter, cfile);
       } else {
         File[] children = cfile.listFiles();
         if (children != null) {
@@ -1199,18 +1193,23 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             deleteRecursively(element, filter);
           }
         }
-        if (filter != null) {
-          if (filter.accept(cfile)) {
-            delete(cfile);
-          }
-        } else {
-          delete(cfile);
-        }
+        maybeDeleteFile(filter, cfile);
       }
     } else {
       // Just tell that the file/directory does not exist.
       notifyListeners(getFormattedWarning(
           INFO_PROGRESS_DELETING_FILE_DOES_NOT_EXIST.get(cfile)));
+    }
+  }
+
+  private void maybeDeleteFile(FileFilter filter, File cfile) throws ApplicationException
+  {
+    if (filter != null) {
+      if (filter.accept(cfile)) {
+        delete(cfile);
+      }
+    } else {
+      delete(cfile);
     }
   }
 
@@ -1221,24 +1220,22 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @throws ApplicationException if something goes wrong.
    */
   private void delete(File file) throws ApplicationException {
-    boolean isFile = file.isFile();
+    final boolean isFile = file.isFile();
+    final String absolutePath = file.getAbsolutePath();
 
     if (isVerbose())
     {
-      if (isFile) {
-        notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_DELETING_FILE.get(file.getAbsolutePath())));
-      } else {
-        notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_DELETING_DIRECTORY.get(file.getAbsolutePath())));
-      }
+      LocalizableMessage msg = isFile
+          ? INFO_PROGRESS_DELETING_FILE.get(absolutePath)
+          : INFO_PROGRESS_DELETING_DIRECTORY.get(absolutePath);
+      notifyListeners(getFormattedWithPoints(msg));
     }
 
-    boolean delete = false;
     /*
      * Sometimes the server keeps some locks on the files.
      * This is dependent on the OS so there is no much we can do here.
      */
+    boolean delete = false;
     int nTries = 5;
     for (int i = 0; i < nTries && !delete; i++) {
       delete = file.delete();
@@ -1252,12 +1249,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
 
     if (!delete) {
-      LocalizableMessage errMsg;
-      if (isFile) {
-        errMsg = INFO_ERROR_DELETING_FILE.get(file.getAbsolutePath());
-      } else {
-        errMsg = INFO_ERROR_DELETING_DIRECTORY.get(file.getAbsolutePath());
-      }
+      LocalizableMessage errMsg = isFile
+          ? INFO_ERROR_DELETING_FILE.get(absolutePath)
+          : INFO_ERROR_DELETING_DIRECTORY.get(absolutePath);
       throw new ApplicationException(
           ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
           errMsg, null);
@@ -1370,18 +1364,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @throws ApplicationException if something goes wrong.
    */
   private void disableWindowsService() throws ApplicationException {
-    notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_DISABLING_WINDOWS_SERVICE.get()));
+    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_DISABLING_WINDOWS_SERVICE.get()));
     int code = disableService(System.out, System.err);
-
-    LocalizableMessage errorMessage = INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(
-            getInstallationPath());
-
     switch (code) {
       case SERVICE_DISABLE_SUCCESS:
       case SERVICE_ALREADY_DISABLED:
         break;
       default:
+        LocalizableMessage errorMessage = INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(getInstallationPath());
         throw new ApplicationException(ReturnCode.WINDOWS_SERVICE_ERROR, errorMessage, null);
     }
     notifyListeners(getLineBreak());
@@ -1394,8 +1384,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * Tries to start the server and launches a progress dialog.  This method
    * assumes that is being called from the event thread.
-   * @return <CODE>true</CODE> if the server could be started and <CODE>
-   * false</CODE> otherwise.
+   * @return {@code true} if the server could be started, {@code false} otherwise.
    * @param frame the JFrame to be used as parent of the progress dialog.
    */
   private boolean startServer(JFrame frame)
@@ -1480,38 +1469,27 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         public TopologyCache processBackgroundTask() throws Throwable
         {
           logger.info(LocalizableMessage.raw("Loading Topology Cache in askForAuthentication"));
-          ADSContext adsContext = new ADSContext(conn);
-          TopologyCache cache = new TopologyCache(adsContext,
+          TopologyCache cache = new TopologyCache(new ADSContext(conn),
               getTrustManager(), getConnectTimeout());
           cache.getFilter().setSearchMonitoringInformation(false);
           cache.reloadTopology();
           return cache;
         }
         @Override
-        public void backgroundTaskCompleted(TopologyCache returnValue,
-            Throwable throwable) {
+        public void backgroundTaskCompleted(TopologyCache returnedCache, Throwable t) {
           qs.getDialog().workerFinished();
-          if (throwable != null)
+          if (t != null)
           {
-            logger.warn(LocalizableMessage.raw("Throwable: "+throwable, throwable));
-            if (throwable instanceof TopologyCacheException)
-            {
-              qs.displayError(
-                      getMessage((TopologyCacheException) throwable),
-                      INFO_ERROR_TITLE.get());
-            }
-            else
-            {
-              qs.displayError(
-                  getThrowableMsg(INFO_BUG_MSG.get(), throwable),
-                  INFO_ERROR_TITLE.get());
-            }
+            logger.warn(LocalizableMessage.raw("Throwable: "+t, t));
+            LocalizableMessage msg = t instanceof TopologyCacheException
+                ? getMessage((TopologyCacheException) t)
+                : getThrowableMsg(INFO_BUG_MSG.get(), t);
+            qs.displayError(msg, INFO_ERROR_TITLE.get());
             logger.info(LocalizableMessage.raw("Error was displayed"));
           }
           else
           {
-            TopologyCache cache = returnValue;
-            handleTopologyCache(qs, cache);
+            handleTopologyCache(qs, returnedCache);
           }
         }
       };
@@ -1651,8 +1629,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private void handleCertificateException(final QuickSetup qs,
       UserDataCertificateException ce, final TopologyCache cache)
   {
-    CertificateDialog dlg =
-      new CertificateDialog(qs.getDialog().getFrame(), ce);
+    CertificateDialog dlg = new CertificateDialog(qs.getDialog().getFrame(), ce);
     dlg.pack();
     dlg.setVisible(true);
     if (dlg.getUserAnswer() != CertificateDialog.ReturnType.NOT_ACCEPTED)
@@ -1665,8 +1642,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getTrustManager().acceptCertificate(chain, authType, host);
-        BackgroundTask<TopologyCache> worker =
-          new BackgroundTask<TopologyCache>()
+        BackgroundTask<TopologyCache> worker = new BackgroundTask<TopologyCache>()
         {
           @Override
           public TopologyCache processBackgroundTask() throws Throwable
@@ -1677,22 +1653,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             return cache;
           }
           @Override
-          public void backgroundTaskCompleted(TopologyCache returnValue,
-              Throwable throwable) {
+          public void backgroundTaskCompleted(TopologyCache returnValue, Throwable t) {
             qs.getDialog().workerFinished();
-            if (throwable != null)
+            if (t != null)
             {
-              if (throwable instanceof TopologyCacheException)
-              {
-                qs.displayError(getMessage((TopologyCacheException)throwable),
-                    INFO_ERROR_TITLE.get());
-              }
-              else
-              {
-                qs.displayError(
-                    getThrowableMsg(INFO_BUG_MSG.get(), throwable),
-                    INFO_ERROR_TITLE.get());
-              }
+              LocalizableMessage msg = t instanceof TopologyCacheException
+                  ? getMessage((TopologyCacheException) t)
+                  : getThrowableMsg(INFO_BUG_MSG.get(), t);
+              qs.displayError(msg, INFO_ERROR_TITLE.get());
             }
             else
             {
@@ -1780,7 +1748,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * This method updates the replication in the remote server represented by
    * a given ServerProperty object.
    * It also tries to delete the server registration entry from the remote ADS
-   * servers if the serverADSProperties object passed is not null.
+   * servers if the serverADSProperties object passed is not {@code null}.
    * @param server the ServerDescriptor object representing the server where
    * we want to remove references to the server that we are trying to uninstall.
    * @param serverADSProperties the Map with the ADS properties of the server
@@ -2018,85 +1986,83 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * Tells whether this ServerDescriptor object represents the server that we
    * are trying to uninstall or not.
    * @param server the ServerDescriptor object to analyze.
-   * @return <CODE>true</CODE> if the ServerDescriptor object represents the
-   * server that we are trying to uninstall and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the ServerDescriptor object represents the
+   * server that we are trying to uninstall, {@code false} otherwise.
    */
   private boolean isServerToUninstall(ServerDescriptor server)
   {
-    boolean isServerToUninstall = false;
-    String path = (String)server.getAdsProperties().get(
-        ADSContext.ServerProperty.INSTANCE_PATH);
-    if (path == null)
+    Boolean sameInstanceInstallPaths = isSameInstanceInstallPaths(server);
+    return sameInstanceInstallPaths != null
+        ? sameInstanceInstallPaths
+        : isSamePort(server) && isSameHostName(server);
+  }
+
+  private Boolean isSameInstanceInstallPaths(ServerDescriptor server)
+  {
+    final String path = (String) server.getAdsProperties().get(ADSContext.ServerProperty.INSTANCE_PATH);
+    return path != null
+        ? new File(path).equals(Installation.getLocal().getRootDirectory())
+        : null;
+  }
+
+  private boolean isSamePort(ServerDescriptor server)
+  {
+    try
     {
-      // Compare the port of the URL we used.
-      try
+      final UninstallUserData uData = getUninstallUserData();
+      final int port = uData.getLocalServerHostPort().getPort();
+      final boolean isSecure = uData.isLocalServerSecure();
+
+      final ServerDescriptor.ServerProperty property =
+          isSecure ? ServerDescriptor.ServerProperty.ADMIN_PORT : ServerDescriptor.ServerProperty.LDAP_PORT;
+      final List<?> ports = (List<?>) server.getServerProperties().get(property);
+      if (ports != null)
       {
-        UninstallUserData uData = getUninstallUserData();
-        HostPort usedHostPort = uData.getLocalServerHostPort();
-        boolean isSecure = uData.isLocalServerSecure();
-        int port = usedHostPort.getPort();
-        ServerDescriptor.ServerProperty property = isSecure
-            ? ServerDescriptor.ServerProperty.ADMIN_PORT
-            : ServerDescriptor.ServerProperty.LDAP_PORT;
-        ArrayList<?> ports = (ArrayList<?>) server.getServerProperties().get(property);
-        if (ports != null)
-        {
-          isServerToUninstall = ports.contains(port);
-        }
-        else
-        {
-          // This occurs if the instance could not be loaded.
-          ADSContext.ServerProperty adsProperty = isSecure
-              ? ADSContext.ServerProperty.ADMIN_PORT
-              : ADSContext.ServerProperty.LDAP_PORT;
-          String v = (String)server.getAdsProperties().get(adsProperty);
-          if (v != null)
-          {
-            isServerToUninstall = v.equals(String.valueOf(port));
-          }
-        }
+        return ports.contains(port);
       }
-      catch (Throwable t)
-      {
-        logger.warn(LocalizableMessage.raw("Failing checking the port: "+t, t));
-      }
+
+      // This occurs if the instance could not be loaded.
+      final ADSContext.ServerProperty adsProperty =
+          isSecure ? ADSContext.ServerProperty.ADMIN_PORT : ADSContext.ServerProperty.LDAP_PORT;
+      final String v = (String) server.getAdsProperties().get(adsProperty);
+      return v != null ? v.equals(String.valueOf(port)) : false;
     }
-    else
+    catch (Throwable t)
     {
-      File f = new File(path);
-      isServerToUninstall =
-        f.equals(Installation.getLocal().getRootDirectory());
+      logger.warn(LocalizableMessage.raw("Failing checking the port: " + t, t));
+      return false;
+    }
+  }
+
+  private boolean isSameHostName(ServerDescriptor server)
+  {
+    // TODO: the host name comparison made here does not necessarily work in
+    // all environments...
+    final String hostName = server.getHostName();
+    if (getUninstallUserData().getReferencedHostName().equals(hostName))
+    {
+      return true;
     }
 
-    if (isServerToUninstall)
+    try
     {
-      // TODO: the host name comparison made here does not necessarily work in
-      // all environments...
-      String hostName = server.getHostName();
-      boolean hostNameEquals =
-        getUninstallUserData().getReferencedHostName().equals(hostName);
-      try
+      final InetAddress localAddress = InetAddress.getLocalHost();
+      final InetAddress[] addresses = InetAddress.getAllByName(hostName);
+      for (InetAddress address : addresses)
       {
-        InetAddress localAddress = InetAddress.getLocalHost();
-        InetAddress[] addresses = InetAddress.getAllByName(hostName);
-        for (int i=0; i<addresses.length && !hostNameEquals; i++)
+        if (localAddress.equals(address))
         {
-          hostNameEquals = localAddress.equals(addresses[i]);
-        }
-        if (!hostNameEquals)
-        {
-          hostNameEquals =
-            localAddress.getHostName().equalsIgnoreCase(hostName) ||
-            localAddress.getCanonicalHostName().equalsIgnoreCase(hostName);
+          return true;
         }
       }
-      catch (Throwable t)
-      {
-        logger.warn(LocalizableMessage.raw("Failing checking host names: "+t, t));
-      }
-      isServerToUninstall = hostNameEquals;
+      return localAddress.getHostName().equalsIgnoreCase(hostName)
+          || localAddress.getCanonicalHostName().equalsIgnoreCase(hostName);
     }
-    return isServerToUninstall;
+    catch (Throwable t)
+    {
+      logger.warn(LocalizableMessage.raw("Failing checking host names: " + t, t));
+      return false;
+    }
   }
 
   /**

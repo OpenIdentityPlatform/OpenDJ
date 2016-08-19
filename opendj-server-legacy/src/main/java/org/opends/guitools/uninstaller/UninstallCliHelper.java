@@ -124,21 +124,11 @@ public class UninstallCliHelper extends ConsoleApplication {
     UninstallUserData userData = new UninstallUserData();
     try
     {
-      boolean isInteractive;
-      boolean isQuiet;
-      boolean isVerbose;
-      boolean isCanceled = false;
-
       /* Step 1: analyze the arguments. */
+      boolean isInteractive = args.isInteractive();
 
-      isInteractive = args.isInteractive();
-
-      isQuiet = args.isQuiet();
-
-      isVerbose = args.isVerbose();
-
-      userData.setQuiet(isQuiet);
-      userData.setVerbose(isVerbose);
+      userData.setQuiet(args.isQuiet());
+      userData.setVerbose(args.isVerbose());
       userData.setForceOnError(args.isForceOnError());
       userData.setTrustManager(args.getTrustManager());
 
@@ -159,8 +149,7 @@ public class UninstallCliHelper extends ConsoleApplication {
        */
       Set<String> outsideDbs;
       Set<String> outsideLogs;
-      Configuration config =
-        Installation.getLocal().getCurrentConfiguration();
+      Configuration config = Installation.getLocal().getCurrentConfiguration();
       try {
         outsideDbs = config.getOutsideDbs();
       } catch (IOException ioe) {
@@ -184,6 +173,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         args.removeLogFiles() ||
         args.removeServerLibraries();
 
+      boolean isCanceled = false;
       if (somethingSpecifiedToDelete)
       {
         userData.setRemoveBackups(args.removeAll() || args.removeBackupFiles());
@@ -291,16 +281,13 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   /**
    * Commodity method used to ask the user to confirm the deletion of certain
-   * parts of the server.  It updates the provided UserData object
-   * accordingly.  Returns <CODE>true</CODE> if the user cancels and <CODE>
-   * false</CODE> otherwise.
+   * parts of the server.  It updates the provided UserData object accordingly.
    * @param userData the UserData object to be updated.
    * @param outsideDbs the set of relative paths of databases located outside
    * the installation path of the server.
    * @param outsideLogs the set of relative paths of log files located outside
    * the installation path of the server.
-   * @return <CODE>true</CODE> if the user cancels and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the user cancels, {@code false} otherwise.
    */
   private boolean askWhatToDelete(UninstallUserData userData,
       Set<String> outsideDbs, Set<String> outsideLogs) throws UserDataException
@@ -485,14 +472,14 @@ public class UninstallCliHelper extends ConsoleApplication {
   }
 
   /**
-   * Commodity method used to ask the user (when necessary) if the server must
-   * be stopped or not. It also prompts (if required) for authentication.
+   * Asks the user (when necessary) if the server must be stopped or not.
+   * It also prompts (if required) for authentication.
    *
    * @param userData
    *          the UserData object to be updated with the authentication of the
    *          user.
-   * @return <CODE>true</CODE> if the user wants to continue with uninstall and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user wants to continue with uninstall,
+   *         {@code false} otherwise.
    * @throws UserDataException
    *           if there is a problem with the data provided by the user (in the
    *           particular case where we are on non-interactive uninstall and
@@ -501,8 +488,7 @@ public class UninstallCliHelper extends ConsoleApplication {
    *           If there is an error processing data in non-interactive mode and
    *           an error must be thrown (not in force on error mode).
    */
-  private boolean checkServerState(UninstallUserData userData)
-  throws UserDataException, ClientException
+  private boolean checkServerState(UninstallUserData userData) throws UserDataException, ClientException
   {
     boolean cancelled = false;
     boolean interactive = parser.isInteractive();
@@ -521,8 +507,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     logger.info(LocalizableMessage.raw("interactive: "+interactive));
     logger.info(LocalizableMessage.raw("forceOnError: "+forceOnError));
     logger.info(LocalizableMessage.raw("conf.isADS(): "+conf.isADS()));
-    logger.info(LocalizableMessage.raw("conf.isReplicationServer(): "+
-        conf.isReplicationServer()));
+    logger.info(LocalizableMessage.raw("conf.isReplicationServer(): "+conf.isReplicationServer()));
     logger.info(LocalizableMessage.raw("conf.isServerRunning(): "+conf.isServerRunning()));
     if (conf.isADS() && conf.isReplicationServer())
     {
@@ -698,8 +683,8 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   /**
    *  Ask for confirmation to stop server.
-   *  @return <CODE>true</CODE> if the user wants to continue and stop the
-   *  server.  <CODE>false</CODE> otherwise.
+   *  @return {@code true} if the user wants to continue and stop the server,
+   *          {@code false} otherwise.
    *  @throws ClientException if the user reached the confirmation limit.
    */
   private boolean confirmToStopServer() throws ClientException
@@ -709,32 +694,30 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   /**
    *  Ask for confirmation to delete files.
-   *  @return <CODE>true</CODE> if the user wants to continue and delete the
-   *  files.  <CODE>false</CODE> otherwise.
+   *  @return {@code true} if the user wants to continue and delete the files,
+   *          {@code false} otherwise.
    *  @throws ClientException if the user reached the confirmation limit.
    */
   private boolean confirmDeleteFiles() throws ClientException
   {
-    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true,
-        logger);
+    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true, logger);
   }
 
   /**
    *  Ask for confirmation to update configuration on remote servers.
-   *  @return <CODE>true</CODE> if the user wants to continue and stop the
-   *  server.  <CODE>false</CODE> otherwise.
+   *  @return {@code true} if the user wants to continue and stop the server.
+   *          {@code false} otherwise.
    *  @throws ClientException if the user reached the confirmation limit.
    */
   private boolean confirmToUpdateRemote() throws ClientException
   {
-    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true,
-        logger);
+    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true, logger);
   }
 
   /**
    *  Ask for confirmation to update configuration on remote servers.
-   *  @return <CODE>true</CODE> if the user wants to continue and stop the
-   *  server.  <CODE>false</CODE> otherwise.
+   *  @return {@code true} if the user wants to continue and stop the server,
+   *          {@code false} otherwise.
    *  @throws ClientException if the user reached the confirmation limit.
    */
   private boolean confirmToUpdateRemoteAndStart() throws ClientException
@@ -745,8 +728,8 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   /**
    *  Ask for confirmation to provide again authentication.
-   *  @return <CODE>true</CODE> if the user wants to provide authentication
-   *  again.  <CODE>false</CODE> otherwise.
+   *  @return {@code true} if the user wants to provide authentication again,
+   *          {@code false} otherwise.
    *  @throws ClientException if the user reached the confirmation limit.
    */
   private boolean promptToProvideAuthenticationAgain() throws ClientException
@@ -760,8 +743,8 @@ public class UninstallCliHelper extends ConsoleApplication {
    * data is provided and validated, we assume that the user wants to update the
    * remote servers.
    *
-   * @return <CODE>true</CODE> if the user wants to continue and update the
-   *         remote servers. <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user wants to continue and update the
+   *         remote servers, {@code false} otherwise.
    * @throws UserDataException
    *           if there is a problem with the information provided by the user.
    * @throws ClientException
@@ -909,17 +892,15 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   private String askForReferencedHostName(String defaultHostName)
   {
-    String s = defaultHostName;
     try
     {
-      s = readInput(INFO_UNINSTALL_CLI_REFERENCED_HOSTNAME_PROMPT.get(),
-          defaultHostName);
+      return readInput(INFO_UNINSTALL_CLI_REFERENCED_HOSTNAME_PROMPT.get(), defaultHostName);
     }
     catch (ClientException ce)
     {
       logger.warn(LocalizableMessage.raw("Error reading input: %s", ce), ce);
+      return defaultHostName;
     }
-    return s;
   }
 
   private boolean startServer(boolean suppressOutput)
@@ -994,8 +975,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         // no-op
       }
     };
-    application.setProgressMessageFormatter(
-        new PlainTextProgressMessageFormatter());
+    application.setProgressMessageFormatter(new PlainTextProgressMessageFormatter());
     if (!suppressOutput)
     {
       application.addProgressUpdateListener(
@@ -1007,8 +987,7 @@ public class UninstallCliHelper extends ConsoleApplication {
             }
           });
     }
-    ServerController controller = new ServerController(application,
-        Installation.getLocal());
+    ServerController controller = new ServerController(application, Installation.getLocal());
     try
     {
       if (suppressOutput)
@@ -1043,15 +1022,12 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   /**
    * Updates the contents of the UninstallUserData while trying to connect to
-   * the remote servers. It returns <CODE>true</CODE> if we could connect to the
-   * remote servers and all the presented certificates were accepted and
-   * <CODE>false</CODE> otherwise. continue if
+   * the remote servers.
    *
    * @param userData
    *          the user data to be updated.
-   * @return <CODE>true</CODE> if we could connect to the remote servers and all
-   *         the presented certificates were accepted and <CODE>false</CODE>
-   *         otherwise.
+   * @return {@code true} if we could connect to the remote servers and all the
+   *         presented certificates were accepted, {@code false} otherwise.
    * @throws UserDataException
    *           if were are not in interactive mode and not in force on error
    *           mode and the operation must be stopped.
@@ -1076,8 +1052,8 @@ public class UninstallCliHelper extends ConsoleApplication {
     try
     {
       info.setTrustManager(userData.getTrustManager());
-      info.setConnectTimeout(getConnectTimeout());
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+      info.setConnectTimeout(getConnectTimeout());
       conn = new ConnectionWrapper(
           info.getAdminConnectorHostPort(), connectionType,
           getAdministratorDN(userData.getAdminUID()), userData.getAdminPwd(),
@@ -1179,8 +1155,8 @@ public class UninstallCliHelper extends ConsoleApplication {
    * Method that interacts with the user depending on what errors where
    * encountered in the TopologyCache object.  This method assumes that the
    * TopologyCache has been reloaded.
-   * Returns <CODE>true</CODE> if the user accepts all the problems encountered
-   * and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user accepts all the problems encountered,
+   *         {@code false} otherwise.
    * @param userData the user data.
    * @throws UserDataException if there is an error with the information
    * provided by the user when we are in non-interactive mode.
@@ -1191,13 +1167,16 @@ public class UninstallCliHelper extends ConsoleApplication {
   private boolean handleTopologyCache(TopologyCache cache,
       UninstallUserData userData) throws UserDataException, ClientException
   {
-    boolean returnValue;
-    boolean stopProcessing = false;
-    boolean reloadTopologyCache = false;
+    boolean result = handleTopologyCache0(cache, userData);
+    logger.info(LocalizableMessage.raw("Return value: "+result));
+    return result;
+  }
 
+  private boolean handleTopologyCache0(TopologyCache cache,
+      UninstallUserData userData) throws UserDataException, ClientException
+  {
     logger.info(LocalizableMessage.raw("Handle topology cache."));
 
-    Set<TopologyCacheException> exceptions = new HashSet<>();
     /* Analyze if we had any exception while loading servers.  For the moment
      * only throw the exception found if the user did not provide the
      * Administrator DN and this caused a problem authenticating in one server
@@ -1205,6 +1184,7 @@ public class UninstallCliHelper extends ConsoleApplication {
      */
     Set<ServerDescriptor> servers = cache.getServers();
     userData.setRemoteServers(servers);
+    Set<TopologyCacheException> exceptions = new HashSet<>();
     for (ServerDescriptor server : servers)
     {
       TopologyCacheException e = server.getLastException();
@@ -1213,8 +1193,11 @@ public class UninstallCliHelper extends ConsoleApplication {
         exceptions.add(e);
       }
     }
-    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<>();
+
     /* Check the exceptions and see if we throw them or not. */
+    Set<LocalizableMessage> exceptionMsgs = new LinkedHashSet<>();
+    boolean stopProcessing = false;
+    boolean reloadTopologyCache = false;
     for (TopologyCacheException e : exceptions)
     {
       logger.info(LocalizableMessage.raw("Analyzing exception: "+e, e));
@@ -1259,6 +1242,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         exceptionMsgs.add(Utils.getMessage(e));
       }
     }
+
     if (isInteractive())
     {
       if (!stopProcessing && !exceptionMsgs.isEmpty())
@@ -1266,10 +1250,9 @@ public class UninstallCliHelper extends ConsoleApplication {
         println();
         try
         {
-          returnValue = askConfirmation(
-            ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
-                Utils.getMessageFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR)), true, logger);
+          LocalizableMessage errorMsg = Utils.getMessageFromCollection(exceptionMsgs, Constants.LINE_SEPARATOR);
+          return askConfirmation(
+              ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(errorMsg), true, logger);
         }
         catch (ClientException ce)
         {
@@ -1278,45 +1261,40 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       else if (reloadTopologyCache)
       {
-       returnValue = updateUserUninstallDataWithRemoteServers(userData);
+        return updateUserUninstallDataWithRemoteServers(userData);
       }
       else
       {
-        returnValue = !stopProcessing;
+        return !stopProcessing;
       }
     }
     else
     {
       logger.info(LocalizableMessage.raw("exceptionMsgs: "+exceptionMsgs));
-      if (!exceptionMsgs.isEmpty())
+      if (exceptionMsgs.isEmpty())
       {
-        if (parser.isForceOnError())
-        {
-          LocalizableMessage msg = Utils.getMessageFromCollection(exceptionMsgs,
-              Constants.LINE_SEPARATOR);
-          println();
-          printErrorMessage(msg);
-          returnValue = false;
-        }
-        else
-        {
-          LocalizableMessage msg =
-            ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
-              "--" + parser.getSecureArgsList().getAdminUidArg().getLongIdentifier(),
-              "--" + OPTION_LONG_BINDPWD,
-              "--" + OPTION_LONG_BINDPWD_FILE,
-              "--" + parser.forceOnErrorArg.getLongIdentifier(),
-              Utils.getMessageFromCollection(exceptionMsgs, Constants.LINE_SEPARATOR));
-          throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
-        }
+        return true;
+      }
+
+      LocalizableMessage errorMsg = Utils.getMessageFromCollection(exceptionMsgs, Constants.LINE_SEPARATOR);
+      if (parser.isForceOnError())
+      {
+        println();
+        printErrorMessage(errorMsg);
+        return false;
       }
       else
       {
-        returnValue = true;
+        LocalizableMessage msg =
+          ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
+            "--" + parser.getSecureArgsList().getAdminUidArg().getLongIdentifier(),
+            "--" + OPTION_LONG_BINDPWD,
+            "--" + OPTION_LONG_BINDPWD_FILE,
+            "--" + parser.forceOnErrorArg.getLongIdentifier(),
+                errorMsg);
+        throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
       }
     }
-    logger.info(LocalizableMessage.raw("Return value: "+returnValue));
-    return returnValue;
   }
 
   @Override
@@ -1356,24 +1334,24 @@ public class UninstallCliHelper extends ConsoleApplication {
    * @param ci the LDAPConnectionConsoleInteraction object to be used to update
    * the user data object.
    */
-   private void updateTrustManager(UninstallUserData userData,
-       LDAPConnectionConsoleInteraction ci)
+  private void updateTrustManager(UninstallUserData userData, LDAPConnectionConsoleInteraction ci)
    {
-     ApplicationTrustManager trust = null;
-     TrustManager t = ci.getTrustManager();
-     if (t != null)
-     {
-       if (t instanceof ApplicationTrustManager)
-       {
-         trust = (ApplicationTrustManager)t;
-       }
-       else
-       {
-         trust = new ApplicationTrustManager(ci.getKeyStore());
-       }
-     }
-     userData.setTrustManager(trust);
+    userData.setTrustManager(getTrustManager(ci));
    }
+
+  private ApplicationTrustManager getTrustManager(LDAPConnectionConsoleInteraction ci)
+  {
+    TrustManager t = ci.getTrustManager();
+    if (t instanceof ApplicationTrustManager)
+    {
+      return (ApplicationTrustManager) t;
+    }
+    else if (t != null)
+    {
+      return new ApplicationTrustManager(ci.getKeyStore());
+    }
+    return null;
+  }
 
    /** Forces the initialization of the trust manager in the LDAPConnectionInteraction object. */
    private void forceTrustManagerInitialization()
@@ -1412,8 +1390,7 @@ public class UninstallCliHelper extends ConsoleApplication {
      }
      catch (ArgumentException ae)
      {
-       throw new IllegalStateException("Argument parser is not parsed: "+ae,
-           ae);
+       throw new IllegalStateException("Argument parser is not parsed: " + ae, ae);
      }
    }
 }
