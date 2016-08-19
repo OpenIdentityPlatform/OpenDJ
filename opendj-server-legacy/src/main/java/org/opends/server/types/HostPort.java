@@ -46,7 +46,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
      mayInvoke=true)
 public final class HostPort implements Comparable<HostPort>
 {
-
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -152,10 +151,18 @@ public final class HostPort implements Comparable<HostPort>
     return localAddresses;
   }
 
-  public static Set<String> toLowerCaseStrings(Set<HostPort> hps)
+  /**
+   * Converts a set of {@link HostPort}s to a new set where each host/port is converted to a
+   * lowercase string.
+   *
+   * @param hostPorts
+   *          the set of host ports to convert
+   * @return a new set of strings containing the lowercased string representation of the hostports
+   */
+  public static Set<String> toLowerCaseStrings(Set<HostPort> hostPorts)
   {
     final Set<String> results = new HashSet<>();
-    for (HostPort hp : hps)
+    for (HostPort hp : hostPorts)
     {
       results.add(hp.toString().toLowerCase(Locale.ROOT));
     }

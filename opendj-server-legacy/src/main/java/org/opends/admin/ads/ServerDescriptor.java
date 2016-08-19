@@ -50,7 +50,7 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.HostPort;
 
 /**
- * The object of this class represent an OpenDS server instance.
+ * The object of this class represent an OpenDJ server instance.
  * <p>
  * It can represent either a DS-only, a RS-only or a combined DS-RS.
  */
@@ -874,7 +874,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         {
           SearchResultEntry sr = entryReader.readEntry();
 
-          int id = asInteger(sr, "ds-cfg-server-id");
+          int serverId = asInteger(sr, "ds-cfg-server-id");
           Set<HostPort> replicationServers = toHostPorts(asSetOfString(sr, "ds-cfg-replication-server"));
           Set<DN> dns = asSetOfDN(sr, "ds-cfg-base-dn");
           for (DN dn : dns)
@@ -883,7 +883,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
             {
               if (replica.getSuffix().getDN().equals(dn))
               {
-                replica.setReplicationId(id);
+                replica.setServerId(serverId);
                 replica.setReplicationServers(replicationServers);
                 allReplicationServers.addAll(replicationServers);
               }

@@ -473,7 +473,7 @@ public class TopologyCache
         {
           if (replica.isReplicated()
               && dn.equals(replica.getSuffix().getDN())
-              && replica.getReplicationId() == replicaId)
+              && replica.getServerId() == replicaId)
           {
             // This statistic is optional.
             setAgeOfOldestMissingChange(replica, sr);
@@ -561,7 +561,7 @@ public class TopologyCache
           .append(server.getHostPort(true)).append(",")
           .append(replica.getEntries()).append(",")
           .append(isReplEnabled).append(",")
-          .append(replica.getReplicationId()).append(",")
+          .append(replica.getServerId()).append(",")
           .append(orBlank(server.getReplicationServerId())).append(",")
           .append(orBlank(server.getReplicationServerPort())).append(",")
           .append(replica.getMissingChanges()).append(",")

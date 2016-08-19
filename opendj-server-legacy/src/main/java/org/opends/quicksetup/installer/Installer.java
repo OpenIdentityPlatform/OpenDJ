@@ -1965,7 +1965,7 @@ public class Installer extends GuiApplication
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING_REPLICATION.get()));
 
     InstallerHelper helper = new InstallerHelper();
-    Set<Integer> knownServerIds = new HashSet<>();
+    Set<Integer> knownReplicaServerIds = new HashSet<>();
     Set<Integer> knownReplicationServerIds = new HashSet<>();
     if (lastLoadedCache != null)
     {
@@ -1973,7 +1973,7 @@ public class Installer extends GuiApplication
       {
         for (ReplicaDescriptor replica : suffix.getReplicas())
         {
-          knownServerIds.add(replica.getReplicationId());
+          knownReplicaServerIds.add(replica.getServerId());
         }
       }
       for (ServerDescriptor server : lastLoadedCache.getServers())
@@ -1992,7 +1992,7 @@ public class Installer extends GuiApplication
       {
         for (ReplicaDescriptor replica : suffix.getReplicas())
         {
-          knownServerIds.add(replica.getReplicationId());
+          knownReplicaServerIds.add(replica.getServerId());
           Object v = replica.getServer().getServerProperties().get(REPLICATION_SERVER_ID);
           if (v != null)
           {
@@ -2058,7 +2058,7 @@ public class Installer extends GuiApplication
           getUserData().getReplicationOptions().getReplicationPort(),
           getUserData().getReplicationOptions().useSecureReplication(),
           knownReplicationServerIds,
-          knownServerIds);
+          knownReplicaServerIds);
       localTimeMeasureTime = System.currentTimeMillis();
       localTime = Utils.getServerClock(conn);
       localServerDisplay = conn.getHostPort();
@@ -2151,7 +2151,7 @@ public class Installer extends GuiApplication
         {
           ConfiguredReplication repl = helper.configureReplication(
               conn, remoteReplicationServers, replicationPort, enableSecureReplication,
-              knownReplicationServerIds, knownServerIds);
+              knownReplicationServerIds, knownReplicaServerIds);
           long remoteTimeMeasureTime = System.currentTimeMillis();
           long remoteTime = Utils.getServerClock(conn);
           if (localTime != -1
@@ -2525,8 +2525,8 @@ public class Installer extends GuiApplication
       }
       try
       {
-        int replicationId = replica.getReplicationId();
-        if (replicationId == -1)
+        int replicaServerId = replica.getServerId();
+        if (replicaServerId == -1)
         {
           // This occurs if the remote server had not replication configured.
           try (ConnectionWrapper remoteConn = getRemoteConnection(server))
@@ -2539,7 +2539,7 @@ public class Installer extends GuiApplication
             {
               if (r.getSuffix().getDN().equals(dn))
               {
-                replicationId = r.getReplicationId();
+                replicaServerId = r.getServerId();
               }
             }
           }
@@ -2549,7 +2549,7 @@ public class Installer extends GuiApplication
             throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, e);
           }
         }
-        if (replicationId == -1)
+        if (replicaServerId == -1)
         {
           throw new ApplicationException(ReturnCode.APPLICATION_ERROR, ERR_COULD_NOT_FIND_REPLICATIONID.get(dn), null);
         }
@@ -2562,8 +2562,8 @@ public class Installer extends GuiApplication
           {
             logger.info(LocalizableMessage.raw("Calling initializeSuffix with base DN: " + dn));
             logger.info(LocalizableMessage.raw("Try number: " + (6 - nTries)));
-            logger.info(LocalizableMessage.raw("replicationId of source replica: " + replicationId));
-            initializeSuffix(conn, replicationId, dn, !isADS && !isSchema, hostPort);
+            logger.info(LocalizableMessage.raw("serverId of source replica: " + replicaServerId));
+            initializeSuffix(conn, replicaServerId, dn, !isADS && !isSchema, hostPort);
             initDone = true;
           }
           catch (PeerNotFoundException pnfe)
@@ -4118,8 +4118,8 @@ public class Installer extends GuiApplication
    *
    * @param conn
    *          the connection to the server whose suffix we want to initialize.
-   * @param replicaId
-   *          the replication ID of the replica we want to use to initialize the
+   * @param replicaServerId
+   *          the server ID of the replica we want to use to initialize the
    *          contents of the suffix.
    * @param suffixDn
    *          the dn of the suffix.
@@ -4133,7 +4133,7 @@ public class Installer extends GuiApplication
    * @throws PeerNotFoundException
    *           if the replication mechanism cannot find a peer.
    */
-  public void initializeSuffix(ConnectionWrapper conn, int replicaId, DN suffixDn, boolean displayProgress,
+  public void initializeSuffix(ConnectionWrapper conn, int replicaServerId, DN suffixDn, boolean displayProgress,
       HostPort sourceServerDisplay) throws ApplicationException, PeerNotFoundException
   {
     boolean taskCreated = false;
@@ -4144,7 +4144,7 @@ public class Installer extends GuiApplication
         .addAttribute("objectclass", "top", "ds-task", "ds-task-initialize-from-remote-replica")
         .addAttribute("ds-task-class-name", "org.opends.server.tasks.InitializeTask")
         .addAttribute("ds-task-initialize-domain-dn", suffixDn.toString())
-        .addAttribute("ds-task-initialize-replica-server-id", String.valueOf(replicaId));
+        .addAttribute("ds-task-initialize-replica-server-id", String.valueOf(replicaServerId));
     while (!taskCreated)
     {
       checkAbort();

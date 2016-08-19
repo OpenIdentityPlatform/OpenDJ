@@ -33,8 +33,8 @@ public class ReplicaDescriptor
   private int nbEntries = -1;
   private ServerDescriptor server;
   private final Set<HostPort> replicationServers = new HashSet<>();
-  /** This corresponds to the server-id of this replica. */
-  private int replicationId = -1;
+  /** @see InstallerHelper#getReplicationId(Set) */
+  private int serverId = -1;
   private int missingChanges = -1;
   private long ageOfOldestMissingChange = -1;
   private String backendId;
@@ -51,18 +51,16 @@ public class ReplicaDescriptor
 
   /**
    * Returns whether this replica is replicated or not.
-   * @return <CODE>true</CODE> if the replica is replicated and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if the replica is replicated, {@code false} otherwise.
    */
   public boolean isReplicated()
   {
-    return replicationId != -1;
+    return serverId != -1;
   }
 
   /**
    * Returns whether replication is replicated on this server or not.
-   * @return <CODE>true</CODE> if replication is enabled and
-   * <CODE>false</CODE> otherwise.
+   * @return {@code true} if replication is enabled, {@code false} otherwise.
    */
   public boolean isReplicationEnabled()
   {
@@ -146,25 +144,24 @@ public class ReplicaDescriptor
   }
 
   /**
-   * Returns the replication id for the replication domain associated
-   * with this replica.
-   * @return the replication id for the replication domain associated
-   * with this replica.
+   * Returns the server id for the replication domain associated with this replica.
+   *
+   * @return the server id for the replication domain associated with this replica.
    */
-  public int getReplicationId()
+  public int getServerId()
   {
-    return replicationId;
+    return serverId;
   }
 
   /**
-   * Sets the replication id for the replication domain associated
-   * with this replica.
-   * @param replicationId the replication id for the replication domain
-   * associated with this replica.
+   * Sets the server id for the replication domain associated with this replica.
+   *
+   * @param serverId
+   *          the server id for the replication domain associated with this replica.
    */
-  public void setReplicationId(int replicationId)
+  public void setServerId(int serverId)
   {
-    this.replicationId = replicationId;
+    this.serverId = serverId;
   }
 
   /**
@@ -247,7 +244,7 @@ public class ReplicaDescriptor
   {
     return getClass().getSimpleName()
         + "(domain-name=" + suffix.getDN()
-        + ", server-id=" + replicationId
+        + ", server-id=" + serverId
         + ", host-name=" + server.getReplicationServerHostPort()
         + ", nb-entries=" + nbEntries
         + ", rs-port=" + server.getReplicationServerPort()

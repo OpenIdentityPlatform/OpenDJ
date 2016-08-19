@@ -1673,8 +1673,7 @@ public class ReplicationCliMain extends ConsoleApplication
       for (BaseDNDescriptor baseDN : backend.getBaseDns())
       {
         ReplicaDescriptor replica = new ReplicaDescriptor();
-        replica.setReplicationId(
-            baseDN.getType() == BaseDNDescriptor.Type.REPLICATED ? baseDN.getReplicaID() : -1);
+        replica.setServerId(baseDN.getType() == BaseDNDescriptor.Type.REPLICATED ? baseDN.getReplicaID() : -1);
         replica.setBackendId(backend.getBackendID());
         replica.setSuffix(new SuffixDescriptor(baseDN.getDn(), replica));
 
@@ -4799,7 +4798,7 @@ public class ReplicationCliMain extends ConsoleApplication
     addToSets(serverDesc2, uData.getServer2(), conn2, twoReplServers, usedReplicationServerIds);
 
     final Map<DN, Set<HostPort>> hmRepServers = new HashMap<>();
-    final Map<DN, Set<Integer>> hmUsedReplicationDomainIds = new HashMap<>();
+    final Map<DN, Set<Integer>> hmUsedReplicaServerIds = new HashMap<>();
     for (DN baseDN : uData.getBaseDNs())
     {
       Set<HostPort> repServersForBaseDN = new LinkedHashSet<>();
@@ -4808,24 +4807,24 @@ public class ReplicationCliMain extends ConsoleApplication
       repServersForBaseDN.addAll(twoReplServers);
       hmRepServers.put(baseDN, repServersForBaseDN);
 
-      Set<Integer> ids = new HashSet<>();
-      addReplicationDomainIds(ids, serverDesc1, baseDN);
-      addReplicationDomainIds(ids, serverDesc2, baseDN);
+      Set<Integer> replicaServerIds = new HashSet<>();
+      addReplicaServerIds(replicaServerIds, serverDesc1, baseDN);
+      addReplicaServerIds(replicaServerIds, serverDesc2, baseDN);
       if (cache1 != null)
       {
         for (ServerDescriptor server : cache1.getServers())
         {
-          addReplicationDomainIds(ids, server, baseDN);
+          addReplicaServerIds(replicaServerIds, server, baseDN);
         }
       }
       if (cache2 != null)
       {
         for (ServerDescriptor server : cache2.getServers())
         {
-          addReplicationDomainIds(ids, server, baseDN);
+          addReplicaServerIds(replicaServerIds, server, baseDN);
         }
       }
-      hmUsedReplicationDomainIds.put(baseDN, ids);
+      hmUsedReplicaServerIds.put(baseDN, replicaServerIds);
     }
 
     final Set<HostPort> allRepServers = new LinkedHashSet<>();
@@ -4845,7 +4844,7 @@ public class ReplicationCliMain extends ConsoleApplication
     for (DN baseDN : uData.getBaseDNs())
     {
       Set<HostPort> repServers = hmRepServers.get(baseDN);
-      Set<Integer> usedIds = hmUsedReplicationDomainIds.get(baseDN);
+      Set<Integer> usedIds = hmUsedReplicaServerIds.get(baseDN);
       Set<String> alreadyConfiguredServers = new HashSet<>();
 
       configureToReplicateBaseDN(uData.getServer1(), conn1, serverDesc1, cache1, baseDN,
@@ -5023,12 +5022,12 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private void addReplicationDomainIds(Set<Integer> replicationIds, ServerDescriptor serverDesc1, DN baseDN)
+  private void addReplicaServerIds(Set<Integer> replicaServerIds, ServerDescriptor serverDesc1, DN baseDN)
   {
     ReplicaDescriptor replica = findReplicaForSuffixDN(serverDesc1.getReplicas(), baseDN);
     if (replica != null && replica.isReplicated())
     {
-      replicationIds.add(replica.getReplicationId());
+      replicaServerIds.add(replica.getServerId());
     }
   }
 
@@ -5814,7 +5813,7 @@ public class ReplicationCliMain extends ConsoleApplication
         tableBuilder.appendCell(fromBoolean(replica.isReplicationEnabled()));
 
         // DS instance ID
-        tableBuilder.appendCell(fromInt(replica.getReplicationId()));
+        tableBuilder.appendCell(fromInt(replica.getServerId()));
 
         // RS ID and port.
         if (replicaServer.isReplicationServer())
@@ -6315,7 +6314,7 @@ public class ReplicationCliMain extends ConsoleApplication
    *          the base DN of the replication domain to configure.
    * @param replicationServers
    *          the list of replication servers to which the replication domain will communicate with.
-   * @param usedReplicationDomainIds
+   * @param usedReplicaServerIds
    *          the set of replication domain IDs that are already in use. The set will be updated
    *          with the replication ID that will be used by the newly configured replication server.
    * @throws OpenDsException
@@ -6324,7 +6323,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void configureToReplicateBaseDN(ConnectionWrapper conn,
       DN baseDN,
       Set<HostPort> replicationServers,
-      Set<Integer> usedReplicationDomainIds) throws Exception
+      Set<Integer> usedReplicaServerIds) throws Exception
   {
     Set<String> replicationServersLC = toLowerCaseStrings(replicationServers);
 
@@ -6357,13 +6356,13 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean mustCommit = false;
     if (domain == null)
     {
-      int domainId = InstallerHelper.getReplicationId(usedReplicationDomainIds);
-      usedReplicationDomainIds.add(domainId);
+      int replicaServerId = InstallerHelper.getReplicationId(usedReplicaServerIds);
+      usedReplicaServerIds.add(replicaServerId);
       String domainName = InstallerHelper.getDomainName(domainNames, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
           null);
-      domain.setServerId(domainId);
+      domain.setServerId(replicaServerId);
       domain.setBaseDN(baseDN);
       domain.setReplicationServer(replicationServersLC);
       mustCommit = true;
@@ -6544,7 +6543,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ReplicaDescriptor replica = findReplicaForSuffixDN(source.getReplicas(), baseDN);
       if (replica != null)
       {
-        replicationId = replica.getReplicationId();
+        replicationId = replica.getServerId();
       }
     }
     catch (IOException ne)
@@ -8921,11 +8920,11 @@ public class ReplicationCliMain extends ConsoleApplication
       return false;
     }
 
-    int domain1Id = replica1.getReplicationId();
+    int domain1Id = replica1.getServerId();
     for (ReplicaDescriptor replica2 : suffix2.getReplicas())
     {
       if (replica2.isReplicated()
-          && domain1Id == replica2.getReplicationId())
+          && domain1Id == replica2.getServerId())
       {
         commonDomainIDErrors.add(
             ERR_REPLICATION_ENABLE_COMMON_DOMAIN_ID_ARG.get(replica1.getServer().getHostPort(true), suffix1DN,

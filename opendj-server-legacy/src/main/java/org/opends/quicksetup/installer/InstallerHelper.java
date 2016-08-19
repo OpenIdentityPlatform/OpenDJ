@@ -367,15 +367,15 @@ public class InstallerHelper {
    * replication port or not.
    * @param usedReplicationServerIds the list of replication server ids that
    * are already used.
-   * @param usedServerIds the list of server ids (domain ids) that
-   * are already used.
+   * @param usedReplicaServerIds the list of server ids (domain ids) that
+   * are already used by replicas.
    * @throws ApplicationException if something goes wrong.
    * @return a ConfiguredReplication object describing what has been configured.
    */
   public ConfiguredReplication configureReplication(
       ConnectionWrapper conn, Map<DN, Set<HostPort>> replicationServers,
       int replicationPort, boolean useSecureReplication, Set<Integer> usedReplicationServerIds,
-      Set<Integer> usedServerIds)
+      Set<Integer> usedReplicaServerIds)
   throws ApplicationException
   {
     boolean synchProviderCreated;
@@ -518,13 +518,13 @@ public class InstallerHelper {
         }
         if (domain == null)
         {
-          int domainId = getReplicationId(usedServerIds);
-          usedServerIds.add(domainId);
+          int replicaServerId = getReplicationId(usedReplicaServerIds);
+          usedReplicaServerIds.add(replicaServerId);
           domainName = getDomainName(domainNames, dn);
           domain = sync.createReplicationDomain(
               ReplicationDomainCfgDefn.getInstance(), domainName,
               new ArrayList<PropertyException>());
-          domain.setServerId(domainId);
+          domain.setServerId(replicaServerId);
           domain.setBaseDN(dn);
           isCreated = true;
         }
@@ -539,7 +539,7 @@ public class InstallerHelper {
         }
         servers = toLowerCaseStrings(replicationServers.get(dn));
         domain.setReplicationServer(servers);
-        usedServerIds.add(domain.getServerId());
+        usedReplicaServerIds.add(domain.getServerId());
 
         domain.commit();
         Set<String> addedServers = intersect(servers, oldServers);
@@ -678,8 +678,8 @@ public class InstallerHelper {
    *
    * @param logMsg
    *          the log message.
-   * @return <CODE>true</CODE> if the log message corresponds to a peers not
-   *         found error during initialization and <CODE>false</CODE> otherwise.
+   * @return {@code true} if the log message corresponds to a peers not
+   *         found error during initialization, {@code false} otherwise.
    */
   public boolean isPeersNotFoundError(String logMsg)
   {
@@ -1011,7 +1011,7 @@ public class InstallerHelper {
    * If the log message is of type "[03/Apr/2008:21:25:43 +0200] category=JEB
    * severity=NOTICE msgID=8847454 Processed 1 entries, imported 0, skipped 1,
    * rejected 0 and migrated 0 in 1 seconds (average rate 0.0/sec)" returns the
-   * message part. Returns <CODE>null</CODE> otherwise.
+   * message part. Returns {@code null} otherwise.
    *
    * @param msg
    *          the message to be parsed.
