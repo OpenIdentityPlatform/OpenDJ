@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.DN;
+import org.opends.server.types.HostPort;
 
 /**
  * The object of this class represent a topology of replicas across servers that
@@ -95,9 +96,9 @@ public class SuffixDescriptor
    *
    * @return the Set of Replication servers for the whole suffix topology.
    */
-  public Set<String> getReplicationServers()
+  public Set<HostPort> getReplicationServers()
   {
-    Set<String> replicationServers = new HashSet<>();
+    Set<HostPort> replicationServers = new HashSet<>();
     for (ReplicaDescriptor replica : getReplicas())
     {
       replicationServers.addAll(replica.getReplicationServers());

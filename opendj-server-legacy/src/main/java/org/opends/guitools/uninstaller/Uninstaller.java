@@ -41,11 +41,13 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.OperationsException;
+import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ReplicaDescriptor;
@@ -1454,14 +1456,15 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     loginDialog.setVisible(true);
     if (!loginDialog.isCanceled())
     {
-      getUninstallUserData().setAdminUID(loginDialog.getAdministratorUid());
-      getUninstallUserData().setAdminPwd(loginDialog.getAdministratorPwd());
+      final UninstallUserData uData = getUninstallUserData();
+      uData.setAdminUID(loginDialog.getAdministratorUid());
+      uData.setAdminPwd(loginDialog.getAdministratorPwd());
       final ConnectionWrapper conn = loginDialog.getConnection();
-      getUninstallUserData().setLocalServer(conn.getHostPort(), conn.isLdaps());
-      getUninstallUserData().setReplicationServer(
-          loginDialog.getHostName() + ":" +
-          conf.getReplicationServerPort());
-      getUninstallUserData().setReferencedHostName(loginDialog.getHostName());
+      uData.setLocalServer(conn.getHostPort(), conn.isLdaps());
+      uData.setReplicationServer(new HostPort(
+          loginDialog.getHostName(),
+          conf.getReplicationServerPort()));
+      uData.setReferencedHostName(loginDialog.getHostName());
 
       BackgroundTask<TopologyCache> worker = new BackgroundTask<TopologyCache>()
       {
@@ -1756,39 +1759,38 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @throws ApplicationException if we are not working on force on error mode
    * and there is an error.
    */
-  private void removeReferences(ServerDescriptor server,
-      Map<ADSContext.ServerProperty, Object> serverADSProperties)
-  throws ApplicationException
+  private void removeReferences(ServerDescriptor server, Map<ADSContext.ServerProperty, Object> serverADSProperties)
+      throws ApplicationException
   {
     /* First check if the server must be updated based in the contents of the
      * ServerDescriptor object. */
     UninstallUserData uData = getUninstallUserData();
-    String rsUrl = uData.getReplicationServer();
-    if (!isReferenced(server.getServerProperties(), rsUrl)
-        && !isReferenced(server.getReplicas(), rsUrl))
+    HostPort rsHp = uData.getReplicationServer();
+    HostPort serverHostPort = server.getHostPort(true);
+    if (!isReferenced(server.getServerProperties(), rsHp)
+        && !isReferenced(server.getReplicas(), rsHp))
     {
-      logger.info(LocalizableMessage.raw("No references in: " + server.getHostPort(true)));
+      logger.info(LocalizableMessage.raw("No references in: " + serverHostPort));
       return;
     }
 
-    logger.info(LocalizableMessage.raw("Updating references in: " + server.getHostPort(true)));
-    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_REMOVING_REFERENCES.get(server.getHostPort(true))));
+    logger.info(LocalizableMessage.raw("Updating references in: " + serverHostPort));
+    notifyListeners(getFormattedWithPoints(INFO_PROGRESS_REMOVING_REFERENCES.get(serverHostPort)));
 
     DN dn = ADSContext.getAdministratorDN(uData.getAdminUID());
     String pwd = uData.getAdminPwd();
     try (ConnectionWrapper connWrapper =
         getRemoteConnection(server, dn, pwd, getConnectTimeout(), new LinkedHashSet<PreferredConnection>()))
     {
-      // Update replication servers and domains. If the domain
-      // is an ADS, then remove it from there.
-      removeReferences(connWrapper, server.getHostPort(true), serverADSProperties);
+      // Update replication servers and domains. If the domain is an ADS, then remove it from there.
+      removeReferences(connWrapper, serverHostPort, serverADSProperties);
 
       notifyListeners(getFormattedDoneWithLineBreak());
     }
     catch (ApplicationException ae)
     {
       errorOnRemoteOccurred = true;
-      logger.info(LocalizableMessage.raw("Error updating replication references in: " + server.getHostPort(true), ae));
+      logger.info(LocalizableMessage.raw("Error updating replication references in: " + serverHostPort, ae));
 
       if (!uData.isForceOnError())
       {
@@ -1805,40 +1807,26 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  private boolean isReferenced(Map<ServerProperty, Object> serverProperties, String toFind)
+  private boolean isReferenced(Map<ServerProperty, Object> serverProperties, HostPort toFind)
   {
     Object v = serverProperties.get(ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
     if (Boolean.TRUE.equals(v))
     {
-      Set<?> replicationServers = (Set<?>)
+      Set<HostPort> replicationServers = (Set)
           serverProperties.get(ServerDescriptor.ServerProperty.EXTERNAL_REPLICATION_SERVERS);
-      if (replicationServers != null)
-      {
-        for (Object rsUrl : replicationServers)
-        {
-          if (toFind.equalsIgnoreCase((String) rsUrl))
-          {
-            return true;
-          }
-        }
-      }
+      return replicationServers != null && replicationServers.contains(toFind);
     }
     return false;
   }
 
-  private boolean isReferenced(Set<ReplicaDescriptor> replicas, String toFind)
+  private boolean isReferenced(Set<ReplicaDescriptor> replicas, HostPort toFind)
   {
     for (ReplicaDescriptor replica : replicas)
     {
-      if (replica.isReplicated())
+      if (replica.isReplicated()
+          && replica.getReplicationServers().contains(toFind))
       {
-        for (String rsUrl : replica.getReplicationServers())
-        {
-          if (toFind.equalsIgnoreCase(rsUrl))
-          {
-            return true;
-          }
-        }
+        return true;
       }
     }
     return false;
@@ -1848,95 +1836,37 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * This method updates the replication in the remote server using the provided connection.
    * It also tries to delete the server registration entry from the remote ADS
    * servers if the serverADSProperties object passed is not null.
+   *
    * @param connWrapper the connection to the remote server where we want to remove
    * references to the server that we are trying to uninstall.
-   * @param serverDisplay an String representation that is used to identify
-   * the remote server in the log messages we present to the user.
+   * @param serverToUpdate the server where to remove references to the remote server
    * @param serverADSProperties the Map with the ADS properties of the server
    * that we are trying to uninstall.
    * @throws ApplicationException if an error occurs while updating the remote
    * OpenDS server configuration.
    */
-  private void removeReferences(ConnectionWrapper connWrapper, HostPort serverDisplay,
-      Map<ADSContext.ServerProperty, Object> serverADSProperties)
-  throws ApplicationException
+  private void removeReferences(ConnectionWrapper connWrapper, HostPort serverToUpdate,
+      Map<ADSContext.ServerProperty, Object> serverADSProperties) throws ApplicationException
   {
     try
     {
-      RootCfgClient root = connWrapper.getRootConfiguration();
-      ReplicationSynchronizationProviderCfgClient sync =
-        (ReplicationSynchronizationProviderCfgClient)
-        root.getSynchronizationProvider("Multimaster Synchronization");
-      if (sync.hasReplicationServer())
-      {
-        ReplicationServerCfgClient replicationServer =
-          sync.getReplicationServer();
-        Set<String> replServers = replicationServer.getReplicationServer();
-        if (replServers != null)
-        {
-          String replServer = findReplicationServer(replServers);
-          if (replServer != null)
-          {
-            logger.info(LocalizableMessage.raw("Updating references in replication server on "+
-                serverDisplay+"."));
-            replServers.remove(replServer);
-            if (!replServers.isEmpty())
-            {
-              replicationServer.setReplicationServer(replServers);
-              replicationServer.commit();
-            }
-            else
-            {
-              sync.removeReplicationServer();
-              sync.commit();
-            }
-          }
-        }
-      }
-      String[] domainNames = sync.listReplicationDomains();
-      if (domainNames != null)
-      {
-        for (String domainName : domainNames)
-        {
-          ReplicationDomainCfgClient domain =
-            sync.getReplicationDomain(domainName);
-          Set<String> replServers = domain.getReplicationServer();
-          if (replServers != null)
-          {
-            String replServer = findReplicationServer(replServers);
-            if (replServer != null)
-            {
-              logger.info(LocalizableMessage.raw("Updating references in domain " +
-                  domain.getBaseDN()+" on " + serverDisplay + "."));
-              replServers.remove(replServer);
-              if (!replServers.isEmpty())
-              {
-                domain.setReplicationServer(replServers);
-                domain.commit();
-              }
-              else
-              {
-                sync.removeReplicationDomain(domainName);
-                sync.commit();
-              }
-            }
-          }
-        }
-      }
+      ReplicationSynchronizationProviderCfgClient sync = (ReplicationSynchronizationProviderCfgClient)
+          connWrapper.getRootConfiguration().getSynchronizationProvider("Multimaster Synchronization");
+      removeReferenceInReplicatonServer(sync, serverToUpdate);
+      removeReferenceInReplicationDomain(sync, serverToUpdate);
     }
     catch (ManagedObjectNotFoundException monfe)
     {
       // It does not exist.
-      logger.info(LocalizableMessage.raw("No synchronization found on "+ serverDisplay+".",
-          monfe));
+      logger.info(LocalizableMessage.raw("No synchronization found on " + serverToUpdate + ".", monfe));
     }
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw(
           "Error removing references in replication server on "+
-          serverDisplay+": "+t, t));
+          serverToUpdate+": "+t, t));
       LocalizableMessage errorMessage = INFO_ERROR_CONFIGURING_REMOTE_GENERIC.get(
-              serverDisplay, t);
+              serverToUpdate, t);
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, errorMessage, t);
     }
@@ -1958,7 +1888,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       {
         throw new ApplicationException(
             ReturnCode.CONFIGURATION_ERROR,
-            INFO_REMOTE_ADS_EXCEPTION.get(serverDisplay, ace),
+            INFO_REMOTE_ADS_EXCEPTION.get(serverToUpdate, ace),
             ace);
       }
       else
@@ -1970,16 +1900,78 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  private String findReplicationServer(Set<String> replServers)
+  private void removeReferenceInReplicatonServer(ReplicationSynchronizationProviderCfgClient sync,
+      HostPort serverToUpdate) throws OperationsException, LdapException, OperationRejectedException
   {
-    for (String s : replServers)
+    if (sync.hasReplicationServer())
     {
-      if (getUninstallUserData().getReplicationServer().equalsIgnoreCase(s))
+      final ReplicationServerCfgClient replicationServer = sync.getReplicationServer();
+      final Set<String> replServers = replicationServer.getReplicationServer();
+      if (removeReplicationServer(replServers))
       {
-        return s;
+        logger.info(LocalizableMessage.raw("Updating references in replication server on " + serverToUpdate + "."));
+        if (!replServers.isEmpty())
+        {
+          replicationServer.setReplicationServer(replServers);
+          replicationServer.commit();
+        }
+        else
+        {
+          sync.removeReplicationServer();
+          sync.commit();
+        }
       }
     }
-    return null;
+  }
+
+  private void removeReferenceInReplicationDomain(ReplicationSynchronizationProviderCfgClient sync,
+      HostPort serverToUpdate) throws OperationsException, LdapException, OperationRejectedException
+  {
+    final String[] domainNames = sync.listReplicationDomains();
+    if (domainNames == null)
+    {
+      return;
+    }
+
+    for (String domainName : domainNames)
+    {
+      final ReplicationDomainCfgClient domain = sync.getReplicationDomain(domainName);
+      final Set<String> replServers = domain.getReplicationServer();
+      if (removeReplicationServer(replServers))
+      {
+        logger.info(LocalizableMessage.raw(
+            "Updating references in domain " + domain.getBaseDN() + " on " + serverToUpdate + "."));
+        if (!replServers.isEmpty())
+        {
+          domain.setReplicationServer(replServers);
+          domain.commit();
+        }
+        else
+        {
+          sync.removeReplicationDomain(domainName);
+          sync.commit();
+        }
+      }
+    }
+  }
+
+  private boolean removeReplicationServer(Set<String> replServers)
+  {
+    if (replServers == null)
+    {
+      return false;
+    }
+    final String toFind = getUninstallUserData().getReplicationServer().toString();
+    for (Iterator<String> it = replServers.iterator(); it.hasNext();)
+    {
+      final String rs = it.next();
+      if (toFind.equalsIgnoreCase(rs))
+      {
+        it.remove();
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

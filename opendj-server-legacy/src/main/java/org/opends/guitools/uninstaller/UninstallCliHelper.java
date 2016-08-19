@@ -212,14 +212,12 @@ public class UninstallCliHelper extends ConsoleApplication {
       try
       {
         UninstallData d = new UninstallData(Installation.getLocal());
-        userData.setReplicationServer(
-            referencedHostName+":"+d.getReplicationServerPort());
+        userData.setReplicationServer(new HostPort(referencedHostName, d.getReplicationServerPort()));
       }
       catch (Throwable t)
       {
         logger.error(LocalizableMessage.raw("Could not create UninstallData: "+t, t));
-        userData.setReplicationServer(
-            referencedHostName+":8989");
+        userData.setReplicationServer(new HostPort(referencedHostName, 8989));
       }
       info = ControlPanelInfo.getInstance();
       info.setTrustManager(userData.getTrustManager());
@@ -877,8 +875,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       try
       {
         UninstallData d = new UninstallData(Installation.getLocal());
-        userData.setReplicationServer(
-            referencedHostName+":"+d.getReplicationServerPort());
+        userData.setReplicationServer(new HostPort(referencedHostName, d.getReplicationServerPort()));
         userData.setReferencedHostName(referencedHostName);
       }
       catch (Throwable t)

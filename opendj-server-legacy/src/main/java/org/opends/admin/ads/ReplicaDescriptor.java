@@ -19,6 +19,8 @@ package org.opends.admin.ads;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.opends.server.types.HostPort;
+
 /**
  * The object of this class represent a Replica, i.e. a suffix in a given server instance.
  * <p>
@@ -30,7 +32,7 @@ public class ReplicaDescriptor
   /** Number of entries held by this replica. */
   private int nbEntries = -1;
   private ServerDescriptor server;
-  private final Set<String> replicationServers = new HashSet<>();
+  private final Set<HostPort> replicationServers = new HashSet<>();
   /** This corresponds to the server-id of this replica. */
   private int replicationId = -1;
   private int missingChanges = -1;
@@ -125,7 +127,7 @@ public class ReplicaDescriptor
    * @return a set containing the String representation of the replication
    * servers that are defined in the replication domain for this replica.
    */
-  public Set<String> getReplicationServers()
+  public Set<HostPort> getReplicationServers()
   {
     return new HashSet<>(replicationServers);
   }
@@ -137,7 +139,7 @@ public class ReplicaDescriptor
    * representation) that are defined in the replication domain for this
    * replica.
    */
-  public void setReplicationServers(Set<String> replicationServers)
+  public void setReplicationServers(Set<HostPort> replicationServers)
   {
     this.replicationServers.clear();
     this.replicationServers.addAll(replicationServers);

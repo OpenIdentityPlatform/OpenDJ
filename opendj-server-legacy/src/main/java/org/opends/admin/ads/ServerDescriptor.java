@@ -200,7 +200,7 @@ public class ServerDescriptor
    * on the information we have ("hostname":"replication port") and
    * {@code null} if this is not a replication server.
    */
-  public String getReplicationServerHostPort()
+  public HostPort getReplicationServerHostPort()
   {
     return isReplicationServer() ? getReplicationServer(getHostName(), getReplicationServerPort()) : null;
   }
@@ -270,7 +270,7 @@ public class ServerDescriptor
    */
   public HostPort getLdapHostPort()
   {
-    return getHostPort0(ServerProperty.LDAP_ENABLED, ServerProperty.LDAP_PORT, false);
+    return getHostPort(getLdapPort(-1));
   }
 
   /**
@@ -280,26 +280,7 @@ public class ServerDescriptor
    */
   public HostPort getLdapsHostPort()
   {
-    return getHostPort0(ServerProperty.LDAPS_ENABLED, ServerProperty.LDAPS_PORT, true);
-  }
-
-  private HostPort getHostPort0(ServerProperty enabledProp, ServerProperty portProp, boolean useSSL)
-  {
-    int port = getPort(enabledProp, portProp);
-    if (port != -1)
-    {
-      return new HostPort(getHostName(), port);
-    }
-    return null;
-  }
-
-  private int getPort(ServerProperty enabledProp, ServerProperty portProp)
-  {
-    if (!serverProperties.isEmpty())
-    {
-      return getPort(enabledProp, portProp, -1);
-    }
-    return -1;
+    return getHostPort(getLdapsPort(-1));
   }
 
   /**
@@ -309,7 +290,12 @@ public class ServerDescriptor
    */
   public HostPort getAdminConnectorHostPort()
   {
-    return getHostPort0(ServerProperty.ADMIN_ENABLED, ServerProperty.ADMIN_PORT, true);
+    return getHostPort(getAdminPort(-1));
+  }
+
+  private HostPort getHostPort(final int port)
+  {
+    return port != -1 ? new HostPort(getHostName(), port) : null;
   }
 
   /**
@@ -854,16 +840,17 @@ public class ServerDescriptor
   private static void updateReplication(ServerDescriptor desc, ConnectionWrapper conn, TopologyCacheFilter cacheFilter)
       throws IOException
   {
+    final Map<ServerProperty, Object> serverProps = desc.serverProperties;
+
     SearchRequest request = newSearchRequest(
         "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config",
         WHOLE_SUBTREE,
         "(objectclass=ds-cfg-synchronization-provider)",
         "ds-cfg-enabled");
     SearchResultEntry sre = conn.getConnection().searchSingleEntry(request);
-    Boolean replicationEnabled = asBoolean(sre, "ds-cfg-enabled");
-    desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED, replicationEnabled);
+    serverProps.put(ServerProperty.IS_REPLICATION_ENABLED, asBoolean(sre, "ds-cfg-enabled"));
 
-    Set<String> allReplicationServers = new LinkedHashSet<>();
+    Set<HostPort> allReplicationServers = new LinkedHashSet<>();
 
     if (cacheFilter.searchBaseDNInformation())
     {
@@ -882,7 +869,7 @@ public class ServerDescriptor
           SearchResultEntry sr = entryReader.readEntry();
 
           int id = asInteger(sr, "ds-cfg-server-id");
-          Set<String> replicationServers = asSetOfString(sr, "ds-cfg-replication-server");
+          Set<HostPort> replicationServers = toHostPorts(asSetOfString(sr, "ds-cfg-replication-server"));
           Set<DN> dns = asSetOfDN(sr, "ds-cfg-base-dn");
           for (DN dn : dns)
           {
@@ -891,9 +878,8 @@ public class ServerDescriptor
               if (replica.getSuffix().getDN().equals(dn))
               {
                 replica.setReplicationId(id);
-                LinkedHashSet<String> repServers = toLowercase(replicationServers);
-                replica.setReplicationServers(repServers);
-                allReplicationServers.addAll(repServers);
+                replica.setReplicationServers(replicationServers);
+                allReplicationServers.addAll(replicationServers);
               }
             }
           }
@@ -901,7 +887,7 @@ public class ServerDescriptor
       }
     }
 
-    desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER, Boolean.FALSE);
+    serverProps.put(ServerProperty.IS_REPLICATION_SERVER, Boolean.FALSE);
 
     request = newSearchRequest(
         "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config",
@@ -917,32 +903,25 @@ public class ServerDescriptor
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER, Boolean.TRUE);
-        Integer port = asInteger(sr, "ds-cfg-replication-port");
-        desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_PORT, port);
-        Integer serverId = asInteger(sr, "ds-cfg-replication-server-id");
-        desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_ID, serverId);
-        LinkedHashSet<String> repServers = toLowercase(asSetOfString(sr, "ds-cfg-replication-server"));
-        allReplicationServers.addAll(repServers);
-        desc.serverProperties.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS, allReplicationServers);
+        serverProps.put(ServerProperty.IS_REPLICATION_SERVER, Boolean.TRUE);
+        serverProps.put(ServerProperty.REPLICATION_SERVER_PORT, asInteger(sr, "ds-cfg-replication-port"));
+        serverProps.put(ServerProperty.REPLICATION_SERVER_ID, asInteger(sr, "ds-cfg-replication-server-id"));
+        allReplicationServers.addAll(toHostPorts(asSetOfString(sr, "ds-cfg-replication-server")));
+        serverProps.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS, allReplicationServers);
       }
     }
 
-    Boolean replicationSecure = isReplicationSecure(conn, replicationEnabled);
-    desc.serverProperties.put(ServerProperty.IS_REPLICATION_SECURE, replicationSecure);
+    serverProps.put(ServerProperty.IS_REPLICATION_SECURE, isReplicationSecure(conn, asBoolean(sre, "ds-cfg-enabled")));
   }
 
-  /**
-   * Keep the values of the replication servers in lower case to make use of Sets as String simpler.
-   */
-  private static LinkedHashSet<String> toLowercase(Set<String> values)
+  private static Set<HostPort> toHostPorts(Set<String> hostPorts)
   {
-    LinkedHashSet<String> repServers = new LinkedHashSet<>();
-    for (String s: values)
+    final LinkedHashSet<HostPort> results = new LinkedHashSet<>();
+    for (String hostPort : hostPorts)
     {
-      repServers.add(s.toLowerCase());
+      results.add(HostPort.valueOf(hostPort));
     }
-    return repServers;
+    return results;
   }
 
   private static boolean isReplicationSecure(ConnectionWrapper conn, boolean replicationEnabled) throws IOException
@@ -1142,9 +1121,9 @@ public class ServerDescriptor
    * @return the replication server normalized String for a given host name
    * and replication port.
    */
-  public static String getReplicationServer(String hostName, int replicationPort)
+  public static HostPort getReplicationServer(String hostName, int replicationPort)
   {
-    return HostPort.toString(hostName, replicationPort);
+    return new HostPort(hostName, replicationPort);
   }
 
   /**

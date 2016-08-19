@@ -37,6 +37,7 @@ import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliArgumentParser.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
+import static org.opends.server.types.HostPort.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
@@ -57,6 +58,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -3520,18 +3522,17 @@ public class ReplicationCliMain extends ConsoleApplication
    * replicated using the replication server and replication port information
    * and {@code false} otherwise.
    */
-  private boolean areFullyReplicated(ReplicaDescriptor rep1,
-      ReplicaDescriptor rep2)
+  private boolean areFullyReplicated(ReplicaDescriptor rep1, ReplicaDescriptor rep2)
   {
     if (rep1.getSuffix().getDN().equals(rep2.getSuffix().getDN()) &&
         rep1.isReplicated() && rep2.isReplicated() &&
         rep1.getServer().isReplicationServer() &&
         rep2.getServer().isReplicationServer())
     {
-     Set<String> servers1 = rep1.getReplicationServers();
-     Set<String> servers2 = rep2.getReplicationServers();
-     String server1 = rep1.getServer().getReplicationServerHostPort();
-     String server2 = rep2.getServer().getReplicationServerHostPort();
+      Set<HostPort> servers1 = rep1.getReplicationServers();
+      Set<HostPort> servers2 = rep2.getReplicationServers();
+      HostPort server1 = rep1.getServer().getReplicationServerHostPort();
+      HostPort server2 = rep2.getServer().getReplicationServerHostPort();
       return servers1.contains(server2) && servers2.contains(server1);
     }
     return false;
@@ -3543,16 +3544,16 @@ public class ReplicationCliMain extends ConsoleApplication
    * have at least one common replication server referenced.
    * @param rep1 the first replica.
    * @param rep2 the second replica.
-   * @return {@code true} if we can assure that the two replicas are
-   * replicated and {@code false} otherwise.
+   * @return {@code true} if we can assure that the two replicas are replicated,
+   *         {@code false} otherwise.
    */
   private boolean areReplicated(ReplicaDescriptor rep1, ReplicaDescriptor rep2)
   {
     if (rep1.getSuffix().getDN().equals(rep2.getSuffix().getDN()) &&
         rep1.isReplicated() && rep2.isReplicated())
     {
-      Set<String> servers1 = rep1.getReplicationServers();
-      Set<String> servers2 = rep2.getReplicationServers();
+      Set<HostPort> servers1 = rep1.getReplicationServers();
+      Set<HostPort> servers2 = rep2.getReplicationServers();
       servers1.retainAll(servers2);
       return !servers1.isEmpty();
     }
@@ -4792,15 +4793,15 @@ public class ReplicationCliMain extends ConsoleApplication
           ERROR_READING_TOPOLOGY_CACHE, tce);
     }
 
-    final Set<String> twoReplServers = new LinkedHashSet<>();
+    final Set<HostPort> twoReplServers = new LinkedHashSet<>();
     addToSets(serverDesc1, uData.getServer1(), conn1, twoReplServers, usedReplicationServerIds);
     addToSets(serverDesc2, uData.getServer2(), conn2, twoReplServers, usedReplicationServerIds);
 
-    final Map<DN, Set<String>> hmRepServers = new HashMap<>();
+    final Map<DN, Set<HostPort>> hmRepServers = new HashMap<>();
     final Map<DN, Set<Integer>> hmUsedReplicationDomainIds = new HashMap<>();
     for (DN baseDN : uData.getBaseDNs())
     {
-      Set<String> repServersForBaseDN = new LinkedHashSet<>();
+      Set<HostPort> repServersForBaseDN = new LinkedHashSet<>();
       repServersForBaseDN.addAll(getReplicationServers(baseDN, cache1, serverDesc1));
       repServersForBaseDN.addAll(getReplicationServers(baseDN, cache2, serverDesc2));
       repServersForBaseDN.addAll(twoReplServers);
@@ -4826,8 +4827,8 @@ public class ReplicationCliMain extends ConsoleApplication
       hmUsedReplicationDomainIds.put(baseDN, ids);
     }
 
-    final Set<String> allRepServers = new LinkedHashSet<>();
-    for (Set<String> v : hmRepServers.values())
+    final Set<HostPort> allRepServers = new LinkedHashSet<>();
+    for (Set<HostPort> v : hmRepServers.values())
     {
       allRepServers.addAll(v);
     }
@@ -4842,7 +4843,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     for (DN baseDN : uData.getBaseDNs())
     {
-      Set<String> repServers = hmRepServers.get(baseDN);
+      Set<HostPort> repServers = hmRepServers.get(baseDN);
       Set<Integer> usedIds = hmUsedReplicationDomainIds.get(baseDN);
       Set<String> alreadyConfiguredServers = new HashSet<>();
 
@@ -5031,7 +5032,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void addToSets(ServerDescriptor serverDesc, EnableReplicationServerData serverData, ConnectionWrapper conn,
-      final Set<String> twoReplServers, final Set<Integer> usedReplicationServerIds)
+      final Set<HostPort> twoReplServers, final Set<Integer> usedReplicationServerIds)
   {
     if (serverDesc.isReplicationServer())
     {
@@ -5046,7 +5047,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void configureToReplicateBaseDN(EnableReplicationServerData server, ConnectionWrapper conn,
       ServerDescriptor serverDesc, TopologyCache cache, DN baseDN, Set<Integer> usedIds,
-      Set<String> alreadyConfiguredServers, Set<String> repServers, final Set<String> allRepServers,
+      Set<String> alreadyConfiguredServers, Set<HostPort> repServers, final Set<HostPort> allRepServers,
       Set<String> alreadyConfiguredReplicationServers) throws ReplicationCliException
   {
     if (server.configureReplicationDomain()
@@ -5073,7 +5074,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void configureServer(ConnectionWrapper conn, ServerDescriptor serverDesc,
       EnableReplicationServerData enableServer, IntegerArgument replicationPortArg,
-      Set<Integer> usedReplicationServerIds, Set<String> allRepServers,
+      Set<Integer> usedReplicationServerIds, Set<HostPort> allRepServers,
       Set<String> alreadyConfiguredReplicationServers, Arg2<Number, Number> replicationServerAlreadyConfiguredMsg)
       throws ReplicationCliException
   {
@@ -5223,7 +5224,7 @@ public class ReplicationCliMain extends ConsoleApplication
         && (uData.disableReplicationServer() || uData.disableAll());
     if (cache != null && disableReplicationServer)
     {
-      String replicationServer = server.getReplicationServerHostPort();
+      HostPort replicationServer = server.getReplicationServerHostPort();
       // Figure out if this is the last replication server for a given
       // topology (containing a different replica) or there will be only
       // another replication server left (single point of failure).
@@ -5238,9 +5239,9 @@ public class ReplicationCliMain extends ConsoleApplication
           continue;
         }
 
-        Set<String> repServers = suffix.getReplicationServers();
+        Set<HostPort> repServers = suffix.getReplicationServers();
         if (repServers.size() <= 2
-            && containsIgnoreCase(repServers, replicationServer))
+            && repServers.contains(replicationServer))
         {
           if (repServers.size() == 2)
           {
@@ -5423,8 +5424,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    String replicationServerHostPort =
-        server.isReplicationServer() ? server.getReplicationServerHostPort() : null;
+    HostPort replicationServerHostPort = server.getReplicationServerHostPort();
 
     for (DN baseDN : suffixesToDisable)
     {
@@ -5460,7 +5460,7 @@ public class ReplicationCliMain extends ConsoleApplication
         // Find references in all servers.
         for (SuffixDescriptor suffix : cache.getSuffixes())
         {
-          if (containsIgnoreCase(suffix.getReplicationServers(), replicationServerHostPort))
+          if (suffix.getReplicationServers().contains(replicationServerHostPort))
           {
             baseDNsToUpdate.add(suffix.getDN());
             for (ReplicaDescriptor replica : suffix.getReplicas())
@@ -5474,7 +5474,7 @@ public class ReplicationCliMain extends ConsoleApplication
       String pwd = conn.getBindPassword();
       for (ServerDescriptor s : serversToUpdate)
       {
-        removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
+        removeReferencesInServer(s, replicationServerHostPort.toString(), bindDn, pwd,
             baseDNsToUpdate, disableReplicationServer,
             getPreferredConnections(conn));
       }
@@ -5973,12 +5973,12 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     boolean isDomain = false;
     boolean isRepServer = false;
-    String replicationServer = server.getReplicationServerHostPort();
+    HostPort replicationServer = server.getReplicationServerHostPort();
     for (ReplicaDescriptor replica : replicas)
     {
       if (!isRepServer)
       {
-        isRepServer = containsIgnoreCase(replica.getReplicationServers(), replicationServer);
+        isRepServer = isRepServer || replica.getReplicationServers().contains(replicationServer);
       }
       if (replica.getServer() == server)
       {
@@ -6064,21 +6064,21 @@ public class ReplicationCliMain extends ConsoleApplication
    * to replicate the baseDN defined in the server described by the
    * ServerDescriptor.
    */
-  private Set<String> getReplicationServers(DN baseDN, TopologyCache cache, ServerDescriptor server)
+  private Set<HostPort> getReplicationServers(DN baseDN, TopologyCache cache, ServerDescriptor server)
   {
-    Set<String> servers = getAllReplicationServers(baseDN, server);
+    Set<HostPort> servers = getAllReplicationServers(baseDN, server);
     if (cache != null)
     {
       for (SuffixDescriptor suffix : cache.getSuffixes())
       {
         if (suffix.getDN().equals(baseDN))
         {
-          Set<String> s = suffix.getReplicationServers();
+          Set<HostPort> s = suffix.getReplicationServers();
           // Test that at least we share one of the replication servers.
           // If we do: we are dealing with the same replication topology
           // (we must consider the case of disjoint replication topologies
           // replicating the same base DN).
-          Set<String> copy = new HashSet<>(s);
+          Set<HostPort> copy = new HashSet<>(s);
           copy.retainAll(servers);
           if (!copy.isEmpty())
           {
@@ -6086,7 +6086,7 @@ public class ReplicationCliMain extends ConsoleApplication
             break;
           }
           else if (server.isReplicationServer()
-              && containsIgnoreCase(s, server.getReplicationServerHostPort()))
+              && s.contains(server.getReplicationServerHostPort()))
           {
             // this server is acting as replication server with no domain.
             servers.addAll(s);
@@ -6096,18 +6096,6 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return servers;
-  }
-
-  private boolean containsIgnoreCase(Set<String> col, String toFind)
-  {
-    for (String s : col)
-    {
-      if (s.equalsIgnoreCase(toFind))
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
   private String findIgnoreCase(Set<String> col, String toFind)
@@ -6133,30 +6121,26 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private SuffixDescriptor getSuffix(DN baseDN, TopologyCache cache, ServerDescriptor server)
   {
-    String replicationServer = null;
-    if (server.isReplicationServer())
-    {
-      replicationServer = server.getReplicationServerHostPort();
-    }
+    final HostPort replicationServer = server.getReplicationServerHostPort();
 
     SuffixDescriptor returnValue = null;
-    Set<String> servers = getAllReplicationServers(baseDN, server);
+    Set<HostPort> servers = getAllReplicationServers(baseDN, server);
     for (SuffixDescriptor suffix : cache.getSuffixes())
     {
       if (suffix.getDN().equals(baseDN))
       {
-        Set<String> s = suffix.getReplicationServers();
+        Set<HostPort> s = suffix.getReplicationServers();
         // Test that at least we share one of the replication servers.
         // If we do: we are dealing with the same replication topology
         // (we must consider the case of disjoint replication topologies
         // replicating the same base DN).
-        HashSet<String> copy = new HashSet<>(s);
+        HashSet<HostPort> copy = new HashSet<>(s);
         copy.retainAll(servers);
         if (!copy.isEmpty())
         {
           return suffix;
         }
-        else if (replicationServer != null && containsIgnoreCase(s, replicationServer))
+        else if (replicationServer != null && s.contains(replicationServer))
         {
           returnValue = suffix;
         }
@@ -6165,10 +6149,10 @@ public class ReplicationCliMain extends ConsoleApplication
     return returnValue;
   }
 
-  private Set<String> getAllReplicationServers(DN baseDN, ServerDescriptor server)
+  private Set<HostPort> getAllReplicationServers(DN baseDN, ServerDescriptor server)
   {
     ReplicaDescriptor replica = findReplicaForSuffixDN(server.getReplicas(), baseDN);
-    Set<String> servers = new LinkedHashSet<>();
+    Set<HostPort> servers = new LinkedHashSet<>();
     if (replica != null)
     {
       servers.addAll(replica.getReplicationServers());
@@ -6192,9 +6176,10 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void configureAsReplicationServer(ConnectionWrapper conn,
       int replicationPort, boolean useSecureReplication,
-      Set<String> replicationServers,
+      Set<HostPort> replicationServers,
       Set<Integer> usedReplicationServerIds) throws Exception
   {
+    Set<String> replicationServersLC = toLowerCaseStrings(replicationServers);
     print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_CONFIGURING_REPLICATION_SERVER.get(conn.getHostPort())));
 
@@ -6229,10 +6214,8 @@ public class ReplicationCliMain extends ConsoleApplication
     sync.commit();
 
     /* Configure the replication server. */
-    ReplicationServerCfgClient replicationServer;
-
+    ReplicationServerCfgClient rsCfgClient;
     boolean mustCommit = false;
-
     if (!sync.hasReplicationServer())
     {
       CryptoManagerCfgClient crypto = root.getCryptoManager();
@@ -6243,35 +6226,23 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       int id = InstallerHelper.getReplicationId(usedReplicationServerIds);
       usedReplicationServerIds.add(id);
-      replicationServer = sync.createReplicationServer(
+      rsCfgClient = sync.createReplicationServer(
           ReplicationServerCfgDefn.getInstance(),
           new ArrayList<PropertyException>());
-      replicationServer.setReplicationServerId(id);
-      replicationServer.setReplicationPort(replicationPort);
-      replicationServer.setReplicationServer(replicationServers);
+      rsCfgClient.setReplicationServerId(id);
+      rsCfgClient.setReplicationPort(replicationPort);
+      rsCfgClient.setReplicationServer(replicationServersLC);
       mustCommit = true;
     }
     else
     {
-      replicationServer = sync.getReplicationServer();
-      usedReplicationServerIds.add(
-          replicationServer.getReplicationServerId());
-      Set<String> servers = replicationServer.getReplicationServer();
-      if (servers == null)
-      {
-        replicationServer.setReplicationServer(replicationServers);
-        mustCommit = true;
-      }
-      else if (!areReplicationServersEqual(servers, replicationServers))
-      {
-        replicationServer.setReplicationServer(
-            mergeReplicationServers(replicationServers, servers));
-        mustCommit = true;
-      }
+      rsCfgClient = sync.getReplicationServer();
+      usedReplicationServerIds.add(rsCfgClient.getReplicationServerId());
+      mustCommit = addAllReplicationServers(rsCfgClient, replicationServersLC);
     }
     if (mustCommit)
     {
-      replicationServer.commit();
+      rsCfgClient.commit();
     }
 
     print(formatter.getFormattedDone());
@@ -6289,35 +6260,39 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws OpenDsException
    *           if there is an error updating the configuration.
    */
-  private void updateReplicationServer(ConnectionWrapper conn,
-      Set<String> replicationServers) throws Exception
+  private void updateReplicationServer(ConnectionWrapper conn, Set<HostPort> replicationServers) throws Exception
   {
+    Set<String> replicationServersLC = toLowerCaseStrings(replicationServers);
     print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(conn.getHostPort())));
 
-    ReplicationSynchronizationProviderCfgClient sync = getMultimasterSynchronization(conn);
-    boolean mustCommit = false;
-    ReplicationServerCfgClient replicationServer = sync.getReplicationServer();
-    Set<String> servers = replicationServer.getReplicationServer();
-    if (servers == null)
+    ReplicationServerCfgClient rsCfgClient = getMultimasterSynchronization(conn).getReplicationServer();
+    if (addAllReplicationServers(rsCfgClient, replicationServersLC))
     {
-      replicationServer.setReplicationServer(replicationServers);
-      mustCommit = true;
-    }
-    else if (!areReplicationServersEqual(servers, replicationServers))
-    {
-      replicationServers.addAll(servers);
-      replicationServer.setReplicationServer(
-          mergeReplicationServers(replicationServers, servers));
-      mustCommit = true;
-    }
-    if (mustCommit)
-    {
-      replicationServer.commit();
+      rsCfgClient.commit();
     }
 
     print(formatter.getFormattedDone());
     println();
+  }
+
+  private boolean addAllReplicationServers(ReplicationServerCfgClient rsCfgClient, Set<String> replicationServersLC)
+  {
+    final Set<String> servers = rsCfgClient.getReplicationServer();
+    if (servers == null)
+    {
+      rsCfgClient.setReplicationServer(replicationServersLC);
+      return true;
+    }
+
+    final Set<String> serversLC = toLowerCase(servers);
+    if (!serversLC.equals(replicationServersLC))
+    {
+      serversLC.addAll(replicationServersLC);
+      rsCfgClient.setReplicationServer(replicationServersLC);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -6358,9 +6333,11 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void configureToReplicateBaseDN(ConnectionWrapper conn,
       DN baseDN,
-      Set<String> replicationServers,
+      Set<HostPort> replicationServers,
       Set<Integer> usedReplicationDomainIds) throws Exception
   {
+    Set<String> replicationServersLC = toLowerCaseStrings(replicationServers);
+
     boolean userSpecifiedAdminBaseDN = false;
     List<DN> baseDNs = toDNs(argParser.getBaseDNs());
     if (baseDNs != null)
@@ -6398,7 +6375,7 @@ public class ReplicationCliMain extends ConsoleApplication
           null);
       domain.setServerId(domainId);
       domain.setBaseDN(baseDN);
-      domain.setReplicationServer(replicationServers);
+      domain.setReplicationServer(replicationServersLC);
       mustCommit = true;
     }
     else
@@ -6409,10 +6386,15 @@ public class ReplicationCliMain extends ConsoleApplication
         domain.setReplicationServer(null);
         mustCommit = true;
       }
-      else if (!areReplicationServersEqual(servers, replicationServers))
+      else
       {
-        domain.setReplicationServer(mergeReplicationServers(replicationServers, servers));
-        mustCommit = true;
+        Set<String> serversLC = toLowerCase(servers);
+        if (!serversLC.equals(replicationServersLC))
+        {
+          serversLC.addAll(replicationServersLC);
+          domain.setReplicationServer(replicationServersLC);
+          mustCommit = true;
+        }
       }
     }
 
@@ -6443,6 +6425,16 @@ public class ReplicationCliMain extends ConsoleApplication
     return null;
   }
 
+  private static Set<String> toLowerCase(Set<String> strings)
+  {
+    Set<String> results = new HashSet<>();
+    for (String s : strings)
+    {
+      results.add(s.toLowerCase(Locale.ROOT));
+    }
+    return results;
+  }
+
   /**
    * Configures the baseDN to replicate in all the Replicas found in a Topology
    * Cache that are replicated with the Replica of the same base DN in the
@@ -6464,9 +6456,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ReplicationCliException if something goes wrong.
    */
   private void configureToReplicateBaseDN(DN baseDN,
-      Set<String> repServers, Set<Integer> usedIds,
+      Set<HostPort> repServers, Set<Integer> usedIds,
       TopologyCache cache, ServerDescriptor server,
-      Set<String> alreadyConfiguredServers, Set<String> allRepServers,
+      Set<String> alreadyConfiguredServers, Set<HostPort> allRepServers,
       Set<String> alreadyConfiguredReplicationServers)
   throws ReplicationCliException
   {
@@ -6492,7 +6484,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (s.isReplicationServer()
           && !alreadyConfiguredReplicationServers.contains(s.getId())
           // Check if it is part of the replication topology
-          && containsIgnoreCase(repServers, s.getReplicationServerHostPort()))
+          && repServers.contains(s.getReplicationServerHostPort()))
       {
         replicationServersToConfigure.add(s);
       }
@@ -7366,50 +7358,6 @@ public class ReplicationCliMain extends ConsoleApplication
       return ERR_CANNOT_BIND_TO_PRIVILEGED_PORT.get(port);
     }
     return ERR_CANNOT_BIND_TO_PORT.get(port);
-  }
-
-  /**
-   * Convenience method used to know if one Set of replication servers equals
-   * another set of replication servers.
-   * @param s1 the first set of replication servers.
-   * @param s2 the second set of replication servers.
-   * @return {@code true} if the two sets represent the same replication
-   * servers and {@code false} otherwise.
-   */
-  private boolean areReplicationServersEqual(Set<String> s1, Set<String> s2)
-  {
-    Set<String> c1 = new HashSet<>();
-    for (String s : s1)
-    {
-      c1.add(s.toLowerCase());
-    }
-    Set<String> c2 = new HashSet<>();
-    for (String s : s2)
-    {
-      c2.add(s.toLowerCase());
-    }
-    return c1.equals(c2);
-  }
-
-  /**
-   * Convenience method used to merge two Sets of replication servers.
-   * @param s1 the first set of replication servers.
-   * @param s2 the second set of replication servers.
-   * @return a Set of replication servers containing all the replication servers
-   * specified in the provided Sets.
-   */
-  private Set<String> mergeReplicationServers(Set<String> s1, Set<String> s2)
-  {
-    Set<String> c1 = new HashSet<>();
-    for (String s : s1)
-    {
-      c1.add(s.toLowerCase());
-    }
-    for (String s : s2)
-    {
-      c1.add(s.toLowerCase());
-    }
-    return c1;
   }
 
   /**
@@ -8499,7 +8447,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     int replicationPort = getReplicationPort(connOther);
     boolean isReplicationServerConfigured = replicationPort != -1;
-    String replicationServer = getReplicationServer(connOther.getHostPort().getHost(), replicationPort);
+    HostPort replicationServer = getReplicationServer(connOther.getHostPort().getHost(), replicationPort);
 
     Collection<ReplicaDescriptor> replicas = getReplicas(connDomain);
     for (ReplicaDescriptor replica : replicas)
@@ -8522,7 +8470,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         availableSuffixes.add(suffixDn);
       }
-      else if (containsIgnoreCase(replica.getReplicationServers(), replicationServer))
+      else if (replica.getReplicationServers().contains(replicationServer))
       {
         alreadyReplicatedSuffixes.add(suffixDn);
       }
@@ -8539,11 +8487,11 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     int replicationPort1 = getReplicationPort(conn1);
     boolean isReplicationServer1Configured = replicationPort1 != -1;
-    String replicationServer1 = getReplicationServer(conn1.getHostPort().getHost(), replicationPort1);
+    HostPort replicationServer1 = getReplicationServer(conn1.getHostPort().getHost(), replicationPort1);
 
     int replicationPort2 = getReplicationPort(conn2);
     boolean isReplicationServer2Configured = replicationPort2 != -1;
-    String replicationServer2 = getReplicationServer(conn2.getHostPort().getHost(), replicationPort2);
+    HostPort replicationServer2 = getReplicationServer(conn2.getHostPort().getHost(), replicationPort2);
 
     TopologyCache cache1 = isReplicationServer1Configured ? createTopologyCache(conn1) : null;
     TopologyCache cache2 = isReplicationServer2Configured ? createTopologyCache(conn2) : null;
@@ -8589,13 +8537,13 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void addAllAvailableSuffixes(Collection<DN> availableSuffixes,
-      Set<SuffixDescriptor> suffixes, String rsToFind)
+      Set<SuffixDescriptor> suffixes, HostPort rsToFind)
   {
     for (SuffixDescriptor suffix : suffixes)
     {
-      for (String rs : suffix.getReplicationServers())
+      for (HostPort rs : suffix.getReplicationServers())
       {
-        if (rs.equalsIgnoreCase(rsToFind))
+        if (rs.equals(rsToFind))
         {
           availableSuffixes.add(suffix.getDN());
         }
@@ -8604,14 +8552,14 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private void updateAvailableAndReplicatedSuffixesForNoDomainOneSense(
-      TopologyCache cache1, TopologyCache cache2, String replicationServer1, String replicationServer2,
+      TopologyCache cache1, TopologyCache cache2, HostPort replicationServer1, HostPort replicationServer2,
       Set<DN> availableSuffixes, Set<DN> alreadyReplicatedSuffixes)
   {
     for (SuffixDescriptor suffix : cache1.getSuffixes())
     {
-      for (String rServer : suffix.getReplicationServers())
+      for (HostPort rServer : suffix.getReplicationServers())
       {
-        if (rServer.equalsIgnoreCase(replicationServer1))
+        if (rServer.equals(replicationServer1))
         {
           boolean isSecondReplicatedInSameTopology = false;
           boolean isSecondReplicated = false;
@@ -8620,13 +8568,13 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             if (suffix.getDN().equals(suffix2.getDN()))
             {
-              for (String rServer2 : suffix2.getReplicationServers())
+              for (HostPort rServer2 : suffix2.getReplicationServers())
               {
-                if (rServer2.equalsIgnoreCase(replicationServer2))
+                if (rServer2.equals(replicationServer2))
                 {
                   isSecondReplicated = true;
                 }
-                if (rServer.equalsIgnoreCase(replicationServer2))
+                if (rServer.equals(replicationServer2))
                 {
                   isFirstReplicated = true;
                 }
@@ -8670,9 +8618,9 @@ public class ReplicationCliMain extends ConsoleApplication
     createTopologyCache(adsCtx2, uData, suffixes);
 
     int repPort1 = getReplicationPort(adsCtx1.getConnection());
-    String repServer1 =  getReplicationServer(server1.getHostName(), repPort1);
+    HostPort repServer1 = getReplicationServer(server1.getHostName(), repPort1);
     int repPort2 = getReplicationPort(adsCtx2.getConnection());
-    String repServer2 =  getReplicationServer(server2.getHostName(), repPort2);
+    HostPort repServer2 = getReplicationServer(server2.getHostName(), repPort2);
     for (DN baseDN : uData.getBaseDNs())
     {
       int nReplicationServers = 0;
@@ -8680,17 +8628,17 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         if (suffix.getDN().equals(baseDN))
         {
-          Set<String> replicationServers = suffix.getReplicationServers();
+          Set<HostPort> replicationServers = suffix.getReplicationServers();
           nReplicationServers += replicationServers.size();
-          for (String repServer : replicationServers)
+          for (HostPort repServer : replicationServers)
           {
             if (server1.configureReplicationServer() &&
-                repServer.equalsIgnoreCase(repServer1))
+                repServer.equals(repServer1))
             {
               nReplicationServers --;
             }
             if (server2.configureReplicationServer() &&
-                repServer.equalsIgnoreCase(repServer2))
+                repServer.equals(repServer2))
             {
               nReplicationServers --;
             }
@@ -8962,11 +8910,11 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     int replicationID1 = serverToFind.getReplicationServerId();
-    String replServerHostPort1 = serverToFind.getReplicationServerHostPort();
+    HostPort replServerHostPort1 = serverToFind.getReplicationServerHostPort();
     for (ServerDescriptor server2 : servers)
     {
       if (server2.isReplicationServer() && server2.getReplicationServerId() == replicationID1
-          && !server2.getReplicationServerHostPort().equalsIgnoreCase(replServerHostPort1))
+          && !server2.getReplicationServerHostPort().equals(replServerHostPort1))
       {
         commonRepServerIDErrors.add(ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID_ARG.get(
             serverToFind.getHostPort(true), server2.getHostPort(true), replicationID1));
@@ -9074,11 +9022,11 @@ public class ReplicationCliMain extends ConsoleApplication
     final ReplicaDescriptor replica2 = findReplicaForSuffixDN(server2.getReplicas(), baseDN);
     if (replica1 != null && replica2 != null)
     {
-      Set<String> replServers1 = replica1.getSuffix().getReplicationServers();
-      Set<String> replServers2 = replica1.getSuffix().getReplicationServers();
-      for (String replServer1 : replServers1)
+      Set<HostPort> replServers1 = replica1.getSuffix().getReplicationServers();
+      Set<HostPort> replServers2 = replica1.getSuffix().getReplicationServers();
+      for (HostPort replServer1 : replServers1)
       {
-        if (containsIgnoreCase(replServers2, replServer1))
+        if (replServers2.contains(replServer1))
         {
           // it is replicated in both
           return true;

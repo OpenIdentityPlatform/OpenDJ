@@ -171,8 +171,7 @@ public class TopologyCache
     {
       for (SuffixDescriptor suffix : sufs)
       {
-        Set<String> rssInSuffix = suffix.getReplicationServers();
-        for (String replicationServer : rssInSuffix)
+        for (HostPort replicationServer : suffix.getReplicationServers())
         {
           if (replica.getReplicationServers().contains(replicationServer))
           {
@@ -256,27 +255,15 @@ public class TopologyCache
   {
     Set<ReplicaDescriptor> candidateReplicas = new HashSet<>();
     // It contains replication information: analyze it.
-    String repServer = server.getReplicationServerHostPort();
+    HostPort repServer = server.getReplicationServerHostPort();
     for (SuffixDescriptor suffix : getSuffixes())
     {
-      if (containsIgnoreCase(suffix.getReplicationServers(), repServer))
+      if (suffix.getReplicationServers().contains(repServer))
       {
         candidateReplicas.addAll(suffix.getReplicas());
       }
     }
     return candidateReplicas;
-  }
-
-  private boolean containsIgnoreCase(Set<String> col, String toFind)
-  {
-    for (String s : col)
-    {
-      if (s.equalsIgnoreCase(toFind))
-      {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

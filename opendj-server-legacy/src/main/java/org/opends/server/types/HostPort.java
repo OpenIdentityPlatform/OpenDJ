@@ -16,6 +16,8 @@
  */
 package org.opends.server.types;
 
+import static org.opends.messages.ReplicationMessages.*;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -23,12 +25,11 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * This class defines a data structure that combines an address and port number,
@@ -149,6 +150,16 @@ public final class HostPort
       localAddressesTimeStamp = currentTimeStamp; // Publishes.
     }
     return localAddresses;
+  }
+
+  public static Set<String> toLowerCaseStrings(Set<HostPort> hps)
+  {
+    final Set<String> results = new HashSet<>();
+    for (HostPort hp : hps)
+    {
+      results.add(hp.toString().toLowerCase(Locale.ROOT));
+    }
+    return results;
   }
 
   /**

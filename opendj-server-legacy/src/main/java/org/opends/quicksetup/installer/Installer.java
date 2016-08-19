@@ -2009,13 +2009,13 @@ public class Installer extends GuiApplication
      * as the set of ADS suffix replicas (all instances hosting the replication
      * server also replicate ADS).
      */
-    Map<DN, Set<String>> replicationServers = new HashMap<>();
-    Set<String> adsServers = new HashSet<>();
+    Map<DN, Set<HostPort>> replicationServers = new HashMap<>();
+    Set<HostPort> adsServers = new HashSet<>();
 
     if (getUserData().getReplicationOptions().getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
     {
       List<String> baseDns = getUserData().getNewSuffixOptions().getBaseDns();
-      Set<String> h = new HashSet<>();
+      Set<HostPort> h = new HashSet<>();
       h.add(getLocalReplicationServer());
       adsServers.add(getLocalReplicationServer());
       for (String dnStr : baseDns)
@@ -2028,7 +2028,7 @@ public class Installer extends GuiApplication
       Set<SuffixDescriptor> suffixes = getUserData().getSuffixesToReplicateOptions().getSuffixes();
       for (SuffixDescriptor suffix : suffixes)
       {
-        Set<String> h = new HashSet<>(suffix.getReplicationServers());
+        Set<HostPort> h = new HashSet<>(suffix.getReplicationServers());
         adsServers.addAll(suffix.getReplicationServers());
         h.add(getLocalReplicationServer());
         adsServers.add(getLocalReplicationServer());
@@ -2038,7 +2038,7 @@ public class Installer extends GuiApplication
           AuthenticationData repPort = getUserData().getRemoteWithNoReplicationPort().get(server);
           if (repPort != null)
           {
-            String serverDisplay = server.getHostName() + ":" + repPort.getPort();
+            HostPort serverDisplay = new HostPort(server.getHostName(), repPort.getPort());
             h.add(serverDisplay);
             adsServers.add(serverDisplay);
           }
@@ -2047,7 +2047,7 @@ public class Installer extends GuiApplication
       }
     }
     replicationServers.put(ADSContext.getAdministrationSuffixDN(), adsServers);
-    replicationServers.put(Constants.SCHEMA_DN, new HashSet<String>(adsServers));
+    replicationServers.put(Constants.SCHEMA_DN, new HashSet<HostPort>(adsServers));
 
     long localTime = -1;
     long localTimeMeasureTime = -1;
@@ -2120,10 +2120,10 @@ public class Installer extends GuiApplication
         }
         dns.add(ADSContext.getAdministrationSuffixDN());
         dns.add(Constants.SCHEMA_DN);
-        Map<DN, Set<String>> remoteReplicationServers = new HashMap<>();
+        Map<DN, Set<HostPort>> remoteReplicationServers = new HashMap<>();
         for (DN dn : dns)
         {
-          Set<String> repServer = replicationServers.get(dn);
+          Set<HostPort> repServer = replicationServers.get(dn);
           if (repServer == null)
           {
             // Do the comparison manually
@@ -4375,9 +4375,10 @@ public class Installer extends GuiApplication
     return getPath(getInstallation().getCurrentConfigurationFile());
   }
 
-  private String getLocalReplicationServer()
+  private HostPort getLocalReplicationServer()
   {
-    return getUserData().getHostName() + ":" + getUserData().getReplicationOptions().getReplicationPort();
+    final UserData uData = getUserData();
+    return new HostPort(uData.getHostName(), uData.getReplicationOptions().getReplicationPort());
   }
 
   private void resetGenerationId(ConnectionWrapper conn, DN suffixDn, HostPort sourceServerDisplay)

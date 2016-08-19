@@ -42,7 +42,7 @@ public class UninstallUserData extends UserData {
   private HostPort localServerHostPort;
   private boolean localServerSecure;
   private Set<ServerDescriptor> remoteServers = new HashSet<>();
-  private String replicationServer;
+  private HostPort replicationServer;
   private String referencedHostName;
 
   /**
@@ -280,7 +280,7 @@ public class UninstallUserData extends UserData {
    * Returns the replication server as referenced in other servers.
    * @return the replication server as referenced in other servers.
    */
-  public String getReplicationServer() {
+  public HostPort getReplicationServer() {
     return replicationServer;
   }
 
@@ -289,7 +289,7 @@ public class UninstallUserData extends UserData {
    * @param replicationServer the replication server as referenced in other
    * servers.
    */
-  public void setReplicationServer(String replicationServer) {
+  public void setReplicationServer(HostPort replicationServer) {
     this.replicationServer = replicationServer;
   }
 

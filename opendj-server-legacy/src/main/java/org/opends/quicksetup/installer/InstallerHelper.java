@@ -22,6 +22,7 @@ import static com.forgerock.opendj.util.OperatingSystem.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Installation.*;
 import static org.opends.server.types.ExistingFileBehavior.*;
+import static org.opends.server.types.HostPort.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -78,6 +79,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.JavaPropertiesTool;
+import org.opends.server.types.HostPort;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
@@ -371,7 +373,7 @@ public class InstallerHelper {
    * @return a ConfiguredReplication object describing what has been configured.
    */
   public ConfiguredReplication configureReplication(
-      ConnectionWrapper conn, Map<DN, Set<String>> replicationServers,
+      ConnectionWrapper conn, Map<DN, Set<HostPort>> replicationServers,
       int replicationPort, boolean useSecureReplication, Set<Integer> usedReplicationServerIds,
       Set<Integer> usedServerIds)
   throws ApplicationException
@@ -476,9 +478,9 @@ public class InstallerHelper {
         servers = new HashSet<>();
       }
       Set<String> oldServers = new HashSet<>(servers);
-      for (Set<String> rs : replicationServers.values())
+      for (Set<HostPort> rs : replicationServers.values())
       {
-        servers.addAll(rs);
+        servers.addAll(toLowerCaseStrings(rs));
       }
 
       replicationServer.setReplicationServer(servers);
@@ -535,15 +537,13 @@ public class InstallerHelper {
         {
           oldServers = new TreeSet<>();
         }
-        servers = replicationServers.get(dn);
+        servers = toLowerCaseStrings(replicationServers.get(dn));
         domain.setReplicationServer(servers);
         usedServerIds.add(domain.getServerId());
 
         domain.commit();
         Set<String> addedServers = intersect(servers, oldServers);
-        ConfiguredDomain domainConf = new ConfiguredDomain(domainName,
-            isCreated, addedServers);
-        domainsConf.add(domainConf);
+        domainsConf.add(new ConfiguredDomain(domainName, isCreated, addedServers));
       }
       return new ConfiguredReplication(synchProviderCreated,
           synchProviderEnabled, replicationServerCreated,
