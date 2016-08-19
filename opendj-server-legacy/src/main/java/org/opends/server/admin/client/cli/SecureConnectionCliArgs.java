@@ -344,50 +344,43 @@ public final class SecureConnectionCliArgs
   {
     if (trustManager == null)
     {
-      KeyStore truststore = null;
       if (trustAllArg.isPresent())
       {
-        // Running a null TrustManager  will force createLdapsContext and
-        // createStartTLSContext to use a bindTrustManager.
+        // force to use a blindTrustManager
         return null;
       }
       else if (trustStorePathArg.isPresent())
       {
-        try (final FileInputStream fos = new FileInputStream(trustStorePathArg.getValue()))
+        String passwordStr = null;
+        if (trustStorePasswordArg.isPresent())
         {
-          String trustStorePasswordStringValue = null;
-          if (trustStorePasswordArg.isPresent())
-          {
-            trustStorePasswordStringValue = trustStorePasswordArg.getValue();
-          }
-          else if (trustStorePasswordFileArg.isPresent())
-          {
-            trustStorePasswordStringValue = trustStorePasswordFileArg.getValue();
-          }
+          passwordStr = trustStorePasswordArg.getValue();
+        }
+        else if (trustStorePasswordFileArg.isPresent())
+        {
+          passwordStr = trustStorePasswordFileArg.getValue();
+        }
+        if (passwordStr == null)
+        {
+          passwordStr = System.getProperty("javax.net.ssl.trustStorePassword");
+        }
 
-          if (trustStorePasswordStringValue != null)
-          {
-            trustStorePasswordStringValue = System.getProperty("javax.net.ssl.trustStorePassword");
-          }
+        char[] password = passwordStr != null ? passwordStr.toCharArray() : null;
 
-          char[] trustStorePasswordValue = null;
-          if (trustStorePasswordStringValue != null)
-          {
-            trustStorePasswordValue = trustStorePasswordStringValue.toCharArray();
-          }
-
+        KeyStore truststore = null;
+        try (final FileInputStream fis = new FileInputStream(trustStorePathArg.getValue()))
+        {
           truststore = KeyStore.getInstance(KeyStore.getDefaultType());
-          truststore.load(fos, trustStorePasswordValue);
+          truststore.load(fis, password);
         }
         catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
         {
-          // Nothing to do: if this occurs we will systematically refuse the
-          // certificates.  Maybe we should avoid this and be strict, but we
-          // are in a best effort mode.
+          // Nothing to do: if this occurs we will systematically refuse the certificates.
+          // Maybe we should avoid this and be strict, but we are in a best effort mode.
           logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
         }
+        trustManager = new ApplicationTrustManager(truststore);
       }
-      trustManager = new ApplicationTrustManager(truststore);
     }
     return trustManager;
   }

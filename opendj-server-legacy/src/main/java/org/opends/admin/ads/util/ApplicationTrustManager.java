@@ -364,7 +364,7 @@ public class ApplicationTrustManager implements X509TrustManager
       try
       {
         DN dn = DN.valueOf(subjectX500Principal.getName());
-        String value = dn.rdn(dn.size() - 1).getFirstAVA().getAttributeValue().toString();
+        String value = dn.rdn().getFirstAVA().getAttributeValue().toString();
         matches = hostMatch(value, host);
         if (!matches)
         {
