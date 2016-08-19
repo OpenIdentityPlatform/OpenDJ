@@ -598,8 +598,8 @@ public class SchemaWriter
   {
     Map<ObjectClass,String> objectClasses = new LinkedHashMap<>();
     objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    objectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
-    objectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
+    objectClasses.put(serverContext.getSchema().getObjectClass(OC_LDAP_SUBENTRY_LC), OC_LDAP_SUBENTRY);
+    objectClasses.put(serverContext.getSchema().getObjectClass(OC_SUBSCHEMA), OC_SUBSCHEMA);
 
     Map<AttributeType,List<Attribute>> userAttributes = new LinkedHashMap<>();
     Map<AttributeType,List<Attribute>> operationalAttributes = new LinkedHashMap<>();
