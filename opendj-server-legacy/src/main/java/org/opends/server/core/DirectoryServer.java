@@ -136,6 +136,7 @@ import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
+import org.opends.server.schema.SchemaHandler;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;

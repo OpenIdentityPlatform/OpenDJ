@@ -1186,7 +1186,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    * @param attrDesc
    *          The attribute description for this attribute builder.
    */
-  void setAttributeDescription(AttributeDescription attrDesc)
+  public void setAttributeDescription(AttributeDescription attrDesc)
   {
     attributeDescription = attrDesc;
   }

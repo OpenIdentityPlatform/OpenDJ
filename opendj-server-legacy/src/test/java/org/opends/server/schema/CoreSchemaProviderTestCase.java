@@ -21,7 +21,6 @@ import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
 import org.forgerock.opendj.config.ConfigurationMock;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.CoreTestCase;
-import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.ServerContext;
 import org.testng.annotations.Test;
 

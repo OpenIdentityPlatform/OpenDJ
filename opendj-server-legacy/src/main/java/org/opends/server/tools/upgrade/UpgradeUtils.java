@@ -56,7 +56,7 @@ import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaHandler;
+import org.opends.server.schema.SchemaHandler;
 import org.opends.server.util.ChangeOperationType;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;

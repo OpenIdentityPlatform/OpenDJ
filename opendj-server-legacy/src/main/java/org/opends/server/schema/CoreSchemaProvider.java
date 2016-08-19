@@ -26,8 +26,8 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaHandler.SchemaUpdater;
 import org.opends.server.core.ServerContext;
+import org.opends.server.schema.SchemaHandler.SchemaUpdater;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 

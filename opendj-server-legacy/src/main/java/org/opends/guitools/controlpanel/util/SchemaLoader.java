@@ -38,9 +38,9 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.util.Utils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaConstants;
+import org.opends.server.schema.SchemaHandler;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 

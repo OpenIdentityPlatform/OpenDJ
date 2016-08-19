@@ -13,7 +13,7 @@
  *
  * Copyright 2014-2016 ForgeRock AS.
  */
-package org.opends.server.core;
+package org.opends.server.schema;
 
 import static java.util.Collections.emptyList;
 
@@ -46,11 +46,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.core.ServerContext;
 import org.opends.server.replication.plugin.HistoricalCsnOrderingMatchingRuleImpl;
-import org.opends.server.schema.AciSyntax;
-import org.opends.server.schema.AuthPasswordEqualityMatchingRule;
-import org.opends.server.schema.SubtreeSpecificationSyntax;
-import org.opends.server.schema.UserPasswordEqualityMatchingRule;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
@@ -83,12 +80,10 @@ import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.SchemaProviderCfg;
 import org.forgerock.util.Option;
 import org.forgerock.util.Utils;
-import org.opends.server.schema.SchemaProvider;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.SchemaWriter;
 import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
 

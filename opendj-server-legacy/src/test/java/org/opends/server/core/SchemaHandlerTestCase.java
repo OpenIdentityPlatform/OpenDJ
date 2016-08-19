@@ -23,6 +23,7 @@ import java.io.File;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.schema.SchemaConstants;
+import org.opends.server.schema.SchemaHandler;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")

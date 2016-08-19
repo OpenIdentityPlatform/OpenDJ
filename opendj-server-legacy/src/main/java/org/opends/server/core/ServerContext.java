@@ -20,6 +20,7 @@ import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
+import org.opends.server.schema.SchemaHandler;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.forgerock.opendj.ldap.schema.Schema;

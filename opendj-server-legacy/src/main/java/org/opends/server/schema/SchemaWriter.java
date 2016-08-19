@@ -14,7 +14,7 @@
  * Copyright 2006-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-package org.opends.server.types;
+package org.opends.server.schema;
 
 import static org.forgerock.opendj.ldap.ModificationType.ADD;
 import static org.forgerock.opendj.ldap.ModificationType.DELETE;
@@ -68,8 +68,15 @@ import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SchemaHandler;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.Modification;
 import org.opends.server.util.Base64;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFException;
@@ -79,7 +86,7 @@ import org.opends.server.util.SchemaUtils;
 /**
  * Provides support to write schema files to disk.
  */
-public class SchemaWriter
+class SchemaWriter
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
