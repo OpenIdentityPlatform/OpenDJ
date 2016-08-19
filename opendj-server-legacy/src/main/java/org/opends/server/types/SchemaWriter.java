@@ -21,7 +21,8 @@ import static org.forgerock.opendj.ldap.ModificationType.DELETE;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.CollectionUtils.newArrayList;
+import static org.opends.server.util.CollectionUtils.newLinkedList;
 import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -103,132 +104,62 @@ public class SchemaWriter
   }
 
   /**
-   * Compares the provided sets of schema element definitions and writes any differences found into
-   * the given list of modifications.
+   * Rewrites all schema files defined in the provided list of modified files with the provided
+   * schema.
    *
-   * @param oldElements
-   *          The set of elements of the specified type read from the previous concatenated schema
-   *          files.
-   * @param newElements
-   *          The set of elements of the specified type read from the server's current schema.
-   * @param elementType
-   *          The attribute type associated with the schema element being compared.
-   * @param mods
-   *          The list of modifications into which any identified differences should be written.
+   * @param newSchema
+   *          The new schema that should be used.
+   * @param extraAttributes
+   *          The extra attributes to write in user schema file.
+   * @param modifiedSchemaFiles
+   *          The list of files that should be modified.
+   * @param alertGenerator
+   *          The alert generator.
+   * @throws DirectoryException
+   *           When the new file cannot be written.
    */
-  private static void compareConcatenatedSchema(Set<String> oldElements, Set<String> newElements,
-      AttributeType elementType, List<Modification> mods)
+  public void updateSchemaFiles(Schema newSchema, Collection<Attribute> extraAttributes,
+      TreeSet<String> modifiedSchemaFiles, AlertGenerator alertGenerator)
+          throws DirectoryException
   {
-    AttributeBuilder builder = new AttributeBuilder(elementType);
-    addModification(mods, DELETE, oldElements, newElements, builder);
-
-    builder.setAttributeDescription(AttributeDescription.create(elementType));
-    addModification(mods, ADD, newElements, oldElements, builder);
-  }
-
-  /**
-   * Reads the files contained in the schema directory and generates a concatenated view of their
-   * contents in the provided sets.
-   *
-   * @param attributeTypes
-   *          The set into which to place the attribute types read from the schema files.
-   * @param objectClasses
-   *          The set into which to place the object classes read from the schema files.
-   * @param nameForms
-   *          The set into which to place the name forms read from the schema files.
-   * @param ditContentRules
-   *          The set into which to place the DIT content rules read from the schema files.
-   * @param ditStructureRules
-   *          The set into which to place the DIT structure rules read from the schema files.
-   * @param matchingRuleUses
-   *          The set into which to place the matching rule uses read from the schema files.
-   * @param ldapSyntaxes
-   *          The set into which to place the ldap syntaxes read from the schema files.
-   * @throws IOException
-   *           If a problem occurs while reading the schema file elements.
-   */
-  private void generateConcatenatedSchema(Set<String> attributeTypes, Set<String> objectClasses,
-      Set<String> nameForms, Set<String> ditContentRules, Set<String> ditStructureRules, Set<String> matchingRuleUses,
-      Set<String> ldapSyntaxes) throws IOException
-  {
-    // Get a sorted list of the files in the schema directory.
-    TreeSet<File> schemaFiles = new TreeSet<>();
-    String schemaDirectory = getSchemaDirectoryPath();
-
-    final FilenameFilter filter = new SchemaHandler.SchemaFileFilter();
-    for (File f : new File(schemaDirectory).listFiles(filter))
+    // We'll re-write all
+    // impacted schema files by first creating them in a temporary location
+    // and then replacing the existing schema files with the new versions.
+    // If all that goes successfully, then activate the new schema.
+    HashMap<String, File> tempSchemaFiles = new HashMap<>();
+    try
     {
-      if (f.isFile())
+      for (String schemaFile : modifiedSchemaFiles)
       {
-        schemaFiles.add(f);
+        File tempSchemaFile = writeTempSchemaFile(newSchema, extraAttributes, schemaFile);
+        tempSchemaFiles.put(schemaFile, tempSchemaFile);
       }
+
+      installSchemaFiles(alertGenerator, tempSchemaFiles);
+    }
+    catch (DirectoryException de)
+    {
+      logger.traceException(de);
+
+      throw de;
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+
+      LocalizableMessage message =
+          ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+    finally
+    {
+      cleanUpTempSchemaFiles(tempSchemaFiles);
     }
 
-    // Open each of the files in order and read the elements that they
-    // contain, appending them to the appropriate lists.
-    for (File f : schemaFiles)
-    {
-      List<StringBuilder> lines = readSchemaElementsFromLdif(f);
-
-      // Iterate through each line in the list. Find the colon and
-      // get the attribute name at the beginning. If it's something
-      // that we don't recognize, then skip it. Otherwise, add the
-      // X-SCHEMA-FILE extension and add it to the appropriate schema
-      // element list.
-      for (StringBuilder buffer : lines)
-      {
-        String line = buffer.toString().trim();
-        parseSchemaLine(line, f.getName(), attributeTypes, objectClasses, nameForms, ditContentRules,
-            ditStructureRules, matchingRuleUses, ldapSyntaxes);
-      }
-    }
-  }
-
-  private String getSchemaDirectoryPath()
-  {
-    File schemaDir = serverContext.getEnvironment().getSchemaDirectory();
-    return schemaDir != null ? schemaDir.getAbsolutePath() : null;
-  }
-
-  /**
-   * Reads data from the specified concatenated schema file into the provided sets.
-   *
-   * @param concatSchemaFile
-   *          The concatenated schema file to be read.
-   * @param attributeTypes
-   *          The set into which to place the attribute types read from the concatenated schema
-   *          file.
-   * @param objectClasses
-   *          The set into which to place the object classes read from the concatenated schema file.
-   * @param nameForms
-   *          The set into which to place the name forms read from the concatenated schema file.
-   * @param ditContentRules
-   *          The set into which to place the DIT content rules read from the concatenated schema
-   *          file.
-   * @param ditStructureRules
-   *          The set into which to place the DIT structure rules read from the concatenated schema
-   *          file.
-   * @param matchingRuleUses
-   *          The set into which to place the matching rule uses read from the concatenated schema
-   *          file.
-   * @param ldapSyntaxes
-   *          The set into which to place the ldap syntaxes read from the concatenated schema file.
-   * @throws IOException
-   *           If a problem occurs while reading the schema file elements.
-   */
-  private static void readConcatenatedSchema(File concatSchemaFile, Set<String> attributeTypes,
-      Set<String> objectClasses, Set<String> nameForms, Set<String> ditContentRules, Set<String> ditStructureRules,
-      Set<String> matchingRuleUses, Set<String> ldapSyntaxes) throws IOException
-  {
-    try (BufferedReader reader = new BufferedReader(new FileReader(concatSchemaFile)))
-    {
-      String line;
-      while ((line = reader.readLine()) != null)
-      {
-        parseSchemaLine(line, null, attributeTypes, objectClasses, nameForms, ditContentRules, ditStructureRules,
-            matchingRuleUses, ldapSyntaxes);
-      }
-    }
+    // Create a single file with all of the concatenated schema information
+    // that we can use on startup to detect whether the schema files have been
+    // edited with the server offline.
+    writeConcatenatedSchema();
   }
 
   /**
@@ -360,13 +291,127 @@ public class SchemaWriter
     }
   }
 
-  /** Returns the upgrade directory of the server. */
-  private File getUpgradeDirectory()
+  /**
+   * Reads the files contained in the schema directory and generates a concatenated view of their
+   * contents in the provided sets.
+   *
+   * @param attributeTypes
+   *          The set into which to place the attribute types read from the schema files.
+   * @param objectClasses
+   *          The set into which to place the object classes read from the schema files.
+   * @param nameForms
+   *          The set into which to place the name forms read from the schema files.
+   * @param ditContentRules
+   *          The set into which to place the DIT content rules read from the schema files.
+   * @param ditStructureRules
+   *          The set into which to place the DIT structure rules read from the schema files.
+   * @param matchingRuleUses
+   *          The set into which to place the matching rule uses read from the schema files.
+   * @param ldapSyntaxes
+   *          The set into which to place the ldap syntaxes read from the schema files.
+   * @throws IOException
+   *           If a problem occurs while reading the schema file elements.
+   */
+  private void generateConcatenatedSchema(Set<String> attributeTypes, Set<String> objectClasses,
+      Set<String> nameForms, Set<String> ditContentRules, Set<String> ditStructureRules, Set<String> matchingRuleUses,
+      Set<String> ldapSyntaxes) throws IOException
   {
-    File configFile = serverContext.getEnvironment().getConfigFile();
-    File configDirectory = configFile.getParentFile();
-    File upgradeDirectory = new File(configDirectory, "upgrade");
-    return upgradeDirectory;
+    // Get a sorted list of the files in the schema directory.
+    TreeSet<File> schemaFiles = new TreeSet<>();
+    String schemaDirectory = getSchemaDirectoryPath();
+
+    final FilenameFilter filter = new SchemaHandler.SchemaFileFilter();
+    for (File f : new File(schemaDirectory).listFiles(filter))
+    {
+      if (f.isFile())
+      {
+        schemaFiles.add(f);
+      }
+    }
+
+    // Open each of the files in order and read the elements that they
+    // contain, appending them to the appropriate lists.
+    for (File f : schemaFiles)
+    {
+      List<StringBuilder> lines = readSchemaElementsFromLdif(f);
+
+      // Iterate through each line in the list. Find the colon and
+      // get the attribute name at the beginning. If it's something
+      // that we don't recognize, then skip it. Otherwise, add the
+      // X-SCHEMA-FILE extension and add it to the appropriate schema
+      // element list.
+      for (StringBuilder buffer : lines)
+      {
+        String line = buffer.toString().trim();
+        parseSchemaLine(line, f.getName(), attributeTypes, objectClasses, nameForms, ditContentRules,
+            ditStructureRules, matchingRuleUses, ldapSyntaxes);
+      }
+    }
+  }
+
+  /**
+   * Reads data from the specified concatenated schema file into the provided sets.
+   *
+   * @param concatSchemaFile
+   *          The concatenated schema file to be read.
+   * @param attributeTypes
+   *          The set into which to place the attribute types read from the concatenated schema
+   *          file.
+   * @param objectClasses
+   *          The set into which to place the object classes read from the concatenated schema file.
+   * @param nameForms
+   *          The set into which to place the name forms read from the concatenated schema file.
+   * @param ditContentRules
+   *          The set into which to place the DIT content rules read from the concatenated schema
+   *          file.
+   * @param ditStructureRules
+   *          The set into which to place the DIT structure rules read from the concatenated schema
+   *          file.
+   * @param matchingRuleUses
+   *          The set into which to place the matching rule uses read from the concatenated schema
+   *          file.
+   * @param ldapSyntaxes
+   *          The set into which to place the ldap syntaxes read from the concatenated schema file.
+   * @throws IOException
+   *           If a problem occurs while reading the schema file elements.
+   */
+  private static void readConcatenatedSchema(File concatSchemaFile, Set<String> attributeTypes,
+      Set<String> objectClasses, Set<String> nameForms, Set<String> ditContentRules, Set<String> ditStructureRules,
+      Set<String> matchingRuleUses, Set<String> ldapSyntaxes) throws IOException
+  {
+    try (BufferedReader reader = new BufferedReader(new FileReader(concatSchemaFile)))
+    {
+      String line;
+      while ((line = reader.readLine()) != null)
+      {
+        parseSchemaLine(line, null, attributeTypes, objectClasses, nameForms, ditContentRules, ditStructureRules,
+            matchingRuleUses, ldapSyntaxes);
+      }
+    }
+  }
+
+  /**
+   * Compares the provided sets of schema element definitions and writes any differences found into
+   * the given list of modifications.
+   *
+   * @param oldElements
+   *          The set of elements of the specified type read from the previous concatenated schema
+   *          files.
+   * @param newElements
+   *          The set of elements of the specified type read from the server's current schema.
+   * @param elementType
+   *          The attribute type associated with the schema element being compared.
+   * @param mods
+   *          The list of modifications into which any identified differences should be written.
+   */
+  private static void compareConcatenatedSchema(Set<String> oldElements, Set<String> newElements,
+      AttributeType elementType, List<Modification> mods)
+  {
+    AttributeBuilder builder = new AttributeBuilder(elementType);
+    addModification(mods, DELETE, oldElements, newElements, builder);
+
+    builder.setAttributeDescription(AttributeDescription.create(elementType));
+    addModification(mods, ADD, newElements, oldElements, builder);
   }
 
   private static void addModification(List<Modification> mods, ModificationType modType, Set<String> included,
@@ -390,33 +435,6 @@ public class SchemaWriter
       throws ParseException
   {
     definitions.add(getSchemaDefinition(line.substring(attrName.length()), fileName));
-  }
-
-  private File getConcatenatedSchemaFile() throws InitializationException
-  {
-    File upgradeDirectory = getUpgradeDirectory();
-    File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
-    if (concatFile.exists())
-    {
-      return concatFile.getAbsoluteFile();
-    }
-
-    String fileName = SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION + BuildVersion.instanceVersion().getRevision();
-    concatFile = new File(upgradeDirectory, fileName);
-    if (concatFile.exists())
-    {
-      return concatFile.getAbsoluteFile();
-    }
-
-    String runningUnitTestsStr = System.getProperty(PROPERTY_RUNNING_UNIT_TESTS);
-    if ("true".equalsIgnoreCase(runningUnitTestsStr))
-    {
-      writeConcatenatedSchema();
-      concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
-      return concatFile.getAbsoluteFile();
-    }
-    throw new InitializationException(ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.get(upgradeDirectory.getAbsolutePath(),
-        SCHEMA_CONCAT_FILE_NAME, concatFile.getName()));
   }
 
   private static String getSchemaDefinition(String definition, String schemaFile) throws ParseException
@@ -483,6 +501,68 @@ public class SchemaWriter
     }
   }
 
+  private static void writeLines(BufferedWriter writer, String... lines) throws IOException
+  {
+    for (String line : lines)
+    {
+      writer.write(line);
+      writer.newLine();
+    }
+  }
+
+  private static void writeLines(BufferedWriter writer, String beforeColumn, Set<String> lines) throws IOException
+  {
+    for (String line : lines)
+    {
+      writer.write(beforeColumn);
+      writer.write(": ");
+      writer.write(line);
+      writer.newLine();
+    }
+  }
+
+  private String getSchemaDirectoryPath()
+  {
+    File schemaDir = serverContext.getEnvironment().getSchemaDirectory();
+    return schemaDir != null ? schemaDir.getAbsolutePath() : null;
+  }
+
+  /** Returns the upgrade directory of the server. */
+  private File getUpgradeDirectory()
+  {
+    File configFile = serverContext.getEnvironment().getConfigFile();
+    File configDirectory = configFile.getParentFile();
+    File upgradeDirectory = new File(configDirectory, "upgrade");
+    return upgradeDirectory;
+  }
+
+  private File getConcatenatedSchemaFile() throws InitializationException
+  {
+    File upgradeDirectory = getUpgradeDirectory();
+    File concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
+    if (concatFile.exists())
+    {
+      return concatFile.getAbsoluteFile();
+    }
+
+    String fileName = SCHEMA_BASE_FILE_NAME_WITHOUT_REVISION + BuildVersion.instanceVersion().getRevision();
+    concatFile = new File(upgradeDirectory, fileName);
+    if (concatFile.exists())
+    {
+      return concatFile.getAbsoluteFile();
+    }
+
+    String runningUnitTestsStr = System.getProperty(PROPERTY_RUNNING_UNIT_TESTS);
+    if ("true".equalsIgnoreCase(runningUnitTestsStr))
+    {
+      writeConcatenatedSchema();
+      concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
+      return concatFile.getAbsoluteFile();
+    }
+    throw new InitializationException(ERR_SCHEMA_CANNOT_FIND_CONCAT_FILE.get(upgradeDirectory.getAbsolutePath(),
+        SCHEMA_CONCAT_FILE_NAME, concatFile.getName()));
+  }
+
   private List<StringBuilder> readSchemaElementsFromLdif(File f) throws IOException, FileNotFoundException
   {
     final LinkedList<StringBuilder> lines = new LinkedList<>();
@@ -507,85 +587,6 @@ public class SchemaWriter
       }
     }
     return lines;
-  }
-
-  private static void writeLines(BufferedWriter writer, String... lines) throws IOException
-  {
-    for (String line : lines)
-    {
-      writer.write(line);
-      writer.newLine();
-    }
-  }
-
-  private static void writeLines(BufferedWriter writer, String beforeColumn, Set<String> lines) throws IOException
-  {
-    for (String line : lines)
-    {
-      writer.write(beforeColumn);
-      writer.write(": ");
-      writer.write(line);
-      writer.newLine();
-    }
-  }
-
-  /**
-   * Rewrites all schema files defined in the provided list of modified files with the provided
-   * schema.
-   *
-   * @param newSchema
-   *          The new schema that should be used.
-   * @param extraAttributes
-   *          The extra attributes to write in user schema file.
-   * @param modifiedSchemaFiles
-   *          The list of files that should be modified.
-   * @param alertGenerator
-   *          The alert generator.
-   * @throws DirectoryException
-   *           When the new file cannot be written.
-   */
-  public void updateSchemaFiles(Schema newSchema, Collection<Attribute> extraAttributes,
-      TreeSet<String> modifiedSchemaFiles, AlertGenerator alertGenerator)
-          throws DirectoryException
-  {
-    // We'll re-write all
-    // impacted schema files by first creating them in a temporary location
-    // and then replacing the existing schema files with the new versions.
-    // If all that goes successfully, then activate the new schema.
-    HashMap<String, File> tempSchemaFiles = new HashMap<>();
-    try
-    {
-      for (String schemaFile : modifiedSchemaFiles)
-      {
-        File tempSchemaFile = writeTempSchemaFile(newSchema, extraAttributes, schemaFile);
-        tempSchemaFiles.put(schemaFile, tempSchemaFile);
-      }
-
-      installSchemaFiles(alertGenerator, tempSchemaFiles);
-    }
-    catch (DirectoryException de)
-    {
-      logger.traceException(de);
-
-      throw de;
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message =
-          ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
-    }
-    finally
-    {
-      cleanUpTempSchemaFiles(tempSchemaFiles);
-    }
-
-    // Create a single file with all of the concatenated schema information
-    // that we can use on startup to detect whether the schema files have been
-    // edited with the server offline.
-    writeConcatenatedSchema();
   }
 
   /**
