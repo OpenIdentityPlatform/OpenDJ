@@ -96,18 +96,18 @@ public final class SecureConnectionCliArgs
   private boolean configurationInitialized;
 
   /** Defines if the CLI always use the SSL connection type. */
-  private final boolean alwaysSSL;
+  private final boolean alwaysUseSSL;
 
   /**
    * Creates a new instance of secure arguments.
    *
-   * @param alwaysSSL
-   *          If true, always use the SSL connection type. In this case, the
+   * @param alwaysUseSSL
+   *          Whether to always use the SSL connection type. In this case, the
    *          arguments useSSL and startTLS are not present.
    */
-  public SecureConnectionCliArgs(boolean alwaysSSL)
+  public SecureConnectionCliArgs(boolean alwaysUseSSL)
   {
-    this.alwaysSSL = alwaysSSL;
+    this.alwaysUseSSL = alwaysUseSSL;
   }
 
   /**
@@ -139,11 +139,7 @@ public final class SecureConnectionCliArgs
    */
   public String getAdministratorUID()
   {
-    if (adminUidArg.isPresent())
-    {
-      return adminUidArg.getValue();
-    }
-    return adminUidArg.getDefaultValue();
+    return getValueOrDefault(adminUidArg);
   }
 
   /**
@@ -154,11 +150,7 @@ public final class SecureConnectionCliArgs
    */
   public String getBindDN()
   {
-    if (bindDnArg.isPresent())
-    {
-      return bindDnArg.getValue();
-    }
-    return bindDnArg.getDefaultValue();
+    return getValueOrDefault(bindDnArg);
   }
 
   /**
@@ -174,7 +166,7 @@ public final class SecureConnectionCliArgs
     argList = new LinkedHashSet<>();
 
     useSSLArg = useSSLArgument();
-    if (!alwaysSSL)
+    if (!alwaysUseSSL)
     {
       argList.add(useSSLArg);
     }
@@ -185,7 +177,7 @@ public final class SecureConnectionCliArgs
     }
 
     useStartTLSArg = startTLSArgument();
-    if (!alwaysSSL)
+    if (!alwaysUseSSL)
     {
       argList.add(useStartTLSArg);
     }
@@ -249,11 +241,7 @@ public final class SecureConnectionCliArgs
    */
   public String getHostName()
   {
-    if (hostNameArg.isPresent())
-    {
-      return hostNameArg.getValue();
-    }
-    return hostNameArg.getDefaultValue();
+    return getValueOrDefault(hostNameArg);
   }
 
   /**
@@ -281,11 +269,16 @@ public final class SecureConnectionCliArgs
    */
   public String getPort()
   {
-    if (portArg.isPresent())
+    return getValueOrDefault(portArg);
+  }
+
+  private String getValueOrDefault(Argument arg)
+  {
+    if (arg.isPresent())
     {
-      return portArg.getValue();
+      return arg.getValue();
     }
-    return portArg.getDefaultValue();
+    return arg.getDefaultValue();
   }
 
   /**
@@ -337,9 +330,9 @@ public final class SecureConnectionCliArgs
    *
    * @return True if SSL mode is always used.
    */
-  public boolean alwaysSSL()
+  public boolean alwaysUseSsl()
   {
-    return alwaysSSL;
+    return alwaysUseSSL;
   }
 
   /**
@@ -430,13 +423,8 @@ public final class SecureConnectionCliArgs
     TrustManagerProviderCfg trustManagerCfg = null;
     AdministrationConnectorCfg administrationConnectorCfg = null;
 
-    boolean couldInitializeConfig = configurationInitialized;
     // Initialization for admin framework
-    if (!configurationInitialized)
-    {
-      couldInitializeConfig = initializeConfiguration();
-    }
-    if (couldInitializeConfig)
+    if (configurationInitialized || initializeConfiguration())
     {
       RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
       administrationConnectorCfg = root.getAdministrationConnector();
@@ -456,6 +444,7 @@ public final class SecureConnectionCliArgs
         {
           truststoreFileAbsolute = DirectoryServer.getInstanceRoot() + File.separator + truststoreFile;
         }
+
         File f = new File(truststoreFileAbsolute);
         if (!f.exists() || !f.canRead() || f.isDirectory())
         {
@@ -488,12 +477,7 @@ public final class SecureConnectionCliArgs
   public int getAdminPortFromConfig() throws ConfigException
   {
     // Initialization for admin framework
-    boolean couldInitializeConfiguration = configurationInitialized;
-    if (!configurationInitialized)
-    {
-      couldInitializeConfiguration = initializeConfiguration();
-    }
-    if (couldInitializeConfiguration)
+    if (configurationInitialized || initializeConfiguration())
     {
       RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
       return root.getAdministrationConnector().getListenPort();
@@ -539,25 +523,22 @@ public final class SecureConnectionCliArgs
    */
   public int getPortFromConfig()
   {
-    int portNumber;
-    if (alwaysSSL())
+    if (alwaysUseSsl())
     {
-      portNumber = AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-      // Try to get the port from the config file
       try
       {
-        portNumber = getAdminPortFromConfig();
+        // Try to get the port from the config file
+        return getAdminPortFromConfig();
       }
       catch (ConfigException ex)
       {
-        // Nothing to do
+        return AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
       }
     }
     else
     {
-      portNumber = CliConstants.DEFAULT_SSL_PORT;
+      return CliConstants.DEFAULT_SSL_PORT;
     }
-    return portNumber;
   }
 
   /**
@@ -603,7 +584,7 @@ public final class SecureConnectionCliArgs
   private IntegerArgument createPortArgument(final int defaultValue) throws ArgumentException
   {
     return portArgument(
-            defaultValue, alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get());
+            defaultValue, alwaysUseSSL ? INFO_DESCRIPTION_ADMIN_PORT.get() : INFO_DESCRIPTION_PORT.get());
   }
 
   /**

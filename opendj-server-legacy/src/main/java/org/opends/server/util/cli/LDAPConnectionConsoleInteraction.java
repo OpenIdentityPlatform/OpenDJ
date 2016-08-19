@@ -161,7 +161,7 @@ public class LDAPConnectionConsoleInteraction
 
     private void setSsl(final SecureConnectionCliArgs secureArgs)
     {
-      this.useSSL = secureArgs.alwaysSSL() || secureArgs.getUseSSLArg().isPresent();
+      this.useSSL = secureArgs.alwaysUseSsl() || secureArgs.getUseSSLArg().isPresent();
       this.useStartTLS = secureArgs.getUseStartTLSArg().isPresent();
     }
   }
@@ -312,7 +312,7 @@ public class LDAPConnectionConsoleInteraction
     this.commandBuilder = new CommandBuilder();
     this.allowAnonymousIfNonInteractive = allowAnonymousIfNonInteractive;
     state = new State(secureArgs);
-    copySecureArgsList = new SecureConnectionCliArgs(secureArgs.alwaysSSL());
+    copySecureArgsList = new SecureConnectionCliArgs(secureArgs.alwaysUseSsl());
     try
     {
       copySecureArgsList.createGlobalArguments();
@@ -583,7 +583,7 @@ public class LDAPConnectionConsoleInteraction
     try
     {
       app.println();
-      final LocalizableMessage askPortNumberMsg = secureArgsList.alwaysSSL() ?
+      final LocalizableMessage askPortNumberMsg = secureArgsList.alwaysUseSsl() ?
           INFO_ADMIN_CONN_PROMPT_PORT_NUMBER.get(portNumber) :
           INFO_LDAP_CONN_PROMPT_PORT_NUMBER.get(portNumber);
       portNumber = app.readValidatedInput(askPortNumberMsg, portValidationCallback(portNumber));

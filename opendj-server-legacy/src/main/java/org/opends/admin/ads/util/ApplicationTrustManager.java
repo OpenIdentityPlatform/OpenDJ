@@ -29,6 +29,7 @@ import java.util.List;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -312,9 +313,7 @@ public class ApplicationTrustManager implements X509TrustManager
     copy.acceptedChains.addAll(acceptedChains);
     copy.acceptedAuthTypes.addAll(acceptedAuthTypes);
     copy.acceptedHosts.addAll(acceptedHosts);
-
     copy.host = host;
-
     return copy;
   }
 
@@ -360,10 +359,11 @@ public class ApplicationTrustManager implements X509TrustManager
   {
     if (host != null)
     {
+      final X500Principal subjectX500Principal = chain[0].getSubjectX500Principal();
       boolean matches = false;
       try
       {
-        DN dn = DN.valueOf(chain[0].getSubjectX500Principal().getName());
+        DN dn = DN.valueOf(subjectX500Principal.getName());
         String value = dn.rdn(dn.size() - 1).getFirstAVA().getAttributeValue().toString();
         matches = hostMatch(value, host);
         if (!matches)
@@ -388,14 +388,14 @@ public class ApplicationTrustManager implements X509TrustManager
       catch (Throwable t)
       {
         logger.warn(LocalizableMessage.raw("Error parsing subject dn: "+
-            chain[0].getSubjectX500Principal(), t));
+            subjectX500Principal, t));
       }
 
       if (!matches)
       {
         throw new OpendsCertificateException(
             "Hostname mismatch between host name " + host
-                + " and subject DN: " + chain[0].getSubjectX500Principal(),
+                + " and subject DN: " + subjectX500Principal,
             chain);
       }
     }
@@ -433,8 +433,7 @@ public class ApplicationTrustManager implements X509TrustManager
    * host name.
    * @param host1 the first host name.
    * @param host2 the second host name.
-   * @return <CODE>true</CODE> if the host match and <CODE>false</CODE>
-   * otherwise.
+   * @return {@code true} if the host match, {@code false} otherwise.
    */
   private boolean hostMatch(String host1, String host2)
   {
@@ -446,9 +445,9 @@ public class ApplicationTrustManager implements X509TrustManager
     {
       throw new IllegalArgumentException("The host2 parameter cannot be null");
     }
+
     String[] h1 = host1.split("\\.");
     String[] h2 = host2.split("\\.");
-
     boolean hostMatch = h1.length == h2.length;
     for (int i=0; i<h1.length && hostMatch; i++)
     {
