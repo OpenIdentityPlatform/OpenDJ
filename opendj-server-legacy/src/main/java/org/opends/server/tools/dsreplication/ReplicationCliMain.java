@@ -336,7 +336,6 @@ public class ReplicationCliMain extends ConsoleApplication
    *
    * @return The error code.
    */
-
   public static int mainCLI(String[] args)
   {
     return mainCLI(args, true, System.out, System.err);
@@ -4732,6 +4731,7 @@ public class ReplicationCliMain extends ConsoleApplication
           ERR_REPLICATION_UPDATING_ADS.get(adce.getMessageObject()),
           ERROR_UPDATING_ADS, adce);
     }
+
     if (!adsAlreadyReplicated && !adsMergeDone)
     {
       try
@@ -5024,8 +5024,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void addReplicaServerIds(Set<Integer> replicaServerIds, ServerDescriptor serverDesc1, DN baseDN)
   {
-    ReplicaDescriptor replica = findReplicaForSuffixDN(serverDesc1.getReplicas(), baseDN);
-    if (replica != null && replica.isReplicated())
+    ReplicaDescriptor replica = findReplicatedReplicaForSuffixDN(serverDesc1.getReplicas(), baseDN);
+    if (replica != null)
     {
       replicaServerIds.add(replica.getServerId());
     }
@@ -9028,6 +9028,18 @@ public class ReplicationCliMain extends ConsoleApplication
     for (ReplicaDescriptor replica : replicas)
     {
       if (replica.getSuffix().getDN().equals(suffixDN))
+      {
+        return replica;
+      }
+    }
+    return null;
+  }
+
+  private ReplicaDescriptor findReplicatedReplicaForSuffixDN(Set<ReplicaDescriptor> replicas, DN baseDN)
+  {
+    for (ReplicaDescriptor replica : replicas)
+    {
+      if (replica.isReplicated() && replica.getSuffix().getDN().equals(baseDN))
       {
         return replica;
       }
