@@ -15,10 +15,13 @@
  */
 package org.opends.server.types;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.util.CollectionUtils.*;
+
+import java.util.Set;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
 
 @Test(groups = { "precommit", "types" }, sequential = true)
 @SuppressWarnings("javadoc")
@@ -132,6 +135,7 @@ public class HostPortTest extends TypesTestCase
     final HostPort hp2 = new HostPort("home", 1);
     assertThat(hp1).isEqualTo(hp2);
     assertThat(hp1.hashCode()).isEqualTo(hp2.hashCode());
+    assertThat(hp1).isEqualByComparingTo(hp2);
   }
 
   @Test
@@ -163,6 +167,17 @@ public class HostPortTest extends TypesTestCase
     final HostPort hp2 = new HostPort(hostName, 389);
     assertThat(hp1).isEqualTo(hp2);
     assertThat(hp1.hashCode()).isEqualTo(hp2.hashCode());
+    assertThat(hp1).isEqualByComparingTo(hp2);
+  }
+
+  @Test
+  public void valueOfEqualsHashCodeDifferentHostNames()
+  {
+    final HostPort hp1 = HostPort.valueOf("127.0.0.1:389");
+    final HostPort hp2 = HostPort.valueOf("localhost:389");
+    assertThat(hp1).isEqualTo(hp2);
+    assertThat(hp1.hashCode()).isEqualTo(hp2.hashCode());
+    assertThat(hp1).isNotEqualByComparingTo(hp2);
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
@@ -228,5 +243,42 @@ public class HostPortTest extends TypesTestCase
     HostPort hp1 = HostPort.allAddresses(1389);
     HostPort hp2 = HostPort.allAddresses(1389);
     assertThat(hp1).isEqualTo(hp2);
+  }
+
+  @Test
+  public void isEquivalentTo()
+  {
+    HostPort hp1 = HostPort.valueOf("localhost:389");
+    assertThat(hp1.isEquivalentTo(hp1)).isTrue();
+    HostPort hp2 = HostPort.valueOf("localhost:389");
+    assertThat(hp1.isEquivalentTo(hp2)).isTrue();
+
+    HostPort hpNull = new HostPort(null, 0);
+    assertThat(hp1.isEquivalentTo(hpNull)).isFalse();
+
+    HostPort nonLocalHp = HostPort.valueOf("example.org:389");
+    assertThat(nonLocalHp.isEquivalentTo(nonLocalHp)).isTrue();
+    assertThat(hp1.isEquivalentTo(nonLocalHp)).isFalse();
+    assertThat(nonLocalHp.isEquivalentTo(hp1)).isFalse();
+  }
+
+  @Test
+  public void isLocal()
+  {
+    HostPort hp1 = HostPort.valueOf("localhost:389");
+    assertThat(hp1.isLocalAddress()).isTrue();
+
+    HostPort nonLocalHp = HostPort.valueOf("example.org:389");
+    assertThat(nonLocalHp.isLocalAddress()).isFalse();
+  }
+
+  @Test
+  public void toLowerCaseStrings()
+  {
+    HostPort hp1 = HostPort.valueOf("localHost:389");
+    HostPort nonLocalHp = HostPort.valueOf("Example.org:389");
+
+    Set<String> sets = HostPort.toLowerCaseStrings(newHashSet(hp1, nonLocalHp));
+    assertThat(sets).containsOnly("localhost:389", "example.org:389");
   }
 }

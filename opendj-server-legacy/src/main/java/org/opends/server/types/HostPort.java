@@ -38,6 +38,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  * <p>
  * Due to the possibility of live network configuration changes, instances of
  * this class are not intended for caching and should be rebuilt on demand.
+ * <p>
+ * Note: this class has a natural ordering that is inconsistent with equals.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
@@ -462,11 +464,8 @@ public final class HostPort implements Comparable<HostPort>
 
       // Get and compare addresses of RS1 and RS2
       // Normalize local addresses to null for fast comparison.
-      final InetAddress[] thisAddresses =
-          isLocalAddress() ? null : InetAddress.getAllByName(getHost());
-      final InetAddress[] otherAddresses =
-          other.isLocalAddress() ? null : InetAddress.getAllByName(other
-              .getHost());
+      final InetAddress[] thisAddresses = isLocalAddress() ? null : InetAddress.getAllByName(getHost());
+      final InetAddress[] otherAddresses = other.isLocalAddress() ? null : InetAddress.getAllByName(other.getHost());
 
       // Now compare addresses, if at least one match, this is the same server.
       if (thisAddresses == null && otherAddresses == null)
