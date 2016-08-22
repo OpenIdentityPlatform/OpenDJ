@@ -202,7 +202,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
    */
   public HostPort getReplicationServerHostPort()
   {
-    return isReplicationServer() ? getReplicationServer(getHostName(), getReplicationServerPort()) : null;
+    return isReplicationServer() ? new HostPort(getHostName(), getReplicationServerPort()) : null;
   }
 
   /**
@@ -1117,19 +1117,6 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
   private static boolean isSchemaBackend(String backendId)
   {
     return "schema".equalsIgnoreCase(backendId);
-  }
-
-  /**
-   * Returns the replication server normalized String for a given host name
-   * and replication port.
-   * @param hostName the host name.
-   * @param replicationPort the replication port.
-   * @return the replication server normalized String for a given host name
-   * and replication port.
-   */
-  public static HostPort getReplicationServer(String hostName, int replicationPort)
-  {
-    return new HostPort(hostName, replicationPort);
   }
 
   /**

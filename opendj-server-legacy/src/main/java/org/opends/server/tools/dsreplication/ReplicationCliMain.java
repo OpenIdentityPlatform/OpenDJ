@@ -5041,7 +5041,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else if (serverData.configureReplicationServer())
     {
-      twoReplServers.add(getReplicationServer(conn.getHostPort().getHost(), serverData.getReplicationPort()));
+      twoReplServers.add(new HostPort(conn.getHostPort().getHost(), serverData.getReplicationPort()));
     }
   }
 
@@ -8432,9 +8432,8 @@ public class ReplicationCliMain extends ConsoleApplication
       ConnectionWrapper connDomain, ConnectionWrapper connOther,
       Set<DN> availableSuffixes, Set<DN> alreadyReplicatedSuffixes)
   {
-    int replicationPort = getReplicationPort(connOther);
-    boolean isReplicationServerConfigured = replicationPort != -1;
-    HostPort replicationServer = getReplicationServer(connOther.getHostPort().getHost(), replicationPort);
+    HostPort replicationServer = getReplicationServerHostPort(connOther);
+    boolean isReplicationServerConfigured = replicationServer != null;
 
     Collection<ReplicaDescriptor> replicas = getReplicas(connDomain);
     for (ReplicaDescriptor replica : replicas)
@@ -8472,13 +8471,11 @@ public class ReplicationCliMain extends ConsoleApplication
       ConnectionWrapper conn1, ConnectionWrapper conn2,
       Set<DN> availableSuffixes, Set<DN> alreadyReplicatedSuffixes)
   {
-    int replicationPort1 = getReplicationPort(conn1);
-    boolean isReplicationServer1Configured = replicationPort1 != -1;
-    HostPort replicationServer1 = getReplicationServer(conn1.getHostPort().getHost(), replicationPort1);
+    HostPort replicationServer1 = getReplicationServerHostPort(conn1);
+    boolean isReplicationServer1Configured = replicationServer1 != null;
 
-    int replicationPort2 = getReplicationPort(conn2);
-    boolean isReplicationServer2Configured = replicationPort2 != -1;
-    HostPort replicationServer2 = getReplicationServer(conn2.getHostPort().getHost(), replicationPort2);
+    HostPort replicationServer2 = getReplicationServerHostPort(conn2);
+    boolean isReplicationServer2Configured = replicationServer2 != null;
 
     TopologyCache cache1 = isReplicationServer1Configured ? createTopologyCache(conn1) : null;
     TopologyCache cache2 = isReplicationServer2Configured ? createTopologyCache(conn2) : null;
@@ -8604,10 +8601,8 @@ public class ReplicationCliMain extends ConsoleApplication
     createTopologyCache(adsCtx1, uData, suffixes);
     createTopologyCache(adsCtx2, uData, suffixes);
 
-    int repPort1 = getReplicationPort(adsCtx1.getConnection());
-    HostPort repServer1 = getReplicationServer(server1.getHostName(), repPort1);
-    int repPort2 = getReplicationPort(adsCtx2.getConnection());
-    HostPort repServer2 = getReplicationServer(server2.getHostName(), repPort2);
+    HostPort repServer1 = getReplicationServerHostPort(adsCtx1.getConnection(), server1.getHostName());
+    HostPort repServer2 = getReplicationServerHostPort(adsCtx2.getConnection(), server2.getHostName());
     for (DN baseDN : uData.getBaseDNs())
     {
       int nReplicationServers = 0;
@@ -8649,6 +8644,17 @@ public class ReplicationCliMain extends ConsoleApplication
         baseDNsWithNoReplicationServer.add(baseDN);
       }
     }
+  }
+
+  private HostPort getReplicationServerHostPort(ConnectionWrapper conn)
+  {
+    return getReplicationServerHostPort(conn, conn.getHostPort().getHost());
+  }
+
+  private HostPort getReplicationServerHostPort(ConnectionWrapper conn, String hostName)
+  {
+    int replPort = getReplicationPort(conn);
+    return replPort != -1 ? new HostPort(hostName, replPort) : null;
   }
 
   private void createTopologyCache(ADSContext adsCtx, ReplicationUserData uData, Set<SuffixDescriptor> suffixes)
