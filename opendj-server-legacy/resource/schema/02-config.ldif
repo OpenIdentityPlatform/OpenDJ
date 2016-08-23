@@ -2126,12 +2126,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.366
   EQUALITY distinguishedNameMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.367
-  NAME 'ds-cfg-strip-syntax-min-upper-bound'
-  EQUALITY booleanMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.368
   NAME 'ds-cfg-suppress-synchronization-operations'
   EQUALITY booleanMatch
@@ -2766,11 +2760,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.489
   NAME 'ds-cfg-prohibited-subtrees'
   EQUALITY distinguishedNameMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.499
-  NAME 'ds-cfg-matching-rule-type'
-  EQUALITY caseIgnoreMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.500
   NAME 'ds-cfg-collation'
@@ -3949,6 +3938,30 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.185
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.186
+  NAME 'ds-cfg-strict-format-jpeg-photos'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.187
+  NAME 'ds-cfg-strict-format-certificates'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.188
+  NAME 'ds-cfg-strict-format-telephone-numbers'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.189
+  NAME 'ds-cfg-allow-attribute-types-with-no-sup-or-syntax'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3966,20 +3979,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.2
          ds-cfg-enabled )
   MAY ( ds-cfg-enabled-alert-type $
         ds-cfg-disabled-alert-type )
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.3
-  NAME 'ds-cfg-attribute-syntax'
-  SUP top
-  STRUCTURAL
-  MUST ( cn $
-         ds-cfg-java-class $
-         ds-cfg-enabled )
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.4
-  NAME 'ds-cfg-telephone-number-attribute-syntax'
-  SUP ds-cfg-attribute-syntax
-  STRUCTURAL
-  MAY ds-cfg-strict-format
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.5
   NAME 'ds-cfg-backend'
@@ -4254,34 +4253,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.27
         ds-cfg-append $
         ds-cfg-queue-size )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.28
-  NAME 'ds-cfg-matching-rule'
-  SUP top
-  STRUCTURAL
-  MUST ( cn $
-         ds-cfg-java-class $
-         ds-cfg-enabled )
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.29
-  NAME 'ds-cfg-approximate-matching-rule'
-  SUP ds-cfg-matching-rule
-  STRUCTURAL
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.30
-  NAME 'ds-cfg-equality-matching-rule'
-  SUP ds-cfg-matching-rule
-  STRUCTURAL
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.31
-  NAME 'ds-cfg-ordering-matching-rule'
-  SUP ds-cfg-matching-rule
-  STRUCTURAL
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.32
-  NAME 'ds-cfg-substring-matching-rule'
-  SUP ds-cfg-matching-rule
-  STRUCTURAL
-  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.33
   NAME 'ds-cfg-monitor-provider'
   SUP top
@@ -4470,12 +4441,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.51
         ds-cfg-trust-store-pin-property $
         ds-cfg-trust-store-pin-environment-variable $
         ds-cfg-trust-store-pin-file )
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.52
-  NAME 'ds-cfg-directory-string-attribute-syntax'
-  SUP ds-cfg-attribute-syntax
-  STRUCTURAL
-  MAY ds-cfg-allow-zero-length-values
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.53
   NAME 'ds-root-dse'
@@ -5106,12 +5071,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.112
   MAY ( ds-cfg-default-user-password-storage-scheme $
         ds-cfg-default-auth-password-storage-scheme )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.113
-  NAME 'ds-cfg-attribute-type-description-attribute-syntax'
-  SUP ds-cfg-attribute-syntax
-  STRUCTURAL
-  MAY ds-cfg-strip-syntax-min-upper-bound
-  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.115
   NAME 'ds-cfg-smtp-alert-handler'
   SUP ds-cfg-alert-handler
@@ -5599,13 +5558,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.188
         ds-cfg-allowed-subtrees $
         ds-cfg-prohibited-subtrees )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.195
-  NAME 'ds-cfg-collation-matching-rule'
-  SUP ds-cfg-matching-rule
-  STRUCTURAL
-  MUST ( ds-cfg-matching-rule-type $
-        ds-cfg-collation )
-  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.950
   NAME 'ds-mon-branch'
   SUP top
@@ -5625,11 +5577,6 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.201
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.202
   NAME 'ds-cfg-governing-structure-rule-virtual-attribute'
   SUP ds-cfg-virtual-attribute
-  STRUCTURAL
-  X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.231
-  NAME 'ds-cfg-extensible-matching-rule'
-  SUP ds-cfg-matching-rule
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.232
@@ -5766,24 +5713,6 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.9
   SUP ds-cfg-virtual-attribute
   STRUCTURAL
   X-ORIGIN 'OpenDJ Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.10
-  NAME 'ds-cfg-certificate-attribute-syntax'
-  SUP ds-cfg-attribute-syntax
-  STRUCTURAL
-  MAY ds-cfg-strict-format
-  X-ORIGIN 'OpenDJ Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.11
-  NAME 'ds-cfg-jpeg-attribute-syntax'
-  SUP ds-cfg-attribute-syntax
-  STRUCTURAL
-  MAY ds-cfg-strict-format
-  X-ORIGIN 'OpenDJ Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.12
-  NAME 'ds-cfg-country-string-attribute-syntax'
-  SUP ds-cfg-attribute-syntax
-  STRUCTURAL
-  MAY ds-cfg-strict-format
-  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.13
   NAME 'ds-connectionhandler-statistics-monitor-entry'
   SUP ds-monitor-entry
@@ -5852,7 +5781,11 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.20
         ds-cfg-disabled-matching-rule $
         ds-cfg-strict-format-country-string $
         ds-cfg-allow-zero-length-values-directory-string $
-        ds-cfg-strip-syntax-min-upper-bound-attribute-type-description )
+        ds-cfg-strip-syntax-min-upper-bound-attribute-type-description 
+        ds-cfg-strict-format-jpeg-photos
+        ds-cfg-strict-format-certificates
+        ds-cfg-strict-format-telephone-numbers
+        ds-cfg-allow-attribute-types-with-no-sup-or-syntax )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.21
   NAME 'ds-cfg-pkcs5s2-password-storage-scheme'
