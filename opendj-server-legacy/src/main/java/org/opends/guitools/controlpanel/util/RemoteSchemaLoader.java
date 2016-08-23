@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -94,20 +93,6 @@ public class RemoteSchemaLoader extends SchemaLoader
 
     return buildSchema(schemaBuilder);
 
-  }
-
-  private void addMatchingRuleIfMissing(SchemaBuilder schemaBuilder, Schema baseSchema, final String oid,
-      final String name, final String syntaxOID, final MatchingRuleImpl impl) throws InitializationException,
-      ConfigException, DirectoryException
-  {
-    if (!baseSchema.hasMatchingRule(name))
-    {
-      schemaBuilder.buildMatchingRule(oid)
-        .names(name)
-        .syntaxOID(syntaxOID)
-        .implementation(impl)
-        .addToSchema();
-    }
   }
 
   private void removeNonOpenDjOrOpenDsSyntaxes(final SearchResultEntry entry) throws DirectoryException

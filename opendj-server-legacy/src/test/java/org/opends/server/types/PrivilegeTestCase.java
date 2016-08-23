@@ -492,7 +492,7 @@ public class PrivilegeTestCase extends TypesTestCase
     DN dnToRemove = entry.getName();
     if (!hasPrivilege)
     {
-      dnToRemove = DN.valueOf("cn=Telex Number,cn=Syntaxes,cn=config");
+      dnToRemove = DN.valueOf("cn=File-Based Access Logger,cn=Loggers,cn=config");
     }
     DeleteOperation deleteOperation = conn.processDelete(dnToRemove);
     assertPrivilege(deleteOperation.getResultCode(), hasPrivilege);

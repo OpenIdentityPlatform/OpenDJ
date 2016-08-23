@@ -17,12 +17,10 @@
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.SchemaMessages.ERR_SCHEMA_HAS_WARNINGS;
-import static org.opends.messages.ConfigMessages.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -43,6 +41,8 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SchemaHandler;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.SchemaUtils;
+import org.opends.server.util.StaticUtils;
 
 /** Class used to retrieve the schema from the schema files. */
 public class SchemaLoader
@@ -106,7 +106,7 @@ public class SchemaLoader
   {
     SchemaHandler schemaHandler = serverContext.getSchemaHandler();
     final File schemaDir = schemaHandler.getSchemaDirectoryPath();
-    final List<String> fileNames = getSchemaFileNames(schemaDir);
+    final List<String> fileNames = StaticUtils.getFileNames(SchemaUtils.getSchemaFiles(schemaDir));
 
     // build the schema from schema files
     Schema baseSchema = getBaseSchema();
@@ -128,30 +128,6 @@ public class SchemaLoader
           ERR_SCHEMA_HAS_WARNINGS.get(warnings.size(), Utils.joinAsString("; ", warnings)));
     }
     return schema;
-  }
-
-  private List<String> getSchemaFileNames(final File schemaDir)
-      throws InitializationException
-  {
-    final List<String> fileNames;
-    try
-    {
-      File[] schemaFiles = schemaDir.listFiles(new SchemaHandler.SchemaFileFilter());
-      fileNames = new ArrayList<>(schemaFiles.length);
-      for (File f : schemaFiles)
-      {
-        if (f.isFile())
-        {
-          fileNames.add(f.getName());
-        }
-      }
-      Collections.sort(fileNames);
-      return fileNames;
-    }
-    catch (Exception e)
-    {
-      throw new InitializationException(ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDir, e.getMessage()), e);
-    }
   }
 
   /**

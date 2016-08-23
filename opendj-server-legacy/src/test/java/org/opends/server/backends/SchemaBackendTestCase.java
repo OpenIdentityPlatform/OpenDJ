@@ -73,6 +73,7 @@ import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /** A set of test cases for the schema backend. */
@@ -594,37 +595,137 @@ public class SchemaBackendTestCase extends BackendTestCase
   }
 
   /**
+   * The type of modification.
+   * <p>
+   * This enumeration allows to have more readable tests data (avoid use of boolean).
+   */
+  enum ModifyType {
+    PERMISSIVE(true),
+    NON_PERMISSIVE(false);
+
+    private final String[] modifyArgs;
+
+    private ModifyType(boolean permissive)
+    {
+      this.modifyArgs = SchemaBackendTestCase.args(permissive);
+    }
+
+    /** Returns the arguments to use for the modify operation. */
+    String[] args()
+    {
+      return modifyArgs;
+    }
+  }
+
+  @DataProvider
+  public Object[][] dataForAddAttributeTypeReplaceTest()
+  {
+    return new Object[][] {
+      // change syntax
+      { ModifyType.PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME 'at1-replace' " +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", SUCCESS },
+      // add an unused name
+      { ModifyType.PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME ('at1-replace' 'at1-replace-bis')" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", SUCCESS },
+      // use another unused name
+      { ModifyType.PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME 'at1-replace-bis'" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", SUCCESS },
+      // add a name already used by another attribute type
+      { ModifyType.PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME ('at1-replace' 'cn')" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", CONSTRAINT_VIOLATION },
+      // use another unused oid with the same name
+      { ModifyType.PERMISSIVE, "attributeTypes:( at1-replace-oid-new " +
+          "NAME 'at1-replace'" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", CONSTRAINT_VIOLATION },
+
+      // change syntax
+      { ModifyType.NON_PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME 'at1-replace' " +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // add an unused name
+      { ModifyType.NON_PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME ('at1-replace' 'at1-replace-bis')" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // use another unused name
+      { ModifyType.NON_PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME 'at1-replace-bis'" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // add a name already used by another attribute type
+      { ModifyType.NON_PERMISSIVE, "attributeTypes:( at1-replace-oid " +
+          "NAME ('at1-replace' 'cn')" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // use another unused oid with the same name
+      { ModifyType.NON_PERMISSIVE, "attributeTypes:( at1-replace-oid-new " +
+          "NAME 'at1-replace'" +
+          "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
+          "X-ORIGIN 'SchemaBackendTestCase' )", CONSTRAINT_VIOLATION },
+    };
+  }
+
+  /**
    * Tests the behavior of the schema backend when attempting to add a new
    * attribute type in a manner that replaces an existing definition.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
-  public void testAddAttributeTypeSuccessfulReplace()
-         throws Exception
+  @Test(dataProvider= "dataForAddAttributeTypeReplaceTest")
+  public void testAddAttributeTypeReplace(ModifyType modifyType, String newAttributeTypeDefinition,
+      ResultCode expectedResultCode)
+          throws Exception
   {
-    String ldif = toLdif(
+    final String initialOid = "at1-replace-oid";
+    final String initialName = "at1-replace";
+    try
+    {
+      // add the attribute that does not exists yet, this should always succeed
+      String ldifAdd1 = toLdif(
          "dn: cn=schema",
          "changetype: modify",
          "add: attributeTypes",
-         "attributeTypes: ( testaddattributetypesuccessfulreplace-oid " +
-              "NAME 'testAddAttributeTypeSuccessfulReplace' " +
+         "attributeTypes: ( " + initialOid + " " +
+             "NAME '" + initialName + "' " +
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
-              "X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: attributeTypes",
-         "attributeTypes: ( testaddattributetypesuccessfulreplace-oid " +
-              "NAME 'testAddAttributeTypeSuccessfulReplace' " +
-              "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
+      assertFalse(DirectoryServer.getSchema().hasAttributeType(initialOid));
+      assertFalse(DirectoryServer.getSchema().hasAttributeType(initialName));
+      runModify(argsNotPermissive(), ldifAdd1, System.err, SUCCESS);
+      assertTrue(DirectoryServer.getSchema().hasAttributeType(initialOid));
+      assertTrue(DirectoryServer.getSchema().hasAttributeType(initialName));
 
-    String attrName = "testaddattributetypesuccessfulreplace";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+      // try to add the attribute again, with its new definition
+      String ldifAdd2 = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: attributeTypes",
+          newAttributeTypeDefinition);
 
-    runModify(argsPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+      runModify(modifyType.args(), ldifAdd2, System.err, expectedResultCode);
+    }
+    finally
+    {
+      // clean the attribute to put back the schema in its initial state before the test
+      if (DirectoryServer.getSchema().hasAttributeType(initialOid))
+      {
+        String removalLdif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "delete: attributeTypes",
+          "attributeTypes: ( " + initialOid + " )"
+          );
+        runModify(argsPermissive(), removalLdif, System.err, SUCCESS);
+      }
+    }
   }
 
   /**
@@ -1365,36 +1466,104 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertSchemaFileExists("98-schema-test-oc.ldif", true);
   }
 
+  @DataProvider
+  public Object[][] dataForAddObjectClassReplaceTest()
+  {
+    return new Object[][] {
+      // change optional attribute
+      { ModifyType.PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME 'oc1-replace' SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", SUCCESS },
+      // add an unused name
+      { ModifyType.PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME ('oc1-replace' 'oc1-replace-bis') SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", SUCCESS },
+      // use another unused name
+      { ModifyType.PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME 'oc1-replace-bis' SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", SUCCESS },
+      // add a name already used by another object class
+      { ModifyType.PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME ('oc1-replace' 'person') SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", CONSTRAINT_VIOLATION },
+      // use another unused oid with the same name
+      { ModifyType.PERMISSIVE, "objectClasses: ( oc1-replace-oid-new " +
+          "NAME 'oc1-replace' SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", CONSTRAINT_VIOLATION },
+
+      // change optional attribute
+      { ModifyType.NON_PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME 'oc1-replace' SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // add an unused name
+      { ModifyType.NON_PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME ('oc1-replace' 'oc1-replace-bis') SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // use another unused name
+      { ModifyType.NON_PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME 'oc1-replace-bis' SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // add a name already used by another object class
+      { ModifyType.NON_PERMISSIVE, "objectClasses: ( oc1-replace-oid " +
+          "NAME ('oc1-replace' 'person') SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", ATTRIBUTE_OR_VALUE_EXISTS },
+      // use another unused oid with the same name
+      { ModifyType.NON_PERMISSIVE, "objectClasses: ( oc1-replace-oid-new " +
+          "NAME 'oc1-replace' SUP top STRUCTURAL " +
+          "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )", CONSTRAINT_VIOLATION },
+    };
+  }
+
   /**
    * Tests the behavior of the schema backend when attempting to add a new
-   * objectclass that already exists (i.e., a replace)
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * objectclass that already exists (i.e., a replace).
    */
-  @Test
-  public void testAddObjectClassSuccessfulReplace()
+  @Test(dataProvider="dataForAddObjectClassReplaceTest")
+  public void testAddObjectClassReplace(ModifyType modifyType, String newObjectClassDefinition,
+      ResultCode expectedResultCode)
          throws Exception
   {
-    String ldif = toLdif(
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: objectClasses",
-         "objectClasses: ( testaddobjectclasssuccessfulreplace-oid " +
-              "NAME 'testAddObjectClassSuccessfulReplace' SUP top STRUCTURAL " +
-              "MUST cn X-ORIGIN 'SchemaBackendTestCase' )",
-         "",
-         "dn: cn=schema",
-         "changetype: modify",
-         "add: objectClasses",
-         "objectClasses: ( testaddobjectclasssuccessfulreplace-oid " +
-              "NAME 'testAddObjectClassSuccessfulReplace' SUP top STRUCTURAL " +
-              "MUST cn MAY description X-ORIGIN 'SchemaBackendTestCase' )");
+    final String initialOid = "oc1-replace-oid";
+    final String initialName = "oc1-replace";
+    try
+    {
+      // add the attribute that does not exists yet, this should always succeed
+      String ldifAdd1 = toLdif(
+           "dn: cn=schema",
+           "changetype: modify",
+           "add: objectClasses",
+           "objectClasses: ( " + initialOid + " " +
+                "NAME '" + initialName + "' " +
+                "SUP top STRUCTURAL " +
+                "MUST cn X-ORIGIN 'SchemaBackendTestCase' )");
+      assertFalse(DirectoryServer.getSchema().hasObjectClass(initialOid));
+      assertFalse(DirectoryServer.getSchema().hasObjectClass(initialName));
+      runModify(argsNotPermissive(), ldifAdd1, System.err, SUCCESS);
+      assertTrue(DirectoryServer.getSchema().hasObjectClass(initialOid));
+      assertTrue(DirectoryServer.getSchema().hasObjectClass(initialName));
 
-    String ocName = "testaddobjectclasssuccessfulreplace";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+      // try to add the attribute again, with its new definition
+      String ldifAdd2 = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "add: objectClasses",
+          newObjectClassDefinition);
 
-    runModify(argsPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+      runModify(modifyType.args(), ldifAdd2, System.err, expectedResultCode);
+    }
+    finally
+    {
+      // clean the object class to put back the schema in its initial state before the test
+      if (DirectoryServer.getSchema().hasObjectClass(initialOid))
+      {
+        String removalLdif = toLdif(
+          "dn: cn=schema",
+          "changetype: modify",
+          "delete: objectClasses",
+          "objectClasses: ( " + initialOid + " )");
+        runModify(argsPermissive(), removalLdif, System.err, SUCCESS);
+      }
+    }
   }
 
   /**
@@ -1884,17 +2053,17 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
   }
 
-  private String[] argsNotPermissive()
+  private static String[] argsNotPermissive()
   {
     return args(false);
   }
 
-  private String[] argsPermissive()
+  private static String[] argsPermissive()
   {
     return args(true);
   }
 
-  private String[] args(boolean usePermissiveModifyControl)
+  private static String[] args(boolean usePermissiveModifyControl)
   {
     final List<String> args = CollectionUtils.newArrayList(
       "-h", "127.0.0.1",
@@ -3491,14 +3660,12 @@ public class SchemaBackendTestCase extends BackendTestCase
   }
 
   /**
-   * Tests the addition of a new DITContentRule with a conflicting rule identifier.
+   * Tests the addition of a new DITContentRule with a conflicting rule identifier and permissive control.
    *
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  // TODO: this test fails because I removed checks on names when adding a schema element
-  // Should I put them back ?
-  @Test(enabled=false)
+  @Test
   public void testAddDITStructureRuleConflictingRuleIDWithPermissiveControl() throws Exception
   {
 
@@ -3510,7 +3677,7 @@ public class SchemaBackendTestCase extends BackendTestCase
         "-",
         "add: dITStructureRules",
         "dITStructureRules: ( 1 NAME 'dummyStructureRule' FORM domainNameForm )");
-    runModify(argsPermissive(), ldif, CONSTRAINT_VIOLATION);
+    runModify(argsPermissive(), ldif, SUCCESS);
   }
 
   /**

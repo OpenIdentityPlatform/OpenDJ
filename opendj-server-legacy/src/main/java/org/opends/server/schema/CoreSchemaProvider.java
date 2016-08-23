@@ -25,13 +25,16 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
+import org.opends.messages.ConfigMessages;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaHandler.SchemaUpdater;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-/** Provides the core schema, which includes core matching rules and syntaxes. */
+/**
+ * Provides the core schema, which includes core matching rules and syntaxes.
+ */
 public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
   ConfigurationChangeListener<CoreSchemaCfg>
 {
@@ -100,7 +103,6 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
   public boolean isConfigurationAcceptable(final CoreSchemaCfg configuration,
       final List<LocalizableMessage> unacceptableReasons)
   {
-    // TODO : check that elements to disable are present in the schema ?
     return true;
   }
 
@@ -110,11 +112,9 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
   {
     if (!configuration.isEnabled())
     {
-      // TODO : fix message
-      unacceptableReasons.add(LocalizableMessage.raw("The core schema must always be enabled"));
+      unacceptableReasons.add(ConfigMessages.ERR_CONFIG_CORE_SCHEMA_PROVIDER_DISABLED.get(configuration.dn()));
       return false;
     }
-    // TODO : check that elements to disable are present in the schema ?
     return true;
   }
 

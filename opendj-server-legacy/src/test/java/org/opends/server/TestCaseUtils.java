@@ -238,7 +238,7 @@ public final class TestCaseUtils {
   public static void startFakeServer() throws Exception
   {
     schemaBeforeStartingFakeServer = DirectoryServer.getSchema();
-    DirectoryServer.setSchema(Schema.getDefaultSchema());
+    DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(Schema.getDefaultSchema());
   }
 
   /**
@@ -753,7 +753,7 @@ public final class TestCaseUtils {
    */
   public static void shutdownFakeServer() throws DirectoryException
   {
-    DirectoryServer.setSchema(schemaBeforeStartingFakeServer);
+    DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(schemaBeforeStartingFakeServer);
   }
 
   /**

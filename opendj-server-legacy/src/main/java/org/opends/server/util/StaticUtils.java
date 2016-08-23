@@ -1780,14 +1780,11 @@ public final class StaticUtils
   public static boolean deleteFiles(Iterable<File> files)
   {
     boolean allDeleted = true;
-    if (files != null)
+    for (File f : files)
     {
-      for (File f : files)
+      if (!f.isDirectory())
       {
-          if (!f.isDirectory())
-          {
-            allDeleted = f.delete() && allDeleted;
-          }
+        allDeleted &= f.delete();
       }
     }
     return allDeleted;
@@ -1894,6 +1891,27 @@ public final class StaticUtils
 
       }
     }
+  }
+
+  /**
+   * Returns the sorted list of names of provided files.
+   *
+   * @param files
+   *            The files to sort and get the names of
+   * @return the sorted list of file names
+   */
+  public static List<String> getFileNames(final File[] files)
+  {
+    final List<String> names = new ArrayList<>(files.length);
+    for (final File f : files)
+    {
+      if (f.isFile())
+      {
+        names.add(f.getName());
+      }
+    }
+    Collections.sort(names);
+    return names;
   }
 
   /**

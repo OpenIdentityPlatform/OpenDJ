@@ -130,10 +130,11 @@ class SchemaFilesWriter
       TreeSet<String> modifiedSchemaFiles, AlertGenerator alertGenerator)
           throws DirectoryException
   {
-    // We'll re-write all
-    // impacted schema files by first creating them in a temporary location
-    // and then replacing the existing schema files with the new versions.
-    // If all that goes successfully, then activate the new schema.
+    /*
+     * We'll re-write all impacted schema files by first creating them in a temporary location
+     * and then replacing the existing schema files with the new versions.
+     * If all that goes successfully, then activate the new schema.
+     */
     HashMap<String, File> tempSchemaFiles = new HashMap<>();
     try
     {
@@ -270,7 +271,10 @@ class SchemaFilesWriter
       File tempFile = new File(concatFilePath + ".tmp");
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile, false)))
       {
-        writeLines(writer, "dn: " + DirectoryServer.getSchemaDN(), "objectClass: top", "objectClass: ldapSubentry",
+        writeLines(writer,
+            "dn: " + DirectoryServer.getSchemaDN(),
+            "objectClass: top",
+            "objectClass: ldapSubentry",
             "objectClass: subschema");
 
         writeLines(writer, ATTR_ATTRIBUTE_TYPES, attributeTypes);
@@ -330,7 +334,7 @@ class SchemaFilesWriter
     TreeSet<File> schemaFiles = new TreeSet<>();
     String schemaDirectory = getSchemaDirectoryPath();
 
-    final FilenameFilter filter = new SchemaHandler.SchemaFileFilter();
+    final FilenameFilter filter = new SchemaUtils.SchemaFileFilter();
     for (File f : new File(schemaDirectory).listFiles(filter))
     {
       if (f.isFile())
@@ -541,9 +545,7 @@ class SchemaFilesWriter
   private File getUpgradeDirectory()
   {
     File configFile = serverContext.getEnvironment().getConfigFile();
-    File configDirectory = configFile.getParentFile();
-    File upgradeDirectory = new File(configDirectory, "upgrade");
-    return upgradeDirectory;
+    return new File(configFile.getParentFile(), "upgrade");
   }
 
   private File getConcatenatedSchemaFile() throws InitializationException

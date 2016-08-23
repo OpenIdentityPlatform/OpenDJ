@@ -317,7 +317,7 @@ public class ConfigFromConnection extends ConfigReader
         {
           // Update the schema: so that when we call the server code the
           // latest schema read on the server we are managing is used.
-          DirectoryServer.setSchema(schema);
+          DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(schema);
         }
       }
       catch (OpenDsException oe)

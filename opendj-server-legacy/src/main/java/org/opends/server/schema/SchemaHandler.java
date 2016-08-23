@@ -16,7 +16,6 @@
 package org.opends.server.schema;
 
 import static java.util.Collections.emptyList;
-import static org.forgerock.util.Utils.closeSilently;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.SchemaUtils.getElementSchemaFile;
@@ -28,7 +27,6 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,8 +81,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.util.SchemaUtils;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * Responsible for access to the server's schema.
@@ -153,7 +149,7 @@ public final class SchemaHandler
   /** Guards updates to the schema. */
   private final Lock exclusiveLock = new ReentrantLock();
 
-  /** The oldest modification time for any schema configuration file, as a byte string. */
+  /** The oldest modification time for any schema configuration file. */
   private long oldestModificationTime;
 
   /** The youngest modification time for any schema configuration file. */
@@ -209,9 +205,6 @@ public final class SchemaHandler
     this.serverContext = serverContext;
     this.schemaWriter = new SchemaFilesWriter(serverContext);
 
-    exclusiveLock.lock();
-    try
-    {
       // Start from the core schema
       final SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
@@ -223,18 +216,12 @@ public final class SchemaHandler
 
       try
       {
-        switchSchema(schemaBuilder.toSchema());
+        updateSchema(schemaBuilder.toSchema());
       }
       catch (DirectoryException e)
       {
         throw new ConfigException(e.getMessageObject(), e);
       }
-
-    }
-    finally
-    {
-      exclusiveLock.unlock();
-    }
   }
 
   /**
@@ -319,7 +306,7 @@ public final class SchemaHandler
    */
   public void detectChangesOnInitialization() throws InitializationException
   {
-    offlineSchemaModifications = schemaWriter.updateConcatenatedSchemaIfChangesDetected();
+    offlineSchemaModifications = Collections.unmodifiableList(schemaWriter.updateConcatenatedSchemaIfChangesDetected());
   }
 
   /**
@@ -365,11 +352,13 @@ public final class SchemaHandler
    */
   public List<Modification> getOfflineSchemaModifications()
   {
-    return Collections.unmodifiableList(offlineSchemaModifications);
+    return offlineSchemaModifications;
   }
 
   /**
    * Updates the schema using the provided schema updater.
+   * <p>
+   * The schema files are not updated.
    *
    * @param updater
    *          the updater that performs modifications on the schema builder
@@ -392,6 +381,8 @@ public final class SchemaHandler
 
   /**
    * Replaces the schema with the provided schema.
+   * <p>
+   * The schema files are not updated.
    *
    * @param schema
    *          the new schema to use
@@ -412,7 +403,9 @@ public final class SchemaHandler
   }
 
   /**
-   * Replaces the schema with the provided schema and update provided schema files.
+   * Replaces the schema with the provided schema and updates the provided set of schema files.
+   * <p>
+   * The concatenated schema file is updated as well.
    *
    * @param newSchema
    *            The new schema to use
@@ -443,14 +436,14 @@ public final class SchemaHandler
   }
 
   /**
-   * Replaces the schema with the provided schema and update the concatened schema files.
+   * Replaces the schema with the provided schema and update the concatenated schema file.
    *
    * @param newSchema
    *            The new schema to use
    * @throws DirectoryException
    *            If an error occurs during update of schema or schema files
    */
-  public void updateSchemaAndConcatenatedSchemaFiles(Schema newSchema) throws DirectoryException
+  public void updateSchemaAndConcatenatedSchemaFile(Schema newSchema) throws DirectoryException
   {
     exclusiveLock.lock();
     try
@@ -809,43 +802,14 @@ public final class SchemaHandler
       throws ConfigException, InitializationException
   {
     final File schemaDirectory = getSchemaDirectoryPath();
-    final File[] schemaFiles = getSchemaFiles(schemaDirectory);
-    final List<String> schemaFileNames = getSchemaFileNames(schemaFiles);
+    final File[] schemaFiles = SchemaUtils.getSchemaFiles(schemaDirectory);
+    final List<String> schemaFileNames = StaticUtils.getFileNames(schemaFiles);
     updateModificationTimes(schemaFiles);
 
     for (String schemaFile : schemaFileNames)
     {
       loadSchemaFile(new File(schemaDirectory, schemaFile), schemaBuilder, Schema.getDefaultSchema(), false);
     }
-  }
-
-  private File[] getSchemaFiles(File schemaDirectory) throws InitializationException
-  {
-    try
-    {
-      return schemaDirectory.listFiles(new SchemaFileFilter());
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      throw new InitializationException(
-          ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDirectory, getExceptionMessage(e)), e);
-    }
-  }
-
-  /** Returns the sorted list of names of schema files contained in the provided directory. */
-  private List<String> getSchemaFileNames(final File[] schemaFiles)
-  {
-    final List<String> schemaFileNames = new ArrayList<>(schemaFiles.length);
-    for (final File f : schemaFiles)
-    {
-      if (f.isFile())
-      {
-        schemaFileNames.add(f.getName());
-      }
-    }
-    Collections.sort(schemaFileNames);
-    return schemaFileNames;
   }
 
   private void updateModificationTimes(final File[] schemaFiles)
@@ -880,8 +844,9 @@ public final class SchemaHandler
   }
 
   /** Returns the schema entry from the provided reader, which may be {@code null} if file is empty. */
-  private Entry readSchemaEntry(final EntryReader reader, final File schemaFile) throws InitializationException {
-    try
+  private Entry readSchemaEntry(final File schemaFile, final Schema readSchema) throws InitializationException
+  {
+    try (EntryReader reader = getLDIFReader(schemaFile, readSchema))
     {
       if (!reader.hasNext())
       {
@@ -897,17 +862,15 @@ public final class SchemaHandler
     }
     catch (IOException e)
     {
-      throw new InitializationException(WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(
-              schemaFile.getPath(), schemaFile.getParent(), getExceptionMessage(e)), e);
-    }
-    finally
-    {
-      closeSilently(reader);
+      throw new InitializationException(WARN_CONFIG_SCHEMA_CANNOT_READ_LDIF_ENTRY.get(schemaFile.getPath(), schemaFile
+          .getParent(), getExceptionMessage(e)), e);
     }
   }
 
   /**
    * Loads the contents of the provided schema file into the provided schema builder.
+   * <p>
+   * This method has no effect on the current schema.
    *
    * @param schemaFile
    *            The schema file to load.
@@ -929,6 +892,8 @@ public final class SchemaHandler
   /**
    * Loads the contents of the provided schema file into the provided schema builder and returns the list
    * of modifications.
+   * <p>
+   * This method has no effect on the current schema.
    *
    * @param schemaFile
    *          The schema file to load.
@@ -998,20 +963,13 @@ public final class SchemaHandler
       boolean failOnError)
          throws InitializationException, ConfigException
   {
-    EntryReader reader = null;
-    try
+    final Entry entry = readSchemaEntry(schemaFile, readSchema);
+    if (entry != null)
     {
-      reader = getLDIFReader(schemaFile, readSchema);
-      final Entry entry = readSchemaEntry(reader, schemaFile);
-      if (entry != null)
-      {
-        updateSchemaBuilderWithEntry(schemaBuilder, entry, schemaFile.getName(), failOnError);
-      }
-      return entry;
+      updateSchemaBuilderWithEntry(schemaBuilder, entry, schemaFile.getName(), failOnError);
     }
-    finally {
-      Utils.closeSilently(reader);
-    }
+    return entry;
+
   }
 
   private void updateSchemaBuilderWithEntry(SchemaBuilder schemaBuilder, Entry schemaEntry, String schemaFile,
@@ -1127,19 +1085,6 @@ public final class SchemaHandler
       throw new ConfigException(message);
     }
     logger.error(message);
-  }
-
-  /** A file filter implementation that accepts only LDIF files. */
-  public static class SchemaFileFilter implements FilenameFilter
-  {
-    private static final String LDIF_SUFFIX = ".ldif";
-
-    @Override
-    public boolean accept(File directory, String filename)
-    {
-      return OperatingSystem.isWindows() ?
-          filename.toLowerCase().endsWith(LDIF_SUFFIX) : filename.endsWith(LDIF_SUFFIX);
-    }
   }
 
   /** Interface to update a schema provided a schema builder. */

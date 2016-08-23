@@ -276,11 +276,7 @@ public class MultimasterReplication
     }
 
     // If any schema changes were made with the server offline, then handle them now.
-    List<Modification> offlineSchemaChanges = serverContext.getSchemaHandler().getOfflineSchemaModifications();
-    if (offlineSchemaChanges != null && !offlineSchemaChanges.isEmpty())
-    {
-      processSchemaChange(offlineSchemaChanges);
-    }
+    processSchemaChange(serverContext.getSchemaHandler().getOfflineSchemaModifications());
 
     DirectoryServer.registerBackupTaskListener(this);
     DirectoryServer.registerRestoreTaskListener(this);
@@ -580,10 +576,13 @@ public class MultimasterReplication
   @Override
   public void processSchemaChange(List<Modification> modifications)
   {
-    LDAPReplicationDomain domain = findDomain(DirectoryServer.getSchemaDN(), null);
-    if (domain != null)
+    if (!modifications.isEmpty())
     {
-      domain.synchronizeSchemaModifications(modifications);
+      LDAPReplicationDomain domain = findDomain(DirectoryServer.getSchemaDN(), null);
+      if (domain != null)
+      {
+        domain.synchronizeSchemaModifications(modifications);
+      }
     }
   }
 

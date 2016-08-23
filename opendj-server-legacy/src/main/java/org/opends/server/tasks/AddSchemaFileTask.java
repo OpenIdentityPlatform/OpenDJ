@@ -26,7 +26,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
@@ -35,7 +34,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ServerContext;
 import org.opends.server.schema.SchemaHandler;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -90,10 +88,8 @@ public class AddSchemaFileTask
 
     // Get the attribute that specifies which schema file(s) to add.
     Entry taskEntry = getTaskEntry();
-    ServerContext serverContext = getServerContext();
-    AttributeType attrType = serverContext.getSchema().getAttributeType(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
-    List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
-    if (attrList.isEmpty())
+    Iterable<Attribute> attrList = taskEntry.getAllAttributes(ATTR_TASK_ADDSCHEMAFILE_FILENAME);
+    if (!attrList.iterator().hasNext())
     {
       LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_NO_FILENAME.get(
           ATTR_TASK_ADDSCHEMAFILE_FILENAME, taskEntry.getName());
@@ -140,7 +136,7 @@ public class AddSchemaFileTask
     // it will be good to do it now as well so we can reject
     // the entry immediately which will fail the attempt by the client to add it
     // to the server, rather than having to check its status after the fact.
-    final SchemaHandler schemaHandler = serverContext.getSchemaHandler();
+    final SchemaHandler schemaHandler = getServerContext().getSchemaHandler();
     final Schema currentSchema = schemaHandler.getSchema();
     final SchemaBuilder schemaBuilder = new SchemaBuilder(currentSchema);
     for (String schemaFile : filesToAdd)
@@ -239,7 +235,7 @@ public class AddSchemaFileTask
         final Schema newSchema = schemaBuilder.toSchema();
         try
         {
-          schemaHandler.updateSchemaAndConcatenatedSchemaFiles(newSchema);
+          schemaHandler.updateSchemaAndConcatenatedSchemaFile(newSchema);
         }
         catch (DirectoryException e)
         {

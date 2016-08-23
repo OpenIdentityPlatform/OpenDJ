@@ -2185,18 +2185,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Replaces the Directory Server schema with the provided schema.
-   *
-   * @param  newSchema  The new schema to use for the Directory Server.
-   * @throws DirectoryException
-   *            If the new schema contains warnings.
-   */
-  public static void setSchema(Schema newSchema) throws DirectoryException
-  {
-    directoryServer.schemaHandler.updateSchema(newSchema);
-  }
-
-  /**
    * Retrieves the set of virtual attribute rules registered with the Directory
    * Server.
    *

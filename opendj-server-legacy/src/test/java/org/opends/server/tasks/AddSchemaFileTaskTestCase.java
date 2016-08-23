@@ -331,7 +331,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(enabled=false)
+  @Test
   public void testAddEmptySchemaFile()
          throws Exception
   {
@@ -361,8 +361,7 @@ public class AddSchemaFileTaskTestCase extends TasksTestCase
     assertEquals(resultCode, 0);
 
     waitTaskCompletedSuccessfully(DN.valueOf(taskDNStr));
-    // TODO : why should the modification time change whereas there is no actual change ?
-    assertFalse(getSchemaHandler().getYoungestModificationTime() == beforeModifyTimestamp);
+    assertTrue(getSchemaHandler().getYoungestModificationTime() == beforeModifyTimestamp);
   }
 
   /**

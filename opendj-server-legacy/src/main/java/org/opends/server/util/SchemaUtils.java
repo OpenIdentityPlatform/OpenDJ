@@ -15,11 +15,15 @@
  */
 package org.opends.server.util;
 
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.util.ServerConstants.SCHEMA_PROPERTY_FILENAME;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_OID;
 import static org.opends.server.schema.SchemaConstants.SYNTAX_USER_PASSWORD_OID;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +40,9 @@ import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaElement;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 
+import com.forgerock.opendj.util.OperatingSystem;
 import com.forgerock.opendj.util.SubstringReader;
 
 /** Utility methods related to schema. */
@@ -57,6 +63,19 @@ public class SchemaUtils
     USER_PASSWORD,
     /** Not a password. */
     NOT_A_PASSWORD
+  }
+
+  /** A file filter implementation that accepts only LDIF files. */
+  public static class SchemaFileFilter implements FilenameFilter
+  {
+    private static final String LDIF_SUFFIX = ".ldif";
+
+    @Override
+    public boolean accept(File directory, String filename)
+    {
+      return OperatingSystem.isWindows() ?
+          filename.toLowerCase().endsWith(LDIF_SUFFIX) : filename.endsWith(LDIF_SUFFIX);
+    }
   }
 
   /**
@@ -212,6 +231,28 @@ public class SchemaUtils
   }
 
   /**
+   * Returns the list of schema files contained in the provided schema directory.
+   *
+   * @param schemaDirectory
+   *            The directory containing schema files
+   * @return the schema files
+   * @throws InitializationException
+   *            If the files can't be retrieved
+   */
+  public static File[] getSchemaFiles(File schemaDirectory) throws InitializationException
+  {
+    try
+    {
+      return schemaDirectory.listFiles(new SchemaUtils.SchemaFileFilter());
+    }
+    catch (Exception e)
+    {
+      throw new InitializationException(
+          ERR_CONFIG_SCHEMA_CANNOT_LIST_FILES.get(schemaDirectory, getExceptionMessage(e)), e);
+    }
+  }
+
+  /**
    * Adds the provided schema file to the provided schema element definition.
    *
    * @param definition
@@ -286,9 +327,8 @@ public class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      // TODO : write the correct message = Error when trying to parse the schema file from a schema
-      // element definition
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, LocalizableMessage.raw(""));
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          LocalizableMessage.raw("Error when trying to parse the schema file from a schema element definition"));
     }
   }
 
@@ -417,9 +457,8 @@ public class SchemaUtils
    * @return the OID corresponding to the definition
    * @throws DirectoryException
    *            If the parsing of the definition fails
-   *
-   * */
-  public static String parseOID(String definition, Arg1<Object> parsingErrorMsg) throws DirectoryException
+   */
+  private static String parseOID(String definition, Arg1<Object> parsingErrorMsg) throws DirectoryException
   {
     try
     {

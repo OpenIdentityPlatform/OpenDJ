@@ -96,7 +96,6 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.util.ActivateOnceSDKSchemaIsUsed;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
@@ -588,7 +587,6 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    * @throws DirectoryException
    *           If a problem occurs while trying to replace the entry.
    */
-  @ActivateOnceSDKSchemaIsUsed("uncomment code down below in this method")
   public void replaceEntry(final Entry oldEntry, final Entry newEntry) throws DirectoryException
   {
     final DN newEntryDN = newEntry.getName();
@@ -598,13 +596,12 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
           ERR_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY.get(oldEntry), getMatchedDN(newEntryDN), null);
     }
 
-    // TODO : add objectclass and attribute to the config schema in order to get this code run
-    // if (!Entries.getStructuralObjectClass(oldEntry, configEnabledSchema)
-    // .equals(Entries.getStructuralObjectClass(newEntry, configEnabledSchema)))
-    // {
-    // throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-    // ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.get(entryDN));
-    // }
+    if (!Entries.getStructuralObjectClass(oldEntry, serverContext.getSchema()).equals(
+        Entries.getStructuralObjectClass(newEntry, serverContext.getSchema())))
+    {
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.get(oldEntry.getName()));
+    }
 
     // Iterate through change listeners to make sure the change is acceptable.
     final List<ConfigChangeListener> changeListeners = getChangeListeners(newEntryDN);
