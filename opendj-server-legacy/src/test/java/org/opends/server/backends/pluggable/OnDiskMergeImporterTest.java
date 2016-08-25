@@ -17,6 +17,10 @@ package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.forgerock.util.Pair.of;
+import static org.mockito.Mockito.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.dnToDNKey;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -38,6 +42,8 @@ import java.util.concurrent.ForkJoinPool;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Pair;
 import org.mockito.Mockito;
 import org.opends.server.DirectoryServerTestCase;
@@ -46,6 +52,7 @@ import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.MemoryBuffer;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Chunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Collector;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.DnValidationCursorDecorator;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.EntryIDSetsCollector;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.CollectorCursor;
@@ -60,6 +67,7 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.crypto.CryptoSuite;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.PackedLong;
@@ -76,6 +84,100 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   public void testOffHeapBuffer()
   {
     testBufferImplementation(new MemoryBuffer(ByteBuffer.allocateDirect(1024)));
+  }
+
+  @Test
+  public void testDnValidationThrowsOnMissingBaseDn() throws DirectoryException
+  {
+    // Given
+    final SequentialCursor<ByteString, ByteString> source =
+        cursorOf(
+                       of(dnKey("ou=people"), entryId(1)),
+            of(dnKey("uid=user.0,ou=people"), entryId(2)));
+
+    // When
+    final Exception exception = validateDNs(source);
+
+    // Then
+    assertDirectoryExceptionThrown(exception, NO_SUCH_OBJECT);
+    assertThat(exception.getMessage()).contains("ou=people")
+                                      .doesNotContain("user.0");
+  }
+
+  private ByteString dnKey(String dn)
+  {
+    return dnToDNKey(DN.valueOf(dn), 0);
+  }
+
+  private static ByteString entryId(long id) {
+    return new EntryID(id).toByteString();
+  }
+
+  /**
+   * Cursor completely the source using the {@link DnValidationCursorDecorator} which will throw a
+   * {@link StorageRuntimeException} when detecting an invalid DN.
+   */
+  private Exception validateDNs(SequentialCursor<ByteString, ByteString> source)
+      throws DirectoryException, StorageRuntimeException
+  {
+    final ID2Entry id2entry = mock(ID2Entry.class);
+    when(id2entry.get((ReadableTransaction) any(), (EntryID) any())).thenThrow(new StorageRuntimeException("unused"));
+
+    // When
+    try
+    {
+      toPairs(new DnValidationCursorDecorator(source, id2entry, mock(ReadableTransaction.class)));
+      fail("Exception expected");
+      return null;
+    }
+    catch (Exception e)
+    {
+      return e;
+    }
+  }
+
+  private void assertDirectoryExceptionThrown(final Exception exception, ResultCode expectedResultCode)
+  {
+    assertThat(exception).isExactlyInstanceOf(StorageRuntimeException.class);
+    assertThat(exception.getCause()).isExactlyInstanceOf(DirectoryException.class);
+    assertThat(((DirectoryException) exception.getCause()).getResultCode()).isEqualTo(expectedResultCode);
+  }
+
+  @Test
+  public void testDnValidationThrowsOnOrphans() throws DirectoryException, StorageRuntimeException {
+    // Given
+    final SequentialCursor<ByteString, ByteString> source =
+        cursorOf(
+                             of(dnKey(""), entryId(1)),
+                    of(dnKey("ou=people"), entryId(2)),
+         of(dnKey("uid=user.0,ou=people"), entryId(3)),
+           of(dnKey("uid=doh,ou=people1"), entryId(4)));
+
+    // When
+    final Exception exception = validateDNs(source);
+
+    // Then
+    assertDirectoryExceptionThrown(exception, NO_SUCH_OBJECT);
+    assertThat(exception.getMessage()).contains("uid=doh");
+  }
+
+  @Test
+  public void testDnValidationThrowsOnDuplicates() throws DirectoryException, StorageRuntimeException {
+    // Given
+    final SequentialCursor<ByteString, ByteString> source =
+        cursorOf(
+                           of(dnKey(""), entryId(1)),
+                  of(dnKey("ou=people"), entryId(2)),
+       of(dnKey("uid=user.0,ou=people"), entryId(3)),
+       of(dnKey("uid=user.2,ou=people"), entryId(4)),
+       of(dnKey("uid=user.2,ou=people"), entryId(5)));
+
+    // When
+    final Exception exception = validateDNs(source);
+
+    // Then
+    assertDirectoryExceptionThrown(exception, ENTRY_ALREADY_EXISTS);
+    assertThat(exception.getMessage()).contains("uid=user.2");
   }
 
   private static void testBufferImplementation(MemoryBuffer buffer)
@@ -143,7 +245,6 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings(value = "unchecked")
   public void testCounterCollector()
   {
     final MeteredCursor<String, ByteString> source = cursorOf(
@@ -165,7 +266,6 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
   }
 
   @Test
-  @SuppressWarnings(value = "unchecked")
   public void testEntryIDSetCollector()
   {
     final MeteredCursor<String, ByteString> source = cursorOf(
@@ -279,8 +379,8 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     long offset = 0;
     for (Chunk source : memoryChunks)
     {
-      final FileRegion region = new FileRegion(channel, offset, source.size());
-      try(final SequentialCursor<ByteString, ByteString> cursor = source.flip()) {
+      try(final FileRegion region = new FileRegion(channel, offset, source.size());
+          final SequentialCursor<ByteString, ByteString> cursor = source.flip()) {
         regions.add(Pair.of(offset, region.write(cursor)));
       }
       offset += source.size();
@@ -356,7 +456,8 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     return collection;
   }
 
-  private final static <K, V> MeteredCursor<K, V> cursorOf(@SuppressWarnings("unchecked") Pair<K, V>... pairs)
+  @SafeVarargs
+  private final static <K, V> MeteredCursor<K, V> cursorOf(Pair<K, V>... pairs)
   {
     return cursorOf(Arrays.asList(pairs));
   }
