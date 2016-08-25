@@ -12,18 +12,18 @@
         // does not have any properties itself. Template variables are permitted within the URL and DN templates.
         "example-v1": {
             "subResources": {
-                "{tenant}/users": {
+                "users": {
                     "type": "collection",
-                    "dnTemplate": "ou=people,dc={tenant},dc=com",
+                    "dnTemplate": "ou=people,dc=example,dc=com",
                     "resource": "frapi:opendj:rest2ldap:user:1.0",
                     "namingStrategy": {
                         "type": "clientDnNaming",
                         "dnAttribute": "uid"
                     }
                 },
-                "{tenant}/groups": {
+                "groups": {
                     "type": "collection",
-                    "dnTemplate": "ou=groups,dc={tenant},dc=com",
+                    "dnTemplate": "ou=groups,dc=example,dc=com",
                     "resource": "frapi:opendj:rest2ldap:group:1.0",
                     "namingStrategy": {
                         "type": "clientDnNaming",

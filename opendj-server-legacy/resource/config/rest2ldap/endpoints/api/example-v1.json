@@ -109,7 +109,7 @@
                 "manager": {
                     "type": "reference",
                     "ldapAttribute": "manager",
-                    "baseDn": "ou=people,dc=example,dc=com",
+                    "baseDn": "..",
                     "primaryKey": "uid",
                     "mapper": {
                         "type": "object",
@@ -130,7 +130,7 @@
                 "groups": {
                     "type": "reference",
                     "ldapAttribute": "isMemberOf",
-                    "baseDn": "ou=groups,dc=example,dc=com",
+                    "baseDn": "ou=groups,..,..",
                     "isMultiValued": true,
                     "writability": "readOnly",
                     "primaryKey": "cn",
@@ -207,7 +207,7 @@
                 "members": {
                     "type": "reference",
                     "ldapAttribute": "uniqueMember",
-                    "baseDn": "dc=example,dc=com",
+                    "baseDn": "ou=people,..,..",
                     "primaryKey": "uid",
                     "isMultiValued": true,
                     "mapper": {
