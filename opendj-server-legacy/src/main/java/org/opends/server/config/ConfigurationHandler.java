@@ -183,8 +183,9 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     {
       if (!configFramework.isInitialized())
       {
-        configFramework.initialize();
+        configFramework.initialize(serverContext.getServerRoot(), serverContext.getInstanceRoot());
       }
+      configFramework.setIsClient(false);
     }
     catch (ConfigException e)
     {

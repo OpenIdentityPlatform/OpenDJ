@@ -19,6 +19,7 @@ package org.opends.server.util;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +44,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -88,6 +91,9 @@ public final class StaticUtils
   public static final int INT_SIZE = 4;
   /** The number of bytes of a Java long. A Java int is 64 bits, i.e. 8 bytes. */
   public static final int LONG_SIZE = 8;
+
+  /** Size of buffer used to copy/move/extract files. */
+  public static final int BUFFER_SIZE = 8192;
 
   /**
    * Number of bytes in a Kibibyte.
@@ -2475,6 +2481,65 @@ public final class StaticUtils
     catch (Exception e)
     {
       return false;
+    }
+  }
+
+  /**
+   * Extracts the provided zip archive to the provided target directory.
+   * <p>
+   * Archive files ending by "sh" or beginning by "bin" are set as executable files.
+   *
+   * @param zipFile
+   *            The zip file to extract.
+   * @param targetDirectory
+   *            The target directory for the content of the archive.
+   * @throws IOException
+   *            If zip archive can't be read or target files can be written.
+   */
+  public static void extractZipArchive(File zipFile, File targetDirectory) throws IOException
+  {
+    try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(zipFile)))
+    {
+      ZipEntry fileEntry;
+      while ((fileEntry = zipStream.getNextEntry()) != null)
+      {
+        File targetFile = new File(targetDirectory.getPath() + File.separator +  fileEntry.getName());
+
+        if (fileEntry.isDirectory())
+        {
+          targetFile.mkdir();
+          continue;
+        }
+        extractFileFromZip(zipStream, targetFile);
+
+        if (fileEntry.getName().endsWith("sh") || fileEntry.getName().startsWith("bin"))
+        {
+          targetFile.setExecutable(true);
+        }
+      }
+    }
+  }
+
+  /**
+   * Extracts a file from a zip input stream.
+   *
+   * @param zipInput
+   *          The input stream of a zip file.
+   * @param targetFile
+   *          The destination of the extracted file.
+   * @throws IOException
+   *           If the zip file can't be read or the target file can't be written
+   */
+  private static void extractFileFromZip(ZipInputStream zipInput, File targetFile) throws IOException
+  {
+    try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(targetFile)))
+    {
+      int bytesRead = 0;
+      byte[] bytes = new byte[BUFFER_SIZE];
+      while ((bytesRead = zipInput.read(bytes)) != -1)
+      {
+        outputStream.write(bytes, 0, bytesRead);
+      }
     }
   }
 }

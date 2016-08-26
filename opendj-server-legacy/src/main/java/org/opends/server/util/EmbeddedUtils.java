@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -69,7 +69,7 @@ public final class EmbeddedUtils
     if (DirectoryServer.isRunning())
     {
       throw new InitializationException(
-              ERR_EMBEDUTILS_SERVER_ALREADY_RUNNING.get());
+              ERR_EMBEDUTILS_SERVER_ALREADY_RUNNING.get(config.getServerRootAsString()));
     }
 
     DirectoryServer directoryServer = DirectoryServer.reinitialize(config);
