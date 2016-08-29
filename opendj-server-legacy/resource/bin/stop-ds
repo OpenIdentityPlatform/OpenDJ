@@ -77,6 +77,15 @@ then
     fi
 fi
 
+QUIET_OPTION=0
+for a in "$@"
+do
+  if [ "$a" = "--quiet" ]
+  then
+    QUIET_OPTION=1
+  fi
+done
+
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-server-environment-and-test-java
 export SCRIPT_UTIL_CMD
@@ -154,9 +163,16 @@ then
     EXIT_CODE=${?}
     if test ${EXIT_CODE} -eq 0
     then
-      "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
-        --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
-        --logFile "${INSTANCE_ROOT}/logs/errors"
+      if test ${QUIET_OPTION} -eq 0
+      then
+        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
+            --logFile "${INSTANCE_ROOT}/logs/errors"
+      else
+        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
+            --logFile "${INSTANCE_ROOT}/logs/errors"  --quiet
+      fi
       EXIT_CODE=${?}
       if test ${EXIT_CODE} -eq 0
       then

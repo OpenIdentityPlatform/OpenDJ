@@ -86,11 +86,10 @@ public class StopDS
   /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = "org.opends.server.tools.StopDS";
 
-  /**
+  /*
    * Return codes used when the hidden option --checkStoppability is used.
-   * NOTE: when checkStoppability is specified is recommended not to allocate
-   * a lot of memory for the JVM (Using -Xms and -Xmx options) as there might
-   * be calls to Runtime.exec.
+   * NOTE: when checkStoppability is specified, it is recommended not to allocate a lot of memory for the JVM
+   * (Using -Xms and -Xmx options) as there might be calls to Runtime.exec.
    */
   /** The server is already stopped. */
   private static int SERVER_ALREADY_STOPPED = 98;
@@ -525,10 +524,10 @@ public class StopDS
     }
     catch (LDAPConnectionException lce)
     {
-      LocalizableMessage message = null;
+      LocalizableMessage message;
       if (lce.getCause() != null && lce.getCause().getCause() != null &&
         lce.getCause().getCause() instanceof SSLException) {
-      message = ERR_STOPDS_CANNOT_CONNECT_SSL.get(host.getValue(),
+        message = ERR_STOPDS_CANNOT_CONNECT_SSL.get(host.getValue(),
         port.getValue());
       } else {
         String hostPort = host.getValue() + ":" + port.getValue();
@@ -562,13 +561,10 @@ public class StopDS
       attributes.add(new LDAPAttribute(ATTR_SHUTDOWN_MESSAGE, stopReason.getValue()));
     }
 
-    if (stopTime != null)
-    {
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
-      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      String stopTimeValues = dateFormat.format(stopTime);
-      attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME, stopTimeValues));
-    }
+    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String stopTimeValues = dateFormat.format(stopTime);
+    attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME, stopTimeValues));
 
     ArrayList<Control> controls = new ArrayList<>();
     if (proxyAuthzID.isPresent())

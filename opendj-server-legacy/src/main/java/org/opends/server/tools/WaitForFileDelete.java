@@ -143,13 +143,6 @@ public class WaitForFileDelete extends ConsoleApplication
    * to be removed.
    *
    * @param  args  The command-line arguments provided to this program.
-   * @param  out         The output stream to use for standard output, or
-   *                           <CODE>null</CODE> if standard output is not
-   *                           needed.
-   * @param  err         The output stream to use for standard error, or
-   *                           <CODE>null</CODE> if standard error is not
-   *                           needed.
-   * @param  inStream          The input stream to use for standard input.
    *
    * @return  An integer value of zero if the file was deleted successfully, or
    *          some other value if a problem occurred.
@@ -206,7 +199,6 @@ public class WaitForFileDelete extends ConsoleApplication
               .description(INFO_DSCORE_DESCRIPTION_LASTKNOWNGOODCFG.get())
               .buildAndAddToParser(argParser);
 
-      // Not used in this class, but required by the start-ds script (see issue #3814)
       quietMode = quietArgument();
       argParser.addArgument(quietMode);
 
@@ -276,7 +268,6 @@ public class WaitForFileDelete extends ConsoleApplication
     // If an output file was specified and we could open the log file, open it
     // and append data to it.
     RandomAccessFile outputFile = null;
-    long outputFileOffset = 0L;
     if (logFile != null && outputFilePath.isPresent())
     {
       try
@@ -285,8 +276,7 @@ public class WaitForFileDelete extends ConsoleApplication
         if (f.exists())
         {
           outputFile = new RandomAccessFile(f, "rw");
-          outputFileOffset = outputFile.length();
-          outputFile.seek(outputFileOffset);
+          outputFile.seek(outputFile.length());
         }
       }
       catch (Exception e)
@@ -330,23 +320,20 @@ public class WaitForFileDelete extends ConsoleApplication
             int bytesRead = logFile.read(logBuffer);
             if (bytesRead > 0)
             {
-              if (outputFile == null)
+              if (outputFile != null)
+              {
+                outputFile.write(logBuffer, 0, bytesRead);
+              }
+              else if (!quietMode.isPresent())
               {
                 getOutputStream().write(logBuffer, 0, bytesRead);
                 getOutputStream().flush();
-              }
-              else
-              {
-                // Write on the file.
-                // TODO
-                outputFile.write(logBuffer, 0, bytesRead);
-
               }
               logFileOffset += bytesRead;
             }
           }
         }
-        catch (Exception e)
+        catch (Exception ignored)
         {
           // We'll just ignore this.
         }
@@ -362,7 +349,7 @@ public class WaitForFileDelete extends ConsoleApplication
         try
         {
           Thread.sleep(10);
-        } catch (InterruptedException ie) {}
+        } catch (InterruptedException ignored) {}
       }
     }
 
