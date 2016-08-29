@@ -18,6 +18,8 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNRECOGNIZED_SUB_RESOURCE_TYPE;
 
+import org.forgerock.api.models.ApiDescription;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.json.resource.ActionRequest;
@@ -212,6 +214,11 @@ public abstract class SubResource {
                     return subResourceRouterFrom(context).handleUpdate(context, request);
                 }
             });
+        }
+
+        @Override
+        public ApiDescription api(ApiProducer<ApiDescription> producer) {
+            return resource.subResourcesApi(producer);
         }
     }
 }

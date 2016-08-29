@@ -15,12 +15,7 @@
  */
 package com.forgerock.opendj.cli;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
+import com.forgerock.opendj.util.ManifestUtil;
 
 /** Class that prints the version of the SDK to System.out. */
 public final class ToolVersionHandler implements VersionHandler {
@@ -64,20 +59,6 @@ public final class ToolVersionHandler implements VersionHandler {
     }
 
     private String getVersion() {
-        try {
-            final Enumeration<URL> manifests = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
-            while (manifests.hasMoreElements()) {
-                final URL manifestUrl = manifests.nextElement();
-                if (manifestUrl.toString().contains(moduleName)) {
-                    try (InputStream manifestStream = manifestUrl.openStream()) {
-                        final Attributes attrs = new Manifest(manifestStream).getMainAttributes();
-                        return attrs.getValue("Bundle-Version") + " (revision " + attrs.getValue("SCM-Revision") + ")";
-                    }
-                }
-            }
-            return null;
-        } catch (IOException e) {
-            throw new RuntimeException("IOException while determining opendj tool version", e);
-        }
+        return ManifestUtil.getVersionWithRevision(moduleName);
     }
 }

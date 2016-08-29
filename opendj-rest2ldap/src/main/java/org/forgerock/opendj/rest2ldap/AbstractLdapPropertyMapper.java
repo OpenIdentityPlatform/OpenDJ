@@ -18,6 +18,8 @@ package org.forgerock.opendj.rest2ldap;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+
+import static org.forgerock.api.enums.WritePolicy.WRITE_ON_CREATE;
 import static org.forgerock.opendj.ldap.Attributes.emptyAttribute;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
@@ -83,6 +85,16 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
     public final T isMultiValued(final boolean isMultiValued) {
         this.isMultiValued = isMultiValued;
         return getThis();
+    }
+
+    @Override
+    boolean isRequired() {
+        return isRequired;
+    }
+
+    @Override
+    boolean isMultiValued() {
+        return isMultiValued;
     }
 
     /**
@@ -351,4 +363,24 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
         }
     }
 
+    void putWritabilityProperties(JsonValue jsonSchema) {
+        switch (writabilityPolicy != null ? writabilityPolicy : WritabilityPolicy.READ_WRITE) {
+        case CREATE_ONLY:
+            jsonSchema.put("writePolicy", WRITE_ON_CREATE.toString());
+            jsonSchema.put("errorOnWritePolicyFailure", true);
+            break;
+        case CREATE_ONLY_DISCARD_WRITES:
+            jsonSchema.put("writePolicy", WRITE_ON_CREATE.toString());
+            break;
+        case READ_ONLY:
+            jsonSchema.put("readOnly", true);
+            jsonSchema.put("errorOnWritePolicyFailure", true);
+            break;
+        case READ_ONLY_DISCARD_WRITES:
+            jsonSchema.put("readOnly", true);
+            break;
+        default:
+            break;
+        }
+    }
 }

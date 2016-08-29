@@ -16,6 +16,7 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.rest2ldap.Utils.isNullOrEmpty;
@@ -50,6 +51,16 @@ final class JsonConstantPropertyMapper extends PropertyMapper {
     }
 
     @Override
+    boolean isRequired() {
+        return false;
+    }
+
+    @Override
+    boolean isMultiValued() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "constant(" + value + ")";
     }
@@ -75,39 +86,38 @@ final class JsonConstantPropertyMapper extends PropertyMapper {
                                                      final JsonPointer path, final JsonPointer subPath,
                                                      final FilterType type, final String operator,
                                                      final Object valueAssertion) {
-        final Filter filter;
+        return newResultPromise(getLdapFilter0(subPath, type, valueAssertion));
+    }
+
+    private Filter getLdapFilter0(final JsonPointer subPath, final FilterType type, final Object valueAssertion) {
         final JsonValue subValue = value.get(subPath);
         if (subValue == null) {
-            filter = alwaysFalse();
+            return alwaysFalse();
         } else if (type == FilterType.PRESENT) {
-            filter = alwaysTrue();
+            return alwaysTrue();
         } else if (value.isString() && valueAssertion instanceof String) {
             final String v1 = toLowerCase(value.asString());
             final String v2 = toLowerCase((String) valueAssertion);
             switch (type) {
             case CONTAINS:
-                filter = toFilter(v1.contains(v2));
-                break;
+                return toFilter(v1.contains(v2));
             case STARTS_WITH:
-                filter = toFilter(v1.startsWith(v2));
-                break;
+                return toFilter(v1.startsWith(v2));
             default:
-                filter = compare(type, v1, v2);
-                break;
+                return compare(type, v1, v2);
             }
         } else if (value.isNumber() && valueAssertion instanceof Number) {
             final Double v1 = value.asDouble();
             final Double v2 = ((Number) valueAssertion).doubleValue();
-            filter = compare(type, v1, v2);
+            return compare(type, v1, v2);
         } else if (value.isBoolean() && valueAssertion instanceof Boolean) {
             final Boolean v1 = value.asBoolean();
             final Boolean v2 = (Boolean) valueAssertion;
-            filter = compare(type, v1, v2);
+            return compare(type, v1, v2);
         } else {
             // This property mapper is a candidate but it does not match.
-            filter = alwaysFalse();
+            return alwaysFalse();
         }
-        return newResultPromise(filter);
     }
 
     @Override
@@ -146,6 +156,45 @@ final class JsonConstantPropertyMapper extends PropertyMapper {
             return toFilter(v1.compareTo(v2) <= 0);
         default:
             return alwaysFalse(); // Not supported.
+        }
+    }
+
+    @Override
+    JsonValue toJsonSchema() {
+        return toJsonSchema(value);
+    }
+
+    private static JsonValue toJsonSchema(JsonValue value) {
+        if (value.isMap()) {
+            final JsonValue jsonSchema = json(object(field("type", "object")));
+            final JsonValue jsonProps = json(object());
+            for (String key : value.keys()) {
+                jsonProps.put(key, toJsonSchema(value.get(key)));
+            }
+            jsonSchema.put("properties", jsonSchema);
+            return jsonSchema;
+        } else if (value.isCollection()) {
+            final JsonValue jsonSchema = json(object(field("type", "array")));
+            final JsonValue firstItem = value.get(value.keys().iterator().next());
+            // assume all items have the same schema
+            jsonSchema.put("items", toJsonSchema(firstItem));
+            if (value.isSet()) {
+                jsonSchema.put("uniqueItems", true);
+            }
+            return jsonSchema;
+        } else if (value.isBoolean()) {
+            return json(object(field("type", "boolean"),
+                               field("default", value)));
+        } else if (value.isString()) {
+            return json(object(field("type", "string"),
+                               field("default", value)));
+        } else if (value.isNumber()) {
+            return json(object(field("type", "number"),
+                               field("default", value)));
+        } else if (value.isNull()) {
+            return json(object(field("type", "null")));
+        } else {
+            return null;
         }
     }
 }

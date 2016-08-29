@@ -17,6 +17,8 @@
 package org.forgerock.opendj.rest2ldap;
 
 import static java.util.Collections.singletonList;
+
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_ILLEGAL_FILTER_ASSERTION_VALUE;
@@ -54,6 +56,16 @@ final class ResourceTypePropertyMapper extends PropertyMapper {
     @Override
     public String toString() {
         return "type()";
+    }
+
+    @Override
+    boolean isRequired() {
+        return false;
+    }
+
+    @Override
+    boolean isMultiValued() {
+        return false;
     }
 
     @Override
@@ -119,5 +131,10 @@ final class ResourceTypePropertyMapper extends PropertyMapper {
         } else {
             return newResultPromise(Collections.<Modification>emptyList());
         }
+    }
+
+    @Override
+    JsonValue toJsonSchema() {
+        return json(object(field("type", "string")));
     }
 }

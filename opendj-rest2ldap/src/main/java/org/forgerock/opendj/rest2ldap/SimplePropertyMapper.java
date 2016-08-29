@@ -30,6 +30,8 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
@@ -37,6 +39,7 @@ import org.forgerock.util.promise.Promise;
 
 import static java.util.Collections.*;
 
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.opendj.ldap.Filter.*;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
@@ -198,4 +201,39 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
         return encoder == null ? jsonToByteString(ldapAttributeName) : encoder;
     }
 
+    @Override
+    JsonValue toJsonSchema() {
+        final AttributeType attrType = ldapAttributeName.getAttributeType();
+
+        final JsonValue jsonSchema = json(object(field("type", toJsonSchemaType(attrType))));
+        final String description = attrType.getDescription();
+        if (description != null && !"".equals(description)) {
+            jsonSchema.put("title", description);
+        }
+
+        putWritabilityProperties(jsonSchema);
+        return jsonSchema;
+    }
+
+    private static String toJsonSchemaType(AttributeType attrType) {
+        if (attrType.isPlaceHolder()) {
+            return "string";
+        }
+        // TODO JNR cannot use switch + SchemaConstants.SYNTAX_DIRECTORY_STRING_OID
+        // because the class is not public
+        // this is not nice :(
+        // TODO JNR not so sure about these mappings
+        final String oid = attrType.getSyntax().getOID();
+        if (CoreSchema.getDirectoryStringSyntax().getOID().equals(oid)
+                || CoreSchema.getOctetStringSyntax().getOID().equals(oid)) {
+            return "string";
+        } else if (CoreSchema.getBooleanSyntax().getOID().equals(oid)) {
+            return "boolean";
+        } else if (CoreSchema.getIntegerSyntax().getOID().equals(oid)) {
+            return "integer";
+        } else if (CoreSchema.getNumericStringSyntax().getOID().equals(oid)) {
+            return "number";
+        }
+        return "string";
+    }
 }

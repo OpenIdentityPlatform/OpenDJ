@@ -15,14 +15,15 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.opendj.ldap.ResultCode.ADMIN_LIMIT_EXCEEDED;
-import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
+import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.Utils.connectionFrom;
-import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
+import static org.forgerock.util.Reject.checkNotNull;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
 import java.util.ArrayList;
@@ -67,9 +68,7 @@ import org.forgerock.util.promise.ResultHandler;
  * valued LDAP attribute.
  */
 public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<ReferencePropertyMapper> {
-    /**
-     * The maximum number of candidate references to allow in search filters.
-     */
+    /** The maximum number of candidate references to allow in search filters. */
     private static final int SEARCH_MAX_CANDIDATES = 1000;
 
     private final DnTemplate baseDnTemplate;
@@ -357,5 +356,17 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                         return Promises.newExceptionPromise(asResourceException(error));
                     }
                 });
+    }
+
+    @Override
+    JsonValue toJsonSchema() {
+        if (mapper.isMultiValued()) {
+            final JsonValue jsonSchema = json(object(field("type", "array")));
+            jsonSchema.put("items", mapper.toJsonSchema());
+            jsonSchema.put("uniqueItems", true);
+            putWritabilityProperties(jsonSchema);
+            return jsonSchema;
+        }
+        return mapper.toJsonSchema();
     }
 }

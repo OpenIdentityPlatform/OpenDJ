@@ -15,7 +15,6 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
-import static org.forgerock.json.resource.http.CrestHttp.newHttpHandler;
 import static org.forgerock.opendj.rest2ldap.Rest2LdapJsonConfigurator.configureEndpoint;
 import static org.forgerock.util.Options.defaultOptions;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_REST2LDAP_INVALID;
@@ -32,12 +31,18 @@ import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.json.JsonValueException;
+import org.forgerock.json.resource.CrestApplication;
+import org.forgerock.json.resource.RequestHandler;
+import org.forgerock.json.resource.Resources;
+import org.forgerock.json.resource.http.CrestHttp;
+import org.forgerock.opendj.rest2ldap.DescribableRequestHandler;
 import org.forgerock.opendj.server.config.server.Rest2ldapEndpointCfg;
 import org.forgerock.util.Factory;
 import org.opends.server.api.HttpEndpoint;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.http.LocalizedHttpApplicationException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.BuildVersion;
 
 /**
  * Encapsulates configuration required to start a REST2LDAP application embedded
@@ -93,6 +98,27 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
         throw new LocalizedHttpApplicationException(ERR_CONFIG_REST2LDAP_INVALID.get(
                 endpointConfig, configuration.dn(), stackTraceToSingleLineString(e)), e);
       }
+    }
+
+    private Handler newHttpHandler(final RequestHandler requestHandler) {
+        final DescribableRequestHandler handler = new DescribableRequestHandler(requestHandler);
+        final org.forgerock.json.resource.ConnectionFactory factory = Resources.newInternalConnectionFactory(handler);
+        return CrestHttp.newHttpHandler(new CrestApplication() {
+            @Override
+            public org.forgerock.json.resource.ConnectionFactory getConnectionFactory() {
+                return factory;
+            }
+
+            @Override
+            public String getApiId() {
+                return "frapi:opendj:rest2ldap";
+            }
+
+            @Override
+            public String getApiVersion() {
+                return BuildVersion.binaryVersion().toStringNoRevision();
+            }
+        });
     }
 
     @Override

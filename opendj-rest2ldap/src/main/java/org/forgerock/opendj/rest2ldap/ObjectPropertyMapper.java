@@ -17,6 +17,7 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.simple;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.json.resource.PatchOperation.operation;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
@@ -75,11 +76,21 @@ public final class ObjectPropertyMapper extends PropertyMapper {
         // Nothing to do.
     }
 
+    @Override
+    boolean isRequired() {
+        return false;
+    }
+
+    @Override
+    boolean isMultiValued() {
+        return false;
+    }
+
     /**
      * Creates an explicit mapping for a property contained in the JSON object. When user attributes are
-     * {@link #includeAllUserAttributesByDefault included} by default, be careful to {@link
-     * #excludedDefaultUserAttributes exclude} any attributes which have explicit mappings defined using this method,
-     * otherwise they will be duplicated in the JSON representation.
+     * {@link #includeAllUserAttributesByDefault(boolean) included} by default, be careful to {@link
+     * #excludedDefaultUserAttributes(Collection) exclude} any attributes which have explicit mappings defined using
+     * this method, otherwise they will be duplicated in the JSON representation.
      *
      * @param name
      *            The name of the JSON property to be mapped.
@@ -94,8 +105,8 @@ public final class ObjectPropertyMapper extends PropertyMapper {
 
     /**
      * Specifies whether all LDAP user attributes should be mapped by default using the default schema based mapping
-     * rules. Individual attributes can be excluded using {@link #excludedDefaultUserAttributes} in order to prevent
-     * attributes with explicit mappings being mapped twice.
+     * rules. Individual attributes can be excluded using {@link #excludedDefaultUserAttributes(Collection)} in order
+     * to prevent attributes with explicit mappings being mapped twice.
      *
      * @param include {@code true} if all LDAP user attributes be mapped by default.
      * @return A reference to this property mapper.
@@ -107,8 +118,8 @@ public final class ObjectPropertyMapper extends PropertyMapper {
 
     /**
      * Specifies zero or more user attributes which will be excluded from the default user attribute mappings when
-     * enabled using {@link #includeAllUserAttributesByDefault}. Attributes which have explicit mappings should be
-     * excluded in order to prevent duplication.
+     * enabled using {@link #includeAllUserAttributesByDefault(boolean)}. Attributes which have explicit mappings
+     * should be excluded in order to prevent duplication.
      *
      * @param attributeNames The list of attributes to be excluded.
      * @return A reference to this property mapper.
@@ -119,8 +130,8 @@ public final class ObjectPropertyMapper extends PropertyMapper {
 
     /**
      * Specifies zero or more user attributes which will be excluded from the default user attribute mappings when
-     * enabled using {@link #includeAllUserAttributesByDefault}. Attributes which have explicit mappings should be
-     * excluded in order to prevent duplication.
+     * enabled using {@link #includeAllUserAttributesByDefault(boolean)}. Attributes which have explicit mappings
+     * should be excluded in order to prevent duplication.
      *
      * @param attributeNames The list of attributes to be excluded.
      * @return A reference to this property mapper.
@@ -426,5 +437,28 @@ public final class ObjectPropertyMapper extends PropertyMapper {
     private boolean isIncludedDefaultUserAttribute(final String attributeName) {
         return includeAllUserAttributesByDefault
                 && (excludedDefaultUserAttributes.isEmpty() || !excludedDefaultUserAttributes.contains(attributeName));
+    }
+
+    @Override
+    JsonValue toJsonSchema() {
+        final List<String> requiredFields = new ArrayList<>();
+        final JsonValue jsonProps = json(object());
+        for (Mapping mapping : mappings.values()) {
+            final String attribute = mapping.name;
+            PropertyMapper mapper = mapping.mapper;
+            jsonProps.put(attribute, mapper.toJsonSchema());
+            if (mapper.isRequired()) {
+                requiredFields.add(attribute);
+            }
+        }
+
+        final JsonValue jsonSchema = json(object(field("type", "object")));
+        if (!requiredFields.isEmpty()) {
+            jsonSchema.put("required", requiredFields);
+        }
+        if (jsonProps.size() > 0) {
+            jsonSchema.put("properties", jsonProps);
+        }
+        return jsonSchema;
     }
 }

@@ -28,6 +28,8 @@ import static org.forgerock.opendj.rest2ldap.RoutingContext.newRoutingContext;
 import static org.forgerock.opendj.rest2ldap.Utils.newBadRequestException;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
+import org.forgerock.api.models.ApiDescription;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.http.routing.UriRouterContext;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.json.resource.ActionRequest;
@@ -378,6 +380,11 @@ public final class SubResourceCollection extends SubResource {
         protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request) {
             return new BadRequestException(ERR_UNSUPPORTED_REQUEST_AGAINST_COLLECTION.get().toString()).asPromise();
         }
+
+        @Override
+        public ApiDescription api(ApiProducer<ApiDescription> producer) {
+            return resource.collectionApi(isReadOnly);
+        }
     }
 
     /**
@@ -443,6 +450,18 @@ public final class SubResourceCollection extends SubResource {
 
         private <T> Function<ResourceException, T, ResourceException> convert404To400() {
             return SubResource.convert404To400(ERR_UNSUPPORTED_REQUEST_AGAINST_INSTANCE.get());
+        }
+
+        /**
+         * Returns {@code null} because the corresponding {@link ApiDescription}
+         * is returned by the {@link CollectionHandler#api(ApiProducer)} method.
+         * <p>
+         * This avoids problems when trying to {@link ApiProducer#merge(java.util.List) merge}
+         * {@link ApiDescription}s with the same path.
+         */
+        @Override
+        public ApiDescription api(ApiProducer<ApiDescription> producer) {
+            return null;
         }
     }
 }

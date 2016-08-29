@@ -276,6 +276,17 @@ public final class BuildVersion implements Comparable<BuildVersion>
     {
       return Utils.joinAsString(".", major, minor, point, rev);
     }
+    return toStringNoRevision();
+  }
+
+  /**
+   * Returns a string representation of the BuildVersion including the major, minor and point
+   * versions, but excluding the revision number.
+   *
+   * @return a string representation excluding the revision number
+   */
+  public String toStringNoRevision()
+  {
     return Utils.joinAsString(".", major, minor, point);
   }
 

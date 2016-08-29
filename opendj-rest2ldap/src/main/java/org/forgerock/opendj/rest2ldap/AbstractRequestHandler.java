@@ -15,6 +15,8 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import org.forgerock.api.models.ApiDescription;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.CreateRequest;
@@ -31,13 +33,14 @@ import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.services.context.Context;
+import org.forgerock.services.descriptor.Describable;
 import org.forgerock.util.promise.Promise;
 
 /**
  * An abstract base class from which request handlers may be easily implemented. The default implementation of each
  * method is to invoke the {@link #handleRequest(Context, Request)} method.
  */
-public abstract class AbstractRequestHandler implements RequestHandler {
+public abstract class AbstractRequestHandler implements RequestHandler, Describable<ApiDescription, Request> {
     /** Creates a new {@code AbstractRequestHandler}. */
     protected AbstractRequestHandler() {
         // Nothing to do.
@@ -95,5 +98,29 @@ public abstract class AbstractRequestHandler implements RequestHandler {
      */
     protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request) {
         return new NotSupportedException().asPromise();
+    }
+
+    @Override
+    public ApiDescription api(ApiProducer<ApiDescription> producer) {
+        // api descriptions that are null will be ignored
+        return null;
+    }
+
+    @Override
+    public ApiDescription handleApiRequest(Context context, Request request) {
+        // api requests are handled at a higher level by org.forgerock.opendj.rest2ldap.DescribableRequestHandler.
+        // So this code is never reached.
+        throw new UnsupportedOperationException("This should be handled by "
+            + "org.forgerock.opendj.rest2ldap.DescribableRequestHandler.handleApiRequest()");
+    }
+
+    @Override
+    public void addDescriptorListener(Describable.Listener listener) {
+        // nothing to do
+    }
+
+    @Override
+    public void removeDescriptorListener(Describable.Listener listener) {
+        // nothing to do
     }
 }

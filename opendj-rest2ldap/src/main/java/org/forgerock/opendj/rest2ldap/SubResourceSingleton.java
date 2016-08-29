@@ -25,6 +25,8 @@ import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNSUPPORTED_R
 import static org.forgerock.opendj.rest2ldap.RoutingContext.newRoutingContext;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
+import org.forgerock.api.models.ApiDescription;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.BadRequestException;
@@ -202,6 +204,11 @@ public final class SubResourceSingleton extends SubResource {
 
         private <T> Function<ResourceException, T, ResourceException> convert404To400() {
             return SubResource.convert404To400(ERR_UNSUPPORTED_REQUEST_AGAINST_SINGLETON.get());
+        }
+
+        @Override
+        public ApiDescription api(ApiProducer<ApiDescription> producer) {
+            return getResource().instanceApi(isReadOnly);
         }
     }
 }

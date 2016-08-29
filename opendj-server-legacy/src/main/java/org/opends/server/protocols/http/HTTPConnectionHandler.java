@@ -42,15 +42,17 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.http.ApiProducer;
+import org.forgerock.http.DescribedHttpApplication;
 import org.forgerock.http.Filter;
 import org.forgerock.http.Handler;
-import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.handler.Handlers;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
+import org.forgerock.http.swagger.SwaggerApiProducer;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -96,6 +98,8 @@ import org.opends.server.types.OperationType;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
+
+import io.swagger.models.Swagger;
 
 /**
  * This class defines a connection handler that will be used for communicating
@@ -899,11 +903,11 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
   }
 
   /**
-   * This is the root {@link HttpApplication} handling all the requests from the
-   * {@link HTTPConnectionHandler}. If accepted, requests are audited and then
-   * forwarded to the global {@link ServerContext#getHTTPRouter()}.
+   * This is the root {@link org.forgerock.http.HttpApplication} handling all the requests from the
+   * {@link HTTPConnectionHandler}. If accepted, requests are audited and then forwarded to the
+   * global {@link ServerContext#getHTTPRouter()}.
    */
-  private final class RootHttpApplication implements HttpApplication
+  private final class RootHttpApplication implements DescribedHttpApplication
   {
     @Override
     public Handler start() throws HttpApplicationException
@@ -933,6 +937,13 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     public org.forgerock.util.Factory<Buffer> getBufferFactory()
     {
       return null;
+    }
+
+    @Override
+    public ApiProducer<Swagger> getApiProducer()
+    {
+      // Needed to enforce generation of CREST APIs
+      return new SwaggerApiProducer(null, null, null);
     }
   }
 

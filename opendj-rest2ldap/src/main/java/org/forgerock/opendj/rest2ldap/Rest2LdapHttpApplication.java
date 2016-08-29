@@ -22,7 +22,6 @@ import static org.forgerock.http.handler.HttpClientHandler.OPTION_TRUST_MANAGERS
 import static org.forgerock.json.JsonValueFunctions.duration;
 import static org.forgerock.json.JsonValueFunctions.enumConstant;
 import static org.forgerock.json.JsonValueFunctions.setOf;
-import static org.forgerock.json.resource.http.CrestHttp.newHttpHandler;
 import static org.forgerock.opendj.ldap.KeyManagers.useSingleCertificate;
 import static org.forgerock.opendj.rest2ldap.Rest2LdapJsonConfigurator.*;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
@@ -69,7 +68,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
+import org.forgerock.json.resource.CrestApplication;
 import org.forgerock.json.resource.RequestHandler;
+import org.forgerock.json.resource.Resources;
+import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
@@ -93,6 +95,8 @@ import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
 import org.forgerock.util.time.TimeService;
+
+import com.forgerock.opendj.util.ManifestUtil;
 
 /** Rest2ldap HTTP application. */
 public class Rest2LdapHttpApplication implements HttpApplication {
@@ -229,6 +233,27 @@ public class Rest2LdapHttpApplication implements HttpApplication {
         final Options options = configureOptions(readJson(new File(rest2LdapConfigDirectory, "rest2ldap.json")));
         final File endpointsDirectory = new File(rest2LdapConfigDirectory, "endpoints");
         return configureEndpoints(endpointsDirectory, options);
+    }
+
+    private static Handler newHttpHandler(final RequestHandler requestHandler) {
+        final org.forgerock.json.resource.ConnectionFactory factory =
+                Resources.newInternalConnectionFactory(requestHandler);
+        return CrestHttp.newHttpHandler(new CrestApplication() {
+            @Override
+            public org.forgerock.json.resource.ConnectionFactory getConnectionFactory() {
+                return factory;
+            }
+
+            @Override
+            public String getApiId() {
+                return "frapi:opendj:rest2ldap";
+            }
+
+            @Override
+            public String getApiVersion() {
+                return ManifestUtil.getVersionWithRevision("opendj-core");
+            }
+        });
     }
 
     private void configureSecurity(final JsonValue configuration) {

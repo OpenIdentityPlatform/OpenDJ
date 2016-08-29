@@ -12,11 +12,18 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- *
  */
 package org.forgerock.opendj.rest2ldap;
 
 import static java.util.Arrays.asList;
+import static org.forgerock.api.enums.CountPolicy.*;
+import static org.forgerock.api.enums.PagingMode.*;
+import static org.forgerock.api.enums.ParameterSource.*;
+import static org.forgerock.api.enums.PatchOperation.*;
+import static org.forgerock.api.enums.Stability.*;
+import static org.forgerock.api.models.VersionedPath.*;
+import static org.forgerock.json.JsonValue.*;
+import static org.forgerock.json.resource.ResourceException.*;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_ABSTRACT_TYPE_IN_CREATE;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_MISSING_TYPE_PROPERTY_IN_CREATE;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNRECOGNIZED_RESOURCE_SUPER_TYPE;
@@ -34,6 +41,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.api.enums.CreateMode;
+import org.forgerock.api.enums.QueryType;
+import org.forgerock.api.models.ApiDescription;
+import org.forgerock.api.models.ApiError;
+import org.forgerock.api.models.Create;
+import org.forgerock.api.models.Definitions;
+import org.forgerock.api.models.Delete;
+import org.forgerock.api.models.Errors;
+import org.forgerock.api.models.Items;
+import org.forgerock.api.models.Parameter;
+import org.forgerock.api.models.Patch;
+import org.forgerock.api.models.Paths;
+import org.forgerock.api.models.Query;
+import org.forgerock.api.models.Read;
+import org.forgerock.api.models.Reference;
+import org.forgerock.api.models.Schema;
+import org.forgerock.api.models.Services;
+import org.forgerock.api.models.Update;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
@@ -43,11 +69,33 @@ import org.forgerock.json.resource.Router;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.util.i18n.LocalizableString;
 
 /**
  * Defines the characteristics of a resource, including its properties, inheritance, and sub-resources.
  */
 public final class Resource {
+    // Commons errors
+    private static final String ERROR_BAD_REQUEST = "frapi:common#/errors/badRequest";
+    private static final String ERROR_FORBIDDEN = "frapi:common#/errors/forbidden";
+    private static final String ERROR_INTERNAL_SERVER_ERROR = "frapi:common#/errors/internalServerError";
+    private static final String ERROR_NOT_FOUND = "frapi:common#/errors/notFound";
+    private static final String ERROR_REQUEST_ENTITY_TOO_LARGE = "frapi:common#/errors/requestEntityTooLarge";
+    private static final String ERROR_REQUEST_TIMEOUT = "frapi:common#/errors/requestTimeout";
+    private static final String ERROR_UNAUTHORIZED = "frapi:common#/errors/unauthorized";
+    private static final String ERROR_UNAVAILABLE = "frapi:common#/errors/unavailable";
+    private static final String ERROR_VERSION_MISMATCH = "frapi:common#/errors/versionMismatch";
+
+    // rest2ldap errors
+    private static final String ERROR_ADMIN_LIMIT_EXCEEDED = "#/errors/adminLimitExceeded";
+    private static final String ERROR_READ_FOUND_MULTIPLE_ENTRIES = "#/errors/readFoundMultipleEntries";
+    private static final String ERROR_PASSWORD_MODIFY_REQUIRES_HTTPS = "#/errors/passwordModifyRequiresHttps";
+    private static final String ERROR_PASSWORD_MODIFY_REQUIRES_AUTHENTICATION = "#/errors/passwordModifyRequiresAuthn";
+
+    /** All fields are queryable, but the directory server may reject some requests (unindexed?). */
+    private static final String ALL_FIELDS = "*";
+
+
     /** The resource ID. */
     private final String id;
     /** {@code true} if only sub-types of this resource can be created. */
@@ -443,5 +491,364 @@ public final class Resource {
 
     PropertyMapper getPropertyMapper() {
         return propertyMapper;
+    }
+
+    /**
+     * Returns the api description that describes a single instance resource.
+     *
+     * @param isReadOnly
+     *          whether the associated resource is read only
+     * @return a new api description that describes a single instance resource.
+     */
+    ApiDescription instanceApi(boolean isReadOnly) {
+        if (allProperties.isEmpty()) {
+            return null;
+        }
+
+        org.forgerock.api.models.Resource.Builder resource = org.forgerock.api.models.Resource.
+            resource()
+            .resourceSchema(schemaRef("#/definitions/" + id))
+            .mvccSupported(isMvccSupported());
+
+        resource.read(readOperation());
+        if (!isReadOnly) {
+            resource.update(updateOperation());
+            resource.patch(patchOperation());
+            for (Action action : supportedActions) {
+                resource.action(actions(action));
+            }
+        }
+
+        return ApiDescription.apiDescription()
+                      .id("unused").version("unused")
+                      .definitions(definitions())
+                      .errors(errors())
+                      .build();
+    }
+
+    /**
+     * Returns the api description that describes a collection resource.
+     *
+     * @param isReadOnly
+     *          whether the associated resource is read only
+     * @return a new api description that describes a collection resource.
+     */
+    ApiDescription collectionApi(boolean isReadOnly) {
+        org.forgerock.api.models.Resource.Builder resource = org.forgerock.api.models.Resource.
+            resource()
+            .resourceSchema(schemaRef("#/definitions/" + id))
+            .mvccSupported(isMvccSupported());
+
+        resource.items(buildItems(isReadOnly));
+        resource.create(createOperation(CreateMode.ID_FROM_SERVER));
+        resource.query(Query.query()
+                           .stability(EVOLVING)
+                           .type(QueryType.FILTER)
+                           .queryableFields(ALL_FIELDS)
+                           .pagingModes(COOKIE, OFFSET)
+                           .countPolicies(NONE)
+                           .error(errorRef(ERROR_BAD_REQUEST))
+                           .error(errorRef(ERROR_UNAUTHORIZED))
+                           .error(errorRef(ERROR_FORBIDDEN))
+                           .error(errorRef(ERROR_REQUEST_TIMEOUT))
+                           .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+                           .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+                           .error(errorRef(ERROR_UNAVAILABLE))
+                           .build());
+
+        return ApiDescription.apiDescription()
+                             .id("unused").version("unused")
+                             .definitions(definitions())
+                             .services(Services.services()
+                                               .put(id, resource.build())
+                                               .build())
+                             .paths(getPaths())
+                             .errors(errors())
+                             .build();
+    }
+
+    private Paths getPaths() {
+        return Paths.paths()
+                     // do not put anything in the path to avoid unfortunate string concatenation
+                     // also use UNVERSIONED and rely on the router to stamp the version
+                     .put("", versionedPath().put(UNVERSIONED, resourceRef("#/services/" + id)).build())
+                     .build();
+    }
+
+    private Definitions definitions() {
+        final Definitions.Builder definitions = Definitions.definitions();
+        definitions.put(id, buildJsonSchema());
+        for (Resource subType : subTypes) {
+            definitions.put(subType.id, subType.buildJsonSchema());
+        }
+        return definitions.build();
+    }
+
+    /**
+     * Returns the api description that describes a resource with sub resources.
+     *
+     * @param producer
+     *          the api producer
+     * @return a new api description that describes a resource with sub resources.
+     */
+    ApiDescription subResourcesApi(ApiProducer<ApiDescription> producer) {
+        return subResourceRouter.api(producer);
+    }
+
+    private boolean isMvccSupported() {
+        return allProperties.containsKey("_rev");
+    }
+
+    private Items buildItems(boolean isReadOnly) {
+        final Items.Builder builder = Items.items();
+        builder.pathParameter(Parameter
+                              .parameter()
+                              .name("id")
+                              .type("string")
+                              .source(PATH)
+                              .required(true)
+                              .build())
+               .read(readOperation());
+        if (!isReadOnly) {
+            builder.create(createOperation(CreateMode.ID_FROM_CLIENT));
+            builder.update(updateOperation());
+            builder.delete(deleteOperation());
+            builder.patch(patchOperation());
+            for (Action action : supportedActions) {
+                builder.action(actions(action));
+            }
+        }
+        return builder.build();
+    }
+
+    private org.forgerock.api.models.Action actions(Action action) {
+        switch (action) {
+        case MODIFY_PASSWORD:
+            return modifyPasswordAction();
+        case RESET_PASSWORD:
+            return resetPasswordAction();
+        default:
+            throw new RuntimeException("Not implemented for action " + action);
+        }
+    }
+
+    private static Create createOperation(CreateMode createMode) {
+        return Create.create()
+                     .stability(EVOLVING)
+                     .mode(createMode)
+                     .error(errorRef(ERROR_BAD_REQUEST))
+                     .error(errorRef(ERROR_UNAUTHORIZED))
+                     .error(errorRef(ERROR_FORBIDDEN))
+                     .error(errorRef(ERROR_NOT_FOUND))
+                     .error(errorRef(ERROR_REQUEST_TIMEOUT))
+                     .error(errorRef(ERROR_VERSION_MISMATCH))
+                     .error(errorRef(ERROR_REQUEST_ENTITY_TOO_LARGE))
+                     .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+                     .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+                     .error(errorRef(ERROR_UNAVAILABLE))
+                     .build();
+    }
+
+    private static Delete deleteOperation() {
+        return Delete.delete()
+                     .stability(EVOLVING)
+                     .error(errorRef(ERROR_BAD_REQUEST))
+                     .error(errorRef(ERROR_UNAUTHORIZED))
+                     .error(errorRef(ERROR_FORBIDDEN))
+                     .error(errorRef(ERROR_NOT_FOUND))
+                     .error(errorRef(ERROR_REQUEST_TIMEOUT))
+                     .error(errorRef(ERROR_VERSION_MISMATCH))
+                     .error(errorRef(ERROR_REQUEST_ENTITY_TOO_LARGE))
+                     .error(errorRef(ERROR_READ_FOUND_MULTIPLE_ENTRIES))
+                     .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+                     .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+                     .error(errorRef(ERROR_UNAVAILABLE))
+                     .build();
+    }
+
+    private static Patch patchOperation() {
+        return Patch.patch()
+                    .stability(EVOLVING)
+                    .operations(ADD, REMOVE, REPLACE, INCREMENT)
+                    .error(errorRef(ERROR_BAD_REQUEST))
+                    .error(errorRef(ERROR_UNAUTHORIZED))
+                    .error(errorRef(ERROR_FORBIDDEN))
+                    .error(errorRef(ERROR_NOT_FOUND))
+                    .error(errorRef(ERROR_REQUEST_TIMEOUT))
+                    .error(errorRef(ERROR_VERSION_MISMATCH))
+                    .error(errorRef(ERROR_REQUEST_ENTITY_TOO_LARGE))
+                    .error(errorRef(ERROR_READ_FOUND_MULTIPLE_ENTRIES))
+                    .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+                    .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+                    .error(errorRef(ERROR_UNAVAILABLE))
+                    .build();
+    }
+
+    private static Read readOperation() {
+        return Read.read()
+                   .stability(EVOLVING)
+                   .error(errorRef(ERROR_BAD_REQUEST))
+                   .error(errorRef(ERROR_UNAUTHORIZED))
+                   .error(errorRef(ERROR_FORBIDDEN))
+                   .error(errorRef(ERROR_NOT_FOUND))
+                   .error(errorRef(ERROR_REQUEST_TIMEOUT))
+                   .error(errorRef(ERROR_READ_FOUND_MULTIPLE_ENTRIES))
+                   .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+                   .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+                   .error(errorRef(ERROR_UNAVAILABLE))
+                   .build();
+    }
+
+    private static Update updateOperation() {
+        return Update.update()
+                     .stability(EVOLVING)
+                     .error(errorRef(ERROR_BAD_REQUEST))
+                     .error(errorRef(ERROR_UNAUTHORIZED))
+                     .error(errorRef(ERROR_FORBIDDEN))
+                     .error(errorRef(ERROR_NOT_FOUND))
+                     .error(errorRef(ERROR_REQUEST_TIMEOUT))
+                     .error(errorRef(ERROR_VERSION_MISMATCH))
+                     .error(errorRef(ERROR_REQUEST_ENTITY_TOO_LARGE))
+                     .error(errorRef(ERROR_READ_FOUND_MULTIPLE_ENTRIES))
+                     .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+                     .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+                     .error(errorRef(ERROR_UNAVAILABLE))
+                     .build();
+    }
+
+    private static org.forgerock.api.models.Action modifyPasswordAction() {
+        return org.forgerock.api.models.Action.action()
+               .stability(EVOLVING)
+               .name("modifyPassword")
+               .request(passwordModifyRequest())
+               .description("Modify a user password. This action requires HTTPS.")
+               .error(errorRef(ERROR_BAD_REQUEST))
+               .error(errorRef(ERROR_UNAUTHORIZED))
+               .error(errorRef(ERROR_PASSWORD_MODIFY_REQUIRES_HTTPS))
+               .error(errorRef(ERROR_PASSWORD_MODIFY_REQUIRES_AUTHENTICATION))
+               .error(errorRef(ERROR_FORBIDDEN))
+               .error(errorRef(ERROR_NOT_FOUND))
+               .error(errorRef(ERROR_REQUEST_TIMEOUT))
+               .error(errorRef(ERROR_VERSION_MISMATCH))
+               .error(errorRef(ERROR_REQUEST_ENTITY_TOO_LARGE))
+               .error(errorRef(ERROR_READ_FOUND_MULTIPLE_ENTRIES))
+               .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+               .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+               .error(errorRef(ERROR_UNAVAILABLE))
+               .build();
+    }
+
+    private static org.forgerock.api.models.Schema passwordModifyRequest() {
+        final JsonValue jsonSchema = json(object(
+            field("type", "object"),
+            field("description", "Supply the old password and new password."),
+            field("required", array("oldPassword", "newPassword")),
+            field("properties", object(
+                field("oldPassword", object(
+                    field("type", "string"),
+                    field("name", "Old Password"),
+                    field("description", "Current password as a UTF-8 string."),
+                    field("format", "password"))),
+                field("newPassword", object(
+                    field("type", "string"),
+                    field("name", "New Password"),
+                    field("description", "New password as a UTF-8 string."),
+                    field("format", "password")))))));
+        return Schema.schema().schema(jsonSchema).build();
+    }
+
+    private static org.forgerock.api.models.Action resetPasswordAction() {
+        return org.forgerock.api.models.Action.action()
+               .stability(EVOLVING)
+               .name("resetPassword")
+               .response(resetPasswordResponse())
+               .description("Reset a user password to a generated value. This action requires HTTPS.")
+               .error(errorRef(ERROR_BAD_REQUEST))
+               .error(errorRef(ERROR_UNAUTHORIZED))
+               .error(errorRef(ERROR_PASSWORD_MODIFY_REQUIRES_HTTPS))
+               .error(errorRef(ERROR_PASSWORD_MODIFY_REQUIRES_AUTHENTICATION))
+               .error(errorRef(ERROR_FORBIDDEN))
+               .error(errorRef(ERROR_NOT_FOUND))
+               .error(errorRef(ERROR_REQUEST_TIMEOUT))
+               .error(errorRef(ERROR_VERSION_MISMATCH))
+               .error(errorRef(ERROR_REQUEST_ENTITY_TOO_LARGE))
+               .error(errorRef(ERROR_READ_FOUND_MULTIPLE_ENTRIES))
+               .error(errorRef(ERROR_ADMIN_LIMIT_EXCEEDED))
+               .error(errorRef(ERROR_INTERNAL_SERVER_ERROR))
+               .error(errorRef(ERROR_UNAVAILABLE))
+               .build();
+    }
+
+    private static org.forgerock.api.models.Schema resetPasswordResponse() {
+        final JsonValue jsonSchema = json(object(
+            field("type", "object"),
+            field("properties", object(
+                field("generatedPassword", object(
+                    field("type", "string"),
+                    field("description", "Generated password to communicate to the user.")))))));
+        return Schema.schema().schema(jsonSchema).build();
+    }
+
+    private Schema buildJsonSchema() {
+        final List<String> requiredFields = new ArrayList<>();
+        JsonValue properties = json(JsonValue.object());
+        for (Map.Entry<String, PropertyMapper> prop : allProperties.entrySet()) {
+            final String propertyName = prop.getKey();
+            final PropertyMapper mapper = prop.getValue();
+            if (mapper.isRequired()) {
+                requiredFields.add(propertyName);
+            }
+            final JsonValue jsonSchema = mapper.toJsonSchema();
+            if (jsonSchema != null) {
+                properties.put(propertyName, jsonSchema);
+            }
+        }
+
+        final JsonValue jsonSchema = json(object(field("type", "object")));
+        if (!requiredFields.isEmpty()) {
+            jsonSchema.put("required", requiredFields);
+        }
+        if (properties.size() > 0) {
+            jsonSchema.put("properties", properties);
+        }
+        return Schema.schema().schema(jsonSchema).build();
+    }
+
+    private Errors errors() {
+        return Errors
+            .errors()
+            .put("passwordModifyRequiresHttps",
+                error(FORBIDDEN, "Password modify requires a secure connection."))
+            .put("passwordModifyRequiresAuthn",
+                error(FORBIDDEN, "Password modify requires user to be authenticated."))
+            .put("readFoundMultipleEntries",
+                error(INTERNAL_ERROR, "Multiple entries where found when trying to read a single entry."))
+            .put("adminLimitExceeded",
+                error(INTERNAL_ERROR, "The request exceeded an administrative limit."))
+            .build();
+    }
+
+    static ApiError error(int code, String description) {
+        return ApiError.apiError().code(code).description(description).build();
+    }
+
+    static ApiError error(int code, LocalizableString description) {
+        return ApiError.apiError().code(code).description(description).build();
+    }
+
+    static ApiError errorRef(String referenceValue) {
+        return ApiError.apiError().reference(ref(referenceValue)).build();
+    }
+
+    static org.forgerock.api.models.Resource resourceRef(String referenceValue) {
+        return org.forgerock.api.models.Resource.resource().reference(ref(referenceValue)).build();
+    }
+
+    static org.forgerock.api.models.Schema schemaRef(String referenceValue) {
+        return Schema.schema().reference(ref(referenceValue)).build();
+    }
+
+    static Reference ref(String referenceValue) {
+        return Reference.reference().value(referenceValue).build();
     }
 }

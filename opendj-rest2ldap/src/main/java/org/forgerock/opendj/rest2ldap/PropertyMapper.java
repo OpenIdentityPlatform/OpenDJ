@@ -40,6 +40,10 @@ public abstract class PropertyMapper {
         // Nothing to do.
     }
 
+    abstract boolean isRequired();
+
+    abstract boolean isMultiValued();
+
     /**
      * Maps a JSON value to one or more LDAP attributes, returning a promise
      * once the transformation has completed. This method is invoked when a REST
@@ -193,4 +197,6 @@ public abstract class PropertyMapper {
 
     // TODO: methods for obtaining schema information (e.g. name, description, type information).
     // TODO: methods for creating sort controls.
+
+    abstract JsonValue toJsonSchema();
 }
