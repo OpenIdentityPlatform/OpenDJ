@@ -497,6 +497,46 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
     assertThat(DnKeyFormat.findDNKeyParent(dnKey)).isEqualTo(expectedLength);
   }
 
+  @DataProvider
+  private Object[][] testIsChildData()
+  {
+    return new Object[][]
+    {
+      {           "dc=example,dc=com\\,org", // parentDn
+        "ou=people,dc=example,dc=com\\,org", // childDn
+        true },                              // Is childDn a child of parentDn ?
+
+      { "dc=example,dc=com",
+                   "dc=com",
+        false },
+
+      {  "ou=people,dc=example,dc=com",
+        "ou=people1,dc=example,dc=com",
+        false },
+
+      {                      "dc=example,dc=com",
+        "uid=user.0,ou=people,dc=example,dc=com",
+        false },
+
+      {           "dc=example,dc=com",
+        "ou=people,dc=elpmaxe,dc=com",
+        false },
+
+      { "dc=example,dc=com",
+        "dc=example,dc=com",
+        false },
+    };
+  }
+
+  @Test(dataProvider="testIsChildData")
+  public void testIsChild(String parentDn, String childDn, boolean expected) {
+    assertThat(
+      DnKeyFormat.isChild(
+          DnKeyFormat.dnToDNKey(DN.valueOf(parentDn), 0),
+          DnKeyFormat.dnToDNKey(DN.valueOf(childDn), 0))
+      ).isEqualTo(expected);
+  }
+
   private void ensureServerIsUpAndRunning() throws Exception
   {
     TestCaseUtils.startServer();
