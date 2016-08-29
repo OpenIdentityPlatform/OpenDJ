@@ -17,6 +17,7 @@ package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.BackendMessages.ERR_ADD_ENTRY_ALREADY_EXISTS;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -174,7 +175,7 @@ final class ImportLDIFReader extends LDIFReader
         if (!addPending(entryDN))
         {
           logger.trace("Skipping entry %s because the DN already exists.", entryDN);
-          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
+          logToSkipWriter(lines, ERR_ADD_ENTRY_ALREADY_EXISTS.get(entryDN));
           continue;
         }
       }
