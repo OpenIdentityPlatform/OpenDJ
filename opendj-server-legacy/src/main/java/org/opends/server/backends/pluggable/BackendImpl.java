@@ -28,8 +28,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
@@ -68,14 +70,11 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries locally
@@ -656,22 +655,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       rootContainer.getStorage().close();
       return getImportStrategy(rootContainer).importLDIF(importConfig);
     }
-    catch (StorageRuntimeException e)
-    {
-      throw createDirectoryException(e);
-    }
-    catch (DirectoryException e)
-    {
-      throw e;
-    }
-    catch (OpenDsException | ConfigException e)
-    {
-      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
-    }
     catch (Exception e)
     {
-      throw new DirectoryException(getServerErrorResultCode(),
-                                   LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e, true)), e);
+      throw createDirectoryException(e);
     }
     finally
     {
@@ -771,22 +757,13 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
       }
       getImportStrategy(rootContainer).rebuildIndex(rebuildConfig);
     }
-    catch (ConfigException ce)
-    {
-      throw new DirectoryException(getServerErrorResultCode(), ce.getMessageObject(), ce);
-    }
-    catch (StorageRuntimeException e)
-    {
-      throw createDirectoryException(e);
-    }
-    catch (InitializationException e)
+    catch (InitializationException | ConfigException e)
     {
       throw e;
     }
     catch (Exception e)
     {
-      throw new DirectoryException(getServerErrorResultCode(),
-                                   LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e, true)), e);
+      throw createDirectoryException(e);
     }
     finally
     {
@@ -955,17 +932,21 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
    *          The StorageRuntimeException to be converted.
    * @return DirectoryException created from exception.
    */
-  private DirectoryException createDirectoryException(StorageRuntimeException e)
+  private DirectoryException createDirectoryException(Throwable e)
   {
-    Throwable cause = e.getCause();
-    if (cause instanceof OpenDsException)
+    if (e instanceof DirectoryException)
     {
-      return new DirectoryException(getServerErrorResultCode(), (OpenDsException) cause);
+      return (DirectoryException) e;
     }
-    else
+    if (e instanceof ExecutionException)
     {
-      return new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+      return createDirectoryException(e.getCause());
     }
+    if (e instanceof LocalizableException)
+    {
+      return new DirectoryException(getServerErrorResultCode(), ((LocalizableException) e).getMessageObject());
+    }
+    return new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
   }
 
   private RootContainer newRootContainer(AccessMode accessMode)
