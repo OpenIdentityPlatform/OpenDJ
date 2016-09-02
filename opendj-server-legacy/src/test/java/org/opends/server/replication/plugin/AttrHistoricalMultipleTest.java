@@ -249,8 +249,26 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     assertNoAttributeValue(entry);
 
     mod = newModification(ADD, "X");
-    replayOperation(t[1], entry, mod, SUCCESS);
+    replayOperation(t[2], entry, mod, SUCCESS);
     assertAttributeValues(entry, "X");
+  }
+
+  @Test
+  public void replay_addThenDeleteThenAdd_differentCaseWithCaseIgnoreAttributeType() throws Exception
+  {
+    CSN[] t = newCSNs(3);
+
+    mod = newModification(ADD, "X");
+    replayOperation(t[0], entry, mod, SUCCESS);
+    assertAttributeValues(entry, "X");
+
+    mod = newModification(DELETE, "x");
+    replayOperation(t[1], entry, mod, SUCCESS);
+    assertNoAttributeValue(entry);
+
+    mod = newModification(ADD, "X");
+    replayOperationSuppressMod(t[2], entry, mod, CONFLICT);
+    assertAttributeValues(entry);
   }
 
   @Test
