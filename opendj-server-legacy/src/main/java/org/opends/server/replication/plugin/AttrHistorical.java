@@ -20,8 +20,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.replication.common.CSN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -59,12 +59,12 @@ public abstract class AttrHistorical
   /**
    * Create a new object from a provided attribute type. Historical is empty.
    *
-   * @param type the provided attribute type.
+   * @param attrType the provided attribute type.
    * @return a new AttributeInfo object.
    */
-  public static AttrHistorical createAttributeHistorical(AttributeType type)
+  public static AttrHistorical createAttributeHistorical(AttributeType attrType)
   {
-    return type.isSingleValue() ? new AttrHistoricalSingle() : new AttrHistoricalMultiple();
+    return attrType.isSingleValue() ? new AttrHistoricalSingle(attrType) : new AttrHistoricalMultiple();
   }
 
   /**
@@ -85,8 +85,9 @@ public abstract class AttrHistorical
    * Assign the provided information to this object.
    *
    * @param histKey the key to assign.
+   * @param attrType the associated attribute type.
    * @param value   the associated value or null if there is no value;
    * @param csn     the associated CSN.
    */
-  public abstract void assign(HistAttrModificationKey histKey, ByteString value, CSN csn);
+  public abstract void assign(HistAttrModificationKey histKey, AttributeType attrType, ByteString value, CSN csn);
 }

@@ -25,12 +25,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -113,52 +113,54 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
 
   /** Create a AttrInfo and check the methods. */
   @Test(dataProvider = "attrInfo")
-  public void attrInfo(ByteString att, CSN deleteTime, CSN updateTime) throws Exception
+  public void attrInfo(ByteString attrValue, CSN deleteTime, CSN updateTime) throws Exception
   {
+    AttributeType attrType = CoreSchema.getDescriptionAttributeType();
     // Create an empty AttrInfo
     AttrHistoricalMultiple attrInfo1 = new AttrHistoricalMultiple();
 
     // Check
-    attrInfo1.add(att, updateTime);
-    Set<AttrValueHistorical> values1 = attrInfo1.getValuesHistorical();
-    assertEquals(values1.size(), 1);
-    AttrValueHistorical valueInfo1 = new AttrValueHistorical(att, updateTime, null);
-    assertTrue(values1.contains(valueInfo1));
+    attrInfo1.add(attrValue, attrType, updateTime);
+    assertThat(attrInfo1.getValuesHistorical())
+        .containsOnly(new AttrValueHistorical(attrValue, attrType, updateTime, null));
 
     // Check constructor with parameter
-    AttrValueHistorical valueInfo2 = new AttrValueHistorical(att, updateTime, deleteTime);
+    AttrValueHistorical valueInfo2 = new AttrValueHistorical(attrValue, attrType, updateTime, deleteTime);
     AttrHistoricalMultiple attrInfo2 = new AttrHistoricalMultiple(
-        deleteTime, updateTime, Collections.singletonMap(valueInfo2, valueInfo2));
+        deleteTime, updateTime, Collections.singleton(valueInfo2));
 
     // Check equality
     //assertTrue(attrInfo1.getDeleteTime().compareTo(attrInfo2.getDeleteTime())==0);
 
     //  Check constructor with time parameter and not Value
     AttrHistoricalMultiple attrInfo3 = new AttrHistoricalMultiple(deleteTime, updateTime, null);
-    attrInfo3.add(att, updateTime);
-    Set<AttrValueHistorical> values3 = attrInfo3.getValuesHistorical();
-    assertEquals(values3.size(), 1);
-    valueInfo1 = new AttrValueHistorical(att, updateTime, null);
-    assertTrue(values3.contains(valueInfo1));
+    attrInfo3.add(attrValue, attrType, updateTime);
+    assertThat(attrInfo3.getValuesHistorical())
+        .containsOnly(new AttrValueHistorical(attrValue, attrType, updateTime, null));
 
     // Check duplicate
-    AttrHistoricalMultiple attrInfo4 = attrInfo3.duplicate();
-    Set<AttrValueHistorical> values4 = attrInfo4.getValuesHistorical();
+    AttrHistoricalMultiple attrInfo4 = duplicate(attrInfo3);
     assertEquals(attrInfo4.getDeleteTime().compareTo(attrInfo3.getDeleteTime()), 0);
-    assertEquals(values4.size(), values3.size());
+    assertThat(attrInfo4.getValuesHistorical()).isEqualTo(attrInfo3.getValuesHistorical());
 
     // Check
-    attrInfo4.delete(att, updateTime);
+    attrInfo4.delete(attrValue, attrType, updateTime);
     assertEquals(attrInfo4.getValuesHistorical().size(), 1);
 
     // Check
     AttributeType type = DirectoryServer.getSchema().getAttributeType(ATTRIBUTE_NAME);
-    attrInfo3.delete(Attributes.create(type, att), updateTime) ;
+    attrInfo3.delete(Attributes.create(type, attrValue), updateTime);
     assertEquals(attrInfo3.getValuesHistorical().size(), 1);
 
     // Check
     attrInfo2.delete(updateTime);
-    assertEquals(attrInfo2.getValuesHistorical().size(), 0);
+    assertThat(attrInfo2.getValuesHistorical()).isEmpty();
+  }
+
+  private AttrHistoricalMultiple duplicate(AttrHistoricalMultiple attrMul)
+  {
+    return new AttrHistoricalMultiple(
+        attrMul.getDeleteTime(), attrMul.getLastUpdateTime(), attrMul.getValuesHistorical());
   }
 
   @Test
@@ -253,22 +255,23 @@ public class AttrHistoricalMultipleTest extends ReplicationTestCase
     assertAttributeValues(entry, "X");
   }
 
+  /** Use case: user changes the case of a family name for example. */
   @Test
   public void replay_addThenDeleteThenAdd_differentCaseWithCaseIgnoreAttributeType() throws Exception
   {
     CSN[] t = newCSNs(3);
 
-    mod = newModification(ADD, "X");
+    mod = newModification(ADD, "x");
     replayOperation(t[0], entry, mod, SUCCESS);
-    assertAttributeValues(entry, "X");
+    assertAttributeValues(entry, "x");
 
-    mod = newModification(DELETE, "x");
+    mod = newModification(DELETE, "X");
     replayOperation(t[1], entry, mod, SUCCESS);
     assertNoAttributeValue(entry);
 
     mod = newModification(ADD, "X");
-    replayOperationSuppressMod(t[2], entry, mod, CONFLICT);
-    assertAttributeValues(entry);
+    replayOperation(t[2], entry, mod, SUCCESS);
+    assertAttributeValues(entry, "X");
   }
 
   @Test

@@ -581,7 +581,7 @@ public class EntryHistorical
               attrInfo = AttrHistorical.createAttributeHistorical(attrDesc.getAttributeType());
               newHistorical.attributesHistorical.put(attrDesc, attrInfo);
             }
-            attrInfo.assign(histVal.getHistKey(), histVal.getAttributeValue(), csn);
+            attrInfo.assign(histVal.getHistKey(), attrDesc.getAttributeType(), histVal.getAttributeValue(), csn);
           }
         }
       }

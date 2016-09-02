@@ -147,21 +147,25 @@ public class AttrHistoricalMultiple extends AttrHistorical
    */
   void delete(Attribute attr, CSN csn)
   {
+    AttributeType attrType = attr.getAttributeDescription().getAttributeType();
     for (ByteString val : attr)
     {
-      delete(val, csn);
+      delete(val, attrType, csn);
     }
   }
 
    /**
-    * Update the historical of this attribute after a delete value.
-    *
-    * @param val value that was deleted
-    * @param csn time when the delete was done
-    */
-   void delete(ByteString val, CSN csn)
+   * Update the historical of this attribute after a delete value.
+   *
+   * @param val
+   *          value that was deleted
+   * @param attrType
+   * @param csn
+   *          time when the delete was done
+   */
+  void delete(ByteString val, AttributeType attrType, CSN csn)
    {
-     update(csn, new AttrValueHistorical(val, null, csn));
+     update(csn, new AttrValueHistorical(val, attrType, null, csn));
    }
 
   /**
@@ -174,9 +178,10 @@ public class AttrHistoricalMultiple extends AttrHistorical
    */
   private void add(Attribute attr, CSN csn)
   {
+    AttributeType attrType = attr.getAttributeDescription().getAttributeType();
     for (ByteString val : attr)
     {
-      add(val, csn);
+      add(val, attrType, csn);
     }
   }
 
@@ -185,12 +190,13 @@ public class AttrHistoricalMultiple extends AttrHistorical
      *
      * @param addedValue
      *          values that was added
+     * @param attrType
      * @param csn
      *          time when the value was added
      */
-   void add(ByteString addedValue, CSN csn)
+   void add(ByteString addedValue, AttributeType attrType, CSN csn)
    {
-     update(csn, new AttrValueHistorical(addedValue, csn, null));
+     update(csn, new AttrValueHistorical(addedValue, attrType, csn, null));
    }
 
   private void update(CSN csn, AttrValueHistorical valInfo)
@@ -425,13 +431,14 @@ public class AttrHistoricalMultiple extends AttrHistorical
       // we are processing DELETE of some attribute values
       AttributeBuilder builder = new AttributeBuilder(modAttr);
 
+      AttributeType attrType = modAttr.getAttributeDescription().getAttributeType();
       for (ByteString val : modAttr)
       {
         boolean deleteIt = true;  // true if the delete must be done
         boolean addedInCurrentOp = false;
 
         // update historical information
-        AttrValueHistorical valInfo = new AttrValueHistorical(val, null, csn);
+        AttrValueHistorical valInfo = new AttrValueHistorical(val, attrType, null, csn);
         AttrValueHistorical oldValInfo = valuesHist.get(valInfo);
         if (oldValInfo != null)
         {
@@ -516,10 +523,12 @@ public class AttrHistoricalMultiple extends AttrHistorical
       return false;
     }
 
-    AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
-    for (ByteString addVal : m.getAttribute())
+    Attribute attribute = m.getAttribute();
+    AttributeBuilder builder = new AttributeBuilder(attribute);
+    AttributeType attrType = attribute.getAttributeDescription().getAttributeType();
+    for (ByteString addVal : attribute)
     {
-      AttrValueHistorical valInfo = new AttrValueHistorical(addVal, csn, null);
+      AttrValueHistorical valInfo = new AttrValueHistorical(addVal, attrType, csn, null);
       AttrValueHistorical oldValInfo = valuesHist.get(valInfo);
       if (oldValInfo == null)
       {
@@ -582,21 +591,21 @@ public class AttrHistoricalMultiple extends AttrHistorical
   }
 
   @Override
-  public void assign(HistAttrModificationKey histKey, ByteString value, CSN csn)
+  public void assign(HistAttrModificationKey histKey, AttributeType attrType, ByteString value, CSN csn)
   {
     switch (histKey)
     {
     case ADD:
       if (value != null)
       {
-        add(value, csn);
+        add(value, attrType, csn);
       }
       break;
 
     case DEL:
       if (value != null)
       {
-        delete(value, csn);
+        delete(value, attrType, csn);
       }
       break;
 
@@ -604,7 +613,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       delete(csn);
       if (value != null)
       {
-        add(value, csn);
+        add(value, attrType, csn);
       }
       break;
 

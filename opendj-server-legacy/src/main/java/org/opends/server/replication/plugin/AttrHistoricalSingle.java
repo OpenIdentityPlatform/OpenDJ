@@ -24,9 +24,9 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -38,17 +38,30 @@ import org.opends.server.types.Modification;
  */
 public class AttrHistoricalSingle extends AttrHistorical
 {
-  /** Last time when the attribute was deleted. */
-  private CSN deleteTime;
-  /** Last time when a value was added. */
-  private CSN addTime;
   /** Last added value. */
   private ByteString value;
+  /** Attribute type for this historical value */
+  private AttributeType attributeType;
+  /** Last time when a value was added. */
+  private CSN addTime;
+  /** Last time when the attribute was deleted. */
+  private CSN deleteTime;
   /**
    * Last operation applied. This is only used for multiple mods on the same
    * single valued attribute in the same modification.
    */
   private HistAttrModificationKey lastMod;
+
+  /**
+   * Builds an {@link AttrHistoricalSingle} object.
+   *
+   * @param attributeType
+   *          the attribute type for this historical value
+   */
+  public AttrHistoricalSingle(AttributeType attributeType)
+  {
+    this.attributeType = attributeType;
+  }
 
   @Override
   public CSN getDeleteTime()
@@ -61,7 +74,7 @@ public class AttrHistoricalSingle extends AttrHistorical
   {
     if (addTime != null)
     {
-      return Collections.singleton(new AttrValueHistorical(value, addTime, null));
+      return Collections.singleton(new AttrValueHistorical(value, attributeType, addTime, null));
     }
     return Collections.emptySet();
   }
@@ -262,7 +275,7 @@ public class AttrHistoricalSingle extends AttrHistorical
   }
 
   @Override
-  public void assign(HistAttrModificationKey histKey, ByteString value, CSN csn)
+  public void assign(HistAttrModificationKey histKey, AttributeType attrType, ByteString value, CSN csn)
   {
     switch (histKey)
     {

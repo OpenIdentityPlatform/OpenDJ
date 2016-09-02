@@ -12,30 +12,38 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
+import static org.forgerock.util.Reject.*;
+
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.replication.common.CSN;
 
 /** AttrValueHistorical is the historical information of the modification of one attribute value. */
 public class AttrValueHistorical
 {
+  private AttributeType attributeType;
   private ByteString value;
+  private ByteString normalizedValue;
   private CSN valueDeleteTime;
   private CSN valueUpdateTime;
 
   /**
    * Build an AttrValueHistorical for a provided attribute value, providing
    * the last time the provided value is either updated or deleted.
-   * @param value    the provided attributeValue
+   * @param value    the provided attribute value
+   * @param attributeType the provided attribute type
    * @param csnUpdate last time when this value was updated
    * @param csnDelete last time when this value for deleted
    */
-  public AttrValueHistorical(ByteString value, CSN csnUpdate, CSN csnDelete)
+  public AttrValueHistorical(ByteString value, AttributeType attributeType, CSN csnUpdate, CSN csnDelete)
   {
     this.value = value;
+    this.attributeType = checkNotNull(attributeType);
     this.valueUpdateTime = csnUpdate;
     this.valueDeleteTime = csnDelete;
   }
@@ -46,7 +54,14 @@ public class AttrValueHistorical
     if (obj instanceof AttrValueHistorical)
     {
       AttrValueHistorical objVal = (AttrValueHistorical) obj;
-      return value.equals(objVal.getAttributeValue());
+      try
+      {
+        return getNormalizedValue().equals(objVal.getNormalizedValue());
+      }
+      catch (DecodeException e)
+      {
+        return value.equals(objVal.getAttributeValue());
+      }
     }
     return false;
   }
@@ -54,7 +69,23 @@ public class AttrValueHistorical
   @Override
   public int hashCode()
   {
-    return value.hashCode();
+    try
+    {
+      return getNormalizedValue().hashCode();
+    }
+    catch (DecodeException e)
+    {
+      return value.hashCode();
+    }
+  }
+
+  private ByteString getNormalizedValue() throws DecodeException
+  {
+    if (normalizedValue == null)
+    {
+      normalizedValue = attributeType.getEqualityMatchingRule().normalizeAttributeValue(value);
+    }
+    return normalizedValue;
   }
 
   /**

@@ -25,6 +25,8 @@ import java.util.Iterator;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -54,7 +56,8 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   @BeforeMethod
   public void localSetUp() throws Exception
   {
-    attrHist = new AttrHistoricalSingle();
+    AttributeType attrType = Schema.getDefaultSchema().getAttributeType(ATTRIBUTE_NAME);
+    attrHist = new AttrHistoricalSingle(attrType);
     csn = csnGen.newCSN();
     entry = TestCaseUtils.makeEntry(
         "dn: uid=test.user",
@@ -213,8 +216,9 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
   @Test
   public void replay_deleteDubious() throws Exception
   {
-    HistoricalAttributeValue histAttrVal = new HistoricalAttributeValue("display:" + csn + ":add:X");
-    attrHist.assign(histAttrVal.getHistKey(), histAttrVal.getAttributeValue(), csn);
+    AttributeType attrType = Schema.getDefaultSchema().getAttributeType(ATTRIBUTE_NAME);
+    HistoricalAttributeValue histAttrVal = new HistoricalAttributeValue(ATTRIBUTE_NAME + ":" + csn + ":add:X");
+    attrHist.assign(histAttrVal.getHistKey(), attrType, histAttrVal.getAttributeValue(), csn);
     mod = newModification(ADD, "X");
     entry.applyModification(mod);
     assertAttributeValue(entry, "X");

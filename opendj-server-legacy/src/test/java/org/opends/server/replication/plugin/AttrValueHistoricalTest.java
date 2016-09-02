@@ -12,29 +12,27 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.testng.Assert.*;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-
-/**
- * Test of ValueInfo.
- */
+/** Test of AttrValueHistorical. */
 @SuppressWarnings("javadoc")
-public class ValueInfoTest extends ReplicationTestCase
+public class AttrValueHistoricalTest extends ReplicationTestCase
 {
-
-  /**
-   * Build some data for the ValueInfo test below.
-   */
+  /** Build some data for the ValueInfo test below. */
   @DataProvider(name = "valueInfo")
   public Object[][] createData() {
     ByteString att1 = ByteString.valueOfUtf8("string");
@@ -56,16 +54,15 @@ public class ValueInfoTest extends ReplicationTestCase
         {att3,upd3,del3}};
   }
 
-  /**
-   * Create a ValueInfo and check the methods.
-   */
+  /** Create a ValueInfo and check the methods. */
   @Test(dataProvider = "valueInfo")
   public void valueInfo(ByteString value, CSN csnUpdate, CSN csnDelete) throws Exception
   {
-    AttrValueHistorical valInfo1 = new AttrValueHistorical(value, csnUpdate, csnDelete);
-    AttrValueHistorical valInfo2 = new AttrValueHistorical(value, csnUpdate, csnUpdate);
+    AttributeType attrType = CoreSchema.getDescriptionAttributeType();
+    AttrValueHistorical valInfo1 = new AttrValueHistorical(value, attrType, csnUpdate, csnDelete);
+    AttrValueHistorical valInfo2 = new AttrValueHistorical(value, attrType, csnUpdate, csnUpdate);
     AttrValueHistorical valInfo3 = new AttrValueHistorical(ByteString.valueOfUtf8("Test"),
-            csnUpdate, csnUpdate);
+            attrType, csnUpdate, csnUpdate);
 
     // Check equals
     assertFalse(valInfo1.equals(new Object()));
@@ -86,5 +83,28 @@ public class ValueInfoTest extends ReplicationTestCase
 
     assertEquals(valInfo1.getAttributeValue(), value);
     assertEquals(valInfo1.isUpdate(), csnUpdate != null);
+  }
+
+  @Test
+  public void testEqualsHashCode()
+  {
+    final AttrValueHistorical histVal1 = newAttrValueHistorical("description");
+    final AttrValueHistorical histVal2 = newAttrValueHistorical("Description");
+    final AttrValueHistorical histVal3 = newAttrValueHistorical("another description");
+
+    assertThat(histVal1).isEqualTo(histVal1);
+    assertThat(histVal1).isEqualTo(histVal2);
+    assertThat(histVal2).isEqualTo(histVal1);
+
+    assertThat(histVal1).isNotEqualTo(histVal3);
+
+    assertThat(histVal1.hashCode()).isEqualTo(histVal2.hashCode());
+    assertThat(histVal1.hashCode()).isNotEqualTo(histVal3.hashCode());
+  }
+
+  private AttrValueHistorical newAttrValueHistorical(String pp)
+  {
+    AttributeType attrType = CoreSchema.getDescriptionAttributeType();
+    return new AttrValueHistorical(ByteString.valueOfUtf8(pp), attrType, null, null);
   }
 }
