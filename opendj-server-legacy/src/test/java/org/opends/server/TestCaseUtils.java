@@ -17,11 +17,19 @@
  */
 package org.opends.server;
 
+import static org.opends.server.util.embedded.ConfigParameters.Builder.configParams;
+import static org.opends.server.loggers.TextAccessLogPublisher.getStartupTextAccessPublisher;
+import static org.opends.server.loggers.TextErrorLogPublisher.getToolStartupTextErrorPublisher;
+import static org.opends.server.loggers.TextHTTPAccessLogPublisher.getStartupTextHTTPAccessPublisher;
+import static org.opends.server.util.ServerConstants.PROPERTY_RUNNING_UNIT_TESTS;
+import static org.testng.Assert.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -57,7 +65,6 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1;
@@ -90,7 +97,6 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilePermission;
@@ -100,15 +106,14 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.embedded.EmbeddedDirectoryServer;
 import org.testng.Assert;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.mockito.Mockito.*;
-import static org.opends.server.loggers.TextAccessLogPublisher.*;
-import static org.opends.server.loggers.TextErrorLogPublisher.*;
-import static org.opends.server.loggers.TextHTTPAccessLogPublisher.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.embedded.ConnectionParameters.Builder.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -210,20 +215,20 @@ public final class TestCaseUtils {
    */
   private static Schema schemaBeforeStartingFakeServer;
 
-  /** The LDAP port the server is bound to on start. */
-  private static int serverLdapPort;
-  /** The Administration port the server is bound to on start. */
-  private static int serverAdminPort;
-  /** The JMX port the server is bound to on start. */
-  private static int serverJmxPort;
-  /** The LDAPS port the server is bound to on start. */
-  private static int serverLdapsPort;
-
   /** Incremented by one each time the server has restarted. */
   private static int serverRestarts;
 
-  /** The config directory in the test environment. */
-  private static File testConfigDir;
+  /** The paths to directories and files used in the tests. */
+  private static TestPaths paths;
+
+  /** The ports used in the tests. */
+  private static TestPorts ports;
+
+  /** The embedded server used in the tests. */
+  private static EmbeddedDirectoryServer server;
+
+  /** The host name of the server used in the tests. */
+  private static String hostname;
 
   /**
    * Setup in-memory versions of everything needed to run unit tests with the
@@ -241,14 +246,59 @@ public final class TestCaseUtils {
     DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(Schema.getDefaultSchema());
   }
 
-  /**
-   * Starts the Directory Server so that it will be available for use while
-   * running the unit tests.  This will only actually start the server once, so
-   * subsequent attempts to start it will be ignored because it will already be
-   * available.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
+  static class TestPaths
+  {
+    final String buildRoot;
+    final File buildDir;
+    final File unitRoot;
+    final String installedRoot;
+    final File testInstallRoot;
+    final File testInstanceRoot;
+    final File testConfigDir;
+    final File configFile;
+    final File testSrcRoot;
+
+    TestPaths()
+    {
+      installedRoot = System.getProperty(PROPERTY_INSTALLED_ROOT);
+      buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+      String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "target");
+      buildDir = new File(buildDirStr);
+      unitRoot  = new File(buildDir, "unit-tests");
+      if (installedRoot == null) {
+         testInstallRoot = new File(unitRoot, "package-install");
+         testInstanceRoot = new File(unitRoot, "package-instance");
+      } else {
+         testInstallRoot = new File(unitRoot, "package");
+         testInstanceRoot = testInstallRoot;
+      }
+      testConfigDir = new File(testInstanceRoot, "config");
+      configFile = new File(testConfigDir, "config.ldif");
+      testSrcRoot = new File(buildRoot + File.separator + "tests" + File.separator + "unit-tests-testng");
+    }
+  }
+
+  static class TestPorts
+  {
+    /** The LDAP port the server is bound to on start. */
+    final int serverLdapPort;
+    /** The Administration port the server is bound to on start. */
+    final int serverAdminPort;
+    /** The JMX port the server is bound to on start. */
+    final int serverJmxPort;
+    /** The LDAPS port the server is bound to on start. */
+    final int serverLdapsPort;
+
+    TestPorts() throws IOException
+    {
+      final int[] ports = findFreePorts(4);
+      serverLdapPort = getFreePort(PROPERTY_LDAP_PORT, ports[0]);
+      serverAdminPort = getFreePort(PROPERTY_ADMIN_PORT, ports[1]);
+      serverJmxPort = ports[2];
+      serverLdapsPort = ports[3];
+    }
+  }
+
   public static void startServer() throws Exception
   {
     System.setProperty(PROPERTY_RUNNING_UNIT_TESTS, "true");
@@ -257,233 +307,17 @@ public final class TestCaseUtils {
       {
         return;
       }
-
       InvocationCounterPlugin.resetStartupCalled();
 
-      // Retrieves the location of a typical installation directory to use as a
-      // source to build our test instance.
-      String installedRoot = System.getProperty(PROPERTY_INSTALLED_ROOT);
+      initializePathsPortsAndServer();
 
-      // Get the build root and use it to create a test package directory.
-      String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-      String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR,
-              buildRoot + File.separator + "target");
-      File   buildDir = new File(buildDirStr);
-      File   unitRoot  = new File(buildDir, "unit-tests");
-      File   testInstallRoot;
-      File   testInstanceRoot;
-      if (installedRoot == null) {
-         testInstallRoot = new File(unitRoot, "package-install");
-         testInstanceRoot = new File(unitRoot, "package-instance");
-      } else {
-         testInstallRoot = new File(unitRoot, "package");
-         testInstanceRoot = testInstallRoot;
-      }
-      System.out.println("unitRoot=" + unitRoot);
-      System.out.println("testInstallRoot=" + testInstallRoot);
-      System.out.println("testInstanceRoot=" + testInstanceRoot);
+      deployDirectoryDirsAndFiles();
 
-      File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
-                                    File.separator + "unit-tests-testng");
-      System.out.println("testSrcRoot=" + testSrcRoot);
+      setupLoggers();
 
-      String cleanupRequiredString = System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
-      boolean cleanupRequired = !"false".equalsIgnoreCase(cleanupRequiredString);
+      writeBuildInfoFile();
 
-      if (cleanupRequired) {
-        deleteDirectory(testInstallRoot);
-        deleteDirectory(testInstanceRoot);
-        testInstallRoot.mkdirs();
-        testInstanceRoot.mkdirs();
-      }
-
-      File testInstanceSchema =
-        new File (testInstanceRoot, "config" + File.separator + "schema");
-      testInstanceSchema.mkdirs();
-
-      //db_verify is second jeb backend used by the jeb verify test cases
-      //db_rebuild is the third jeb backend used by the jeb rebuild test cases
-      //db_unindexed is the forth backend used by the unindexed search privilege
-      //test cases
-      String[] installSubDirectories = { "bin", "lib", "bat", "config"};
-      String[] instanceSubDirectories = { "bak", "changelogDb", "classes",
-          "config", "db", "import-tmp", "db_verify",
-          "ldif", "locks", "logs", "db_rebuild",
-          "db_unindexed", "db_index_test",
-          "db_import_test"};
-      for (String s : installSubDirectories)
-      {
-        new File(testInstallRoot, s).mkdir();
-      }
-      for (String s : instanceSubDirectories)
-      {
-        new File(testInstanceRoot, s).mkdir();
-      }
-
-      // Copy the configuration, schema, and MakeLDIF resources into the
-      // appropriate place under the test package.
-      File serverClassesDir = new File(buildDir, "classes");
-      File unitClassesDir   = new File(unitRoot, "classes");
-      File libDir           = new File(buildDirStr + "/package/opendj/lib");
-      File upgradeDir       = new File(buildDirStr + "/package/opendj/template/config/upgrade");
-      System.out.println("libDir=" + libDir);
-      File resourceDir      = new File(buildRoot, "resource");
-      File testResourceDir  = new File(testSrcRoot, "resource");
-      // Set the class variable
-      testConfigDir         = new File(testInstanceRoot, "config");
-      File testSchemaDir    = new File(testInstanceRoot, "config");
-      File testClassesDir   = new File(testInstanceRoot, "classes");
-      File testLibDir       = new File(testInstallRoot, "lib");
-      File testBinDir       = new File(testInstallRoot, "bin");
-
-      // Snmp resource
-      String opendmkJarFileLocation =
-              System.getProperty(PROPERTY_OPENDMK_LOCATION);
-
-      File opendmkJar = new File(opendmkJarFileLocation, "jdmkrt.jar");
-
-      File   snmpResourceDir = new File(buildRoot + File.separator + "src" +
-                                    File.separator + "snmp" + File.separator +
-                                    "resource");
-      File snmpConfigDir = new File(snmpResourceDir, "config");
-      File testSnmpResourceDir = new File (testConfigDir + File.separator + "snmp");
-
-      if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG))
-      {
-        copyDirectory(serverClassesDir, testClassesDir);
-        copyDirectory(unitClassesDir, testClassesDir);
-      }
-
-      if (installedRoot != null)
-      {
-        copyDirectory(new File(installedRoot), testInstallRoot);
-
-        // Get the instance location
-      }
-      else
-      {
-        copyDirectory(libDir, testLibDir);
-        copyDirectory(new File(resourceDir, "bin"), testBinDir);
-        copyDirectory(new File(resourceDir, "config"), testConfigDir );
-        // copy upgrade directory
-        copyDirectory(upgradeDir, new File(testConfigDir, "upgrade"));
-        copyDirectory(new File(resourceDir, "schema"),
-            new File(testSchemaDir, "schema"));
-        copyDirectory(new File(resourceDir, "MakeLDIF"),
-            new File(testConfigDir, "MakeLDIF"));
-        copyDirectory(new File(snmpResourceDir, "security"),
-            new File(testSnmpResourceDir, "security"));
-        copyFileFromTo("server.keystore", testResourceDir, testConfigDir);
-        copyFileFromTo("server.truststore", testResourceDir, testConfigDir);
-        copyFileFromTo("client.keystore", testResourceDir, testConfigDir);
-        copyFileFromTo("client-emailAddress.keystore", testResourceDir, testConfigDir);
-        copyFileFromTo("client.truststore", testResourceDir, testConfigDir);
-        copyFileFromTo("server-cert.p12", testResourceDir, testConfigDir);
-        copyFileFromTo("client-cert.p12", testResourceDir, testConfigDir);
-
-        // Update the install.loc file
-        File installLoc = new File(testInstallRoot + File.separator + "instance.loc");
-        installLoc.deleteOnExit();
-        try (FileWriter w = new FileWriter(installLoc))
-        {
-          w.write(testInstanceRoot.getAbsolutePath());
-        }
-
-        if (opendmkJar.exists())
-        {
-          appendFile(new File(snmpConfigDir, "config.snmp.ldif"),
-              new File(testConfigDir, "config.ldif"));
-        }
-
-        for (File f : testBinDir.listFiles())
-        {
-          try
-          {
-            FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
-          } catch (Exception e) {}
-        }
-
-        // Make the shell scripts in the bin directory executable, if possible.
-        if (OperatingSystem.isUnixBased())
-        {
-          try
-          {
-            FilePermission perm = FilePermission.decodeUNIXMode("755");
-            for (File f : testBinDir.listFiles())
-            {
-              if (f.getName().endsWith(".sh"))
-              {
-                FilePermission.setPermissions(f, perm);
-              }
-            }
-          } catch (Exception e) {}
-        }
-      }
-
-      // Find some free ports for the listeners and write them to the
-      // config-chamges.ldif file.
-      final int[] ports = findFreePorts(4);
-      serverLdapPort = getFreePort(PROPERTY_LDAP_PORT, ports[0]);
-      serverAdminPort = getFreePort(PROPERTY_ADMIN_PORT, ports[1]);
-      serverJmxPort = ports[2];
-      serverLdapsPort = ports[3];
-
-      String defaultConfigChangeFile = testResourceDir + File.separator
-          + "config-changes.ldif";
-      String configChangeFile = System.getProperty(
-          PROPERTY_CONFIG_CHANGE_FILE, defaultConfigChangeFile);
-
-      try (BufferedReader reader = new BufferedReader(new FileReader(new File(configChangeFile)));
-          FileOutputStream outFile = new FileOutputStream(new File(testConfigDir, "config-changes.ldif"));
-          PrintStream writer = new PrintStream(outFile))
-      {
-        String line;
-        while ((line = reader.readLine()) != null)
-        {
-          line = line
-              .replaceAll("#ldapport#", String.valueOf(serverLdapPort))
-              .replaceAll("#adminport#", String.valueOf(serverAdminPort))
-              .replaceAll("#jmxport#", String.valueOf(serverJmxPort))
-              .replaceAll("#ldapsport#", String.valueOf(serverLdapsPort));
-
-          writer.println(line);
-        }
-      }
-
-      // Create a configuration for the server.
-      DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
-      config.setServerRoot(testInstallRoot);
-      config.setInstanceRoot(testInstanceRoot);
-
-      config.setForceDaemonThreads(true);
-      config.setConfigFile(new File(testConfigDir, "config.ldif"));
-
-      ConfigurationFramework configurationFramework = ConfigurationFramework.getInstance();
-      if (!configurationFramework.isInitialized())
-      {
-        configurationFramework.initialize(testInstallRoot.getAbsolutePath(), testInstanceRoot.getAbsolutePath());
-      }
-      configurationFramework.setIsClient(false);
-
-      AccessLogger.getInstance().addLogPublisher(
-          (AccessLogPublisher) getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));
-
-      HTTPAccessLogger.getInstance().addLogPublisher(
-          (HTTPAccessLogPublisher) getStartupTextHTTPAccessPublisher(HTTP_ACCESS_TEXT_WRITER));
-
-      // Enable more verbose error logger.
-      ErrorLogger.getInstance().addLogPublisher(
-          (ErrorLogPublisher) getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
-
-      DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
-
-      // Writing the buildinfo with the current version.
-      try (final FileWriter buildInfoWriter = new FileWriter(new File(testConfigDir, "buildinfo")))
-      {
-        buildInfoWriter.write(BuildVersion.binaryVersion().toString());
-      }
-
-      EmbeddedUtils.startServer(config);
+      server.start();
 
       assertTrue(InvocationCounterPlugin.startupCalled());
 
@@ -493,9 +327,220 @@ public final class TestCaseUtils {
       SERVER_STARTED = true;
 
       initializeTestBackend(true);
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       e.printStackTrace(originalSystemErr);
       throw e;
+    }
+  }
+
+  private static void initializePathsPortsAndServer() throws Exception
+  {
+    paths = new TestPaths();
+    ports = new TestPorts();
+    hostname = InetAddress.getLocalHost().getHostName();
+    server = EmbeddedDirectoryServer.defineServer(
+        configParams()
+          .serverRootDirectory(paths.testInstallRoot.getPath())
+          .serverInstanceDirectory(paths.testInstanceRoot.getPath())
+          .configurationFile(paths.configFile.getPath())
+          .toParams(),
+        connectionParams()
+          .bindDn("cn=Directory Manager")
+          .bindPassword("password")
+          .hostname(hostname)
+          .ldapPort(ports.serverLdapPort)
+          .adminPort(ports.serverAdminPort)
+          .toParams(),
+         System.out,
+         System.err);
+  }
+
+  /**
+   * Setup the directory server in separate install root directory and instance root directory.
+   * After this method the directory server should be ready to be started.
+   */
+  private static void deployDirectoryDirsAndFiles() throws IOException
+  {
+    // cleanup directories if necessary
+    String cleanupRequiredString = System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
+    boolean cleanupRequired = !"false".equalsIgnoreCase(cleanupRequiredString);
+
+    if (cleanupRequired) {
+      deleteDirectory(paths.testInstallRoot);
+      deleteDirectory(paths.testInstanceRoot);
+      paths.testInstallRoot.mkdirs();
+      paths.testInstanceRoot.mkdirs();
+    }
+
+    // deploy the server to separate install directory and instance directory
+
+    File testInstanceSchema = new File(paths.testInstanceRoot, "config" + File.separator + "schema");
+    testInstanceSchema.mkdirs();
+
+    // db_verify is second jeb backend used by the jeb verify test cases
+    // db_rebuild is the third jeb backend used by the jeb rebuild test cases
+    // db_unindexed is the forth backend used by the unindexed search privilege
+    // test cases
+    String[] installSubDirectories = { "bin", "lib", "bat", "config" };
+    String[] instanceSubDirectories =
+        { "bak", "changelogDb", "classes", "config", "db", "import-tmp", "db_verify", "ldif", "locks", "logs",
+          "db_rebuild", "db_unindexed", "db_index_test", "db_import_test" };
+    for (String s : installSubDirectories)
+    {
+      new File(paths.testInstallRoot, s).mkdir();
+    }
+    for (String s : instanceSubDirectories)
+    {
+      new File(paths.testInstanceRoot, s).mkdir();
+    }
+
+    // Copy the configuration, schema, and MakeLDIF resources into the
+    // appropriate place under the test package.
+    File serverClassesDir = new File(paths.buildDir, "classes");
+    File unitClassesDir = new File(paths.unitRoot, "classes");
+    File libDir = new File(paths.buildDir.getPath() + "/package/opendj/lib");
+    File upgradeDir = new File(paths.buildDir.getPath() + "/package/opendj/template/config/upgrade");
+    System.out.println("libDir=" + libDir);
+    File resourceDir = new File(paths.buildRoot, "resource");
+    File testResourceDir = new File(paths.testSrcRoot, "resource");
+    // Set the class variable
+    File testSchemaDir = new File(paths.testInstanceRoot, "config");
+    File testClassesDir = new File(paths.testInstanceRoot, "classes");
+    File testLibDir = new File(paths.testInstallRoot, "lib");
+    File testBinDir = new File(paths.testInstallRoot, "bin");
+
+    // Snmp resource
+    String opendmkJarFileLocation = System.getProperty(PROPERTY_OPENDMK_LOCATION);
+
+    File opendmkJar = new File(opendmkJarFileLocation, "jdmkrt.jar");
+
+    File snmpResourceDir =
+        new File(paths.buildRoot + File.separator + "src" + File.separator + "snmp" + File.separator + "resource");
+    File snmpConfigDir = new File(snmpResourceDir, "config");
+    File testSnmpResourceDir = new File(paths.testConfigDir + File.separator + "snmp");
+
+    if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG))
+    {
+      copyDirectory(serverClassesDir, testClassesDir);
+      copyDirectory(unitClassesDir, testClassesDir);
+    }
+
+    if (paths.installedRoot != null)
+    {
+      copyDirectory(new File(paths.installedRoot), paths.testInstallRoot);
+
+      // Get the instance location
+    }
+    else
+    {
+      copyDirectory(libDir, testLibDir);
+      copyDirectory(new File(resourceDir, "bin"), testBinDir);
+      copyDirectory(new File(resourceDir, "config"), paths.testConfigDir);
+      // copy upgrade directory
+      copyDirectory(upgradeDir, new File(paths.testConfigDir, "upgrade"));
+      copyDirectory(new File(resourceDir, "schema"), new File(testSchemaDir, "schema"));
+      copyDirectory(new File(resourceDir, "MakeLDIF"), new File(paths.testConfigDir, "MakeLDIF"));
+      copyDirectory(new File(snmpResourceDir, "security"), new File(testSnmpResourceDir, "security"));
+      copyFileFromTo("server.keystore", testResourceDir, paths.testConfigDir);
+      copyFileFromTo("server.truststore", testResourceDir, paths.testConfigDir);
+      copyFileFromTo("client.keystore", testResourceDir, paths.testConfigDir);
+      copyFileFromTo("client-emailAddress.keystore", testResourceDir, paths.testConfigDir);
+      copyFileFromTo("client.truststore", testResourceDir, paths.testConfigDir);
+      copyFileFromTo("server-cert.p12", testResourceDir, paths.testConfigDir);
+      copyFileFromTo("client-cert.p12", testResourceDir, paths.testConfigDir);
+
+      // Update the install.loc file
+      File installLoc = new File(paths.testInstallRoot + File.separator + "instance.loc");
+      installLoc.deleteOnExit();
+      try (FileWriter w = new FileWriter(installLoc))
+      {
+        w.write(paths.testInstanceRoot.getAbsolutePath());
+      }
+
+      if (opendmkJar.exists())
+      {
+        appendFile(new File(snmpConfigDir, "config.snmp.ldif"), new File(paths.testConfigDir, "config.ldif"));
+      }
+
+      for (File f : testBinDir.listFiles())
+      {
+        try
+        {
+          FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
+        }
+        catch (Exception e)
+        {
+        }
+      }
+
+      // Make the shell scripts in the bin directory executable, if possible.
+      if (OperatingSystem.isUnixBased())
+      {
+        try
+        {
+          FilePermission perm = FilePermission.decodeUNIXMode("755");
+          for (File f : testBinDir.listFiles())
+          {
+            if (f.getName().endsWith(".sh"))
+            {
+              FilePermission.setPermissions(f, perm);
+            }
+          }
+        }
+        catch (Exception e)
+        {
+        }
+      }
+    }
+    copyTestConfigChangesFile();
+  }
+
+  private static void copyTestConfigChangesFile() throws FileNotFoundException, IOException
+  {
+    File testResourceDir = new File(paths.testSrcRoot, "resource");
+    String defaultConfigChangeFile = testResourceDir + File.separator + "config-changes.ldif";
+    String configChangeFile = System.getProperty(PROPERTY_CONFIG_CHANGE_FILE, defaultConfigChangeFile);
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(new File(configChangeFile)));
+        FileOutputStream outFile = new FileOutputStream(new File(paths.testConfigDir, "config-changes.ldif"));
+        PrintStream writer = new PrintStream(outFile))
+    {
+      String line;
+      while ((line = reader.readLine()) != null)
+      {
+        line = line
+            .replaceAll("#ldapport#", String.valueOf(ports.serverLdapPort))
+            .replaceAll("#adminport#", String.valueOf(ports.serverAdminPort))
+            .replaceAll("#jmxport#", String.valueOf(ports.serverJmxPort))
+            .replaceAll("#ldapsport#", String.valueOf(ports.serverLdapsPort));
+
+        writer.println(line);
+      }
+    }
+  }
+
+  private static void setupLoggers()
+  {
+    AccessLogger.getInstance().addLogPublisher(
+        (AccessLogPublisher) getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));
+
+    HTTPAccessLogger.getInstance().addLogPublisher(
+        (HTTPAccessLogPublisher) getStartupTextHTTPAccessPublisher(HTTP_ACCESS_TEXT_WRITER));
+
+    // Enable more verbose error logger.
+    ErrorLogger.getInstance().addLogPublisher(
+        (ErrorLogPublisher) getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
+
+    DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
+  }
+
+  private static void writeBuildInfoFile() throws IOException
+  {
+    try (final FileWriter buildInfoWriter = new FileWriter(new File(paths.testConfigDir, "buildinfo")))
+    {
+      buildInfoWriter.write(BuildVersion.binaryVersion().toString());
     }
   }
 
@@ -588,10 +633,10 @@ public final class TestCaseUtils {
 
   private static File getTestConfigDir()
   {
-    if (testConfigDir == null) {
+    if (paths.testConfigDir == null) {
       throw new RuntimeException("The testConfigDir variable is not set yet!");
     }
-    return testConfigDir;
+    return paths.testConfigDir;
   }
 
   public static File getBuildRoot()
@@ -1020,7 +1065,7 @@ public final class TestCaseUtils {
    */
   public static int getServerLdapPort()
   {
-    return serverLdapPort;
+    return ports.serverLdapPort;
   }
 
   /**
@@ -1031,7 +1076,7 @@ public final class TestCaseUtils {
    */
   public static int getServerAdminPort()
   {
-    return serverAdminPort;
+    return ports.serverAdminPort;
   }
 
   /**
@@ -1042,7 +1087,7 @@ public final class TestCaseUtils {
    */
   public static int getServerJmxPort()
   {
-    return serverJmxPort;
+    return ports.serverJmxPort;
   }
 
   /**
@@ -1053,7 +1098,7 @@ public final class TestCaseUtils {
    */
   public static int getServerLdapsPort()
   {
-    return serverLdapsPort;
+    return ports.serverLdapsPort;
   }
 
   /**
@@ -1401,7 +1446,7 @@ public final class TestCaseUtils {
     {
       "--noPropertiesFile",
       "-h", "127.0.0.1",
-      "-p", String.valueOf(serverLdapPort),
+      "-p", String.valueOf(ports.serverLdapPort),
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-a",
@@ -1411,7 +1456,7 @@ public final class TestCaseUtils {
     {
       "--noPropertiesFile",
       "-h", "127.0.0.1",
-      "-p", String.valueOf(serverAdminPort),
+      "-p", String.valueOf(ports.serverAdminPort),
       "-Z", "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
@@ -1707,18 +1752,11 @@ public final class TestCaseUtils {
    */
   public static void dsconfig(String... args)
   {
-    String hostName;
-    try {
-      hostName = InetAddress.getLocalHost().getHostName();
-    } catch (Exception e) {
-      hostName = "Unknown (" + e + ")";
-    }
-
     String[] fullArgs = new String[args.length + 11];
     fullArgs[0] = "-h";
-    fullArgs[1] = hostName;
+    fullArgs[1] = hostname;
     fullArgs[2] = "-p";
-    fullArgs[3] = String.valueOf(serverAdminPort);
+    fullArgs[3] = String.valueOf(ports.serverAdminPort);
     fullArgs[4] = "-D";
     fullArgs[5] = "cn=Directory Manager";
     fullArgs[6] = "-w";
