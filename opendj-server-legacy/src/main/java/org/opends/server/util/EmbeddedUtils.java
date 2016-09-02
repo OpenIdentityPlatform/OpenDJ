@@ -33,7 +33,10 @@ import org.forgerock.i18n.LocalizableMessage;
  * This class provides a number of utility methods for using OpenDS in an
  * embedded manner (i.e., running within the same JVM as another application and
  * controlled by that application).
+ *
+ * @deprecated Use {@code EmbeddedDirectoryServer} class instead
  */
+@Deprecated
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
      mayInstantiate=false,
@@ -46,7 +49,9 @@ public final class EmbeddedUtils
    *
    * @return  {@code true} if the server is currently running, or {@code false}
    *          if not.
+   * @deprecated Use {@code EmbeddedDirectoryServer} class instead
    */
+  @Deprecated
   public static boolean isRunning()
   {
     return DirectoryServer.isRunning();
@@ -62,7 +67,9 @@ public final class EmbeddedUtils
    * @throws  InitializationException  If the Directory Server is already
    *                                   running, or if an error occurs during
    *                                   server initialization or startup.
+   * @deprecated Use {@code EmbeddedDirectoryServer} class instead
    */
+  @Deprecated
   public static void startServer(DirectoryEnvironmentConfig config)
          throws InitializationException
   {
@@ -90,7 +97,9 @@ public final class EmbeddedUtils
    *
    * @param  className  The name of the class that initiated the shutdown.
    * @param  reason     A message explaining the reason for the shutdown.
+   * @deprecated Use {@code EmbeddedDirectoryServer} class instead
    */
+  @Deprecated
   public static void stopServer(String className, LocalizableMessage reason)
   {
     DirectoryServer.shutDown(className, reason);
@@ -107,7 +116,9 @@ public final class EmbeddedUtils
    * @param  reason     A message explaining the reason for the retart.
    * @param  config     The environment configuration to use for the new server
    *                    instance.
+   * @deprecated Use {@code EmbeddedDirectoryServer} class instead
    */
+  @Deprecated
   public static void restartServer(String className, LocalizableMessage reason,
                                    DirectoryEnvironmentConfig config)
   {
@@ -122,7 +133,9 @@ public final class EmbeddedUtils
    * going to be used without the server running (e.g., to facilitate use in an
    * LDAP client API, for DN processing, etc.).  This will have no effect if the
    * server has already been initialized for client use.
+   * @deprecated Use {@code EmbeddedDirectoryServer} class instead
    */
+  @Deprecated
   public static void initializeForClientUse()
   {
     DirectoryServer.getInstance();

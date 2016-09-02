@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
@@ -334,10 +333,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     final byte[] cipherText2 = cm.encrypt("RC4", 104,
             secretMessage.getBytes());
 
-    EmbeddedUtils.restartServer(
-            this.getClass().getName(),
-            LocalizableMessage.raw("CryptoManager: testing persistent secret keys."),
-            DirectoryServer.getEnvironmentConfig());
+    TestCaseUtils.getServer().restart(this.getClass().getName(),
+        LocalizableMessage.raw("CryptoManager: testing persistent secret keys."));
 
     byte[] plainText = cm.decrypt(cipherText);
     assertEquals(new String(plainText), secretMessage);

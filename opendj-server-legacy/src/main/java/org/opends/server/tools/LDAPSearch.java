@@ -19,7 +19,6 @@ package org.opends.server.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -41,12 +40,11 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.controls.*;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
-import org.opends.server.util.EmbeddedUtils;
-
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -1478,8 +1476,7 @@ public class LDAPSearch
     {
       if (initializeServer)
       {
-        // Bootstrap and initialize directory data structures.
-        EmbeddedUtils.initializeForClientUse();
+        DirectoryServer.bootstrapClient();
       }
 
       // Connect to the specified host with the supplied userDN and password.

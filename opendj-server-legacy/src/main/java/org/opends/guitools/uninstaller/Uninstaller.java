@@ -137,7 +137,6 @@ public class Uninstaller extends GuiApplication implements CliApplication {
      * ConfigureDS) this initialization is done.
      */
     DirectoryServer.bootstrapClient();
-    //  Bootstrap definition classes.
     try
     {
       ConfigurationFramework configFramework = ConfigurationFramework.getInstance();

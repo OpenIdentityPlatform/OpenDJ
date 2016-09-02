@@ -36,7 +36,6 @@ import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -162,7 +161,7 @@ public class CreateRCScript
       return 0;
     }
 
-    EmbeddedUtils.initializeForClientUse();
+    DirectoryServer.bootstrapClient();
     File serverRoot = DirectoryServer.getEnvironmentConfig().getServerRoot();
     if (serverRoot == null)
     {

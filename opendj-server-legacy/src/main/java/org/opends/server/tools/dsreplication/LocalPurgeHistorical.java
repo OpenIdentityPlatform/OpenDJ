@@ -16,9 +16,8 @@
  */
 package org.opends.server.tools.dsreplication;
 
+import static org.opends.server.util.embedded.ConfigParameters.Builder.configParams;
 import static org.opends.messages.AdminToolMessages.*;
-
-import java.io.File;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -26,12 +25,11 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.cli.PointAdder;
+import org.opends.server.util.embedded.EmbeddedDirectoryServer;
 
 import com.forgerock.opendj.cli.ConsoleApplication;
 
@@ -90,12 +88,12 @@ public class LocalPurgeHistorical
 
     try
     {
-      // Create a configuration for the server.
-      DirectoryEnvironmentConfig environmentConfig =
-        new DirectoryEnvironmentConfig();
-      environmentConfig.setConfigFile(new File(configFile));
-      environmentConfig.setDisableConnectionHandlers(true);
-      EmbeddedUtils.startServer(environmentConfig);
+      EmbeddedDirectoryServer server = EmbeddedDirectoryServer.defineServerForStartStopOperations(
+          configParams()
+            .configurationFile(configFile)
+            .disableConnectionHandlers(true)
+            .build());
+      server.start();
     }
     catch (OpenDsException ode)
     {

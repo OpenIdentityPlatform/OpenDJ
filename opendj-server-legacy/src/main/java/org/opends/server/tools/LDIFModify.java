@@ -492,7 +492,6 @@ public class LDIFModify
 
     if (! serverInitialized)
     {
-      // Bootstrap the Directory Server configuration for use as a client.
       DirectoryServer directoryServer = DirectoryServer.getInstance();
       DirectoryServer.bootstrapClient();
 

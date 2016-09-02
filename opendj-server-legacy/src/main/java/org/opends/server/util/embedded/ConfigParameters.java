@@ -23,6 +23,7 @@ public final class ConfigParameters
   private String serverRootDirectory;
   private String serverInstanceDirectory;
   private String configurationFile;
+  private boolean disableConnectionHandlers;
 
   private ConfigParameters()
   {
@@ -37,12 +38,17 @@ public final class ConfigParameters
   String getServerInstanceDirectory()
   {
     // provides the expected default value if not set
-    return serverInstanceDirectory != null ? serverInstanceDirectory : serverRootDirectory;
+    return serverInstanceDirectory;
   }
 
   String getConfigurationFile()
   {
     return configurationFile;
+  }
+
+  boolean isDisableConnectionHandlers()
+  {
+    return disableConnectionHandlers;
   }
 
   /**
@@ -121,6 +127,19 @@ public final class ConfigParameters
     public Builder configurationFile(String file)
     {
       params.configurationFile = file;
+      return this;
+    }
+
+    /**
+     * Sets the indicator allowing to disable the connection handlers.
+     *
+     * @param disable
+     *          {@code true} to disable the connection handlers
+     * @return this builder
+     */
+    public Builder disableConnectionHandlers(boolean disable)
+    {
+      params.disableConnectionHandlers = disable;
       return this;
     }
   }

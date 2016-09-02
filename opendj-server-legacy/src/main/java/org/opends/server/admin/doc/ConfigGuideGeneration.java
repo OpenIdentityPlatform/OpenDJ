@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.ACIPropertyDefinition;
 import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
@@ -58,7 +59,7 @@ import org.forgerock.opendj.config.TopCfgDefn;
 import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
-import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
 
 /**
@@ -169,8 +170,7 @@ public class ConfigGuideGeneration {
 
     // Enable the client-side class loader to explicitly load classes
     // which are not directly reachable from the root configuration
-    EmbeddedUtils.initializeForClientUse();
-    // Bootstrap definition classes.
+    DirectoryServer.bootstrapClient();
     try {
       ConfigurationFramework.getInstance().initialize();
     } catch (ConfigException e) {
@@ -178,10 +178,6 @@ public class ConfigGuideGeneration {
       e.printStackTrace();
       System.exit(1);
     }
-    // Switch off class name validation in client.
-//    ClassPropertyDefinition.setAllowClassValidation(false);
-    // Switch off attribute type name validation in client.
-//    AttributeTypePropertyDefinition.setCheckSchema(false);
 
     // Build a sorted list of top managed objects
     TopCfgDefn topCfg = TopCfgDefn.getInstance();

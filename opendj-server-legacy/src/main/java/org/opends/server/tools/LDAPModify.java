@@ -21,7 +21,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_BINDPASSWORDFILE;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -43,6 +42,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.controls.*;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.plugins.ChangeNumberControlPlugin;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
@@ -63,7 +63,6 @@ import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.*;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
-import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
@@ -1001,8 +1000,7 @@ public class LDAPModify
     {
       if (initializeServer)
       {
-        // Bootstrap and initialize directory data structures.
-        EmbeddedUtils.initializeForClientUse();
+        DirectoryServer.bootstrapClient();
       }
 
       // Connect to the specified host with the supplied userDN and password.

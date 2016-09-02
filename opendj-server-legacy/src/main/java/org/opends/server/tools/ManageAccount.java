@@ -23,7 +23,6 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_PORT_PLACEHOLDER;
 import static com.forgerock.opendj.cli.CliMessages.INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.extensions.PasswordPolicyStateExtendedOperation.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -46,6 +45,7 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.config.AdministrationConnector;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
@@ -53,7 +53,6 @@ import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.cli.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
@@ -1233,7 +1232,8 @@ public class ManageAccount
     // Bootstrap and initialize directory data structures.
     if (initServer)
     {
-      EmbeddedUtils.initializeForClientUse();
+      DirectoryServer.getInstance();
+      DirectoryServer.bootstrapClient();
     }
     // Create the LDAP connection options object, which will be used to
     // customize the way that we connect to the server and specify a set of

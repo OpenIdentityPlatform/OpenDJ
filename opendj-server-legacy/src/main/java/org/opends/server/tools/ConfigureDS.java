@@ -548,8 +548,6 @@ public class ConfigureDS
       }
     }
 
-    // Initialize the Directory Server configuration handler using the
-    // information that was provided.
     final DirectoryServer directoryServer = DirectoryServer.getInstance();
     DirectoryServer.bootstrapClient();
 

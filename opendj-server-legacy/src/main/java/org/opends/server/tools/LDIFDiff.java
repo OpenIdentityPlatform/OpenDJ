@@ -268,7 +268,6 @@ public class LDIFDiff
     boolean checkSchema = configFile.isPresent() && doCheckSchema.isPresent();
     if (! serverInitialized)
     {
-      // Bootstrap the Directory Server configuration for use as a client.
       DirectoryServer directoryServer = DirectoryServer.getInstance();
       DirectoryServer.bootstrapClient();
 

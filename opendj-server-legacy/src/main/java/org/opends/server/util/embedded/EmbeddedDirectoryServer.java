@@ -44,7 +44,6 @@ import org.opends.server.tools.upgrade.UpgradeCli;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -94,11 +93,11 @@ public class EmbeddedDirectoryServer
         new LDAPConnectionFactory(connectionParams.getHostname(), connectionParams.getLdapPort())
         : null;
 
-    System.setProperty("org.opends.quicksetup.Root", configParams.getServerRootDirectory());
-    System.setProperty(ServerConstants.PROPERTY_SERVER_ROOT, configParams.getServerRootDirectory());
-    System.setProperty(ServerConstants.PROPERTY_INSTANCE_ROOT, configParams.getServerInstanceDirectory());
+    //System.setProperty("org.opends.quicksetup.Root", configParams.getServerRootDirectory());
+    //System.setProperty(ServerConstants.PROPERTY_SERVER_ROOT, configParams.getServerRootDirectory());
+    //System.setProperty(ServerConstants.PROPERTY_INSTANCE_ROOT, configParams.getServerInstanceDirectory());
     // from LicenseFile.java - provided by AM OpenDJUpgrader.java
-    System.setProperty("INSTALL_ROOT", configParams.getServerInstanceDirectory());
+    //System.setProperty("INSTALL_ROOT", configParams.getServerInstanceDirectory());
   }
 
   /**
@@ -153,6 +152,21 @@ public class EmbeddedDirectoryServer
       OutputStream out, OutputStream err)
   {
     return new EmbeddedDirectoryServer(configParams, null, out, err);
+  }
+
+  /**
+   * Defines an embedded directory server for start/stop operation.
+   * <p>
+   * To be able to perform any operation on the server, use the alternative {@code defineServer()}
+   * method.
+   *
+   * @param configParams
+   *          The basic configuration parameters for the server.
+   * @return the directory server
+   */
+  public static EmbeddedDirectoryServer defineServerForStartStopOperations(ConfigParameters configParams)
+  {
+    return new EmbeddedDirectoryServer(configParams, null, System.out, System.err);
   }
 
   /**
@@ -403,7 +417,7 @@ public class EmbeddedDirectoryServer
    * @param reason
    *          A message explaining the reason for the restart.
    */
-  public void restartServer(String className, LocalizableMessage reason)
+  public void restart(String className, LocalizableMessage reason)
   {
     DirectoryServer.restart(className, reason, DirectoryServer.getEnvironmentConfig());
   }
@@ -425,13 +439,7 @@ public class EmbeddedDirectoryServer
 
     try
     {
-      DirectoryEnvironmentConfig env = new DirectoryEnvironmentConfig();
-      env.setServerRoot(new File(configParams.getServerRootDirectory()));
-      env.setInstanceRoot(new File(configParams.getServerInstanceDirectory()));
-      env.setForceDaemonThreads(true);
-      env.setConfigFile(new File(configParams.getConfigurationFile()));
-
-      DirectoryServer directoryServer = DirectoryServer.reinitialize(env);
+      DirectoryServer directoryServer = DirectoryServer.reinitialize(createEnvironmentConfig());
       directoryServer.startServer();
     }
     catch (InitializationException | ConfigException e)
@@ -439,6 +447,26 @@ public class EmbeddedDirectoryServer
       throw new EmbeddedDirectoryServerException(ERR_EMBEDDED_SERVER_START.get(
           configParams.getServerRootDirectory(), StaticUtils.stackTraceToSingleLineString(e)));
     }
+  }
+
+  private DirectoryEnvironmentConfig createEnvironmentConfig() throws InitializationException
+  {
+    // If server root directory or instance directory are not defined,
+    // the DirectoryEnvironmentConfig class has several ways to find the values,
+    // including using system properties.
+    DirectoryEnvironmentConfig env = new DirectoryEnvironmentConfig();
+    if (configParams.getServerRootDirectory() != null)
+    {
+      env.setServerRoot(new File(configParams.getServerRootDirectory()));
+    }
+    if (configParams.getServerInstanceDirectory() != null)
+    {
+      env.setInstanceRoot(new File(configParams.getServerInstanceDirectory()));
+    }
+    env.setForceDaemonThreads(true);
+    env.setDisableConnectionHandlers(configParams.isDisableConnectionHandlers());
+    env.setConfigFile(new File(configParams.getConfigurationFile()));
+    return env;
   }
 
   /**

@@ -237,8 +237,6 @@ public class MakeLDIF
 
     if (initializeServer)
     {
-      // Initialize the Directory Server configuration handler using the
-      // information that was provided.
       DirectoryServer directoryServer = DirectoryServer.getInstance();
       DirectoryServer.bootstrapClient();
 

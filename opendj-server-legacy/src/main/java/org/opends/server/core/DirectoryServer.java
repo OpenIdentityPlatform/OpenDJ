@@ -1263,7 +1263,6 @@ public final class DirectoryServer
 
     logger.debug(INFO_DIRECTORY_BOOTSTRAPPING);
 
-    // Perform all the bootstrapping that is shared with the client-side processing.
     bootstrapClient();
 
     // Initialize the variables that will be used for connection tracking.

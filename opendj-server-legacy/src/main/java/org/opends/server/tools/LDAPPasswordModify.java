@@ -21,7 +21,6 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
@@ -40,6 +39,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -50,8 +50,6 @@ import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.Control;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.EmbeddedUtils;
-
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -412,10 +410,9 @@ public class LDAPPasswordModify
       }
     }
 
-    // Perform a basic Directory Server bootstrap if appropriate.
     if (initializeServer)
     {
-      EmbeddedUtils.initializeForClientUse();
+      DirectoryServer.bootstrapClient();
     }
 
     // Establish a connection to the Directory Server.

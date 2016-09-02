@@ -104,7 +104,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.embedded.EmbeddedDirectoryServer;
 import org.testng.Assert;
@@ -589,9 +588,11 @@ public final class TestCaseUtils {
 
       clearLoggersContents();
 
-      EmbeddedUtils.stopServer(null, null);
+      server.stop(TestCaseUtils.class.getSimpleName(), LocalizableMessage.raw("restart server for tests"));
+
       restoreServerConfigLdif();
-      EmbeddedUtils.startServer(DirectoryServer.getEnvironmentConfig());
+
+      server.start();
 
       clearJEBackends();
       initializeTestBackend(true);
@@ -608,6 +609,16 @@ public final class TestCaseUtils {
       e.printStackTrace(originalSystemErr);
       throw e;
     }
+  }
+
+  /**
+   * Returns the embedded server used for tests.
+   *
+   * @return the embedded server.
+   */
+  public static EmbeddedDirectoryServer getServer()
+  {
+    return server;
   }
 
   private static List<Long> restartTimesMs = new ArrayList<>();
