@@ -555,7 +555,7 @@ public class EntryHistorical
           }
           else
           {
-            AttributeDescription attrDesc = histVal.getAttributeDescription();
+            final AttributeDescription attrDesc = histVal.getAttributeDescription();
             if (attrDesc == null)
             {
               /*
@@ -581,7 +581,7 @@ public class EntryHistorical
               attrInfo = AttrHistorical.createAttributeHistorical(attrDesc.getAttributeType());
               newHistorical.attributesHistorical.put(attrDesc, attrInfo);
             }
-            attrInfo.assign(histVal.getHistKey(), attrDesc.getAttributeType(), histVal.getAttributeValue(), csn);
+            attrInfo.assign(histVal);
           }
         }
       }

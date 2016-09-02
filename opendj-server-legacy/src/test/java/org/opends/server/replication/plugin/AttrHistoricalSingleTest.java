@@ -211,14 +211,12 @@ public class AttrHistoricalSingleTest extends ReplicationTestCase
    * <p>
    * Could multi-threading make this scenario possible?
    * <p>
-   * Or is it due to {@link AttrHistoricalSingle#assign(HistAttrModificationKey, ByteString, CSN)} ?
+   * Or is it due to {@link AttrHistoricalSingle#assign(HistoricalAttributeValue)} ?
    */
   @Test
   public void replay_deleteDubious() throws Exception
   {
-    AttributeType attrType = Schema.getDefaultSchema().getAttributeType(ATTRIBUTE_NAME);
-    HistoricalAttributeValue histAttrVal = new HistoricalAttributeValue(ATTRIBUTE_NAME + ":" + csn + ":add:X");
-    attrHist.assign(histAttrVal.getHistKey(), attrType, histAttrVal.getAttributeValue(), csn);
+    attrHist.assign(new HistoricalAttributeValue(ATTRIBUTE_NAME + ":" + csn + ":add:X"));
     mod = newModification(ADD, "X");
     entry.applyModification(mod);
     assertAttributeValue(entry, "X");

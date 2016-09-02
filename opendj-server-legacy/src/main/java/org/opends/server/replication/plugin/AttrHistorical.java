@@ -19,7 +19,6 @@ package org.opends.server.replication.plugin;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Entry;
@@ -82,12 +81,9 @@ public abstract class AttrHistorical
   public abstract CSN getDeleteTime();
 
   /**
-   * Assign the provided information to this object.
+   * Assign the provided historical value to this object.
    *
-   * @param histKey the key to assign.
-   * @param attrType the associated attribute type.
-   * @param value   the associated value or null if there is no value;
-   * @param csn     the associated CSN.
+   * @param histVal the historical value
    */
-  public abstract void assign(HistAttrModificationKey histKey, AttributeType attrType, ByteString value, CSN csn);
+  public abstract void assign(HistoricalAttributeValue histVal);
 }

@@ -563,9 +563,12 @@ public class AttrHistoricalMultiple extends AttrHistorical
   }
 
   @Override
-  public void assign(HistAttrModificationKey histKey, AttributeType attrType, ByteString value, CSN csn)
+  public void assign(HistoricalAttributeValue histVal)
   {
-    switch (histKey)
+    final ByteString value = histVal.getAttributeValue();
+    final AttributeType attrType = histVal.getAttributeDescription().getAttributeType();
+    final CSN csn = histVal.getCSN();
+    switch (histVal.getHistKey())
     {
     case ADD:
       if (value != null)

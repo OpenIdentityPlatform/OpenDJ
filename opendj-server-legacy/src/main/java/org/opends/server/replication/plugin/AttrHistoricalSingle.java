@@ -38,10 +38,10 @@ import org.opends.server.types.Modification;
  */
 public class AttrHistoricalSingle extends AttrHistorical
 {
+  /** Attribute type of this historical value */
+  private AttributeType attributeType;
   /** Last added value. */
   private ByteString value;
-  /** Attribute type for this historical value */
-  private AttributeType attributeType;
   /** Last time when a value was added. */
   private CSN addTime;
   /** Last time when the attribute was deleted. */
@@ -275,9 +275,12 @@ public class AttrHistoricalSingle extends AttrHistorical
   }
 
   @Override
-  public void assign(HistAttrModificationKey histKey, AttributeType attrType, ByteString value, CSN csn)
+  public void assign(HistoricalAttributeValue histVal)
   {
-    switch (histKey)
+    final ByteString value = histVal.getAttributeValue();
+    final CSN csn = histVal.getCSN();
+
+    switch (histVal.getHistKey())
     {
     case ADD:
       this.addTime = csn;
