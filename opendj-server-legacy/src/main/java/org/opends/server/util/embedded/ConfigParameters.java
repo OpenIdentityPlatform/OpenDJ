@@ -30,6 +30,16 @@ public final class ConfigParameters
     // private constructor to force usage of the associated Builder
   }
 
+  /**
+   * Creates a builder for the configuration parameters.
+   *
+   * @return a builder
+   */
+  public static Builder configParams()
+  {
+    return new Builder();
+  }
+
   String getServerRootDirectory()
   {
     return serverRootDirectory;
@@ -61,16 +71,6 @@ public final class ConfigParameters
     private Builder()
     {
       params = new ConfigParameters();
-    }
-
-    /**
-     * Creates a builder for the configuration parameters.
-     *
-     * @return a builder
-     */
-    public static Builder configParams()
-    {
-      return new Builder();
     }
 
     /**

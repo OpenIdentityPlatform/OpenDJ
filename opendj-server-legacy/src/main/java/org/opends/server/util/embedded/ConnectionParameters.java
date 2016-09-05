@@ -33,6 +33,16 @@ public final class ConnectionParameters
     // private constructor to force usage of the associated Builder
   }
 
+  /**
+   * Creates a builder for the connection parameters.
+   *
+   * @return a builder
+   */
+  public static Builder connectionParams()
+  {
+    return new Builder();
+  }
+
   String getAdminPassword()
   {
     return adminPassword;
@@ -78,16 +88,6 @@ public final class ConnectionParameters
     private Builder()
     {
       params = new ConnectionParameters();
-    }
-
-    /**
-     * Creates a builder for the connection parameters.
-     *
-     * @return a builder
-     */
-    public static Builder connectionParams()
-    {
-      return new Builder();
     }
 
     /**

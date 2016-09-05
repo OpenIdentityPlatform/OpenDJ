@@ -31,6 +31,16 @@ public final class ReplicationParameters
   }
 
   /**
+   * Creates a builder for the replication parameters.
+   *
+   * @return a builder
+   */
+  public static Builder replicationParams()
+  {
+    return new Builder();
+  }
+
+  /**
    * Generates the command-line arguments for enabling replication, from the parameters.
    *
    * @return command-line arguments
@@ -135,16 +145,6 @@ public final class ReplicationParameters
     private Builder()
     {
       params = new ReplicationParameters();
-    }
-
-    /**
-     * Creates a builder for the replication parameters.
-     *
-     * @return a builder
-     */
-    public static Builder replicationParams()
-    {
-      return new Builder();
     }
 
     /**

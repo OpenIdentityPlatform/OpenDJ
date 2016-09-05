@@ -1223,6 +1223,9 @@ public final class DirectoryServer
       directoryServer.disabledPrivileges = new LinkedHashSet<>(0);
       directoryServer.returnBindErrorMessages = false;
       directoryServer.idleTimeLimit = 0L;
+
+      // make sure the timer thread is started in case it was stopped before
+      TimeThread.start();
     }
   }
 

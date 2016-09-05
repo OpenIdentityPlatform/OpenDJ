@@ -30,6 +30,16 @@ public final class SetupParameters
   }
 
   /**
+   * Creates a builder for the setup parameters.
+   *
+   * @return a builder
+   */
+  public static Builder setupParams()
+  {
+    return new Builder();
+  }
+
+  /**
    * Generates command-line arguments from the parameters.
    *
    * @return command-line arguments
@@ -79,16 +89,6 @@ public final class SetupParameters
     private Builder()
     {
       params = new SetupParameters();
-    }
-
-    /**
-     * Creates a builder for the setup parameters.
-     *
-     * @return a builder
-     */
-    public static Builder setupParams()
-    {
-      return new Builder();
     }
 
     /**

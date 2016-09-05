@@ -31,8 +31,12 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
+import org.forgerock.util.Options;
 import org.forgerock.util.Pair;
+import org.forgerock.util.Reject;
 import org.opends.quicksetup.TempLogFile;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -44,6 +48,7 @@ import org.opends.server.tools.upgrade.UpgradeCli;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -53,6 +58,9 @@ import org.opends.server.util.StaticUtils;
 public class EmbeddedDirectoryServer
 {
   private static final String EMBEDDED_OPEN_DJ_PREFIX = "embeddedOpenDJ";
+
+  private static final String QUICKSETUP_ROOT_PROPERTY = "org.opends.quicksetup.Root";
+  private static final String QUICKSETUP_INSTANCE_PROPERTY = "org.opends.quicksetup.Root";
 
   /** The parameters for install and instance directories, and configuration file of the server. */
   private final ConfigParameters configParams;
@@ -89,15 +97,19 @@ public class EmbeddedDirectoryServer
     this.connectionParams = connParams;
     this.outStream = out;
     this.errStream = err;
-    this.ldapConnectionFactory = connectionParams != null ?
-        new LDAPConnectionFactory(connectionParams.getHostname(), connectionParams.getLdapPort())
-        : null;
-
-    //System.setProperty("org.opends.quicksetup.Root", configParams.getServerRootDirectory());
-    //System.setProperty(ServerConstants.PROPERTY_SERVER_ROOT, configParams.getServerRootDirectory());
-    //System.setProperty(ServerConstants.PROPERTY_INSTANCE_ROOT, configParams.getServerInstanceDirectory());
-    // from LicenseFile.java - provided by AM OpenDJUpgrader.java
-    //System.setProperty("INSTALL_ROOT", configParams.getServerInstanceDirectory());
+    if (connectionParams != null)
+    {
+      SimpleBindRequest authRequest = Requests.newSimpleBindRequest(
+          connectionParams.getBindDn(), connectionParams.getBindPassword().toCharArray());
+      ldapConnectionFactory = new LDAPConnectionFactory(
+          connectionParams.getHostname(),
+          connectionParams.getLdapPort(),
+          Options.defaultOptions().set(LDAPConnectionFactory.AUTHN_BIND_REQUEST, authRequest));
+    }
+    else
+    {
+      ldapConnectionFactory = null;
+    }
   }
 
   /**
@@ -244,6 +256,8 @@ public class EmbeddedDirectoryServer
 
   /**
    * Imports LDIF data to the directory server, overwriting existing data.
+   * <p>
+   * The import is implemented only for online use.
    *
    * @param parameters
    *            The import parameters.
@@ -252,6 +266,7 @@ public class EmbeddedDirectoryServer
    */
   public void importData(ImportParameters parameters) throws EmbeddedDirectoryServerException
   {
+    checkServerIsRunning();
     checkConnectionParameters();
     int returnCode = ImportLDIF.mainImportLDIF(
         parameters.toCommandLineArguments(configParams.getConfigurationFile(), connectionParams),
@@ -351,6 +366,8 @@ public class EmbeddedDirectoryServer
   public void setup(SetupParameters parameters) throws EmbeddedDirectoryServerException
   {
     checkConnectionParameters();
+    System.setProperty(QUICKSETUP_ROOT_PROPERTY, configParams.getServerRootDirectory());
+    System.setProperty(QUICKSETUP_INSTANCE_PROPERTY, configParams.getServerInstanceDirectory());
     int returnCode = InstallDS.mainCLI(parameters.toCommandLineArguments(connectionParams), outStream, errStream,
         TempLogFile.newTempLogFile(EMBEDDED_OPEN_DJ_PREFIX));
 
@@ -363,6 +380,9 @@ public class EmbeddedDirectoryServer
 
   /**
    * Setups this server from the provided archive.
+   * <p>
+   * As the DJ archive includes the "opendj" directory, it is mandatory to have
+   * the root directory named "opendj".
    *
    * @param openDJZipFile
    *            The OpenDJ server archive.
@@ -376,7 +396,14 @@ public class EmbeddedDirectoryServer
     checkConnectionParameters();
     try
     {
-      StaticUtils.extractZipArchive(openDJZipFile, new File(configParams.getServerRootDirectory()));
+      File serverRoot = new File(configParams.getServerRootDirectory());
+      if (!serverRoot.getName().equals("opendj"))
+      {
+        throw new EmbeddedDirectoryServerException(LocalizableMessage.raw("Wrong server root directory" + serverRoot));
+      }
+      // the directory where the zip file is extracted should be one level up from the server root.
+      File deployDirectory = serverRoot.getParentFile();
+      StaticUtils.extractZipArchive(openDJZipFile, deployDirectory);
     }
     catch (IOException e)
     {
@@ -388,6 +415,8 @@ public class EmbeddedDirectoryServer
 
   /**
    * Rebuilds all the indexes of this server.
+   * <p>
+   * This operation is done offline, hence the server must be stopped when calling this method.
    *
    * @param parameters
    *            The parameters for rebuilding the indexes.
@@ -396,8 +425,9 @@ public class EmbeddedDirectoryServer
    */
   public void rebuildIndex(RebuildIndexParameters parameters) throws EmbeddedDirectoryServerException
   {
+    checkServerIsNotRunning();
     int returnCode = RebuildIndex.mainRebuildIndex(
-        parameters.toCommandLineArguments(), !isRunning(), outStream, errStream);
+        parameters.toCommandLineArguments(configParams.getConfigurationFile()), !isRunning(), outStream, errStream);
 
     if (returnCode != 0)
     {
@@ -587,6 +617,24 @@ public class EmbeddedDirectoryServer
     if (connectionParams == null)
     {
       throw new EmbeddedDirectoryServerException(LocalizableMessage.raw("Operation is not permitted"));
+    }
+  }
+
+  private void checkServerIsRunning() throws EmbeddedDirectoryServerException
+  {
+    if (!isRunning())
+    {
+      throw new EmbeddedDirectoryServerException(LocalizableMessage.raw(
+          "This operation is only available when server is online"));
+    }
+  }
+
+  private void checkServerIsNotRunning() throws EmbeddedDirectoryServerException
+  {
+    if (isRunning())
+    {
+      throw new EmbeddedDirectoryServerException(LocalizableMessage.raw(
+          "This operation is only available when server is offline"));
     }
   }
 

@@ -29,6 +29,16 @@ public final class ImportParameters
   }
 
   /**
+   * Creates a builder for the import parameters.
+   *
+   * @return a builder
+   */
+  public static Builder importParams()
+  {
+    return new Builder();
+  }
+
+  /**
    * Generates command-line arguments from the parameters.
    *
    * @return command-line arguments
@@ -61,16 +71,6 @@ public final class ImportParameters
     private Builder()
     {
       params = new ImportParameters();
-    }
-
-    /**
-     * Creates a builder for the import parameters.
-     *
-     * @return a builder
-     */
-    public static Builder importParams()
-    {
-      return new Builder();
     }
 
     /**

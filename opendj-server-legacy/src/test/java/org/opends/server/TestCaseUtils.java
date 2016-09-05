@@ -17,7 +17,9 @@
  */
 package org.opends.server;
 
-import static org.opends.server.util.embedded.ConfigParameters.Builder.configParams;
+import static org.opends.server.util.embedded.EmbeddedDirectoryServer.defineServer;
+import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
+import static org.opends.server.util.embedded.ConfigParameters.configParams;
 import static org.opends.server.loggers.TextAccessLogPublisher.getStartupTextAccessPublisher;
 import static org.opends.server.loggers.TextErrorLogPublisher.getToolStartupTextErrorPublisher;
 import static org.opends.server.loggers.TextHTTPAccessLogPublisher.getStartupTextHTTPAccessPublisher;
@@ -104,6 +106,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.util.BuildVersion;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.embedded.EmbeddedDirectoryServer;
 import org.testng.Assert;
@@ -112,7 +115,6 @@ import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.embedded.ConnectionParameters.Builder.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -218,7 +220,7 @@ public final class TestCaseUtils {
   private static int serverRestarts;
 
   /** The paths to directories and files used in the tests. */
-  private static TestPaths paths;
+  private static TestPaths paths = new TestPaths();
 
   /** The ports used in the tests. */
   private static TestPorts ports;
@@ -308,7 +310,7 @@ public final class TestCaseUtils {
       }
       InvocationCounterPlugin.resetStartupCalled();
 
-      initializePathsPortsAndServer();
+      initializePortsAndServer();
 
       deployDirectoryDirsAndFiles();
 
@@ -334,12 +336,11 @@ public final class TestCaseUtils {
     }
   }
 
-  private static void initializePathsPortsAndServer() throws Exception
+  private static void initializePortsAndServer() throws Exception
   {
-    paths = new TestPaths();
     ports = new TestPorts();
     hostname = InetAddress.getLocalHost().getHostName();
-    server = EmbeddedDirectoryServer.defineServer(
+    server = defineServer(
         configParams()
           .serverRootDirectory(paths.testInstallRoot.getPath())
           .serverInstanceDirectory(paths.testInstanceRoot.getPath())
@@ -1129,19 +1130,25 @@ public final class TestCaseUtils {
    */
   public static File getTestResource(String filename)
   {
-    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-    File   testResourceDir = new File(buildRoot + File.separator + "tests" +
-                                      File.separator + "unit-tests-testng" +
-                                      File.separator + "resource");
-
+    File testResourceDir = new File(paths.testSrcRoot, "resource");
     return new File(testResourceDir, filename);
   }
 
   public static File getUnitTestRootPath()
   {
-    final String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-    final String path = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "target");
-    return new File(path, "unit-tests");
+    return paths.unitRoot;
+  }
+
+  /** Get the complete path to the OpenDJ archive. */
+  public static File getOpenDJArchivePath()
+  {
+    String qualifier = DynamicConstants.VERSION_QUALIFIER;
+    String openDJArchiveName =
+        DynamicConstants.SHORT_NAME.toLowerCase()
+        + "-"
+        + DynamicConstants.VERSION_NUMBER_STRING
+        + (qualifier != null && !qualifier.isEmpty() ? "-" + qualifier : "");
+    return getBuildRoot().toPath().resolve("target/package").resolve(openDJArchiveName + ".zip").toFile();
   }
 
   /** Prevent instantiation. */

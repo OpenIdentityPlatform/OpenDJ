@@ -31,6 +31,16 @@ public final class UpgradeParameters
   }
 
   /**
+   * Starts construction of the upgrade parameters.
+   *
+   * @return this builder
+   */
+  public static Builder upgradeParams()
+  {
+    return new Builder();
+  }
+
+  /**
    * Generates command-line arguments from the parameters.
    *
    * @return command-line arguments
@@ -59,16 +69,6 @@ public final class UpgradeParameters
     private Builder()
     {
       params = new UpgradeParameters();
-    }
-
-    /**
-     * Starts construction of the upgrade parameters.
-     *
-     * @return this builder
-     */
-    public static Builder upgradeParams()
-    {
-      return new Builder();
     }
 
     /**

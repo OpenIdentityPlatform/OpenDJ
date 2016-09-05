@@ -16,7 +16,8 @@
  */
 package org.opends.server.tools.dsreplication;
 
-import static org.opends.server.util.embedded.ConfigParameters.Builder.configParams;
+import static org.opends.server.util.embedded.ConfigParameters.configParams;
+import static org.opends.server.util.embedded.EmbeddedDirectoryServer.defineServerForStartStopOperations;
 import static org.opends.messages.AdminToolMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -88,7 +89,7 @@ public class LocalPurgeHistorical
 
     try
     {
-      EmbeddedDirectoryServer server = EmbeddedDirectoryServer.defineServerForStartStopOperations(
+      EmbeddedDirectoryServer server = defineServerForStartStopOperations(
           configParams()
             .configurationFile(configFile)
             .disableConnectionHandlers(true)

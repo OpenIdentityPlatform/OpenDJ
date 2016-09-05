@@ -2507,7 +2507,7 @@ public final class StaticUtils
 
         if (fileEntry.isDirectory())
         {
-          targetFile.mkdir();
+          targetFile.mkdirs();
           continue;
         }
         extractFileFromZip(zipStream, targetFile);

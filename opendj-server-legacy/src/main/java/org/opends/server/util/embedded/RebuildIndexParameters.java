@@ -20,7 +20,6 @@ package org.opends.server.util.embedded;
  */
 public final class RebuildIndexParameters
 {
-  private String configurationFile;
   private String baseDN;
 
   private RebuildIndexParameters()
@@ -29,11 +28,21 @@ public final class RebuildIndexParameters
   }
 
   /**
+   * Creates a builder for the rebuild index parameters.
+   *
+   * @return a builder
+   */
+  public static Builder rebuildIndexParams()
+  {
+    return new Builder();
+  }
+
+  /**
    * Generates command-line arguments from the parameters.
    *
    * @return command-line arguments
    */
-  String[] toCommandLineArguments()
+  String[] toCommandLineArguments(String configurationFile)
   {
     return new String[] {
       "--configFile", configurationFile,
@@ -56,16 +65,6 @@ public final class RebuildIndexParameters
     }
 
     /**
-     * Creates a builder for the rebuild index parameters.
-     *
-     * @return a builder
-     */
-    public static Builder rebuildIndexParams()
-    {
-      return new Builder();
-    }
-
-    /**
      * Generates the parameters from this builder.
      * <p>
      * After this call, the builder is reset and can be used to generate other parameters.
@@ -77,19 +76,6 @@ public final class RebuildIndexParameters
       RebuildIndexParameters p = params;
       this.params = new RebuildIndexParameters();
       return p;
-    }
-
-    /**
-     * Sets the configuration file of the server.
-     *
-     * @param file
-     *          the configuration file
-     * @return this builder
-     */
-    public Builder configurationFile(String file)
-    {
-      params.configurationFile = file;
-      return this;
     }
 
     /**
