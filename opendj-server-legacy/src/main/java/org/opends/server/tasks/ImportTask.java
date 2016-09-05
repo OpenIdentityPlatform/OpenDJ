@@ -90,7 +90,6 @@ public class ImportTask extends Task
   private boolean overwrite;
   private boolean skipSchemaValidation;
   private boolean clearBackend;
-  private boolean skipDNValidation;
   private String tmpDirectory;
   private int threadCount;
   private String backendID;
@@ -153,7 +152,6 @@ public class ImportTask extends Task
     AttributeType typeRandomSeed = getSchema().getAttributeType(ATTR_IMPORT_RANDOM_SEED);
     AttributeType typeThreadCount = getSchema().getAttributeType(ATTR_IMPORT_THREAD_COUNT);
     AttributeType typeTmpDirectory = getSchema().getAttributeType(ATTR_IMPORT_TMP_DIRECTORY);
-    AttributeType typeDNCheckPhase2 = getSchema().getAttributeType(ATTR_IMPORT_SKIP_DN_VALIDATION);
 
     ArrayList<String> ldifFilestmp = asListOfStrings(taskEntry, typeLdifFile);
     ldifFiles = new ArrayList<>(ldifFilestmp.size());
@@ -189,7 +187,6 @@ public class ImportTask extends Task
       }
     }
 
-    skipDNValidation = asBoolean(taskEntry, typeDNCheckPhase2);
     tmpDirectory = asString(taskEntry, typeTmpDirectory);
     backendID = asString(taskEntry, typeBackendID);
     includeBranchStrings = asListOfStrings(taskEntry, typeIncludeBranch);
@@ -581,7 +578,6 @@ public class ImportTask extends Task
     importConfig.setIncludeBranches(includeBranches);
     importConfig.setIncludeFilters(includeFilters);
     importConfig.setValidateSchema(!skipSchemaValidation);
-    importConfig.setSkipDNValidation(skipDNValidation);
     importConfig.setTmpDirectory(tmpDirectory);
     importConfig.setThreadCount(threadCount);
 
@@ -669,16 +665,7 @@ public class ImportTask extends Task
         logger.traceException(de);
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        LocalizableMessage msg;
-        if (de.getResultCode() == ResultCode.CONSTRAINT_VIOLATION)
-        {
-          msg = ERR_LDIFIMPORT_ERROR_CONSTRAINT_VIOLATION.get();
-        }
-        else
-        {
-          msg = de.getMessageObject();
-        }
-        logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(msg));
+        logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject()));
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)

@@ -35,7 +35,6 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.Backend;
@@ -134,7 +133,6 @@ public class ImportLDIF extends TaskTool {
   private StringArgument  rejectFile;
   private StringArgument  skipFile;
   private StringArgument  templateFile;
-  private BooleanArgument skipDNValidation;
   private IntegerArgument threadCount;
   private StringArgument  tmpDirectory;
 
@@ -348,10 +346,6 @@ public class ImportLDIF extends TaskTool {
                       .shortIdentifier('S')
                       .description(INFO_LDIFIMPORT_DESCRIPTION_SKIP_SCHEMA_VALIDATION.get())
                       .buildAndAddToParser(argParser);
-      skipDNValidation =
-              BooleanArgument.builder("skipDNValidation")
-                      .description(INFO_LDIFIMPORT_DESCRIPTION_DN_VALIDATION.get())
-                      .buildAndAddToParser(argParser);
       threadCount =
               IntegerArgument.builder("threadCount")
                       .description(INFO_LDIFIMPORT_DESCRIPTION_THREAD_COUNT.get())
@@ -413,7 +407,6 @@ public class ImportLDIF extends TaskTool {
     addAttribute2(attributes, ATTR_IMPORT_OVERWRITE, overwrite);
     addAttribute2(attributes, ATTR_IMPORT_SKIP_SCHEMA_VALIDATION, skipSchemaValidation);
     addAttribute2(attributes, ATTR_IMPORT_TMP_DIRECTORY, tmpDirectory);
-    addAttribute2(attributes, ATTR_IMPORT_SKIP_DN_VALIDATION, skipDNValidation);
     addAttribute2(attributes, ATTR_IMPORT_IS_COMPRESSED, isCompressed);
     addAttribute2(attributes, ATTR_IMPORT_IS_ENCRYPTED, isEncrypted);
     addAttribute2(attributes, ATTR_IMPORT_CLEAR_BACKEND, clearBackend);
@@ -771,7 +764,6 @@ public class ImportLDIF extends TaskTool {
     importConfig.setIncludeBranches(includeBranches);
     importConfig.setIncludeFilters(includeFilters);
     importConfig.setValidateSchema(!skipSchemaValidation.isPresent());
-    importConfig.setSkipDNValidation(skipDNValidation.isPresent());
     importConfig.setTmpDirectory(tmpDirectory.getValue());
 
     try
@@ -872,14 +864,7 @@ public class ImportLDIF extends TaskTool {
     catch (DirectoryException de)
     {
       LocalizableMessage msg;
-      if (de.getResultCode() == ResultCode.CONSTRAINT_VIOLATION)
-      {
-        msg = ERR_LDIFIMPORT_ERROR_CONSTRAINT_VIOLATION.get();
-      }
-      else
-      {
-        msg = de.getMessageObject();
-      }
+      msg = de.getMessageObject();
       logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(msg));
       retCode = 1;
     }

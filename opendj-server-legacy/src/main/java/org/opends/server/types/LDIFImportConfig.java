@@ -125,7 +125,6 @@ public final class LDIFImportConfig extends OperationConfig
   private boolean excludeAllOpAttrs;
 
   private String tmpDirectory;
-  private boolean skipDNValidation;
   private int threadCount;
 
   /**
@@ -1035,26 +1034,6 @@ public final class LDIFImportConfig extends OperationConfig
   public String getTmpDirectory()
   {
     return tmpDirectory;
-  }
-
-  /**
-   * Set the dn check in phase two boolean to the specified value.
-   *
-   * @param v The value to set the dn check in phase two boolean to.
-   */
-  public void setSkipDNValidation(boolean v)
-  {
-    skipDNValidation = v;
-  }
-
-  /**
-   * Return the dn check in phase two boolean.
-   *
-   * @return Return the dn check in phase two boolean value.
-   */
-  public boolean getSkipDNValidation()
-  {
-    return skipDNValidation;
   }
 
   /**

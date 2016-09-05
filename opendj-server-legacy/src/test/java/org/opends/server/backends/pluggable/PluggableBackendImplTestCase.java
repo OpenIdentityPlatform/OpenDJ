@@ -953,7 +953,6 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       importConf.setClearBackend(true);
       importConf.writeRejectedEntries(rejectedEntries);
       importConf.setIncludeBranches(Collections.singleton(testBaseDN));
-      importConf.setSkipDNValidation(true);
       importConf.setThreadCount(0);
       backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
     }

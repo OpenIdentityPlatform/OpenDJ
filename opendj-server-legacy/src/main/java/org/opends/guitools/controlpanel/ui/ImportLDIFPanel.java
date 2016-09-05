@@ -69,7 +69,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
   private JTextField file;
   private JCheckBox dataCompressed;
   private JCheckBox rejectNotSchemaCompliant;
-  private JCheckBox doDNValidationAfter;
   private JCheckBox writeRejects;
   private JCheckBox writeSkips;
   private JTextField threads;
@@ -229,19 +228,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     gbc.insets.left = 10;
     add(rejectNotSchemaCompliant, gbc);
     lSchemaValidation.setLabelFor(rejectNotSchemaCompliant);
-
-    gbc.gridx = 0;
-    gbc.gridy ++;
-    gbc.insets.left = 0;
-    lDNValidation = Utilities.createPrimaryLabel(INFO_CTRL_PANEL_DN_VALIDATION_LABEL.get());
-    add(lDNValidation, gbc);
-
-    gbc.gridx = 1;
-    doDNValidationAfter = Utilities.createCheckBox(INFO_CTRL_PANEL_DO_DN_VALIDATION_LATER_LABEL.get());
-    doDNValidationAfter.setSelected(false);
-    gbc.insets.left = 10;
-    add(doDNValidationAfter, gbc);
-    lDNValidation.setLabelFor(doDNValidationAfter);
 
     gbc.gridx = 0;
     gbc.gridy ++;
@@ -681,10 +667,6 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       if (!rejectNotSchemaCompliant.isSelected())
       {
         args.add("--skipSchemaValidation");
-      }
-      if (doDNValidationAfter.isSelected())
-      {
-        args.add("--skipDNValidation");
       }
 
       String sThread = threads.getText().trim();

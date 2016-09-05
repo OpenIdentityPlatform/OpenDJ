@@ -3973,14 +3973,6 @@ public final class ConfigConstants
   public static final String ATTR_IMPORT_TMP_DIRECTORY =
        NAME_PREFIX_TASK + "import-tmp-directory";
 
-    /**
-   * The name of the attribute in an import task definition that specifies
-   * that minimal DN validation should be done during phase 2.
-   */
-
-   public static final String ATTR_IMPORT_SKIP_DN_VALIDATION =
-       NAME_PREFIX_TASK + "import-skip-dn-validation";
-
   /**
    * The name of the objectclass that will be used for a Directory Server
    * initialize task definition.

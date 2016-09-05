@@ -3552,7 +3552,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       importConfig = new LDIFImportConfig(input);
       importConfig.setIncludeBranches(newLinkedHashSet(getBaseDN()));
-      importConfig.setSkipDNValidation(true);
       // We should not validate schema for replication
       importConfig.setValidateSchema(false);
       // Allow fractional replication ldif import plugin to be called
