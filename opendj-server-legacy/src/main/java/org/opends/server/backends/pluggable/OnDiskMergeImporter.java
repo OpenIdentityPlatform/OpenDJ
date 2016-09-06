@@ -2345,6 +2345,15 @@ final class OnDiskMergeImporter
           totalNumberOfEntries++;
         }
       }
+      catch (StorageRuntimeException e)
+      {
+        // DnValidationCursorDecorator is using a StorageRuntimeException to wrap a DirectoryException
+        if (e.getCause() instanceof DirectoryException)
+        {
+          throw (DirectoryException) e.getCause();
+        }
+        throw e;
+      }
       id2count.importPutTotalCount(asImporter(id2CountChunk), Math.max(0, totalNumberOfEntries));
 
       new ChunkCopierTask(reporter, id2CountChunk, id2count.getName(), importer).call();
@@ -2440,7 +2449,7 @@ final class OnDiskMergeImporter
     {
       if (dn.equals(parentDns.peekLast()))
       {
-        throw new DirectoryException(ENTRY_ALREADY_EXISTS, ERR_ADD_ENTRY_ALREADY_EXISTS.get(getDnAsString()));
+        throw new DirectoryException(ENTRY_ALREADY_EXISTS, ERR_IMPORT_DUPLICATE_ENTRY.get(getDnAsString()));
       }
     }
 

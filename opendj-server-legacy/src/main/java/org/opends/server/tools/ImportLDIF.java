@@ -863,9 +863,14 @@ public class ImportLDIF extends TaskTool {
     }
     catch (DirectoryException de)
     {
-      LocalizableMessage msg;
-      msg = de.getMessageObject();
-      logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(msg));
+      if (de.getResultCode().equals(DirectoryServer.getServerErrorResultCode()))
+      {
+        logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject()));
+      }
+      else
+      {
+        logger.error(de.getMessageObject());
+      }
       retCode = 1;
     }
     catch (Exception e)

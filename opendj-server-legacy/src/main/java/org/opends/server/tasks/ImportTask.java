@@ -665,7 +665,14 @@ public class ImportTask extends Task
         logger.traceException(de);
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject()));
+        if (de.getResultCode().equals(DirectoryServer.getServerErrorResultCode()))
+        {
+          logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject()));
+        }
+        else
+        {
+          logger.error(de.getMessageObject());
+        }
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)
