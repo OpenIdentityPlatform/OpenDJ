@@ -16,13 +16,9 @@
  */
 package org.opends.server.types;
 
-import java.util.AbstractSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -37,6 +33,8 @@ import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.types.Attribute.RemoveOnceSwitchingAttributes;
 import org.opends.server.util.CollectionUtils;
+
+import com.forgerock.opendj.util.SmallSet;
 
 /**
  * This class provides an interface for creating new non-virtual
@@ -96,7 +94,6 @@ import org.opends.server.util.CollectionUtils;
 @RemoveOnceSwitchingAttributes
 public final class AttributeBuilder implements Iterable<ByteString>
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** A real attribute */
@@ -154,9 +151,8 @@ public final class AttributeBuilder implements Iterable<ByteString>
         catch (Exception e)
         {
           logger.traceException(e);
-          // We couldn't normalize one of the attribute values. If we
-          // can't find a definite match, then we should return
-          // "undefined".
+          // We could not normalize one of the attribute values.
+          // If we cannot find a definite match, then we should return "undefined".
           result = ConditionResult.UNDEFINED;
         }
       }
@@ -233,8 +229,8 @@ public final class AttributeBuilder implements Iterable<ByteString>
         catch (Exception e)
         {
           logger.traceException(e);
-          // We couldn't normalize one of the attribute values. If we
-          // can't find a definite match, then we should return "undefined".
+          // We could not normalize one of the attribute values.
+          // If we cannot find a definite match, then we should return "undefined".
           result = ConditionResult.UNDEFINED;
         }
       }
@@ -289,8 +285,8 @@ public final class AttributeBuilder implements Iterable<ByteString>
         {
           logger.traceException(e);
 
-          // We couldn't normalize one of the attribute values. If we
-          // can't find a definite match, then we should return "undefined".
+          // We could not normalize one of the attribute values.
+          // If we cannot find a definite match, then we should return "undefined".
           result = ConditionResult.UNDEFINED;
         }
       }
@@ -335,16 +331,14 @@ public final class AttributeBuilder implements Iterable<ByteString>
         {
           logger.traceException(e);
 
-          // The value couldn't be normalized. If we can't find a
-          // definite match, then we should return "undefined".
+          // The value could not be normalized.
+          // If we cannot find a definite match, then we should return "undefined".
           result = ConditionResult.UNDEFINED;
         }
       }
 
       return result;
     }
-
-
 
     @Override
     public final int size()
@@ -371,239 +365,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
       buffer.append(", {");
       Utils.joinAsString(buffer, ", ", values);
       buffer.append("})");
-    }
-  }
-
-  /**
-   * A small set of values. This set implementation is optimized to
-   * use as little memory as possible in the case where there zero or
-   * one elements. In addition, any normalization of elements is
-   * delayed until the second element is added (normalization may be
-   * triggered by invoking {@link Object#hashCode()} or
-   * {@link Object#equals(Object)}.
-   *
-   * @param <T>
-   *          The type of elements to be contained in this small set.
-   */
-  private static final class SmallSet<T> extends AbstractSet<T>
-  {
-
-    /** The set of elements if there are more than one. */
-    private LinkedHashSet<T> elements;
-
-    /** The first element. */
-    private T firstElement;
-
-    /**
-     * Creates a new small set which is initially empty.
-     */
-    public SmallSet()
-    {
-      // No implementation required.
-    }
-
-    /**
-     * Creates a new small set with an initial capacity.
-     *
-     * @param initialCapacity
-     *          The capacity of the set
-     */
-    public SmallSet(int initialCapacity)
-    {
-      Reject.ifFalse(initialCapacity >= 0);
-
-      if (initialCapacity > 1)
-      {
-        elements = new LinkedHashSet<>(initialCapacity);
-      }
-    }
-
-    @Override
-    public boolean add(T e)
-    {
-      // Special handling for the first value. This avoids potentially
-      // expensive normalization.
-      if (firstElement == null && elements == null)
-      {
-        firstElement = e;
-        return true;
-      }
-
-      // Create the value set if necessary.
-      if (elements == null)
-      {
-        if (firstElement.equals(e))
-        {
-          return false;
-        }
-
-        elements = new LinkedHashSet<>(2);
-
-        // Move the first value into the set.
-        elements.add(firstElement);
-        firstElement = null;
-      }
-
-      return elements.add(e);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends T> c)
-    {
-      if (elements != null)
-      {
-        return elements.addAll(c);
-      }
-
-      if (firstElement != null)
-      {
-        elements = new LinkedHashSet<>(1 + c.size());
-        elements.add(firstElement);
-        firstElement = null;
-        return elements.addAll(c);
-      }
-
-      // Initially empty.
-      switch (c.size())
-      {
-      case 0:
-        // Do nothing.
-        return false;
-      case 1:
-        firstElement = c.iterator().next();
-        return true;
-      default:
-        elements = new LinkedHashSet<>(c);
-        return true;
-      }
-    }
-
-    @Override
-    public void clear()
-    {
-      firstElement = null;
-      elements = null;
-    }
-
-    @Override
-    public Iterator<T> iterator()
-    {
-      if (elements != null)
-      {
-        return elements.iterator();
-      }
-      else if (firstElement != null)
-      {
-        return new Iterator<T>()
-        {
-          private boolean hasNext = true;
-
-          @Override
-          public boolean hasNext()
-          {
-            return hasNext;
-          }
-
-          @Override
-          public T next()
-          {
-            if (!hasNext)
-            {
-              throw new NoSuchElementException();
-            }
-
-            hasNext = false;
-            return firstElement;
-          }
-
-          @Override
-          public void remove()
-          {
-            throw new UnsupportedOperationException();
-          }
-
-        };
-      }
-      else
-      {
-        return Collections.<T> emptySet().iterator();
-      }
-    }
-
-    @Override
-    public boolean remove(Object o)
-    {
-      if (elements != null)
-      {
-        // Note: if there is one or zero values left we could stop
-        // using the set. However, lets assume that if the set
-        // was multi-valued before then it may become multi-valued
-        // again.
-        return elements.remove(o);
-      }
-
-      if (firstElement != null && firstElement.equals(o))
-      {
-        firstElement = null;
-        return true;
-      }
-
-      return false;
-    }
-
-    @Override
-    public boolean contains(Object o)
-    {
-      if (elements != null)
-      {
-        return elements.contains(o);
-      }
-
-      return firstElement != null && firstElement.equals(o);
-    }
-
-    /**
-     * Sets the initial capacity of this small set. If this small set
-     * already contains elements or if its capacity has already been
-     * defined then an {@link IllegalStateException} is thrown.
-     *
-     * @param initialCapacity
-     *          The initial capacity of this small set.
-     * @throws IllegalStateException
-     *           If this small set already contains elements or if its
-     *           capacity has already been defined.
-     */
-    public void setInitialCapacity(int initialCapacity)
-        throws IllegalStateException
-    {
-      Reject.ifFalse(initialCapacity >= 0);
-
-      if (elements != null)
-      {
-        throw new IllegalStateException();
-      }
-
-      if (initialCapacity > 1)
-      {
-        elements = new LinkedHashSet<>(initialCapacity);
-      }
-    }
-
-    @Override
-    public int size()
-    {
-      if (elements != null)
-      {
-        return elements.size();
-      }
-      else if (firstElement != null)
-      {
-        return 1;
-      }
-      else
-      {
-        return 0;
-      }
     }
   }
 
@@ -755,7 +516,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
   /** The attribute description for this attribute. */
   private AttributeDescription attributeDescription;
   /** The set of attribute values, which are lazily normalized. */
-  private Set<AttributeValue> values = new SmallSet<>();
+  private SmallSet<AttributeValue> values = new SmallSet<>();
 
   /**
    * Creates a new attribute builder with an undefined attribute type
@@ -880,8 +641,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
       // AttributeValue is already present, but the user-provided value may be different
       // There is no direct way to check this, so remove and add to ensure
       // the last user-provided value is recorded
-      values.remove(value);
-      values.add(value);
+      values.addOrReplace(value);
     }
     return isNewValue;
   }
