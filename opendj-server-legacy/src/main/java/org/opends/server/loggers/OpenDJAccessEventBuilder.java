@@ -44,6 +44,9 @@ import org.opends.server.types.Operation;
 class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> extends AccessAuditEventBuilder<T>
 {
 
+  private static final String LDAP_VALUE_KEY = "ldap";
+  private JsonValue ldapValue;
+
   private OpenDJAccessAuditEventBuilder()
   {
     super();
@@ -247,10 +250,11 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
 
   private JsonValue getLdapValue()
   {
-    if (!jsonValue.isDefined("ldap"))
+    if (ldapValue == null)
     {
-      jsonValue.put("ldap", object());
+      jsonValue.put(LDAP_VALUE_KEY, object());
+      ldapValue = jsonValue.get(LDAP_VALUE_KEY);
     }
-    return jsonValue.get("ldap");
+    return ldapValue;
   }
 }
