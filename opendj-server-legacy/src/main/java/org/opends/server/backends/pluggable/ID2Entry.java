@@ -137,6 +137,7 @@ class ID2Entry extends AbstractTree
     {
       encodedBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
       entryBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
+      compressedEntryBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
     }
 
     private Entry decode(ByteString bytes, CompressedSchema compressedSchema)
