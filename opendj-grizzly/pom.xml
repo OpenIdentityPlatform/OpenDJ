@@ -99,6 +99,7 @@
                     <instructions>
                         <!-- Export only public APIs of this module-->
                         <Export-Package>
+                            com.forgerock.opendj.grizzly*,
                             org.forgerock.opendj.grizzly*
                         </Export-Package>
                     </instructions>

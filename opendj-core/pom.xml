@@ -109,6 +109,7 @@
                     <instructions>
                         <Export-Package>
                             com.forgerock.opendj.util,
+                            com.forgerock.opendj.ldap*,
                             org.forgerock.opendj.io,
                             org.forgerock.opendj.ldap*,
                             org.forgerock.opendj.ldif
