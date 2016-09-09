@@ -1,0 +1,22 @@
+To run the examples in this module:
+
+# Build the whole opendj project
+> maven clean install
+
+# Go to the opendj-embedded-server-examples directory
+> cd opendj-embedded-server-examples
+
+# define the class patch to use
+export CLASSPATH=target/opendj-embedded-server-examples-4.0.0-SNAPSHOT.jar:../opendj-server-legacy/target/package/opendj/lib/opendj-slf4j-adapter.jar
+
+# Setup a server from the OpenDJ archive resulting from the build
+# /path/to/opendj will be the root directory  
+java -cp $CLASSPATH org.forgerock.opendj.examples.SetupServer ../opendj-server-legacy/target/package/opendj-4.0.0-SNAPSHOT.zip /path/to/opendj
+
+# Then you can run any of the example using the installed server
+
+# Start and stop the server
+java -cp $CLASSPATH /path/to/opendj
+
+# Read and update the configuration of the server
+java -cp $CLASSPATH /path/to/opendj "dc=example,dc=com"

@@ -230,6 +230,7 @@
         <module>opendj-legacy</module>
         <module>opendj-server-legacy</module>
         <module>opendj-dsml-servlet</module>
+        <module>opendj-embedded-server-examples</module>
         <module>opendj-openidm-account-change-notification-handler</module>
         <module>opendj-doc-generated-ref</module>
     </modules>

@@ -15,6 +15,8 @@
  */
 package org.opends.server.util.embedded;
 
+import org.forgerock.util.Reject;
+
 /**
  * Parameters to configure a directory server.
  */
@@ -45,9 +47,9 @@ public final class ConfigParameters
     return serverRootDirectory;
   }
 
+  /** This value may be {@code null}, it must always  be checked. */
   String getServerInstanceDirectory()
   {
-    // provides the expected default value if not set
     return serverInstanceDirectory;
   }
 
@@ -83,6 +85,7 @@ public final class ConfigParameters
     public ConfigParameters toParams()
     {
       ConfigParameters p = params;
+      Reject.ifNull(p.serverRootDirectory, p.configurationFile);
       this.params = new ConfigParameters();
       return p;
     }

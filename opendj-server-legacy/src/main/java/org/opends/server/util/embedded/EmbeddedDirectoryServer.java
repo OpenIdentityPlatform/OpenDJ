@@ -15,6 +15,7 @@
  */
 package org.opends.server.util.embedded;
 
+import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.opendj.config.client.ldap.LDAPManagementContext.newManagementContext;
 import static org.forgerock.opendj.config.client.ldap.LDAPManagementContext.newLDIFManagementContext;
 import static org.opends.messages.UtilityMessages.*;
@@ -36,7 +37,6 @@ import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.forgerock.util.Options;
 import org.forgerock.util.Pair;
-import org.forgerock.util.Reject;
 import org.opends.quicksetup.TempLogFile;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -48,7 +48,6 @@ import org.opends.server.tools.upgrade.UpgradeCli;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -357,6 +356,9 @@ public class EmbeddedDirectoryServer
 
   /**
    * Setups this server from the root directory.
+   * <p>
+   * As a pre-requisite, the OpenDJ archive must have been previously extracted to some
+   * directory. To perform a setup directly from an archive, see {@code setupFromArchive()}.
    *
    * @param parameters
    *            The setup parameters.
@@ -366,8 +368,15 @@ public class EmbeddedDirectoryServer
   public void setup(SetupParameters parameters) throws EmbeddedDirectoryServerException
   {
     checkConnectionParameters();
+
+    System.setProperty(PROPERTY_SERVER_ROOT, configParams.getServerRootDirectory());
     System.setProperty(QUICKSETUP_ROOT_PROPERTY, configParams.getServerRootDirectory());
-    System.setProperty(QUICKSETUP_INSTANCE_PROPERTY, configParams.getServerInstanceDirectory());
+    String instanceDir = configParams.getServerInstanceDirectory() != null ?
+        configParams.getServerInstanceDirectory() :
+        configParams.getServerRootDirectory();
+    System.setProperty(QUICKSETUP_INSTANCE_PROPERTY, instanceDir);
+    System.setProperty(PROPERTY_INSTANCE_ROOT, instanceDir);
+
     int returnCode = InstallDS.mainCLI(parameters.toCommandLineArguments(connectionParams), outStream, errStream,
         TempLogFile.newTempLogFile(EMBEDDED_OPEN_DJ_PREFIX));
 
@@ -382,7 +391,7 @@ public class EmbeddedDirectoryServer
    * Setups this server from the provided archive.
    * <p>
    * As the DJ archive includes the "opendj" directory, it is mandatory to have
-   * the root directory named "opendj".
+   * the root directory named "opendj" when using this method.
    *
    * @param openDJZipFile
    *            The OpenDJ server archive.
