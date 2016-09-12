@@ -54,6 +54,8 @@ public class SchemaUtils
     // No implementation required.
   }
 
+  private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
+
   /** Represents a password type, including a "not a password" value. */
   public enum PasswordType
   {
@@ -124,7 +126,7 @@ public class SchemaUtils
   public static String getElementDefinitionWithFileName(SchemaElement element)
   {
     final String definition = element.toString();
-    return addSchemaFileToElementDefinitionIfAbsent(definition, SchemaUtils.getElementSchemaFile(element));
+    return addSchemaFileToElementDefinitionIfAbsent(definition, getElementSchemaFile(element));
   }
 
   /**
@@ -488,5 +490,22 @@ public class SchemaUtils
     {
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, parsingErrorMsg.get(definition), e);
     }
+  }
+
+  /**
+   * Indicates if the provided schema file corresponds to the configuration schema.
+   * <p>
+   * The file containing the definitions of the schema elements used for configuration must not be
+   * imported nor propagated to other servers because these definitions may vary between versions of
+   * OpenDJ.
+   *
+   * @param schemaFile
+   *            The name of a file defining schema elements
+   * @return {@code true} if the file defines configuration elements,
+   *         {@code false} otherwise
+   */
+  public static boolean is02ConfigLdif(String schemaFile)
+  {
+    return CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile);
   }
 }

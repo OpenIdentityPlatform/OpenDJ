@@ -15,6 +15,8 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.server.util.SchemaUtils.is02ConfigLdif;
+
 import static java.util.Collections.emptyList;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -109,7 +111,6 @@ public final class SchemaHandler
   private static final String CORE_SCHEMA_PROVIDER_NAME = "Core Schema";
   private static final String CORE_SCHEMA_FILE = "00-core.ldif";
   private static final String RFC_3112_SCHEMA_FILE = "03-rfc3112.ldif";
-  private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
   private static final String CORE_SCHEMA_ELEMENTS_FILE = "00-core.ldif";
 
   private static final AttributeType attributeTypesType = CoreSchema.getAttributeTypesAttributeType();
@@ -569,10 +570,8 @@ public final class SchemaHandler
       {
         String definition = v.toString();
         String schemaFile = SchemaUtils.parseSchemaFileFromElementDefinition(definition);
-        if (is02ConfigLdif(schemaFile))
+        if (SchemaUtils.is02ConfigLdif(schemaFile))
         {
-          // Do not import the file containing the definitions of the Schema elements used for configuration
-          // because these definitions may vary between versions of OpenDJ.
           continue;
         }
 
@@ -668,11 +667,6 @@ public final class SchemaHandler
       Schema newSchema = newSchemaBuilder.toSchema();
       updateSchemaAndSchemaFiles(newSchema, getExtraAttributes(), modifiedSchemaFiles, alertGenerator);
     }
-  }
-
-  private boolean is02ConfigLdif(String schemaFile)
-  {
-    return CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile);
   }
 
   private <T> void addElementIfNotNull(Collection<T> col, T element)

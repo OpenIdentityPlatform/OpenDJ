@@ -16,6 +16,9 @@
  */
 package org.opends.server.schema;
 
+import static org.opends.server.util.SchemaUtils.is02ConfigLdif;
+
+import static org.opends.server.util.SchemaUtils.parseSchemaFileFromElementDefinition;
 import static org.forgerock.opendj.ldap.ModificationType.ADD;
 import static org.forgerock.opendj.ldap.ModificationType.DELETE;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
@@ -228,7 +231,7 @@ class SchemaFilesWriter
         // so we don't re-find these same changes on the next startup.
         writeConcatenatedSchema();
       }
-      return mods;
+      return filterOutConfigSchemaElementFromModifications(mods);
     }
     catch (InitializationException ie)
     {
@@ -241,6 +244,29 @@ class SchemaFilesWriter
       logger.error(ERR_SCHEMA_ERROR_DETERMINING_SCHEMA_CHANGES, getExceptionMessage(e));
       return Collections.emptyList();
     }
+  }
+
+  private List<Modification> filterOutConfigSchemaElementFromModifications(final List<Modification> mods)
+      throws DirectoryException
+  {
+    final List<Modification> filteredMods = new ArrayList<>();
+    for (Modification modification : mods)
+    {
+      for (ByteString v : modification.getAttribute())
+      {
+        String definition = v.toString();
+        if (!isFrom02ConfigLdif(definition))
+        {
+          filteredMods.add(modification);
+        }
+      }
+    }
+    return filteredMods;
+  }
+
+  private boolean isFrom02ConfigLdif(String definition) throws DirectoryException
+  {
+    return is02ConfigLdif(parseSchemaFileFromElementDefinition(definition));
   }
 
   /**
