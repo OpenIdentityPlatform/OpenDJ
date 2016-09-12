@@ -682,8 +682,7 @@ public class AttributeBuilderTest extends TypesTestCase
   @Test
   public void testAttributeBuilderContains() throws Exception
   {
-    AttributeBuilder builder = new AttributeBuilder();
-
+    AttributeBuilder builder = new AttributeBuilder(cnType);
     builder.addAll(createAttribute(cnType, "cn", noOptions, twoValues));
 
     Assert.assertTrue(builder.contains(bs("value1")));
@@ -719,42 +718,6 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Assert.assertFalse(builder.containsAll(Arrays.asList(av1, av2, av3)));
   }
-
-  /**
-   * Tests {@link AttributeBuilder#toAttribute()} throws
-   * IllegalStateException after default constructor.
-   */
-  @Test(expectedExceptions = IllegalStateException.class)
-  public void testAttributeBuilderIllegalStateException1() throws Exception
-  {
-    AttributeBuilder builder = new AttributeBuilder();
-    builder.toAttribute();
-  }
-
-
-
-  /**
-   * Tests {@link AttributeBuilder#toAttribute()} throws
-   * IllegalStateException when called twice.
-   */
-  @Test(expectedExceptions = IllegalStateException.class)
-  public void testAttributeBuilderIllegalStateException2() throws Exception
-  {
-    AttributeBuilder builder = new AttributeBuilder(cnType);
-
-    try
-    {
-      builder.toAttribute();
-    }
-    catch (IllegalStateException e)
-    {
-      Assert.fail("Got unexpected IllegalStateException");
-    }
-
-    builder.toAttribute();
-  }
-
-
 
   /**
    * Tests {@link AttributeBuilder#isEmpty()}.

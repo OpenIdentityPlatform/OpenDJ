@@ -54,7 +54,6 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AVA;
-import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -421,16 +420,14 @@ class SchemaFilesWriter
   private static void compareConcatenatedSchema(Set<String> oldElements, Set<String> newElements,
       AttributeType elementType, List<Modification> mods)
   {
-    AttributeBuilder builder = new AttributeBuilder(elementType);
-    addModification(mods, DELETE, oldElements, newElements, builder);
-
-    builder.setAttributeDescription(AttributeDescription.create(elementType));
-    addModification(mods, ADD, newElements, oldElements, builder);
+    addModification(mods, DELETE, oldElements, newElements, elementType);
+    addModification(mods, ADD, newElements, oldElements, elementType);
   }
 
   private static void addModification(List<Modification> mods, ModificationType modType, Set<String> included,
-      Set<String> excluded, AttributeBuilder builder)
+      Set<String> excluded, AttributeType attrType)
   {
+    AttributeBuilder builder = new AttributeBuilder(attrType);
     for (String val : included)
     {
       if (!excluded.contains(val))

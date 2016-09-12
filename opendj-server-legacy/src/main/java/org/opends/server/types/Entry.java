@@ -3550,7 +3550,6 @@ public class Entry
     }
     else
     {
-      AttributeBuilder builder = new AttributeBuilder();
       int startPos;
       int endPos;
       for (int i=0; i < attrs; i++)
@@ -3564,8 +3563,7 @@ public class Entry
         String name = entryBuffer.readStringUtf8(endPos - startPos);
         entryBuffer.skip(1);
 
-        AttributeDescription attrDesc = AttributeDescription.valueOf(name);
-        builder.setAttributeDescription(attrDesc);
+        final AttributeBuilder builder = new AttributeBuilder(name);
 
         // Next, we have the number of values.
         int numValues = entryBuffer.readBERLength();
@@ -4476,8 +4474,8 @@ public class Entry
                   if (!attrName.equals(ocAttr.getAttributeDescription().getNameOrOID()))
                   {
                     // User requested non-default object class type name.
-                    AttributeBuilder builder = new AttributeBuilder(ocAttr);
-                    builder.setAttributeDescription(AttributeDescription.create(attrName, ocType));
+                    AttributeBuilder builder = new AttributeBuilder(AttributeDescription.create(attrName, ocType));
+                    builder.addAll(ocAttr);
                     ocAttr = builder.toAttribute();
                   }
 

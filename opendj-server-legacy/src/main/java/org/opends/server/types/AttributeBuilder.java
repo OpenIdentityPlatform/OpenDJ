@@ -16,6 +16,8 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.util.Reject.checkNotNull;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -514,22 +516,9 @@ public final class AttributeBuilder implements Iterable<ByteString>
   }
 
   /** The attribute description for this attribute. */
-  private AttributeDescription attributeDescription;
+  private final AttributeDescription attributeDescription;
   /** The set of attribute values, which are lazily normalized. */
   private SmallSet<AttributeValue> values = new SmallSet<>();
-
-  /**
-   * Creates a new attribute builder with an undefined attribute type
-   * and user-provided name. The attribute type, and optionally the
-   * user-provided name, must be defined using
-   * {@link #setAttributeDescription(AttributeDescription)} before the attribute
-   * builder can be converted to an {@link Attribute}. Failure to do
-   * so will yield an {@link IllegalStateException}.
-   */
-  public AttributeBuilder()
-  {
-    // No implementation required.
-  }
 
   /**
    * Creates a new attribute builder from an existing attribute.
@@ -554,7 +543,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public AttributeBuilder(AttributeDescription attributeDescription)
   {
-    this.attributeDescription = attributeDescription;
+    this.attributeDescription = checkNotNull(attributeDescription);
   }
 
   /**
@@ -941,17 +930,6 @@ public final class AttributeBuilder implements Iterable<ByteString>
   }
 
   /**
-   * Sets the attribute description associated with this attribute builder.
-   *
-   * @param attrDesc
-   *          The attribute description for this attribute builder.
-   */
-  public void setAttributeDescription(AttributeDescription attrDesc)
-  {
-    attributeDescription = attrDesc;
-  }
-
-  /**
    * Adds the specified option to this attribute builder if it is not
    * already present.
    *
@@ -1073,18 +1051,9 @@ public final class AttributeBuilder implements Iterable<ByteString>
    */
   public Attribute toAttribute() throws IllegalStateException
   {
-    if (attributeDescription == null)
-    {
-      throw new IllegalStateException("Undefined attribute type or name");
-    }
-
-    // Now create the appropriate attribute based on the options.
     Attribute attribute = toAttribute0();
-
     // Reset the state of this builder.
-    attributeDescription = null;
     values = new SmallSet<>();
-
     return attribute;
   }
 
