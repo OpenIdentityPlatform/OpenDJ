@@ -60,6 +60,7 @@ import org.forgerock.api.models.Schema;
 import org.forgerock.api.models.Services;
 import org.forgerock.api.models.Update;
 import org.forgerock.http.ApiProducer;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.JsonValue;
@@ -128,9 +129,20 @@ public final class Resource {
     private volatile Boolean hasSubTypesWithSubResources = null;
     /** The set of actions supported by this resource and its sub-types. */
     private final Set<Action> supportedActions = new HashSet<>();
+    private LocalizableMessage description;
 
     Resource(final String id) {
         this.id = id;
+    }
+
+    /**
+     * Sets the description of this resource.
+     *
+     * @param description
+     *          the description of this resource
+     */
+    public void description(LocalizableMessage description) {
+        this.description = description;
     }
 
     /**
@@ -507,6 +519,8 @@ public final class Resource {
 
         org.forgerock.api.models.Resource.Builder resource = org.forgerock.api.models.Resource.
             resource()
+            .title(id)
+            .description(toLS(description))
             .resourceSchema(schemaRef("#/definitions/" + id))
             .mvccSupported(isMvccSupported());
 
@@ -522,6 +536,7 @@ public final class Resource {
         return ApiDescription.apiDescription()
                       .id("unused").version("unused")
                       .definitions(definitions())
+                      .paths(getPaths())
                       .errors(errors())
                       .build();
     }
@@ -536,6 +551,8 @@ public final class Resource {
     ApiDescription collectionApi(boolean isReadOnly) {
         org.forgerock.api.models.Resource.Builder resource = org.forgerock.api.models.Resource.
             resource()
+            .title(id)
+            .description(toLS(description))
             .resourceSchema(schemaRef("#/definitions/" + id))
             .mvccSupported(isMvccSupported());
 
@@ -582,6 +599,16 @@ public final class Resource {
             definitions.put(subType.id, subType.buildJsonSchema());
         }
         return definitions.build();
+    }
+
+    private LocalizableString toLS(LocalizableMessage msg) {
+        if (msg != null) {
+            if (msg.resourceName() != null) {
+                return new LocalizableString("i18n:" + msg.resourceName() + "#" /* TODO + msg.getKey() */);
+            }
+            return new LocalizableString(msg.toString());
+        }
+        return null;
     }
 
     /**

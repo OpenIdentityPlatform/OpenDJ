@@ -12,14 +12,12 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- *
  */
 package org.opends.server.protocols.http.rest2ldap;
 
 import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
 import static org.forgerock.http.routing.Version.version;
 import static org.forgerock.json.resource.RouteMatchers.resourceApiVersionContextFilter;
-import static org.forgerock.json.resource.http.CrestHttp.newHttpHandler;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
 import static org.forgerock.opendj.rest2ldap.Rest2Ldap.*;
@@ -43,11 +41,15 @@ import org.forgerock.http.routing.ResourceApiVersionBehaviourManager;
 import org.forgerock.http.routing.Version;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.ConnectionFactory;
+import org.forgerock.json.resource.CrestApplication;
 import org.forgerock.json.resource.FilterChain;
 import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.Resources;
 import org.forgerock.json.resource.Router;
+import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.AggregationPropertyDefinition;
 import org.forgerock.opendj.config.DefaultBehaviorProvider;
@@ -84,6 +86,7 @@ import org.forgerock.util.promise.Promise;
 import org.opends.server.api.HttpEndpoint;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.BuildVersion;
 
 /**
  * An HTTP endpoint providing access to the server's monitoring backend (cn=monitor) and its configuration (cn=config).
@@ -115,15 +118,18 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
     return new AdminHttpApplication();
   }
 
-  /**
-   * Specialized {@link HttpApplication} using internal connections to this local LDAP server.
-   */
+  /** Specialized {@link HttpApplication} using internal connections to this local LDAP server. */
   private final class AdminHttpApplication implements HttpApplication
   {
     private LDAPProfile ldapProfile = LDAPProfile.getInstance();
 
     @Override
     public Handler start() throws HttpApplicationException
+    {
+      return newHttpHandler(startRequestHandler());
+    }
+
+    FilterChain startRequestHandler() throws HttpApplicationException
     {
       final Map<String, Resource> resources = new HashMap<>();
 
@@ -196,12 +202,41 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
       // FIXME: Disable the warning header for now due to CREST-389 / CREST-390.
       final ResourceApiVersionBehaviourManager behaviourManager = newResourceApiVersionBehaviourManager();
       behaviourManager.setWarningEnabled(false);
-      return newHttpHandler(new FilterChain(versionRouter, resourceApiVersionContextFilter(behaviourManager)));
+      return new FilterChain(versionRouter, resourceApiVersionContextFilter(behaviourManager));
+    }
+
+    private Handler newHttpHandler(RequestHandler handler)
+    {
+      final org.forgerock.json.resource.ConnectionFactory factory = Resources.newInternalConnectionFactory(handler);
+      return CrestHttp.newHttpHandler(new CrestApplication()
+      {
+        @Override
+        public ConnectionFactory getConnectionFactory()
+        {
+          return factory;
+        }
+
+        @Override
+        public String getApiId()
+        {
+          return "frapi:opendj:admin";
+        }
+
+        @Override
+        public String getApiVersion()
+        {
+          return BuildVersion.binaryVersion().toStringNoRevision();
+        }
+      });
     }
 
     private Resource buildResource(final AbstractManagedObjectDefinition<?, ?> mod)
     {
       final Resource resource = resource(mod.getName());
+      if (!mod.isTop())
+      {
+        resource.description(mod.getSynopsis());
+      }
       configureResourceProperties(mod, resource);
       configureResourceSubResources(mod, resource, false);
       return resource;
