@@ -516,7 +516,7 @@ public final class AttributeBuilder implements Iterable<ByteString>
   }
 
   /** The attribute description for this attribute. */
-  private final AttributeDescription attributeDescription;
+  private AttributeDescription attributeDescription;
   /** The set of attribute values, which are lazily normalized. */
   private SmallSet<AttributeValue> values = new SmallSet<>();
 
