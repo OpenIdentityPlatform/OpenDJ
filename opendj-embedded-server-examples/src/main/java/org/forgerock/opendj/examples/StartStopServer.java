@@ -17,9 +17,10 @@
 package org.forgerock.opendj.examples;
 
 import static org.opends.server.util.embedded.ConfigParameters.configParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.defineServerForStartStopOperations;
+import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServerForStartStop;
 
-import java.io.File;
+import java.nio.file.Paths;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.embedded.EmbeddedDirectoryServer;
 import org.opends.server.util.embedded.EmbeddedDirectoryServerException;
@@ -47,11 +48,10 @@ public final class StartStopServer {
         final String serverRootDir = args[0];
 
         final EmbeddedDirectoryServer server =
-                defineServerForStartStopOperations(
+                manageEmbeddedDirectoryServerForStartStop(
                         configParams()
                             .serverRootDirectory(serverRootDir)
-                            .configurationFile(serverRootDir + File.separator + "config/config.ldif")
-                            .build(),
+                            .configurationFile(Paths.get(serverRootDir, "config", "config.ldif").toString()),
                             System.out,
                             System.err);
 

@@ -2503,7 +2503,7 @@ public final class StaticUtils
       ZipEntry fileEntry;
       while ((fileEntry = zipStream.getNextEntry()) != null)
       {
-        File targetFile = new File(targetDirectory.getPath() + File.separator +  fileEntry.getName());
+        File targetFile = new File(targetDirectory.getPath(), fileEntry.getName());
 
         if (fileEntry.isDirectory())
         {

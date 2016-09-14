@@ -15,9 +15,10 @@
  */
 package org.opends.server.util;
 
+import static org.opends.server.util.embedded.SetupParameters.setupParams;
 import static org.opends.server.util.embedded.ConfigParameters.configParams;
 import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.defineServer;
+import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 import static org.opends.server.util.embedded.ImportParameters.importParams;
 import static org.opends.server.util.embedded.UpgradeParameters.upgradeParams;
 import static org.opends.server.util.embedded.RebuildIndexParameters.rebuildIndexParams;
@@ -29,17 +30,14 @@ import java.io.File;
 import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.util.embedded.EmbeddedDirectoryServer;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer.DirectoryConfigReader;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer.DirectoryConfigUpdater;
 import org.opends.server.util.embedded.EmbeddedDirectoryServerException;
-import org.opends.server.util.embedded.SetupParameters;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -116,16 +114,13 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     }
   }
 
-  private void readConfiguration(EmbeddedDirectoryServer server) throws EmbeddedDirectoryServerException
+  private void readConfiguration(EmbeddedDirectoryServer server) throws Exception
   {
-    SortedSet<DN> dns = server.readConfiguration(new DirectoryConfigReader<SortedSet<DN>>() {
-          @Override
-          public SortedSet<DN> read(RootCfgClient rootConfig) throws Exception
-          {
-            return rootConfig.getBackend(USER_ROOT).getBaseDN();
-          }
-        });
-    assertThat(dns).containsExactly(DN.valueOf("dc=example,dc=com"));
+    try (ManagementContext config = server.getConfiguration())
+    {
+      SortedSet<DN> dns = config.getRootConfiguration().getBackend(USER_ROOT).getBaseDN();
+      assertThat(dns).containsExactly(DN.valueOf("dc=example,dc=com"));
+    }
   }
 
   public void testReadConfigurationOnline() throws Exception
@@ -148,16 +143,12 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
 
   private void toggleBackendActivation(EmbeddedDirectoryServer server, final boolean enabled) throws Exception
   {
-    server.updateConfiguration(new DirectoryConfigUpdater()
+    try (ManagementContext config = server.getConfiguration())
     {
-      @Override
-      public void update(RootCfgClient rootConfig) throws Exception
-      {
-        BackendCfgClient backend = rootConfig.getBackend(USER_ROOT);
-        backend.setEnabled(enabled);
-        backend.commit();
-      }
-    });
+      BackendCfgClient backend = config.getRootConfiguration().getBackend(USER_ROOT);
+      backend.setEnabled(enabled);
+      backend.commit();
+    }
   }
 
   /**
@@ -170,7 +161,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     server.stop(getClass().getSimpleName(), LocalizableMessage.raw("stopping for rebuild index test"));
     try
     {
-      server.rebuildIndex(rebuildIndexParams().baseDN("dc=example,dc=com").build());
+      server.rebuildIndex(rebuildIndexParams().baseDN("dc=example,dc=com"));
     }
     finally
     {
@@ -182,7 +173,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
   @Test(expectedExceptions = EmbeddedDirectoryServerException.class)
   public void testRebuildIndexOnline() throws Exception
   {
-    getServer().rebuildIndex(rebuildIndexParams().baseDN("dc=example,dc=com").build());
+    getServer().rebuildIndex(rebuildIndexParams().baseDN("dc=example,dc=com"));
   }
 
   /**
@@ -195,7 +186,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     server.stop(getClass().getSimpleName(), LocalizableMessage.raw("stopping for upgrade test"));
     try
     {
-      server.upgrade(upgradeParams().isIgnoreErrors(false).build());
+      server.upgrade(upgradeParams().isIgnoreErrors(false));
     }
     finally
     {
@@ -209,16 +200,15 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
    */
   public void testUpgradeOnline() throws Exception
   {
-    getServer().upgrade(upgradeParams().isIgnoreErrors(false).build());
+    getServer().upgrade(upgradeParams().isIgnoreErrors(false));
   }
 
   public void testImportDataOnline() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
-    server.importData(importParams()
+    server.importLDIF(importParams()
         .backendId("userRoot")
-        .ldifFile(TestCaseUtils.getTestResource("test-import-file.ldif").getPath())
-        .build());
+        .ldifFile(TestCaseUtils.getTestResource("test-import-file.ldif").getPath()));
   }
 
   /** Import data is not implemented for offline use in EmbeddedDirectoryServer.*/
@@ -229,10 +219,9 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     server.stop(getClass().getSimpleName(), LocalizableMessage.raw("stopping for import data test"));
     try
     {
-      server.importData(importParams()
+      server.importLDIF(importParams()
           .backendId("userRoot")
-          .ldifFile(TestCaseUtils.getTestResource("test-import-file.ldif").getPath())
-          .build());
+          .ldifFile(TestCaseUtils.getTestResource("test-import-file.ldif").getPath()));
     }
     finally
     {
@@ -251,27 +240,25 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
       StaticUtils.recursiveDelete(rootDir);
 
       final int[] ports = TestCaseUtils.findFreePorts(3);
-      EmbeddedDirectoryServer tempServer = defineServer(
+      EmbeddedDirectoryServer tempServer = manageEmbeddedDirectoryServer(
         configParams()
           .serverRootDirectory(rootDir.getPath())
-          .configurationFile(rootDir.toPath().resolve("config").resolve("config.ldif").toString())
-          .build(),
+          .configurationFile(rootDir.toPath().resolve("config").resolve("config.ldif").toString()),
         connectionParams()
           .bindDn("cn=Directory Manager")
           .bindPassword("password")
           .hostName("localhost")
           .ldapPort(ports[0])
-          .adminPort(ports[1])
-          .build(),
+          .adminPort(ports[1]),
          System.out,
          System.err);
 
-      tempServer.setupFromArchive(TestCaseUtils.getOpenDJArchivePath(),
-          SetupParameters.setupParams()
+      tempServer.extractArchiveForSetup(TestCaseUtils.getOpenDJArchivePath());
+      tempServer.setup(
+          setupParams()
             .backendType("pdb")
             .baseDn("dc=example,dc=com")
-            .jmxPort(ports[2])
-            .build());
+            .jmxPort(ports[2]));
       tempServer.start();
       tempServer.stop(getClass().getSimpleName(), LocalizableMessage.raw("stopping temp server for setup test"));
     }

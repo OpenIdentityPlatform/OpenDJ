@@ -15,9 +15,11 @@
  */
 package org.opends.server.util.embedded;
 
-/**
- * Parameters to setup a directory server.
- */
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+/** Parameters to setup a directory server. */
 public final class SetupParameters
 {
   private String baseDn;
@@ -26,7 +28,7 @@ public final class SetupParameters
 
   private SetupParameters()
   {
-    // private constructor to force usage of the associated Builder
+    // prefer usage of static method for creation
   }
 
   /**
@@ -34,9 +36,9 @@ public final class SetupParameters
    *
    * @return a builder
    */
-  public static Builder setupParams()
+  public static SetupParameters setupParams()
   {
-    return new Builder();
+    return new SetupParameters();
   }
 
   /**
@@ -46,14 +48,14 @@ public final class SetupParameters
    */
   String[] toCommandLineArguments(ConnectionParameters connParams)
   {
-    return new String[] {
+    String[] baseArgs = new String[] {
       "--cli",
       "--noPropertiesFile",
       "--no-prompt",
       "--doNotStart",
       "--skipPortCheck",
       "--baseDN", baseDn,
-      "--hostname", connParams.getHostname(),
+      "--hostname", connParams.getHostName(),
       "--rootUserDN", connParams.getBindDn(),
       "--rootUserPassword", connParams.getBindPassword(),
       "--ldapPort", s(connParams.getLdapPort()),
@@ -61,6 +63,21 @@ public final class SetupParameters
       "--jmxPort", s(jmxPort),
       "--backendType", backendType
     };
+    List<String> args = new ArrayList<>(Arrays.asList(baseArgs));
+    if (connParams.getLdapSecurePort() != null)
+    {
+      args.add("--ldapsPort");
+      args.add(s(connParams.getLdapSecurePort()));
+    }
+    if (connParams.isStartTLSEnabled())
+    {
+      args.add("--enableStartTLS");
+    }
+    if (connParams.getLdapSecurePort() != null || connParams.isStartTLSEnabled())
+    {
+      args.add("--generateSelfSignedCertificate");
+    }
+    return args.toArray(new String[args.size()]);
   }
 
   String getBaseDn()
@@ -80,68 +97,41 @@ public final class SetupParameters
   }
 
   /**
-   * Builder for this class.
+   * Sets the base Dn for user information in the directory server.
+   *
+   * @param baseDn
+   *          the base Dn
+   * @return this builder
    */
-  public static final class Builder
+  public SetupParameters baseDn(String baseDn)
   {
-    private SetupParameters params;
+    this.baseDn = baseDn;
+    return this;
+  }
 
-    private Builder()
-    {
-      params = new SetupParameters();
-    }
+  /**
+   * Sets the port on which the directory server should listen for JMX communication.
+   *
+   * @param jmxPort
+   *          the JMX port
+   * @return this builder
+   */
+  public SetupParameters jmxPort(int jmxPort)
+  {
+    this.jmxPort = jmxPort;
+    return this;
+  }
 
-    /**
-     * Generates the parameters from this builder.
-     * <p>
-     * After this call, the builder is reset and can be used to generate other parameters.
-     *
-     * @return the replication parameters
-     */
-    public SetupParameters toParams()
-    {
-      SetupParameters p = params;
-      this.params = new SetupParameters();
-      return p;
-    }
-
-    /**
-     * Sets the base Dn for user information in the directory server.
-     *
-     * @param baseDn
-     *          the base Dn
-     * @return this builder
-     */
-    public Builder baseDn(String baseDn)
-    {
-      params.baseDn = baseDn;
-      return this;
-    }
-
-    /**
-     * Sets the port on which the directory server should listen for JMX communication.
-     *
-     * @param jmxPort
-     *          the JMX port
-     * @return this builder
-     */
-    public Builder jmxPort(int jmxPort)
-    {
-      params.jmxPort = jmxPort;
-      return this;
-    }
-
-    /**
-     * Sets the type of the backend containing user information.
-     *
-     * @param backendType
-     *          the backend type (e.g. je, pdb)
-     * @return this builder
-     */
-    public Builder backendType(String backendType)
-    {
-      params.backendType = backendType;
-      return this;
-    }
+  /**
+   * Sets the type of the backend containing user information.
+   *
+   * @param backendType
+   *          the backend type (e.g. je, pdb)
+   * @return this builder
+   */
+  public SetupParameters backendType(String backendType)
+  {
+    this.backendType = backendType;
+    return this;
   }
 }

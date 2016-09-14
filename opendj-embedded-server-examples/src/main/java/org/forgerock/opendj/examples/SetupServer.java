@@ -18,7 +18,7 @@ package org.forgerock.opendj.examples;
 
 import static org.opends.server.util.embedded.ConfigParameters.configParams;
 import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.defineServer;
+import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 import static org.opends.server.util.embedded.SetupParameters.setupParams;
 
 import java.io.File;
@@ -73,28 +73,25 @@ public final class SetupServer {
             final String backendType, final int ldapPort, final int adminPort, final int jmxPort)
             throws EmbeddedDirectoryServerException {
         EmbeddedDirectoryServer server =
-                defineServer(
+                manageEmbeddedDirectoryServer(
                         configParams()
                             .serverRootDirectory(serverRootDir)
-                            .configurationFile(serverRootDir + File.separator + "config/config.ldif")
-                            .build(),
+                            .configurationFile(serverRootDir + File.separator + "config/config.ldif"),
                         connectionParams()
                             .hostName("localhost")
                             .ldapPort(ldapPort)
                             .bindDn("cn=Directory Manager")
                             .bindPassword("password")
-                            .adminPort(adminPort)
-                            .build(),
+                            .adminPort(adminPort),
                         System.out,
                         System.err);
 
-        server.setupFromArchive(
-                new File(openDJArchive),
+        server.extractArchiveForSetup(new File(openDJArchive));
+        server.setup(
                 setupParams()
                     .baseDn(baseDn)
                     .backendType(backendType)
-                    .jmxPort(jmxPort)
-                    .build());
+                    .jmxPort(jmxPort));
     }
 
     private SetupServer() {

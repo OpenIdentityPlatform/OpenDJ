@@ -15,19 +15,17 @@
  */
 package org.opends.server.util.embedded;
 
-/**
- * Parameters for replication operations on a directory server.
- */
+/** Parameters for replication operations on a directory server. */
 public final class ReplicationParameters
 {
   private String baseDn;
-  private Integer replicationPort1;
-  private Integer replicationPort2;
-  private ConnectionParameters connParamsForHost2;
+  private Integer replicationPortSource;
+  private Integer replicationPortDestination;
+  private ConnectionParameters connParamsForDestination;
 
   private ReplicationParameters()
   {
-    // private constructor to force usage of the associated Builder
+    // prefer usage of static method for creation
   }
 
   /**
@@ -35,32 +33,32 @@ public final class ReplicationParameters
    *
    * @return a builder
    */
-  public static Builder replicationParams()
+  public static ReplicationParameters replicationParams()
   {
-    return new Builder();
+    return new ReplicationParameters();
   }
 
   /**
-   * Generates the command-line arguments for enabling replication, from the parameters.
+   * Generates the command-line arguments for configuring replication, from the parameters.
    *
    * @return command-line arguments
    */
-  String[] toCommandLineArgumentsEnable(String configurationFile, ConnectionParameters connParams)
+  String[] toCommandLineArgumentsConfiguration(String configurationFile, ConnectionParameters connParams)
   {
     return new String[] {
       "enable",
       "--no-prompt",
       "--configFile", configurationFile,
-      "--host1", connParams.getHostname(),
+      "--host1", connParams.getHostName(),
       "--port1", s(connParams.getAdminPort()),
       "--bindDN1", connParams.getBindDn(),
       "--bindPassword1", connParams.getBindPassword(),
-      "--replicationPort1", s(replicationPort1),
-      "--host2", connParamsForHost2.getHostname(),
-      "--port2", s(connParamsForHost2.getAdminPort()),
-      "--bindDN2", connParamsForHost2.getBindDn(),
-      "--bindPassword2", connParamsForHost2.getBindPassword(),
-      "--replicationPort2", s(replicationPort2),
+      "--replicationPort1", s(replicationPortSource),
+      "--host2", connParamsForDestination.getHostName(),
+      "--port2", s(connParamsForDestination.getAdminPort()),
+      "--bindDN2", connParamsForDestination.getBindDn(),
+      "--bindPassword2", connParamsForDestination.getBindPassword(),
+      "--replicationPort2", s(replicationPortDestination),
       "--adminUID", connParams.getAdminUid(),
       "--adminPassword", connParams.getAdminPassword(),
       "--baseDN", baseDn,
@@ -79,10 +77,10 @@ public final class ReplicationParameters
       "initialize",
       "--no-prompt",
       "--configFile", configurationFile,
-      "--hostSource", connParams.getHostname(),
+      "--hostSource", connParams.getHostName(),
       "--portSource", s(connParams.getAdminPort()),
-      "--hostDestination", connParamsForHost2.getHostname(),
-      "--portDestination", s(connParamsForHost2.getAdminPort()),
+      "--hostDestination", connParamsForDestination.getHostName(),
+      "--portDestination", s(connParamsForDestination.getAdminPort()),
       "--adminUID", connParams.getAdminUid(),
       "--adminPassword", connParams.getAdminPassword(),
       "--baseDN", baseDn,
@@ -101,7 +99,7 @@ public final class ReplicationParameters
       "status",
       "--no-prompt",
       "--configFile", configurationFile,
-      "--hostname", connParams.getHostname(),
+      "--hostname", connParams.getHostName(),
       "--port", s(connParams.getAdminPort()),
       "--adminUID", connParams.getAdminUid(),
       "--adminPassword", connParams.getAdminPassword(),
@@ -109,24 +107,24 @@ public final class ReplicationParameters
       "--noPropertiesFile" };
   }
 
-  int getReplicationPort1()
+  int getReplicationPortSource()
   {
-    return replicationPort1;
+    return replicationPortSource;
   }
 
-  int getReplicationPort2()
+  int getReplicationPortDestination()
   {
-    return replicationPort2;
+    return replicationPortDestination;
   }
 
-  String getHostname2()
+  String getHostnameDestination()
   {
-    return connParamsForHost2.getHostname();
+    return connParamsForDestination.getHostName();
   }
 
-  int getAdminPort2()
+  int getAdminPortDestination()
   {
-    return connParamsForHost2.getAdminPort();
+    return connParamsForDestination.getAdminPort();
   }
 
   /** Convert an integer to a String. */
@@ -136,84 +134,57 @@ public final class ReplicationParameters
   }
 
   /**
-   * Builder for this class.
+   * Sets the base Dn of the data to be replicated.
+   *
+   * @param baseDn
+   *          the base Dn
+   * @return this builder
    */
-  public static final class Builder
+  public ReplicationParameters baseDn(String baseDn)
   {
-    private ReplicationParameters params;
+    this.baseDn = baseDn;
+    return this;
+  }
 
-    private Builder()
-    {
-      params = new ReplicationParameters();
-    }
+  /**
+   * Sets the replication port of the first server (source) whose contents will be replicated.
+   * <p>
+   * The source server should correspond to the embedded server on which the replication operation is
+   * applied.
+   *
+   * @param port
+   *          the replication port
+   * @return this builder
+   */
+  public ReplicationParameters replicationPortSource(int port)
+  {
+    this.replicationPortSource = port;
+    return this;
+  }
 
-    /**
-     * Generates the parameters from this builder.
-     * <p>
-     * After this call, the builder is reset and can be used to generate other parameters.
-     *
-     * @return the replication parameters
-     */
-    public ReplicationParameters toParams()
-    {
-      ReplicationParameters p = params;
-      this.params = new ReplicationParameters();
-      return p;
-    }
+  /**
+   * Sets the replication port of the second server (destination) whose contents will be replicated.
+   *
+   * @param port
+   *          the replication port
+   * @return this builder
+   */
+  public ReplicationParameters replicationPortDestination(int port)
+  {
+    this.replicationPortDestination = port;
+    return this;
+  }
 
-    /**
-     * Sets the base Dn of the data to be replicated.
-     *
-     * @param baseDn
-     *          the base Dn
-     * @return this builder
-     */
-    public Builder baseDn(String baseDn)
-    {
-      params.baseDn = baseDn;
-      return this;
-    }
-
-    /**
-     * Sets the replication port of the first server whose contents will be replicated.
-     * <p>
-     * The first server should correspond to the embedded server on which the replication
-     * operation is applied.
-     *
-     * @param port
-     *          the replication port
-     * @return this builder
-     */
-    public Builder replicationPort1(int port)
-    {
-      params.replicationPort1 = port;
-      return this;
-    }
-
-    /**
-     * Sets the replication port of the second server whose contents will be replicated.
-     *
-     * @param port
-     *          the replication port
-     * @return this builder
-     */
-    public Builder replicationPort2(int port)
-    {
-      params.replicationPort2 = port;
-      return this;
-    }
-
-    /**
-     * Sets the connection parameters of the second server whose contents will be replicated.
-     *
-     * @param host2Params
-     *          The connection parameters
-     * @return this builder
-     */
-    public Builder connectionParamsForHost2(ConnectionParameters.Builder host2Params)
-    {
-      params.connParamsForHost2 = host2Params.toParams();
-      return this;
-    }
+  /**
+   * Sets the connection parameters of the second server (destination) whose contents will be replicated.
+   *
+   * @param destinationParams
+   *          The connection parameters for destination server
+   * @return this builder
+   */
+  public ReplicationParameters connectionParamsForDestination(ConnectionParameters destinationParams)
+  {
+    this.connParamsForDestination = destinationParams;
+    return this;
   }
 }

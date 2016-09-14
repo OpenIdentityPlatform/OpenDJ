@@ -15,16 +15,14 @@
  */
 package org.opends.server.util.embedded;
 
-/**
- * Parameters to rebuild the indexes of a directory server.
- */
+/** Parameters to rebuild the indexes of a directory server. */
 public final class RebuildIndexParameters
 {
   private String baseDN;
 
   private RebuildIndexParameters()
   {
-    // private constructor to force usage of the associated Builder
+    // prefer usage of static method for creation
   }
 
   /**
@@ -32,9 +30,9 @@ public final class RebuildIndexParameters
    *
    * @return a builder
    */
-  public static Builder rebuildIndexParams()
+  public static RebuildIndexParameters rebuildIndexParams()
   {
-    return new Builder();
+    return new RebuildIndexParameters();
   }
 
   /**
@@ -53,42 +51,15 @@ public final class RebuildIndexParameters
   }
 
   /**
-   * Builder for this class.
+   * Sets the base Dn for user information in the directory server.
+   *
+   * @param baseDN
+   *          the baseDN
+   * @return this builder
    */
-  public static final class Builder
+  public RebuildIndexParameters baseDN(String baseDN)
   {
-    private RebuildIndexParameters params;
-
-    private Builder()
-    {
-      params = new RebuildIndexParameters();
-    }
-
-    /**
-     * Generates the parameters from this builder.
-     * <p>
-     * After this call, the builder is reset and can be used to generate other parameters.
-     *
-     * @return the rebuild index parameters
-     */
-    public RebuildIndexParameters toParams()
-    {
-      RebuildIndexParameters p = params;
-      this.params = new RebuildIndexParameters();
-      return p;
-    }
-
-    /**
-     * Sets the base Dn for user information in the directory server.
-     *
-     * @param baseDN
-     *          the baseDN
-     * @return this builder
-     */
-    public Builder baseDN(String baseDN)
-    {
-      params.baseDN = baseDN;
-      return this;
-    }
+    this.baseDN = baseDN;
+    return this;
   }
 }

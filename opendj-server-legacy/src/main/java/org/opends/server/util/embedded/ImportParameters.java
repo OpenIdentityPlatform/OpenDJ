@@ -15,9 +15,7 @@
  */
 package org.opends.server.util.embedded;
 
-/**
- * Parameters to import LDIF data to a directory server.
- */
+/** Parameters to import LDIF data to a directory server. */
 public final class ImportParameters
 {
   private String backendID;
@@ -25,17 +23,17 @@ public final class ImportParameters
 
   private ImportParameters()
   {
-    // private constructor to force usage of the associated Builder
+    // prefer usage of static method for creation
   }
 
   /**
-   * Creates a builder for the import parameters.
+   * Creates the import parameters.
    *
-   * @return a builder
+   * @return parameters
    */
-  public static Builder importParams()
+  public static ImportParameters importParams()
   {
-    return new Builder();
+    return new ImportParameters();
   }
 
   /**
@@ -62,55 +60,28 @@ public final class ImportParameters
   }
 
   /**
-   * Builder for this class.
+   * Sets the backend id of the backend to import.
+   *
+   * @param id
+   *          the backend id
+   * @return this builder
    */
-  public static final class Builder
+  public ImportParameters backendId(String id)
   {
-    private ImportParameters params;
+    backendID = id;
+    return this;
+  }
 
-    private Builder()
-    {
-      params = new ImportParameters();
-    }
-
-    /**
-     * Generates the parameters from this builder.
-     * <p>
-     * After this call, the builder is reset and can be used to generate other parameters.
-     *
-     * @return the replication parameters
-     */
-    public ImportParameters toParams()
-    {
-      ImportParameters p = params;
-      this.params = new ImportParameters();
-      return p;
-    }
-
-    /**
-     * Sets the backend id of the backend to import.
-     *
-     * @param id
-     *          the backend id
-     * @return this builder
-     */
-    public Builder backendId(String id)
-    {
-      params.backendID = id;
-      return this;
-    }
-
-    /**
-     * Sets the path to the LDIF file to be imported.
-     *
-     * @param ldifFile
-     *          The path to the LDIF file
-     * @return this builder
-     */
-    public Builder ldifFile(String ldifFile)
-    {
-      params.ldifFile = ldifFile;
-      return this;
-    }
+  /**
+   * Sets the path to the LDIF file to be imported.
+   *
+   * @param ldifFile
+   *          The path to the LDIF file
+   * @return this builder
+   */
+  public ImportParameters ldifFile(String ldifFile)
+  {
+    this.ldifFile = ldifFile;
+    return this;
   }
 }

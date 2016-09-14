@@ -13,7 +13,5 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-/**
- * Provides support for an embedded directory server.
- */
+/** Provides support for an embedded directory server. */
 package org.opends.server.util.embedded;

@@ -18,16 +18,14 @@ package org.opends.server.util.embedded;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Parameters to upgrade a Directory Server.
- */
+/** Parameters to upgrade a Directory Server. */
 public final class UpgradeParameters
 {
   private boolean ignoreErrors;
 
   private UpgradeParameters()
   {
-    // private constructor to force usage of the associated Builder
+    // prefer usage of static method for creation
   }
 
   /**
@@ -35,9 +33,9 @@ public final class UpgradeParameters
    *
    * @return this builder
    */
-  public static Builder upgradeParams()
+  public static UpgradeParameters upgradeParams()
   {
-    return new Builder();
+    return new UpgradeParameters();
   }
 
   /**
@@ -60,43 +58,18 @@ public final class UpgradeParameters
   }
 
   /**
-   * Builder for the UpgradeParameters class.
+   * Indicates whether errors should be ignored during the upgrade.
+   * <p>
+   * This option should be used with caution and may be useful in automated deployments where
+   * potential errors are known in advance and resolved after the upgrade has completed
+   *
+   * @param ignore
+   *          indicates whether errors should be ignored
+   * @return this builder
    */
-  public static final class Builder
+  public UpgradeParameters isIgnoreErrors(boolean ignore)
   {
-    private UpgradeParameters params;
-
-    private Builder()
-    {
-      params = new UpgradeParameters();
-    }
-
-    /**
-     * Returns the fully initialized parameters.
-     *
-     * @return the parameters
-     */
-    public UpgradeParameters toParams()
-    {
-      UpgradeParameters p = params;
-      this.params = new UpgradeParameters();
-      return p;
-    }
-
-    /**
-     * Indicates whether errors should be ignored during the upgrade.
-     * <p>
-     * This option should be used with caution and may be useful in automated deployments where
-     * potential errors are known in advance and resolved after the upgrade has completed
-     *
-     * @param ignore
-     *          indicates whether errors should be ignored
-     * @return this builder
-     */
-    public Builder isIgnoreErrors(boolean ignore)
-    {
-      params.ignoreErrors = ignore;
-      return this;
-    }
+    ignoreErrors = ignore;
+    return this;
   }
 }

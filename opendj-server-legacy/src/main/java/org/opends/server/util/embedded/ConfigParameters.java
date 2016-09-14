@@ -15,11 +15,7 @@
  */
 package org.opends.server.util.embedded;
 
-import org.forgerock.util.Reject;
-
-/**
- * Parameters to configure a directory server.
- */
+/** Parameters to configure a directory server. */
 public final class ConfigParameters
 {
   private String serverRootDirectory;
@@ -29,17 +25,17 @@ public final class ConfigParameters
 
   private ConfigParameters()
   {
-    // private constructor to force usage of the associated Builder
+    // prefer usage of static method for creation
   }
 
   /**
-   * Creates a builder for the configuration parameters.
+   * Creates configuration parameters.
    *
-   * @return a builder
+   * @return the parameters
    */
-  public static Builder configParams()
+  public static ConfigParameters configParams()
   {
-    return new Builder();
+    return new ConfigParameters();
   }
 
   String getServerRootDirectory()
@@ -47,7 +43,7 @@ public final class ConfigParameters
     return serverRootDirectory;
   }
 
-  /** This value may be {@code null}, it must always  be checked. */
+  /** This value may be {@code null}, it must always be checked. */
   String getServerInstanceDirectory()
   {
     return serverInstanceDirectory;
@@ -64,86 +60,58 @@ public final class ConfigParameters
   }
 
   /**
-   * Builder for this class.
+   * Sets the server root directory of the directory server.
+   * <p>
+   * The server root is the location where the binaries and default configuration is stored.
+   *
+   * @param dir
+   *          the server root directory
+   * @return this builder
    */
-  public static final class Builder
+  public ConfigParameters serverRootDirectory(String dir)
   {
-    private ConfigParameters params;
+    serverRootDirectory = dir;
+    return this;
+  }
 
-    private Builder()
-    {
-      params = new ConfigParameters();
-    }
+  /**
+   * Sets the install root directory of the directory server.
+   * <p>
+   * The install root is the location where the data and live configuration is stored.
+   *
+   * @param dir
+   *          the install root directory
+   * @return this builder
+   */
+  public ConfigParameters serverInstanceDirectory(String dir)
+  {
+    serverInstanceDirectory = dir;
+    return this;
+  }
 
-    /**
-     * Generates the parameters from this builder.
-     * <p>
-     * After this call, the builder is reset and can be used to generate other parameters.
-     *
-     * @return the replication parameters
-     */
-    public ConfigParameters toParams()
-    {
-      ConfigParameters p = params;
-      Reject.ifNull(p.serverRootDirectory, p.configurationFile);
-      this.params = new ConfigParameters();
-      return p;
-    }
+  /**
+   * Sets the path of the configuration file of the directory server.
+   *
+   * @param file
+   *          the configuration file
+   * @return this builder
+   */
+  public ConfigParameters configurationFile(String file)
+  {
+    configurationFile = file;
+    return this;
+  }
 
-    /**
-     * Sets the server root directory of the directory server.
-     * <p>
-     * The server root is the location where the binaries and default configuration is stored.
-     *
-     * @param dir
-     *          the server root directory
-     * @return this builder
-     */
-    public Builder serverRootDirectory(String dir)
-    {
-      params.serverRootDirectory = dir;
-      return this;
-    }
-
-    /**
-     * Sets the install root directory of the directory server.
-     * <p>
-     * The install root is the location where the data and live configuration is stored.
-     *
-     * @param dir
-     *          the install root directory
-     * @return this builder
-     */
-    public Builder serverInstanceDirectory(String dir)
-    {
-      params.serverInstanceDirectory = dir;
-      return this;
-    }
-
-    /**
-     * Sets the path of the configuration file of the directory server.
-     *
-     * @param file
-     *          the configuration file
-     * @return this builder
-     */
-    public Builder configurationFile(String file)
-    {
-      params.configurationFile = file;
-      return this;
-    }
-
-    /**
-     * Sets the indicator allowing to disable the connection handlers.
-     *
-     * @param disable
-     *          {@code true} to disable the connection handlers
-     * @return this builder
-     */
-    public Builder disableConnectionHandlers(boolean disable)
-    {
-      params.disableConnectionHandlers = disable;
-      return this;
-    }
+  /**
+   * Sets the indicator allowing to disable the connection handlers.
+   *
+   * @param disable
+   *          {@code true} to disable the connection handlers
+   * @return this builder
+   */
+  public ConfigParameters disableConnectionHandlers(boolean disable)
+  {
+    disableConnectionHandlers = disable;
+    return this;
   }
 }

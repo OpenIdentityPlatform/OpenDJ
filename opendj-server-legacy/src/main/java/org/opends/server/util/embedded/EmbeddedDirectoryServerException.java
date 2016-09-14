@@ -22,10 +22,9 @@ import org.opends.server.types.OpenDsException;
  * Exception that may be thrown by an embedded directory server if a problem occurs while
  * performing an operation on the server.
  */
+@SuppressWarnings("serial")
 public final class EmbeddedDirectoryServerException extends OpenDsException
 {
-
-  private static final long serialVersionUID = 1L;
 
   /**
    * Creates a new exception with the provided message.

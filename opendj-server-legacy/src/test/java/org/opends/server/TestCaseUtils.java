@@ -17,7 +17,7 @@
  */
 package org.opends.server;
 
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.defineServer;
+import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
 import static org.opends.server.util.embedded.ConfigParameters.configParams;
 import static org.opends.server.loggers.TextAccessLogPublisher.getStartupTextAccessPublisher;
@@ -266,10 +266,13 @@ public final class TestCaseUtils {
       String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "target");
       buildDir = new File(buildDirStr);
       unitRoot  = new File(buildDir, "unit-tests");
-      if (installedRoot == null) {
+      if (installedRoot == null)
+      {
          testInstallRoot = new File(unitRoot, "package-install");
          testInstanceRoot = new File(unitRoot, "package-instance");
-      } else {
+      }
+      else
+      {
          testInstallRoot = new File(unitRoot, "package");
          testInstanceRoot = testInstallRoot;
       }
@@ -309,24 +312,15 @@ public final class TestCaseUtils {
         return;
       }
       InvocationCounterPlugin.resetStartupCalled();
-
       initializePortsAndServer();
-
       deployDirectoryDirsAndFiles();
-
       setupLoggers();
-
       writeBuildInfoFile();
-
       server.start();
-
       assertTrue(InvocationCounterPlugin.startupCalled());
-
       // Save config.ldif for when we restart the server
       backupServerConfigLdif();
-
       SERVER_STARTED = true;
-
       initializeTestBackend(true);
     }
     catch (Exception e)
@@ -340,19 +334,17 @@ public final class TestCaseUtils {
   {
     ports = new TestPorts();
     hostname = InetAddress.getLocalHost().getHostName();
-    server = defineServer(
+    server = manageEmbeddedDirectoryServer(
         configParams()
           .serverRootDirectory(paths.testInstallRoot.getPath())
           .serverInstanceDirectory(paths.testInstanceRoot.getPath())
-          .configurationFile(paths.configFile.getPath())
-          .toParams(),
+          .configurationFile(paths.configFile.getPath()),
         connectionParams()
           .bindDn("cn=Directory Manager")
           .bindPassword("password")
-          .hostname(hostname)
+          .hostName(hostname)
           .ldapPort(ports.serverLdapPort)
-          .adminPort(ports.serverAdminPort)
-          .toParams(),
+          .adminPort(ports.serverAdminPort),
          System.out,
          System.err);
   }

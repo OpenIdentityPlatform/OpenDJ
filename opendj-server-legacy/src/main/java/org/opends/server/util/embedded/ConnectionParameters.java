@@ -15,9 +15,7 @@
  */
 package org.opends.server.util.embedded;
 
-/**
- * Parameters to establish connections to a directory server.
- */
+/** Parameters to establish connections to a directory server. */
 public final class ConnectionParameters
 {
   private String adminPassword;
@@ -25,22 +23,24 @@ public final class ConnectionParameters
   private String adminUid;
   private String bindDn;
   private String bindPassword;
-  private String hostname;
+  private String hostName;
   private Integer ldapPort;
+  private Integer ldapsPort;
+  private boolean enableStartTLS;
 
   private ConnectionParameters()
   {
-    // private constructor to force usage of the associated Builder
+    // prefer usage of static method for creation
   }
 
   /**
-   * Creates a builder for the connection parameters.
+   * Creates connection parameters.
    *
-   * @return a builder
+   * @return the parameters
    */
-  public static Builder connectionParams()
+  public static ConnectionParameters connectionParams()
   {
-    return new Builder();
+    return new ConnectionParameters();
   }
 
   String getAdminPassword()
@@ -68,9 +68,9 @@ public final class ConnectionParameters
     return bindPassword;
   }
 
-  String getHostname()
+  String getHostName()
   {
-    return hostname;
+    return hostName;
   }
 
   Integer getLdapPort()
@@ -78,121 +78,130 @@ public final class ConnectionParameters
     return ldapPort;
   }
 
-  /**
-   * Builder for the ConnectionParameters class.
-   */
-  public static final class Builder
+  Integer getLdapSecurePort()
   {
-    private ConnectionParameters params;
+    return ldapsPort;
+  }
 
-    private Builder()
-    {
-      params = new ConnectionParameters();
-    }
+  boolean isStartTLSEnabled()
+  {
+    return enableStartTLS;
+  }
 
-    /**
-     * Generates the parameters from this builder.
-     * <p>
-     * After this call, the builder is reset and can be used to generate other parameters.
-     *
-     * @return the replication parameters
-     */
-    public ConnectionParameters toParams()
-    {
-      ConnectionParameters p = params;
-      this.params = new ConnectionParameters();
-      return p;
-    }
+  /**
+   * Sets the password of the Global Administrator to use to bind to the server.
+   *
+   * @param password
+   *          the password
+   * @return this builder
+   */
+  public ConnectionParameters adminPassword(String password)
+  {
+    adminPassword = password;
+    return this;
+  }
 
-    /**
-     * Sets the password of the Global Administrator to use to bind to the server.
-     *
-     * @param password
-     *          the password
-     * @return this builder
-     */
-    public Builder adminPassword(String password)
-    {
-      params.adminPassword = password;
-      return this;
-    }
+  /**
+   * Sets the port for directory server administration.
+   *
+   * @param port
+   *          the admin port
+   * @return this builder
+   */
+  public ConnectionParameters adminPort(int port)
+  {
+    adminPort = port;
+    return this;
+  }
 
-    /**
-     * Sets the port for directory server administration.
-     *
-     *  @param port
-     *          the admin port
-     * @return this builder
-     */
-    public Builder adminPort(int port)
-    {
-      params.adminPort = port;
-      return this;
-    }
+  /**
+   * Sets the user id of the Global Administrator to use to bind to the server.
+   *
+   * @param uid
+   *          the user id
+   * @return this builder
+   */
+  public ConnectionParameters adminUid(String uid)
+  {
+    adminUid = uid;
+    return this;
+  }
 
-    /**
-     * Sets the user id of the Global Administrator to use to bind to the server.
-     *
-     * @param uid
-     *          the user id
-     * @return this builder
-     */
-    public Builder adminUid(String uid)
-    {
-      params.adminUid = uid;
-      return this;
-    }
+  /**
+   * Sets the Dn to use to bind to the directory server.
+   *
+   * @param dn
+   *          the bind Dn
+   * @return this builder
+   */
+  public ConnectionParameters bindDn(String dn)
+  {
+    bindDn = dn;
+    return this;
+  }
 
-    /**
-     * Sets the Dn to use to bind to the directory server.
-     *
-     * @param dn
-     *          the bind Dn
-     * @return this builder
-     */
-    public Builder bindDn(String dn)
-    {
-      params.bindDn = dn;
-      return this;
-    }
+  /**
+   * Sets the password to use to bind to the directory server.
+   *
+   * @param password
+   *          the bind password
+   * @return this builder
+   */
+  public ConnectionParameters bindPassword(String password)
+  {
+    bindPassword = password;
+    return this;
+  }
 
-    /**
-     * Sets the password to use to bind to the directory server.
-     *
-     * @param password
-     *          the bind password
-     * @return this builder
-     */
-    public Builder bindPassword(String password)
-    {
-      params.bindPassword = password;
-      return this;
-    }
+  /**
+   * Sets the start TLS indicator.
+   *
+   * @param startTLS
+   *          the indicator which should be {@code true} to enable StartTLS, {@code false} otherwise
+   * @return this builder
+   */
+  public ConnectionParameters enableStartTLS(boolean startTLS)
+  {
+    enableStartTLS = startTLS;
+    return this;
+  }
 
-    /**
-     * Sets the the fully-qualified directory server host name.
-     *
-     * @param hostname
-     *          the hostname of the server
-     * @return this builder
-     */
-    public Builder hostname(String hostname)
-    {
-      params.hostname = hostname;
-      return this;
-    }
+  /**
+   * Sets the the fully-qualified directory server host name.
+   *
+   * @param hostName
+   *          the hostName of the server
+   * @return this builder
+   */
+  public ConnectionParameters hostName(String hostName)
+  {
+    this.hostName = hostName;
+    return this;
+  }
 
-    /**
-     * Sets the port on which the directory server listen for LDAP communication.
-     *
-     * @param port
-     *          the LDAP port
-     * @return this builder
-     */
-    public Builder ldapPort(int port)
-    {
-      params.ldapPort = port;
-      return this;
-    }
+  /**
+   * Sets the port on which the directory server listens for LDAP communication.
+   *
+   * @param port
+   *          the LDAP port
+   * @return this builder
+   */
+  public ConnectionParameters ldapPort(int port)
+  {
+    ldapPort = port;
+    return this;
+  }
+
+  /**
+   * Sets the port on which the directory server listens for LDAPS (secure) communication.
+   *
+   * @param port
+   *          the LDAPS port
+   * @return this builder
+   */
+  public ConnectionParameters ldapSecurePort(int port)
+  {
+    ldapsPort = port;
+    return this;
   }
 }

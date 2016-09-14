@@ -19,17 +19,26 @@ package org.forgerock.opendj.examples;
 import static java.util.Arrays.asList;
 import static org.opends.server.util.embedded.ConfigParameters.configParams;
 import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.defineServer;
+import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ConcurrentModificationException;
 import java.util.SortedSet;
 
+import org.forgerock.opendj.config.AdminException;
+import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.ManagedObjectAlreadyExistsException;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
+import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.opends.server.util.embedded.EmbeddedDirectoryServer;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer.DirectoryConfigReader;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer.DirectoryConfigUpdater;
 import org.opends.server.util.embedded.EmbeddedDirectoryServerException;
 
 /**
@@ -50,8 +59,15 @@ public final class ConfigureServer {
      *            The command line arguments: serverRootDir newBaseDn [ldapPort]
      * @throws EmbeddedDirectoryServerException
      *          If an error occurs
+     * @throws org.forgerock.opendj.config.client.ConcurrentModificationException
+     * @throws ManagedObjectNotFoundException
+     * @throws ManagedObjectDecodingException
+     * @throws DefinitionDecodingException
+     * @throws OperationRejectedException
+     * @throws MissingMandatoryPropertiesException
+     * @throws ManagedObjectAlreadyExistsException
      */
-    public static void main(final String[] args) throws EmbeddedDirectoryServerException {
+    public static void main(final String[] args) {
         if (args.length != 2 && args.length != 3) {
             System.err.println("Usage: serverRootDir newBaseDn [ldapPort]");
             System.exit(1);
@@ -61,41 +77,28 @@ public final class ConfigureServer {
         final int ldapPort = args.length > 2 ? Integer.parseInt(args[2]) : 1500;
 
         EmbeddedDirectoryServer server =
-                defineServer(
+                manageEmbeddedDirectoryServer(
                         configParams()
                             .serverRootDirectory(serverRootDir)
-                            .configurationFile(serverRootDir + File.separator + "config/config.ldif")
-                            .build(),
+                            .configurationFile(serverRootDir + File.separator + "config/config.ldif"),
                         connectionParams()
                             .hostName("localhost")
                             .ldapPort(ldapPort)
                             .bindDn("cn=Directory Manager")
-                            .bindPassword("password")
-                            .build(),
+                            .bindPassword("password"),
                         System.out,
                         System.err);
 
-        // read the current base DN(s) of user backend
-        SortedSet<DN> baseDns = server.readConfiguration(new DirectoryConfigReader<SortedSet<DN>>() {
-            @Override
-            public SortedSet<DN> read(RootCfgClient rootConfig) throws Exception {
-                BackendCfgClient userRoot = rootConfig.getBackend("userRoot");
-                return userRoot.getBaseDN();
-            }
-        });
-        System.out.println("The current base Dn(s) of the user backend are: " + baseDns);
-
-        // modify the base DN of the user backend
-        server.updateConfiguration(new DirectoryConfigUpdater() {
-            @Override
-            public void update(RootCfgClient rootConfig) throws Exception {
-                BackendCfgClient userRoot = rootConfig.getBackend("userRoot");
-                userRoot.setBaseDN(asList(DN.valueOf(newBaseDn)));
-                userRoot.commit();
-            }
-        });
-        System.out.println("The base Dn of the user backend has been set to: " + newBaseDn);
-
+        // read the current base DN(s) of user backend and update it
+        try (ManagementContext config = server.getConfiguration()) {
+            BackendCfgClient userRoot = config.getRootConfiguration().getBackend("userRoot");
+            System.out.println("The current base Dn(s) of the user backend are: " + userRoot.getBaseDN());
+            userRoot.setBaseDN(asList(DN.valueOf(newBaseDn)));
+            userRoot.commit();
+            System.out.println("The base Dn of the user backend has been set to: " + newBaseDn);
+        } catch (AdminException | IOException | EmbeddedDirectoryServerException e) {
+            System.err.println("A problem occured when reading/updating configuration: " + e.toString());
+        }
     }
 
     private ConfigureServer() {
