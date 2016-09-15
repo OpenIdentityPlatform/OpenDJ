@@ -274,8 +274,10 @@ public class ReplicationServer
           // We did not recognize the message, close session as what
           // can happen after is undetermined and we do not want the server to
           // be disturbed
+          logger.error(ERR_REPLICATION_UNEXPECTED_MESSAGE,
+                  session.getRemoteAddress().toString(),
+                  (msg == null) ? "(null)" : msg.getClass().getSimpleName());
           session.close();
-          return;
         }
       }
       catch (Exception e)
