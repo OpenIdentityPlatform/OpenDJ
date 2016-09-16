@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -138,21 +138,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
 
         @Override
         public boolean evaluateResult(final BindResult result) throws LdapException {
-            if (saslClient.isComplete()) {
-                return true;
-            }
-
-            try {
-                setNextSASLCredentials(saslClient.evaluateChallenge(result
-                        .getServerSASLCredentials() == null ? new byte[0] : result
-                        .getServerSASLCredentials().toByteArray()));
-                return saslClient.isComplete();
-            } catch (final SaslException e) {
-                // FIXME: I18N need to have a better error message.
-                // FIXME: Is this the best result code?
-                throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                        "An error occurred during multi-stage authentication", e);
-            }
+            return evaluateSaslBindResult(saslClient, result);
         }
 
         @Override

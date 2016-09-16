@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -29,7 +29,6 @@ import javax.security.sasl.SaslException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -74,11 +73,6 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
             } catch (final SaslException ignored) {
                 // Ignore the SASL exception.
             }
-        }
-
-        @Override
-        public boolean evaluateResult(final BindResult result) {
-            return saslClient.isComplete();
         }
 
         @Override

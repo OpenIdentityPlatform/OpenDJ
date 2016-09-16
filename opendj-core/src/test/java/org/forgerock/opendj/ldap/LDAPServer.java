@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -255,8 +255,12 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
                     byte[] challenge = saslServer.evaluateResponse(saslCred.toByteArray());
                     if (saslServer.isComplete()) {
-                        resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS)
-                                .setServerSASLCredentials(ByteString.wrap(challenge)));
+                        final BindResult result = Responses.newBindResult(ResultCode.SUCCESS);
+                        if (challenge != null) {
+                            // If there was a SASL bind in progress, challenge has already been provided
+                            result.setServerSASLCredentials(ByteString.wrap(challenge));
+                        }
+                        resultHandler.handleResult(result);
 
                         String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
                         if ("auth-int".equalsIgnoreCase(qop) || "auth-conf".equalsIgnoreCase(qop)) {

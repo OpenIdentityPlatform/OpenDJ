@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -27,7 +27,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.opendj.ldap.responses.Responses;
 
 /**
  * External SASL bind request implementation.
@@ -67,22 +66,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
 
         @Override
         public boolean evaluateResult(final BindResult result) throws LdapException {
-            if (saslClient.isComplete()) {
-                return true;
-            }
-
-            try {
-                setNextSASLCredentials(saslClient.evaluateChallenge(result
-                        .getServerSASLCredentials() == null ? new byte[0] : result
-                        .getServerSASLCredentials().toByteArray()));
-                return saslClient.isComplete();
-            } catch (final SaslException e) {
-                // FIXME: I18N need to have a better error message.
-                // FIXME: Is this the best result code?
-                throw newLdapException(Responses.newResult(
-                        ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-                        "An error occurred during multi-stage authentication").setCause(e));
-            }
+            return evaluateSaslBindResult(saslClient, result);
         }
     }
 

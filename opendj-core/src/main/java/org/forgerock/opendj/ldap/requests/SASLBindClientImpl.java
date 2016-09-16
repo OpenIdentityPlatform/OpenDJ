@@ -12,12 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2011-2013 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_BIND_MULTI_STAGE;
 import static com.forgerock.opendj.ldap.CoreMessages.INFO_SASL_UNSUPPORTED_CALLBACK;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import java.io.IOException;
 
@@ -34,11 +36,16 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.RealmCallback;
 import javax.security.sasl.RealmChoiceCallback;
+import javax.security.sasl.SaslClient;
+import javax.security.sasl.SaslException;
 
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.responses.BindResult;
 
 /**
  * SASL bind client implementation.
@@ -190,5 +197,42 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler {
         }
 
         return setNextAuthenticationValue(builder.toByteString().toByteArray());
+    }
+
+
+    /**
+     * Evaluates the {@link BindResult} returned by the server and returns {@code true} iff the server
+     * has sent a challenge and the client needs to send additional data.
+     * <p>
+     * If the server has sent a challenge, this method evaluates it and prepare data to send in the next request.
+     *
+     * @param saslClient
+     *          The {@link SaslClient} to use to evaluate the challenge.
+     * @param result
+     *          The last {@link BindResult} returned by the server.
+     * @return {@code true} iff the server has sent a challenge and the client needs to send additional data.
+     * @throws LdapException
+     *          If an error occurred when the {@link SaslClient} evaluates the challenge.
+     */
+    boolean evaluateSaslBindResult(final SaslClient saslClient, final BindResult result) throws LdapException {
+        if (saslClient.isComplete()) {
+            return true;
+        }
+
+        try {
+            final ByteString serverSASLCredentials = result.getServerSASLCredentials();
+            final byte[] nextResponse = saslClient.evaluateChallenge(
+                    serverSASLCredentials == null ? new byte[0]
+                                                  : serverSASLCredentials.toByteArray());
+            if (nextResponse == null) {
+                return true;
+            }
+            setNextSASLCredentials(nextResponse);
+            return false;
+        } catch (final SaslException e) {
+            throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                                   ERR_SASL_BIND_MULTI_STAGE.get(e.getLocalizedMessage()),
+                                   e);
+        }
     }
 }

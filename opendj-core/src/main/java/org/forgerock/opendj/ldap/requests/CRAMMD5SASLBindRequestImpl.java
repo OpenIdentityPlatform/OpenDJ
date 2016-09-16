@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -20,7 +20,6 @@ package org.forgerock.opendj.ldap.requests;
 import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
-import static org.forgerock.opendj.ldap.responses.Responses.*;
 
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
@@ -79,21 +78,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
 
         @Override
         public boolean evaluateResult(final BindResult result) throws LdapException {
-            if (saslClient.isComplete()) {
-                return true;
-            }
-
-            try {
-                setNextSASLCredentials(saslClient.evaluateChallenge(result
-                        .getServerSASLCredentials() == null ? new byte[0] : result
-                        .getServerSASLCredentials().toByteArray()));
-                return saslClient.isComplete();
-            } catch (final SaslException e) {
-                // FIXME: I18N need to have a better error message.
-                // FIXME: Is this the best result code?
-                throw newLdapException(newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-                        "An error occurred during multi-stage authentication").setCause(e));
-            }
+            return evaluateSaslBindResult(saslClient, result);
         }
 
         @Override
