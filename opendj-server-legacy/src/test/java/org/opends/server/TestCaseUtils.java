@@ -17,9 +17,10 @@
  */
 package org.opends.server;
 
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
-import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
-import static org.opends.server.util.embedded.ConfigParameters.configParams;
+import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
+import static org.forgerock.opendj.server.embedded.ConnectionParameters.connectionParams;
+import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
+
 import static org.opends.server.loggers.TextAccessLogPublisher.getStartupTextAccessPublisher;
 import static org.opends.server.loggers.TextErrorLogPublisher.getToolStartupTextErrorPublisher;
 import static org.opends.server.loggers.TextHTTPAccessLogPublisher.getStartupTextHTTPAccessPublisher;
@@ -105,10 +106,10 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFReader;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer;
 import org.testng.Assert;
 
 import com.forgerock.opendj.util.OperatingSystem;

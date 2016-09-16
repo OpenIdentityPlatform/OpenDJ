@@ -16,14 +16,14 @@
 
 package org.forgerock.opendj.examples;
 
-import static org.opends.server.util.embedded.ConfigParameters.configParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServerForStartStop;
+import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
+import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServerForStartStop;
 
 import java.nio.file.Paths;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer;
-import org.opends.server.util.embedded.EmbeddedDirectoryServerException;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServerException;
 
 /**
  * Start and stop a server that is already installed.

@@ -13,7 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-package org.opends.server.util.embedded;
+package org.forgerock.opendj.server.embedded;
 
 /** Parameters for replication operations on a directory server. */
 public final class ReplicationParameters

@@ -16,21 +16,22 @@
  */
 package org.opends.server.tools.dsreplication;
 
-import static org.opends.server.util.embedded.ConfigParameters.configParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServerForStartStop;
+import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
+import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServerForStartStop;
+
 import static org.opends.messages.AdminToolMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.cli.PointAdder;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer;
 
 import com.forgerock.opendj.cli.ConsoleApplication;
 

@@ -13,7 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-package org.opends.server.util.embedded;
+package org.forgerock.opendj.server.embedded;
 
 import java.util.ArrayList;
 import java.util.List;

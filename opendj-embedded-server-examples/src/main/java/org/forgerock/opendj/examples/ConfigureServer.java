@@ -16,30 +16,20 @@
 
 package org.forgerock.opendj.examples;
 
+import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
+import static org.forgerock.opendj.server.embedded.ConnectionParameters.connectionParams;
+import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 import static java.util.Arrays.asList;
-import static org.opends.server.util.embedded.ConfigParameters.configParams;
-import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ConcurrentModificationException;
-import java.util.SortedSet;
 
 import org.forgerock.opendj.config.AdminException;
-import org.forgerock.opendj.config.DefinitionDecodingException;
-import org.forgerock.opendj.config.ManagedObjectAlreadyExistsException;
-import org.forgerock.opendj.config.ManagedObjectNotFoundException;
-import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
-import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
-import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
-import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer;
-import org.opends.server.util.embedded.EmbeddedDirectoryServerException;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServerException;
 
 /**
  * Provides an example of read and update of the configuration of a server that
@@ -57,15 +47,6 @@ public final class ConfigureServer {
      *
      * @param args
      *            The command line arguments: serverRootDir newBaseDn [ldapPort]
-     * @throws EmbeddedDirectoryServerException
-     *          If an error occurs
-     * @throws org.forgerock.opendj.config.client.ConcurrentModificationException
-     * @throws ManagedObjectNotFoundException
-     * @throws ManagedObjectDecodingException
-     * @throws DefinitionDecodingException
-     * @throws OperationRejectedException
-     * @throws MissingMandatoryPropertiesException
-     * @throws ManagedObjectAlreadyExistsException
      */
     public static void main(final String[] args) {
         if (args.length != 2 && args.length != 3) {

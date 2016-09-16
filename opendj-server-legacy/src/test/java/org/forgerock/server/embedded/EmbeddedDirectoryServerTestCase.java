@@ -13,15 +13,15 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-package org.opends.server.util;
+package org.forgerock.server.embedded;
 
-import static org.opends.server.util.embedded.SetupParameters.setupParams;
-import static org.opends.server.util.embedded.ConfigParameters.configParams;
-import static org.opends.server.util.embedded.ConnectionParameters.connectionParams;
-import static org.opends.server.util.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
-import static org.opends.server.util.embedded.ImportParameters.importParams;
-import static org.opends.server.util.embedded.UpgradeParameters.upgradeParams;
-import static org.opends.server.util.embedded.RebuildIndexParameters.rebuildIndexParams;
+import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
+import static org.forgerock.opendj.server.embedded.ConnectionParameters.connectionParams;
+import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
+import static org.forgerock.opendj.server.embedded.ImportParameters.importParams;
+import static org.forgerock.opendj.server.embedded.RebuildIndexParameters.rebuildIndexParams;
+import static org.forgerock.opendj.server.embedded.SetupParameters.setupParams;
+import static org.forgerock.opendj.server.embedded.UpgradeParameters.upgradeParams;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.opends.server.TestCaseUtils.getServer;
 import static org.testng.Assert.*;
@@ -33,11 +33,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
+import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServerException;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.opends.server.util.embedded.EmbeddedDirectoryServer;
-import org.opends.server.util.embedded.EmbeddedDirectoryServerException;
+import org.opends.server.util.StaticUtils;
+import org.opends.server.util.UtilTestCase;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

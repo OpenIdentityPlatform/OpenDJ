@@ -13,7 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-package org.opends.server.util.embedded;
+package org.forgerock.opendj.server.embedded;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;

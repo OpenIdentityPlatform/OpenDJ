@@ -13,7 +13,7 @@
  *
  * Copyright 2016 ForgeRock AS.
  */
-package org.opends.server.util.embedded;
+package org.forgerock.opendj.server.embedded;
 
 import static org.opends.messages.UtilityMessages.ERR_EMBEDDED_SERVER_LDIF_MANAGEMENT_CONTEXT;
 import static org.opends.server.util.ServerConstants.*;
