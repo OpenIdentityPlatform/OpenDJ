@@ -12,7 +12,6 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- *
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -214,7 +213,7 @@ public final class SubResourceSingleton extends SubResource {
      * Responsible for routing requests to sub-resources of this singleton. More specifically, given
      * the URL template /singleton then this handler processes all requests beneath /singleton.
      */
-    private final class SubResourceHandler implements RequestHandler {
+    private final class SubResourceHandler extends AbstractRequestHandler {
         @Override
         public Promise<ActionResponse, ResourceException> handleAction(final Context context,
                                                                        final ActionRequest request) {

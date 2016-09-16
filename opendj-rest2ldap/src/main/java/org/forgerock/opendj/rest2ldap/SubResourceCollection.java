@@ -12,7 +12,6 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- *
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -43,7 +42,6 @@ import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ReadRequest;
 import org.forgerock.json.resource.Request;
-import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.json.resource.Router;
@@ -388,7 +386,7 @@ public final class SubResourceCollection extends SubResource {
      * URL template /collection/{parent}/{child} then this handler processes requests against {parent} since it is
      * both an instance within /collection and also a collection of {child}.
      */
-    private final class InstanceHandler implements RequestHandler {
+    private final class InstanceHandler extends AbstractRequestHandler {
         @Override
         public Promise<ActionResponse, ResourceException> handleAction(final Context context,
                                                                        final ActionRequest request) {
@@ -452,7 +450,7 @@ public final class SubResourceCollection extends SubResource {
      * Responsible for routing requests to sub-resources of instances within this collection. More specifically, given
      * the URL template /collection/{id} then this handler processes all requests beneath /collection/{id}.
      */
-    private final class SubResourceHandler implements RequestHandler {
+    private final class SubResourceHandler extends AbstractRequestHandler {
         @Override
         public Promise<ActionResponse, ResourceException> handleAction(final Context context,
                                                                        final ActionRequest request) {

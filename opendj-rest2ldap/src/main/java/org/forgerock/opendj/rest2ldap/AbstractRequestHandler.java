@@ -12,7 +12,6 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- *
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -20,6 +19,7 @@ import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.CreateRequest;
 import org.forgerock.json.resource.DeleteRequest;
+import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PatchRequest;
 import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
@@ -93,5 +93,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
      *         The request.
      * @return A {@code Promise} containing the result of the operation.
      */
-    protected abstract <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request);
+    protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request) {
+        return new NotSupportedException().asPromise();
+    }
 }
