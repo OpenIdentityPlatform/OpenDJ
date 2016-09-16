@@ -364,6 +364,10 @@ abstract class AbstractLdapPropertyMapper<T extends AbstractLdapPropertyMapper<T
     }
 
     void putWritabilityProperties(JsonValue jsonSchema) {
+        putWritabilityProperties(this.writabilityPolicy, jsonSchema);
+    }
+
+    public static void putWritabilityProperties(WritabilityPolicy writabilityPolicy, JsonValue jsonSchema) {
         switch (writabilityPolicy != null ? writabilityPolicy : WritabilityPolicy.READ_WRITE) {
         case CREATE_ONLY:
             jsonSchema.put("writePolicy", WRITE_ON_CREATE.toString());

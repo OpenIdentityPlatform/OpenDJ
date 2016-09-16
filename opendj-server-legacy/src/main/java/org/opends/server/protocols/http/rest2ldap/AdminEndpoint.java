@@ -18,6 +18,7 @@ package org.opends.server.protocols.http.rest2ldap;
 import static org.forgerock.http.handler.Handlers.chainOf;
 import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
 import static org.forgerock.http.routing.Version.version;
+import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.json.resource.RouteMatchers.resourceApiVersionContextFilter;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
@@ -30,6 +31,7 @@ import static org.opends.messages.ConfigMessages.ERR_BAD_ADMIN_API_RESOURCE_VERS
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +43,9 @@ import org.forgerock.http.io.Buffer;
 import org.forgerock.http.routing.ResourceApiVersionBehaviourManager;
 import org.forgerock.http.routing.Version;
 import org.forgerock.http.swagger.OpenApiRequestFilter;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.json.JsonPointer;
+import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.CrestApplication;
@@ -54,9 +58,12 @@ import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.http.CrestHttp;
 import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
 import org.forgerock.opendj.config.AggregationPropertyDefinition;
+import org.forgerock.opendj.config.BooleanPropertyDefinition;
 import org.forgerock.opendj.config.DefaultBehaviorProvider;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.EnumPropertyDefinition;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.IntegerPropertyDefinition;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.config.ManagedObjectOption;
@@ -65,10 +72,12 @@ import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.RelationOption;
 import org.forgerock.opendj.config.SingletonRelationDefinition;
+import org.forgerock.opendj.config.StringPropertyDefinition;
 import org.forgerock.opendj.config.TopCfgDefn;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Functions;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.rest2ldap.AbstractRequestHandler;
 import org.forgerock.opendj.rest2ldap.ReferencePropertyMapper;
@@ -77,6 +86,7 @@ import org.forgerock.opendj.rest2ldap.Rest2Ldap;
 import org.forgerock.opendj.rest2ldap.SimplePropertyMapper;
 import org.forgerock.opendj.rest2ldap.SubResourceCollection;
 import org.forgerock.opendj.rest2ldap.SubResourceSingleton;
+import org.forgerock.opendj.rest2ldap.WritabilityPolicy;
 import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.forgerock.opendj.server.config.server.AdminEndpointCfg;
@@ -181,7 +191,8 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
             final InstantiableRelationDefinition<?, ?> ird = (InstantiableRelationDefinition) rd;
             final AbstractManagedObjectDefinition<?, ?> d = rd.getChildDefinition();
             final String rdnType = ldapProfile.getRelationChildRDNType(ird);
-            resources.get(d.getName()).property("_id", simple(rdnType).isRequired(true).writability(CREATE_ONLY));
+            final SimplePropertyMapper mapper = simple(rdnType).isRequired(true).writability(CREATE_ONLY);
+            resources.get(d.getName()).property("_id", mapper);
           }
         }
       }
@@ -318,15 +329,17 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
           continue;
         }
 
-        final String attributeName = ldapProfile.getAttributeName(mod, pd);
+        final AttributeDescription attributeDescription =
+            AttributeDescription.valueOf(ldapProfile.getAttributeName(mod, pd));
         if (pd instanceof AggregationPropertyDefinition)
         {
           final AggregationPropertyDefinition apd = (AggregationPropertyDefinition) pd;
-          final String relationChildRdnType = ldapProfile.getRelationChildRDNType(apd.getRelationDefinition());
+          final AttributeDescription relationChildRdnType =
+              AttributeDescription.valueOf(ldapProfile.getRelationChildRDNType(apd.getRelationDefinition()));
           final SimplePropertyMapper referencePropertyMapper = simple(relationChildRdnType).isRequired(true);
           final DN baseDn = apd.getParentPath().toDN()
                                .child(ldapProfile.getRelationRDNSequence(apd.getRelationDefinition()));
-          final ReferencePropertyMapper mapper = reference(attributeName,
+          final ReferencePropertyMapper mapper = reference(attributeDescription,
                                                            baseDn.toString(),
                                                            relationChildRdnType,
                                                            referencePropertyMapper);
@@ -334,34 +347,102 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
         }
         else
         {
-          final SimplePropertyMapper mapper = simple(attributeName)
+          WritabilityPolicy writability = pd.hasOption(PropertyOption.READ_ONLY) ? CREATE_ONLY : READ_WRITE;
+          final SimplePropertyMapper mapper = simple(attributeDescription)
                   .isRequired(pd.hasOption(PropertyOption.MANDATORY))
-                  .writability(pd.hasOption(PropertyOption.READ_ONLY) ? CREATE_ONLY : READ_WRITE)
+                  .writability(writability)
                   .isMultiValued(pd.hasOption(PropertyOption.MULTI_VALUED));
 
           // Define the default value as well if possible.
+          Collection<String> defaultValues = Collections.emptyList();
           final DefaultBehaviorProvider<?> dbp = pd.getDefaultBehaviorProvider();
           if (dbp instanceof DefinedDefaultBehaviorProvider)
           {
             final DefinedDefaultBehaviorProvider<?> ddbp = (DefinedDefaultBehaviorProvider) dbp;
-            final Collection<String> defaultValues = ddbp.getDefaultValues();
-            final List<Object> decodedDefaultValues = new ArrayList<>(defaultValues.size());
-            final Function<String, ?, ? extends RuntimeException> converter = getConverter(attributeName);
-            for (final String defaultValue : defaultValues)
-            {
-              decodedDefaultValues.add(converter.apply(defaultValue));
-            }
-            mapper.defaultJsonValues(decodedDefaultValues);
+            defaultValues = ddbp.getDefaultValues();
+            mapper.defaultJsonValues(applyFunction(defaultValues, getConverter(attributeDescription)));
           }
+          mapper.jsonSchema(jsonSchema(pd, attributeDescription.getAttributeType(), defaultValues, writability));
           resource.property(pd.getName(), mapper);
         }
       }
     }
 
-    private Function<String, ?, ? extends RuntimeException> getConverter(final String attributeName)
+    private JsonValue jsonSchema(PropertyDefinition<?> pd,
+                                 AttributeType attrType,
+                                 Collection<String> defaultValues,
+                                 WritabilityPolicy writabilityPolicy)
     {
-      final AttributeDescription attributeDescription = AttributeDescription.valueOf(attributeName);
-      final Syntax syntax = attributeDescription.getAttributeType().getSyntax();
+      final JsonValue result;
+      if (pd.hasOption(PropertyOption.MULTI_VALUED))
+      {
+        result = json(object(
+            field("type", "array"),
+            // LDAP has set semantics => all items are unique
+            field("uniqueItems", true),
+            field("items", itemsSchema(pd, attrType))));
+      }
+      else
+      {
+        result = itemsSchema(pd, attrType);
+      }
+
+      final String title = attrType.getDescription();
+      if (title != null && !"".equals(title))
+      {
+        result.put("title", title);
+      }
+      final String description = description(pd);
+      if (description != null)
+      {
+        result.put("description", description);
+      }
+      final Object defaultValue = defaultValue(pd, defaultValues);
+      if (defaultValue != null)
+      {
+        result.put("default", defaultValue);
+      }
+      SimplePropertyMapper.putWritabilityProperties(writabilityPolicy, result);
+      return result;
+    }
+
+    private Object defaultValue(PropertyDefinition<?> pd, Collection<String> defaultValues)
+    {
+      if (defaultValues.isEmpty())
+      {
+        return null;
+      }
+      else if (pd.hasOption(PropertyOption.MULTI_VALUED))
+      {
+        return defaultValues;
+      }
+      else if (defaultValues.size() > 1)
+      {
+        throw new IllegalStateException(
+            "Expected only one default value for a single valued attribute, "
+            + "but got " + defaultValues.size() + " elements in collection: " + defaultValues);
+      }
+      return defaultValues.iterator().next();
+    }
+
+    private String description(PropertyDefinition<?> pd)
+    {
+      if (pd.getSynopsis() != null)
+      {
+        final LocalizableMessage desc = pd.getDescription();
+        if (desc != null)
+        {
+          return "" + pd.getSynopsis() + " " + desc;
+        }
+        return pd.getSynopsis().toString();
+      }
+      return null;
+    }
+
+    private Function<String, ?, ? extends RuntimeException> getConverter(AttributeDescription attrDesc)
+    {
+      AttributeType attrType = attrDesc.getAttributeType();
+      final Syntax syntax = attrType.getSyntax();
       if (syntax.equals(getBooleanSyntax()))
       {
         return Functions.stringToBoolean();
@@ -374,6 +455,80 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
       {
         return Functions.identityFunction();
       }
+    }
+
+    private <T, E extends Exception> List<Object> applyFunction(Collection<T> col, Function<T, ?, E> f) throws E
+    {
+      final List<Object> results = new ArrayList<>(col.size());
+      for (final T elem : col)
+      {
+        results.add(f.apply(elem));
+      }
+      return results;
+    }
+
+    private JsonValue itemsSchema(PropertyDefinition<?> pd, AttributeType attrType)
+    {
+      final JsonValue result = json(JsonValue.object());
+      if (pd instanceof IntegerPropertyDefinition)
+      {
+        IntegerPropertyDefinition ipd = (IntegerPropertyDefinition) pd;
+        result.put("type", "integer");
+        result.put("minimum", ipd.getLowerLimit());
+        if (ipd.getUpperLimit() != null)
+        {
+          result.put("maximum", ipd.getUpperLimit());
+        }
+        result.put("format", int32OrInt64(ipd));
+      }
+      else if (pd instanceof StringPropertyDefinition)
+      {
+        StringPropertyDefinition spd = (StringPropertyDefinition) pd;
+        result.put("type", "string");
+        if (spd.getPattern() != null)
+        {
+          result.put("pattern", spd.getPattern().toString());
+        }
+        // JSON schema does not support this: spd.isCaseInsensitive()
+      }
+      else if (pd instanceof BooleanPropertyDefinition)
+      {
+        result.put("type", "boolean");
+      }
+      else if (pd instanceof EnumPropertyDefinition)
+      {
+        EnumPropertyDefinition<?> epd = (EnumPropertyDefinition<?>) pd;
+        result.put("type", "string");
+        result.put("enum", array(toStrings(epd.getEnumClass().getEnumConstants())));
+      }
+      else
+      {
+        SimplePropertyMapper.putTypeAndFormat(result, attrType);
+      }
+      return result;
+    }
+
+    private String int32OrInt64(IntegerPropertyDefinition pd)
+    {
+      if (pd.getUpperLimit() != null
+          && Integer.MIN_VALUE <= pd.getLowerLimit() && pd.getUpperLimit() >= Integer.MAX_VALUE)
+      {
+        return "int32";
+      }
+      else
+      {
+        return "int64";
+      }
+    }
+
+    private Object[] toStrings(Object[] objects)
+    {
+      Object[] results = new String[objects.length];
+      for (int i = 0; i < objects.length; i++)
+      {
+        results[i] = objects[i].toString();
+      }
+      return results;
     }
 
     @Override

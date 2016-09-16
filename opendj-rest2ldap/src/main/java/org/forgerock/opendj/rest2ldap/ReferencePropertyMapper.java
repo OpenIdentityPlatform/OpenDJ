@@ -361,9 +361,11 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     @Override
     JsonValue toJsonSchema() {
         if (mapper.isMultiValued()) {
-            final JsonValue jsonSchema = json(object(field("type", "array")));
-            jsonSchema.put("items", mapper.toJsonSchema());
-            jsonSchema.put("uniqueItems", true);
+            final JsonValue jsonSchema = json(object(
+                field("type", "array"),
+                field("items", mapper.toJsonSchema()),
+                // LDAP has set semantics => all items are unique
+                field("uniqueItems", true)));
             putWritabilityProperties(jsonSchema);
             return jsonSchema;
         }

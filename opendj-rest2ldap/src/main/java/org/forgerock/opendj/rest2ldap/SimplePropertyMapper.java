@@ -31,16 +31,15 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.Promise;
 
 import static java.util.Collections.*;
-
 import static org.forgerock.json.JsonValue.*;
 import static org.forgerock.opendj.ldap.Filter.*;
-import static org.forgerock.opendj.rest2ldap.Rest2Ldap.asResourceException;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
 import static org.forgerock.util.promise.Promises.newResultPromise;
 
@@ -48,6 +47,7 @@ import static org.forgerock.util.promise.Promises.newResultPromise;
 public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<SimplePropertyMapper> {
     private Function<ByteString, ?, ? extends Exception> decoder;
     private Function<Object, ByteString, ? extends Exception> encoder;
+    private JsonValue jsonSchema;
 
     SimplePropertyMapper(final AttributeDescription ldapAttributeName) {
         super(ldapAttributeName);
@@ -129,6 +129,20 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
         return this;
     }
 
+    /**
+     * Sets the JSON schema corresponding to this simple property mapper. If not {@code null},
+     * it will be returned by {@link #toJsonSchema()}, otherwise a default JSON schema will be
+     * automatically generated with the information available in this property mapper.
+     *
+     * @param jsonSchema
+     *          the JSON schema corresponding to this simple property mapper. Can be {@code null}
+     * @return This property mapper.
+     */
+    public SimplePropertyMapper jsonSchema(JsonValue jsonSchema) {
+        this.jsonSchema = jsonSchema;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "simple(" + ldapAttributeName + ")";
@@ -188,7 +202,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
             }
         } catch (final Exception ex) {
             // The LDAP attribute could not be decoded.
-            return asResourceException(ex).asPromise();
+            return Rest2Ldap.asResourceException(ex).asPromise();
         }
     }
 
@@ -202,37 +216,80 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
 
     @Override
     JsonValue toJsonSchema() {
+        return this.jsonSchema != null ? this.jsonSchema : toJsonSchema0();
+    }
+
+    private JsonValue toJsonSchema0() {
         final AttributeType attrType = ldapAttributeName.getAttributeType();
 
-        final JsonValue jsonSchema = json(object(field("type", toJsonSchemaType(attrType))));
+        final JsonValue jsonSchema;
+        if (isMultiValued()) {
+            jsonSchema = json(object(
+                field("type", "array"),
+                // LDAP has set semantics => all items are unique
+                field("uniqueItems", true),
+                field("items", itemsSchema(attrType))));
+        } else {
+            jsonSchema = itemsSchema(attrType);
+        }
+
         final String description = attrType.getDescription();
         if (description != null && !"".equals(description)) {
             jsonSchema.put("title", description);
         }
-
         putWritabilityProperties(jsonSchema);
         return jsonSchema;
     }
 
-    private static String toJsonSchemaType(AttributeType attrType) {
+    private JsonValue itemsSchema(final AttributeType attrType) {
+        final JsonValue itemsSchema = json(object());
+        putTypeAndFormat(itemsSchema, attrType);
+        return itemsSchema;
+    }
+
+    /**
+     * Puts the type and format corresponding to the provided attribute type on the provided JSON
+     * schema.
+     *
+     * @param jsonSchema
+     *          the JSON schema where to put the type and format
+     * @param attrType
+     *          the attribute type for which to infer JSON the type and format
+     * @see <a href=
+     *      "https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types">
+     *      OpenAPI Specification 2.0</a>
+     * @see <a href="https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-7.3">
+     *      draft-fge-json-schema-validation-00 - Semantic validation with "format" - Defined
+     *      attributes</a>
+     */
+    public static void putTypeAndFormat(JsonValue jsonSchema, AttributeType attrType) {
         if (attrType.isPlaceHolder()) {
-            return "string";
+            jsonSchema.put("type", "string");
+            return;
         }
-        // TODO JNR cannot use switch + SchemaConstants.SYNTAX_DIRECTORY_STRING_OID
-        // because the class is not public
-        // this is not nice :(
-        // TODO JNR not so sure about these mappings
-        final String oid = attrType.getSyntax().getOID();
-        if (CoreSchema.getDirectoryStringSyntax().getOID().equals(oid)
-                || CoreSchema.getOctetStringSyntax().getOID().equals(oid)) {
-            return "string";
-        } else if (CoreSchema.getBooleanSyntax().getOID().equals(oid)) {
-            return "boolean";
-        } else if (CoreSchema.getIntegerSyntax().getOID().equals(oid)) {
-            return "integer";
-        } else if (CoreSchema.getNumericStringSyntax().getOID().equals(oid)) {
-            return "number";
+
+        final Syntax syntax = attrType.getSyntax();
+        if (attrType.hasName("userPassword")) {
+            jsonSchema.put("type", "string");
+            jsonSchema.put("format", "password");
+        } else if (attrType.hasName("mail")) {
+            jsonSchema.put("type", "string");
+            jsonSchema.put("format", "email");
+        } else if (syntax.equals(getBooleanSyntax())) {
+            jsonSchema.put("type", "boolean");
+        } else if (syntax.equals(getNumericStringSyntax())) {
+            // credit card numbers are numeric strings whose leading zeros are significant
+            jsonSchema.put("type", "string");
+        } else if (syntax.equals(getIntegerSyntax())) {
+            jsonSchema.put("type", "integer");
+        } else if (syntax.equals(getGeneralizedTimeSyntax())) {
+            jsonSchema.put("type", "string");
+            jsonSchema.put("format", "date-time");
+        } else if (!syntax.isHumanReadable()) {
+            jsonSchema.put("type", "string");
+            jsonSchema.put("format", "byte");
+        } else {
+            jsonSchema.put("type", "string");
         }
-        return "string";
     }
 }
