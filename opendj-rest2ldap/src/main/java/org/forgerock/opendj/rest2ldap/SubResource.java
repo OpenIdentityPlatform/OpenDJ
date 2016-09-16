@@ -20,14 +20,27 @@ import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNRECOGNIZED_
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.json.resource.ActionRequest;
+import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.BadRequestException;
+import org.forgerock.json.resource.CreateRequest;
+import org.forgerock.json.resource.DeleteRequest;
 import org.forgerock.json.resource.NotFoundException;
+import org.forgerock.json.resource.PatchRequest;
+import org.forgerock.json.resource.QueryRequest;
+import org.forgerock.json.resource.QueryResourceHandler;
+import org.forgerock.json.resource.QueryResponse;
+import org.forgerock.json.resource.ReadRequest;
 import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.json.resource.Router;
+import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.services.context.Context;
+import org.forgerock.util.AsyncFunction;
 import org.forgerock.util.Function;
+import org.forgerock.util.promise.Promise;
 
 /**
  * Defines a parent-child relationship between a parent resource and one or more child resource(s). Removal of the
@@ -106,5 +119,99 @@ public abstract class SubResource {
 
     final RequestHandler subResourceRouterFrom(final RoutingContext context) {
         return context.getType().getSubResourceRouter();
+    }
+
+    abstract Promise<RoutingContext, ResourceException> route(final Context context);
+
+    /**
+     * Responsible for routing requests to sub-resources:
+     * <ul>
+     * <li>of this singleton,</li>
+     * <li>or of instances within a collection<./li>
+     * </ul>
+     * <p>
+     * More specifically, given
+     * <ul>
+     * <li>the URL template /singleton then this handler processes all requests beneath /singleton.</li>
+     * <li>the URL template /collection/{id} then this handler processes all requests beneath /collection/{id},</li>
+     * </ul>
+     */
+    final class SubResourceHandler extends AbstractRequestHandler {
+        @Override
+        public Promise<ActionResponse, ResourceException> handleAction(final Context context,
+                                                                       final ActionRequest request) {
+            return route(context).thenAsync(new AsyncFunction<RoutingContext, ActionResponse, ResourceException>() {
+                @Override
+                public Promise<ActionResponse, ResourceException> apply(final RoutingContext context) {
+                    return subResourceRouterFrom(context).handleAction(context, request);
+                }
+            });
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> handleCreate(final Context context,
+                                                                         final CreateRequest request) {
+            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
+                @Override
+                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
+                    return subResourceRouterFrom(context).handleCreate(context, request);
+                }
+            });
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> handleDelete(final Context context,
+                                                                         final DeleteRequest request) {
+            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
+                @Override
+                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
+                    return subResourceRouterFrom(context).handleDelete(context, request);
+                }
+            });
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> handlePatch(final Context context,
+                                                                        final PatchRequest request) {
+            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
+                @Override
+                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
+                    return subResourceRouterFrom(context).handlePatch(context, request);
+                }
+            });
+        }
+
+        @Override
+        public Promise<QueryResponse, ResourceException> handleQuery(final Context context, final QueryRequest request,
+                                                                     final QueryResourceHandler handler) {
+            return route(context).thenAsync(new AsyncFunction<RoutingContext, QueryResponse, ResourceException>() {
+                @Override
+                public Promise<QueryResponse, ResourceException> apply(final RoutingContext context) {
+                    return subResourceRouterFrom(context).handleQuery(context, request, handler);
+                }
+            });
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> handleRead(final Context context,
+                                                                       final ReadRequest request) {
+            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
+                @Override
+                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
+                    return subResourceRouterFrom(context).handleRead(context, request);
+                }
+            });
+        }
+
+        @Override
+        public Promise<ResourceResponse, ResourceException> handleUpdate(final Context context,
+                                                                         final UpdateRequest request) {
+            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
+                @Override
+                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
+                    return subResourceRouterFrom(context).handleUpdate(context, request);
+                }
+            });
+        }
     }
 }

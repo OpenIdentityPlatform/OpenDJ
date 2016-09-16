@@ -29,14 +29,12 @@ import org.forgerock.json.resource.ActionRequest;
 import org.forgerock.json.resource.ActionResponse;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.CreateRequest;
-import org.forgerock.json.resource.DeleteRequest;
 import org.forgerock.json.resource.PatchRequest;
 import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
 import org.forgerock.json.resource.QueryResponse;
 import org.forgerock.json.resource.ReadRequest;
 import org.forgerock.json.resource.Request;
-import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.json.resource.Router;
@@ -134,7 +132,7 @@ public final class SubResourceSingleton extends SubResource {
         return router;
     }
 
-    private Promise<RoutingContext, ResourceException> route(final Context context) {
+    Promise<RoutingContext, ResourceException> route(final Context context) {
         return newResultPromise(newRoutingContext(context, dnFrom(context), resource));
     }
 
@@ -204,91 +202,6 @@ public final class SubResourceSingleton extends SubResource {
 
         private <T> Function<ResourceException, T, ResourceException> convert404To400() {
             return SubResource.convert404To400(ERR_UNSUPPORTED_REQUEST_AGAINST_SINGLETON.get());
-        }
-    }
-
-
-
-    /**
-     * Responsible for routing requests to sub-resources of this singleton. More specifically, given
-     * the URL template /singleton then this handler processes all requests beneath /singleton.
-     */
-    private final class SubResourceHandler extends AbstractRequestHandler {
-        @Override
-        public Promise<ActionResponse, ResourceException> handleAction(final Context context,
-                                                                       final ActionRequest request) {
-            return route(context).thenAsync(new AsyncFunction<RoutingContext, ActionResponse, ResourceException>() {
-                @Override
-                public Promise<ActionResponse, ResourceException> apply(final RoutingContext context) {
-                    return subResourceRouterFrom(context).handleAction(context, request);
-                }
-            });
-        }
-
-        @Override
-        public Promise<ResourceResponse, ResourceException> handleCreate(final Context context,
-                                                                         final CreateRequest request) {
-            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
-                @Override
-                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
-                    return subResourceRouterFrom(context).handleCreate(context, request);
-                }
-            });
-        }
-
-        @Override
-        public Promise<ResourceResponse, ResourceException> handleDelete(final Context context,
-                                                                         final DeleteRequest request) {
-            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
-                @Override
-                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
-                    return subResourceRouterFrom(context).handleDelete(context, request);
-                }
-            });
-        }
-
-        @Override
-        public Promise<ResourceResponse, ResourceException> handlePatch(final Context context,
-                                                                        final PatchRequest request) {
-            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
-                @Override
-                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
-                    return subResourceRouterFrom(context).handlePatch(context, request);
-                }
-            });
-        }
-
-        @Override
-        public Promise<QueryResponse, ResourceException> handleQuery(final Context context, final QueryRequest request,
-                                                                     final QueryResourceHandler handler) {
-            return route(context).thenAsync(new AsyncFunction<RoutingContext, QueryResponse, ResourceException>() {
-                @Override
-                public Promise<QueryResponse, ResourceException> apply(final RoutingContext context) {
-                    return subResourceRouterFrom(context).handleQuery(context, request, handler);
-                }
-            });
-        }
-
-        @Override
-        public Promise<ResourceResponse, ResourceException> handleRead(final Context context,
-                                                                       final ReadRequest request) {
-            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
-                @Override
-                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
-                    return subResourceRouterFrom(context).handleRead(context, request);
-                }
-            });
-        }
-
-        @Override
-        public Promise<ResourceResponse, ResourceException> handleUpdate(final Context context,
-                                                                         final UpdateRequest request) {
-            return route(context).thenAsync(new AsyncFunction<RoutingContext, ResourceResponse, ResourceException>() {
-                @Override
-                public Promise<ResourceResponse, ResourceException> apply(final RoutingContext context) {
-                    return subResourceRouterFrom(context).handleUpdate(context, request);
-                }
-            });
         }
     }
 }
