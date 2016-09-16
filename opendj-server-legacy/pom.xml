@@ -149,6 +149,11 @@
 
     <dependency>
       <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-audit-handler-json</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-audit-handler-elasticsearch</artifactId>
     </dependency>
 
