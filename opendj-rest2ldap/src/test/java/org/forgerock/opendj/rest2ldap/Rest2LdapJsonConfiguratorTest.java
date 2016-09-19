@@ -69,6 +69,7 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
         assertThat(api.getVersion()).isEqualTo(VERSION);
         assertThat(api.getPaths().getNames()).containsOnly("/api/users", "/api/groups");
         assertThat(api.getDefinitions().getNames()).containsOnly(
+            "frapi:opendj:rest2ldap:object:1.0",
             "frapi:opendj:rest2ldap:group:1.0",
             "frapi:opendj:rest2ldap:user:1.0",
             "frapi:opendj:rest2ldap:posixUser:1.0");

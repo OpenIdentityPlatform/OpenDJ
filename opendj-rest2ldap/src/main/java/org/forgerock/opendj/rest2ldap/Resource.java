@@ -513,7 +513,9 @@ public final class Resource {
      * @return a new api description that describes a single instance resource.
      */
     ApiDescription instanceApi(boolean isReadOnly) {
-        if (allProperties.isEmpty()) {
+        if (allProperties.isEmpty() && superType == null && subTypes.isEmpty()) {
+            // It is not used in the api description
+            // so do not generate anything for this resource
             return null;
         }
 
@@ -536,7 +538,8 @@ public final class Resource {
         return ApiDescription.apiDescription()
                       .id("unused").version("unused")
                       .definitions(definitions())
-                      .paths(getPaths())
+                      .services(services(resource))
+                      .paths(paths())
                       .errors(errors())
                       .build();
     }
@@ -576,15 +579,19 @@ public final class Resource {
         return ApiDescription.apiDescription()
                              .id("unused").version("unused")
                              .definitions(definitions())
-                             .services(Services.services()
-                                               .put(id, resource.build())
-                                               .build())
-                             .paths(getPaths())
+                             .services(services(resource))
+                             .paths(paths())
                              .errors(errors())
                              .build();
     }
 
-    private Paths getPaths() {
+    private Services services(org.forgerock.api.models.Resource.Builder resource) {
+        return Services.services()
+                       .put(id, resource.build())
+                       .build();
+    }
+
+    private Paths paths() {
         return Paths.paths()
                      // do not put anything in the path to avoid unfortunate string concatenation
                      // also use UNVERSIONED and rely on the router to stamp the version
@@ -594,11 +601,32 @@ public final class Resource {
 
     private Definitions definitions() {
         final Definitions.Builder definitions = Definitions.definitions();
-        definitions.put(id, buildJsonSchema());
-        for (Resource subType : subTypes) {
-            definitions.put(subType.id, subType.buildJsonSchema());
+        for (Resource res : collectTypeHierarchy(this)) {
+            definitions.put(res.id, res.buildJsonSchema());
         }
         return definitions.build();
+    }
+
+    private static Iterable<Resource> collectTypeHierarchy(Resource currentType) {
+        final List<Resource> typeHierarchy = new ArrayList<>();
+
+        Resource ancestorType = currentType;
+        while (ancestorType.superType != null) {
+            ancestorType = ancestorType.superType;
+            typeHierarchy.add(ancestorType);
+        }
+
+        typeHierarchy.add(currentType);
+
+        addSubTypes(typeHierarchy, currentType);
+        return typeHierarchy;
+    }
+
+    private static void addSubTypes(final List<Resource> typeHierarchy, Resource res) {
+        for (Resource subType : res.subTypes) {
+            typeHierarchy.add(subType);
+            addSubTypes(typeHierarchy, subType);
+        }
     }
 
     private LocalizableString toLS(LocalizableMessage msg) {
@@ -782,7 +810,7 @@ public final class Resource {
                     field("name", "New Password"),
                     field("description", "New password as a UTF-8 string."),
                     field("format", "password")))))));
-        return Schema.schema().schema(jsonSchema).build();
+        return schema(jsonSchema);
     }
 
     private static org.forgerock.api.models.Action resetPasswordAction() {
@@ -814,13 +842,13 @@ public final class Resource {
                 field("generatedPassword", object(
                     field("type", "string"),
                     field("description", "Generated password to communicate to the user.")))))));
-        return Schema.schema().schema(jsonSchema).build();
+        return schema(jsonSchema);
     }
 
     private Schema buildJsonSchema() {
         final List<String> requiredFields = new ArrayList<>();
         JsonValue properties = json(JsonValue.object());
-        for (Map.Entry<String, PropertyMapper> prop : allProperties.entrySet()) {
+        for (Map.Entry<String, PropertyMapper> prop : declaredProperties.entrySet()) {
             final String propertyName = prop.getKey();
             final PropertyMapper mapper = prop.getValue();
             if (mapper.isRequired()) {
@@ -833,13 +861,34 @@ public final class Resource {
         }
 
         final JsonValue jsonSchema = json(object(field("type", "object")));
+        final String discriminator = getDiscriminator();
+        if (discriminator != null) {
+            jsonSchema.put("discriminator", discriminator);
+        }
         if (!requiredFields.isEmpty()) {
             jsonSchema.put("required", requiredFields);
         }
         if (properties.size() > 0) {
             jsonSchema.put("properties", properties);
         }
-        return Schema.schema().schema(jsonSchema).build();
+
+        if (superType != null) {
+            return schema(json(object(
+                field("allOf", array(
+                    object(field("$ref", "#/definitions/" + superType.id)),
+                    jsonSchema)))));
+        }
+        return schema(jsonSchema);
+    }
+
+    private String getDiscriminator() {
+        if (resourceTypeProperty != null) {
+            // Subtypes inherit the resourceTypeProperty from their parent.
+            // The discriminator must only be output for the type that defined it.
+            final String propertyName = resourceTypeProperty.leaf();
+            return declaredProperties.containsKey(propertyName) ? propertyName : null;
+        }
+        return null;
     }
 
     private Errors errors() {
@@ -874,6 +923,10 @@ public final class Resource {
 
     static org.forgerock.api.models.Schema schemaRef(String referenceValue) {
         return Schema.schema().reference(ref(referenceValue)).build();
+    }
+
+    private static org.forgerock.api.models.Schema schema(JsonValue jsonSchema) {
+        return Schema.schema().schema(jsonSchema).build();
     }
 
     static Reference ref(String referenceValue) {

@@ -60,7 +60,7 @@ final class ResourceTypePropertyMapper extends PropertyMapper {
 
     @Override
     boolean isRequired() {
-        return false;
+        return true;
     }
 
     @Override
