@@ -91,7 +91,7 @@ public final class Rfc7662AccessResolverTestCase extends ForgeRockTestCase {
           expectedExceptionsMessageRegExp = ".*AccessTokenException.*Authorization server returned an error:.*")
     public void testErrorResponse() throws Exception {
         when(client.handle(eq(context), any(Request.class))).thenReturn(
-                Response.newResponsePromise(new Response().setStatus(Status.UNAUTHORIZED)));
+                Response.newResponsePromise(new Response(Status.UNAUTHORIZED)));
         resolver.resolve(context, "fake-access-token").get();
     }
 
@@ -104,7 +104,7 @@ public final class Rfc7662AccessResolverTestCase extends ForgeRockTestCase {
         jsonResponse.put("an info", "info value");
 
         when(client.handle(eq(context), any(Request.class))).thenReturn(
-                Response.newResponsePromise(new Response().setStatus(Status.OK).setEntity(jsonResponse)));
+                Response.newResponsePromise(new Response(Status.OK).setEntity(jsonResponse)));
         final Promise<AccessTokenInfo, AccessTokenException> promise = resolver.resolve(context, token);
         ensureRequestIsCorrect(token);
         return promise;

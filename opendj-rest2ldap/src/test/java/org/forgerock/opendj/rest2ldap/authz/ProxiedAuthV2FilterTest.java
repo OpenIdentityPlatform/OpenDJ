@@ -26,6 +26,7 @@ import java.util.Map;
 import org.forgerock.http.Handler;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
+import org.forgerock.http.protocol.Status;
 import org.forgerock.opendj.ldap.AbstractSynchronousConnection;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
@@ -65,6 +66,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @Test
+@SuppressWarnings("javadoc")
 public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
 
     private ProxiedAuthV2Filter filter;
@@ -102,7 +104,7 @@ public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
         final SecurityContext securityContext = new SecurityContext(new RootContext(), "whatever", authz);
 
         when(handler.handle(captureContext.capture(), any(Request.class)))
-                .thenReturn(Response.newResponsePromise(new Response()));
+                .thenReturn(Response.newResponsePromise(new Response(Status.OK)));
         filter.filter(securityContext, new Request(), handler);
 
         final Connection proxiedConnection = captureContext.getValue().asContext(AuthenticatedConnectionContext.class)
@@ -135,6 +137,7 @@ public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
 
         @Override
         public void close(UnbindRequest request, String reason) {
+            // nothing to do
         }
 
         @Override
@@ -176,10 +179,6 @@ public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
         }
 
         @Override
-        public void addConnectionEventListener(ConnectionEventListener listener) {
-        }
-
-        @Override
         public boolean isClosed() {
             return false;
         }
@@ -190,7 +189,13 @@ public class ProxiedAuthV2FilterTest extends ForgeRockTestCase {
         }
 
         @Override
+        public void addConnectionEventListener(ConnectionEventListener listener) {
+            // nothing to do
+        }
+
+        @Override
         public void removeConnectionEventListener(ConnectionEventListener listener) {
+            // nothing to do
         }
 
         @Override

@@ -70,8 +70,7 @@ final class Utils {
 
     static Promise<Response, NeverThrowsException> asErrorResponse(final Throwable t) {
         final ResourceException e = asResourceException(t);
-        final Response response = new Response().setStatus(Status.valueOf(e.getCode()))
-                                                .setEntity(e.toJsonValue() .getObject());
+        final Response response = new Response(Status.valueOf(e.getCode())).setEntity(e.toJsonValue() .getObject());
         if (response.getStatus() == Status.UNAUTHORIZED) {
             response.getHeaders().put("WWW-Authenticate", "Basic");
         }

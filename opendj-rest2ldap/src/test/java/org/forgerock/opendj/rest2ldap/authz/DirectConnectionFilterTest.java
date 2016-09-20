@@ -61,7 +61,7 @@ public class DirectConnectionFilterTest extends ForgeRockTestCase {
         final Handler handler = mock(Handler.class);
         final ArgumentCaptor<Context> captureContext = ArgumentCaptor.forClass(Context.class);
         when(handler.handle(captureContext.capture(), any(Request.class)))
-                .thenReturn(Response.newResponsePromise(new Response()));
+                .thenReturn(Response.newResponsePromise(new Response(Status.OK)));
 
         filter.filter(new RootContext(), new Request(), handler);
 
