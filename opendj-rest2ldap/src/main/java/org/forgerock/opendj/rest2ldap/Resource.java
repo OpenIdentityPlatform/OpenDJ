@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.api.commons.CommonsApi;
 import org.forgerock.api.enums.CreateMode;
 import org.forgerock.api.enums.QueryType;
 import org.forgerock.api.models.ApiDescription;
@@ -76,22 +77,22 @@ import org.forgerock.util.i18n.LocalizableString;
  * Defines the characteristics of a resource, including its properties, inheritance, and sub-resources.
  */
 public final class Resource {
-    // Commons errors
-    private static final String ERROR_BAD_REQUEST = "frapi:common#/errors/badRequest";
-    private static final String ERROR_FORBIDDEN = "frapi:common#/errors/forbidden";
-    private static final String ERROR_INTERNAL_SERVER_ERROR = "frapi:common#/errors/internalServerError";
-    private static final String ERROR_NOT_FOUND = "frapi:common#/errors/notFound";
-    private static final String ERROR_REQUEST_ENTITY_TOO_LARGE = "frapi:common#/errors/requestEntityTooLarge";
-    private static final String ERROR_REQUEST_TIMEOUT = "frapi:common#/errors/requestTimeout";
-    private static final String ERROR_UNAUTHORIZED = "frapi:common#/errors/unauthorized";
-    private static final String ERROR_UNAVAILABLE = "frapi:common#/errors/unavailable";
-    private static final String ERROR_VERSION_MISMATCH = "frapi:common#/errors/versionMismatch";
-
-    // rest2ldap errors
+    // errors
     private static final String ERROR_ADMIN_LIMIT_EXCEEDED = "#/errors/adminLimitExceeded";
     private static final String ERROR_READ_FOUND_MULTIPLE_ENTRIES = "#/errors/readFoundMultipleEntries";
     private static final String ERROR_PASSWORD_MODIFY_REQUIRES_HTTPS = "#/errors/passwordModifyRequiresHttps";
     private static final String ERROR_PASSWORD_MODIFY_REQUIRES_AUTHENTICATION = "#/errors/passwordModifyRequiresAuthn";
+
+    private static final String ERROR_BAD_REQUEST = CommonsApi.Errors.BAD_REQUEST.getReference();
+    private static final String ERROR_FORBIDDEN = CommonsApi.Errors.FORBIDDEN.getReference();
+    private static final String ERROR_INTERNAL_SERVER_ERROR = CommonsApi.Errors.INTERNAL_SERVER_ERROR.getReference();
+    private static final String ERROR_NOT_FOUND = CommonsApi.Errors.NOT_FOUND.getReference();
+    private static final String ERROR_REQUEST_ENTITY_TOO_LARGE =
+        CommonsApi.Errors.REQUEST_ENTITY_TOO_LARGE.getReference();
+    private static final String ERROR_REQUEST_TIMEOUT = CommonsApi.Errors.REQUEST_TIMEOUT.getReference();
+    private static final String ERROR_UNAUTHORIZED = CommonsApi.Errors.UNAUTHORIZED.getReference();
+    private static final String ERROR_UNAVAILABLE = CommonsApi.Errors.UNAVAILABLE.getReference();
+    private static final String ERROR_VERSION_MISMATCH = CommonsApi.Errors.VERSION_MISMATCH.getReference();
 
     /** All fields are queryable, but the directory server may reject some requests (unindexed?). */
     private static final String ALL_FIELDS = "*";
