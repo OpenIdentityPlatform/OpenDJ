@@ -107,6 +107,17 @@ public final class ReplicationParameters
       "--noPropertiesFile" };
   }
 
+  @Override
+  public String toString()
+  {
+    return "ReplicationParameters [baseDn=" + baseDn
+        + ", source replication port=" + replicationPortSource
+        + ", destination host name=" + getHostNameDestination()
+        + ", destination replication port=" + replicationPortDestination
+        + ", destination admin port=" + getAdminPortDestination()
+        + "]";
+  }
+
   int getReplicationPortSource()
   {
     return replicationPortSource;
@@ -117,7 +128,7 @@ public final class ReplicationParameters
     return replicationPortDestination;
   }
 
-  String getHostnameDestination()
+  String getHostNameDestination()
   {
     return connParamsForDestination.getHostName();
   }

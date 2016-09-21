@@ -26,7 +26,6 @@ public final class ConnectionParameters
   private String hostName;
   private Integer ldapPort;
   private Integer ldapsPort;
-  private boolean enableStartTLS;
 
   private ConnectionParameters()
   {
@@ -41,6 +40,20 @@ public final class ConnectionParameters
   public static ConnectionParameters connectionParams()
   {
     return new ConnectionParameters();
+  }
+
+  @Override
+  public String toString()
+  {
+    return "ConnectionParameters ["
+        + "host name=" + hostName
+        + ", ldap port=" + ldapPort
+        + ", ldaps port=" + ldapsPort
+        + ", admin port=" + adminPort
+        + ", bind DN=" + bindDn
+        + ", admin uid=" + adminUid
+        + "]";
+
   }
 
   String getAdminPassword()
@@ -81,11 +94,6 @@ public final class ConnectionParameters
   Integer getLdapSecurePort()
   {
     return ldapsPort;
-  }
-
-  boolean isStartTLSEnabled()
-  {
-    return enableStartTLS;
   }
 
   /**
@@ -150,19 +158,6 @@ public final class ConnectionParameters
   public ConnectionParameters bindPassword(String password)
   {
     bindPassword = password;
-    return this;
-  }
-
-  /**
-   * Sets the start TLS indicator.
-   *
-   * @param startTLS
-   *          the indicator which should be {@code true} to enable StartTLS, {@code false} otherwise
-   * @return this builder
-   */
-  public ConnectionParameters enableStartTLS(boolean startTLS)
-  {
-    enableStartTLS = startTLS;
     return this;
   }
 

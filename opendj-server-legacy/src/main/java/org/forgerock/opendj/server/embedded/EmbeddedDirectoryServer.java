@@ -206,7 +206,7 @@ public class EmbeddedDirectoryServer
     {
       throw new EmbeddedDirectoryServerException(ERR_EMBEDDED_SERVER_CONFIGURE_REPLICATION.get(
           configParams.getServerRootDirectory(), parameters.getReplicationPortSource(),
-          parameters.getHostnameDestination(), parameters.getReplicationPortDestination(), returnCode));
+          parameters.getHostNameDestination(), parameters.getReplicationPortDestination(), returnCode));
     }
   }
 
@@ -325,7 +325,7 @@ public class EmbeddedDirectoryServer
     if (returnCode != 0)
     {
       throw new EmbeddedDirectoryServerException(ERR_EMBEDDED_SERVER_INITIALIZE_REPLICATION.get(
-          configParams.getServerRootDirectory(), connectionParams.getAdminPort(), parameters.getHostnameDestination(),
+          configParams.getServerRootDirectory(), connectionParams.getAdminPort(), parameters.getHostNameDestination(),
           parameters.getAdminPortDestination(), returnCode));
     }
   }

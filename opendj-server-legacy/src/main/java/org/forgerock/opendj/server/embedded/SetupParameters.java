@@ -68,13 +68,6 @@ public final class SetupParameters
     {
       args.add("--ldapsPort");
       args.add(s(connParams.getLdapSecurePort()));
-    }
-    if (connParams.isStartTLSEnabled())
-    {
-      args.add("--enableStartTLS");
-    }
-    if (connParams.getLdapSecurePort() != null || connParams.isStartTLSEnabled())
-    {
       args.add("--generateSelfSignedCertificate");
     }
     return args.toArray(new String[args.size()]);
