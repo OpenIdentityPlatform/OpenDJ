@@ -603,9 +603,10 @@ public final class Resource {
 
     private LocalizableString toLS(LocalizableMessage msg) {
         if (msg != null) {
-            if (msg.resourceName() != null) {
-                return new LocalizableString("i18n:" + msg.resourceName() + "#" /* TODO + msg.getKey() */);
-            }
+            // FIXME this code does cannot work today because LocalizableMessage.getKey() does not exist
+            //if (msg.resourceName() != null) {
+            //    return new LocalizableString("i18n:" + msg.resourceName() + "#" + msg.getKey());
+            //}
             return new LocalizableString(msg.toString());
         }
         return null;
