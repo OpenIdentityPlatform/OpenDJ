@@ -12,10 +12,12 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2013 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
+
+import static org.forgerock.opendj.ldap.Attributes.emptyAttribute;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -153,12 +155,14 @@ public abstract class AbstractEntry implements Entry {
 
     @Override
     public AttributeParser parseAttribute(final AttributeDescription attributeDescription) {
-        return AttributeParser.parseAttribute(getAttribute(attributeDescription));
+        final Attribute attribute = getAttribute(attributeDescription);
+        return AttributeParser.parseAttribute(attribute != null ? attribute : emptyAttribute(attributeDescription));
     }
 
     @Override
     public AttributeParser parseAttribute(final String attributeDescription) {
-        return AttributeParser.parseAttribute(getAttribute(attributeDescription));
+        final Attribute attribute = getAttribute(attributeDescription);
+        return AttributeParser.parseAttribute(attribute != null ? attribute : emptyAttribute(attributeDescription));
     }
 
     @Override
@@ -191,7 +195,7 @@ public abstract class AbstractEntry implements Entry {
 
     @Override
     public boolean removeAttribute(final AttributeDescription attributeDescription) {
-        return removeAttribute(Attributes.emptyAttribute(attributeDescription), null);
+        return removeAttribute(emptyAttribute(attributeDescription), null);
     }
 
     @Override

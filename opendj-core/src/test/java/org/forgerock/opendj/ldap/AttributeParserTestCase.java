@@ -11,14 +11,12 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
-
-import java.util.NoSuchElementException;
 
 import org.fest.util.Collections;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -72,7 +70,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
         assertThat(e.parseAttribute("enabled").asBoolean(false)).isFalse();
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsBooleanMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
         e.parseAttribute("enabled").requireValue().asBoolean();
@@ -108,7 +106,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
         assertThat(e.parseAttribute("age").asInteger(100)).isEqualTo(100);
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsIntegerMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
         e.parseAttribute("age").requireValue().asInteger();
@@ -144,7 +142,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
         assertThat(e.parseAttribute("age").asLong(100)).isEqualTo(100);
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsLongMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
         e.parseAttribute("age").requireValue().asLong();
@@ -182,7 +180,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
                 DN.valueOf("cn=boss"));
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsDNMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
         e.parseAttribute("manager").requireValue().asDN();
@@ -222,7 +220,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
                 .isEqualTo(AttributeDescription.valueOf("sn"));
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsAttributeDescriptionMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
         e.parseAttribute("type").requireValue().asAttributeDescription();
@@ -259,7 +257,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
                 String.valueOf("sn"));
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsStringMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
         e.parseAttribute("type").requireValue().asString();
@@ -291,7 +289,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
                 ByteString.valueOfUtf8("sn"));
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsByteStringMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=test", "objectClass: test");
         e.parseAttribute("type").requireValue().asByteString();
@@ -335,7 +333,7 @@ public final class AttributeParserTestCase extends SdkTestCase {
                 Collections.set(DN.valueOf("cn=dummy1"), DN.valueOf("cn=dummy2")));
     }
 
-    @Test(expectedExceptions = { NoSuchElementException.class })
+    @Test(expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testAsSetOfDNMissingRequired() {
         Entry e = new LinkedHashMapEntry("dn: cn=group", "objectClass: group");
         e.parseAttribute("member").requireValue().asSetOfDN();

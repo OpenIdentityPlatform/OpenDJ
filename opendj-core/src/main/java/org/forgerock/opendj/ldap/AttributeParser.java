@@ -20,9 +20,11 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Function;
 
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTRIBUTE_PARSER_MISSING_ATTRIBUTE;
 import static com.forgerock.opendj.util.Collections2.*;
 import static java.util.Arrays.asList;
 import static org.forgerock.opendj.ldap.Functions.*;
@@ -57,9 +59,6 @@ import static org.forgerock.opendj.ldap.Functions.*;
  */
 public final class AttributeParser {
     // TODO: enums, filters, rdns?
-
-    private static final AttributeParser NULL_INSTANCE = new AttributeParser(null);
-
     /**
      * Returns an attribute parser for the provided attribute. {@code null}
      * attributes are permitted and will be treated as if an empty attribute was
@@ -70,7 +69,7 @@ public final class AttributeParser {
      * @return The attribute parser.
      */
     public static AttributeParser parseAttribute(final Attribute attribute) {
-        return isEmpty(attribute) ? NULL_INSTANCE : new AttributeParser(attribute);
+        return new AttributeParser(attribute);
     }
 
     private static boolean isEmpty(final Attribute attribute) {
@@ -641,17 +640,17 @@ public final class AttributeParser {
     }
 
     /**
-     * Throws a {@code NoSuchElementException} if the attribute referenced by
-     * this parser is {@code null} or empty.
+     * Throws a {@code LocalizedIllegalArgumentException} if the attribute referenced by this parser is {@code null} or
+     * empty.
      *
      * @return A reference to this attribute parser.
-     * @throws NoSuchElementException
-     *             If the attribute referenced by this parser is {@code null} or
-     *             empty.
+     * @throws LocalizedIllegalArgumentException
+     *         If the attribute referenced by this parser is {@code null} or empty.
      */
     public AttributeParser requireValue() {
         if (isEmpty(attribute)) {
-            throw new NoSuchElementException();
+            final String attributeName = attribute.getAttributeDescriptionAsString();
+            throw new LocalizedIllegalArgumentException(ERR_ATTRIBUTE_PARSER_MISSING_ATTRIBUTE.get(attributeName));
         } else {
             return this;
         }
@@ -667,11 +666,7 @@ public final class AttributeParser {
      * @return This attribute parser.
      */
     public AttributeParser usingSchema(final Schema schema) {
-        // Avoid modifying the null instance: a schema will not be needed
-        // anyway.
-        if (this != NULL_INSTANCE) {
-            this.schema = schema;
-        }
+        this.schema = schema;
         return this;
     }
 
