@@ -28,6 +28,10 @@ import static org.forgerock.opendj.ldap.schema.Schema.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
 /**
  * Common {@link Function} implementations which may be used when parsing
  * attributes.
@@ -125,6 +129,19 @@ public final class Functions {
     private static final Function<ByteString, Boolean, LocalizedIllegalArgumentException> BYTESTRING_TO_BOOLEAN =
             compose(byteStringToString(), STRING_TO_BOOLEAN);
 
+    private static final Function<ByteString, X509Certificate, LocalizedIllegalArgumentException> BYTESTRING_TO_CERT =
+            new Function<ByteString, X509Certificate, LocalizedIllegalArgumentException>() {
+                @Override
+                public X509Certificate apply(final ByteString value) {
+                    try {
+                        final CertificateFactory factory = CertificateFactory.getInstance("X.509");
+                        return (X509Certificate) factory.generateCertificate(value.asReader().asInputStream());
+                    } catch (CertificateException e) {
+                        final String head = value.subSequence(0, Math.min(value.length(), 8)).toHexString();
+                        throw new LocalizedIllegalArgumentException(FUNCTIONS_TO_CERT_FAIL.get(head), e);
+                    }
+                }
+            };
 
     private static final Function<ByteString, GeneralizedTime, LocalizedIllegalArgumentException> BYTESTRING_TO_GTIME =
             compose(byteStringToString(), STRING_TO_GTIME);
@@ -382,6 +399,16 @@ public final class Functions {
      */
     public static Function<ByteString, DN, LocalizedIllegalArgumentException> byteStringToDN(final Schema schema) {
         return compose(byteStringToString(), stringToDN(schema));
+    }
+
+    /**
+     * Returns a function which parses {@code X509Certificate} values. Invalid values will
+     * result in a {@code LocalizedIllegalArgumentException}.
+     *
+     * @return A function which parses {@code X509Certificate} values.
+     */
+    public static Function<ByteString, X509Certificate, LocalizedIllegalArgumentException> byteStringToCertificate() {
+        return BYTESTRING_TO_CERT;
     }
 
     /**

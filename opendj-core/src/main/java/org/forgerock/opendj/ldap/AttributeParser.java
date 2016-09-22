@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -206,6 +207,28 @@ public final class AttributeParser {
      */
     public ByteString asByteString(final ByteString defaultValue) {
         return as(Functions.<ByteString> identityFunction(), defaultValue);
+    }
+
+    /**
+     * Returns the first value decoded as a {@code X509Certificate}, or {@code null} if the attribute does not
+     * contain any values.
+     *
+     * @return The first value decoded as a {@code X509Certificate}.
+     */
+    public X509Certificate asCertificate() {
+        return asCertificate(null);
+    }
+
+    /**
+     * Returns the first value decoded as a {@code X509Certificate}, or {@code defaultValue} if the attribute
+     * does not contain any values.
+     *
+     * @param defaultValue
+     *            The default value to return if the attribute is empty.
+     * @return The first value decoded as a {@code X509Certificate}.
+     */
+    public X509Certificate asCertificate(final X509Certificate defaultValue) {
+        return as(byteStringToCertificate(), defaultValue);
     }
 
     /**
@@ -467,6 +490,16 @@ public final class AttributeParser {
      */
     public Set<ByteString> asSetOfByteString(final Collection<ByteString> defaultValues) {
         return asSetOf(Functions.<ByteString> identityFunction(), defaultValues);
+    }
+
+    /**
+     * Returns the values decoded as a set of {@code X509Certificate}s, or an empty set if the attribute does not
+     * contain any values.
+     *
+     * @return The values decoded as a set of {@code X509Certificate}s.
+     */
+    public Set<X509Certificate> asSetOfCertificate() {
+        return asSetOf(byteStringToCertificate());
     }
 
     /**
