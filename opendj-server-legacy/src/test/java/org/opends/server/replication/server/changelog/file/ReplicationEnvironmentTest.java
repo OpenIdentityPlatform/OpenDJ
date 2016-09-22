@@ -172,7 +172,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     }
   }
 
-  @Test(expectedExceptions=ChangelogException.class)
+  @Test
   public void testReadChangelogStateWithReplicaOfflineStateFileCorrupted() throws Exception
   {
     Log<Long,ChangeNumberIndexRecord> cnDB = null;
@@ -188,7 +188,10 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       File offlineStateFile = new File(environment.getServerIdPath("1", 1), REPLICA_OFFLINE_STATE_FILENAME);
       offlineStateFile.createNewFile();
 
-      environment.readOnDiskChangelogState();
+      // If the offline state file is not readable, the best we can do is continue as if the file wasn't there at all
+      final ChangelogState state = environment.readOnDiskChangelogState();
+      assertThat(state.getOfflineReplicas()).isEmpty();
+      assertThat(state.isEqualTo(environment.getChangelogState())).isTrue();
     }
     finally
     {

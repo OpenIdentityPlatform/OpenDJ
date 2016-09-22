@@ -531,7 +531,7 @@ class ReplicationEnvironment implements ChangelogStateProvider
       {
         // Only the last sent offline CSN is kept
         writer.write(offlineCSN.toString());
-        StaticUtils.close(writer);
+        writer.close();
         changelogState.addOfflineReplica(domainDN, offlineCSN);
         commitFile(offlineFile);
       }
@@ -669,11 +669,18 @@ class ReplicationEnvironment implements ChangelogStateProvider
   {
     state.addServerIdToDomain(toServerId(serverIdPath.getName()), domainDN);
 
-    final File offlineFile = new File(serverIdPath, REPLICA_OFFLINE_STATE_FILENAME);
-    if (offlineFile.exists())
+    try
     {
-      final CSN offlineCSN = readOfflineStateFile(offlineFile, domainDN);
-      state.addOfflineReplica(domainDN, offlineCSN);
+      final File offlineFile = new File(serverIdPath, REPLICA_OFFLINE_STATE_FILENAME);
+      if (offlineFile.exists())
+      {
+        final CSN offlineCSN = readOfflineStateFile(offlineFile, domainDN);
+        state.addOfflineReplica(domainDN, offlineCSN);
+      }
+    }
+    catch(ChangelogException ce)
+    {
+      logger.warn(getExceptionMessage(ce));
     }
   }
 
