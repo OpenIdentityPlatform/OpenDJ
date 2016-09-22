@@ -211,7 +211,8 @@ public final class Rest2LdapTest extends ForgeRockTestCase {
         return v != null ? JsonValue.field(k, v) : null;
     }
 
-    private static Object o(Map.Entry<?, ?>... fields) {
+    @SafeVarargs
+    private static Object o(Map.Entry<String, Object>... fields) {
         return JsonValue.object(fields);
     }
 
