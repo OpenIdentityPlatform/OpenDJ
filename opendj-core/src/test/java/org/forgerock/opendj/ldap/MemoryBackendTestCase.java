@@ -590,7 +590,30 @@ public class MemoryBackendTestCase extends SdkTestCase {
                 getUser1Entry());
     }
 
+    @Test
+    public void testHasSubordinates() throws Exception {
+        final MemoryBackend backend = getMemoryBackend();
+        assertThat(backend.hasSubordinates("dc=com")).isTrue();
+        assertThat(backend.hasSubordinates("dc=example,dc=com")).isTrue();
+        assertThat(backend.hasSubordinates("uid=test1,ou=people,dc=example,dc=com")).isFalse(); // leaf
+        assertThat(backend.hasSubordinates("dc=c,dc=b,dc=a")).isFalse(); // doesn't exist
+    }
+
+    @Test
+    public void testNumSubordinates() throws Exception {
+        final MemoryBackend backend = getMemoryBackend();
+        assertThat(backend.numSubordinates("dc=com")).isEqualTo(2);
+        assertThat(backend.numSubordinates("dc=example,dc=com")).isEqualTo(1);
+        assertThat(backend.numSubordinates("ou=people,dc=example,dc=com")).isEqualTo(5);
+        assertThat(backend.numSubordinates("uid=test1,ou=people,dc=example,dc=com")).isEqualTo(0); // leaf
+        assertThat(backend.numSubordinates("dc=c,dc=b,dc=a")).isEqualTo(0); // doesn't exist
+    }
+
     private Connection getConnection() throws IOException {
+        return newInternalConnection(getMemoryBackend());
+    }
+
+    private MemoryBackend getMemoryBackend() throws IOException {
         // @formatter:off
         String[] ldifEntries = new String[] {
             "dn: dc=com",
@@ -659,8 +682,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
         };
         // @formatter:on
         numberOfEntriesInBackend = getNumberOfEntries(ldifEntries);
-        final MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(ldifEntries));
-        return newInternalConnection(backend);
+        return new MemoryBackend(new LDIFEntryReader(ldifEntries));
     }
 
     private int getNumberOfEntries(String[] ldifEntries) {

@@ -13,7 +13,7 @@
  *
  * Copyright 2009 Sun Microsystems, Inc.
  * Portions Copyright 2014 Manuel Gaupp
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -115,26 +115,21 @@ final class GenerateCoreSchema {
         out.println("// It is automatically generated using GenerateCoreSchema class.");
         out.println();
         out.println("/**");
-        out.println(" * The OpenDJ SDK core schema contains standard LDAP "
-                + "RFC schema elements. These include:");
+        out.println(" * The OpenDJ SDK core schema contains standard LDAP RFC schema elements. These include:");
         out.println(" * <ul>");
         out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4512\">RFC 4512 -");
-        out
-                .println(" * Lightweight Directory Access Protocol (LDAP): Directory Information");
+        out.println(" * Lightweight Directory Access Protocol (LDAP): Directory Information");
         out.println(" * Models </a>");
         out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4517\">RFC 4517 -");
-        out
-                .println(" * Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching");
+        out.println(" * Lightweight Directory Access Protocol (LDAP): Syntaxes and Matching");
         out.println(" * Rules </a>");
         out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4519\">RFC 4519 -");
         out.println(" * Lightweight Directory Access Protocol (LDAP): Schema for User");
         out.println(" * Applications </a>");
         out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc4530\">RFC 4530 -");
-        out
-                .println(" * Lightweight Directory Access Protocol (LDAP): entryUUID Operational");
+        out.println(" * Lightweight Directory Access Protocol (LDAP): entryUUID Operational");
         out.println(" * Attribute </a>");
-        out
-                .println(" * <li><a href=\"http://tools.ietf.org/html/rfc3045\">RFC 3045 - Storing");
+        out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc3045\">RFC 3045 - Storing");
         out.println(" * Vendor Information in the LDAP Root DSE </a>");
         out.println(" * <li><a href=\"http://tools.ietf.org/html/rfc3112\">RFC 3112 - LDAP");
         out.println(" * Authentication Password Schema </a>");
@@ -149,15 +144,13 @@ final class GenerateCoreSchema {
         out.println("    // Core Syntaxes");
         for (final Map.Entry<String, Syntax> syntax : syntaxes.entrySet()) {
             out.println("    private static final Syntax " + syntax.getKey() + " =");
-            out.println("        CoreSchemaImpl.getInstance().getSyntax(\""
-                    + syntax.getValue().getOID() + "\");");
+            out.println("        CoreSchemaImpl.getInstance().getSyntax(\"" + syntax.getValue().getOID() + "\");");
         }
 
         out.println();
         out.println("    // Core Matching Rules");
         for (final Map.Entry<String, MatchingRule> matchingRule : matchingRules.entrySet()) {
-            out.println("    private static final MatchingRule " + matchingRule.getKey()
-                    + " =");
+            out.println("    private static final MatchingRule " + matchingRule.getKey() + " =");
             out.println("        CoreSchemaImpl.getInstance().getMatchingRule(\""
                     + matchingRule.getValue().getOID() + "\");");
         }
@@ -165,8 +158,7 @@ final class GenerateCoreSchema {
         out.println();
         out.println("    // Core Attribute Types");
         for (final Map.Entry<String, AttributeType> attributeType : attributeTypes.entrySet()) {
-            out.println("    private static final AttributeType " + attributeType.getKey()
-                    + " =");
+            out.println("    private static final AttributeType " + attributeType.getKey() + " =");
             out.println("        CoreSchemaImpl.getInstance().getAttributeType(\""
                     + attributeType.getValue().getOID() + "\");");
         }
@@ -203,11 +195,9 @@ final class GenerateCoreSchema {
                             + " Syntax");
             out.println("    /**");
             out.println("     * Returns a reference to the " + description);
-            out.println("     * which has the OID "
-                    + toCodeJavaDoc(syntax.getValue().getOID()) + ".");
+            out.println("     * which has the OID " + toCodeJavaDoc(syntax.getValue().getOID()) + ".");
             out.println("     *");
             out.println("     * @return A reference to the " + description + ".");
-
             out.println("     */");
             out.println("    public static Syntax get" + toJavaName(syntax.getKey()) + "() {");
             out.println("        return " + syntax.getKey() + ";");
@@ -224,7 +214,6 @@ final class GenerateCoreSchema {
                     + toCodeJavaDoc(matchingRule.getValue().getOID()) + ".");
             out.println("     *");
             out.println("     * @return A reference to the " + description + " Matching Rule.");
-
             out.println("     */");
             out.println("    public static MatchingRule get" + toJavaName(matchingRule.getKey()) + "() {");
             out.println("        return " + matchingRule.getKey() + ";");
@@ -241,10 +230,8 @@ final class GenerateCoreSchema {
                     + toCodeJavaDoc(attributeType.getValue().getOID()) + ".");
             out.println("     *");
             out.println("     * @return A reference to the " + description + " Attribute Type.");
-
             out.println("     */");
-            out.println("    public static AttributeType get"
-                    + toJavaName(attributeType.getKey()) + "() {");
+            out.println("    public static AttributeType get" + toJavaName(attributeType.getKey()) + "() {");
             out.println("        return " + attributeType.getKey() + ";");
             out.println("    }");
         }
@@ -259,10 +246,8 @@ final class GenerateCoreSchema {
                     + toCodeJavaDoc(objectClass.getValue().getOID()) + ".");
             out.println("     *");
             out.println("     * @return A reference to the " + description + " Object Class.");
-
             out.println("     */");
-            out.println("    public static ObjectClass get" + toJavaName(objectClass.getKey())
-                    + "() {");
+            out.println("    public static ObjectClass get" + toJavaName(objectClass.getKey()) + "() {");
             out.println("        return " + objectClass.getKey() + ";");
             out.println("    }");
         }

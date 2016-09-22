@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009 Sun Microsystems, Inc.
- * Portions copyright 2014 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -275,6 +275,8 @@ public final class CoreSchema {
         CoreSchemaImpl.getInstance().getAttributeType("2.5.4.42");
     private static final AttributeType GOVERNING_STRUCTURE_RULE_ATTRIBUTE_TYPE =
         CoreSchemaImpl.getInstance().getAttributeType("2.5.21.10");
+    private static final AttributeType HAS_SUBORDINATES_ATTRIBUTE_TYPE =
+        CoreSchemaImpl.getInstance().getAttributeType("2.5.18.9");
     private static final AttributeType HOUSE_IDENTIFIER_ATTRIBUTE_TYPE =
         CoreSchemaImpl.getInstance().getAttributeType("2.5.4.51");
     private static final AttributeType INITIALS_ATTRIBUTE_TYPE =
@@ -301,6 +303,8 @@ public final class CoreSchema {
         CoreSchemaImpl.getInstance().getAttributeType("2.5.21.7");
     private static final AttributeType NAMING_CONTEXTS_ATTRIBUTE_TYPE =
         CoreSchemaImpl.getInstance().getAttributeType("1.3.6.1.4.1.1466.101.120.5");
+    private static final AttributeType NUM_SUBORDINATES_ATTRIBUTE_TYPE =
+        CoreSchemaImpl.getInstance().getAttributeType("1.3.6.1.4.1.453.16.2.103");
     private static final AttributeType OBJECT_CLASSES_ATTRIBUTE_TYPE =
         CoreSchemaImpl.getInstance().getAttributeType("2.5.21.6");
     private static final AttributeType OBJECT_CLASS_ATTRIBUTE_TYPE =
@@ -1571,6 +1575,16 @@ public final class CoreSchema {
     }
 
     /**
+     * Returns a reference to the {@code hasSubordinates} Attribute Type
+     * which has the OID {@code 2.5.18.9}.
+     *
+     * @return A reference to the {@code hasSubordinates} Attribute Type.
+     */
+    public static AttributeType getHasSubordinatesAttributeType() {
+        return HAS_SUBORDINATES_ATTRIBUTE_TYPE;
+    }
+
+    /**
      * Returns a reference to the {@code houseIdentifier} Attribute Type
      * which has the OID {@code 2.5.4.51}.
      *
@@ -1698,6 +1712,16 @@ public final class CoreSchema {
      */
     public static AttributeType getNamingContextsAttributeType() {
         return NAMING_CONTEXTS_ATTRIBUTE_TYPE;
+    }
+
+    /**
+     * Returns a reference to the {@code numSubordinates} Attribute Type
+     * which has the OID {@code 1.3.6.1.4.1.453.16.2.103}.
+     *
+     * @return A reference to the {@code numSubordinates} Attribute Type.
+     */
+    public static AttributeType getNumSubordinatesAttributeType() {
+        return NUM_SUBORDINATES_ATTRIBUTE_TYPE;
     }
 
     /**

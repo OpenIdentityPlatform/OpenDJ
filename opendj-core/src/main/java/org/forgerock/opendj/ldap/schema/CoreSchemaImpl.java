@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  * Portions copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+/** Minimal set of LDAP standard schema elements. */
 final class CoreSchemaImpl {
     private static final Map<String, List<String>> X500_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("X.500"));
@@ -1097,6 +1098,28 @@ final class CoreSchemaImpl {
                .noUserModification(true)
                .usage(AttributeUsage.DIRECTORY_OPERATION)
                .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("2.5.18.9")
+               .names("hasSubordinates")
+               .equalityMatchingRule(EMR_BOOLEAN_NAME)
+               .syntax(SYNTAX_INTEGER_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(SCHEMA_PROPERTY_ORIGIN, "X.501")
+               .addToSchema();
+
+        builder.buildAttributeType("1.3.6.1.4.1.453.16.2.103")
+               .names("numSubordinates")
+               .description("Count of immediate subordinates")
+               .equalityMatchingRule(EMR_INTEGER_NAME)
+               .orderingMatchingRule(OMR_INTEGER_NAME)
+               .syntax(SYNTAX_INTEGER_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(SCHEMA_PROPERTY_ORIGIN, "draft-ietf-boreham-numsubordinates")
                .addToSchema();
 
         builder.buildAttributeType("2.5.18.10")

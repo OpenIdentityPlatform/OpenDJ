@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.AttributeDescription.create;
 import static org.forgerock.opendj.ldap.Attributes.singletonAttribute;
 import static org.forgerock.opendj.ldap.Entries.modifyEntry;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
@@ -22,10 +23,13 @@ import static org.forgerock.opendj.ldap.responses.Responses.newBindResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newCompareResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.getHasSubordinatesAttributeType;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.getNumSubordinatesAttributeType;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.NavigableMap;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -91,10 +95,14 @@ import org.forgerock.opendj.ldif.EntryReader;
  * </pre>
  */
 public final class MemoryBackend implements RequestHandler<RequestContext> {
+    private static final AttributeDescription HAS_SUBORDINATES = create(getHasSubordinatesAttributeType());
+    private static final AttributeDescription NUM_SUBORDINATES = create(getNumSubordinatesAttributeType());
+
     private final DecodeOptions decodeOptions;
     private final ConcurrentSkipListMap<DN, Entry> entries = new ConcurrentSkipListMap<>();
     private final Schema schema;
     private final Object writeLock = new Object();
+    private boolean enableVirtualAttributes;
 
     /**
      * Creates a new empty memory backend which will use the default schema.
@@ -141,9 +149,21 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      *             or if duplicate entries are detected.
      */
     public MemoryBackend(final Schema schema, final EntryReader reader) throws IOException {
-        this.schema = schema;
-        this.decodeOptions = new DecodeOptions().setSchema(schema);
+        this(schema);
         load(reader, false);
+    }
+
+    /**
+     * Indicates whether search responses should include the {@code hasSubordinates} and {@code numSubordinates}
+     * virtual attributes if requested.
+     *
+     * @param enabled
+     *         {@code true} if the virtual attributes should be included.
+     * @return This memory backend.
+     */
+    public MemoryBackend enableVirtualAttributes(final boolean enabled) {
+        this.enableVirtualAttributes = enabled;
+        return this;
     }
 
     /**
@@ -219,6 +239,65 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         return entries.values();
     }
 
+    /**
+     * Returns {@code true} if the named entry exists and has at least one child entry.
+     *
+     * @param dn
+     *         The name of the entry.
+     * @return {@code true} if the named entry exists and has at least one child entry.
+     */
+    public boolean hasSubordinates(final String dn) {
+        return hasSubordinates(DN.valueOf(dn, schema));
+    }
+
+    /**
+     * Returns {@code true} if the named entry exists and has at least one child entry.
+     *
+     * @param dn
+     *         The name of the entry.
+     * @return {@code true} if the named entry exists and has at least one child entry.
+     */
+    public boolean hasSubordinates(final DN dn) {
+        if (!contains(dn)) {
+            return false;
+        }
+        final DN next = entries.higherKey(dn);
+        return next != null && next.isChildOf(dn);
+    }
+
+    /**
+     * Returns the number of entries which are immediately subordinate to the named entry, or {@code 0} if the named
+     * entry does not exist.
+     *
+     * @param dn
+     *         The name of the entry.
+     * @return The number of entries which are immediately subordinate to the named entry.
+     */
+    public int numSubordinates(final String dn) {
+        return numSubordinates(DN.valueOf(dn, schema));
+    }
+
+    /**
+     * Returns the number of entries which are immediately subordinate to the named entry, or {@code 0} if the named
+     * entry does not exist.
+     *
+     * @param dn
+     *         The name of the entry.
+     * @return The number of entries which are immediately subordinate to the named entry.
+     */
+    public int numSubordinates(final DN dn) {
+        final DN start = dn.child(RDN.minValue());
+        final DN end = dn.child(RDN.maxValue());
+        final SortedSet<DN> subtree = entries.keySet().subSet(start, end);
+        int numSubordinates = 0;
+        for (DN subordinate : subtree) {
+            if (subordinate.isChildOf(dn)) {
+                numSubordinates++;
+            }
+        }
+        return numSubordinates;
+    }
+
     @Override
     public void handleAdd(final RequestContext requestContext, final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -261,7 +340,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                             "non-SIMPLE authentication not supported: " + request.getAuthenticationType());
                 }
                 entry = getRequiredEntry(null, username);
-                if (!entry.containsAttribute("userPassword", password)) {
+                if (!entry.containsAttribute("userPassword", (Object) password)) {
                     throw newLdapException(ResultCode.INVALID_CREDENTIALS, "Wrong password");
                 }
             }
@@ -381,8 +460,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             switch (scope.asEnum()) {
             case BASE_OBJECT:
                 final Entry baseEntry = getRequiredEntry(request, dn);
-                if (matcher.matches(baseEntry).toBoolean()) {
-                    sendEntry(attributeFilter, entryHandler, baseEntry);
+                final Entry augmentedEntry = addVirtualAttributesIfNeeded(baseEntry);
+                if (matcher.matches(augmentedEntry).toBoolean()) {
+                    sendEntry(attributeFilter, entryHandler, augmentedEntry);
                 }
                 resultHandler.handleResult(newResult(ResultCode.SUCCESS));
                 break;
@@ -404,6 +484,17 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         } catch (final LdapException e) {
             resultHandler.handleException(e);
         }
+    }
+
+    private Entry addVirtualAttributesIfNeeded(final Entry entry) {
+        if (!enableVirtualAttributes) {
+            return entry;
+        }
+        final Entry augmentedEntry = new LinkedHashMapEntry(entry);
+        final int numSubordinates = numSubordinates(entry.getName());
+        augmentedEntry.addAttribute(singletonAttribute(NUM_SUBORDINATES, numSubordinates));
+        augmentedEntry.addAttribute(singletonAttribute(HAS_SUBORDINATES, numSubordinates > 0));
+        return augmentedEntry;
     }
 
     /**
@@ -482,7 +573,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     private void searchWithSubordinates(final RequestContext requestContext, final SearchResultHandler entryHandler,
             final LdapResultHandler<Result> resultHandler, final DN dn, final Matcher matcher,
             final AttributeFilter attributeFilter, final int sizeLimit, SearchScope scope,
-            SimplePagedResultsControl pagedResults) throws CancelledResultException, LdapException {
+            SimplePagedResultsControl pagedResults) throws LdapException {
         final NavigableMap<DN, Entry> subtree = entries.subMap(dn, dn.child(RDN.maxValue()));
         if (subtree.isEmpty() || !dn.equals(subtree.firstKey())) {
             throw newLdapException(newResult(ResultCode.NO_SUCH_OBJECT));
@@ -497,7 +588,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             requestContext.checkIfCancelled(false);
             if (scope.equals(SearchScope.WHOLE_SUBTREE) || entry.getName().isChildOf(dn)
                     || (scope.equals(SearchScope.SUBORDINATES) && !entry.getName().equals(dn))) {
-                if (matcher.matches(entry).toBoolean()) {
+                final Entry augmentedEntry = addVirtualAttributesIfNeeded(entry);
+                if (matcher.matches(augmentedEntry).toBoolean()) {
                     /*
                      * This entry is going to be returned to the client so it
                      * counts towards the size limit and any paging criteria.
@@ -514,7 +606,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     }
 
                     // Send the entry back to the client.
-                    if (!sendEntry(attributeFilter, entryHandler, entry)) {
+                    if (!sendEntry(attributeFilter, entryHandler, augmentedEntry)) {
                         // Client has disconnected or cancelled.
                         break;
                     }
