@@ -152,22 +152,22 @@ public class NullBackend extends Backend<BackendCfg>
     objectClasses.put(getTopObjectClass(), OC_TOP);
     objectClasses.put(getExtensibleObjectObjectClass(), "extensibleobject");
 
-    String nulOCName = "nullbackendobject";
-    final ObjectClass nulOC = serverContext.getSchema().getObjectClass(nulOCName);
+    final String nulOCName = "nullbackendobject";
+    final String nulOCDefinition = "( nullbackendobject-oid NAME '" + nulOCName + "' SUP top ABSTRACT )";
     try {
       serverContext.getSchemaHandler().updateSchema(new SchemaUpdater()
       {
         @Override
         public void update(SchemaBuilder builder) throws DirectoryException
         {
-          builder.buildObjectClass(nulOC);
+          builder.addObjectClass(nulOCDefinition, false);
         }
       });
     } catch (DirectoryException de) {
       logger.traceException(de);
       throw new InitializationException(de.getMessageObject());
     }
-    objectClasses.put(nulOC, nulOCName);
+    objectClasses.put(serverContext.getSchema().getObjectClass(nulOCName), nulOCName);
   }
 
   @Override
