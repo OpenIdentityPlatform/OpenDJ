@@ -806,7 +806,7 @@ public abstract class Task implements Comparable<Task>
     // We cannot do task logging if the schema is either destroyed or
     // not initialized eg during in-core restart from Restart task.
     // Bailing out if there is no schema available saves us from NPE.
-    if (DirectoryServer.getSchema() == null)
+    if (getServerContext().getSchemaHandler() == null)
     {
       return;
     }
