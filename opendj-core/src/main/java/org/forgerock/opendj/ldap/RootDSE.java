@@ -16,6 +16,10 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.Collections2.transformedCollection;
+import static java.util.Collections.unmodifiableCollection;
+import static org.forgerock.opendj.ldap.Functions.objectToByteString;
+
 import java.util.Collection;
 import java.util.Collections;
 
@@ -25,9 +29,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
-
-import com.forgerock.opendj.util.Collections2;
 
 /**
  * The root DSE is a DSA-specific Entry (DSE) and not part of any naming context
@@ -398,9 +399,8 @@ public final class RootDSE {
         return getSingleValuedAttribute(ATTR_FULL_VENDOR_VERSION, Functions.byteStringToString());
     }
 
-    private <N> Collection<N> getMultiValuedAttribute(
-            final AttributeDescription attributeDescription,
-        final Function<ByteString, N, NeverThrowsException> function) {
+    private <N, E extends RuntimeException> Collection<N> getMultiValuedAttribute(
+            final AttributeDescription attributeDescription, final Function<ByteString, N, E> function) {
         // The returned collection is unmodifiable because we may need to
         // return an empty collection if the attribute does not exist in the
         // underlying entry. If a value is then added to the returned empty
@@ -408,14 +408,13 @@ public final class RootDSE {
         // underlying entry in order to maintain consistency.
         final Attribute attr = entry.getAttribute(attributeDescription);
         if (attr != null) {
-            return Collections.unmodifiableCollection(Collections2.transformedCollection(attr,
-                    function, Functions.objectToByteString()));
+            return unmodifiableCollection(transformedCollection(attr, function, objectToByteString()));
         }
         return Collections.emptySet();
     }
 
-    private <N> N getSingleValuedAttribute(final AttributeDescription attributeDescription,
-        final Function<ByteString, N, NeverThrowsException> function) {
+    private <N, E extends Exception> N getSingleValuedAttribute(
+            final AttributeDescription attributeDescription, final Function<ByteString, N, E> function) throws E {
         final Attribute attr = entry.getAttribute(attributeDescription);
         if (attr != null && !attr.isEmpty()) {
             return function.apply(attr.firstValue());

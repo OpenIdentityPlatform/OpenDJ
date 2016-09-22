@@ -11,22 +11,21 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
 
 import static com.forgerock.opendj.util.Collections2.*;
+import static java.util.Arrays.asList;
+import static org.forgerock.opendj.ldap.Functions.*;
 
 /**
  * A fluent API for parsing attributes as different types of object. An
@@ -91,12 +90,16 @@ public final class AttributeParser {
      * values.
      *
      * @param <T>
-     *            The type of the value to be decoded.
+     *         The type of the value to be decoded.
+     * @param <E>
+     *         The type of exception thrown by the function.
      * @param f
-     *            The function which should be used to decode the value.
+     *         The function which should be used to decode the value.
      * @return The first value decoded as a {@code T}.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
-    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f) {
+    public <T, E extends Exception> T as(final Function<ByteString, ? extends T, E> f) throws E {
         return as(f, null);
     }
 
@@ -107,13 +110,17 @@ public final class AttributeParser {
      *
      * @param <T>
      *            The type of the value to be decoded.
+     * @param <E>
+     *            The type of exception thrown by the function.
      * @param f
      *            The function which should be used to decode the value.
      * @param defaultValue
      *            The default value to return if the attribute is empty.
      * @return The first value decoded as a {@code T}.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
-    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f, final T defaultValue) {
+    public <T, E extends Exception> T as(final Function<ByteString, ? extends T, E> f, final T defaultValue) throws E {
         if (!isEmpty(attribute)) {
             return f.apply(attribute.firstValue());
         } else {
@@ -142,7 +149,7 @@ public final class AttributeParser {
      * @return The first value decoded as an {@code AttributeDescription}.
      */
     public AttributeDescription asAttributeDescription(final AttributeDescription defaultValue) {
-        return as(Functions.byteStringToAttributeDescription(getSchema()), defaultValue);
+        return as(byteStringToAttributeDescription(getSchema()), defaultValue);
     }
 
     /**
@@ -177,7 +184,7 @@ public final class AttributeParser {
      * @return The first value decoded as an {@code Boolean}.
      */
     public boolean asBoolean(final boolean defaultValue) {
-        return as(Functions.byteStringToBoolean(), defaultValue);
+        return as(byteStringToBoolean(), defaultValue);
     }
 
     /**
@@ -223,7 +230,7 @@ public final class AttributeParser {
      * @return The first value decoded as a {@code DN}.
      */
     public DN asDN(final DN defaultValue) {
-        return as(Functions.byteStringToDN(getSchema()), defaultValue);
+        return as(byteStringToDN(getSchema()), defaultValue);
     }
 
     /**
@@ -260,7 +267,7 @@ public final class AttributeParser {
      * @return The first value decoded as an {@code GeneralizedTime}.
      */
     public GeneralizedTime asGeneralizedTime(final GeneralizedTime defaultValue) {
-        return as(Functions.byteStringToGeneralizedTime(), defaultValue);
+        return as(byteStringToGeneralizedTime(), defaultValue);
     }
 
     /**
@@ -282,7 +289,7 @@ public final class AttributeParser {
      * @return The first value decoded as an {@code Integer}.
      */
     public int asInteger(final int defaultValue) {
-        return as(Functions.byteStringToInteger(), defaultValue);
+        return as(byteStringToInteger(), defaultValue);
     }
 
     /**
@@ -304,7 +311,7 @@ public final class AttributeParser {
      * @return The first value decoded as a {@code Long}.
      */
     public long asLong(final long defaultValue) {
-        return as(Functions.byteStringToLong(), defaultValue);
+        return as(byteStringToLong(), defaultValue);
     }
 
     /**
@@ -314,14 +321,18 @@ public final class AttributeParser {
      *
      * @param <T>
      *            The type of the values to be decoded.
+     * @param <E>
+     *            The type of exception thrown by the function.
      * @param f
      *            The function which should be used to decode values.
      * @param defaultValues
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
-            final Collection<? extends T> defaultValues) {
+    public <T, E extends Exception> Set<T> asSetOf(final Function<ByteString, ? extends T, E> f,
+            final Collection<? extends T> defaultValues) throws E {
         if (!isEmpty(attribute)) {
             final LinkedHashSet<T> result = new LinkedHashSet<>(attribute.size());
             for (final ByteString b : attribute) {
@@ -342,17 +353,21 @@ public final class AttributeParser {
      *
      * @param <T>
      *            The type of the values to be decoded.
+     * @param <E>
+     *            The type of exception thrown by the function.
      * @param f
      *            The function which should be used to decode values.
      * @param defaultValues
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public final <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
-            final T... defaultValues) {
-        return asSetOf(f, Arrays.asList(defaultValues));
+    public final <T, E extends Exception> Set<T> asSetOf(final Function<ByteString, ? extends T, E> f,
+            final T... defaultValues) throws E {
+        return asSetOf(f, asList(defaultValues));
     }
 
     /**
@@ -377,7 +392,7 @@ public final class AttributeParser {
      */
     public Set<AttributeDescription> asSetOfAttributeDescription(
             final AttributeDescription... defaultValues) {
-        return asSetOfAttributeDescription(Arrays.asList(defaultValues));
+        return asSetOfAttributeDescription(asList(defaultValues));
     }
 
     /**
@@ -389,9 +404,8 @@ public final class AttributeParser {
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code AttributeDescription}s.
      */
-    public Set<AttributeDescription> asSetOfAttributeDescription(
-            final Collection<AttributeDescription> defaultValues) {
-        return asSetOf(Functions.byteStringToAttributeDescription(), defaultValues);
+    public Set<AttributeDescription> asSetOfAttributeDescription(final Collection<AttributeDescription> defaultValues) {
+        return asSetOf(byteStringToAttributeDescription(), defaultValues);
     }
 
     /**
@@ -404,8 +418,8 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code AttributeDescription}s.
      */
     public Set<AttributeDescription> asSetOfAttributeDescription(final String... defaultValues) {
-        return asSetOfAttributeDescription(transformedCollection(Arrays.asList(defaultValues),
-                Functions.stringToAttributeDescription(getSchema()), null));
+        return asSetOfAttributeDescription(transformedCollection(asList(defaultValues),
+                                                                 stringToAttributeDescription(getSchema()), null));
     }
 
     /**
@@ -417,7 +431,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code Boolean}s.
      */
     public Set<Boolean> asSetOfBoolean(final Boolean... defaultValues) {
-        return asSetOfBoolean(Arrays.asList(defaultValues));
+        return asSetOfBoolean(asList(defaultValues));
     }
 
     /**
@@ -429,7 +443,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code Boolean}s.
      */
     public Set<Boolean> asSetOfBoolean(final Collection<Boolean> defaultValues) {
-        return asSetOf(Functions.byteStringToBoolean(), defaultValues);
+        return asSetOf(byteStringToBoolean(), defaultValues);
     }
 
     /**
@@ -441,7 +455,7 @@ public final class AttributeParser {
      * @return The values contained in the attribute.
      */
     public Set<ByteString> asSetOfByteString(final ByteString... defaultValues) {
-        return asSetOfByteString(Arrays.asList(defaultValues));
+        return asSetOfByteString(asList(defaultValues));
     }
 
     /**
@@ -477,7 +491,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code DN}s.
      */
     public Set<DN> asSetOfDN(final Collection<DN> defaultValues) {
-        return asSetOf(Functions.byteStringToDN(), defaultValues);
+        return asSetOf(byteStringToDN(), defaultValues);
     }
 
     /**
@@ -490,7 +504,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code DN}s.
      */
     public Set<DN> asSetOfDN(final DN... defaultValues) {
-        return asSetOfDN(Arrays.asList(defaultValues));
+        return asSetOfDN(asList(defaultValues));
     }
 
     /**
@@ -503,8 +517,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code DN}s.
      */
     public Set<DN> asSetOfDN(final String... defaultValues) {
-        return asSetOfDN(transformedCollection(Arrays.asList(defaultValues), Functions
-                .stringToDN(getSchema()), null));
+        return asSetOfDN(transformedCollection(asList(defaultValues), stringToDN(getSchema()), null));
     }
 
     /**
@@ -516,9 +529,8 @@ public final class AttributeParser {
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code GeneralizedTime}s.
      */
-    public Set<GeneralizedTime> asSetOfGeneralizedTime(
-            final Collection<GeneralizedTime> defaultValues) {
-        return asSetOf(Functions.byteStringToGeneralizedTime(), defaultValues);
+    public Set<GeneralizedTime> asSetOfGeneralizedTime(final Collection<GeneralizedTime> defaultValues) {
+        return asSetOf(byteStringToGeneralizedTime(), defaultValues);
     }
 
     /**
@@ -531,7 +543,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code GeneralizedTime}s.
      */
     public Set<GeneralizedTime> asSetOfGeneralizedTime(final GeneralizedTime... defaultValues) {
-        return asSetOfGeneralizedTime(Arrays.asList(defaultValues));
+        return asSetOfGeneralizedTime(asList(defaultValues));
     }
 
     /**
@@ -543,7 +555,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code Integer}s.
      */
     public Set<Integer> asSetOfInteger(final Collection<Integer> defaultValues) {
-        return asSetOf(Functions.byteStringToInteger(), defaultValues);
+        return asSetOf(byteStringToInteger(), defaultValues);
     }
 
     /**
@@ -555,7 +567,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code Integer}s.
      */
     public Set<Integer> asSetOfInteger(final Integer... defaultValues) {
-        return asSetOfInteger(Arrays.asList(defaultValues));
+        return asSetOfInteger(asList(defaultValues));
     }
 
     /**
@@ -567,7 +579,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code Long}s.
      */
     public Set<Long> asSetOfLong(final Collection<Long> defaultValues) {
-        return asSetOf(Functions.byteStringToLong(), defaultValues);
+        return asSetOf(byteStringToLong(), defaultValues);
     }
 
     /**
@@ -579,7 +591,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code Long}s.
      */
     public Set<Long> asSetOfLong(final Long... defaultValues) {
-        return asSetOfLong(Arrays.asList(defaultValues));
+        return asSetOfLong(asList(defaultValues));
     }
 
     /**
@@ -591,7 +603,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code String}s.
      */
     public Set<String> asSetOfString(final Collection<String> defaultValues) {
-        return asSetOf(Functions.byteStringToString(), defaultValues);
+        return asSetOf(byteStringToString(), defaultValues);
     }
 
     /**
@@ -603,7 +615,7 @@ public final class AttributeParser {
      * @return The values decoded as a set of {@code String}s.
      */
     public Set<String> asSetOfString(final String... defaultValues) {
-        return asSetOfString(Arrays.asList(defaultValues));
+        return asSetOfString(asList(defaultValues));
     }
 
     /**
@@ -625,7 +637,7 @@ public final class AttributeParser {
      * @return The first value decoded as a {@code String}.
      */
     public String asString(final String defaultValue) {
-        return as(Functions.byteStringToString(), defaultValue);
+        return as(byteStringToString(), defaultValue);
     }
 
     /**

@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 
 import static java.util.Collections.*;
@@ -47,8 +46,8 @@ import static org.forgerock.util.promise.Promises.newResultPromise;
 
 /** An property mapper which provides a simple mapping from a JSON value to a single LDAP attribute. */
 public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<SimplePropertyMapper> {
-    private Function<ByteString, ?, NeverThrowsException> decoder;
-    private Function<Object, ByteString, NeverThrowsException> encoder;
+    private Function<ByteString, ?, ? extends Exception> decoder;
+    private Function<Object, ByteString, ? extends Exception> encoder;
 
     SimplePropertyMapper(final AttributeDescription ldapAttributeName) {
         super(ldapAttributeName);
@@ -62,7 +61,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
      *            The function to use for decoding LDAP attribute values.
      * @return This property mapper.
      */
-    public SimplePropertyMapper decoder(final Function<ByteString, ?, NeverThrowsException> f) {
+    public SimplePropertyMapper decoder(final Function<ByteString, ?, ? extends Exception> f) {
         this.decoder = f;
         return this;
     }
@@ -99,7 +98,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
      *            The function to use for encoding LDAP attribute values.
      * @return This property mapper.
      */
-    public SimplePropertyMapper encoder(final Function<Object, ByteString, NeverThrowsException> f) {
+    public SimplePropertyMapper encoder(final Function<Object, ByteString, ? extends Exception> f) {
         this.encoder = f;
         return this;
     }
@@ -193,11 +192,11 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
         }
     }
 
-    private Function<ByteString, ?, NeverThrowsException> decoder() {
+    private Function<ByteString, ?, ? extends Exception> decoder() {
         return decoder == null ? byteStringToJson(ldapAttributeName) : decoder;
     }
 
-    private Function<Object, ByteString, NeverThrowsException> encoder() {
+    private Function<Object, ByteString, ? extends Exception> encoder() {
         return encoder == null ? jsonToByteString(ldapAttributeName) : encoder;
     }
 

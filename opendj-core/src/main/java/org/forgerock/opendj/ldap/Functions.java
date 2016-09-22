@@ -70,8 +70,8 @@ public final class Functions {
                 }
             };
 
-    private static final Function<String, Boolean, NeverThrowsException> STRING_TO_BOOLEAN =
-            new Function<String, Boolean, NeverThrowsException>() {
+    private static final Function<String, Boolean, LocalizedIllegalArgumentException> STRING_TO_BOOLEAN =
+            new Function<String, Boolean, LocalizedIllegalArgumentException>() {
                 @Override
                 public Boolean apply(final String value) {
                     final String valueString = StaticUtils.toLowerCase(value);
@@ -88,16 +88,16 @@ public final class Functions {
                 }
             };
 
-    private static final Function<String, GeneralizedTime, NeverThrowsException> STRING_TO_GENERALIZED_TIME =
-            new Function<String, GeneralizedTime, NeverThrowsException>() {
+    private static final Function<String, GeneralizedTime, LocalizedIllegalArgumentException> STRING_TO_GTIME =
+            new Function<String, GeneralizedTime, LocalizedIllegalArgumentException>() {
                 @Override
                 public GeneralizedTime apply(final String value) {
                     return GeneralizedTime.valueOf(value);
                 }
             };
 
-    private static final Function<String, Integer, NeverThrowsException> STRING_TO_INTEGER =
-            new Function<String, Integer, NeverThrowsException>() {
+    private static final Function<String, Integer, LocalizedIllegalArgumentException> STRING_TO_INTEGER =
+            new Function<String, Integer, LocalizedIllegalArgumentException>() {
                 @Override
                 public Integer apply(final String value) {
                     try {
@@ -109,8 +109,8 @@ public final class Functions {
                 }
             };
 
-    private static final Function<String, Long, NeverThrowsException> STRING_TO_LONG =
-            new Function<String, Long, NeverThrowsException>() {
+    private static final Function<String, Long, LocalizedIllegalArgumentException> STRING_TO_LONG =
+            new Function<String, Long, LocalizedIllegalArgumentException>() {
                 @Override
                 public Long apply(final String value) {
                     try {
@@ -122,17 +122,18 @@ public final class Functions {
                 }
             };
 
-    private static final Function<ByteString, Boolean, NeverThrowsException> BYTESTRING_TO_BOOLEAN = compose(
-            byteStringToString(), STRING_TO_BOOLEAN);
+    private static final Function<ByteString, Boolean, LocalizedIllegalArgumentException> BYTESTRING_TO_BOOLEAN =
+            compose(byteStringToString(), STRING_TO_BOOLEAN);
 
-    private static final Function<ByteString, GeneralizedTime, NeverThrowsException> BYTESTRING_TO_GENERALIZED_TIME =
-            compose(byteStringToString(), STRING_TO_GENERALIZED_TIME);
 
-    private static final Function<ByteString, Integer, NeverThrowsException> BYTESTRING_TO_INTEGER = compose(
-            byteStringToString(), STRING_TO_INTEGER);
+    private static final Function<ByteString, GeneralizedTime, LocalizedIllegalArgumentException> BYTESTRING_TO_GTIME =
+            compose(byteStringToString(), STRING_TO_GTIME);
 
-    private static final Function<ByteString, Long, NeverThrowsException> BYTESTRING_TO_LONG = compose(
-            byteStringToString(), STRING_TO_LONG);
+    private static final Function<ByteString, Integer, LocalizedIllegalArgumentException> BYTESTRING_TO_INTEGER =
+            compose(byteStringToString(), STRING_TO_INTEGER);
+
+    private static final Function<ByteString, Long, LocalizedIllegalArgumentException> BYTESTRING_TO_LONG =
+            compose(byteStringToString(), STRING_TO_LONG);
 
     /**
      * Creates a function that returns constant value for any input.
@@ -165,17 +166,19 @@ public final class Functions {
      * @param <X>
      *            The type of intermediate values passed between the two
      *            functions.
+     * @param <E>
+     *            The type of exception thrown by the {@code second} function.
      * @param first
      *            The first function which will consume the input.
      * @param second
      *            The second function which will produce the result.
      * @return The composition.
      */
-    public static <M, X, N> Function<M, N, NeverThrowsException> compose(
-            final Function<M, X, NeverThrowsException> first, final Function<X, N, NeverThrowsException> second) {
-        return new Function<M, N, NeverThrowsException>() {
+    public static <M, X, N, E extends Exception> Function<M, N, E> compose(
+            final Function<M, X, NeverThrowsException> first, final Function<X, N, E> second) {
+        return new Function<M, N, E>() {
             @Override
-            public N apply(final M value) {
+            public N apply(final M value) throws E {
                 return second.apply(first.apply(value));
             }
         };
@@ -224,7 +227,8 @@ public final class Functions {
      *
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<String, AttributeDescription, NeverThrowsException> stringToAttributeDescription() {
+    public static Function<String, AttributeDescription, LocalizedIllegalArgumentException>
+    stringToAttributeDescription() {
         return stringToAttributeDescription(getDefaultSchema());
     }
 
@@ -237,9 +241,9 @@ public final class Functions {
      *            The schema to use for decoding attribute descriptions.
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<String, AttributeDescription, NeverThrowsException> stringToAttributeDescription(
-            final Schema schema) {
-        return new Function<String, AttributeDescription, NeverThrowsException>() {
+    public static Function<String, AttributeDescription, LocalizedIllegalArgumentException>
+    stringToAttributeDescription(final Schema schema) {
+        return new Function<String, AttributeDescription, LocalizedIllegalArgumentException>() {
             @Override
             public AttributeDescription apply(final String value) {
                 return AttributeDescription.valueOf(value, schema);
@@ -251,11 +255,11 @@ public final class Functions {
      * Returns a function which parses {@code Boolean} values. The function will
      * accept the values {@code 0}, {@code false}, {@code no}, {@code off},
      * {@code 1}, {@code true}, {@code yes}, {@code on}. All other values will
-     * result in a {@code NumberFormatException}.
+     * result in a {@code LocalizedIllegalArgumentException}.
      *
      * @return A function which parses {@code Boolean} values.
      */
-    public static Function<String, Boolean, NeverThrowsException> stringToBoolean() {
+    public static Function<String, Boolean, LocalizedIllegalArgumentException> stringToBoolean() {
         return STRING_TO_BOOLEAN;
     }
 
@@ -266,7 +270,7 @@ public final class Functions {
      *
      * @return A function which parses {@code DN}s.
      */
-    public static Function<String, DN, NeverThrowsException> stringToDN() {
+    public static Function<String, DN, LocalizedIllegalArgumentException> stringToDN() {
         return stringToDN(getDefaultSchema());
     }
 
@@ -279,8 +283,8 @@ public final class Functions {
      *            The schema to use for decoding DNs.
      * @return A function which parses {@code DN}s.
      */
-    public static Function<String, DN, NeverThrowsException> stringToDN(final Schema schema) {
-        return new Function<String, DN, NeverThrowsException>() {
+    public static Function<String, DN, LocalizedIllegalArgumentException> stringToDN(final Schema schema) {
+        return new Function<String, DN, LocalizedIllegalArgumentException>() {
             @Override
             public DN apply(final String value) {
                 return DN.valueOf(value, schema);
@@ -294,8 +298,8 @@ public final class Functions {
      *
      * @return A function which parses generalized time strings.
      */
-    public static Function<String, GeneralizedTime, NeverThrowsException> stringToGeneralizedTime() {
-        return STRING_TO_GENERALIZED_TIME;
+    public static Function<String, GeneralizedTime, LocalizedIllegalArgumentException> stringToGeneralizedTime() {
+        return STRING_TO_GTIME;
     }
 
     /**
@@ -304,7 +308,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Integer} string values.
      */
-    public static Function<String, Integer, NeverThrowsException> stringToInteger() {
+    public static Function<String, Integer, LocalizedIllegalArgumentException> stringToInteger() {
         return STRING_TO_INTEGER;
     }
 
@@ -314,7 +318,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Long} string values.
      */
-    public static Function<String, Long, NeverThrowsException> stringToLong() {
+    public static Function<String, Long, LocalizedIllegalArgumentException> stringToLong() {
         return STRING_TO_LONG;
     }
 
@@ -325,7 +329,8 @@ public final class Functions {
      *
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<ByteString, AttributeDescription, NeverThrowsException> byteStringToAttributeDescription() {
+    public static Function<ByteString, AttributeDescription, LocalizedIllegalArgumentException>
+    byteStringToAttributeDescription() {
         return byteStringToAttributeDescription(getDefaultSchema());
     }
 
@@ -338,25 +343,20 @@ public final class Functions {
      *            The schema to use for decoding attribute descriptions.
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<ByteString, AttributeDescription, NeverThrowsException> byteStringToAttributeDescription(
-            final Schema schema) {
-        return compose(byteStringToString(), new Function<String, AttributeDescription, NeverThrowsException>() {
-            @Override
-            public AttributeDescription apply(final String value) {
-                return AttributeDescription.valueOf(value, schema);
-            }
-        });
+    public static Function<ByteString, AttributeDescription, LocalizedIllegalArgumentException>
+    byteStringToAttributeDescription(final Schema schema) {
+        return compose(byteStringToString(), stringToAttributeDescription(schema));
     }
 
     /**
      * Returns a function which parses {@code Boolean} values. The function will
      * accept the values {@code 0}, {@code false}, {@code no}, {@code off},
      * {@code 1}, {@code true}, {@code yes}, {@code on}. All other values will
-     * result in a {@code NumberFormatException}.
+     * result in a {@code LocalizedIllegalArgumentException}.
      *
      * @return A function which parses {@code Boolean} values.
      */
-    public static Function<ByteString, Boolean, NeverThrowsException> byteStringToBoolean() {
+    public static Function<ByteString, Boolean, LocalizedIllegalArgumentException> byteStringToBoolean() {
         return BYTESTRING_TO_BOOLEAN;
     }
 
@@ -367,7 +367,7 @@ public final class Functions {
      *
      * @return A function which parses {@code DN}s.
      */
-    public static Function<ByteString, DN, NeverThrowsException> byteStringToDN() {
+    public static Function<ByteString, DN, LocalizedIllegalArgumentException> byteStringToDN() {
         return byteStringToDN(getDefaultSchema());
     }
 
@@ -380,13 +380,8 @@ public final class Functions {
      *            The schema to use for decoding DNs.
      * @return A function which parses {@code DN}s.
      */
-    public static Function<ByteString, DN, NeverThrowsException> byteStringToDN(final Schema schema) {
-        return compose(byteStringToString(), new Function<String, DN, NeverThrowsException>() {
-            @Override
-            public DN apply(final String value) {
-                return DN.valueOf(value, schema);
-            }
-        });
+    public static Function<ByteString, DN, LocalizedIllegalArgumentException> byteStringToDN(final Schema schema) {
+        return compose(byteStringToString(), stringToDN(schema));
     }
 
     /**
@@ -395,8 +390,9 @@ public final class Functions {
      *
      * @return A function which parses generalized time strings.
      */
-    public static Function<ByteString, GeneralizedTime, NeverThrowsException> byteStringToGeneralizedTime() {
-        return BYTESTRING_TO_GENERALIZED_TIME;
+    public static Function<ByteString, GeneralizedTime, LocalizedIllegalArgumentException>
+    byteStringToGeneralizedTime() {
+        return BYTESTRING_TO_GTIME;
     }
 
     /**
@@ -405,7 +401,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Integer} string values.
      */
-    public static Function<ByteString, Integer, NeverThrowsException> byteStringToInteger() {
+    public static Function<ByteString, Integer, LocalizedIllegalArgumentException> byteStringToInteger() {
         return BYTESTRING_TO_INTEGER;
     }
 
@@ -415,7 +411,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Long} string values.
      */
-    public static Function<ByteString, Long, NeverThrowsException> byteStringToLong() {
+    public static Function<ByteString, Long, LocalizedIllegalArgumentException> byteStringToLong() {
         return BYTESTRING_TO_LONG;
     }
 

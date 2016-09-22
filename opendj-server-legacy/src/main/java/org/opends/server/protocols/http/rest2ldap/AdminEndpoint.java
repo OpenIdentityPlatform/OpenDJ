@@ -81,7 +81,6 @@ import org.forgerock.opendj.server.config.server.AdminEndpointCfg;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Factory;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.opends.server.api.HttpEndpoint;
 import org.opends.server.core.ServerContext;
@@ -344,7 +343,7 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
             final DefinedDefaultBehaviorProvider<?> ddbp = (DefinedDefaultBehaviorProvider) dbp;
             final Collection<String> defaultValues = ddbp.getDefaultValues();
             final List<Object> decodedDefaultValues = new ArrayList<>(defaultValues.size());
-            final Function<String, ?, NeverThrowsException> converter = getConverter(attributeName);
+            final Function<String, ?, ? extends RuntimeException> converter = getConverter(attributeName);
             for (final String defaultValue : defaultValues)
             {
               decodedDefaultValues.add(converter.apply(defaultValue));
@@ -356,7 +355,7 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
       }
     }
 
-    private Function<String, ?, NeverThrowsException> getConverter(final String attributeName)
+    private Function<String, ?, ? extends RuntimeException> getConverter(final String attributeName)
     {
       final AttributeDescription attributeDescription = AttributeDescription.valueOf(attributeName);
       final Syntax syntax = attributeDescription.getAttributeType().getSyntax();

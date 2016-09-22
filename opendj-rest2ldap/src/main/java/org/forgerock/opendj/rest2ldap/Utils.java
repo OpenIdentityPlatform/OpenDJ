@@ -106,7 +106,7 @@ final class Utils {
     }
 
     static Attribute jsonToAttribute(final Object value, final AttributeDescription ad,
-            final Function<Object, ByteString, NeverThrowsException> f) {
+            final Function<Object, ByteString, ? extends Exception> f) throws Exception {
         if (isJsonPrimitive(value)) {
             return new LinkedAttribute(ad, f.apply(value));
         } else if (value instanceof Collection<?>) {

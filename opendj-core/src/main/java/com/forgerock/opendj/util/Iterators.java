@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
 
 /** Utility methods for manipulating {@link Iterator}s. */
 public final class Iterators {
@@ -152,14 +151,12 @@ public final class Iterators {
 
     }
 
-    private static final class TransformedIterator<M, N> implements Iterator<N> {
-
-        private final Function<? super M, ? extends N, NeverThrowsException> function;
+    private static final class TransformedIterator<M, N, E extends RuntimeException> implements Iterator<N> {
+        private final Function<? super M, ? extends N, E> function;
         private final Iterator<M> iterator;
 
         /** Constructed via factory methods. */
-        private TransformedIterator(final Iterator<M> iterator,
-                final Function<? super M, ? extends N, NeverThrowsException> function) {
+        private TransformedIterator(final Iterator<M> iterator, final Function<? super M, ? extends N, E> function) {
             this.iterator = iterator;
             this.function = function;
         }
@@ -304,6 +301,8 @@ public final class Iterators {
      *            The type of elements contained in {@code iterator}.
      * @param <N>
      *            The type of elements contained in the returned iterator.
+     * @param <E>
+     *            The type of the exception thrown by the function.
      * @param iterator
      *            The iterator to be transformed.
      * @param function
@@ -311,8 +310,8 @@ public final class Iterators {
      * @return A view of {@code iterator} whose values have been mapped to
      *         elements of type {@code N} using {@code function}.
      */
-    public static <M, N> Iterator<N> transformedIterator(final Iterator<M> iterator,
-            final Function<? super M, ? extends N, NeverThrowsException> function) {
+    public static <M, N, E extends RuntimeException> Iterator<N> transformedIterator(
+            final Iterator<M> iterator, final Function<? super M, ? extends N, E> function) {
         return new TransformedIterator<>(iterator, function);
     }
 

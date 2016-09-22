@@ -16,6 +16,8 @@
  */
 package com.forgerock.opendj.util;
 
+import static com.forgerock.opendj.util.Iterators.transformedIterator;
+
 import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
@@ -23,21 +25,20 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
 
 /** Additional {@code Collection} based utility methods. */
 public final class Collections2 {
-    private static class TransformedCollection<M, N, C extends Collection<M>> extends
-            AbstractCollection<N> implements Collection<N> {
+    private static class TransformedCollection<M, N, C extends Collection<M>, E0 extends RuntimeException,
+            E1 extends RuntimeException> extends AbstractCollection<N> implements Collection<N> {
         protected final C collection;
 
-        protected final Function<? super M, ? extends N, NeverThrowsException> funcMtoN;
+        final Function<? super M, ? extends N, E0> funcMtoN;
 
-        protected final Function<? super N, ? extends M, NeverThrowsException> funcNtoM;
+        final Function<? super N, ? extends M, E1> funcNtoM;
 
-        protected TransformedCollection(final C collection,
-                final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
-                final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
+        TransformedCollection(final C collection,
+                              final Function<? super M, ? extends N, E0> funcMtoN,
+                              final Function<? super N, ? extends M, E1> funcNtoM) {
             this.collection = collection;
             this.funcMtoN = funcMtoN;
             this.funcNtoM = funcNtoM;
@@ -66,7 +67,7 @@ public final class Collections2 {
 
         @Override
         public Iterator<N> iterator() {
-            return Iterators.transformedIterator(collection.iterator(), funcMtoN);
+            return transformedIterator(collection.iterator(), funcMtoN);
         }
 
         @Override
@@ -81,11 +82,11 @@ public final class Collections2 {
         }
     }
 
-    private static final class TransformedList<M, N> extends
-            TransformedCollection<M, N, List<M>> implements List<N> {
+    private static final class TransformedList<M, N, E0 extends RuntimeException, E1 extends RuntimeException>
+            extends TransformedCollection<M, N, List<M>, E0, E1> implements List<N> {
         private TransformedList(final List<M> list,
-                final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
-                final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
+                                final Function<? super M, ? extends N, E0> funcMtoN,
+                                final Function<? super N, ? extends M, E1> funcNtoM) {
             super(list, funcMtoN, funcNtoM);
         }
 
@@ -206,6 +207,10 @@ public final class Collections2 {
      *            The type of elements contained in {@code collection}.
      * @param <N>
      *            The type of elements contained in the returned collection.
+     * @param <E0>
+     *            The type of exception thrown by {@code funcMtoN}.
+     * @param <E1>
+     *            The type of exception thrown by {@code funcNtoM}.
      * @param collection
      *            The collection to be transformed.
      * @param funcMtoN
@@ -219,9 +224,10 @@ public final class Collections2 {
      * @return A view of {@code collection} whose values have been mapped to
      *         elements of type {@code N} using {@code funcMtoN}.
      */
-    public static <M, N> Collection<N> transformedCollection(final Collection<M> collection,
-            final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
-            final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
+    public static <M, N, E0 extends RuntimeException, E1 extends RuntimeException>
+    Collection<N> transformedCollection(final Collection<M> collection,
+                                        final Function<? super M, ? extends N, E0> funcMtoN,
+                                        final Function<? super N, ? extends M, E1> funcNtoM) {
         return new TransformedCollection<>(collection, funcMtoN, funcNtoM);
     }
 
@@ -234,6 +240,10 @@ public final class Collections2 {
      *            The type of elements contained in {@code list}.
      * @param <N>
      *            The type of elements contained in the returned list.
+     * @param <E0>
+     *            The type of exception thrown by {@code funcMtoN}.
+     * @param <E1>
+     *            The type of exception thrown by {@code funcNtoM}.
      * @param list
      *            The list to be transformed.
      * @param funcMtoN
@@ -247,9 +257,10 @@ public final class Collections2 {
      * @return A view of {@code list} whose values have been mapped to elements
      *         of type {@code N} using {@code funcMtoN}.
      */
-    public static <M, N> List<N> transformedList(final List<M> list,
-            final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
-            final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
+    public static <M, N, E0 extends RuntimeException, E1 extends RuntimeException> List<N> transformedList(
+            final List<M> list,
+            final Function<? super M, ? extends N, E0> funcMtoN,
+            final Function<? super N, ? extends M, E1> funcNtoM) {
         return new TransformedList<>(list, funcMtoN, funcNtoM);
     }
 

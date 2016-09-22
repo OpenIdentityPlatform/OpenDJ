@@ -26,7 +26,6 @@ import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
 
 
 /**
@@ -91,11 +90,15 @@ public final class AttributeParser {
      *
      * @param <T>
      *            The type of the value to be decoded.
+     * @param <E>
+     *            The type of exception thrown by the function.
      * @param f
      *            The function which should be used to decode the value.
      * @return The first value decoded as a {@code T}.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
-    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f) {
+    public <T, E extends Exception> T as(final Function<ByteString, ? extends T, E> f) throws E {
         return as(f, null);
     }
 
@@ -106,13 +109,17 @@ public final class AttributeParser {
      *
      * @param <T>
      *            The type of the value to be decoded.
+     * @param <E>
+     *            The type of exception thrown by the function.
      * @param f
      *            The function which should be used to decode the value.
      * @param defaultValue
      *            The default value to return if the attribute is empty.
      * @return The first value decoded as a {@code T}.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
-    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f, final T defaultValue) {
+    public <T, E extends Exception> T as(final Function<ByteString, ? extends T, E> f, final T defaultValue) throws E {
         if (!isEmpty(attribute)) {
             return f.apply(attribute.iterator().next());
         } else {
@@ -239,14 +246,18 @@ public final class AttributeParser {
      *
      * @param <T>
      *            The type of the values to be decoded.
+     * @param <E>
+     *            The type of exception thrown by the function.
      * @param f
      *            The function which should be used to decode values.
      * @param defaultValues
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
-            final Collection<? extends T> defaultValues) {
+    public <T, E extends Exception> Set<T> asSetOf(final Function<ByteString, ? extends T, E> f,
+            final Collection<? extends T> defaultValues) throws E {
         if (!isEmpty(attribute)) {
             final LinkedHashSet<T> result = new LinkedHashSet<>(attribute.size());
             for (final ByteString v : attribute) {
@@ -267,14 +278,18 @@ public final class AttributeParser {
      *
      * @param <T>
      *            The type of the values to be decoded.
+     * @param <E>
+     *            The type of exception thrown by the function.
      * @param f
      *            The function which should be used to decode values.
      * @param defaultValues
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
+     * @throws E
+     *         If an error occurred when parsing the attribute.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
-            final T... defaultValues) {
+    public <T, E extends Exception> Set<T> asSetOf(final Function<ByteString, ? extends T, E> f,
+            final T... defaultValues) throws E {
         return asSetOf(f, Arrays.asList(defaultValues));
     }
 

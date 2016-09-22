@@ -12,15 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2013-2015 ForgeRock AS.
+ * Portions copyright 2013-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.util;
+
+import static com.forgerock.opendj.util.Iterators.*;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 import org.forgerock.util.Function;
-import org.forgerock.util.promise.NeverThrowsException;
 
 /**
  * Utility methods for manipulating {@link Iterable}s.
@@ -43,14 +44,14 @@ public final class Iterables {
 
         @Override
         public Iterator<M> iterator() {
-            return Iterators.arrayIterator(a);
+            return arrayIterator(a);
         }
     }
 
     private static final class EmptyIterable<M> extends AbstractIterable<M> {
         @Override
         public Iterator<M> iterator() {
-            return Iterators.emptyIterator();
+            return emptyIterator();
         }
     }
 
@@ -60,8 +61,7 @@ public final class Iterables {
         private final Predicate<? super M, P> predicate;
 
         /** Constructed via factory methods. */
-        private FilteredIterable(final Iterable<M> iterable,
-                final Predicate<? super M, P> predicate, final P p) {
+        private FilteredIterable(final Iterable<M> iterable, final Predicate<? super M, P> predicate, final P p) {
             this.iterable = iterable;
             this.predicate = predicate;
             this.parameter = p;
@@ -69,7 +69,7 @@ public final class Iterables {
 
         @Override
         public Iterator<M> iterator() {
-            return Iterators.filteredIterator(iterable.iterator(), predicate, parameter);
+            return filteredIterator(iterable.iterator(), predicate, parameter);
         }
     }
 
@@ -83,24 +83,23 @@ public final class Iterables {
 
         @Override
         public Iterator<M> iterator() {
-            return Iterators.singletonIterator(value);
+            return singletonIterator(value);
         }
     }
 
-    private static final class TransformedIterable<M, N> extends AbstractIterable<N> {
-        private final Function<? super M, ? extends N, NeverThrowsException> function;
+    private static final class TransformedIterable<M, N, E extends RuntimeException> extends AbstractIterable<N> {
+        private final Function<? super M, ? extends N, E> function;
         private final Iterable<M> iterable;
 
         /** Constructed via factory methods. */
-        private TransformedIterable(final Iterable<M> iterable,
-                final Function<? super M, ? extends N, NeverThrowsException> function) {
+        private TransformedIterable(final Iterable<M> iterable, final Function<? super M, ? extends N, E> function) {
             this.iterable = iterable;
             this.function = function;
         }
 
         @Override
         public Iterator<N> iterator() {
-            return Iterators.transformedIterator(iterable.iterator(), function);
+            return transformedIterator(iterable.iterator(), function);
         }
     }
 
@@ -114,7 +113,7 @@ public final class Iterables {
 
         @Override
         public Iterator<M> iterator() {
-            return Iterators.unmodifiableIterator(iterable.iterator());
+            return unmodifiableIterator(iterable.iterator());
         }
     }
 
@@ -261,7 +260,7 @@ public final class Iterables {
     public static String toString(final Iterable<?> iterable) {
         if (iterable instanceof Collection) {
             // Fall-through if possible.
-            return ((Collection<?>) iterable).toString();
+            return iterable.toString();
         } else {
             final StringBuilder builder = new StringBuilder();
             boolean firstValue = true;
@@ -288,6 +287,8 @@ public final class Iterables {
      *            The type of elements contained in {@code iterable}.
      * @param <N>
      *            The type of elements contained in the returned iterable.
+     * @param <E>
+     *            The type of the exception thrown by the function.
      * @param iterable
      *            The iterable to be transformed.
      * @param function
@@ -295,8 +296,8 @@ public final class Iterables {
      * @return A view of {@code iterable} whose values have been mapped to
      *         elements of type {@code N} using {@code function}.
      */
-    public static <M, N> Iterable<N> transformedIterable(final Iterable<M> iterable,
-            final Function<? super M, ? extends N, NeverThrowsException> function) {
+    public static <M, N, E extends RuntimeException> Iterable<N> transformedIterable(
+            final Iterable<M> iterable, final Function<? super M, ? extends N, E> function) {
         return new TransformedIterable<>(iterable, function);
     }
 
