@@ -18,21 +18,24 @@ package org.opends.server.replication;
 
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.Requests.newSearchRequest;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedSet;
+import java.util.*;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
@@ -45,6 +48,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
@@ -517,5 +521,125 @@ public class DependencyTest extends ReplicationTestCase
   private String stringUID(int i)
   {
     return String.format("11111111-1111-1111-1111-%012x", i);
+  }
+
+  /**
+   * Check that a sequence of dependents adds and mods is correctly ordered:
+   * Using a deep dit :
+   *    TEST_ROOT_DN_STRING
+   *       |
+   *    dc=dependency1
+   *       |
+   *    dc=dependency2
+   *       |
+   *    dc=dependency3
+   *       |
+   *
+   *       |
+   *    dc=dependencyN
+   *
+   * This test sends a sequence of ADD operations to build such a dit.
+   * But every 4 entry is sent as if from a different ReplicaID.
+   * It expects all entries under each other (no conflict due to missing parent).
+   * This test was built to exercise OPENDJ-3343
+   *
+   */
+  @Test(enabled=false)
+  public void addMultipleServersDependencyTest() throws Exception
+  {
+    ReplicationServer replServer = null;
+    LDAPReplicationDomain domain = null;
+    DN baseDN = TEST_ROOT_DN;
+    int brokerId = 2;
+    int serverId = 1;
+    int replServerId = 81;
+    int addSequenceLength = 30;
+
+
+    cleanDB();
+
+    try
+    {
+      /*
+       * Check that a sequence of dependent ADD is correctly ordered.
+       *
+       * - Create replication server
+       * - Send sequence of ADD messages to the replication server
+       * - Configure replication server
+       * - check that the last entry has been correctly added
+       */
+      Entry entry = TestCaseUtils.makeEntry(
+              "dn:" + TEST_ROOT_DN_STRING,
+              "objectClass: top",
+              "objectClass: organization",
+              "entryuuid: " + stringUID(1));
+
+      replServer = newReplicationServer(
+              replServerId, addSequenceLength * 5 + 100, "dependencyTestAddModDelDependencyTestDb");
+
+      ReplicationBroker broker = openReplicationSession(
+              baseDN, brokerId, 1000, replServer.getReplicationPort(), 1000, CLEAN_DB_GENERATION_ID);
+
+      Thread.sleep(2000);
+
+      // send a sequence of add operation
+      DN addDN = TEST_ROOT_DN;
+      CSNGenerator gen = new CSNGenerator(brokerId, 0L);
+      CSNGenerator gen2 = new CSNGenerator(brokerId + 10, 0L);
+      ArrayList<ByteString> dupValues = new ArrayList<>();
+
+      int sequence;
+      for (sequence = 1; sequence<=addSequenceLength; sequence ++)
+      {
+        entry.removeAttribute(getEntryUUIDAttributeType());
+        entry.removeAttribute(getDescriptionAttributeType());
+        entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)), (Collection<ByteString>)dupValues);
+        entry.addAttribute(Attributes.create("description", "test" + sequence), (Collection<ByteString>)dupValues);
+        addDN = DN.valueOf("dc=dependency" + sequence + "," + addDN);
+        // Every 4 entry has a CSN from a different ID
+        broker.publish(addMsg(addDN, entry, sequence + 1, sequence, sequence %4 == 0 ? gen2 : gen));
+      }
+
+      // configure and start replication of TEST_ROOT_DN_STRING on the server
+      domain = startNewLDAPReplicationDomain(replServer, baseDN, serverId, 100000);
+
+      sleep(10000);
+
+      // Check that all the entries have been replayed properly (no conflict)
+      // (all the entries should have a description)
+      addDN = TEST_ROOT_DN;
+
+      // This is just debugging output to visualize the problem
+      dumpAllEntries(addDN);
+
+      for (sequence = 1; sequence<=addSequenceLength; sequence ++)
+      {
+        addDN = DN.valueOf("dc=dependency" + sequence + "," + addDN);
+        Entry e = getEntry(addDN, 10000, true);
+        assertNotNull(e, "The following entry was not added properly: " + addDN);
+        // checkEntryHasAttributeValue(
+        //        addDN, "description", "test" + sequence, 10, "Replication Error with entry " + addDN);
+      }
+    }
+    finally
+    {
+      remove(replServer);
+      if (domain != null)
+      {
+        MultimasterReplication.deleteDomain(baseDN);
+      }
+    }
+  }
+
+  private void dumpAllEntries(DN aDN) throws DirectoryException
+  {
+    final SearchRequest request = newSearchRequest(aDN, SearchScope.WHOLE_SUBTREE, "&");
+    InternalSearchOperation searchOperation = connection.processSearch(request);
+    ResultCode res = searchOperation.getResultCode();
+    assertEquals(res, ResultCode.SUCCESS, "Error while searching all entries for " + aDN);
+    for (Entry entry : searchOperation.getSearchEntries())
+    {
+      System.out.println(entry.toString());
+    }
   }
 }
