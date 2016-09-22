@@ -15,6 +15,7 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
+import static org.forgerock.http.handler.Handlers.chainOf;
 import static org.forgerock.http.routing.RouteMatchers.newResourceApiVersionBehaviourManager;
 import static org.forgerock.http.routing.Version.version;
 import static org.forgerock.json.resource.RouteMatchers.resourceApiVersionContextFilter;
@@ -39,6 +40,7 @@ import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.routing.ResourceApiVersionBehaviourManager;
 import org.forgerock.http.routing.Version;
+import org.forgerock.http.swagger.OpenApiRequestFilter;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.ConnectionFactory;
@@ -125,7 +127,8 @@ public final class AdminEndpoint extends HttpEndpoint<AdminEndpointCfg>
     @Override
     public Handler start() throws HttpApplicationException
     {
-      return newHttpHandler(startRequestHandler());
+      return chainOf(newHttpHandler(startRequestHandler()),
+                     new OpenApiRequestFilter());
     }
 
     FilterChain startRequestHandler() throws HttpApplicationException

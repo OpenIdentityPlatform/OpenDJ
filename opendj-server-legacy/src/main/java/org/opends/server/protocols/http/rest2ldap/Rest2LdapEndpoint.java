@@ -15,6 +15,7 @@
  */
 package org.opends.server.protocols.http.rest2ldap;
 
+import static org.forgerock.http.handler.Handlers.chainOf;
 import static org.forgerock.opendj.rest2ldap.Rest2LdapJsonConfigurator.configureEndpoint;
 import static org.forgerock.util.Options.defaultOptions;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_REST2LDAP_INVALID;
@@ -30,6 +31,7 @@ import org.forgerock.http.Handler;
 import org.forgerock.http.HttpApplication;
 import org.forgerock.http.HttpApplicationException;
 import org.forgerock.http.io.Buffer;
+import org.forgerock.http.swagger.OpenApiRequestFilter;
 import org.forgerock.json.JsonValueException;
 import org.forgerock.json.resource.CrestApplication;
 import org.forgerock.json.resource.RequestHandler;
@@ -81,7 +83,9 @@ public final class Rest2LdapEndpoint extends HttpEndpoint<Rest2ldapEndpointCfg>
       final File endpointConfig = getFileForPath(configuration.getConfigDirectory(), serverContext);
       try
       {
-        return newHttpHandler(configureEndpoint(endpointConfig, defaultOptions()));
+        return chainOf(
+            newHttpHandler(configureEndpoint(endpointConfig, defaultOptions())),
+            new OpenApiRequestFilter());
       }
       catch (IOException e)
       {

@@ -15,11 +15,11 @@
  */
 package org.opends.server.protocols.http;
 
+import static org.forgerock.http.grizzly.GrizzlySupport.newGrizzlyHttpHandler;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.forgerock.http.grizzly.GrizzlySupport.newGrizzlyHttpHandler;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -943,7 +943,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     public ApiProducer<Swagger> getApiProducer()
     {
       // Needed to enforce generation of CREST APIs
-      return new SwaggerApiProducer(null, null, null);
+      return new SwaggerApiProducer(null);
     }
   }
 

@@ -64,6 +64,7 @@ import org.forgerock.http.filter.Filters;
 import org.forgerock.http.handler.HttpClientHandler;
 import org.forgerock.http.io.Buffer;
 import org.forgerock.http.protocol.Headers;
+import org.forgerock.http.swagger.OpenApiRequestFilter;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -218,6 +219,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
             configureConnectionFactories(config.get("ldapConnectionFactories"));
             final Filter authorizationFilter = buildAuthorizationFilter(config.get("authorization").required());
             return chainOf(newHttpHandler(configureRest2Ldap(configDirectory)),
+                           new OpenApiRequestFilter(),
                            new ErrorLoggerFilter(),
                            authorizationFilter);
         } catch (final Exception e) {
