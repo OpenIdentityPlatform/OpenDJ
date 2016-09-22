@@ -18,6 +18,7 @@ package org.forgerock.opendj.ldif;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -786,6 +787,44 @@ public final class LDIF {
             }
 
         };
+    }
+
+    /**
+     * Returns the LDIF representation of {@code entry}. All attributes will be included and no wrapping will be
+     * performed. This method can be useful when debugging applications.
+     *
+     * @param entry
+     *         The entry to be converted to LDIF.
+     * @return The LDIF representation of {@code entry}.
+     */
+    public static String toLDIF(final Entry entry) {
+        try (final StringWriter writer = new StringWriter();
+             final LDIFEntryWriter ldifWriter = new LDIFEntryWriter(writer)) {
+            ldifWriter.writeEntry(entry);
+            ldifWriter.flush();
+            return writer.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Returns the LDIF representation of {@code change}. No wrapping will be performed. This method can be useful when
+     * debugging applications.
+     *
+     * @param change
+     *         The change record to be converted to LDIF.
+     * @return The LDIF representation of {@code change}.
+     */
+    public static String toLDIF(final ChangeRecord change) {
+        try (final StringWriter writer = new StringWriter();
+             final LDIFChangeRecordWriter ldifWriter = new LDIFChangeRecordWriter(writer)) {
+            ldifWriter.writeChangeRecord(change).toString();
+            ldifWriter.flush();
+            return writer.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static List<byte[][]> readEntriesAsList(final EntryReader reader) throws IOException {

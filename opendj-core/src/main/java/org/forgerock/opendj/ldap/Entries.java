@@ -933,6 +933,18 @@ public final class Entries {
     }
 
     /**
+     * Returns the LDIF representation of {@code entry}. All attributes will be included and no wrapping will be
+     * performed. This method can be useful when debugging applications.
+     *
+     * @param entry
+     *         The entry to be converted to LDIF.
+     * @return The LDIF representation of {@code entry}.
+     */
+    public static String toLDIF(final Entry entry) {
+        return LDIF.toLDIF(entry);
+    }
+
+    /**
      * Returns a read-only view of {@code entry} and its attributes. Query
      * operations on the returned entry and its attributes "read-through" to the
      * underlying entry or attribute, and attempts to modify the returned entry

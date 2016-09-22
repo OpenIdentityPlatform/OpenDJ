@@ -237,20 +237,7 @@ public abstract class AbstractEntry implements Entry {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append('"');
-        builder.append(getName());
-        builder.append("\":{");
-        boolean firstValue = true;
-        for (final Attribute attribute : getAllAttributes()) {
-            if (!firstValue) {
-                builder.append(',');
-            }
-            builder.append(attribute);
-            firstValue = false;
-        }
-        builder.append('}');
-        return builder.toString();
+        return Entries.toLDIF(this);
     }
 
     private boolean isAssignable(final AttributeDescription from, final AttributeDescription to) {
