@@ -23,7 +23,7 @@ import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamExce
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
-import static com.forgerock.opendj.ldap.tools.Utils.printlnTextMsg;
+import static com.forgerock.opendj.ldap.tools.Utils.printSuccessMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readAssertionControl;
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
 import static com.forgerock.opendj.ldap.tools.Utils.ensureLdapProtocolVersionIsSupported;
@@ -203,14 +203,7 @@ public final class LDAPModify extends ConsoleApplication {
             if (ResultCode.SUCCESS != rc && ResultCode.REFERRAL != rc) {
                 printErrorMessage(LDAPModify.this, r, ERR_LDAP_MODIFY_FAILED);
             } else {
-                println(INFO_OPERATION_SUCCESSFUL.get(operationType, name));
-                printlnTextMsg(LDAPModify.this, r.getDiagnosticMessage());
-                final List<String> referralURIs = r.getReferralURIs();
-                if (referralURIs != null) {
-                    for (final String uri : referralURIs) {
-                        println(LocalizableMessage.raw(uri));
-                    }
-                }
+                printSuccessMessage(LDAPModify.this, r, operationType, name);
             }
 
             try {

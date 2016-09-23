@@ -121,6 +121,15 @@ final class Utils {
         return rc;
     }
 
+    static void printSuccessMessage(
+            final ConsoleApplication app, final Result r, final String operationType, final String dn) {
+        app.println(INFO_OPERATION_SUCCESSFUL.get(operationType, dn));
+        printlnTextMsg(app, r.getDiagnosticMessage());
+        for (final String uri : r.getReferralURIs()) {
+            app.println(LocalizableMessage.raw(uri));
+        }
+    }
+
     static void printPasswordPolicyResults(final ConsoleApplication app, final BindResult result) {
         try {
             final AuthorizationIdentityResponseControl control = result.getControl(
