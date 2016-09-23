@@ -403,6 +403,8 @@
                             <disabledFile>legal-notices/CDDLv1_0.txt</disabledFile>
                             <disabledFile>**/tests/unit-tests-testng/resource/config-changes.ldif</disabledFile>
                             <disabledFile>opendj-rest2ldap-servlet/src/main/webapp/WEB-INF/classes/logging.properties</disabledFile>
+                            <disabledFile>opendj-ldap-toolkit/src/test/resources/*.ldif</disabledFile>
+                            <disabledFile>opendj-ldap-toolkit/src/test/resources/**/*.ldif</disabledFile>
                         </disabledFiles>
                     </configuration>
                 </plugin>

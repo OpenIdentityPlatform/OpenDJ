@@ -2,6 +2,7 @@ dn: dc=example,dc=com
 changetype: modify
 delete: description
 description: test
+-
 
 dn: ou=Groups,dc=example,dc=com
 changetype: add
@@ -17,13 +18,12 @@ ou: People
 
 dn: uid=test.user,ou=People,dc=example,dc=com
 changetype: add
-objectClass: inetOrgPerson
-objectClass: person
 objectClass: top
+objectClass: person
 objectClass: organizationalPerson
-cn: Test User
+objectClass: inetOrgPerson
+uid: test.user
 givenName: Test
 sn: User
-uid: test.user
+cn: Test User
 userPassword: password
-

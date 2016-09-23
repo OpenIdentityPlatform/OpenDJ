@@ -29,4 +29,5 @@ givenName: Test
 sn: User
 cn: Test User
 userPassword: password
+description: This is a very long description used to test that the ldif tools manage to deal with ldif wrapping standards.
 

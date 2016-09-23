@@ -7,13 +7,14 @@ add: objectClass
 objectClass: organization
 objectClass: dcObject
 -
-add: o
-o: Example Corp.
--
 add: description
 description: description 1
 description: description 2
 description: description 3
+-
+add: o
+o: Example Corp.
+-
 
 dn: ou=Applications,dc=example,dc=com
 changetype: add
@@ -23,36 +24,31 @@ ou: Applications
 
 dn: ou=Groups,dc=example,dc=com
 changetype: delete
-# objectClass: top
-# objectClass: organizationalUnit
-# ou: Groups
 
 dn: ou=People,dc=example,dc=com
 changetype: modify
 add: description
-description: This is where you put the people
+description: This is a very long description used to test that the ldif tools manage to deal with ldif wrapping standards.
+-
+
+dn: ou=Applications,dc=example,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: Applications
+description: An entry with this DN has already been added. If -c flag is present this modification should be ignored, otherwise an error should be raised.
 
 dn: cn=Test User,ou=People,dc=example,dc=com
 changetype: add
-objectClass: inetOrgPerson
-objectClass: person
 objectClass: top
+objectClass: person
 objectClass: organizationalPerson
-cn: Test User
+objectClass: inetOrgPerson
+uid: test.user
 givenName: Test
 sn: User
-uid: test.user
+cn: Test User
 userPassword: password
 
 dn: uid=test.user,ou=People,dc=example,dc=com
 changetype: delete
-# objectClass: inetOrgPerson
-# objectClass: person
-# objectClass: top
-# objectClass: organizationalPerson
-# cn: Test User
-# givenName: Test
-# sn: User
-# uid: test.user
-# userPassword: password
-

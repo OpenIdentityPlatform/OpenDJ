@@ -1,0 +1,31 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: organization
+objectClass: dcObject
+dc: example
+description: description 1
+description: description 2
+description: description 3
+o: Example Corp.
+
+dn: ou=Applications,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Applications
+
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+description: This is a very long description used to test that the ldif tools manage to deal with ldif wrapping standards.
+
+dn: cn=Test User,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: test.user
+givenName: Test
+sn: User
+cn: Test User
+userPassword: password

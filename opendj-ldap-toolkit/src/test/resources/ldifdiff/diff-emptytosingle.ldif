@@ -4,4 +4,3 @@ objectClass: top
 objectClass: domain
 dc: example
 description: test
-

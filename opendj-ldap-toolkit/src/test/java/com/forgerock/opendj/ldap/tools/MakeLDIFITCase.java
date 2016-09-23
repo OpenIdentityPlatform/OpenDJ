@@ -15,6 +15,7 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.util.Utils.*;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -105,22 +106,22 @@ public class MakeLDIFITCase extends ToolsITCase {
     @Test(dataProvider = "validArguments")
     public void testMakeLDIFValidUseCases(final String[] arguments, final LocalizableMessage expectedOut)
             throws Exception {
-        run(arguments, SUCCESS, expectedOut);
+        run(arguments, SUCCESS, expectedOut, "");
     }
 
     @Test(dataProvider = "invalidArguments")
     public void testMakeLDIFInvalidUseCases(final String[] arguments, final LocalizableMessage expectedErr)
             throws Exception {
-        run(arguments, FAILURE, expectedErr);
+        run(arguments, FAILURE, "", expectedErr);
     }
 
     /** See OPENDJ-2505 */
     @Test
     public void testMakeLDIFInvalidLineFolding() throws Exception {
-        final LocalizableMessage expectedOutput = ERR_LDIF_GEN_TOOL_EXCEPTION_DURING_PARSE.get(
+        final LocalizableMessage expectedErr = ERR_LDIF_GEN_TOOL_EXCEPTION_DURING_PARSE.get(
                 ERR_TEMPLATE_FILE_INVALID_LEADING_SPACE.get(
                         27, " \"lineFoldingTest\":\\[\"This line should not be accepted by the parser\"\\],"));
-        run(args("src/test/resources/invalid_test_template.ldif"), FAILURE, expectedOutput);
+        run(args("src/test/resources/invalid_test_template.ldif"), FAILURE, "", expectedErr);
     }
 
     /** See OPENDJ-2505 */
@@ -130,7 +131,9 @@ public class MakeLDIFITCase extends ToolsITCase {
         run(args("-o", tempOutputFile.toString(),
                  "-t", "80",
                  VALID_TEMPLATE_FILE_PATH),
-                SUCCESS, INFO_MAKELDIF_PROCESSING_COMPLETE.get(2));
+            SUCCESS,
+            INFO_MAKELDIF_PROCESSING_COMPLETE.get(2),
+            "");
         assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output_80_column.ldif");
         Files.delete(tempOutputFile);
     }
@@ -139,8 +142,12 @@ public class MakeLDIFITCase extends ToolsITCase {
     @Test
     public void testMakeLDIFSupportsLineFoldingAndLineWrapping() throws Exception {
         final Path tempOutputFile = Paths.get(TEST_RESOURCE_PATH, TEMP_OUTPUT_FILE);
-        run(args("-o", tempOutputFile.toString(), "-t", "0", VALID_TEMPLATE_FILE_PATH),
-                SUCCESS, INFO_MAKELDIF_PROCESSING_COMPLETE.get(2));
+        run(args("-o", tempOutputFile.toString(),
+                 "-t", "0",
+                 VALID_TEMPLATE_FILE_PATH),
+            SUCCESS,
+            INFO_MAKELDIF_PROCESSING_COMPLETE.get(2),
+            "");
         assertFilesAreEquals(TEMP_OUTPUT_FILE, "expected_output.ldif");
         Files.delete(tempOutputFile);
     }
@@ -150,10 +157,12 @@ public class MakeLDIFITCase extends ToolsITCase {
                    Files.readAllBytes(Paths.get(TEST_RESOURCE_PATH, expectedOutputFileName)));
     }
 
-    private void run(final String[] arguments, final boolean expectsSuccess, final LocalizableMessage expectedOutput)
-            throws Exception {
-        final int retCode = MakeLDIF.run(outStream, errStream, arguments);
-        checkOuputStreams(out, err, expectedOutput, "");
+    private void run(final String[] arguments,
+                     final boolean expectsSuccess,
+                     final Object expectedOutput,
+                     final Object expectedErr) throws Exception {
+        final int retCode = runTool(new MakeLDIF(outStream, errStream), arguments);
+        checkOuputStreams(out, err, expectedOutput, expectedErr);
         if (expectsSuccess) {
             assertThat(retCode).isEqualTo(0);
         } else {

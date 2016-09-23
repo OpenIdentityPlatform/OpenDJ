@@ -19,6 +19,7 @@ import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_COMPARE_OPERATION_RESULT_FALSE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_COMPARE_OPERATION_RESULT_TRUE;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPCOMPARE_TOOL_DESCRIPTION;
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -85,7 +86,7 @@ public class LDAPCompareITCase extends ToolsITCase {
 
         try (PrintStream outStream = new PrintStream(out.asOutputStream());
              PrintStream errStream = new PrintStream(err.asOutputStream())) {
-            LDAPCompare.run(outStream, errStream, arguments);
+            runTool(new LDAPCompare(outStream, errStream), arguments);
             checkOuputStreams(out, err, expectedOut, expectedErr);
         } catch (final LDAPToolException ae) {
             checkOuputStreams(out, err, expectedOut, expectedErr);

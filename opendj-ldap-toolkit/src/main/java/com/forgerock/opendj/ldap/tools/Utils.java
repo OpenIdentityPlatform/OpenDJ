@@ -291,6 +291,7 @@ final class Utils {
                 while ((line = reader.readLine()) != null) {
                     filesLines.add(line);
                 }
+                filesLines.add("");
             } catch (final IOException e) {
                 throw newToolParamException(
                         e, ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filePath, e.getLocalizedMessage()));

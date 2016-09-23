@@ -1,0 +1,14 @@
+dn: cn=Test User,ou=People,dc=example,dc=com
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: test.user
+givenName: Test
+sn: User
+cn: Test User
+userPassword: password
+
+dn: uid=test.user,ou=People,dc=example,dc=com
+changetype: delete

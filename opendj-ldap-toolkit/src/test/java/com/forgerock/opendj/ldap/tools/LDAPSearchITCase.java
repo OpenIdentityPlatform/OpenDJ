@@ -19,6 +19,7 @@ import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ERROR_PARSING_ARGS;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPSEARCH_MATCHING_ENTRY_COUNT;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_LDAPSEARCH_TOOL_DESCRIPTION;
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
 
 import java.io.PrintStream;
 import java.util.Random;
@@ -75,7 +76,7 @@ public class LDAPSearchITCase extends ToolsITCase {
 
         try (PrintStream outStream = new PrintStream(out.asOutputStream());
              PrintStream errStream = new PrintStream(err.asOutputStream())) {
-            LDAPSearch.run(outStream, errStream, arguments);
+            runTool(new LDAPSearch(outStream, errStream), arguments);
             checkOuputStreams(out, err, expectedOut, expectedErr);
         } catch (final LDAPToolException e) {
             checkOuputStreams(out, err, expectedOut, expectedErr);
