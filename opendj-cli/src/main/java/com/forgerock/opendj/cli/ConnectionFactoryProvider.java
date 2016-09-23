@@ -646,11 +646,11 @@ public final class ConnectionFactoryProvider {
                 throw new ArgumentException(ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM.get(mech));
             }
 
-            if (reportAuthzIDArg.isPresent()) {
+            if (bindRequest != null && reportAuthzIDArg.isPresent()) {
                 bindRequest.addControl(AuthorizationIdentityRequestControl.newControl(false));
             }
 
-            if (usePasswordPolicyControlArg.isPresent()) {
+            if (bindRequest != null && usePasswordPolicyControlArg.isPresent()) {
                 bindRequest.addControl(PasswordPolicyRequestControl.newControl(false));
             }
         }
