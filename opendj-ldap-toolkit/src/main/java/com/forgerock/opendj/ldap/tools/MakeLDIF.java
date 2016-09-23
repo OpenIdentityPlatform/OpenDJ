@@ -31,9 +31,11 @@ import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -211,7 +213,12 @@ public final class MakeLDIF extends ConsoleApplication {
             throws IOException, ArgumentException {
         final LDIFEntryWriter writer;
         if (ldifFile.isPresent()) {
-            writer = new LDIFEntryWriter(new BufferedWriter(new FileWriter(ldifFile.getValue())));
+            final String ldifFileName = ldifFile.getValue();
+            if (ldifFileName.toLowerCase().endsWith(".gz")) {
+                writer = new LDIFEntryWriter(new GZIPOutputStream(new FileOutputStream(ldifFileName)));
+            } else {
+                writer = new LDIFEntryWriter(new BufferedWriter(new FileWriter(ldifFileName)));
+            }
         } else {
             writer = new LDIFEntryWriter(getOutputStream());
         }
