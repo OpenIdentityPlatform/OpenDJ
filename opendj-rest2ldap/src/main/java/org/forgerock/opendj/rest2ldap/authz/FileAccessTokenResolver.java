@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap.authz;
 
+import static org.forgerock.json.JsonValueFunctions.*;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.newAccessTokenException;
 import static org.forgerock.util.Reject.checkNotNull;
@@ -55,7 +56,7 @@ final class FileAccessTokenResolver implements AccessTokenResolver {
 
         try {
             final AccessTokenInfo result = new AccessTokenInfo(accessToken, token,
-                    accessToken.get("scope").required().asSet(String.class),
+                    accessToken.get("scope").required().as(setOf(String.class)),
                     accessToken.get("expireTime").required().asLong());
             return newResultPromise(result);
         } catch (final JsonValueException e) {

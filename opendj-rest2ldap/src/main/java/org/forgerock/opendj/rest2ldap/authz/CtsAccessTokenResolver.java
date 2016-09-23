@@ -16,6 +16,7 @@
 package org.forgerock.opendj.rest2ldap.authz;
 
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.*;
+import static org.forgerock.json.JsonValueFunctions.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSingleEntrySearchRequest;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.close;
 import static org.forgerock.opendj.rest2ldap.authz.Utils.newAccessTokenException;
@@ -84,7 +85,7 @@ final class CtsAccessTokenResolver implements AccessTokenResolver {
                     }
 
                     return new AccessTokenInfo(accessToken, token,
-                            accessToken.get("scope").required().asSet(String.class),
+                            accessToken.get("scope").required().as(setOf(String.class)),
                             Long.parseLong(getRequiredFirstValue(accessToken.get("expireTime"))));
                 }
             }, new Function<LdapException, AccessTokenInfo, AccessTokenException>() {

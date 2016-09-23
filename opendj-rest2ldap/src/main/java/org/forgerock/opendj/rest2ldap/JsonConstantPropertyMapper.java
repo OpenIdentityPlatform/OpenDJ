@@ -178,7 +178,7 @@ final class JsonConstantPropertyMapper extends PropertyMapper {
             final JsonValue firstItem = value.get(value.keys().iterator().next());
             // assume all items have the same schema
             jsonSchema.put("items", toJsonSchema(firstItem));
-            if (value.isSet()) {
+            if (value.getObject() instanceof Set) {
                 jsonSchema.put("uniqueItems", true);
             }
             return jsonSchema;

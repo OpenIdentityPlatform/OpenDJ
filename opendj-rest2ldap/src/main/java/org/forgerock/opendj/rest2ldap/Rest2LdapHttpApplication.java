@@ -13,7 +13,6 @@
  *
  * Copyright 2015-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.http.handler.Handlers.chainOf;
@@ -310,7 +309,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
     @VisibleForTesting
     ConditionalFilter buildOAuth2Filter(final JsonValue config) throws HttpApplicationException {
         final String realm = config.get(REALM).defaultTo("no_realm").asString();
-        final Set<String> scopes = config.get(SCOPES).required().asSet(String.class);
+        final Set<String> scopes = config.get(SCOPES).required().as(setOf(String.class));
         final AccessTokenResolver resolver =
                 createCachedTokenResolverIfNeeded(config, parseUnderlyingResolver(config));
         final String resolverName = config.get(RESOLVER_CONFIG_OBJECT).asString();
