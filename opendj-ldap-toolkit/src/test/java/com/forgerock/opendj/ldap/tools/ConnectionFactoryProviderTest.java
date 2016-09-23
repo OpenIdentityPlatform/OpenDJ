@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -21,6 +21,7 @@ import java.io.File;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
@@ -31,7 +32,8 @@ import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 
 @SuppressWarnings("javadoc")
-public class ConnectionFactoryProviderTest extends ToolsTestCase {
+@Test
+public class ConnectionFactoryProviderTest extends ForgeRockTestCase {
 
     @Mock
     private ConsoleApplication app;
