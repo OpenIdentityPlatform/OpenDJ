@@ -48,6 +48,7 @@ import org.forgerock.audit.AuditServiceConfiguration;
 import org.forgerock.audit.AuditServiceProxy;
 import org.forgerock.audit.DependencyProvider;
 import org.forgerock.audit.events.EventTopicsMetaData;
+import org.forgerock.audit.events.handlers.FileBasedEventHandlerConfiguration;
 import org.forgerock.audit.events.handlers.FileBasedEventHandlerConfiguration.FileRetention;
 import org.forgerock.audit.events.handlers.FileBasedEventHandlerConfiguration.FileRotation;
 import org.forgerock.audit.filter.FilterPolicy;
@@ -56,6 +57,8 @@ import org.forgerock.audit.handlers.csv.CsvAuditEventHandlerConfiguration;
 import org.forgerock.audit.handlers.csv.CsvAuditEventHandlerConfiguration.CsvFormatting;
 import org.forgerock.audit.handlers.csv.CsvAuditEventHandlerConfiguration.CsvSecurity;
 import org.forgerock.audit.handlers.csv.CsvAuditEventHandlerConfiguration.EventBufferingConfiguration;
+import org.forgerock.audit.handlers.json.JsonAuditEventHandler;
+import org.forgerock.audit.handlers.json.JsonAuditEventHandlerConfiguration;
 import org.forgerock.audit.json.AuditJsonConfig;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.JsonValue;
@@ -63,7 +66,6 @@ import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.CsvFileAccessLogPublisherCfg;
 import org.forgerock.opendj.server.config.server.CsvFileHTTPAccessLogPublisherCfg;
 import org.forgerock.opendj.server.config.server.ExternalAccessLogPublisherCfg;
@@ -71,15 +73,15 @@ import org.forgerock.opendj.server.config.server.ExternalHTTPAccessLogPublisherC
 import org.forgerock.opendj.server.config.server.FileCountLogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.FixedTimeLogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.FreeDiskSpaceLogRetentionPolicyCfg;
+import org.forgerock.opendj.server.config.server.JsonFileAccessLogPublisherCfg;
+import org.forgerock.opendj.server.config.server.JsonFileHTTPAccessLogPublisherCfg;
 import org.forgerock.opendj.server.config.server.LogPublisherCfg;
 import org.forgerock.opendj.server.config.server.LogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.LogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.TimeLimitLogRotationPolicyCfg;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
-import org.opends.server.types.Entry;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -191,7 +193,7 @@ public class CommonAudit
    */
   public RequestHandler getRequestHandler(LogPublisherCfg config) throws ConfigException
   {
-    if (new PublisherConfig(serverContext, config).isHttpAccessLog())
+    if (new PublisherConfig(serverContext, config).logType.isHttp())
     {
       return httpAccessAuditService;
     }
@@ -215,7 +217,7 @@ public class CommonAudit
       {
         final PublisherConfig newPublisher = new PublisherConfig(serverContext, newConfig);
         String normalizedName = getConfigNormalizedName(newConfig);
-        if (newPublisher.isHttpAccessLog())
+        if (newPublisher.logType.isHttp())
         {
           // if an old version exists, it is replaced by the new one
           httpAccessPublishers.put(normalizedName, newPublisher);
@@ -397,7 +399,7 @@ public class CommonAudit
   /**
    * Build filter policies at the AuditService level to prevent logging of the headers for HTTP requests.
    * <p>
-   * HTTP Headers may contains authentication information.
+   * HTTP Headers may contain authentication information.
    */
   private Map<String, FilterPolicy> getFilterPoliciesToPreventHttpHeadersLogging()
   {
@@ -410,16 +412,18 @@ public class CommonAudit
 
   private void addHandlerToBuilder(PublisherConfig publisher, AuditServiceBuilder builder) throws ConfigException
   {
-    if (publisher.isCsv())
+    switch (publisher.auditType)
     {
+    case CSV:
       addCsvHandler(publisher, builder);
-    }
-    else if (publisher.isExternal())
-    {
+      break;
+    case JSON:
+      addJsonHandler(publisher, builder);
+      break;
+    case EXTERNAL:
       addExternalHandler(publisher, builder);
-    }
-    else
-    {
+      break;
+    default:
       throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_HANDLER_TYPE.get(publisher.getDn()));
     }
   }
@@ -446,27 +450,26 @@ public class CommonAudit
 
   private void addCsvHandler(PublisherConfig publisher, AuditServiceBuilder builder) throws ConfigException
   {
-    String name = publisher.getName();
     try
     {
       CsvConfigData config = publisher.getCsvConfig();
       CsvAuditEventHandlerConfiguration csvConfig = new CsvAuditEventHandlerConfiguration();
       File logDirectory = getFileForPath(config.getLogDirectory());
       csvConfig.setLogDirectory(logDirectory.getAbsolutePath());
-      csvConfig.setName(name);
+      csvConfig.setName(publisher.getName());
       csvConfig.setTopics(Collections.singleton(publisher.getCommonAuditTopic()));
 
       addCsvHandlerFormattingConfig(config, csvConfig);
       addCsvHandlerBufferingConfig(config, csvConfig);
       addCsvHandlerSecureConfig(publisher, config, csvConfig);
-      addCsvHandlerRotationConfig(publisher, config, csvConfig);
-      addCsvHandlerRetentionConfig(publisher, config, csvConfig);
+      addHandlerRotationConfig(publisher, config, csvConfig);
+      addHandlerRetentionConfig(publisher, config, csvConfig);
 
       builder.withAuditEventHandler(CsvAuditEventHandler.class, csvConfig);
     }
     catch (Exception e)
     {
-      throw new ConfigException(ERR_COMMON_AUDIT_CSV_HANDLER_CREATION.get(publisher.getDn(), e), e);
+      throw new ConfigException(ERR_COMMON_AUDIT_FILE_BASED_HANDLER_CREATION.get(publisher.getDn(), e), e);
     }
   }
 
@@ -507,8 +510,36 @@ public class CommonAudit
     }
   }
 
-  private void addCsvHandlerRotationConfig(PublisherConfig publisher, CsvConfigData config,
-      CsvAuditEventHandlerConfiguration auditConfig) throws ConfigException
+  private void addJsonHandler(PublisherConfig publisher, AuditServiceBuilder builder) throws ConfigException
+  {
+    try
+    {
+      JsonConfigData config = publisher.getJsonConfig();
+      JsonAuditEventHandlerConfiguration jsonConfig = new JsonAuditEventHandlerConfiguration();
+      File logDirectory = getFileForPath(config.getLogDirectory());
+      jsonConfig.setLogDirectory(logDirectory.getAbsolutePath());
+      jsonConfig.setName(publisher.getName());
+      jsonConfig.setTopics(Collections.singleton(publisher.getCommonAuditTopic()));
+      addJsonHandlerBufferingConfig(config, jsonConfig);
+      addHandlerRetentionConfig(publisher, config, jsonConfig);
+      addHandlerRotationConfig(publisher, config, jsonConfig);
+
+      builder.withAuditEventHandler(JsonAuditEventHandler.class, jsonConfig);
+    }
+    catch (Exception e)
+    {
+      throw new ConfigException(ERR_COMMON_AUDIT_FILE_BASED_HANDLER_CREATION.get(publisher.getDn(), e), e);
+    }
+  }
+
+  private void addJsonHandlerBufferingConfig(JsonConfigData config, JsonAuditEventHandlerConfiguration auditConfig)
+  {
+    JsonAuditEventHandlerConfiguration.EventBufferingConfiguration jsonBufferingConfig =
+        new JsonAuditEventHandlerConfiguration.EventBufferingConfiguration();
+  }
+
+  private void addHandlerRotationConfig(PublisherConfig publisher, HandlerConfigData config,
+      FileBasedEventHandlerConfiguration auditConfig) throws ConfigException
   {
     SortedSet<String> rotationPolicies = config.getRotationPolicies();
     if (rotationPolicies.isEmpty())
@@ -544,8 +575,8 @@ public class CommonAudit
     auditConfig.setFileRotation(fileRotation);
   }
 
-  private void addCsvHandlerRetentionConfig(PublisherConfig publisher, CsvConfigData config,
-      CsvAuditEventHandlerConfiguration auditConfig) throws ConfigException
+  private void addHandlerRetentionConfig(PublisherConfig publisher, HandlerConfigData config,
+      FileBasedEventHandlerConfiguration auditConfig) throws ConfigException
   {
     SortedSet<String> retentionPolicies = config.getRetentionPolicies();
     if (retentionPolicies.isEmpty())
@@ -650,7 +681,7 @@ public class CommonAudit
    */
   public boolean isCommonAuditConfig(LogPublisherCfg config) throws ConfigException
   {
-    return new PublisherConfig(serverContext, config).isCommonAudit();
+    return new PublisherConfig(serverContext, config).isCommonAudit;
   }
 
   /**
@@ -705,40 +736,43 @@ public class CommonAudit
   {
     private final LogPublisherCfg config;
     private final boolean isCommonAudit;
-    private LogType logType;
+    private LogType logType = LogType.UNCONFIGURED;
     private AuditType auditType;
 
     PublisherConfig(ServerContext serverContext, LogPublisherCfg config) throws ConfigException
     {
       this.config = config;
-      Entry configEntry = DirectoryServer.getConfigEntry(config.dn());
-      if (hasObjectClass(serverContext,configEntry, "ds-cfg-csv-file-access-log-publisher"))
+      if (config instanceof JsonFileAccessLogPublisherCfg)
+      {
+        auditType = AuditType.JSON;
+        logType = LogType.ACCESSLOG;
+      }
+      else if (config instanceof JsonFileHTTPAccessLogPublisherCfg)
+      {
+        auditType = AuditType.JSON;
+        logType = LogType.HTTPLOG;
+      }
+      if (config instanceof CsvFileAccessLogPublisherCfg)
       {
         auditType = AuditType.CSV;
-        logType = LogType.ACCESS;
+        logType = LogType.ACCESSLOG;
       }
-      else if (hasObjectClass(serverContext,configEntry, "ds-cfg-csv-file-http-access-log-publisher"))
+      else if (config instanceof CsvFileHTTPAccessLogPublisherCfg)
       {
         auditType = AuditType.CSV;
-        logType = LogType.HTTP_ACCESS;
+        logType = LogType.HTTPLOG;
       }
-      else if (hasObjectClass(serverContext,configEntry, "ds-cfg-external-access-log-publisher"))
+      if (config instanceof ExternalAccessLogPublisherCfg)
       {
         auditType = AuditType.EXTERNAL;
-        logType = LogType.ACCESS;
+        logType = LogType.ACCESSLOG;
       }
-      else if (hasObjectClass(serverContext,configEntry, "ds-cfg-external-http-access-log-publisher"))
+      else if (config instanceof ExternalHTTPAccessLogPublisherCfg)
       {
         auditType = AuditType.EXTERNAL;
-        logType = LogType.HTTP_ACCESS;
+        logType = LogType.HTTPLOG;
       }
       isCommonAudit = auditType != null;
-    }
-
-    private boolean hasObjectClass(ServerContext serverContext, Entry entry, String objectClassName)
-    {
-      ObjectClass objectClass = serverContext.getSchema().getObjectClass(objectClassName);
-      return !objectClass.isPlaceHolder() && entry.hasObjectClass(objectClass);
     }
 
     DN getDn()
@@ -753,76 +787,22 @@ public class CommonAudit
 
     String getCommonAuditTopic() throws ConfigException
     {
-      if (isAccessLog())
-      {
-        return "ldap-access";
-      }
-      else if (isHttpAccessLog())
-      {
-        return "http-access";
-      }
-      throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_LOG_PUBLISHER.get(config.dn()));
-    }
-
-    boolean isExternal()
-    {
-      return AuditType.EXTERNAL == auditType;
-    }
-
-    boolean isCsv()
-    {
-      return AuditType.CSV == auditType;
-    }
-
-    boolean isAccessLog()
-    {
-      return LogType.ACCESS == logType;
-    }
-
-    boolean isHttpAccessLog()
-    {
-      return LogType.HTTP_ACCESS == logType;
-    }
-
-    boolean isCommonAudit()
-    {
-      return isCommonAudit;
+      return logType.getCommonAuditTopic(config);
     }
 
     CsvConfigData getCsvConfig() throws ConfigException
     {
-      if (isAccessLog())
-      {
-        CsvFileAccessLogPublisherCfg conf = (CsvFileAccessLogPublisherCfg) config;
-        return new CsvConfigData(conf.getLogDirectory(), conf.getCsvQuoteChar(), conf.getCsvDelimiterChar(), conf
-            .getCsvEolSymbols(), conf.isAsynchronous(), conf.isAutoFlush(), conf.isTamperEvident(), conf
-            .getSignatureTimeInterval(), conf.getKeyStoreFile(), conf.getKeyStorePinFile(), conf.getRotationPolicy(),
-            conf.getRetentionPolicy());
-      }
-      if (isHttpAccessLog())
-      {
-        CsvFileHTTPAccessLogPublisherCfg conf = (CsvFileHTTPAccessLogPublisherCfg) config;
-        return new CsvConfigData(conf.getLogDirectory(), conf.getCsvQuoteChar(), conf.getCsvDelimiterChar(), conf
-            .getCsvEolSymbols(), conf.isAsynchronous(), conf.isAutoFlush(), conf.isTamperEvident(), conf
-            .getSignatureTimeInterval(), conf.getKeyStoreFile(), conf.getKeyStorePinFile(), conf.getRotationPolicy(),
-            conf.getRetentionPolicy());
-      }
-      throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_LOG_PUBLISHER.get(config.dn()));
+      return logType.getCsvConfig(config);
+    }
+
+    JsonConfigData getJsonConfig() throws ConfigException
+    {
+      return logType.getJsonConfig(config);
     }
 
     ExternalConfigData getExternalConfig() throws ConfigException
     {
-      if (isAccessLog())
-      {
-        ExternalAccessLogPublisherCfg conf = (ExternalAccessLogPublisherCfg) config;
-        return new ExternalConfigData(conf.getConfigFile());
-      }
-      if (isHttpAccessLog())
-      {
-        ExternalHTTPAccessLogPublisherCfg conf = (ExternalHTTPAccessLogPublisherCfg) config;
-        return new ExternalConfigData(conf.getConfigFile());
-      }
-      throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_LOG_PUBLISHER.get(config.dn()));
+      return logType.getExternalConfig(config);
     }
 
     @Override
@@ -851,25 +831,182 @@ public class CommonAudit
   /** Types of audit handlers managed. */
   private enum AuditType
   {
-    CSV, EXTERNAL
+    CSV, JSON, EXTERNAL
   }
 
-  /** Types of log managed. */
+  /** Log types for LDAP or HTTP, to get specific configuration depending on the handler. **/
   private enum LogType
   {
-    ACCESS, HTTP_ACCESS
+    UNCONFIGURED
+    {
+      @Override
+      String getCommonAuditTopic(LogPublisherCfg config) throws ConfigException
+      {
+        throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_LOG_PUBLISHER.get(config.dn()));
+      }
+
+      @Override
+      ExternalConfigData getExternalConfig(LogPublisherCfg config) throws ConfigException
+      {
+        throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_LOG_PUBLISHER.get(config.dn()));
+      }
+
+      @Override
+      CsvConfigData getCsvConfig(LogPublisherCfg config) throws ConfigException
+      {
+        throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_LOG_PUBLISHER.get(config.dn()));
+      }
+
+      @Override
+      JsonConfigData getJsonConfig(LogPublisherCfg config) throws ConfigException
+      {
+        throw new ConfigException(ERR_COMMON_AUDIT_UNSUPPORTED_LOG_PUBLISHER.get(config.dn()));
+      }
+
+      @Override
+      boolean isHttp()
+      {
+        return false;
+      }
+    },
+    HTTPLOG
+    {
+      @Override
+      public String getCommonAuditTopic(LogPublisherCfg config)
+      {
+        return "http-access";
+      }
+
+      @Override
+      public ExternalConfigData getExternalConfig(LogPublisherCfg config) throws ConfigException
+      {
+        ExternalHTTPAccessLogPublisherCfg conf = (ExternalHTTPAccessLogPublisherCfg) config;
+        return new ExternalConfigData(conf.getConfigFile());
+      }
+
+      @Override
+      public CsvConfigData getCsvConfig(LogPublisherCfg config) throws ConfigException
+      {
+        CsvFileHTTPAccessLogPublisherCfg conf = (CsvFileHTTPAccessLogPublisherCfg) config;
+        return new CsvConfigData(conf.getLogDirectory(), conf.getCsvQuoteChar(), conf.getCsvDelimiterChar(), conf
+            .getCsvEolSymbols(), conf.isAsynchronous(), conf.isAutoFlush(), conf.isTamperEvident(), conf
+            .getSignatureTimeInterval(), conf.getKeyStoreFile(), conf.getKeyStorePinFile(), conf.getRotationPolicy(),
+            conf.getRetentionPolicy());
+      }
+
+      @Override
+      public JsonConfigData getJsonConfig(LogPublisherCfg config) throws ConfigException
+      {
+        JsonFileHTTPAccessLogPublisherCfg conf = (JsonFileHTTPAccessLogPublisherCfg) config;
+        return new JsonConfigData(conf.getLogDirectory(), conf.getRotationPolicy(), conf.getRetentionPolicy());
+      }
+
+      @Override
+      public boolean isHttp()
+      {
+        return true;
+      }
+    },
+    ACCESSLOG
+    {
+      @Override
+      public String getCommonAuditTopic(LogPublisherCfg config)
+      {
+        return "ldap-access";
+      }
+
+      @Override
+      public ExternalConfigData getExternalConfig(LogPublisherCfg config) throws ConfigException
+      {
+        ExternalAccessLogPublisherCfg conf = (ExternalAccessLogPublisherCfg) config;
+        return new ExternalConfigData(conf.getConfigFile());
+      }
+
+      @Override
+      public CsvConfigData getCsvConfig(LogPublisherCfg config) throws ConfigException
+      {
+        CsvFileAccessLogPublisherCfg conf = (CsvFileAccessLogPublisherCfg) config;
+        return new CsvConfigData(conf.getLogDirectory(), conf.getCsvQuoteChar(), conf.getCsvDelimiterChar(), conf
+            .getCsvEolSymbols(), conf.isAsynchronous(), conf.isAutoFlush(), conf.isTamperEvident(), conf
+            .getSignatureTimeInterval(), conf.getKeyStoreFile(), conf.getKeyStorePinFile(), conf.getRotationPolicy(),
+            conf.getRetentionPolicy());
+      }
+
+      @Override
+      public JsonConfigData getJsonConfig(LogPublisherCfg config) throws ConfigException
+      {
+        JsonFileAccessLogPublisherCfg conf = (JsonFileAccessLogPublisherCfg) config;
+        return new JsonConfigData(conf.getLogDirectory(), conf.getRotationPolicy(), conf.getRetentionPolicy());
+      }
+
+      @Override
+      public boolean isHttp()
+      {
+        return false;
+      }
+    };
+
+    abstract String getCommonAuditTopic(LogPublisherCfg config) throws ConfigException;
+    abstract ExternalConfigData getExternalConfig(LogPublisherCfg config) throws ConfigException;
+    abstract CsvConfigData getCsvConfig(LogPublisherCfg config) throws ConfigException;
+    abstract JsonConfigData getJsonConfig(LogPublisherCfg config) throws ConfigException;
+    abstract boolean isHttp();
   }
 
   /**
-   * Contains the parameters for a CSV handler.
+   * Contains common parameters for non External CAUD handlers.
    * <p>
-   * OpenDJ log publishers that logs to a CSV handler have the same parameters but do not share
+   * OpenDJ log publishers that log to a CAUD handler have the same parameters but do not share
    * a common ancestor with all the parameters (e.g Access Log, HTTP Access Log, ...), hence this class
-   * is necessary to avoid duplicating code that setup the configuration of the CSV handler.
+   * is necessary to avoid duplicating code that setup configuration of the handler.
    */
-  private static class CsvConfigData
+  private abstract static class HandlerConfigData
   {
     private final String logDirectory;
+    private final SortedSet<String> rotationPolicies;
+    private final SortedSet<String> retentionPolicies;
+
+    HandlerConfigData(String logDirectory, SortedSet<String> rotationPolicies, SortedSet<String> retentionPolicies)
+    {
+      this.logDirectory = logDirectory;
+      this.rotationPolicies = rotationPolicies;
+      this.retentionPolicies = retentionPolicies;
+    }
+
+    String getLogDirectory()
+    {
+      return logDirectory;
+    }
+
+    SortedSet<String> getRotationPolicies()
+    {
+      return rotationPolicies;
+    }
+
+    SortedSet<String> getRetentionPolicies()
+    {
+      return retentionPolicies;
+    }
+  }
+
+  /**
+   * Contains common parameters for the Json handler.
+   */
+  private static class JsonConfigData extends HandlerConfigData
+  {
+    JsonConfigData(String logDirectory, SortedSet<String> rotationPolicies, SortedSet<String> retentionPolicies)
+    {
+      super(logDirectory, rotationPolicies, retentionPolicies);
+    }
+  }
+
+  /**
+   * Contains common parameters for the CSV handler.
+   * <p>
+   * Adds CSV specific configuration to a CAUD handler.
+   */
+  private static class CsvConfigData extends HandlerConfigData
+  {
     private final String eolSymbols;
     private final String delimiterChar;
     private final String quoteChar;
@@ -879,14 +1016,12 @@ public class CommonAudit
     private final long signatureTimeInterval;
     private final String keystoreFile;
     private final String keystorePinFile;
-    private final SortedSet<String> rotationPolicies;
-    private final SortedSet<String> retentionPolicies;
 
     CsvConfigData(String logDirectory, String quoteChar, String delimiterChar, String eolSymbols, boolean asynchronous,
         boolean autoFlush, boolean tamperEvident, long signatureTimeInterval, String keystoreFile,
         String keystorePinFile, SortedSet<String> rotationPolicies, SortedSet<String> retentionPolicies)
     {
-      this.logDirectory = logDirectory;
+      super(logDirectory, rotationPolicies, retentionPolicies);
       this.quoteChar = quoteChar;
       this.delimiterChar = delimiterChar;
       this.eolSymbols = eolSymbols;
@@ -896,8 +1031,6 @@ public class CommonAudit
       this.signatureTimeInterval = signatureTimeInterval;
       this.keystoreFile = keystoreFile;
       this.keystorePinFile = keystorePinFile;
-      this.rotationPolicies = rotationPolicies;
-      this.retentionPolicies = retentionPolicies;
     }
 
     String getEndOfLineSymbols()
@@ -923,11 +1056,6 @@ public class CommonAudit
         throw new ConfigException(ERR_COMMON_AUDIT_CSV_HANDLER_QUOTE_CHAR.get("", filtered));
       }
       return filtered.charAt(0);
-    }
-
-    String getLogDirectory()
-    {
-      return logDirectory;
     }
 
     boolean isAsynchronous()
@@ -958,16 +1086,6 @@ public class CommonAudit
     String getKeystorePinFile()
     {
       return keystorePinFile;
-    }
-
-    SortedSet<String> getRotationPolicies()
-    {
-      return rotationPolicies;
-    }
-
-    SortedSet<String> getRetentionPolicies()
-    {
-      return retentionPolicies;
     }
   }
 

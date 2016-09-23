@@ -6014,3 +6014,20 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.44
   SUP ds-cfg-http-endpoint
   STRUCTURAL
   X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.45
+  NAME 'ds-cfg-json-file-access-log-publisher'
+  SUP ds-cfg-access-log-publisher
+  STRUCTURAL
+  MUST ( ds-cfg-log-directory )
+  MAY ( ds-cfg-log-control-oids $
+        ds-cfg-rotation-policy $
+        ds-cfg-retention-policy )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.46
+  NAME 'ds-cfg-json-file-http-access-log-publisher'
+  SUP ds-cfg-http-access-log-publisher
+  STRUCTURAL
+  MUST ( ds-cfg-log-directory )
+  MAY ( ds-cfg-rotation-policy $
+        ds-cfg-retention-policy )
+  X-ORIGIN 'OpenDJ Directory Server' )
