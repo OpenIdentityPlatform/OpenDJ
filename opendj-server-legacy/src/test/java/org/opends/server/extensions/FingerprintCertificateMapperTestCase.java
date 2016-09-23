@@ -18,7 +18,9 @@ package org.opends.server.extensions;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.opends.server.TestCaseUtils.runLdapSearchTrustCertificateForSession;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 import java.io.File;
@@ -31,7 +33,6 @@ import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.FingerprintCertificateMapperCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -205,13 +206,13 @@ public class FingerprintCertificateMapperTestCase
         "-K", keyStorePath,
         "-W", "password",
         "-P", trustStorePath,
-        "-r",
+        "-o", "mech=EXTERNAL",
+        "-N", "client-cert",
         "-b", "",
         "-s", "base",
         "(objectClass=*)"
       };
-
-      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+      assertEquals(runLdapSearchTrustCertificateForSession(args), 0);
     }
     finally
     {
@@ -267,13 +268,13 @@ public class FingerprintCertificateMapperTestCase
         "-K", keyStorePath,
         "-W", "password",
         "-P", trustStorePath,
-        "-r",
+        "-o", "mech=EXTERNAL",
+        "-N", "client-cert",
         "-b", "",
         "-s", "base",
         "(objectClass=*)"
       };
-
-      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+      assertEquals(runLdapSearchTrustCertificateForSession(args), 0);
     }
     finally
     {
@@ -326,13 +327,13 @@ public class FingerprintCertificateMapperTestCase
         "-K", keyStorePath,
         "-W", "password",
         "-P", trustStorePath,
-        "-r",
+        "-o", "mech=EXTERNAL",
+        "-N", "client-cert",
         "-b", "",
         "-s", "base",
         "(objectClass=*)"
       };
-
-      assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+      assertFalse(runLdapSearchTrustCertificateForSession(nullPrintStream(), nullPrintStream(), args) == 0);
     }
     finally
     {
@@ -399,13 +400,13 @@ public class FingerprintCertificateMapperTestCase
         "-K", keyStorePath,
         "-W", "password",
         "-P", trustStorePath,
-        "-r",
+        "-o", "mech=EXTERNAL",
+        "-N", "client-cert",
         "-b", "",
         "-s", "base",
         "(objectClass=*)"
       };
-
-      assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+      assertFalse(runLdapSearchTrustCertificateForSession(nullPrintStream(), nullPrintStream(), args) == 0);
     }
     finally
     {
@@ -600,13 +601,13 @@ public class FingerprintCertificateMapperTestCase
         "-K", keyStorePath,
         "-W", "password",
         "-P", trustStorePath,
-        "-r",
+        "-o", "mech=EXTERNAL",
+        "-N", "client-cert",
         "-b", "cn=config",
         "-s", "sub",
         "(objectClass=*)"
       };
-
-      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+      assertEquals(runLdapSearchTrustCertificateForSession(args), 0);
     }
     finally
     {

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -23,7 +23,7 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 
 import static org.testng.Assert.*;
 
@@ -93,7 +93,7 @@ public class SevenBitCleanPluginTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
   }
 
 
@@ -133,7 +133,7 @@ public class SevenBitCleanPluginTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
   }
 
 
@@ -180,8 +180,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -236,8 +235,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                  ResultCode.CONSTRAINT_VIOLATION.intValue());
+      assertEquals(LDAPModify.run(System.out, System.err, args), ResultCode.CONSTRAINT_VIOLATION.intValue());
     }
     finally
     {
@@ -294,8 +292,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -349,7 +346,7 @@ public class SevenBitCleanPluginTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
   }
 
 
@@ -401,8 +398,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                  ResultCode.CONSTRAINT_VIOLATION.intValue());
+      assertEquals(LDAPModify.run(System.out, System.err, args), ResultCode.CONSTRAINT_VIOLATION.intValue());
     }
     finally
     {
@@ -462,8 +458,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -523,8 +518,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -577,7 +571,7 @@ public class SevenBitCleanPluginTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
   }
 
 
@@ -629,8 +623,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                  ResultCode.CONSTRAINT_VIOLATION.intValue());
+      assertEquals(LDAPModify.run(System.out, System.err, args), ResultCode.CONSTRAINT_VIOLATION.intValue());
     }
     finally
     {
@@ -690,8 +683,7 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     }
     finally
     {

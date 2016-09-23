@@ -20,6 +20,7 @@ import java.security.MessageDigest;
 import java.util.Arrays;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.server.config.server.SHA1PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -29,7 +30,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -210,7 +210,7 @@ public class SHA1PasswordStorageScheme
     try
     {
       storedPWDigestBytes =
-          ByteString.wrap(Base64.decode(storedPassword.toString()));
+          ByteString.wrap(Base64.decode(storedPassword.toString()).toByteArray());
     }
     catch (Exception e)
     {

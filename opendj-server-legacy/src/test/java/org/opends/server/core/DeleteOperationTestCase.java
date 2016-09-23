@@ -19,6 +19,7 @@ package org.opends.server.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.forgerock.opendj.ldap.tools.LDAPDelete;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -29,7 +30,6 @@ import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -45,6 +45,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 /**
@@ -256,7 +257,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     String[] args = getArgs("o=test");
-    assertEquals(LDAPDelete.mainDelete(args, false, null, null), 0);
+    assertEquals(LDAPDelete.run(nullPrintStream(), nullPrintStream(), args), 0);
   }
 
 
@@ -550,7 +551,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     String[] args = getArgs("o=test");
-    assertFalse(LDAPDelete.mainDelete(args, false, null, null) == 0);
+    assertFalse(LDAPDelete.run(nullPrintStream(), nullPrintStream(), args) == 0);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -616,7 +617,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     String[] args = getArgs("o=test");
-    assertFalse(LDAPDelete.mainDelete(args, false, null, null) == 0);
+    assertFalse(LDAPDelete.run(nullPrintStream(), nullPrintStream(), args) == 0);
 
     backend.setWritabilityMode(WritabilityMode.ENABLED);
   }

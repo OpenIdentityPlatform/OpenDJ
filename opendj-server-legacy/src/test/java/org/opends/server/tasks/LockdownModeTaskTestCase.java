@@ -24,10 +24,11 @@ import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.forgerock.opendj.ldap.DN;
 
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 /** Tests the enter and leave lockdown mode tasks. */
@@ -98,7 +99,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
 
 
     // Create a file that holds the LDIF for putting the server in lockdown
@@ -126,8 +127,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "-f", taskFile
     };
-    assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
-
+    assertFalse(LDAPModify.run(nullPrintStream(), System.err, args) == 0);
 
     // If the local address isn't a loopback address, then verify that we can't
     // put the server in lockdown mode using it.
@@ -140,10 +140,10 @@ public class LockdownModeTaskTestCase
         "-Z", "-X",
         "-D", "cn=Directory Manager",
         "-w", "password",
-      "--noPropertiesFile",
+        "--noPropertiesFile",
         "-f", taskFile
       };
-      assertFalse(LDAPModify.mainModify(args, false, null, System.err) == 0);
+      assertFalse(LDAPModify.run(nullPrintStream(), System.err, args) == 0);
     }
 
 
@@ -159,7 +159,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "-f", taskFile
     };
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
     waitTaskCompletedSuccessfully(taskDN);
     assertTrue(DirectoryServer.lockdownMode());
 
@@ -179,7 +179,7 @@ public class LockdownModeTaskTestCase
         "--noPropertiesFile",
         "(objectClass=*)"
       };
-      assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+      assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
     }
 
 
@@ -195,7 +195,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
 
 
     // Make sure that we can no longer retrieve the server's root DSE over an
@@ -212,7 +212,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
 
 
     // Make sure that we can retrieve the server's root DSE over a
@@ -228,7 +228,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, null), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args), 0);
 
 
     // Use another task to take the server out of lockdown mode and make sure it
@@ -254,7 +254,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "-f", taskFile
     };
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
     waitTaskCompletedSuccessfully(taskDN);
     assertFalse(DirectoryServer.lockdownMode());
 
@@ -270,7 +270,7 @@ public class LockdownModeTaskTestCase
       "--noPropertiesFile",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 }
 

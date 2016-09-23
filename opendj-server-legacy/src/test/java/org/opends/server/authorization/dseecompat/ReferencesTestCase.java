@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -187,7 +187,7 @@ public class ReferencesTestCase extends AciTestCase{
         {
           break;
         }
-        if(s.startsWith("SearchReference")) {
+        if(s.startsWith("SearchResultReference")) {
           return true;
         }
       }

@@ -17,6 +17,7 @@
 package org.opends.server.types;
 
 import static org.opends.server.types.AcceptRejectWarn.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 import java.util.LinkedList;
@@ -27,7 +28,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.testng.annotations.Test;
 
 /**
@@ -275,7 +276,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -319,7 +320,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -363,7 +364,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -495,7 +496,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -550,7 +551,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -599,7 +600,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -650,7 +651,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -699,7 +700,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -749,7 +750,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -801,7 +802,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -852,7 +853,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -901,7 +902,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -951,7 +952,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: description=foo,o=test",
@@ -1001,7 +1002,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test+description=foo,o=test",
@@ -1052,7 +1053,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: description=foo,o=test",
@@ -1106,7 +1107,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test+description=foo,o=test",
@@ -1160,7 +1161,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -1211,7 +1212,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test,o=test",
@@ -1264,7 +1265,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: cn=test+description=foo,o=test",
@@ -1317,7 +1318,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     Entry e = TestCaseUtils.makeEntry(
          "dn: description=foo,o=test",
@@ -1383,7 +1384,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
 
     Entry e = TestCaseUtils.makeEntry(
@@ -1411,7 +1412,7 @@ public class EntrySchemaCheckingTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),

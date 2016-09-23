@@ -23,12 +23,12 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -1031,7 +1031,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
           "userCertificate;binary:: "+BASE64_CERT_VALUE
           );
     StringBuilder builder = new StringBuilder();
-    RawFilter.valueToFilterString(builder,ByteString.wrap(Base64.decode(BASE64_CERT_VALUE)));
+    RawFilter.valueToFilterString(builder, ByteString.wrap(Base64.decode(BASE64_CERT_VALUE).toByteArray()));
     final String CERTIFICATE_ENCODED = builder.toString();
 
     return new Object[][]{

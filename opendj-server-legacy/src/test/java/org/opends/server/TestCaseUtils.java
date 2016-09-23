@@ -24,11 +24,13 @@ import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manag
 import static org.opends.server.loggers.TextAccessLogPublisher.getStartupTextAccessPublisher;
 import static org.opends.server.loggers.TextErrorLogPublisher.getToolStartupTextErrorPublisher;
 import static org.opends.server.loggers.TextHTTPAccessLogPublisher.getStartupTextHTTPAccessPublisher;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.PROPERTY_RUNNING_UNIT_TESTS;
 import static org.testng.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -67,6 +69,7 @@ import java.util.logging.Handler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -98,7 +101,7 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPReader;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -1460,7 +1463,6 @@ public final class TestCaseUtils {
       "-p", String.valueOf(ports.serverLdapPort),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "-a",
       "-f", path
     };
     String[] adminArgs =
@@ -1471,14 +1473,13 @@ public final class TestCaseUtils {
       "-Z", "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "-a",
       "-f", path
     };
 
     if (useAdminPort) {
-      return LDAPModify.mainModify(adminArgs, false, null, null);
+      return LDAPModify.run(nullPrintStream(), nullPrintStream(), adminArgs);
     }
-    return LDAPModify.mainModify(args, false, null, null);
+    return LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
   }
 
   /**
@@ -1921,6 +1922,31 @@ public final class TestCaseUtils {
     {
       // this is good: they are not equals
       return;
+    }
+  }
+
+  public static int runLdapSearchTrustCertificateForSession(final String[] args)
+  {
+    return runLdapSearchTrustCertificateForSession(nullPrintStream(), System.err, args);
+  }
+
+  public static int runLdapSearchTrustCertificateForSession(final PrintStream out,
+                                                            final PrintStream err,
+                                                            final String[] args)
+  {
+    final InputStream stdin = System.in;
+    try
+    {
+      // Since hostnames are different between the client.truststore (CN=OpenDJ Test Certificate, O=OpenDJ.org) and the
+      // one given in parameter (127.0.0.1), ldapsearch tool prompt user to know what to do (either untrust the server
+      // certificate, trust it for the session only or trust it permanently).
+      // Default option is session trust, we just hit enter in stdin to have a non blocking unit test.
+      System.setIn(new ByteArrayInputStream(System.lineSeparator().getBytes()));
+      return LDAPSearch.run(nullPrintStream(), System.err, args);
+    }
+    finally
+    {
+      System.setIn(stdin);
     }
   }
 }

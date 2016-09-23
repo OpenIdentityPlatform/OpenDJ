@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.server.config.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -30,7 +31,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -222,7 +222,7 @@ public class SaltedMD5PasswordStorageScheme
     int saltLength = 0;
     try
     {
-      byte[] decodedBytes = Base64.decode(storedPassword.toString());
+      byte[] decodedBytes = Base64.decode(storedPassword.toString()).toByteArray();
 
       saltLength = decodedBytes.length - MD5_LENGTH;
       if (saltLength <= 0)
@@ -343,8 +343,8 @@ public class SaltedMD5PasswordStorageScheme
     byte[] digestBytes;
     try
     {
-      saltBytes   = Base64.decode(authInfo);
-      digestBytes = Base64.decode(authValue);
+      saltBytes   = Base64.decode(authInfo).toByteArray();
+      digestBytes = Base64.decode(authValue).toByteArray();
     }
     catch (Exception e)
     {

@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -49,7 +50,6 @@ import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -351,8 +351,7 @@ public class InitOnLineTest extends ReplicationTestCase
                    + "cn: "+useri+"_cn"+"\n"
                    + "sn: "+useri+"_sn"+"\n"
                    + "uid: "+useri+"_uid"+"\n"
-                   + "description:: "+ Base64.encode(
-                       new String(bigAttributeValue).getBytes())+"\n"
+                   + "description:: "+ Base64.encode(new String(bigAttributeValue).getBytes()) +"\n"
                    + "entryUUID: 21111111-1111-1111-1111-"+useri+
                    filler.substring(0, 12-useri.length())+"\n"
                    + "\n";

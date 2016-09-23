@@ -24,6 +24,7 @@ import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.types.ExistingFileBehavior.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -62,7 +63,7 @@ import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.SchemaHandler;
 import org.opends.server.schema.SchemaHandler.SchemaUpdater;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
@@ -4284,7 +4285,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private void runModify(String[] args, String ldifContent, ResultCode expectedRC)
   {
-    runModify(args, ldifContent, null, expectedRC);
+    runModify(args, ldifContent, nullPrintStream(), expectedRC);
   }
 
   private void runModify(String[] args, String ldifContent, PrintStream stderr, ResultCode expectedRC)
@@ -4300,7 +4301,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     try
     {
       System.setIn(new ByteArrayInputStream(ldifContent.getBytes()));
-      return LDAPModify.mainModify(args, false, stdout, stderr);
+      return LDAPModify.run(stdout, stderr, args);
     }
     finally
     {

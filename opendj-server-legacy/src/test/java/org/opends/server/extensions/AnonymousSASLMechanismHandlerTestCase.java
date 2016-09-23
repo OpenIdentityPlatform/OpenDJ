@@ -23,12 +23,13 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.BindOperationBasis;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.types.Control;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -182,12 +183,11 @@ public class AnonymousSASLMechanismHandlerTestCase
       "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=ANONYMOUS",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
 
     handler.finalizeSASLMechanismHandler();
   }
@@ -209,13 +209,12 @@ public class AnonymousSASLMechanismHandlerTestCase
       "--noPropertiesFile",
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=ANONYMOUS",
       "-o", "trace=LDAP Trace String",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
 
     handler.finalizeSASLMechanismHandler();
   }

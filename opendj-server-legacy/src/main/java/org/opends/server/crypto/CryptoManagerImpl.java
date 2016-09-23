@@ -67,6 +67,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -108,7 +109,6 @@ import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.util.Base64;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -385,7 +385,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
                 "jucN34MZwvzbmFHT/leUu3/cpykbGM9HL2QUX7iKvv2LJVqexhj7CLoXxZP" +
                 "oNL+HHKW0vi5/7W5KwOZsPqKI2SdYV7nDqTZklm5ZP0gmIuNO6mTqBRtC2D" +
                 "lplX1Iq+BrQJAmteiPtwhdZD+EIghe51CaseImjlLlY2ZK8w==";
-          final byte[] certificate = Base64.decode(certificateBase64);
+          final byte[] certificate = Base64.decode(certificateBase64).toByteArray();
           final String keyID = getInstanceKeyID(certificate);
           final SecretKey macKey = macCryptoManager.generateKeyEntry(
                   requestedMACAlgorithm,

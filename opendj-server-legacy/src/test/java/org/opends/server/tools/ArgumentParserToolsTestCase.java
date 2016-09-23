@@ -130,54 +130,6 @@ public class ArgumentParserToolsTestCase extends ToolsTestCase
   }
 
   @Test(dataProvider = "invalidArgs")
-  public void testLDAPCompare(final String[] args)
-  {
-    assertToolFailsWithUsage(LDAPCompare.mainCompare(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArg")
-  public void testLDAPDelete(final String[] args)
-  {
-    assertToolFailsWithUsage(LDAPDelete.mainDelete(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArg")
-  public void testLDAPModify(final String[] args)
-  {
-    assertToolFailsWithUsage(LDAPModify.mainModify(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArg")
-  public void testLDAPPasswordModify(final String[] args)
-  {
-    assertToolFailsWithUsage(LDAPPasswordModify.mainPasswordModify(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArgs")
-  public void testLDAPSearch(final String[] args)
-  {
-    assertToolFailsWithUsage(LDAPSearch.mainSearch(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArgs")
-  public void testLDIFDiff(final String[] args)
-  {
-    assertToolFailsWithUsage(LDIFDiff.mainDiff(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArgs")
-  public void testLDIFModify(final String[] args)
-  {
-    assertToolFailsWithUsage(LDIFModify.ldifModifyMain(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArg")
-  public void testLDIFSearch(final String[] args)
-  {
-    assertToolFailsWithUsage(LDIFSearch.mainSearch(args, false, outStream, errStream));
-  }
-
-  @Test(dataProvider = "invalidArgs")
   public void testListBackends(final String[] args)
   {
     assertToolFailsWithUsage(ListBackends.listBackends(args, false, outStream, errStream));

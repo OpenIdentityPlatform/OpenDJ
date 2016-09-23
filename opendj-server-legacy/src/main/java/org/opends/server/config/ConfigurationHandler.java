@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -36,7 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +80,8 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldif.EntryReader;
+import org.forgerock.opendj.ldif.LDIF;
+import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.util.Utils;
@@ -89,16 +91,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.tools.LDIFModify;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 
 /**
@@ -1576,33 +1574,17 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    */
   private void applyChangesFile(File sourceFile, File changesFile) throws IOException, LDIFException
   {
-    // Create the appropriate LDIF readers and writer.
-    LDIFImportConfig sourceImportCfg = new LDIFImportConfig(sourceFile.getAbsolutePath());
-    sourceImportCfg.setValidateSchema(false);
 
-    LDIFImportConfig changesImportCfg = new LDIFImportConfig(changesFile.getAbsolutePath());
-    changesImportCfg.setValidateSchema(false);
-
-    String tempFile = changesFile.getAbsolutePath() + ".tmp";
-    LDIFExportConfig exportConfig = new LDIFExportConfig(tempFile, ExistingFileBehavior.OVERWRITE);
-
-    List<LocalizableMessage> errorList = new LinkedList<>();
-    boolean successful;
-    try (LDIFReader sourceReader = new LDIFReader(sourceImportCfg);
-        LDIFReader changesReader = new LDIFReader(changesImportCfg);
-        LDIFWriter targetWriter = new LDIFWriter(exportConfig))
+    final String tempFilePath = changesFile.getAbsolutePath() + ".tmp";
+    try (final LDIFEntryReader sourceReader = new LDIFEntryReader(new FileReader(sourceFile));
+         final LDIFChangeRecordReader changeRecordReader = new LDIFChangeRecordReader(new FileReader(changesFile));
+         final LDIFEntryWriter ldifWriter = new LDIFEntryWriter(new FileWriter(tempFilePath)))
     {
-      // Apply the changes and make sure there were no errors.
-      successful = LDIFModify.modifyLDIF(sourceReader, changesReader, targetWriter, errorList);
+      LDIF.copyTo(LDIF.patch(sourceReader, changeRecordReader), ldifWriter);
     }
-
-    if (!successful)
+    catch (final IOException e)
     {
-      for (LocalizableMessage s : errorList)
-      {
-        logger.error(ERR_CONFIG_ERROR_APPLYING_STARTUP_CHANGE, s);
-      }
-      throw new LDIFException(ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get(Utils.joinAsString("; ", errorList)));
+      throw new LDIFException(ERR_CONFIG_UNABLE_TO_APPLY_CHANGES_FILE.get(e.getLocalizedMessage()));
     }
 
     // Move the current config file out of the way and replace it with the updated version.
@@ -1612,7 +1594,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       oldSource.delete();
     }
     sourceFile.renameTo(oldSource);
-    new File(tempFile).renameTo(sourceFile);
+    new File(tempFilePath).renameTo(sourceFile);
 
     // Move the changes file out of the way so it doesn't get applied again.
     File newChanges = new File(changesFile.getAbsolutePath() + ".applied");

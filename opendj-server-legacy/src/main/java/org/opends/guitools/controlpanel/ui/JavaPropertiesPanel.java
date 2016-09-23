@@ -109,14 +109,14 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         "list-backends", "manage-account", "manage-tasks", "restore.online",
         "stop-ds", "status", "control-panel", "uninstall", "setup",
         "backup.offline", "encode-password", "export-ldif.offline",
-        "ldif-diff", "ldifmodify", "ldifsearch", "makeldif",
+        "ldifdiff", "ldifmodify", "ldifsearch", "makeldif",
         "rebuild-index", "restore.offline", "upgrade",
         "verify-index", "backendstat"
       );
   private final Set<String> relevantScriptNames = newHashSet(
         "start-ds", "import-ldif.offline", "backup.offline",
         "export-ldif.offline",
-        "ldif-diff", "makeldif", "rebuild-index", "restore.offline",
+        "ldifdiff", "makeldif", "rebuild-index", "restore.offline",
         "verify-index", "backendstat"
       );
 

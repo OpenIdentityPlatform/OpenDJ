@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,10 +50,10 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPDelete;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -190,12 +191,15 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
       argList.add("-J");
       argList.add(pwdPolicyControl);
     }
+
     String[] args = new String[argList.size()];
     oStream.reset();
-    int ret = LDAPPasswordModify.mainPasswordModify(argList.toArray(args),
-                   false, oStream, oStream);
-    Assert.assertEquals(ret, expectedRc, "Returned error: " + oStream);
-    return oStream.toString();
+    try (final PrintStream printStream = new PrintStream(oStream)) {
+      int ret = LDAPPasswordModify.run(printStream, printStream, argList.toArray(args));
+      final String output = oStream.toString();
+      Assert.assertEquals(ret, expectedRc, "ldappasswordmodify output: " + output);
+      return output;
+    }
   }
 
   /**
@@ -231,12 +235,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     }
     argList.add("-f");
     argList.add(tempFile.getAbsolutePath());
-    String[] args = new String[argList.size()];
 
     oStream.reset();
-    int retVal =LDAPModify.mainModify(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(retVal, 0, "Returned error: " + oStream);
-    return oStream.toString();
+    return runLdapModify(argList, 0);
   }
 
   protected String LDAPSearchCtrl(String bindDn, String bindPassword,
@@ -251,7 +252,8 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add(bindDn);
     argList.add("-w");
     argList.add(bindPassword);
-    argList.add("-T");
+    argList.add("-t");
+    argList.add("0");
     if(proxyDN != null) {
       argList.add("-Y");
       argList.add("dn:" + proxyDN);
@@ -266,12 +268,8 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add("sub");
     argList.add(filter);
     Collections.addAll(argList, attr.split("\\s+"));
-    String[] args = new String[argList.size()];
     oStream.reset();
-    int retVal =
-            LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(retVal, 0, "Returned error: " + oStream);
-    return oStream.toString();
+    return runLdapSearch(argList);
   }
 
   protected String
@@ -307,7 +305,8 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add(bindDn);
     argList.add("-w");
     argList.add(bindPassword);
-    argList.add("-T");
+    argList.add("-t");
+    argList.add("0");
     if(proxyDN != null) {
       argList.add("-Y");
       argList.add("dn:" + proxyDN);
@@ -336,40 +335,37 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     if(attr != null) {
       Collections.addAll(argList, attr.split("\\s+"));
     }
-    String[] args = new String[argList.size()];
     oStream.reset();
-    int retVal = LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
-    return oStream.toString();
+    return runLdapSearch(argList);
   }
 
   protected void LDIFAdd(String ldif, String bindDn, String bindPassword,
       String controlStr, int expectedRc) throws Exception
   {
-    _LDIFModify(ldif, bindDn, bindPassword, controlStr, true, expectedRc, false);
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, expectedRc, false);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword,
       String controlStr, int expectedRc) throws Exception
   {
-    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, expectedRc, false);
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, expectedRc, false);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword)
   throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, null, false, -1, false);
+    _LDIFModify(ldif, bindDn, bindPassword, null, -1, false);
   }
 
   protected void LDIFAdminModify (String ldif, String bindDn,
                                   String bindPassword)
   throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, null, false, -1, true);
+    _LDIFModify(ldif, bindDn, bindPassword, null, -1, true);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword,
                             String ctrlString)
   throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, ctrlString, false, -1, false);
+    _LDIFModify(ldif, bindDn, bindPassword, ctrlString, -1, false);
   }
 
   protected void LDIFDelete(String dn, String bindDn, String bindPassword,
@@ -402,13 +398,16 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   private void ldapDelete(String[] args, int expectedRc)
   {
     oStream.reset();
-    int retVal = LDAPDelete.mainDelete(args, false, oStream, oStream);
-    Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
+    try (final PrintStream printStream = new PrintStream(oStream))
+    {
+      final int retVal = LDAPDelete.run(printStream, printStream, args);
+      Assert.assertEquals(retVal, expectedRc, "ldapdelete output: " + oStream.toString());
+    }
   }
 
 
   private void _LDIFModify(String ldif, String bindDn, String bindPassword,
-      String controlStr, boolean add, int expectedRc, boolean useAdminPort)
+      String controlStr, int expectedRc, boolean useAdminPort)
       throws Exception
   {
     File tempFile = getTemporaryLdifFile();
@@ -432,13 +431,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
       argList.add("-J");
       argList.add(controlStr);
     }
-    if(add) {
-     argList.add("-a");
-    }
     argList.add("-f");
     argList.add(tempFile.getAbsolutePath());
-    String[] args = new String[argList.size()];
-    ldapModify(argList.toArray(args), expectedRc);
+    runLdapModify(argList, expectedRc);
   }
 
   protected void JNDIModify(Hashtable<?, ?> env, String name, String attr,
@@ -484,18 +479,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
       }
       argList.add("-f");
       argList.add(tempFile.getAbsolutePath());
-      String[] args = new String[argList.size()];
-      ldapModify(argList.toArray(args), expectedRc);
-  }
-
-  private void ldapModify(String[] args, int expectedRc)
-  {
-    oStream.reset();
-    int retVal =LDAPModify.mainModify(args, false, oStream, oStream);
-    if (expectedRc != -1)
-    {
-      Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
-    }
+      runLdapModify(argList, expectedRc);
   }
 
   protected void deleteAttrFromEntry(String dn, String attr) throws Exception {
@@ -802,4 +786,28 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     return attrMap;
   }
 
+  private String runLdapModify(final List<String> argList, final int expectedReturnCode)
+  {
+    try (final PrintStream printStream = new PrintStream(oStream))
+    {
+      final int retVal = LDAPModify.run(printStream, printStream, argList.toArray(new String[argList.size()]));
+      final String output = oStream.toString();
+      if (expectedReturnCode != -1)
+      {
+        Assert.assertEquals(retVal, expectedReturnCode, "ldapmodify output: " + output);
+      }
+      return output;
+    }
+  }
+
+  private String runLdapSearch(final List<String> argList)
+  {
+    try (final PrintStream printStream = new PrintStream(oStream))
+    {
+      final int retVal = LDAPSearch.run(printStream, printStream, argList.toArray(new String[argList.size()]));
+      final String output = oStream.toString();
+      Assert.assertEquals(retVal, 0, "ldapsearch output: " + output);
+      return output;
+    }
+  }
 }

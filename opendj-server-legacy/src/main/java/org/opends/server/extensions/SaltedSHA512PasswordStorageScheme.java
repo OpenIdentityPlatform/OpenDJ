@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.server.config.server.SaltedSHA512PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -30,7 +31,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -226,7 +226,7 @@ public class SaltedSHA512PasswordStorageScheme
 
     try
     {
-      byte[] decodedBytes = Base64.decode(storedPassword.toString());
+      byte[] decodedBytes = Base64.decode(storedPassword.toString()).toByteArray();
 
       saltLength = decodedBytes.length - SHA512_LENGTH;
       if (saltLength <= 0)
@@ -347,8 +347,8 @@ public class SaltedSHA512PasswordStorageScheme
     byte[] digestBytes;
     try
     {
-      saltBytes   = Base64.decode(authInfo);
-      digestBytes = Base64.decode(authValue);
+      saltBytes   = Base64.decode(authInfo).toByteArray();
+      digestBytes = Base64.decode(authValue).toByteArray();
     }
     catch (Exception e)
     {
@@ -455,6 +455,6 @@ public class SaltedSHA512PasswordStorageScheme
     Arrays.fill(passwordPlusSalt, (byte) 0);
 
     return "{" + STORAGE_SCHEME_NAME_SALTED_SHA_512 + "}" +
-           Base64.encode(digestPlusSalt);
+            Base64.encode(digestPlusSalt);
   }
 }

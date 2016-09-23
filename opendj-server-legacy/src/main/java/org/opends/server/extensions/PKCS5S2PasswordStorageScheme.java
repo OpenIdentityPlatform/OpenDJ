@@ -26,6 +26,7 @@ import javax.crypto.spec.PBEKeySpec;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -34,7 +35,6 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -126,7 +126,7 @@ public class PKCS5S2PasswordStorageScheme
     try
     {
       String stored = storedPassword.toString();
-      byte[] decodedBytes = Base64.decode(stored);
+      byte[] decodedBytes = Base64.decode(stored).toByteArray();
 
       if (decodedBytes.length != NUM_SALT_BYTES + SHA1_LENGTH)
       {
@@ -183,8 +183,8 @@ public class PKCS5S2PasswordStorageScheme
         throw new Exception();
       }
       int iterations = Integer.parseInt(authInfo.substring(0, pos));
-      byte[] saltBytes   = Base64.decode(authInfo.substring(pos + 1));
-      byte[] digestBytes = Base64.decode(authValue);
+      byte[] saltBytes   = Base64.decode(authInfo.substring(pos + 1)).toByteArray();
+      byte[] digestBytes = Base64.decode(authValue).toByteArray();
       return encodeAndMatch(plaintextPassword, saltBytes, digestBytes, iterations);
     }
     catch (Exception e)

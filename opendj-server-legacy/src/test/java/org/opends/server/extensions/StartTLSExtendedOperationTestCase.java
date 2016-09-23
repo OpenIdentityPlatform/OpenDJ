@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -20,10 +20,12 @@ import java.io.File;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.runLdapSearchTrustCertificateForSession;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 /**
@@ -69,7 +71,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runLdapSearchTrustCertificateForSession(args), 0);
   }
 
 
@@ -93,7 +95,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
 
@@ -123,7 +125,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runLdapSearchTrustCertificateForSession(args), 0);
   }
 
 
@@ -149,7 +151,7 @@ public class StartTLSExtendedOperationTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
 
@@ -190,16 +192,15 @@ public class StartTLSExtendedOperationTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-P", trustStorePath,
-      "-r",
+      "-o", "mech=EXTERNAL",
+      "-N", "client-cert",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runLdapSearchTrustCertificateForSession(args), 0);
   }
-
-
 
   /**
    * Tests the use of the StartTLS extended operation to communicate with the
@@ -236,13 +237,14 @@ public class StartTLSExtendedOperationTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
+      "-N", "client-cert",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 }
 

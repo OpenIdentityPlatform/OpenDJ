@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -27,11 +27,11 @@ import java.util.List;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawAttribute;
-import org.opends.server.util.Base64;
 import org.testng.annotations.Test;
 
 /**
@@ -363,7 +363,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     BufferedReader reader =
         new BufferedReader(new StringReader(buffer.toString()));
     String line = reader.readLine();
-    assertEquals(line, "dn:: "+Base64.encode(dnNeedsBase64));
+    assertEquals(line, "dn:: "+ Base64.encode(dnNeedsBase64));
     for (int i = 0; i < numAttributes; i++)
     {
       for (int j = 0; j < numValues; j++)

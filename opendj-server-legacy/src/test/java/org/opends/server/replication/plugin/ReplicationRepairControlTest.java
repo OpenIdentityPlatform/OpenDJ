@@ -12,14 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2015 ForgeRock AS.
+ * Portions Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.testng.annotations.Test;
+
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 import static org.opends.server.TestCaseUtils.*;
 
@@ -53,11 +55,10 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "-a",
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, null), 53);
+    assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args), 53);
 
     // Test that we can't add an entry with the ds-sync-hist attribute
     // without specifying the replication repair control.
@@ -81,12 +82,11 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "-a",
       "-f", path1
     };
 
 
-    assertEquals(LDAPModify.mainModify(args1, false, null, null), 53);
+    assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args1), 53);
 
     // Now Test specifying the replication repair control makes
     // possible to add an entry with the entryuuid and ds-sync-hist attributes
@@ -113,10 +113,9 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", "1.3.6.1.4.1.26027.1.5.2",
-      "-a",
       "-f", path2
     };
 
-    assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args2), 0);
   }
 }

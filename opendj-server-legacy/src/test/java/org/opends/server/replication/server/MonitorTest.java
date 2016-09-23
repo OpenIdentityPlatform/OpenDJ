@@ -20,6 +20,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.net.SocketException;
 import java.util.Arrays;
 import java.util.SortedSet;
@@ -39,7 +40,7 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.changelog.file.ECLEnabledDomainPredicate;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -429,8 +430,7 @@ public class MonitorTest extends ReplicationTestCase
 
     oStream.reset();
     eStream.reset();
-    int retVal =
-      LDAPSearch.mainSearch(args3, false, oStream, eStream);
+    int retVal = LDAPSearch.run(new PrintStream(oStream), new PrintStream(eStream), args3);
     String entries = oStream.toString();
     debugInfo("Entries:" + entries);
     assertEquals(retVal, 0, "Returned error: " + eStream);

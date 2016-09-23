@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -34,20 +35,21 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.TestCaseUtils.runLdapSearchTrustCertificateForSession;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -202,13 +204,14 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-P", trustStorePath,
-      "-r",
+      "-o", "mech=EXTERNAL",
+      "-N", "client-cert",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(runLdapSearchTrustCertificateForSession(args), 0);
   }
 
 
@@ -247,13 +250,14 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
+      "-N", "client-cert",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
 
@@ -308,13 +312,13 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -363,13 +367,13 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
 
 
     mods.clear();
@@ -425,13 +429,14 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
+      "-N", "client-cert",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
 
@@ -491,13 +496,13 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -554,13 +559,14 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
+      "-N", "client-cert",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
 
 
     mods.clear();
@@ -635,13 +641,13 @@ public class ExternalSASLMechanismHandlerTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-X",
-      "-r",
+      "-o", "mech=EXTERNAL",
       "-b", "",
       "-s", "base",
       "(objectClass=*)"
     };
 
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
 
 
     mods.clear();

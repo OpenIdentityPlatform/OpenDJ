@@ -22,6 +22,7 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -43,7 +44,7 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -614,6 +615,6 @@ public class HistoricalTest extends ReplicationTestCase
 
   private void ldapmodify(String[] args)
   {
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
   }
 }

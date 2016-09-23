@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -41,7 +42,6 @@ import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.util.Base64;
 
 /**
  * This class defines the structures and methods for an LDAP search result entry

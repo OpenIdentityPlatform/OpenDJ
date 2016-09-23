@@ -19,16 +19,16 @@ package org.opends.server.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.forgerock.opendj.ldap.tools.LDAPCompare;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPAuthenticationHandler;
-import org.opends.server.tools.LDAPCompare;
-import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPDelete;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
@@ -38,6 +38,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -90,20 +91,15 @@ public class RejectUnauthReqTests extends CoreTestCase
         "dn: o=rejectTestCase,o=test", "objectclass: top",
         "objectclass: organization", "o: rejectTestCase",
         "description: Reject Test Case");
-    return LDAPModify.mainModify(addArgs(authenticate, filePath), false, null, null);
+    return LDAPModify.run(nullPrintStream(), nullPrintStream(), modifyArgs(authenticate, filePath));
   }
 
   private String[] modifyArgs(boolean authenticate, String filePath)
   {
-    return args(authenticate, false, filePath);
+    return args(authenticate, filePath);
   }
 
-  private String[] addArgs(boolean authenticate, String filePath)
-  {
-    return args(authenticate, true, filePath);
-  }
-
-  private String[] args(boolean authenticate, boolean add, String filePath)
+  private String[] args(boolean authenticate, String filePath)
   {
     Args args = new Args();
     args.add("--noPropertiesFile");
@@ -113,10 +109,6 @@ public class RejectUnauthReqTests extends CoreTestCase
     {
       args.add("-D", "cn=directory manager");
       args.add("-w", "password");
-    }
-    if (add)
-    {
-      args.add("-a");
     }
     args.add("-f", filePath);
     return args.toArray();
@@ -136,7 +128,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     String path = TestCaseUtils.createTempFile("dn: o=rejectTestCase,o=test",
         "changetype: modify", "replace: description",
         "description: New Description");
-    return LDAPModify.mainModify(modifyArgs(authenticate, path), false, null, null);
+    return LDAPModify.run(nullPrintStream(), nullPrintStream(), modifyArgs(authenticate, path));
   }
 
 
@@ -153,7 +145,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    */
   private int performCompareOperation(boolean authentication) throws Exception
   {
-    return LDAPCompare.mainCompare(compareArgs(authentication), false, null, null);
+    return LDAPCompare.run(nullPrintStream(), nullPrintStream(), compareArgs(authentication));
   }
 
   private String[] compareArgs(boolean authenticate)
@@ -186,7 +178,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     String path = TestCaseUtils
         .createTempFile("dn: o=rejectTestCase,o=Test", "changetype: modrdn",
             "newrdn: o=mod_rejectTestCase", "deleteoldrdn: 0");
-    return LDAPModify.mainModify(modRdnArgs(authentication, path), false, null, null);
+    return LDAPModify.run(nullPrintStream(), nullPrintStream(), modRdnArgs(authentication, path));
   }
 
   private String[] modRdnArgs(boolean authenticate, String path)
@@ -216,7 +208,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    */
   private int performDeleteOperation(boolean authentication) throws Exception
   {
-    return LDAPDelete.mainDelete(deleteArgs(authentication), false, null, null);
+    return LDAPDelete.run(nullPrintStream(), nullPrintStream(), deleteArgs(authentication));
   }
 
   private String[] deleteArgs(boolean authenticate)
@@ -227,7 +219,6 @@ public class RejectUnauthReqTests extends CoreTestCase
     args.add("-p", TestCaseUtils.getServerLdapPort());
     if (authenticate)
     {
-      args.add("-V", "3");
       args.add("-D", "cn=Directory Manager");
       args.add("-w", "password");
     }
@@ -284,7 +275,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testAuthSearchDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
-    assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.SIMPLE), false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.SIMPLE)), 0);
   }
 
   /**
@@ -295,7 +286,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testUnauthSearchDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
-    assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.ANONYMOUS), false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.ANONYMOUS)), 0);
   }
 
   /**
@@ -396,7 +387,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   public void testStartTLSUnauthDefCfg() throws Exception
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
-    assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.START_TLS), false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.START_TLS)), 0);
   }
 
   /**
@@ -454,8 +445,8 @@ public class RejectUnauthReqTests extends CoreTestCase
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
 
-      assertFalse(LDAPSearch.mainSearch(searchArgs(Auth.ANONYMOUS), false, null, null) == 0);
-      assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.START_TLS), false, null, System.err), 0);
+      assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), searchArgs(Auth.ANONYMOUS)) == 0);
+      assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.START_TLS)), 0);
     }
     finally
     {
@@ -507,8 +498,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     try
     {
       DirectoryServer.setRejectUnauthenticatedRequests(true);
-
-      assertEquals(LDAPSearch.mainSearch(searchArgs(Auth.START_TLS), false, null, System.err), 0);
+      assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.START_TLS)), 0);
     }
     finally
     {

@@ -21,7 +21,7 @@ import java.io.File;
 import java.text.ParseException;
 import java.util.Objects;
 
-import org.opends.server.util.Base64;
+import org.forgerock.opendj.ldap.Base64;
 
 /**
  * Class used to represent Binary Values.  This is required in particular
@@ -123,7 +123,7 @@ public class BinaryValue
   {
     if (bytes == null && base64 != null)
     {
-      bytes = Base64.decode(base64);
+      bytes = Base64.decode(base64).toByteArray();
     }
     return bytes;
   }

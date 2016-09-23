@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2009 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -245,8 +245,7 @@ public class TargetControlTestCase extends AciTestCase {
     String noOpCtrlStr=OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true";
     //This pwd change should return no-op since the no-op control is
     //specified and it is allowed for authorization dn.
-    pwdModify(level3User, PWD, newPWD, noOpCtrlStr, null,
-            LDAPResultCode.NO_OPERATION);
+    pwdModify(level3User, PWD, newPWD, noOpCtrlStr, null, LDAPResultCode.SUCCESS);
     //This pwd change should fail even though the no-op is specified, since
     //since the no-op control is not allowed for this authorization dn.
     pwdModify(superUser, PWD, newPWD, noOpCtrlStr, null,

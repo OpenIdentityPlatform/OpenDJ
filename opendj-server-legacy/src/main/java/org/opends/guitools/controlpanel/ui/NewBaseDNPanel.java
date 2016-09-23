@@ -86,7 +86,6 @@ import org.opends.server.tools.BackendCreationHelper.CreateIndex;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
 import org.opends.server.tools.ImportLDIF;
-import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.makeldif.EntryWriter;
 import org.opends.server.tools.makeldif.MakeLDIFException;
 import org.opends.server.tools.makeldif.TemplateEntry;
@@ -839,7 +838,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
         else
         {
           // If we are not local, we use ldapmodify to update the contents.
-          args.add("-a");
           args.add("-f");
           args.add(ldifFile);
         }
@@ -1197,16 +1195,9 @@ public class NewBaseDNPanel extends StatusGenericPanel
         }
         try
         {
-          if (isServerRunning())
+          if (isServerRunning() && (isLocal() || importLDIF))
           {
-            if (isLocal() || importLDIF)
-            {
-              returnCode = ImportLDIF.mainImportLDIF(args, false, outPrintStream, errorPrintStream);
-            }
-            else
-            {
-              returnCode = LDAPModify.mainModify(args, false, outPrintStream, errorPrintStream);
-            }
+            returnCode = ImportLDIF.mainImportLDIF(args, false, outPrintStream, errorPrintStream);
           }
           else
           {

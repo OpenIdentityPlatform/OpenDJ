@@ -576,7 +576,7 @@ public class ConfigureWindowsService
    */
   public static int serviceState()
   {
-    return serviceState(NullOutputStream.printStream(), NullOutputStream.printStream());
+    return serviceState(NullOutputStream.nullPrintStream(), NullOutputStream.nullPrintStream());
   }
 
   /**

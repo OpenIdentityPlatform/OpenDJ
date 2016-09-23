@@ -40,8 +40,8 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tasks.TasksTestCase;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -177,7 +177,7 @@ public class LDIFBackendTestCase
       "-w", "password",
       "-f", subtreeDeletePath
     };
-    resultCode = LDAPModify.mainModify(args, false, System.out, System.err);
+    resultCode = LDAPModify.run(System.out, System.err, args);
     assertEquals(resultCode, ResultCode.NOT_ALLOWED_ON_NONLEAF.intValue());
 
 
@@ -192,7 +192,7 @@ public class LDIFBackendTestCase
       "-J", "subtreeDelete",
       "-f", subtreeDeletePath
     };
-    resultCode = LDAPModify.mainModify(args, false, System.out, System.err);
+    resultCode = LDAPModify.run(System.out, System.err, args);
     assertEquals(resultCode, 0);
   }
 
@@ -270,7 +270,7 @@ public class LDIFBackendTestCase
       "-J", "subtreeDelete",
       "-f", path
     };
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     assertFalse(DirectoryServer.entryExists(DN.valueOf("o=ldif")));
     assertFalse(DirectoryServer.entryExists(
                     DN.valueOf("uid=user.1,ou=People,o=ldif")));
@@ -312,7 +312,7 @@ public class LDIFBackendTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err), 0);
+    assertEquals(LDAPSearch.run(System.out, System.err, args), 0);
   }
 
 
@@ -356,7 +356,7 @@ public class LDIFBackendTestCase
       "-w", "password",
       "-f", path
     };
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
   }
 
 

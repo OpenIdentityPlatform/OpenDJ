@@ -39,6 +39,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
@@ -599,7 +600,7 @@ public class LDIFReader implements Closeable
   {
     try
     {
-      return new String(Base64.decode(encodedStr), "UTF-8");
+      return new String(Base64.decode(encodedStr).toByteArray(), "UTF-8");
     }
     catch (Exception e)
     {
@@ -1379,7 +1380,7 @@ public class LDIFReader implements Closeable
 
         try
         {
-          value = ByteString.wrap(Base64.decode(line.substring(pos)));
+          value = ByteString.wrap(Base64.decode(line.substring(pos)).toByteArray());
         }
         catch (Exception e)
         {

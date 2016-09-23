@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2013 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -64,7 +64,7 @@ public final class NullOutputStream
    *
    * @return  A print stream using this null output stream.
    */
-  public static PrintStream printStream()
+  public static PrintStream nullPrintStream()
   {
     return printStream;
   }
@@ -72,12 +72,12 @@ public final class NullOutputStream
 
   /**
    * Returns s wrapped into a {@link PrintStream} if is not null,
-   * {@link NullOutputStream#printStream()} otherwise.
+   * {@link NullOutputStream#nullPrintStream()} otherwise.
    *
    * @param s
    *          the OutputStream to wrap into a {@link PrintStream}. Can be null.
    * @return a PrintStream wrapping s if not null,
-   *         {@link NullOutputStream#printStream()} otherwise.
+   *         {@link NullOutputStream#nullPrintStream()} otherwise.
    */
   public static PrintStream wrapOrNullStream(OutputStream s)
   {
@@ -85,7 +85,7 @@ public final class NullOutputStream
     {
       return new PrintStream(s);
     }
-    return NullOutputStream.printStream();
+    return NullOutputStream.nullPrintStream();
   }
 
 

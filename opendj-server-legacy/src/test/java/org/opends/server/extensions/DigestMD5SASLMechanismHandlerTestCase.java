@@ -27,7 +27,7 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.types.AuthenticationInfo;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -217,7 +218,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
 
@@ -260,7 +261,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
 
@@ -303,7 +304,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -346,7 +347,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -387,7 +388,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -428,7 +429,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -469,7 +470,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -510,7 +511,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -551,7 +552,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -581,7 +582,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -611,7 +612,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -641,7 +642,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -685,7 +686,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -714,7 +715,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -758,7 +759,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
 
 
     DeleteOperation deleteOperation = getRootConnection().processDelete(e.getName());
@@ -806,7 +807,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -850,7 +851,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -894,7 +895,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "-s", "base",
       "(objectClass=*)"
     };
-    assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
+    assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 

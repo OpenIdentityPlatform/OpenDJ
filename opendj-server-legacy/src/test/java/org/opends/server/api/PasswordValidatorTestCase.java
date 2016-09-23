@@ -19,6 +19,7 @@ package org.opends.server.api;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 import java.util.Set;
@@ -29,7 +30,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.extensions.TestPasswordValidator;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
-import org.opends.server.tools.LDAPPasswordModify;
+import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
 import org.opends.server.tools.RemoteConnection;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -115,8 +116,7 @@ public class PasswordValidatorTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
                  ByteString.valueOfUtf8("newPassword"));
@@ -165,8 +165,7 @@ public class PasswordValidatorTestCase
       "-n", "newPassword"
     };
 
-    int returnCode = LDAPPasswordModify.mainPasswordModify(args, false, null,
-                                                           null);
+    int returnCode = LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args);
     assertNotEquals(returnCode, 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
@@ -214,8 +213,7 @@ public class PasswordValidatorTestCase
       "-w", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
@@ -262,8 +260,7 @@ public class PasswordValidatorTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
@@ -314,8 +311,7 @@ public class PasswordValidatorTestCase
       "-w", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
@@ -367,8 +363,7 @@ public class PasswordValidatorTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
-                 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();

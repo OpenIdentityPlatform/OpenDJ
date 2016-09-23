@@ -34,8 +34,8 @@ import org.opends.server.extensions.VirtualStaticGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPDelete;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
@@ -49,6 +49,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -2203,7 +2204,7 @@ public class GroupManagerTestCase
       "--noPropertiesFile",
       "ou=groups,dc=example,dc=com"
     };
-    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+    assertEquals(LDAPDelete.run(nullPrintStream(), System.err, args), 0);
 
     InternalClientConnection conn1 =
             new InternalClientConnection(userDN);
@@ -2265,7 +2266,7 @@ public class GroupManagerTestCase
       "--noPropertiesFile",
       "-f", path
     };
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
     InternalClientConnection conn1 =
             new InternalClientConnection(userDN);

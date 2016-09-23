@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 import java.io.BufferedReader;
@@ -28,6 +29,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -38,8 +40,8 @@ import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ExistingFileBehavior;
@@ -47,7 +49,6 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -121,10 +122,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D","cn=directory manager",
       "-w","password",
-      "-a",
       "-f", filePath
     };
-    int err = LDAPModify.mainModify(args, false, null,null);
+    int err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     assertEquals(err,0);
 
     //ADD with ;binary option.
@@ -142,10 +142,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D","cn=directory manager",
       "-w","password",
-      "-a",
       "-f", filePath
     };
-    err = LDAPModify.mainModify(args, false, null,null);
+    err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     assertEquals(err,0);
   }
 
@@ -173,10 +172,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D","cn=directory manager",
       "-w","password",
-      "-a",
       "-f", filePath,
     };
-    int err = LDAPModify.mainModify(args, false, null,null);
+    int err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     assertThat(err).isNotEqualTo(0);
   }
 
@@ -243,7 +241,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
           .addAttribute("sn", "sn#1")
           .addAttribute("sn;x-foo", "sn#2")
           .addAttribute("sn;lang-fr", "sn#3")
-          .addAttribute("userCertificate;binary", ByteString.wrap(Base64.decode(CERT)));
+          .addAttribute("userCertificate;binary", ByteString.wrap(Base64.decode(CERT).toByteArray()));
       LDAPMessage message = conn.add(addRequest);
       AddResponseProtocolOp addResponse = message.getAddResponseProtocolOp();
       assertEquals(addResponse.getResultCode(),0);
@@ -302,7 +300,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
         "-b", "o=test",
         "(uid=user.1)"
     };
-    assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
     exportBackend();
     assertTrue(ldif.exists());
     assertTrue(containsBinary());
@@ -380,10 +378,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D","cn=directory manager",
       "-w","password",
-      "-a",
       "-f", filePath,
     };
-    int err = LDAPModify.mainModify(args, false, null,null);
+    int err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     assertEquals(err,0);
 
     filePath = TestCaseUtils.createTempFile(
@@ -399,7 +396,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       "-w","password",
       "-f", filePath,
     };
-    err = LDAPModify.mainModify(args, false, null,null);
+    err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     assertEquals(err,0);
   }
 

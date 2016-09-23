@@ -38,6 +38,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
@@ -55,7 +56,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.OpenDsException;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.opends.server.util.Base64;
 
 /**
  * Abstract class containing code shared by the different LDAP entry view

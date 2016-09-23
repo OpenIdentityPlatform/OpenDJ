@@ -17,6 +17,7 @@
 package org.opends.server.extensions;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.server.config.server.Base64PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -25,7 +26,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.util.Base64;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -106,7 +106,7 @@ public class Base64PasswordStorageScheme
   {
     try
     {
-      return ByteString.wrap(Base64.decode(storedPassword.toString()));
+      return ByteString.wrap(Base64.decode(storedPassword.toString()).toByteArray());
     }
     catch (Exception e)
     {

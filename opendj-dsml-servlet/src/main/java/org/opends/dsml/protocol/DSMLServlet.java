@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -72,6 +71,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -89,7 +90,6 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.types.LDAPException;
-import org.opends.server.util.Base64;
 import org.w3c.dom.Document;
 import org.xml.sax.Attributes;
 import org.xml.sax.EntityResolver;
@@ -379,7 +379,7 @@ public class DSMLServlet extends HttpServlet {
         authenticationInHeader = true;
         String authorization = headerVal.substring(6).trim();
         try {
-          String unencoded = new String(Base64.decode(authorization));
+          String unencoded = new String(Base64.decode(authorization).toByteArray());
           int colon = unencoded.indexOf(':');
           if (colon > 0) {
             if (useHTTPAuthzID)
@@ -395,7 +395,7 @@ public class DSMLServlet extends HttpServlet {
             }
             bindPassword = unencoded.substring(colon + 1);
           }
-        } catch (ParseException ex) {
+        } catch (final LocalizedIllegalArgumentException ex) {
           // user/DN:password parsing error
           batchResponses.add(
             createErrorResponse(objFactory,

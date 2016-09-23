@@ -29,7 +29,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Modification;
@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
@@ -112,7 +113,7 @@ public class TraditionalWorkQueueTestCase
 
     for (int i=0; i < 7; i++)
     {
-      assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
+      assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
     }
   }
 

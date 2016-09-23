@@ -34,7 +34,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.tools.LDAPPasswordModify;
+import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
 import org.opends.server.types.AuthenticationInfo;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
@@ -47,6 +47,7 @@ import org.testng.annotations.Test;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -161,7 +162,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(DN.valueOf("cn=Directory Manager"), "newPassword");
 
@@ -176,7 +177,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "newPassword",
       "-n", "password"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
   }
 
 
@@ -204,10 +205,9 @@ public class PasswordModifyExtendedOperationTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-c", "password",
-      "-n", "newPassword",
-      "-A"
+      "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(DN.valueOf("cn=Directory Manager"), "newPassword");
 
@@ -220,10 +220,9 @@ public class PasswordModifyExtendedOperationTestCase
       "-D", "cn=Directory Manager",
       "-w", "newPassword",
       "-c", "newPassword",
-      "-n", "password",
-      "-A"
+      "-n", "password"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
   }
 
 
@@ -252,7 +251,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(DN.valueOf("cn=Directory Manager"), "newPassword");
 
@@ -266,7 +265,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "newPassword",
       "-n", "password"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
   }
 
 
@@ -300,7 +299,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -335,7 +334,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-w", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -381,7 +380,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-D", "uid=test.user,o=test",
       "-w", "password"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
   }
 
 
@@ -415,7 +414,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -452,7 +451,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "u:test.user",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -489,7 +488,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "uid=test.user,o=test",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -526,7 +525,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "test.user",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -561,7 +560,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -596,7 +595,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -632,7 +631,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
 
     verifyPasswordPerformingInternalBind(userEntry.getName(), "newPassword");
   }
@@ -663,7 +662,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
   }
 
 
@@ -691,7 +690,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
   }
 
 
@@ -720,7 +719,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
   }
 
 
@@ -749,7 +748,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
   }
 
 
@@ -779,7 +778,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 32);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 32);
   }
 
 
@@ -807,7 +806,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
   }
 
 
@@ -837,7 +836,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "newPassword"
     };
 
-    assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 49);
+    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 49);
   }
 
 
@@ -871,7 +870,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
     } finally {
       applyPwdPolicyMods(dnStr, attr, "false");
     }
@@ -908,7 +907,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "{SSHA}Fv4b7f4AnRMUiGqBi9QA1xJrTtRTqS3WpRi81g=="
     };
 
-    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     // don't restore password policy as this is already the default.
   }
 
@@ -941,7 +940,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "{SSHA}Fv4b7f4AnRMUiGqBi9QA1xJrTtRTqS3WpRi81g=="
     };
 
-    assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+    assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
   }
 
 
@@ -1033,7 +1032,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     } finally {
       applyPwdPolicyMods(dnStr, attr, "true");
     }
@@ -1071,7 +1070,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 53);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 53);
     } finally {
       applyPwdPolicyMods(dnStr, attr, "true");
     }
@@ -1109,7 +1108,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     } finally {
       // Reset to default configuration
       applyPwdPolicyMods(dnStr, attr, "false");
@@ -1148,7 +1147,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 13);
     } finally {
       // Reset to default configuration
       applyPwdPolicyMods(dnStr, attr, "false");
@@ -1187,7 +1186,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 13);
     } finally {
       applyPwdPolicyMods(dnStr, attr, "false");
     }
@@ -1227,7 +1226,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 13);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 13);
     } finally {
       // Reset to default configuration
       applyPwdPolicyMods(dnStr, attr, "false");
@@ -1264,7 +1263,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     } finally {
       applyPwdPolicyMods(dnStr, attr, "0 seconds");
     }
@@ -1301,7 +1300,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 53);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 53);
     } finally {
       applyPwdPolicyMods(dnStr, attr, "0 seconds");
     }
@@ -1342,7 +1341,7 @@ public class PasswordModifyExtendedOperationTestCase
         "-n", "newPassword"
       };
 
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     } finally {
       applyPwdPolicyMods(dnStr, attr1, "0 seconds");
       applyPwdPolicyMods(dnStr, attr2, "false");
@@ -1386,7 +1385,7 @@ public class PasswordModifyExtendedOperationTestCase
         "-n", "newPassword"
       };
 
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
     }
     finally {
       applyPwdPolicyMods(dnStr, attr1, "0 seconds");
@@ -1424,7 +1423,7 @@ public class PasswordModifyExtendedOperationTestCase
             "-w", "password"
         };
     try {
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     } finally {
       applyPwdPolicyMods(dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
     }
@@ -1458,7 +1457,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-c", "password"
     };
     try {
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     }
     finally {
       applyPwdPolicyMods(dnStr, attr, "cn=Random Password Generator,cn=Password Generators,cn=config");
@@ -1496,7 +1495,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "short"
     };
     try {
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     }
     finally {
       applyPwdPolicyMods(dnStr, attr);
@@ -1533,7 +1532,7 @@ public class PasswordModifyExtendedOperationTestCase
       "-n", "short"
     };
     try {
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, null));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args));
     }
     finally {
       applyPwdPolicyMods(dnStr, attr);
@@ -1586,7 +1585,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null), 0);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
     } finally {
       applyPwdPolicyMods(dnStr, attr, "false");
     }
@@ -1638,7 +1637,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
 
     try {
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, System.err), 0);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), System.err, args), 0);
     } finally {
       applyPwdPolicyMods(dnStr, attr, "false");
     }
@@ -1688,7 +1687,7 @@ public class PasswordModifyExtendedOperationTestCase
         "-n", "newpassword"
       };
 
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, System.err), 0);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), System.err, args), 0);
 
       userEntry = DirectoryServer.getEntry(userDN);
       assertNotNull(userEntry);
@@ -1744,7 +1743,7 @@ public class PasswordModifyExtendedOperationTestCase
         "-n", "newpassword"
       };
 
-      assertFalse(0 == LDAPPasswordModify.mainPasswordModify(args, false, null, System.err));
+      assertFalse(0 == LDAPPasswordModify.run(nullPrintStream(), System.err, args));
 
       userEntry = DirectoryServer.getEntry(userDN);
       assertNotNull(userEntry);
@@ -1792,7 +1791,7 @@ public class PasswordModifyExtendedOperationTestCase
         "-c", "password"
       };
 
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, System.err), 0);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), System.err, args), 0);
 
       userEntry = DirectoryServer.getEntry(userDN);
       assertNotNull(userEntry);

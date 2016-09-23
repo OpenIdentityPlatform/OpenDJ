@@ -57,6 +57,7 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AVA;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -79,7 +80,6 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
-import org.opends.server.util.Base64;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
@@ -481,7 +481,7 @@ class SchemaFilesWriter
       // See OPENDJ-2792: the definition of the ds-cfg-csv-delimiter-char attribute type
       // had a space accidentally added after the closing parenthesis.
       // This was unfortunately interpreted as base64
-      definition = ByteString.wrap(Base64.decode(definition.substring(2).trim())).toString();
+      definition = ByteString.wrap(Base64.decode(definition.substring(2).trim()).toByteArray()).toString();
     }
     else if (definition.startsWith(":"))
     {

@@ -27,7 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringReader;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,18 +41,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.forgerock.i18n.LocalizableMessage;
+import com.forgerock.opendj.ldap.tools.LDAPCompare;
+import com.forgerock.opendj.ldap.tools.LDIFDiff;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.LDAPCompare;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.LDIFDiff;
-import org.opends.server.tools.LDIFModify;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.LDIFWriter;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -1733,7 +1727,6 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
          "-p", getServerLdapPort(),
          "-D", _bindDn,
          "-w", _bindPw,
-         "--useCompareResultCode",
         attrAssertion,
         _searchBaseDn};
     }
@@ -1759,24 +1752,6 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
         _searchTests.add(SingleSearchParams.nonProxiedSearch(bindDn, DN_TO_PW.get(bindDn), searchBaseDn,
             searchFilter, searchScope, expectedResultsLdif, _initialDitLdif, equivalentAci));
       }
-    }
-
-    /**
-     * @return the LDIF result of applying changesLdif to changesLdif
-     */
-    private String applyChangesToLdif(String baseLdif, String changesLdif) throws Exception {
-      LDIFReader baseReader = new LDIFReader(new LDIFImportConfig(new StringReader(baseLdif)));
-      LDIFReader changesReader = new LDIFReader(new LDIFImportConfig(new StringReader(changesLdif)));
-
-      ByteArrayOutputStream updatedEntriesStream = new ByteArrayOutputStream();
-      LDIFWriter ldifWriter = new LDIFWriter(new LDIFExportConfig(updatedEntriesStream));
-
-      List<LocalizableMessage> errors = new ArrayList<>();
-      LDIFModify.modifyLDIF(baseReader, changesReader, ldifWriter, errors);
-      Assert.assertTrue(errors.isEmpty(), "Unexpected errors applying LDIF changes: " + errors);
-      ldifWriter.flush();
-
-      return updatedEntriesStream.toString();
     }
   }
 
@@ -2290,7 +2265,6 @@ private static String _buildAciValue(String attr, String... aciFields) {
       "-p", getServerLdapPort(),
       "-D", bindDn,
       "-w", bindPassword,
-      "-a",
       "-f", tempFile.getAbsolutePath()
     };
 
@@ -2299,20 +2273,20 @@ private static String _buildAciValue(String attr, String... aciFields) {
 
   private void ldapModify(String[] args, boolean expectSuccess) throws Exception {
     clearOutputStream();
-    int retVal = LDAPModify.mainModify(args, false, getOutputStream(), getOutputStream());
+    int retVal = LDAPModify.run(getOutputPrintStream(), getOutputPrintStream(), args);
     assertEquals(retVal == 0, expectSuccess, "Return value = " + retVal);
   }
 
   private String ldapSearch(String[] args) throws Exception {
     clearOutputStream();
-    int retVal = LDAPSearch.mainSearch(args, false, getOutputStream(), getOutputStream());
+    int retVal = LDAPSearch.run(getOutputPrintStream(), getOutputPrintStream(), args);
     Assert.assertEquals(retVal, 0, "Non-zero return code because, error: " + getOutputStreamContents());
     return getOutputStreamContents();
   }
 
   private String ldapCompare(String[] args, int expectedRc) throws Exception {
     clearOutputStream();
-    int retVal = LDAPCompare.mainCompare(args, false, getOutputStream(), getOutputStream());
+    int retVal = LDAPCompare.run(getOutputPrintStream(), getOutputPrintStream(), args);
     Assert.assertEquals(retVal, expectedRc,  "Non-zero return code because, error: " + getOutputStreamContents());
     return getOutputStreamContents();
   }
@@ -2450,12 +2424,12 @@ private static String _buildAciValue(String attr, String... aciFields) {
 
     String[] args =
     {
-      "--sourceLDIF", actualLdifFile.getAbsolutePath(),
-      "--targetLDIF", expectedLdifFile.getAbsolutePath(),
-      "--outputLDIF", diffLdifFile.getAbsolutePath()
+      "--outputLDIF", diffLdifFile.getAbsolutePath(),
+      actualLdifFile.getAbsolutePath(),
+      expectedLdifFile.getAbsolutePath()
     };
 
-    int retVal = LDIFDiff.mainDiff(args, true, System.out, System.err);
+    int retVal = LDIFDiff.run(System.out, System.err, args);
     assertEquals(retVal, 0, "LDIFDiff failed");
 
     if (diffLdifFile.exists()) {
@@ -2531,6 +2505,9 @@ private static String _buildAciValue(String attr, String... aciFields) {
     return _cmdOutput;
   }
 
+  private static PrintStream getOutputPrintStream() {
+    return new PrintStream(getOutputStream());
+  }
 
   private static String makeUserLdif(String dn, String givenName, String sn, String password) {
     String cn = givenName + " " + sn;

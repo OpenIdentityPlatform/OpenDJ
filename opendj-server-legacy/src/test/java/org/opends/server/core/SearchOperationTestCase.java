@@ -19,6 +19,7 @@ package org.opends.server.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -57,7 +58,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Control;
@@ -1261,10 +1262,9 @@ public class SearchOperationTestCase extends OperationTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D","cn=directory manager",
       "-w","password",
-      "-a",
       "-f", filePath
     };
-    int err = LDAPModify.mainModify(args, false, null,null);
+    int err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
 
     assertEquals(err,0);
 
@@ -1295,10 +1295,9 @@ public class SearchOperationTestCase extends OperationTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D","cn=directory manager",
       "-w","password",
-      "-a",
       "-f", filePath
     };
-    int err = LDAPModify.mainModify(args, false, null,null);
+    int err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     assertEquals(err, 0);
   }
 }

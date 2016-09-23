@@ -60,9 +60,9 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.tools.RemoteConnection;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -75,6 +75,7 @@ import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.types.Privilege.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -732,7 +733,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "-f", path
     };
 
-    int resultCode = LDAPModify.mainModify(args, false, null, null);
+    int resultCode = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     if (hasPrivilege)
     {
       assertEquals(resultCode, 0);
@@ -798,7 +799,7 @@ public class PrivilegeTestCase extends TypesTestCase
     };
 
     int resultCode =
-             LDAPPasswordModify.mainPasswordModify(args, false, null, null);
+             LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args);
     if (hasPrivilege)
     {
       assertEquals(resultCode, 0);
@@ -813,8 +814,7 @@ public class PrivilegeTestCase extends TypesTestCase
         "-a", "dn:cn=PWReset Target,o=test",
         "-n", "password"
       };
-      assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null,
-                                                         null), 0);
+      assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
     }
     else
     {
@@ -2193,12 +2193,12 @@ public class PrivilegeTestCase extends TypesTestCase
 
   private int runSearch(String[] args)
   {
-    return LDAPSearch.mainSearch(args, false, null, null);
+    return LDAPSearch.run(nullPrintStream(), nullPrintStream(), args);
   }
 
   private int runSearchWithSystemErr(String[] args)
   {
-    return LDAPSearch.mainSearch(args, false, null, System.err);
+    return LDAPSearch.run(nullPrintStream(), System.err, args);
   }
 
   /**

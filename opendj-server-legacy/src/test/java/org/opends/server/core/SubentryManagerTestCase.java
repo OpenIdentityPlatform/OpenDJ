@@ -22,6 +22,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -38,8 +39,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPDelete;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -418,7 +419,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       "--noPropertiesFile",
       SUFFIX
     };
-    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+    assertEquals(LDAPDelete.run(nullPrintStream(), System.err, args), 0);
 
     assertTrue(DirectoryServer.getSubentryManager().getCollectiveSubentries(
             DN.valueOf("uid=rogasawara," + BASE)).isEmpty());
@@ -450,7 +451,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       "--noPropertiesFile",
       "-f", newPath
     };
-    assertEquals(LDAPModify.mainModify(newArgs, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, newArgs), 0);
 
     assertNotNull(DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + NEWBASE + "," + SUFFIX)));
@@ -476,7 +477,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       "--noPropertiesFile",
       "-f", oldPath
     };
-    assertEquals(LDAPModify.mainModify(oldArgs, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, oldArgs), 0);
 
     assertNotNull(DirectoryServer.getEntry(DN.valueOf(
             "uid=rogasawara," + OLDBASE + "," + SUFFIX)));

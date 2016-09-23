@@ -22,6 +22,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -48,7 +49,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPReader;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
@@ -550,8 +551,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       "(objectClass=*)"
     };
 
-    assertEquals(LDAPSearch.mainSearch(args, false,
-                  true, null, System.err),11);
+    assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 11);
     //cancel the persisting persistent search.
     search.cancel(new CancelRequest(true,LocalizableMessage.EMPTY));
   }

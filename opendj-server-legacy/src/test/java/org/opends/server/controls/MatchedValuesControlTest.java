@@ -21,6 +21,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -29,7 +30,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.io.ASN1;
-import org.opends.server.util.Base64;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -782,7 +782,7 @@ public class MatchedValuesControlTest extends ControlsTestCase
       "{ serialNumber 13233831500277100508, issuer rdnSequence:\""+
       "CN=Babs Jensen,OU=Product Development,L=Cupertione,C=US\" }";
     return new Object[][]{
-      {"userCertificate", ByteString.wrap(Base64.decode(BASE64_CERT_VALUE)),
+      {"userCertificate", ByteString.wrap(Base64.decode(BASE64_CERT_VALUE).toByteArray()),
         CERT_EXACT_ASSERTION}};
   }
 

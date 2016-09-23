@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -34,7 +34,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
  * For example, the JDK encoder does not handle array/offset/len parameters, and
  * the decoder ignores invalid Base64 data.
  */
-final class Base64 {
+public final class Base64 {
     /**
      * The set of characters that may be used in base64-encoded values.
      */
@@ -53,7 +53,7 @@ final class Base64 {
      * @throws NullPointerException
      *             If {@code base64} was {@code null}.
      */
-    static ByteString decode(final String base64) {
+    public static ByteString decode(final String base64) {
         Reject.ifNull(base64);
 
         // The encoded value must have length that is a multiple of four
@@ -307,7 +307,21 @@ final class Base64 {
      * @throws NullPointerException
      *             If {@code bytes} was {@code null}.
      */
-    static String encode(final ByteSequence bytes) {
+    public static String encode(final byte[] bytes) {
+        return encode(ByteString.wrap(bytes));
+    }
+
+
+    /**
+     * Encodes the provided data as a base64 string.
+     *
+     * @param bytes
+     *            The data to be encoded.
+     * @return The base64 encoded representation of {@code bytes}.
+     * @throws NullPointerException
+     *             If {@code bytes} was {@code null}.
+     */
+    public static String encode(final ByteSequence bytes) {
         Reject.ifNull(bytes);
 
         if (bytes.isEmpty()) {

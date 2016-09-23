@@ -17,6 +17,7 @@
 package org.opends.server.extensions;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.server.config.server.AESPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -26,7 +27,6 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.util.Base64;
 
 import java.util.Arrays;
 
@@ -153,7 +153,7 @@ public class AESPasswordStorageScheme
     {
       ByteString decryptedPassword =
           ByteString.wrap(cryptoManager.decrypt(
-               Base64.decode(storedPassword.toString())));
+                  Base64.decode(storedPassword.toString()).toByteArray()));
       return plaintextPassword.equals(decryptedPassword);
     }
     catch (Exception e)
@@ -177,7 +177,7 @@ public class AESPasswordStorageScheme
     try
     {
       byte[] decryptedPassword =
-           cryptoManager.decrypt(Base64.decode(storedPassword.toString()));
+           cryptoManager.decrypt(Base64.decode(storedPassword.toString()).toByteArray());
       return ByteString.wrap(decryptedPassword);
     }
     catch (Exception e)

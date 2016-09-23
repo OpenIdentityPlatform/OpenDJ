@@ -32,9 +32,14 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.util.promise.ExceptionHandler;
+import org.forgerock.util.promise.ResultHandler;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.browser.ConnectionWithControls;
@@ -43,7 +48,6 @@ import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
-import org.opends.server.tools.LDAPPasswordModify;
 
 /** The task called when we want to reset the password of the user. */
 public class ResetUserPasswordTask extends Task
@@ -176,39 +180,61 @@ public class ResetUserPasswordTask extends Task
   {
     state = State.RUNNING;
     lastException = null;
-    try
-    {
-      List<String> arguments = getCommandLineArguments();
-      String[] args = arguments.toArray(new String[arguments.size()]);
-
-      returnCode = LDAPPasswordModify.mainPasswordModify(args, false,
-            outPrintStream, errorPrintStream);
-
-      if (returnCode != 0)
+      final ConnectionWrapper connectionWrapper = useAdminCtx ? getInfo().getConnection()
+                                                              : getInfo().getUserDataConnection();
+      if (!isServerRunning() || connectionWrapper == null)
       {
+        // Fail fast impossible to connect to the server.
         state = State.FINISHED_WITH_ERROR;
+      }
+      final PasswordModifyExtendedRequest passwordModifyRequest = Requests.newPasswordModifyExtendedRequest();
+      if (currentPassword == null)
+      {
+        passwordModifyRequest.setUserIdentity("dn: " + dn);
       }
       else
       {
-        if (lastException == null && currentPassword != null)
-        {
-          // The connections must be updated, just update the environment, which
-          // is what we use to clone connections and to launch scripts.
-          // The environment will also be used if we want to reconnect.
-          rebind(getInfo().getConnection());
-          if (getInfo().getUserDataConnection() != null)
-          {
-            rebind(getInfo().getUserDataConnection());
-          }
-        }
-        state = State.FINISHED_SUCCESSFULLY;
+        passwordModifyRequest.setOldPassword(currentPassword);
       }
-    }
-    catch (Throwable t)
-    {
-      lastException = t;
-      state = State.FINISHED_WITH_ERROR;
-    }
+      passwordModifyRequest.setNewPassword(newPassword);
+      connectionWrapper.getConnection()
+                       .extendedRequestAsync(passwordModifyRequest)
+                       .thenOnResultOrException(
+                         new ResultHandler<PasswordModifyExtendedResult>()
+                         {
+                           @Override
+                           public void handleResult(final PasswordModifyExtendedResult passwordModifyExtendedResult)
+                           {
+                             if (lastException == null && currentPassword != null)
+                             {
+                               try
+                               {
+                                 // The connections must be updated, just update the environment, which
+                                 // is what we use to clone connections and to launch scripts.
+                                 // The environment will also be used if we want to reconnect.
+                                 rebind(getInfo().getConnection());
+                                 if (getInfo().getUserDataConnection() != null)
+                                 {
+                                   rebind(getInfo().getUserDataConnection());
+                                 }
+                               }
+                               catch (final LdapException e)
+                               {
+                                 lastException = e;
+                                 state = State.FINISHED_WITH_ERROR;
+                               }
+                             }
+                             state = State.FINISHED_SUCCESSFULLY;
+                           }
+                         },
+                         new ExceptionHandler<LdapException>()
+                         {
+                           @Override
+                           public void handleException(final LdapException e)
+                           {
+                             state = State.FINISHED_WITH_ERROR;
+                           }
+                         });
   }
 
   private void rebind(ConnectionWrapper conn) throws LdapException

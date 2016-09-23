@@ -33,7 +33,7 @@ import java.util.TimeZone;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.util.Base64;
+import org.forgerock.opendj.ldap.Base64;
 
 /**
  * This class defines a data structure for holding information about a
@@ -453,11 +453,11 @@ public final class BackupInfo
         }
         else if (name.equals(PROPERTY_UNSIGNED_HASH))
         {
-          unsignedHash = Base64.decode(value);
+          unsignedHash = Base64.decode(value).toByteArray();
         }
         else if (name.equals(PROPERTY_SIGNED_HASH))
         {
-          signedHash = Base64.decode(value);
+          signedHash = Base64.decode(value).toByteArray();
         }
         else if (name.equals(PROPERTY_DEPENDENCY))
         {

@@ -16,19 +16,23 @@
  */
 package org.opends.server.replication;
 
-import java.io.BufferedReader;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.promise.ResultHandler;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.tools.LDAPModify;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -37,10 +41,43 @@ import static org.testng.Assert.*;
 public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
 {
 
-  /**
-   * The port of the replicationServer.
-   */
-  private int replServerPort;
+  private static final String HOSTNAME = "127.0.0.1";
+
+  private static final Control CSN_CONTROL = new Control()
+  {
+    @Override
+    public String getOID()
+    {
+      return OID_CSN_CONTROL;
+    }
+
+    @Override
+    public ByteString getValue()
+    {
+      return null;
+    }
+
+    @Override
+    public boolean hasValue()
+    {
+      return false;
+    }
+
+    @Override
+    public boolean isCritical()
+    {
+      return false;
+    }
+  };
+
+  private static final ResultHandler<Result> ASSERTION_RESULT_HANDLER = new ResultHandler<Result>()
+  {
+    @Override
+    public void handleResult(final Result result)
+    {
+      assertTrue(result.containsControl(CSN_CONTROL.getOID()));
+    }
+  };
 
   /**
    * The replicationServer that will be used in this test.
@@ -58,8 +95,7 @@ public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
     super.setUp();
 
     baseDn = DN.valueOf(TEST_ROOT_DN_STRING);
-
-    replServerPort = TestCaseUtils.findFreePort();
+    final int replServerPort = TestCaseUtils.findFreePort();
 
     // replication server
     String replServerLdif =
@@ -86,79 +122,61 @@ public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
     configureReplication(replServerLdif, synchroServerLdif);
   }
 
-  @DataProvider(name = "operations")
-  public Object[][] createLdapRequests() {
-    return new Object[][] {
-      new Object[] {
-        "dn: cn=user1," + baseDn + "\n"
-         + "changetype: add" + "\n"
-         + "objectClass: person" + "\n"
-         + "cn: user1" + "\n"
-         + "sn: User Test 10"},
-      new Object[] {
-         "dn: cn=user1," + baseDn + "\n"
-         + "changetype: modify" + "\n"
-         + "add: description" + "\n"
-         + "description: blah"},
-      new Object[] {
-         "dn: cn=user1," + baseDn + "\n"
-         + "changetype: moddn" + "\n"
-         + "newrdn: cn=user111" + "\n"
-         + "deleteoldrdn: 1"},
-      new Object[] {
-         "dn: cn=user111," + baseDn + "\n"
-         + "changetype: delete"}
-    };
-  }
-
-  @Test(dataProvider="operations")
-  public void ChangeNumberControlTest(String request) throws Exception {
-
-    String path = TestCaseUtils.createTempFile(request);
-
-    String[] args =
+  @Test
+  public void changeNumberControlAddRequestTest() throws Exception {
+    try (final LDAPConnectionFactory factory = new LDAPConnectionFactory(HOSTNAME, getServerLdapPort());
+         final Connection connection = factory.getConnection())
     {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "-J", OID_CSN_CONTROL + ":false",
-      "--noPropertiesFile",
-      "-f", path
-    };
-
-    String resultPath = TestCaseUtils.createTempFile();
-
-    FileOutputStream fos = new FileOutputStream(resultPath);
-
-    assertEquals(LDAPModify.mainModify(args, false, fos, System.err), 0);
-    //fos.flush();
-    fos.close();
-
-    assertTrue(isCsnLinePresent(resultPath));
-  }
-
-  private boolean isCsnLinePresent(String file) throws Exception {
-    FileReader fr = new FileReader(file);
-    try
-    {
-      BufferedReader br = new BufferedReader(fr);
-      String line = null;
-      boolean found = false;
-      while ((line = br.readLine()) != null)
-      {
-        if (line.contains(INFO_CHANGE_NUMBER_CONTROL_RESULT.get("%s", "%s")
-            .toString().split("%s")[1]))
-        {
-          found = true;
-        }
-      }
-      return found;
-    }
-    finally
-    {
-      StaticUtils.close(fr);
+      final AddRequest addRequest = Requests.newAddRequest("dn: cn=user1," + baseDn,
+                                                           "changetype: add",
+                                                           "objectClass: person",
+                                                           "cn: user1",
+                                                           "sn: User Test 10")
+                                               .addControl(CSN_CONTROL);
+      connection.addAsync(addRequest)
+                .thenOnResult(ASSERTION_RESULT_HANDLER);
     }
   }
 
+  @Test
+  public void changeNumberControlDeleteRequestTest() throws Exception
+  {
+    try (final LDAPConnectionFactory factory = new LDAPConnectionFactory(HOSTNAME, getServerLdapPort());
+         final Connection connection = factory.getConnection())
+    {
+      final DeleteRequest deleteRequest = Requests.newDeleteRequest("cn=user111," + baseDn)
+                                                  .addControl(CSN_CONTROL);
+      connection.deleteAsync(deleteRequest)
+                .thenOnResult(ASSERTION_RESULT_HANDLER);
+    }
+  }
+
+  @Test
+  public void changeNumberControlModifyRequestTest() throws Exception
+  {
+    try (final LDAPConnectionFactory factory = new LDAPConnectionFactory(HOSTNAME, getServerLdapPort());
+         final Connection connection = factory.getConnection())
+    {
+      final ModifyRequest modifyRequest = Requests.newModifyRequest("dn: cn=user1," + baseDn,
+                                                                    "changetype: modify",
+                                                                    "add: description",
+                                                                    "description: blah")
+                                                  .addControl(CSN_CONTROL);
+      connection.modifyAsync(modifyRequest).thenOnResult(ASSERTION_RESULT_HANDLER);
+    }
+  }
+
+  @Test
+  public void changeNumberControlModifyDNRequestTest() throws Exception
+  {
+    try (final LDAPConnectionFactory factory = new LDAPConnectionFactory(HOSTNAME, getServerLdapPort());
+         final Connection connection = factory.getConnection())
+    {
+      final ModifyDNRequest modifyDNRequest = Requests.newModifyDNRequest("cn=user.1" + baseDn, "cn=user.111")
+                                                      .addControl(CSN_CONTROL)
+                                                      .setDeleteOldRDN(true);
+      connection.modifyDNAsync(modifyDNRequest)
+                .thenOnResult(ASSERTION_RESULT_HANDLER);
+    }
+  }
 }

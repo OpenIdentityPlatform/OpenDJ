@@ -34,9 +34,9 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
+import com.forgerock.opendj.ldap.tools.LDAPDelete;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.AuthenticationType;
@@ -52,6 +52,7 @@ import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -1523,7 +1524,7 @@ public class BindOperationTestCase
         "--noPropertiesFile",
         "ou=people,dc=example,dc=com"
         };
-      assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+      assertEquals(LDAPDelete.run(nullPrintStream(), System.err, args), 0);
 
       assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
     }
@@ -1587,7 +1588,7 @@ public class BindOperationTestCase
         "--noPropertiesFile",
         "-f", path
         };
-      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+      assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
 
       DN newUserDN = DN.valueOf("uid=test,ou=users,dc=example,dc=com");
       assertNotNull(DirectoryServer.getAuthenticatedUsers().get(newUserDN));
@@ -1654,8 +1655,7 @@ public class BindOperationTestCase
         "(objectClass=*)"
       };
 
-      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPSearch.run(System.out, System.err, args), 0);
 
       args = new String[]
       {
@@ -1668,8 +1668,7 @@ public class BindOperationTestCase
         "(objectClass=*)"
       };
 
-      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPSearch.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -1746,7 +1745,7 @@ public class BindOperationTestCase
         "(objectClass=*)"
       };
 
-      int rc = LDAPSearch.mainSearch(args, false, System.out, System.err);
+      int rc = LDAPSearch.run(System.out, System.err, args);
       assertFalse(rc == 0);
       assertFalse(rc == LDAPResultCode.INVALID_CREDENTIALS);
 
@@ -1761,8 +1760,7 @@ public class BindOperationTestCase
         "(objectClass=*)"
       };
 
-      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPSearch.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -1839,8 +1837,7 @@ public class BindOperationTestCase
         "(objectClass=*)"
       };
 
-      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
-                   LDAPResultCode.INVALID_CREDENTIALS);
+      assertEquals(LDAPSearch.run(System.out, System.err, args), LDAPResultCode.INVALID_CREDENTIALS);
 
       args = new String[]
       {
@@ -1853,8 +1850,7 @@ public class BindOperationTestCase
         "(objectClass=*)"
       };
 
-      assertEquals(LDAPSearch.mainSearch(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPSearch.run(System.out, System.err, args), 0);
     }
     finally
     {

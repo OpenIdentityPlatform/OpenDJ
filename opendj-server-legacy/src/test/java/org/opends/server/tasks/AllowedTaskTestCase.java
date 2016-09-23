@@ -21,7 +21,7 @@ import org.testng.annotations.BeforeClass;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.forgerock.opendj.ldap.DN;
 
 import static org.testng.Assert.*;
@@ -76,8 +76,7 @@ public class AllowedTaskTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                 LDAPResultCode.UNWILLING_TO_PERFORM);
+    assertEquals(LDAPModify.run(System.out, System.err, args), LDAPResultCode.UNWILLING_TO_PERFORM);
 
 
     // Update the set of allowed tasks to include the dummy task.
@@ -105,8 +104,7 @@ public class AllowedTaskTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                 LDAPResultCode.SUCCESS);
+    assertEquals(LDAPModify.run(System.out, System.err, args), LDAPResultCode.SUCCESS);
 
     waitTaskCompletedSuccessfully(DN.valueOf(
          "ds-task-id=testAllowedTask 2,cn=Scheduled Tasks,cn=Tasks"));
@@ -138,8 +136,7 @@ public class AllowedTaskTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                 LDAPResultCode.UNWILLING_TO_PERFORM);
+    assertEquals(LDAPModify.run(System.out, System.err, args), LDAPResultCode.UNWILLING_TO_PERFORM);
   }
 }
 

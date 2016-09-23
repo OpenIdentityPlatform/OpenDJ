@@ -366,7 +366,7 @@ public class StopDS
 
     if (quietMode.isPresent())
     {
-      out = NullOutputStream.printStream();
+      out = NullOutputStream.nullPrintStream();
     }
 
     if (checkStoppability.isPresent())

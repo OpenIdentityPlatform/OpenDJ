@@ -27,7 +27,7 @@ import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.Control;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
@@ -41,6 +41,7 @@ import static java.util.Arrays.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 /** Integration tests for collation matching rules. */
@@ -89,10 +90,9 @@ public final class CollationMatchingRuleTest
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D","cn=directory manager",
       "-w","password",
-      "-a",
       "-f", filePath,
     };
-    int err = LDAPModify.mainModify(args, false, null,null);
+    int err = LDAPModify.run(nullPrintStream(), nullPrintStream(), args);
     assertEquals(err,0);
   }
 

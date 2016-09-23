@@ -31,7 +31,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 /**
@@ -663,7 +664,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
               String.valueOf(TestCaseUtils.getServerLdapPort()), "-D",
               "cn=Directory Manager", "-w", "password", "-f", path1 };
 
-      assertFalse(LDAPModify.mainModify(args1, false, null, null) == 0);
+      assertFalse(LDAPModify.run(nullPrintStream(), nullPrintStream(), args1) == 0);
 
       String path2 =
           TestCaseUtils.createTempFile("dn: " + ruleDN,
@@ -676,8 +677,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
               "-X", "-D", "cn=Directory Manager", "-w", "password",
               "-f", path2 };
 
-      assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
-      assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
+      assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args2), 0);
+      assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args1), 0);
     }
     finally
     {
@@ -780,7 +781,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
               String.valueOf(TestCaseUtils.getServerLdapPort()), "-D",
               userDN, "-w", "password", "-f", path1 };
 
-      assertFalse(LDAPModify.mainModify(args1, false, null, null) == 0);
+      assertFalse(LDAPModify.run(nullPrintStream(), nullPrintStream(), args1) == 0);
 
       String path2 =
           TestCaseUtils.createTempFile("dn: " + ruleDN,
@@ -793,8 +794,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
               "-X", "-D", "cn=Directory Manager", "-w", "password",
               "-f", path2 };
 
-      assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
-      assertEquals(LDAPModify.mainModify(args1, false, null, null), 0);
+      assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args2), 0);
+      assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args1), 0);
     }
     finally
     {

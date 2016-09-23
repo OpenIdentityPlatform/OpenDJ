@@ -25,6 +25,7 @@ import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -34,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Base64;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -54,7 +56,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -68,7 +70,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.util.Base64;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -2854,7 +2855,7 @@ public class ModifyOperationTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
     path = TestCaseUtils.createTempFile(
@@ -2875,7 +2876,7 @@ public class ModifyOperationTestCase
       "-f", path
     };
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(LDAPModify.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -2912,7 +2913,7 @@ public class ModifyOperationTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
     assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
 
     path = TestCaseUtils.createTempFile(
@@ -2930,7 +2931,7 @@ public class ModifyOperationTestCase
       "-f", path
     };
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(LDAPModify.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
 
@@ -3098,7 +3099,7 @@ public class ModifyOperationTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
   }
 
    /**
@@ -3144,7 +3145,7 @@ public class ModifyOperationTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
   }
 
    /**
@@ -3194,7 +3195,7 @@ public class ModifyOperationTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
   }
 
   private String firstValue(List<Attribute> attrs)
@@ -3406,7 +3407,7 @@ public class ModifyOperationTestCase
       "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
       "1AIUXiE3Qcck";
 
-    ByteString value = ByteString.wrap(Base64.decode(certificateValue));
+    ByteString value = ByteString.wrap(Base64.decode(certificateValue).toByteArray());
     LDAPAttribute attr = new LDAPAttribute("usercertificate", value);
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, new LDAPModification(ADD, attr));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);

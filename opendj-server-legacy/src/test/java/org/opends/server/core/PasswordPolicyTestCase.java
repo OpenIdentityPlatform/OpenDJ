@@ -30,7 +30,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.extensions.InitializationUtils;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 /**
@@ -4247,7 +4248,7 @@ public class PasswordPolicyTestCase
         "-f", path
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+      assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
     }
     finally
     {
@@ -4378,7 +4379,7 @@ public class PasswordPolicyTestCase
                       "-f", newPWsPath
               };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+      assertEquals(LDAPModify.run(System.out, System.err, args),
               0);
 
 
@@ -4402,7 +4403,7 @@ public class PasswordPolicyTestCase
                       "-f", newPWsPath
               };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+      assertEquals(LDAPModify.run(System.out, System.err, args),
               0);
 
 
@@ -4467,7 +4468,7 @@ public class PasswordPolicyTestCase
       "-f", origPWPath
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -4478,8 +4479,7 @@ public class PasswordPolicyTestCase
     {
       // Make sure that we cannot re-use the original password as a new
       // password.
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertFalse(LDAPModify.run(System.out, System.err, args) == 0);
 
 
       // Change the password three times.
@@ -4508,8 +4508,7 @@ public class PasswordPolicyTestCase
         "-f", newPWsPath
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
 
 
       advanceTimeThread();
@@ -4525,8 +4524,7 @@ public class PasswordPolicyTestCase
         "-f", origPWPath
       };
 
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertFalse(LDAPModify.run(System.out, System.err, args) == 0);
 
 
       // Change the password one more time and then verify that we can use the
@@ -4551,8 +4549,7 @@ public class PasswordPolicyTestCase
         "-f", newPWsPath2
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
 
 
       advanceTimeThread();
@@ -4574,8 +4571,7 @@ public class PasswordPolicyTestCase
         "-f", firstPWPath
       };
 
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertFalse(LDAPModify.run(System.out, System.err, args) == 0);
 
 
       advanceTimeThread();
@@ -4588,8 +4584,7 @@ public class PasswordPolicyTestCase
         "--policy-name", "Default Password Policy",
         "--set", "password-history-count:2");
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -4643,7 +4638,7 @@ public class PasswordPolicyTestCase
       "-f", origPWPath
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, System.out, System.err), 0);
+    assertEquals(LDAPModify.run(System.out, System.err, args), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -4654,8 +4649,7 @@ public class PasswordPolicyTestCase
     {
       // Make sure that we can no longer re-use the original password as a new
       // password.
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertFalse(LDAPModify.run(System.out, System.err, args) == 0);
 
 
       // Change the password three times.
@@ -4684,8 +4678,7 @@ public class PasswordPolicyTestCase
         "-f", newPWsPath
       };
 
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                   0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
 
 
       // Make sure that we still can't use the original password.
@@ -4698,15 +4691,13 @@ public class PasswordPolicyTestCase
         "-f", origPWPath
       };
 
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertFalse(LDAPModify.run(System.out, System.err, args) == 0);
 
 
       // Sleep for six seconds and then verify that we can use the original
       // password again.
       Thread.sleep(6000);
-      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                  0);
+      assertEquals(LDAPModify.run(System.out, System.err, args), 0);
     }
     finally
     {
@@ -4748,7 +4739,7 @@ public class PasswordPolicyTestCase
       "-f", path
     };
 
-    assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+    assertFalse(LDAPModify.run(System.out, System.err, args) ==
                 0);
   }
 
@@ -4786,7 +4777,7 @@ public class PasswordPolicyTestCase
       "-f", path
     };
 
-    assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
+    assertFalse(LDAPModify.run(System.out, System.err, args) ==
                 0);
   }
 

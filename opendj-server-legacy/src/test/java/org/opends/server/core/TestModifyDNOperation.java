@@ -22,6 +22,7 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -47,7 +48,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
-import org.opends.server.tools.LDAPModify;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.CancelRequest;
@@ -844,7 +845,7 @@ public class TestModifyDNOperation extends OperationTestCase
       "-f", path
     };
 
-    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+    assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
     assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
 
     path = TestCaseUtils.createTempFile(
@@ -870,7 +871,7 @@ public class TestModifyDNOperation extends OperationTestCase
       "-f", path
     };
 
-    assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
+    assertFalse(LDAPModify.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
   /**

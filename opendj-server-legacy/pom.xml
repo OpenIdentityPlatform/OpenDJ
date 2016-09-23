@@ -105,6 +105,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-ldap-toolkit</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
     </dependency>
