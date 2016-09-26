@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -230,7 +230,7 @@ public class CertificateManagerTestCase
   public void testConstructorNullPIN()
          throws Exception
   {
-    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH, "JKS", null));
+    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH, "JKS", (String) null));
   }
 
 

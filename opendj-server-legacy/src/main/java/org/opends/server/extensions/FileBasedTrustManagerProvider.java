@@ -17,12 +17,10 @@
 package org.opends.server.extensions;
 
 import org.forgerock.i18n.LocalizableMessage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.security.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.util.List;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -36,13 +34,13 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ExpirationCheckTrustManager;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.extensions.FileBasedKeyManagerProvider.getKeyStorePIN;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -54,9 +52,6 @@ public class FileBasedTrustManagerProvider
        implements ConfigurationChangeListener<FileBasedTrustManagerProviderCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /** The DN of the configuration entry for this trust manager provider. */
-  private DN configEntryDN;
 
   /** The PIN needed to access the trust store. */
   private char[] trustStorePIN;
@@ -81,143 +76,21 @@ public class FileBasedTrustManagerProvider
   }
 
   @Override
-  public void initializeTrustManagerProvider(
-                   FileBasedTrustManagerProviderCfg configuration)
-         throws ConfigException, InitializationException
+  public void initializeTrustManagerProvider(FileBasedTrustManagerProviderCfg cfg)
+          throws ConfigException, InitializationException
   {
-    // Store the DN of the configuration entry and register to listen for any
-    // changes to the configuration entry.
-    currentConfig = configuration;
-    configEntryDN = configuration.dn();
-    configuration.addFileBasedChangeListener(this);
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
-    // Get the path to the trust store file.
-    trustStoreFile = configuration.getTrustStoreFile();
-    File f = getFileForPath(trustStoreFile);
-    if (!f.exists() || !f.isFile())
+    currentConfig = cfg;
+    trustStoreFile = getTrustStoreFile(cfg, ccr);
+    trustStoreType = getTrustStoreType(cfg, ccr);
+    trustStorePIN = getTrustStorePIN(cfg, ccr);
+    if (!ccr.getMessages().isEmpty())
     {
-      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(trustStoreFile, configEntryDN);
-      throw new InitializationException(message);
+      throw new InitializationException(ccr.getMessages().get(0));
     }
 
-    // Get the trust store type.  If none is specified, then use the default
-    // type.
-    trustStoreType = configuration.getTrustStoreType();
-    if (trustStoreType == null)
-    {
-      trustStoreType = KeyStore.getDefaultType();
-    }
-
-    try
-    {
-      KeyStore.getInstance(trustStoreType);
-    }
-    catch (KeyStoreException kse)
-    {
-      logger.traceException(kse);
-
-      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_INVALID_TYPE.
-          get(trustStoreType, configEntryDN, getExceptionMessage(kse));
-      throw new InitializationException(message);
-    }
-
-    // Get the PIN needed to access the contents of the trust store file.  We
-    // will offer several places to look for the PIN, and we will do so in the
-    // following order:
-    // - In a specified Java property
-    // - In a specified environment variable
-    // - In a specified file on the server filesystem.
-    // - As the value of a configuration attribute.
-    // In any case, the PIN must be in the clear.  If no PIN is provided, then
-    // it will be assumed that none is required to access the information in the
-    // trust store.
-    String pinProperty = configuration.getTrustStorePinProperty();
-    if (pinProperty == null)
-    {
-      String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
-      if (pinEnVar == null)
-      {
-        String pinFilePath = configuration.getTrustStorePinFile();
-        if (pinFilePath == null)
-        {
-          String pinStr = configuration.getTrustStorePin();
-          if (pinStr == null)
-          {
-            trustStorePIN = null;
-          }
-          else
-          {
-            trustStorePIN = pinStr.toCharArray();
-          }
-        }
-        else
-        {
-          File pinFile = getFileForPath(pinFilePath);
-          if (! pinFile.exists())
-          {
-            LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(pinFilePath, configEntryDN);
-            throw new InitializationException(message);
-          }
-          else
-          {
-            String pinStr;
-
-            BufferedReader br = null;
-            try
-            {
-              br = new BufferedReader(new FileReader(pinFile));
-              pinStr = br.readLine();
-            }
-            catch (IOException ioe)
-            {
-              LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.
-                  get(pinFilePath, configEntryDN, getExceptionMessage(ioe));
-              throw new InitializationException(message, ioe);
-            }
-            finally
-            {
-              close(br);
-            }
-
-            if (pinStr == null)
-            {
-              LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(pinFilePath, configEntryDN);
-              throw new InitializationException(message);
-            }
-            else
-            {
-              trustStorePIN     = pinStr.toCharArray();
-            }
-          }
-        }
-      }
-      else
-      {
-        String pinStr = System.getenv(pinEnVar);
-        if (pinStr == null)
-        {
-          LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(pinProperty, configEntryDN);
-          throw new InitializationException(message);
-        }
-        else
-        {
-          trustStorePIN = pinStr.toCharArray();
-        }
-      }
-    }
-    else
-    {
-      String pinStr = System.getProperty(pinProperty);
-      if (pinStr == null)
-      {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(pinProperty, configEntryDN);
-        throw new InitializationException(message);
-      }
-      else
-      {
-        trustStorePIN = pinStr.toCharArray();
-      }
-    }
+    cfg.addFileBasedChangeListener(this);
   }
 
   @Override
@@ -227,41 +100,31 @@ public class FileBasedTrustManagerProvider
   }
 
   @Override
-  public TrustManager[] getTrustManagers()
-         throws DirectoryException
+  public TrustManager[] getTrustManagers() throws DirectoryException
   {
     KeyStore trustStore;
-    try
+    try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
     {
       trustStore = KeyStore.getInstance(trustStoreType);
-
-      FileInputStream inputStream =
-           new FileInputStream(getFileForPath(trustStoreFile));
       trustStore.load(inputStream, trustStorePIN);
-      inputStream.close();
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_CANNOT_LOAD.get(
-          trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
 
     try
     {
       String trustManagerAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-      TrustManagerFactory trustManagerFactory =
-           TrustManagerFactory.getInstance(trustManagerAlgorithm);
+      TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerAlgorithm);
       trustManagerFactory.init(trustStore);
       TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
       TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
       for (int i=0; i < trustManagers.length; i++)
       {
-        newTrustManagers[i] = new ExpirationCheckTrustManager(
-                                       (X509TrustManager) trustManagers[i]);
+        newTrustManagers[i] = new ExpirationCheckTrustManager((X509TrustManager) trustManagers[i]);
       }
       return newTrustManagers;
     }
@@ -269,272 +132,107 @@ public class FileBasedTrustManagerProvider
     {
       logger.traceException(e);
 
-      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(
-          trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+      LocalizableMessage message =
+              ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
   }
 
   @Override
-  public boolean isConfigurationAcceptable(
-                         TrustManagerProviderCfg configuration,
-                         List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAcceptable(TrustManagerProviderCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    FileBasedTrustManagerProviderCfg config =
-            (FileBasedTrustManagerProviderCfg) configuration;
+    FileBasedTrustManagerProviderCfg config = (FileBasedTrustManagerProviderCfg) cfg;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
   @Override
-  public boolean isConfigurationChangeAcceptable(
-                      FileBasedTrustManagerProviderCfg configuration,
-                      List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(FileBasedTrustManagerProviderCfg cfg,
+                                                 List<LocalizableMessage> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
+    int startSize = unacceptableReasons.size();
 
-    // Get the path to the trust store file.
-    String newTrustStoreFile = configuration.getTrustStoreFile();
-    try
-    {
-      File f = getFileForPath(newTrustStoreFile);
-      if (!f.exists() || !f.isFile())
-      {
-        unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, cfgEntryDN));
-        configAcceptable = false;
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    getTrustStoreFile(cfg, ccr);
+    getTrustStoreType(cfg, ccr);
+    getTrustStorePIN(cfg, ccr);
+    unacceptableReasons.addAll(ccr.getMessages());
 
-      unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_CANNOT_DETERMINE_FILE.get(cfgEntryDN, getExceptionMessage(e)));
-      configAcceptable = false;
-    }
-
-    // Check to see if the trust store type is acceptable.
-    String storeType = configuration.getTrustStoreType();
-    if (storeType != null)
-    {
-      try
-      {
-        KeyStore.getInstance(storeType);
-      }
-      catch (KeyStoreException kse)
-      {
-        logger.traceException(kse);
-
-        unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
-            storeType, cfgEntryDN, getExceptionMessage(kse)));
-        configAcceptable = false;
-      }
-    }
-
-    // If there is a PIN property, then make sure the corresponding
-    // property is set.
-    String pinProp = configuration.getTrustStorePinProperty();
-    if (pinProp != null && System.getProperty(pinProp) == null)
-    {
-      unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN));
-      configAcceptable = false;
-    }
-
-    // If there is a PIN environment variable, then make sure the corresponding
-    // environment variable is set.
-    String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
-    if (pinEnVar != null && System.getenv(pinEnVar) == null)
-    {
-      unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN));
-      configAcceptable = false;
-    }
-
-    // If there is a PIN file, then make sure the file exists and is readable.
-    String pinFile = configuration.getTrustStorePinFile();
-    if (pinFile != null)
-    {
-      File f = getFileForPath(pinFile);
-      if (f.exists())
-      {
-        String pinStr = null;
-
-        BufferedReader br = null;
-        try
-        {
-          br = new BufferedReader(new FileReader(f));
-          pinStr = br.readLine();
-        }
-        catch (IOException ioe)
-        {
-          unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.get(
-              pinFile, cfgEntryDN, getExceptionMessage(ioe)));
-          configAcceptable = false;
-        }
-        finally
-        {
-          close(br);
-        }
-
-        if (pinStr == null)
-        {
-          LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(pinFile, cfgEntryDN);
-          unacceptableReasons.add(message);
-          configAcceptable = false;
-        }
-      }
-      else
-      {
-        LocalizableMessage message = ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(pinFile, cfgEntryDN);
-        unacceptableReasons.add(message);
-        configAcceptable = false;
-      }
-    }
-
-    return configAcceptable;
+    return startSize == unacceptableReasons.size();
   }
 
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-                                 FileBasedTrustManagerProviderCfg configuration)
+  public ConfigChangeResult applyConfigurationChange(FileBasedTrustManagerProviderCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    // Get the path to the trust store file.
-    String newTrustStoreFile = configuration.getTrustStoreFile();
-    File f = getFileForPath(newTrustStoreFile);
-    if (!f.exists() || !f.isFile())
-    {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
-    }
-
-    // Get the trust store type.  If none is specified, then use the default type.
-    String newTrustStoreType = configuration.getTrustStoreType();
-    if (newTrustStoreType == null)
-    {
-      newTrustStoreType = KeyStore.getDefaultType();
-    }
-
-    try
-    {
-      KeyStore.getInstance(newTrustStoreType);
-    }
-    catch (KeyStoreException kse)
-    {
-      logger.traceException(kse);
-
-      ccr.addMessage(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
-          newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-    }
-
-    // Get the PIN needed to access the contents of the trust store file.  We
-    // will offer several places to look for the PIN, and we will do so in the
-    // following order:
-    // - In a specified Java property
-    // - In a specified environment variable
-    // - In a specified file on the server filesystem.
-    // - As the value of a configuration attribute.
-    // In any case, the PIN must be in the clear.  If no PIN is provided, then
-    // it will be assumed that none is required to access the information in the
-    // trust store.
-    char[] newPIN = null;
-    String newPINProperty = configuration.getTrustStorePinProperty();
-    if (newPINProperty == null)
-    {
-      String newPINEnVar = configuration.getTrustStorePinEnvironmentVariable();
-      if (newPINEnVar == null)
-      {
-        String newPINFile = configuration.getTrustStorePinFile();
-        if (newPINFile == null)
-        {
-          String pinStr = configuration.getTrustStorePin();
-          if (pinStr == null)
-          {
-            newPIN = null;
-          }
-          else
-          {
-            newPIN = pinStr.toCharArray();
-          }
-        }
-        else
-        {
-          File pinFile = getFileForPath(newPINFile);
-          if (! pinFile.exists())
-          {
-            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-            ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(newPINFile, configEntryDN));
-          }
-          else
-          {
-            String pinStr = null;
-
-            BufferedReader br = null;
-            try
-            {
-              br = new BufferedReader(new FileReader(pinFile));
-              pinStr = br.readLine();
-            }
-            catch (IOException ioe)
-            {
-              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-              ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.get(
-                  newPINFile, configEntryDN, getExceptionMessage(ioe)));
-            }
-            finally
-            {
-              close(br);
-            }
-
-            if (pinStr == null)
-            {
-              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-              ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(newPINFile, configEntryDN));
-            }
-            else
-            {
-              newPIN = pinStr.toCharArray();
-            }
-          }
-        }
-      }
-      else
-      {
-        String pinStr = System.getenv(newPINEnVar);
-        if (pinStr == null)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(newPINEnVar, configEntryDN));
-        }
-        else
-        {
-          newPIN = pinStr.toCharArray();
-        }
-      }
-    }
-    else
-    {
-      String pinStr = System.getProperty(newPINProperty);
-      if (pinStr == null)
-      {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(newPINProperty, configEntryDN));
-      }
-      else
-      {
-        newPIN = pinStr.toCharArray();
-      }
-    }
+    String newTrustStoreFile = getTrustStoreFile(cfg, ccr);
+    String newTrustStoreType = getTrustStoreType(cfg, ccr);
+    char[] newPIN = getTrustStorePIN(cfg, ccr);
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
-      trustStoreFile = newTrustStoreFile;
-      trustStoreType = newTrustStoreType;
-      trustStorePIN  = newPIN;
-      currentConfig  = configuration;
+      currentConfig = cfg;
+      trustStorePIN   = newPIN;
+      trustStoreFile  = newTrustStoreFile;
+      trustStoreType  = newTrustStoreType;
     }
 
     return ccr;
+  }
+
+  /** Get the path to the key store file. */
+  private String getTrustStoreFile(FileBasedTrustManagerProviderCfg cfg, ConfigChangeResult ccr)
+  {
+    final String keyStoreFile = cfg.getTrustStoreFile();
+    final File f = getFileForPath(keyStoreFile);
+    if (!f.exists() || !f.isFile())
+    {
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(keyStoreFile, cfg.dn()));
+    }
+    return keyStoreFile;
+  }
+
+  /** Get the keystore type. If none is specified, then use the default type. */
+  private String getTrustStoreType(FileBasedTrustManagerProviderCfg cfg, ConfigChangeResult ccr)
+  {
+    final String trustStoreType = cfg.getTrustStoreType();
+    if (trustStoreType != null)
+    {
+      try
+      {
+        KeyStore.getInstance(trustStoreType);
+        return trustStoreType;
+      }
+      catch (KeyStoreException e)
+      {
+        logger.traceException(e);
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(trustStoreType, cfg.dn(), getExceptionMessage(e)));
+      }
+    }
+    return KeyStore.getDefaultType();
+  }
+
+  private char[] getTrustStorePIN(FileBasedTrustManagerProviderCfg cfg, ConfigChangeResult ccr)
+  {
+    try
+    {
+      return getKeyStorePIN(cfg.getTrustStorePinProperty(),
+                            cfg.getTrustStorePinEnvironmentVariable(),
+                            cfg.getTrustStorePinFile(),
+                            cfg.getTrustStorePin(),
+                            cfg.dn(),
+                            ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET,
+                            ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET,
+                            ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE,
+                            ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ,
+                            ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY);
+    }
+    catch (InitializationException e)
+    {
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(e.getMessageObject());
+      return null;
+    }
   }
 }

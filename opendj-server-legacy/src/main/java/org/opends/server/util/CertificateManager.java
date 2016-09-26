@@ -12,12 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
-import java.io.*;
-import java.security.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -95,7 +97,32 @@ public final class CertificateManager {
     return true;
   }
 
-
+    /**
+     * Creates a new certificate manager instance with the provided information.
+     *
+     * @param  keyStorePath  The path to the key store file, or "NONE" if the key
+     *                       store type is "PKCS11".  For the other key store
+     *                       types, the file does not need to exist if a new
+     *                       self-signed certificate or certificate signing
+     *                       request is to be generated, although the directory
+     *                       containing the file must exist.  The key store file
+     *                       must exist if import or export operations are to be
+     *                       performed.
+     * @param  keyStoreType  The key store type to use.  It should be one of
+     *                       {@code KEY_STORE_TYPE_JKS},
+     *                       {@code KEY_STORE_TYPE_JCEKS},
+     *                       {@code KEY_STORE_TYPE_PKCS11}, or
+     *                       {@code KEY_STORE_TYPE_PKCS12}.
+     * @param  keyStorePassword   The password required to access the key store.
+     *                         It may be {@code null}.
+     * @throws IllegalArgumentException If an argument is invalid or {@code null}.
+     *
+     */
+    public CertificateManager(String keyStorePath, String keyStoreType, String keyStorePassword)
+            throws IllegalArgumentException
+    {
+      this(keyStorePath, keyStoreType, keyStorePassword == null ? null : keyStorePassword.toCharArray());
+    }
 
   /**
    * Creates a new certificate manager instance with the provided information.
@@ -114,13 +141,12 @@ public final class CertificateManager {
    *                       {@code KEY_STORE_TYPE_PKCS11}, or
    *                       {@code KEY_STORE_TYPE_PKCS12}.
    * @param  keyStorePassword   The password required to access the key store.
-   *                         It must not be {@code null}.
+   *                         It may be {@code null}.
    * @throws IllegalArgumentException If an argument is invalid or {@code null}.
    *
    */
-  public CertificateManager(String keyStorePath, String keyStoreType,
-                            String keyStorePassword)
-  throws IllegalArgumentException {
+  public CertificateManager(String keyStorePath, String keyStoreType, char[] keyStorePassword)
+          throws IllegalArgumentException {
     ensureValid(keyStorePath, KEYSTORE_PATH_MSG);
     ensureValid(keyStoreType, KEYSTORE_TYPE_MSG);
     if (keyStoreType.equals(KEY_STORE_TYPE_PKCS11)) {
@@ -153,9 +179,8 @@ public final class CertificateManager {
     }
     this.keyStorePath = keyStorePath;
     this.keyStoreType = keyStoreType;
-    this.password =
-        keyStorePassword == null ? null : keyStorePassword.toCharArray();
-    keyStore = null;
+    this.password = keyStorePassword;
+    this.keyStore = null;
   }
 
 
@@ -418,8 +443,7 @@ public final class CertificateManager {
       }
       else
       {
-        CertificateManager certManager2 = new CertificateManager(keyStorePath,
-            keyStoreType, new String(password));
+        CertificateManager certManager2 = new CertificateManager(keyStorePath, keyStoreType, password);
         String[] aliases2 = certManager2.getCertificateAliases();
         if (aliases2 != null && aliases2.length == 1)
         {
