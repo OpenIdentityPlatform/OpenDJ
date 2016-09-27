@@ -17,7 +17,7 @@
 package org.opends.server.tools.dsreplication;
 
 import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
-import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServerForStartStop;
+import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 
@@ -90,7 +90,7 @@ public class LocalPurgeHistorical
 
     try
     {
-      EmbeddedDirectoryServer server = manageEmbeddedDirectoryServerForStartStop(
+      EmbeddedDirectoryServer server = manageEmbeddedDirectoryServerForRestrictedOps(
           configParams()
             .configurationFile(configFile)
             .disableConnectionHandlers(true));

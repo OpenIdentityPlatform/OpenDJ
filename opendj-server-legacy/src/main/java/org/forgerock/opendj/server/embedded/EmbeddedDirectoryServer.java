@@ -33,10 +33,6 @@ import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
-import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.opends.quicksetup.TempLogFile;
 import org.opends.server.config.ConfigConstants;
@@ -50,6 +46,7 @@ import org.opends.server.tools.upgrade.UpgradeCli;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -69,9 +66,6 @@ public class EmbeddedDirectoryServer
 
   /** The connection parameters for the server. */
   private final ConnectionParameters connectionParams;
-
-  /** The connection factory to get connections to the server. */
-  private final LDAPConnectionFactory ldapConnectionFactory;
 
   /** The output stream used for feedback during operations on server. */
   private final OutputStream outStream;
@@ -100,19 +94,14 @@ public class EmbeddedDirectoryServer
     this.connectionParams = connParams;
     this.outStream = out;
     this.errStream = err;
-    if (connectionParams != null)
-    {
-      SimpleBindRequest authRequest = Requests.newSimpleBindRequest(
-          connectionParams.getBindDn(), connectionParams.getBindPassword().toCharArray());
-      ldapConnectionFactory = new LDAPConnectionFactory(
-          connectionParams.getHostName(),
-          connectionParams.getLdapPort(),
-          Options.defaultOptions().set(LDAPConnectionFactory.AUTHN_BIND_REQUEST, authRequest));
-    }
-    else
-    {
-      ldapConnectionFactory = null;
-    }
+    System.setProperty(PROPERTY_SERVER_ROOT, configParams.getServerRootDirectory());
+    System.setProperty(QUICKSETUP_ROOT_PROPERTY, configParams.getServerRootDirectory());
+    String instanceDir = configParams.getServerInstanceDirectory() != null ?
+        configParams.getServerInstanceDirectory() :
+        configParams.getServerRootDirectory();
+    System.setProperty(QUICKSETUP_INSTANCE_PROPERTY, instanceDir);
+    System.setProperty(PROPERTY_INSTANCE_ROOT, instanceDir);
+
   }
 
   private EmbeddedDirectoryServer(ConfigParameters configParams, ConnectionParameters connParams)
@@ -148,9 +137,15 @@ public class EmbeddedDirectoryServer
   }
 
   /**
-   * Creates an instance of an embedded directory server for start/stop operation.
+   * Creates an instance of an embedded directory server to perform a restricted set of operations that
+   * do not need connection parameters.
    * <p>
-   * To be able to perform any operation on the server, use the alternative {@code defineServer()}
+   * The following operations won't be allowed because they require the connection parameters: setup,
+   * configureReplication, initializeReplication, isReplicationRunning, importLDIF
+   * and getInternalConnection without argument
+   * ({@code getInternalConnection(DN)} method is allowed).
+   * <p>
+   * To be able to perform any operation on the server, use the alternative {@code manageEmbeddedDirectoryServer()}
    * method.
    *
    * @param configParams
@@ -161,23 +156,31 @@ public class EmbeddedDirectoryServer
    *          Error stream used for feedback during operations on server
    * @return the directory server
    */
-  public static EmbeddedDirectoryServer manageEmbeddedDirectoryServerForStartStop(ConfigParameters configParams,
+  public static EmbeddedDirectoryServer manageEmbeddedDirectoryServerForRestrictedOps(ConfigParameters configParams,
       OutputStream out, OutputStream err)
   {
     return new EmbeddedDirectoryServer(configParams, null, out, err);
   }
 
   /**
-   * Creates an instance of an embedded directory server for start/stop operation.
+   * Creates an instance of an embedded directory server to perform a restricted set of operations that
+   * do not need connection parameters.
    * <p>
-   * To be able to perform any operation on the server, use the alternative {@code defineServer()}
+   * The following operations won't be allowed because they require the connection parameters: setup,
+   * configureReplication, initializeReplication, isReplicationRunning, importLDIF
+   * and getInternalConnection without argument
+   * ({@code getInternalConnection(DN)} method is allowed).
+   * <p>
+   * To be able to perform any operation on the server, use the alternative {@code manageEmbeddedDirectoryServer()}
    * method.
+   * <p>
+   * Standard out and error streams will be used for any output during operations on the embedded server.
    *
    * @param configParams
    *          The basic configuration parameters for the server.
    * @return the directory server
    */
-  public static EmbeddedDirectoryServer manageEmbeddedDirectoryServerForStartStop(
+  public static EmbeddedDirectoryServer manageEmbeddedDirectoryServerForRestrictedOps(
       ConfigParameters configParams)
   {
     return new EmbeddedDirectoryServer(configParams, null, System.out, System.err);
@@ -207,6 +210,26 @@ public class EmbeddedDirectoryServer
       throw new EmbeddedDirectoryServerException(ERR_EMBEDDED_SERVER_CONFIGURE_REPLICATION.get(
           configParams.getServerRootDirectory(), parameters.getReplicationPortSource(),
           parameters.getHostNameDestination(), parameters.getReplicationPortDestination(), returnCode));
+    }
+  }
+
+  /**
+   * Returns the build version of the directory server as a String.
+   * <p>
+   * This version corresponds to the instance version, as written in the "config/buildinfo" file.
+   *
+   * @return the version
+   * @throws EmbeddedDirectoryServerException
+   *            If an error occurs while retrieving the version
+   */
+  public String getBuildVersion() throws EmbeddedDirectoryServerException
+  {
+    try
+    {
+      return BuildVersion.instanceVersion().toString();
+    }
+    catch (InitializationException e) {
+      throw new EmbeddedDirectoryServerException(ERR_EMBEDDED_SERVER_BUILD_VERSION.get(e.getLocalizedMessage()), e);
     }
   }
 
@@ -243,14 +266,13 @@ public class EmbeddedDirectoryServer
    * @throws EmbeddedDirectoryServerException
    *            If the retrieval of the configuration fails
    */
-  @SuppressWarnings("resource")
   public ManagementContext getConfiguration() throws EmbeddedDirectoryServerException
   {
     try
     {
       if (isRunning())
       {
-        Connection ldapConnection = ldapConnectionFactory.getConnection();
+        Connection ldapConnection = getInternalConnection();
         return newManagementContext(ldapConnection, LDAPProfile.getInstance());
       }
       return newLDIFManagementContext(new File(configParams.getConfigurationFile()));
@@ -260,6 +282,24 @@ public class EmbeddedDirectoryServer
       throw new EmbeddedDirectoryServerException(
           ERR_EMBEDDED_SERVER_LDIF_MANAGEMENT_CONTEXT.get(configParams.getConfigurationFile()));
     }
+  }
+
+  /**
+   * Returns an internal connection to the server that will be authenticated automatically with
+   * the bind DN defined for this server.
+   * <p>
+   * This method is available only if connection parameters are provided for the server.
+   * If the connection must be authenticated with another DN or if no connection parameters have been
+   * provided, use the alternate method {@code getInternalConnection(DN userDn)}.
+   *
+   * @return the connection
+   * @throws EmbeddedDirectoryServerException
+   *            If the connection can't be returned
+   */
+  public Connection getInternalConnection() throws EmbeddedDirectoryServerException
+  {
+    Reject.checkNotNull(connectionParams);
+    return getInternalConnection(DN.valueOf(connectionParams.getBindDn()));
   }
 
   /**
@@ -296,7 +336,8 @@ public class EmbeddedDirectoryServer
   public void importLDIF(ImportParameters parameters) throws EmbeddedDirectoryServerException
   {
     checkServerIsRunning();
-    Reject.checkNotNull(connectionParams);    int returnCode = ImportLDIF.mainImportLDIF(
+    Reject.checkNotNull(connectionParams);
+    int returnCode = ImportLDIF.mainImportLDIF(
         parameters.toCommandLineArguments(configParams.getConfigurationFile(), connectionParams),
         !isRunning(), outStream, errStream);
 
@@ -333,15 +374,14 @@ public class EmbeddedDirectoryServer
   /**
    * Indicates whether replication is currently running for the embedded server.
    *
-   * @param parameters
-   *            The parameters for the replication.
    * @return {@code true} if replication is running, {@code false} otherwise
    */
-  public boolean isReplicationRunning(ReplicationParameters parameters)
+  public boolean isReplicationRunning()
   {
     Reject.checkNotNull(connectionParams);
     int returnCode = ReplicationCliMain.mainCLI(
-        parameters.toCommandLineArgumentsStatus(configParams.getConfigurationFile(), connectionParams),
+        ReplicationParameters.replicationParams()
+          .toCommandLineArgumentsStatus(configParams.getConfigurationFile(), connectionParams),
         !isRunning(), outStream, errStream);
     return returnCode == 0;
   }
@@ -360,7 +400,7 @@ public class EmbeddedDirectoryServer
    * Set this server up from the root directory.
    * <p>
    * As a pre-requisite, the OpenDJ archive must have been previously extracted to some
-   * directory. To perform a setup directly from an archive, see {@code setupFromArchive()}.
+   * directory. To extract an archive for setup, see {@code extractArchiveForSetup()}.
    *
    * @param parameters
    *            The setup parameters.
@@ -370,14 +410,6 @@ public class EmbeddedDirectoryServer
   public void setup(SetupParameters parameters) throws EmbeddedDirectoryServerException
   {
     Reject.checkNotNull(connectionParams);
-    System.setProperty(PROPERTY_SERVER_ROOT, configParams.getServerRootDirectory());
-    System.setProperty(QUICKSETUP_ROOT_PROPERTY, configParams.getServerRootDirectory());
-    String instanceDir = configParams.getServerInstanceDirectory() != null ?
-        configParams.getServerInstanceDirectory() :
-        configParams.getServerRootDirectory();
-    System.setProperty(QUICKSETUP_INSTANCE_PROPERTY, instanceDir);
-    System.setProperty(PROPERTY_INSTANCE_ROOT, instanceDir);
-
     int returnCode = InstallDS.mainCLI(parameters.toCommandLineArguments(connectionParams), outStream, errStream,
         TempLogFile.newTempLogFile(EMBEDDED_OPEN_DJ_PREFIX));
 
@@ -401,7 +433,6 @@ public class EmbeddedDirectoryServer
    */
   public void extractArchiveForSetup(File openDJZipFile) throws EmbeddedDirectoryServerException
   {
-    Reject.checkNotNull(connectionParams);
     try
     {
       File serverRoot = new File(configParams.getServerRootDirectory());

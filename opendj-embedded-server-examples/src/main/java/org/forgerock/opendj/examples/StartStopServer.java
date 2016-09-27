@@ -17,7 +17,7 @@
 package org.forgerock.opendj.examples;
 
 import static org.forgerock.opendj.server.embedded.ConfigParameters.configParams;
-import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServerForStartStop;
+import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.*;
 
 import java.nio.file.Paths;
 
@@ -48,7 +48,7 @@ public final class StartStopServer {
         final String serverRootDir = args[0];
 
         final EmbeddedDirectoryServer server =
-                manageEmbeddedDirectoryServerForStartStop(
+               manageEmbeddedDirectoryServerForRestrictedOps(
                         configParams()
                             .serverRootDirectory(serverRootDir)
                             .configurationFile(Paths.get(serverRootDir, "config", "config.ldif").toString()),
