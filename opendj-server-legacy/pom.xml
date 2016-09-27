@@ -666,9 +666,15 @@
                 <Export-Package>org.forgerock.opendj.server.embedded</Export-Package>
                 <!-- Import je changelog since it is not shipped in the main jar -->
                 <Import-Package>
-                  org.opends.server.replication.server.changelog.je,
+                  org.opends.server.replication.server.changelog.je;resolution:=optional,
+                  com.sleepycat.je*;resolution:=optional,
                   ${opendj.osgi.import}
                 </Import-Package>
+                <Embed-Dependency>
+                  forgerock-persistit-core,
+                  <!--je,-->
+                  jcip-annotations
+                </Embed-Dependency>
               </instructions>
             </configuration>
           </execution>
