@@ -759,6 +759,44 @@ ds-cfg-rotation-policy: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation Pol
 ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
 
+dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
+objectClass: top
+objectClass: ds-cfg-log-publisher
+objectClass: ds-cfg-debug-log-publisher
+objectClass: ds-cfg-file-based-debug-log-publisher
+cn: File-Based Debug Logger
+ds-cfg-java-class: org.opends.server.loggers.TextDebugLogPublisher
+ds-cfg-enabled: false
+ds-cfg-log-file: logs/debug
+ds-cfg-log-file-permissions: 640
+ds-cfg-asynchronous: false
+
+dn: cn=Json File-Based Access Logger,cn=Loggers,cn=config
+objectClass: ds-cfg-log-publisher
+objectClass: ds-cfg-access-log-publisher
+objectClass: top
+objectClass: ds-cfg-json-file-access-log-publisher
+cn: Json File-Based Access Logger
+ds-cfg-enabled: true
+ds-cfg-java-class: org.opends.server.loggers.JsonFileAccessLogPublisher
+ds-cfg-log-directory: logs
+ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+
+dn: cn=Json File-Based HTTP Access Logger,cn=Loggers,cn=config
+objectClass: ds-cfg-log-publisher
+objectClass: ds-cfg-http-access-log-publisher
+objectClass: top
+objectClass: ds-cfg-json-file-http-access-log-publisher
+cn: Json File-Based HTTP Access Logger
+ds-cfg-enabled: false
+ds-cfg-java-class: org.opends.server.loggers.CommonAuditHTTPAccessLogPublisher
+ds-cfg-log-directory: logs
+ds-cfg-rotation-policy: cn=24 Hours Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
+ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
+
 dn: cn=Replication Repair Logger,cn=Loggers,cn=config
 objectClass: top
 objectClass: ds-cfg-log-publisher
@@ -775,18 +813,6 @@ ds-cfg-asynchronous: false
 ds-cfg-rotation-policy: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-retention-policy: cn=File Count Retention Policy,cn=Log Retention Policies,cn=config
-
-dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
-objectClass: top
-objectClass: ds-cfg-log-publisher
-objectClass: ds-cfg-debug-log-publisher
-objectClass: ds-cfg-file-based-debug-log-publisher
-cn: File-Based Debug Logger
-ds-cfg-java-class: org.opends.server.loggers.TextDebugLogPublisher
-ds-cfg-enabled: false
-ds-cfg-log-file: logs/debug
-ds-cfg-log-file-permissions: 640
-ds-cfg-asynchronous: false
 
 dn: cn=Log Rotation Policies,cn=config
 objectClass: top

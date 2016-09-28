@@ -572,6 +572,7 @@ public class CommonAudit
             ERR_COMMON_AUDIT_UNSUPPORTED_LOG_ROTATION_POLICY.get(publisher.getDn(), policyConfig.dn()));
       }
     }
+    fileRotation.setRotationFileSuffix(".yyyyMMddHHmmss");
     auditConfig.setFileRotation(fileRotation);
   }
 
