@@ -30,7 +30,7 @@
     </dependencySet>
   </dependencySets>
   <fileSets>
-    <!-- Creates bat/ directory -->
+    <!-- Creates bat/ directory with server binaries -->
     <fileSet>
       <directory>${basedir}/resource/bin</directory>
       <outputDirectory>bat</outputDirectory>
@@ -45,7 +45,13 @@
       <lineEnding>windows</lineEnding>
     </fileSet>
 
-    <!-- Creates bin/ directory -->
+    <!-- Add opendj-ldap-toolkit binaries into bat/ directory -->
+    <fileSet>
+      <directory>${project.build.directory}/opendj-ldap-toolkit/bat</directory>
+      <outputDirectory>bat</outputDirectory>
+    </fileSet>
+
+    <!-- Creates bin/ directory with server and ldap toolkit binaries -->
     <fileSet>
       <directory>${basedir}/resource/bin</directory>
       <outputDirectory>bin</outputDirectory>
@@ -55,6 +61,12 @@
       </excludes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>
+    </fileSet>
+
+    <!-- Add opendj-ldap-toolkit binaries into bin/ directory -->
+    <fileSet>
+      <directory>${project.build.directory}/opendj-ldap-toolkit/bin</directory>
+      <outputDirectory>bin</outputDirectory>
     </fileSet>
 
     <!-- Add legal-notices/THIRDPARTYREADME.txt -->

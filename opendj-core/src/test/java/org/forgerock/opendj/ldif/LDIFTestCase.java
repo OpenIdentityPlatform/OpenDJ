@@ -868,7 +868,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      * Testing the diff function. The following example is extracted from the admin guide.
      *
      * @see <a
-     *      href=http://opendj.forgerock.org/doc/admin-guide/index.html#ldif-diff
+     *      href=http://opendj.forgerock.org/doc/admin-guide/index.html#ldifdiff
      *      -1 result”>Admin Guide</a>
      * @throws Exception
      */
