@@ -125,8 +125,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(abandonOperation, "ABANDON");
+    addResultCodeAndMessage(abandonOperation, builder);
     appendAbandonRequest(abandonOperation, builder);
-    appendResultCodeAndMessage(abandonOperation, builder);
 
     sendEvent(builder.toEvent());
   }
@@ -139,8 +139,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(addOperation, "ADD");
+    addResultCodeAndMessage(addOperation, builder);
     appendAddRequest(addOperation, builder);
-    appendResultCodeAndMessage(addOperation, builder);
     DN proxiedAuthorizationDN = addOperation.getProxiedAuthorizationDN();
     appendProxiedAuthorizationDNIfNeeded(builder, proxiedAuthorizationDN);
 
@@ -156,8 +156,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
     }
 
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(bindOperation, "BIND");
+    addResultCodeAndMessage(bindOperation, builder);
     appendBindRequest(bindOperation, builder);
-    appendResultCodeAndMessage(bindOperation, builder);
 
     final LocalizableMessage failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
@@ -211,8 +211,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(compareOperation, "COMPARE");
+    addResultCodeAndMessage(compareOperation, builder);
     appendCompareRequest(compareOperation, builder);
-    appendResultCodeAndMessage(compareOperation, builder);
     DN proxiedAuthorizationDN = compareOperation.getProxiedAuthorizationDN();
     appendProxiedAuthorizationDNIfNeeded(builder, proxiedAuthorizationDN);
 
@@ -235,7 +235,6 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = openDJAccessEvent()
-        .eventName("DJ-" + clientConnection.getProtocol() + "-" + "CONNECT")
         .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
         .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .request(clientConnection.getProtocol(), "CONNECT")
@@ -254,8 +253,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(deleteOperation, "DELETE");
+    addResultCodeAndMessage(deleteOperation, builder);
     appendDeleteRequest(deleteOperation, builder);
-    appendResultCodeAndMessage(deleteOperation, builder);
     DN proxiedAuthorizationDN = deleteOperation.getProxiedAuthorizationDN();
     appendProxiedAuthorizationDNIfNeeded(builder, proxiedAuthorizationDN);
 
@@ -271,7 +270,6 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = openDJAccessEvent()
-        .eventName("DJ-" + clientConnection.getProtocol() + "-" + "DISCONNECT")
         .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
         .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .request(clientConnection.getProtocol(), "DISCONNECT")
@@ -292,8 +290,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(extendedOperation, "EXTENDED");
+    addResultCodeAndMessage(extendedOperation, builder);
     appendExtendedRequest(extendedOperation, builder);
-    appendResultCodeAndMessage(extendedOperation, builder);
     final String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
@@ -316,8 +314,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(modifyDNOperation, "MODIFYDN");
+    addResultCodeAndMessage(modifyDNOperation, builder);
     appendModifyDNRequest(modifyDNOperation, builder);
-    appendResultCodeAndMessage(modifyDNOperation, builder);
     DN proxiedAuthorizationDN = modifyDNOperation.getProxiedAuthorizationDN();
     appendProxiedAuthorizationDNIfNeeded(builder, proxiedAuthorizationDN);
 
@@ -332,8 +330,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(modifyOperation, "MODIFY");
+    addResultCodeAndMessage(modifyOperation, builder);
     appendModifyRequest(modifyOperation, builder);
-    appendResultCodeAndMessage(modifyOperation, builder);
     DN proxiedAuthorizationDN = modifyOperation.getProxiedAuthorizationDN();
     appendProxiedAuthorizationDNIfNeeded(builder, proxiedAuthorizationDN);
 
@@ -348,10 +346,8 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       return;
     }
     OpenDJAccessAuditEventBuilder<?> builder = getEventBuilder(searchOperation, "SEARCH");
-    builder
-        .ldapSearch(searchOperation)
-        .ldapNEntries(searchOperation.getEntriesSent());
-        appendResultCodeAndMessage(searchOperation, builder);
+    addResultCodeAndMessage(searchOperation, builder);
+    builder.ldapSearch(searchOperation).ldapNEntries(searchOperation.getEntriesSent());
     DN proxiedAuthorizationDN = searchOperation.getProxiedAuthorizationDN();
     appendProxiedAuthorizationDNIfNeeded(builder, proxiedAuthorizationDN);
 
@@ -435,7 +431,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
     builder.ldapDn(modifyOperation.getRawEntryDN().toString());
   }
 
-  private OpenDJAccessAuditEventBuilder<?> appendResultCodeAndMessage(
+  private OpenDJAccessAuditEventBuilder<?> addResultCodeAndMessage(
       Operation operation, OpenDJAccessAuditEventBuilder<?> builder)
   {
     final LocalizableMessageBuilder message = operation.getErrorMessage();
@@ -461,7 +457,6 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
     ClientConnection clientConn = operation.getClientConnection();
 
     OpenDJAccessAuditEventBuilder<?> builder = openDJAccessEvent()
-      .eventName("DJ-" + clientConn.getProtocol() + "-" + opType)
       .client(clientConn.getClientAddress(), clientConn.getClientPort())
       .server(clientConn.getServerAddress(), clientConn.getServerPort())
       .request(clientConn.getProtocol(), opType)

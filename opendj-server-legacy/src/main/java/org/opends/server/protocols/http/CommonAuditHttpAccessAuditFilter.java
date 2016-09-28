@@ -53,7 +53,6 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
 
     private final RequestHandler auditServiceHandler;
     private final TimeService time;
-    private final String productName;
 
     /**
      * Constructs a new HttpAccessAuditFilter.
@@ -63,7 +62,6 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
      * @param time The {@link TimeService} to use.
      */
     public CommonAuditHttpAccessAuditFilter(String productName, RequestHandler auditServiceHandler, TimeService time) {
-        this.productName = productName;
         this.auditServiceHandler = auditServiceHandler;
         this.time = time;
     }
@@ -74,9 +72,8 @@ public class CommonAuditHttpAccessAuditFilter implements Filter {
 
         AccessAuditEventBuilder<?> accessAuditEventBuilder = accessEvent();
 
-        String protocol = clientContext.isSecure() ? "HTTPS" : "HTTP";
         accessAuditEventBuilder
-                .eventName(productName + "-" + protocol + "-ACCESS")
+                .eventName("DJ-HTTP")
                 .timestamp(time.now())
                 .transactionIdFromContext(context)
                 .serverFromContext(clientContext)

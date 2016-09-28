@@ -26,6 +26,7 @@ import org.forgerock.audit.events.AccessAuditEventBuilder;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.json.JsonValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Reject;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
@@ -44,8 +45,8 @@ import org.opends.server.types.Operation;
 class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> extends AccessAuditEventBuilder<T>
 {
 
-  private static final String LDAP_VALUE_KEY = "ldap";
-  private JsonValue ldapValue;
+  private JsonValue opRequest;
+  private JsonValue opResponse;
 
   private OpenDJAccessAuditEventBuilder()
   {
@@ -55,7 +56,7 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
   @SuppressWarnings("rawtypes")
   public static <T> OpenDJAccessAuditEventBuilder<?> openDJAccessEvent()
   {
-    return new OpenDJAccessAuditEventBuilder();
+    return ((OpenDJAccessAuditEventBuilder<?>) new OpenDJAccessAuditEventBuilder()).eventName("DJ-LDAP");
   }
 
   public T ldapAdditionalItems(Operation op)
@@ -63,76 +64,73 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
     String items = getAdditionalItemsAsString(op);
     if (!items.isEmpty())
     {
-      getLdapValue().put("items", items);
+      getOpResponse().put("additionalItems", items);
     }
     return self();
   }
 
   public T ldapAttr(String attr)
   {
-    getLdapValue().put("attr", attr);
+    getOpRequest().put("attr", attr);
     return self();
   }
 
   public T ldapConnectionId(long id)
   {
-    getLdapValue().put("connId", id);
+    getOpRequest().put("connId", id);
     return self();
   }
 
   public T ldapControls(Operation operation)
   {
-    JsonValue ldapValue = getLdapValue();
     List<Control> requestControls = operation.getRequestControls();
     if (!requestControls.isEmpty())
     {
-      ldapValue.put("reqControls", getControlsAsString(requestControls));
+      getOpRequest().put("controls", getControlsAsString(requestControls));
     }
     List<Control> responseControls = operation.getResponseControls();
     if (!responseControls.isEmpty())
     {
-      ldapValue.put("respControls", getControlsAsString(responseControls));
+      getOpResponse().put("controls", getControlsAsString(responseControls));
     }
     return self();
   }
 
   public T ldapDn(String dn)
   {
-    getLdapValue().put("dn", dn);
+    getOpRequest().put("dn", dn);
     return self();
   }
 
   public T ldapFailureMessage(String msg)
   {
-    getLdapValue().put("failureReason", msg);
+    getOpResponse().put("failureReason", msg);
     return self();
   }
 
   public T ldapIds(Operation op)
   {
-    JsonValue ldapValue = getLdapValue();
-    ldapValue.put("connId", op.getConnectionID());
-    ldapValue.put("msgId", op.getMessageID());
+    getOpRequest().put("connId", op.getConnectionID());
+    getOpRequest().put("msgId", op.getMessageID());
     return self();
   }
 
   public T ldapIdToAbandon(int id)
   {
-    getLdapValue().put("idToAbandon", id);
+    getOpRequest().put("idToAbandon", id);
     return self();
   }
 
   public T ldapMaskedResultAndMessage(Operation operation)
   {
-    JsonValue ldapValue = getLdapValue();
     if (operation.getMaskedResultCode() != null)
     {
-      ldapValue.put("maskedResult", operation.getMaskedResultCode().intValue());
+      getOpResponse().put("maskedResult", operation.getMaskedResultCode().intValue());
     }
     final LocalizableMessageBuilder maskedMsg = operation.getMaskedErrorMessage();
     if (maskedMsg != null && maskedMsg.length() > 0)
     {
-      ldapValue.put("maskedMessage", maskedMsg.toString());
+      getOpResponse().put("maskedMessage", maskedMsg.toString());
     }
     return self();
   }
@@ -141,66 +139,68 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
   {
     if (msg != null)
     {
-      getLdapValue().put("message", msg.toString());
+      getOpRequest().put("message", msg.toString());
     }
     return self();
   }
 
   public T ldapName(String name)
   {
-    getLdapValue().put("name", name);
+    getOpRequest().put("name", name);
     return self();
   }
 
   public T ldapModifyDN(ModifyDNOperation modifyDNOperation)
   {
-    JsonValue ldapValue = getLdapValue();
-    ldapValue.put("newRDN", modifyDNOperation.getRawNewRDN().toString());
-    ldapValue.put("newSup", modifyDNOperation.getRawNewSuperior().toString());
-    ldapValue.put("deleteOldRDN", modifyDNOperation.deleteOldRDN());
+    getOpRequest().put("newRDN", modifyDNOperation.getRawNewRDN().toString());
+    final ByteString rawNewSuperior = modifyDNOperation.getRawNewSuperior();
+    if (rawNewSuperior != null)
+    {
+      getOpRequest().put("newSup", rawNewSuperior.toString());
+    }
+    getOpRequest().put("deleteOldRDN", modifyDNOperation.deleteOldRDN());
     return self();
   }
 
   public T ldapNEntries(int nbEntries)
   {
-    getLdapValue().put("nentries", nbEntries);
+    getOpResponse().put("nentries", nbEntries);
     return self();
   }
 
   public T ldapOid(String oid)
   {
-    getLdapValue().put("oid", oid);
+    getOpRequest().put("oid", oid);
     return self();
   }
 
   public T ldapProtocolVersion(String version)
   {
-    getLdapValue().put("version", version);
+    getOpRequest().put("version", version);
     return self();
   }
 
   public T ldapReason(DisconnectReason reason)
   {
-    getLdapValue().put("reason", reason.toString());
+    getOpResponse().put("reason", reason.toString());
     return self();
   }
 
   public T ldapSearch(SearchOperation searchOperation)
   {
-    JsonValue ldapValue = getLdapValue();
     // for search base, re-uses the "dn" field
-    ldapValue.put("dn", searchOperation.getRawBaseDN().toString());
-    ldapValue.put("scope", searchOperation.getScope().toString());
-    ldapValue.put("filter", searchOperation.getRawFilter().toString());
+    getOpRequest().put("dn", searchOperation.getRawBaseDN().toString());
+    getOpRequest().put("scope", searchOperation.getScope().toString());
+    getOpRequest().put("filter", searchOperation.getRawFilter().toString());
 
     final Set<String> attrs = searchOperation.getAttributes();
     if ((attrs == null) || attrs.isEmpty())
     {
-      ldapValue.put("attrs", Arrays.asList("ALL"));
+      getOpRequest().put("attrs", Arrays.asList("ALL"));
     }
     else
     {
-      ldapValue.put("attrs", new ArrayList<>(attrs));
+      getOpRequest().put("attrs", new ArrayList<>(attrs));
     }
     return self();
   }
@@ -209,14 +209,14 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
   {
     if (operation.isSynchronizationOperation())
     {
-      getLdapValue().put("opType", "sync");
+      getOpRequest().put("opType", "sync");
     }
     return self();
   }
 
   public T ldapAuthType(String type)
   {
-    getLdapValue().put("authType", type);
+    getOpRequest().put("authType", type);
     return self();
   }
 
@@ -248,13 +248,21 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
     return items.toString();
   }
 
-  private JsonValue getLdapValue()
+  private JsonValue getOpRequest()
   {
-    if (ldapValue == null)
+    if (opRequest == null)
     {
-      jsonValue.put(LDAP_VALUE_KEY, object());
-      ldapValue = jsonValue.get(LDAP_VALUE_KEY);
+      opRequest = jsonValue.get("request");
     }
-    return ldapValue;
+    return opRequest;
+  }
+
+  private JsonValue getOpResponse()
+  {
+    if (opResponse == null)
+    {
+      opResponse = jsonValue.get("response");
+    }
+    return opResponse;
   }
 }

@@ -245,6 +245,84 @@
                 "operation": {
                   "description": "org.forgerock.audit.events.access.request.operation",
                   "type": "string"
+                },
+                "connId": {
+                  "id": "connId",
+                  "type": "string"
+                },
+                "msgId": {
+                  "id": "msgId",
+                  "type": "string"
+                },
+                "dn": {
+                  "id": "dn",
+                  "type": "string"
+                },
+                "scope": {
+                  "id": "scope",
+                  "type": "string"
+                },
+                "filter": {
+                  "id": "filter",
+                  "type": "string"
+                },
+                "attrs": {
+                  "id": "attrs",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "authType": {
+                  "id": "authType",
+                  "type": "string"
+                },
+                "controls": {
+                  "id": "controls",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "attr" : {
+                  "id" : "attr",
+                  "type" : "string"
+                },
+                "idToAbandon" : {
+                  "id" : "idToAbandon",
+                  "type" : "integer"
+                },
+                "message" : {
+                  "id" : "message",
+                  "type" : "string"
+                },
+                "name" : {
+                  "id" : "name",
+                  "type" : "string"
+                },
+                "newRDN" : {
+                  "id" : "newRDN",
+                  "type" : "string"
+                },
+                "newSup" : {
+                  "id" : "newSup",
+                  "type" : "string"
+                },
+                "deleteOldRDN" : {
+                  "id" : "deleteOldRDN",
+                  "type" : "boolean"
+                },
+                "oid" : {
+                  "id" : "oid",
+                  "type" : "string"
+                },
+                "version" : {
+                  "id" : "version",
+                  "type" : "string"
+                },
+                "opType": {
+                  "id": "opType",
+                  "type": "string"
                 }
               }
             },
@@ -270,129 +348,38 @@
                 "elapsedTimeUnits": {
                   "description": "org.forgerock.audit.events.access.response.elapsedTimeUnits",
                   "type": "string"
-                }
-              }
-            },
-            "ldap": {
-                  "id": "ldap",
-                  "type": "object",
-                  "properties": {
-                    "connId": {
-                      "id": "connId",
-                      "type": "string"
-                    },
-                    "msgId": {
-                      "id": "msgId",
-                      "type": "string"
-                    },
-                    "dn": {
-                      "id": "dn",
-                      "type": "string"
-                    },
-                    "scope": {
-                      "id": "scope",
-                      "type": "string"
-                    },
-                    "filter": {
-                      "id": "filter",
-                      "type": "string"
-                    },
-                    "attrs": {
-                      "id": "attrs",
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "nentries": {
-                      "id": "nentries",
-                      "type": "string"
-                    },
-                    "authType": {
-                      "id": "authType",
-                      "type": "string"
-                    },
-                    "reqControls": {
-                      "id": "reqControls",
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "respControls": {
-                      "id": "respControls",
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalItems": {
-                      "id": "additionalItems",
-                      "type": "string"
-                    },
-                    "items" : {
-                      "id" : "items",
-                      "type" : "string"  
-                    },
-                    "attr" : {
-                      "id" : "attr",
-                      "type" : "string"
-                    },
-                    "failureReason" : {
-                      "id" : "failureReason",
-                      "type" : "string"
-                    },
-                    "idToAbandon" : {
-                      "id" : "idToAbandon",
-                      "type" : "integer"
-                    },
-                    "maskedResult" : {
-                      "id" : "maskedResult",
-                      "type" : "integer"
-                    },
-                    "maskedMessage" : {
-                      "id" : "maskedMessage",
-                      "type" : "string"
-                    },
-                     "message" : {
-                      "id" : "message",
-                      "type" : "string"
-                    },
-                     "name" : {
-                      "id" : "name",
-                      "type" : "string"
-                    },
-                     "newRDN" : {
-                      "id" : "newRDN",
-                      "type" : "string"
-                    },
-                     "newSup" : {
-                      "id" : "newSup",
-                      "type" : "string"
-                    },
-                     "deleteOldRDN" : {
-                      "id" : "deleteOldRDN",
-                      "type" : "boolean"
-                    },
-                     "oid" : {
-                      "id" : "oid",
-                      "type" : "string"
-                    },
-                     "version" : {
-                      "id" : "version",
-                      "type" : "string"
-                    },
-                     "reason" : {
-                      "id" : "reason",
-                      "type" : "string"
-                    },
-                    "opType": {
-                      "id": "opType",
-                      "type": "string"
-                    }
+                },
+                "nentries": {
+                  "id": "nentries",
+                  "type": "string"
+                },
+                "controls": {
+                  "id": "controls",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
                   }
+                },
+                "additionalItems" : {
+                  "id" : "additionalItems",
+                  "type" : "string"
+                },
+                "failureReason" : {
+                  "id" : "failureReason",
+                  "type" : "string"
+                },
+                "maskedResult" : {
+                  "id" : "maskedResult",
+                  "type" : "integer"
+                },
+                "maskedMessage" : {
+                  "id" : "maskedMessage",
+                  "type" : "string"
+                },
+                "reason" : {
+                  "id" : "reason",
+                  "type" : "string"
                 }
-              }
             }
           }
         }
