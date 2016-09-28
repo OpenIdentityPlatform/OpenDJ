@@ -419,7 +419,7 @@
                     <groupId>org.forgerock.opendj</groupId>
                     <artifactId>opendj-maven-plugin</artifactId>
                     <version>${project.version}</version>
-                    <!-- bootstrap and bootstrap-clinet MANIFEST.MF files generation. -->
+                    <!-- bootstrap and bootstrap-client MANIFEST.MF files generation. -->
                     <configuration>
                         <productJarName>${product.name.lowercase}</productJarName>
                         <supportedLocales>${product.locales}</supportedLocales>
