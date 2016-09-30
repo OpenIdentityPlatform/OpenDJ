@@ -15,6 +15,7 @@
  */
 package org.opends.server.schema;
 
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.addJsonSyntaxesAndMatchingRulesToSchema;
 import static org.opends.server.util.SchemaUtils.is02ConfigLdif;
 
 import static java.util.Collections.emptyList;
@@ -209,10 +210,10 @@ public final class SchemaHandler
       // Start from the core schema
       final SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getCoreSchema());
 
-      loadSchemaFromProviders(serverContext.getRootConfig(), schemaBuilder);
-
+      // Load core syntaxes and matching rules first then let providers adjust them if needed.
       addServerSyntaxesAndMatchingRules(schemaBuilder);
 
+      loadSchemaFromProviders(serverContext.getRootConfig(), schemaBuilder);
       loadSchemaFromFiles(schemaBuilder);
 
       try
@@ -244,6 +245,7 @@ public final class SchemaHandler
       addHistoricalCsnOrderingMatchingRule(schemaBuilder);
       addAuthPasswordEqualityMatchingRule(schemaBuilder);
       addUserPasswordEqualityMatchingRule(schemaBuilder);
+      addJsonSyntaxesAndMatchingRulesToSchema(schemaBuilder);
     }
     catch (ConflictingSchemaElementException e)
     {
@@ -705,8 +707,6 @@ public final class SchemaHandler
    *          The root to retrieve schema provider configurations.
    * @param schemaBuilder
    *          The schema builder that providers should update.
-   * @param schemaUpdater
-   *          The updater that providers should use when applying a configuration change.
    */
   private void loadSchemaFromProviders(final RootCfg rootConfiguration, final SchemaBuilder schemaBuilder)
       throws ConfigException, InitializationException {

@@ -18,8 +18,7 @@
   extends="schema-provider"
   package="org.forgerock.opendj.server.config"
   xmlns:adm="http://opendj.forgerock.org/admin"
-  xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
-  xmlns:cli="http://opendj.forgerock.org/admin-cli">
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
   <adm:synopsis>
     <adm:user-friendly-name />
     define the core schema elements to load.
@@ -257,6 +256,43 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-allow-attribute-types-with-no-sup-or-syntax</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="json-validation-policy" advanced="true">
+    <adm:synopsis>
+      Specifies the policy that will be used when validating JSON syntax values.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>strict</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="disabled">
+          <adm:synopsis>
+            JSON syntax values will not be validated and, as a result any
+            sequence of bytes will be acceptable.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="lenient">
+          <adm:synopsis>
+            JSON syntax values must comply with RFC 7159 except: 1) comments are
+            allowed, 2) single quotes may be used instead of double quotes,
+            and 3) unquoted control characters are allowed in strings.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="strict">
+          <adm:synopsis>
+            JSON syntax values must strictly conform to RFC 7159.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-json-validation-policy</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

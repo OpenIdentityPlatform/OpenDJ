@@ -16,6 +16,10 @@
 package org.opends.server.schema;
 
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.VALIDATION_POLICY;
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.ValidationPolicy.DISABLED;
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.ValidationPolicy.LENIENT;
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.ValidationPolicy.STRICT;
 
 import java.util.List;
 
@@ -75,6 +79,19 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
       .setOption(ALLOW_MALFORMED_CERTIFICATES, !configuration.isStrictFormatCertificates())
       .setOption(ALLOW_NON_STANDARD_TELEPHONE_NUMBERS, !configuration.isStrictFormatTelephoneNumbers())
       .setOption(ALLOW_ATTRIBUTE_TYPES_WITH_NO_SUP_OR_SYNTAX, configuration.isAllowAttributeTypesWithNoSupOrSyntax());
+
+    switch (configuration.getJsonValidationPolicy())
+    {
+    case DISABLED:
+      schemaBuilder.setOption(VALIDATION_POLICY, DISABLED);
+      break;
+    case LENIENT:
+      schemaBuilder.setOption(VALIDATION_POLICY, LENIENT);
+      break;
+    case STRICT:
+      schemaBuilder.setOption(VALIDATION_POLICY, STRICT);
+      break;
+    }
 
     for (final String oid : configuration.getDisabledMatchingRule())
     {
