@@ -109,6 +109,10 @@ public class RootDSEBackend
    * as user attributes even if they are defined as operational in the schema.
    */
   private boolean showAllAttributes;
+  /**
+   * Indicates whether sub-suffixes should also be included in the list of public naming contexts.
+   */
+  private boolean showSubordinatesNamingContexts;
 
   /** The set of objectclasses that will be used in the root DSE entry. */
   private Map<ObjectClass, String> dseObjectClasses;
@@ -209,6 +213,7 @@ public class RootDSEBackend
     // Determine whether all root DSE attributes should be treated as user
     // attributes.
     showAllAttributes = currentConfig.isShowAllAttributes();
+    showSubordinatesNamingContexts = currentConfig.isShowSubordinateNamingContexts();
 
     // Construct the set of "static" attributes that will always be present in
     // the root DSE.
@@ -405,8 +410,10 @@ public class RootDSEBackend
     Map<AttributeType, List<Attribute>> dseUserAttrs = new HashMap<>();
     Map<AttributeType, List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
-    Attribute publicNamingContextAttr = createAttribute(
-        ATTR_NAMING_CONTEXTS, DirectoryServer.getPublicNamingContexts().keySet());
+    Map<DN, Backend<?>> publicNamingContexts = showSubordinatesNamingContexts ?
+        DirectoryServer.getAllPublicNamingContexts() :
+        DirectoryServer.getPublicNamingContexts();
+    Attribute publicNamingContextAttr = createAttribute(ATTR_NAMING_CONTEXTS, publicNamingContexts.keySet());
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "ds-private-naming-contexts" attribute.
@@ -939,7 +946,7 @@ public class RootDSEBackend
         ccr.addMessage(INFO_ROOTDSE_UPDATED_SHOW_ALL_ATTRS.get(
                 ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES, showAllAttributes));
       }
-
+      showSubordinatesNamingContexts = cfg.isShowSubordinateNamingContexts();
       userDefinedAttributes = userAttrs;
       ccr.addMessage(INFO_ROOTDSE_USING_NEW_USER_ATTRS.get());
     }

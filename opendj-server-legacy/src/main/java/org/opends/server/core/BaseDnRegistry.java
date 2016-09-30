@@ -41,6 +41,8 @@ public class BaseDnRegistry {
   private final TreeMap<DN, Backend<?>> privateNamingContexts = new TreeMap<>();
   /** The set of public naming contexts registered with the server. */
   private final TreeMap<DN, Backend<?>> publicNamingContexts = new TreeMap<>();
+  /** The set of public naming contexts, including sub-suffixes, registered with the server. */
+  private final TreeMap<DN, Backend<?>> allPublicNamingContexts = new TreeMap<>();
 
   /**
    * Indicates whether this base DN registry is in test mode.
@@ -186,6 +188,10 @@ public class BaseDnRegistry {
       }
     }
 
+    if (!isPrivate)
+    {
+      allPublicNamingContexts.put(baseDN, backend);
+    }
     for (DN dn : subordinateBaseDNs)
     {
       publicNamingContexts.remove(dn);
@@ -287,6 +293,7 @@ public class BaseDnRegistry {
     // information.
     baseDNs.remove(baseDN);
     publicNamingContexts.remove(baseDN);
+    allPublicNamingContexts.remove(baseDN);
     privateNamingContexts.remove(baseDN);
 
     final LinkedList<LocalizableMessage> errors = new LinkedList<>();
@@ -366,6 +373,7 @@ public class BaseDnRegistry {
     final BaseDnRegistry registry = new BaseDnRegistry(true);
     registry.baseDNs.putAll(baseDNs);
     registry.publicNamingContexts.putAll(publicNamingContexts);
+    registry.allPublicNamingContexts.putAll(allPublicNamingContexts);
     registry.privateNamingContexts.putAll(privateNamingContexts);
     return registry;
   }
@@ -392,14 +400,25 @@ public class BaseDnRegistry {
   }
 
   /**
-   * Gets the mapping of registered public naming contexts to their
-   * associated backend.
+   * Gets the mapping of registered public naming contexts, not including
+   * sub-suffixes, to their associated backend.
    *
    * @return mapping from naming context to backend
    */
   Map<DN, Backend<?>> getPublicNamingContextsMap()
   {
     return this.publicNamingContexts;
+  }
+
+  /**
+   * Gets the mapping of registered public naming contexts, including sub-suffixes,
+   * to their associated backend.
+   *
+   * @return mapping from naming context to backend
+   */
+  Map<DN, Backend<?>> getAllPublicNamingContextsMap()
+  {
+    return this.allPublicNamingContexts;
   }
 
   /**
@@ -432,5 +451,6 @@ public class BaseDnRegistry {
     baseDNs.clear();
     privateNamingContexts.clear();
     publicNamingContexts.clear();
+    allPublicNamingContexts.clear();
   }
 }

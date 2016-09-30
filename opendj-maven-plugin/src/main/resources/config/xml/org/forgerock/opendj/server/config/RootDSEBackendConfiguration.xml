@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2008 Sun Microsystems, Inc.
-  Portions Copyright 2011 ForgeRock AS.
+  Portions Copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="root-dse-backend"
   plural-name="root-dse-backends" package="org.forgerock.opendj.server.config"
@@ -71,6 +71,28 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-show-all-attributes</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="show-subordinate-naming-contexts" mandatory="true">
+    <adm:synopsis>
+      Indicates whether subordinate naming contexts should be visible in 
+      the namingContexts attribute of the RootDSE. 
+      By default only top level naming contexts are visible
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          false
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-show-subordinate-naming-contexts</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

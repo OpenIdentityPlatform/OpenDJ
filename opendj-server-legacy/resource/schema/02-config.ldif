@@ -3962,6 +3962,12 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.189
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.201
+  NAME 'ds-cfg-show-subordinate-naming-contexts'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -4348,7 +4354,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.41
   STRUCTURAL
   MUST cn
   MAY ( ds-cfg-subordinate-base-dn $
-        ds-cfg-show-all-attributes )
+        ds-cfg-show-all-attributes $
+        ds-cfg-show-subordinate-naming-contexts)
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.42
   NAME 'ds-cfg-sasl-mechanism-handler'

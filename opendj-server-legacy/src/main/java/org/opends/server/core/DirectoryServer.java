@@ -3715,6 +3715,18 @@ public final class DirectoryServer
   }
 
   /**
+   * Retrieves the set of public naming contexts, including sub-suffixes,
+   * defined in the Directory Server, mapped from the naming context DN
+   * to the corresponding backend.
+   *
+   * @return  The set of public naming contexts defined in the Directory Server.
+   */
+  public static Map<DN, Backend<?>> getAllPublicNamingContexts()
+  {
+    return directoryServer.baseDnRegistry.getAllPublicNamingContextsMap();
+  }
+
+  /**
    * Retrieves the set of private naming contexts defined in the Directory
    * Server, mapped from the naming context DN to the corresponding backend.
    *
