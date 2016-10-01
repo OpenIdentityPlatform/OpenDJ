@@ -25,6 +25,7 @@ public final class SetupParameters
   private String baseDn;
   private int jmxPort;
   private String backendType;
+  private List<String> ldifFiles = new ArrayList<>();
 
   private SetupParameters()
   {
@@ -69,6 +70,11 @@ public final class SetupParameters
       args.add("--ldapsPort");
       args.add(s(connParams.getLdapSecurePort()));
       args.add("--generateSelfSignedCertificate");
+    }
+    for (final String ldif : ldifFiles)
+    {
+      args.add("--ldifFile");
+      args.add(ldif);
     }
     return args.toArray(new String[args.size()]);
   }
@@ -125,6 +131,18 @@ public final class SetupParameters
   public SetupParameters backendType(String backendType)
   {
     this.backendType = backendType;
+    return this;
+  }
+
+  /**
+   * Add an ldif file to import after setup.
+   *
+   * @param ldif
+   *          the LDIF to import
+   * @return this builder
+   */
+  public SetupParameters ldifFile(String ldif) {
+    this.ldifFiles.add(ldif);
     return this;
   }
 }
