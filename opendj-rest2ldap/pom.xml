@@ -109,7 +109,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.forgerock.opendj.rest2ldap</Export-Package>
+                        <Export-Package>org.forgerock.opendj.rest2ldap*</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

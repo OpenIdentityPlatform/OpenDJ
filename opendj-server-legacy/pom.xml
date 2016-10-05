@@ -663,8 +663,7 @@
             <configuration>
               <instructions>
                 <Bundle-Version>${project.version}</Bundle-Version>
-                <!-- Do not export packages of this module -->
-                <Export-Package>!*</Export-Package>
+                <Export-Package>org.forgerock.opendj.server.embedded</Export-Package>
                 <!-- Import je changelog since it is not shipped in the main jar -->
                 <Import-Package>
                   org.opends.server.replication.server.changelog.je,
