@@ -207,7 +207,7 @@ final class OnDiskMergeImporter
           ? getDefaultNumberOfThread()
           : importConfig.getThreadCount();
       final int nbBuffersPerThread = 2 * getIndexCount();
-      try(final BufferPool bufferPool = newBufferPool(maxThreadCount, nbBuffersPerThread))
+      try (final BufferPool bufferPool = newBufferPool(maxThreadCount, nbBuffersPerThread))
       {
         final int threadCount = bufferPool.size() / nbBuffersPerThread;
         logger.info(NOTE_IMPORT_THREAD_COUNT, threadCount);
@@ -847,7 +847,8 @@ final class OnDiskMergeImporter
     }
 
     @Override
-    public void close() {
+    public void close()
+    {
       executor.shutdown();
     }
 
@@ -1038,7 +1039,7 @@ final class OnDiskMergeImporter
     }
 
     // Finish import
-    for(EntryContainer entryContainer : importedContainers.keySet())
+    for (EntryContainer entryContainer : importedContainers.keySet())
     {
       importStrategy.afterPhaseTwo(entryContainer);
     }
@@ -1294,7 +1295,7 @@ final class OnDiskMergeImporter
    */
   private static final class PhaseOneWriteableTransaction implements WriteableTransaction
   {
-    /**  Must be power of 2 because of fast-modulo computing. */
+    /** Must be power of 2 because of fast-modulo computing. */
     private static final int LOCKTABLE_SIZE = 64;
     private final ConcurrentMap<TreeName, Chunk> chunks = new ConcurrentHashMap<>();
     private final ChunkFactory chunkFactory;
@@ -2476,7 +2477,8 @@ final class OnDiskMergeImporter
       }
     }
 
-    private String getDnAsString() {
+    private String getDnAsString()
+    {
       try
       {
         return id2entry.get(txn, new EntryID(delegate.getValue())).getName().toString();
@@ -2489,7 +2491,8 @@ final class OnDiskMergeImporter
 
     private void throwIfOrphan(ByteString dn) throws DirectoryException
     {
-      if (!parentExists(dn)) {
+      if (!parentExists(dn))
+      {
         throw new DirectoryException(NO_SUCH_OBJECT, ERR_IMPORT_PARENT_NOT_FOUND.get(getDnAsString()));
       }
     }
@@ -2649,7 +2652,7 @@ final class OnDiskMergeImporter
     {
       if ((key.length() + value.length()) >= ENTRY_MAX_SIZE)
       {
-          return delegate.put(key, value);
+        return delegate.put(key, value);
       }
 
       pendingRecords.put(key, value);
@@ -2887,7 +2890,7 @@ final class OnDiskMergeImporter
                           : ByteBuffer.allocate(bufferSize)));
         }
       }
-      catch(OutOfMemoryError e)
+      catch (OutOfMemoryError e)
       {
         close();
         throw e;
@@ -3045,12 +3048,12 @@ final class OnDiskMergeImporter
         int j = offsetB;
         while (count-- != 0)
         {
-            final int firstByte = 0xFF & buffer.get(i++);
-            final int secondByte = 0xFF & buffer.get(j++);
-            if (firstByte != secondByte)
-            {
-                return firstByte - secondByte;
-            }
+          final int firstByte = 0xFF & buffer.get(i++);
+          final int secondByte = 0xFF & buffer.get(j++);
+          if (firstByte != secondByte)
+          {
+            return firstByte - secondByte;
+          }
         }
         return lengthA - lengthB;
       }
@@ -3389,7 +3392,8 @@ final class OnDiskMergeImporter
     {
       final List<EntryIDSet> idSets = new ArrayList<>(encodedIDSets.size());
       int mergedSize = 0;
-      for(ByteString encodedIDSet :encodedIDSets) {
+      for (ByteString encodedIDSet : encodedIDSets)
+      {
         final EntryIDSet entryIDSet = index.decodeValue(ByteString.empty(), encodedIDSet);
         mergedSize += entryIDSet.size();
         if (!entryIDSet.isDefined() || mergedSize >= indexLimit)
@@ -3402,7 +3406,8 @@ final class OnDiskMergeImporter
 
       final long[] entryIDs = new long[mergedSize];
       int offset = 0;
-      for(EntryIDSet idSet : idSets) {
+      for (EntryIDSet idSet : idSets)
+      {
         offset += idSet.copyTo(entryIDs, offset);
       }
       Arrays.sort(entryIDs);
