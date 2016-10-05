@@ -38,6 +38,7 @@ import static javax.security.auth.callback.ConfirmationCallback.*;
 import static javax.security.auth.callback.TextOutputCallback.WARNING;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.LicenseFile.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
@@ -379,7 +380,7 @@ public final class Upgrade
 
     register("3.5.0",
         rebuildIndexesNamed(INFO_UPGRADE_REBUILD_INDEXES_DISTINGUISHED_NAME.get(),
-            "distinguishedName", "member", "owner", "roleOccupant", "seeAlso"));
+            "." + EMR_DN_NAME, "." + EMR_OID_NAME, "." + EMR_UNIQUE_MEMBER_NAME, "." + EMR_CERTIFICATE_EXACT_NAME));
 
     register("3.5.0",
         deleteConfigEntry(INFO_UPGRADE_TASK_CONFIGURATION_BACKEND_NOT_CONFIGURABLE.get(),

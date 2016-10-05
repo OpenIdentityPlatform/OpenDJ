@@ -23,10 +23,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -728,36 +726,6 @@ final class UpgradeUtils
     }
     System.arraycopy(lines, 0, modifiedLines, 2, lines.length);
     return modifiedLines;
-  }
-
-  /** Filter provided list of indexes name to return indexes which are present in the provided backend. */
-  static List<String> filterExistingIndexes(final Set<String> candidateIndexes, final String backendID)
-  {
-    final List<String> indexesToRebuild = new ArrayList<>();
-    try (final LDIFEntryReader entryReader = new LDIFEntryReader(new FileInputStream(configFile)))
-    {
-      while (entryReader.hasNext())
-      {
-        final Entry entry = entryReader.readEntry();
-        if (entry.containsAttribute("objectClass", "ds-cfg-backend-index")
-            && entry.getName().toString().contains("ds-cfg-backend-id=" + backendID))
-        {
-          for (final String indexName : candidateIndexes)
-          {
-            if (entry.containsAttribute("ds-cfg-attribute", indexName))
-            {
-              indexesToRebuild.add(indexName);
-            }
-          }
-        }
-      }
-    }
-    catch (final IOException unlikely)
-    {
-      logger.error(ERR_UPGRADE_READING_CONF_FILE.get(unlikely.getMessage()));
-    }
-
-    return indexesToRebuild;
   }
 
   /** Returns {@code true} if the installed instance contains at least one JE backend. */

@@ -486,31 +486,35 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
    */
   boolean isIndexed(org.opends.server.types.IndexType indexType)
   {
-    Set<IndexType> indexTypes = config.getIndexType();
     switch (indexType)
     {
     case PRESENCE:
-      return indexTypes.contains(IndexType.PRESENCE);
+      return isIndexed(IndexType.PRESENCE);
 
     case EQUALITY:
-      return indexTypes.contains(IndexType.EQUALITY);
+      return isIndexed(IndexType.EQUALITY);
 
     case SUBSTRING:
     case SUBINITIAL:
     case SUBANY:
     case SUBFINAL:
-      return indexTypes.contains(IndexType.SUBSTRING);
+      return isIndexed(IndexType.SUBSTRING);
 
     case GREATER_OR_EQUAL:
     case LESS_OR_EQUAL:
-      return indexTypes.contains(IndexType.ORDERING);
+      return isIndexed(IndexType.ORDERING);
 
     case APPROXIMATE:
-      return indexTypes.contains(IndexType.APPROXIMATE);
+      return isIndexed(IndexType.APPROXIMATE);
 
     default:
       return false;
     }
+  }
+
+  boolean isIndexed(IndexType indexType)
+  {
+    return config.getIndexType().contains(indexType);
   }
 
   /**

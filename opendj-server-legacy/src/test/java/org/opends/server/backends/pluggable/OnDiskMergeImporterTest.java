@@ -16,11 +16,16 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.*;
+import static java.util.Arrays.asList;
 import static org.forgerock.util.Pair.of;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.opends.server.backends.pluggable.DnKeyFormat.dnToDNKey;
-import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.server.backends.pluggable.EntryIDSet.*;
+import static org.opends.server.util.CollectionUtils.newTreeSet;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -33,9 +38,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ForkJoinPool;
 
@@ -44,10 +51,18 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
+import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn.Scope;
+import org.forgerock.opendj.server.config.server.BackendIndexCfg;
+import org.forgerock.opendj.server.config.server.BackendVLVIndexCfg;
+import org.forgerock.opendj.server.config.server.JEBackendCfg;
 import org.forgerock.util.Pair;
+import org.forgerock.util.Reject;
 import org.mockito.Mockito;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.jeb.JEBackend;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.BufferPool.MemoryBuffer;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.Chunk;
@@ -60,20 +75,162 @@ import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChun
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.FileRegion;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.ExternalSortChunk.InMemorySortedChunk;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.MeteredCursor;
+import org.opends.server.backends.pluggable.OnDiskMergeImporter.StrategyImpl;
 import org.opends.server.backends.pluggable.OnDiskMergeImporter.UniqueValueCollector;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.PackedLong;
 
 public class OnDiskMergeImporterTest extends DirectoryServerTestCase
 {
+  private BackendImpl<JEBackendCfg> backend;
+  private ServerContext serverContext;
+  private JEBackendCfg backendCfg;
+  private EntryContainer entryContainer;
+  private final DN testBaseDN = DN.valueOf("dc=test,dc=com");
+  private final Map<String, IndexType[]> backendIndexes = new HashMap<>();
+  {
+    backendIndexes.put("entryUUID", new IndexType[] { EQUALITY });
+    backendIndexes.put("cn", new IndexType[] { SUBSTRING });
+    backendIndexes.put("sn", new IndexType[] { PRESENCE, EQUALITY, SUBSTRING });
+    backendIndexes.put("uid", new IndexType[] { EQUALITY });
+    backendIndexes.put("telephoneNumber", new IndexType[] { EQUALITY, SUBSTRING });
+    backendIndexes.put("mail", new IndexType[] { SUBSTRING });
+  }
+  private final String[] backendVlvIndexes = { "people" };
+
+  @BeforeClass
+  public void setUp() throws Exception
+  {
+    // Need the schema to be available, so make sure the server is started.
+    TestCaseUtils.startServer();
+
+    serverContext = DirectoryServer.getInstance().getServerContext();
+
+    backendCfg = mockCfg(JEBackendCfg.class);
+    when(backendCfg.getBackendId()).thenReturn("OnDiskMergeImporterTest");
+    when(backendCfg.getDBDirectory()).thenReturn("OnDiskMergeImporterTest");
+    when(backendCfg.getDBDirectoryPermissions()).thenReturn("755");
+    when(backendCfg.getDBCacheSize()).thenReturn(0L);
+    when(backendCfg.getDBCachePercent()).thenReturn(20);
+    when(backendCfg.getDBNumCleanerThreads()).thenReturn(2);
+    when(backendCfg.getDBNumLockTables()).thenReturn(63);
+    when(backendCfg.dn()).thenReturn(testBaseDN);
+    when(backendCfg.getBaseDN()).thenReturn(newTreeSet(testBaseDN));
+    when(backendCfg.listBackendIndexes()).thenReturn(backendIndexes.keySet().toArray(new String[0]));
+    when(backendCfg.listBackendVLVIndexes()).thenReturn(backendVlvIndexes);
+
+    for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
+    {
+      final String attributeName = index.getKey();
+      final AttributeType attribute = DirectoryServer.getSchema().getAttributeType(attributeName);
+      Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
+
+      BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
+      when(indexCfg.getIndexType()).thenReturn(newTreeSet(index.getValue()));
+      when(indexCfg.getAttribute()).thenReturn(attribute);
+      when(indexCfg.getIndexEntryLimit()).thenReturn(4000);
+      when(indexCfg.getSubstringLength()).thenReturn(6);
+      when(backendCfg.getBackendIndex(index.getKey())).thenReturn(indexCfg);
+      if (backendCfg.isConfidentialityEnabled())
+      {
+        when(indexCfg.isConfidentialityEnabled()).thenReturn(true);
+      }
+    }
+
+    BackendVLVIndexCfg vlvIndexCfg = mock(BackendVLVIndexCfg.class);
+    when(vlvIndexCfg.getName()).thenReturn("people");
+    when(vlvIndexCfg.getBaseDN()).thenReturn(testBaseDN);
+    when(vlvIndexCfg.getFilter()).thenReturn("(objectClass=person)");
+    when(vlvIndexCfg.getScope()).thenReturn(Scope.WHOLE_SUBTREE);
+    when(vlvIndexCfg.getSortOrder()).thenReturn("sn -employeeNumber +uid");
+    when(backendCfg.getBackendVLVIndex(backendVlvIndexes[0])).thenReturn(vlvIndexCfg);
+
+    backend = new JEBackend();
+    backend.setBackendID(backendCfg.getBackendId());
+    backend.configureBackend(backendCfg, DirectoryServer.getInstance().getServerContext());
+    backend.openBackend();
+
+    entryContainer = backend.getRootContainer().getEntryContainer(testBaseDN);
+  }
+
+  @AfterClass
+  public void cleanUp() throws Exception
+  {
+    backend.finalizeBackend();
+    backend = null;
+  }
+
+  @DataProvider(name="expandIndexData")
+  private Object[][] expandIndexData() {
+    return new Object[][] {
+      { new String[] { "dn2id", "referral" }, new String[] { "dn2id", "referral" } },
+      { new String[] { "vlv.people" }, new String[] { "vlv.people" } },
+      { new String[] { "vlv." }, new String[] { "vlv.people" } },
+      { new String[] { "vlv.*" }, new String[] { "vlv.people" } },
+      { new String[] { "vlv" }, new String[] { "vlv.people" } },
+      { new String[] { "sn", "cn.*" },
+        new String[] { "sn.presence", "sn.caseIgnoreMatch", "sn.caseIgnoreSubstringsMatch:6",
+                       "cn.caseIgnoreSubstringsMatch:6" } },
+      { new String[] { "sn.", "cn." },
+        new String[] { "sn.presence", "sn.caseIgnoreMatch", "sn.caseIgnoreSubstringsMatch:6",
+                       "cn.caseIgnoreSubstringsMatch:6" } },
+      { new String[] { ".substring", "*.presence" },
+        new String[] { "sn.presence", "sn.caseIgnoreSubstringsMatch:6", "cn.caseIgnoreSubstringsMatch:6",
+                       "mail.caseIgnoreIA5SubstringsMatch:6", "telephoneNumber.telephoneNumberSubstringsMatch:6" } },
+      { new String[] { ".caseIgnoreSubstringsMatch" },
+        new String[] { "sn.caseIgnoreSubstringsMatch:6", "cn.caseIgnoreSubstringsMatch:6" } },
+      { new String[] { "dn2id", "uid.caseIgnoreMatch", ".caseIgnoreSubstringsMatch", ".presence" },
+        new String[] { "dn2id", "uid.caseIgnoreMatch", "sn.caseIgnoreSubstringsMatch:6", "sn.presence",
+                       "cn.caseIgnoreSubstringsMatch:6" } }
+    };
+  }
+
+  @Test(dataProvider="expandIndexData")
+  public void testCanExpandIndexNames(final String[] indexNames, final String[] expectedExpandedIndexNames)
+      throws InitializationException {
+    final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
+    assertThat(strategy.expandIndexNames(entryContainer, asList(indexNames)))
+      .containsExactlyInAnyOrder(expectedExpandedIndexNames);
+  }
+
+  @Test(expectedExceptions=InitializationException.class)
+  public void testThrowOnUnindexedType() throws InitializationException {
+    final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
+    strategy.expandIndexNames(entryContainer, asList(".approximate"));
+  }
+
+  @Test(expectedExceptions=InitializationException.class)
+  public void testThrowOnUnrecognizedMatchingRule() throws InitializationException {
+    final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
+    strategy.expandIndexNames(entryContainer, asList(".unknown"));
+  }
+
+  @Test(expectedExceptions=InitializationException.class)
+  public void testThrowOnUnrecognizedAttribute() throws InitializationException {
+    final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
+    strategy.expandIndexNames(entryContainer, asList("unknown"));
+  }
+
+  @Test(expectedExceptions=InitializationException.class)
+  public void testThrowOnUnrecognizedVlvIndex() throws InitializationException {
+    final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
+    strategy.expandIndexNames(entryContainer, asList("vlv.unknown"));
+  }
+
   @Test
   public void testHeapBuffer()
   {

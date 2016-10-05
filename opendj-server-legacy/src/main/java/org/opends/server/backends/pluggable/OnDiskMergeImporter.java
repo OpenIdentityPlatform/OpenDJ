@@ -99,6 +99,8 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
@@ -124,6 +126,8 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -132,6 +136,7 @@ import org.opends.server.types.LDIFImportResult;
 
 import com.forgerock.opendj.util.OperatingSystem;
 import com.forgerock.opendj.util.PackedLong;
+import com.forgerock.opendj.util.Predicate;
 
 import net.jcip.annotations.NotThreadSafe;
 
@@ -170,11 +175,23 @@ final class OnDiskMergeImporter
     /** Small heap threshold used to give more memory to JVM to attempt OOM errors. */
     private static final int SMALL_HEAP_SIZE = 256 * MB;
 
+    private static final Predicate<Tree, Void> IS_VLV = new Predicate<Tree, Void>()
+    {
+      @Override
+      public boolean matches(Tree value, Void p)
+      {
+        return value.getName().getIndexId().startsWith("vlv.");
+      }
+    };
+
+    private final ServerContext serverContext;
     private final RootContainer rootContainer;
     private final PluggableBackendCfg backendCfg;
 
-    StrategyImpl(RootContainer rootContainer, PluggableBackendCfg backendCfg)
+    StrategyImpl(final ServerContext serverContext, final RootContainer rootContainer,
+        final PluggableBackendCfg backendCfg)
     {
+      this.serverContext = serverContext;
       this.rootContainer = rootContainer;
       this.backendCfg = backendCfg;
     }
@@ -303,7 +320,7 @@ final class OnDiskMergeImporter
       }
     }
 
-    private void clearDegradedState(final EntryContainer entryContainer, final Set<String> indexes)
+    private void clearDegradedState(final EntryContainer entryContainer, final Set<String> indexIds)
         throws ExecutionException
     {
       try
@@ -313,7 +330,7 @@ final class OnDiskMergeImporter
           @Override
           public void run(WriteableTransaction txn)
           {
-            visitIndexes(entryContainer, visitOnlyIndexes(indexes, setTrust(true, txn)));
+            visitIndexes(entryContainer, visitOnlyIndexes(indexIdIn(indexIds), setTrust(true, txn)));
           }
         });
       }
@@ -449,130 +466,140 @@ final class OnDiskMergeImporter
       return new BufferPool(nbBuffers, bufferSize, false);
     }
 
-    private static final Set<String> selectIndexesToRebuild(EntryContainer entryContainer, RebuildConfig rebuildConfig,
-        long totalEntries) throws InitializationException
+    private final Set<String> selectIndexesToRebuild(final EntryContainer entryContainer,
+        final RebuildConfig rebuildConfig, final long totalEntries) throws InitializationException
     {
       final SelectIndexName selector = new SelectIndexName();
+      final Set<String> indexesToRebuild;
       switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
         visitIndexes(entryContainer, selector);
+        indexesToRebuild = selector.getSelectedIndexNames();
         logger.info(NOTE_REBUILD_ALL_START, totalEntries);
         break;
       case DEGRADED:
         visitIndexes(entryContainer, visitOnlyDegraded(selector));
+        indexesToRebuild = selector.getSelectedIndexNames();
         logger.info(NOTE_REBUILD_DEGRADED_START, totalEntries);
         break;
       case USER_DEFINED:
-        // User defined format is attributeType(.indexType)
-        visitIndexes(entryContainer,
-            visitOnlyIndexes(buildUserDefinedIndexNames(entryContainer, rebuildConfig.getRebuildList()), selector));
+        // User defined format is (attributeType)((.indexType)|(.matchingRule))
+        indexesToRebuild = expandIndexNames(entryContainer, rebuildConfig.getRebuildList());
         if (!rebuildConfig.isClearDegradedState())
         {
-          logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", rebuildConfig.getRebuildList()), totalEntries);
+          logger.info(NOTE_REBUILD_START, Utils.joinAsString(", ", indexesToRebuild), totalEntries);
         }
         break;
       default:
         throw new UnsupportedOperationException("Unsupported rebuild mode " + rebuildConfig.getRebuildMode());
       }
-      final Set<String> indexesToRebuild = selector.getSelectedIndexNames();
-      if (indexesToRebuild.contains(SuffixContainer.DN2ID_INDEX_NAME))
+      if (indexesToRebuild.contains(entryContainer.getDN2ID().getName().getIndexId()))
       {
         // Always rebuild id2childrencount with dn2id.
-        indexesToRebuild.add(SuffixContainer.ID2CHILDREN_COUNT_NAME);
+        indexesToRebuild.add(entryContainer.getID2ChildrenCount().getName().getIndexId());
       }
-      return selector.getSelectedIndexNames();
+      return indexesToRebuild;
     }
 
     /**
-     * Translate attributeType(.indexType|matchingRuleOid) into attributeType.matchingRuleOid index name.
+     * Translate (attributeType)((.indexType)|(.matchingRuleNameOrOid)) into attributeType.matchingRuleOid index name.
      *
      * @throws InitializationException
      *           if rebuildList contains an invalid/non-existing attribute/index name.
      */
-    private static final Set<String> buildUserDefinedIndexNames(EntryContainer entryContainer,
-        Collection<String> rebuildList) throws InitializationException
-    {
+    final Set<String> expandIndexNames(final EntryContainer entryContainer, final Collection<String> rebuildList)
+        throws InitializationException
+   {
       final Set<String> indexNames = new HashSet<>();
-      for (String name : rebuildList)
+      for (final String name : rebuildList)
       {
-        final String parts[] = name.split("\\.");
-        if (parts.length == 1)
+        // Name could be a (attributeType)((.indexType)|(.matchingRule))
+        // Add a trailing "." to ensure that resulting parts has always at least two parts.
+        final String parts[] = (name + ".").split("\\.");
+
+        // Is name represents all VLV index ?
+        final SelectIndexName selector = new SelectIndexName();
+        if (parts[0].equalsIgnoreCase("vlv") && isWildcard(parts[1]))
         {
-          // Add all indexes of this attribute
-          // for example: "cn" or "sn"
-          final AttributeIndex attrIndex = findAttributeIndex(entryContainer, parts[0]);
-          for (Tree index : attrIndex.getNameToIndexes().values())
-          {
-            indexNames.add(index.getName().getIndexId());
-          }
-        }
-        else if (parts.length == 2)
-        {
-          // First, assume the supplied name is a valid index name ...
-          // for example: "cn.substring", "vlv.someVlvIndex", "cn.caseIgnoreMatch"
-          // or "cn.caseIgnoreSubstringsMatch:6"
-          final SelectIndexName selector = new SelectIndexName();
-          visitIndexes(entryContainer, visitOnlyIndexes(Arrays.asList(name), selector));
-          indexNames.addAll(selector.getSelectedIndexNames());
-          if (selector.getSelectedIndexNames().isEmpty())
-          {
-            // ... if not, assume the supplied name identify an attributeType.indexType
-            // for example: aliases like "cn.substring" could not be found by the previous step
-            try
-            {
-              final AttributeIndex attrIndex = findAttributeIndex(entryContainer, parts[0]);
-              indexNames.addAll(getIndexNames(IndexType.valueOf(parts[1].toUpperCase()), attrIndex));
-            }
-            catch (IllegalArgumentException e)
-            {
-              throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name), e);
-            }
-          }
+          visitIndexes(entryContainer, visitOnlyIndexes(IS_VLV, selector));
         }
         else
         {
-          throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name));
+          // Is name a fully qualified index id ? i.e: "dn2id", "sn.caseIgnoreMatch:6"
+          visitIndexes(entryContainer, visitOnlyIndexes(indexIdIn(Arrays.asList(name)), selector));
         }
+
+        if (selector.getSelectedIndexNames().isEmpty())
+        {
+          if (isWildcard(parts[1]))
+          {
+            // Name is "attributeType", "attributeType." or "attributeType.*"
+            visitAttributeIndexes(entryContainer.getAttributeIndexes(), attributeTypeIs(parts[0]), selector);
+            if (selector.getSelectedIndexNames().isEmpty())
+            {
+              throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name));
+            }
+          }
+          else
+          {
+            final Collection<Predicate<MatchingRuleIndex, AttributeIndex>> attributeIndexFilters = new ArrayList<>();
+            if (!isWildcard(parts[0]))
+            {
+              // Name is attributeType.matchingRule or attributeType.indexType
+              attributeIndexFilters.add(attributeTypeIs(parts[0]));
+            }
+            // Filter on index type or matching rule.
+            final IndexType indexType = indexTypeForNameOrNull(parts[1]);
+            if (indexType == null)
+            {
+              // Name contains a matching rule
+              try
+              {
+                attributeIndexFilters.add(matchingRuleIs(serverContext.getSchema().getMatchingRule(parts[1])));
+              }
+              catch (UnknownSchemaElementException usee)
+              {
+                throw new InitializationException(usee.getMessageObject(), usee);
+              }
+
+              if (parts[1].equalsIgnoreCase(SchemaConstants.EMR_DN_NAME))
+              {
+                indexNames.add(entryContainer.getDN2ID().getName().getIndexId());
+                indexNames.add(entryContainer.getDN2URI().getName().getIndexId());
+              }
+            }
+            else
+            {
+              // Name contains an index type
+              attributeIndexFilters.add(indexTypeIs(indexType));
+            }
+            visitAttributeIndexes(entryContainer.getAttributeIndexes(), matchingAllOf(attributeIndexFilters), selector);
+          }
+        }
+        indexNames.addAll(selector.getSelectedIndexNames());
       }
       return indexNames;
     }
 
-    private static final AttributeIndex findAttributeIndex(EntryContainer entryContainer, String name)
-        throws InitializationException
+    private static boolean isWildcard(final String part)
     {
-      for (AttributeIndex index : entryContainer.getAttributeIndexes())
-      {
-        if (index.getAttributeType().hasNameOrOID(name.toLowerCase()))
-        {
-          return index;
-        }
-      }
-      throw new InitializationException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(name));
+      return part.isEmpty() || "*".equals(part);
     }
 
-    private static Collection<String> getIndexNames(IndexType indexType, AttributeIndex attrIndex)
+    /**
+     * Retrieves the index type for the specified name, or {@code null} if there is no such index type.
+     */
+    private static IndexType indexTypeForNameOrNull(final String indexName)
     {
-      if (indexType.equals(IndexType.PRESENCE))
+      for (final IndexType type : IndexType.values())
       {
-        if (!attrIndex.isIndexed(org.opends.server.types.IndexType.PRESENCE))
+        if (type.name().equalsIgnoreCase(indexName))
         {
-          throw new IllegalArgumentException("No index found for type " + indexType);
+          return type;
         }
-        return Collections.singletonList(IndexType.PRESENCE.toString());
       }
-      final Set<String> indexNames = new HashSet<>();
-      for (Indexer indexer : AttributeIndex.getMatchingRule(indexType, attrIndex.getAttributeType())
-                                           .createIndexers(attrIndex.getIndexingOptions()))
-      {
-        final Tree indexTree = attrIndex.getNameToIndexes().get(indexer.getIndexID());
-        if (indexTree == null)
-        {
-          throw new IllegalArgumentException("No index found for type " + indexType);
-        }
-        indexNames.add(indexTree.getName().getIndexId());
-      }
-      return indexNames;
+      return null;
     }
 
     private static File prepareTempDir(PluggableBackendCfg backendCfg, String tmpDirectory)
@@ -1150,7 +1177,7 @@ final class OnDiskMergeImporter
     @Override
     public Chunk newChunk(TreeName treeName) throws Exception
     {
-      if (isID2Entry(treeName))
+      if (isID2Entry(entryContainers.get(treeName.getBaseDN()), treeName))
       {
         return new MostlyOrderedChunk(asChunk(treeName, importer));
       }
@@ -1163,11 +1190,11 @@ final class OnDiskMergeImporter
     {
       final EntryContainer entryContainer = entryContainers.get(treeName.getBaseDN());
 
-      if (isID2Entry(treeName))
+      if (isID2Entry(entryContainer, treeName))
       {
         return newFlushTask(source);
       }
-      else if (isDN2ID(treeName))
+      else if (isDN2ID(entryContainer, treeName))
       {
         return newDN2IDImporterTask(treeName, source, progressReporter);
       }
@@ -1185,33 +1212,29 @@ final class OnDiskMergeImporter
     private final Set<String> indexesToRebuild;
 
     RebuildIndexStrategy(Collection<EntryContainer> entryContainers, Importer importer, File tempDir,
-        BufferPool bufferPool, Executor sorter, Collection<String> indexNames)
+        BufferPool bufferPool, Executor sorter, Set<String> indexNames)
     {
       super(entryContainers, importer, tempDir, bufferPool, sorter);
-      this.indexesToRebuild = new HashSet<>(indexNames.size());
-      for (String indexName : indexNames)
-      {
-        this.indexesToRebuild.add(indexName.toLowerCase());
-      }
+      this.indexesToRebuild = indexNames;
     }
 
     @Override
     void beforePhaseOne(EntryContainer entryContainer)
     {
-      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, setTrust(false, importer)));
-      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, deleteDatabase(importer)));
+      visitIndexes(entryContainer, visitOnlyIndexes(indexIdIn(indexesToRebuild), setTrust(false, importer)));
+      visitIndexes(entryContainer, visitOnlyIndexes(indexIdIn(indexesToRebuild), deleteDatabase(importer)));
     }
 
     @Override
     void afterPhaseTwo(EntryContainer entryContainer)
     {
-      visitIndexes(entryContainer, visitOnlyIndexes(indexesToRebuild, setTrust(true, importer)));
+      visitIndexes(entryContainer, visitOnlyIndexes(indexIdIn(indexesToRebuild), setTrust(true, importer)));
     }
 
     @Override
     public Chunk newChunk(TreeName treeName) throws Exception
     {
-      if (indexesToRebuild.contains(treeName.getIndexId().toLowerCase()))
+      if (indexesToRebuild.contains(treeName.getIndexId()))
       {
         return newExternalSortChunk(treeName);
       }
@@ -1224,20 +1247,20 @@ final class OnDiskMergeImporter
     {
       final EntryContainer entryContainer = entryContainers.get(treeName.getBaseDN());
 
-      if (indexesToRebuild.contains(treeName.getIndexId().toLowerCase()))
+      if (!indexesToRebuild.contains(treeName.getIndexId()))
       {
-        if (isDN2ID(treeName))
-        {
-          return newDN2IDImporterTask(treeName, source, progressReporter);
-        }
-        else if (isVLVIndex(entryContainer, treeName))
-        {
-          return newVLVIndexImporterTask(getVLVIndex(entryContainer, treeName), source, progressReporter);
-        }
-        return newChunkCopierTask(treeName, source, progressReporter);
+        // Do nothing (flush null chunk)
+        return newFlushTask(source);
       }
-      // Do nothing (flush null chunk)
-      return newFlushTask(source);
+      else if (isDN2ID(entryContainer, treeName))
+      {
+        return newDN2IDImporterTask(treeName, source, progressReporter);
+      }
+      else if (isVLVIndex(entryContainer, treeName))
+      {
+        return newVLVIndexImporterTask(getVLVIndex(entryContainer, treeName), source, progressReporter);
+      }
+      return newChunkCopierTask(treeName, source, progressReporter);
     }
   }
 
@@ -3081,17 +3104,17 @@ final class OnDiskMergeImporter
       // key conflicts == merge EntryIDSets
       return new EntryIDSetsCollector(index);
     }
-    else if (isID2ChildrenCount(treeName))
+    else if (isID2ChildrenCount(entryContainer, treeName))
     {
       // key conflicts == sum values
       return ID2ChildrenCount.getSumLongCollectorInstance();
     }
-    else if (isDN2ID(treeName))
+    else if (isDN2ID(entryContainer, treeName))
     {
       // Detection of duplicate DN will be performed during phase 2 by the DNImporterTask
       return null;
     }
-    else if (isDN2URI(treeName) || isVLVIndex(entryContainer, treeName))
+    else if (isDN2URI(entryContainer, treeName) || isVLVIndex(entryContainer, treeName))
     {
       // key conflicts == exception
       return UniqueValueCollector.getInstance();
@@ -3111,24 +3134,24 @@ final class OnDiskMergeImporter
     return newPhaseTwoCollector(entryContainer, treeName);
   }
 
-  private static boolean isDN2ID(TreeName treeName)
+  private static boolean isDN2ID(final EntryContainer entryContainer, final TreeName treeName)
   {
-    return SuffixContainer.DN2ID_INDEX_NAME.equals(treeName.getIndexId());
+    return entryContainer.getDN2ID().getName().equals(treeName);
   }
 
-  private static boolean isDN2URI(TreeName treeName)
+  private static boolean isDN2URI(final EntryContainer entryContainer, TreeName treeName)
   {
-    return SuffixContainer.DN2URI_INDEX_NAME.equals(treeName.getIndexId());
+    return entryContainer.getDN2URI().getName().equals(treeName);
   }
 
-  private static boolean isID2Entry(TreeName treeName)
+  private static boolean isID2Entry(final EntryContainer entryContainer, final TreeName treeName)
   {
-    return SuffixContainer.ID2ENTRY_INDEX_NAME.equals(treeName.getIndexId());
+    return entryContainer.getID2Entry().getName().equals(treeName);
   }
 
-  private static boolean isID2ChildrenCount(TreeName treeName)
+  private static boolean isID2ChildrenCount(final EntryContainer entryContainer, final TreeName treeName)
   {
-    return SuffixContainer.ID2CHILDREN_COUNT_NAME.equals(treeName.getIndexId());
+    return entryContainer.getID2ChildrenCount().getName().equals(treeName);
   }
 
   private static boolean isVLVIndex(EntryContainer entryContainer, TreeName treeName)
@@ -3494,11 +3517,26 @@ final class OnDiskMergeImporter
     }
   }
 
-  private static void visitIndexes(final EntryContainer entryContainer, IndexVisitor visitor)
+  private static void visitAttributeIndexes(final Collection<AttributeIndex> attributeIndexes,
+      final Predicate<MatchingRuleIndex, AttributeIndex> predicate, final IndexVisitor visitor)
   {
-    for (AttributeIndex attribute : entryContainer.getAttributeIndexes())
+    for (final AttributeIndex attribute : attributeIndexes)
     {
-      for (MatchingRuleIndex index : attribute.getNameToIndexes().values())
+      for (final MatchingRuleIndex index : attribute.getNameToIndexes().values())
+      {
+        if (predicate.matches(index, attribute))
+        {
+          visitor.visitAttributeIndex(index);
+        }
+      }
+    }
+  }
+
+  private static void visitIndexes(final EntryContainer entryContainer, final IndexVisitor visitor)
+  {
+    for (final AttributeIndex attribute : entryContainer.getAttributeIndexes())
+    {
+      for (final MatchingRuleIndex index : attribute.getNameToIndexes().values())
       {
         visitor.visitAttributeIndex(index);
       }
@@ -3681,31 +3719,121 @@ final class OnDiskMergeImporter
     }
   }
 
-  private static final IndexVisitor visitOnlyIndexes(Collection<String> indexNames, IndexVisitor delegate)
+  private static final IndexVisitor visitOnlyIndexes(final Predicate<Tree, Void> predicate, final IndexVisitor delegate)
   {
-    return new SpecificIndexFilter(delegate, indexNames);
+    return new SpecificIndexFilter(delegate, predicate);
   }
 
-  /** Visit indexes only if their name match one contained in a list. */
+  private static final Predicate<Tree, Void> indexIdIn(final Collection<String> caseIgnoredNames) {
+    final Set<String> indexNames = new HashSet<>(caseIgnoredNames.size());
+    for (final String indexName : caseIgnoredNames)
+    {
+      indexNames.add(indexName.toLowerCase());
+    }
+    return new Predicate<Tree, Void>()
+    {
+      @Override
+      public boolean matches(final Tree tree, final Void p)
+      {
+        return indexNames.contains(tree.getName().getIndexId().toLowerCase());
+      }
+    };
+  }
+
+  private static final Predicate<MatchingRuleIndex, AttributeIndex> attributeTypeIs(final String caseIgnoredName)
+  {
+    return new Predicate<MatchingRuleIndex, AttributeIndex>()
+    {
+      @Override
+      public boolean matches(final MatchingRuleIndex index, final AttributeIndex attribute)
+      {
+        return caseIgnoredName.equalsIgnoreCase(attribute.getAttributeType().getNameOrOID());
+      }
+    };
+  }
+
+  private static final Predicate<MatchingRuleIndex, AttributeIndex> matchingRuleIs(final MatchingRule matchingRule)
+  {
+    return new Predicate<MatchingRuleIndex, AttributeIndex>()
+    {
+      @Override
+      public boolean matches(final MatchingRuleIndex index, final AttributeIndex attribute)
+      {
+        for (final Indexer indexer : matchingRule.createIndexers(attribute.getIndexingOptions()))
+        {
+          if (index.equals(attribute.getNameToIndexes().get(indexer.getIndexID())))
+          {
+            return true;
+          }
+        }
+        return false;
+      }
+    };
+  }
+
+  private static final Predicate<MatchingRuleIndex, AttributeIndex> indexTypeIs(final IndexType type)
+  {
+    return new Predicate<MatchingRuleIndex, AttributeIndex>()
+    {
+      @Override
+      public boolean matches(final MatchingRuleIndex index, final AttributeIndex attribute)
+      {
+        if (IndexType.PRESENCE.equals(type))
+        {
+          return index.equals(attribute.getNameToIndexes().get(IndexType.PRESENCE.toString()));
+        }
+        try
+        {
+          final MatchingRule matchingRule = AttributeIndex.getMatchingRule(type, attribute.getAttributeType());
+          if (matchingRule != null && matchingRuleIs(matchingRule).matches(index, attribute))
+          {
+            return true;
+          }
+        }
+        catch (IllegalArgumentException iae)
+        {
+          // getMatchingRule() not implemented for the specified index type. Ignore silently.
+        }
+        return false;
+      }
+    };
+  }
+
+  private static final <M, A> Predicate<M, A> matchingAllOf(final Iterable<Predicate<M, A>> predicates)
+  {
+    return new Predicate<M, A>()
+    {
+      @Override
+      public boolean matches(M value, A p)
+      {
+        for (Predicate<M, A> predicate : predicates)
+        {
+          if (!predicate.matches(value, p))
+          {
+            return false;
+          }
+        }
+        return true;
+      }
+    };
+  }
+
+  /** Visit indexes only if they match the provided predicate. */
   private static final class SpecificIndexFilter implements IndexVisitor
   {
     private final IndexVisitor delegate;
-    private final Collection<String> indexNames;
+    private final Predicate<Tree, Void> predicate;
 
-    SpecificIndexFilter(IndexVisitor delegate, Collection<String> names)
+    SpecificIndexFilter(IndexVisitor delegate, Predicate<Tree, Void> predicate)
     {
       this.delegate = delegate;
-      this.indexNames = new HashSet<>(names.size());
-      for(String indexName : names)
-      {
-        this.indexNames.add(indexName.toLowerCase());
-      }
+      this.predicate = predicate;
     }
 
     @Override
     public void visitAttributeIndex(Index index)
     {
-      if (indexIncluded(index))
+      if (predicate.matches(index, null))
       {
         delegate.visitAttributeIndex(index);
       }
@@ -3714,7 +3842,7 @@ final class OnDiskMergeImporter
     @Override
     public void visitVLVIndex(VLVIndex index)
     {
-      if (indexIncluded(index))
+      if (predicate.matches(index, null))
       {
         delegate.visitVLVIndex(index);
       }
@@ -3723,15 +3851,10 @@ final class OnDiskMergeImporter
     @Override
     public void visitSystemIndex(Tree index)
     {
-      if (indexIncluded(index))
+      if (predicate.matches(index, null))
       {
         delegate.visitSystemIndex(index);
       }
-    }
-
-    private boolean indexIncluded(Tree index)
-    {
-      return indexNames.contains(index.getName().getIndexId().toLowerCase());
     }
   }
 

@@ -682,9 +682,9 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend
     }
   }
 
-  private ImportStrategy getImportStrategy(RootContainer rootContainer)
+  private ImportStrategy getImportStrategy(final RootContainer rootContainer)
   {
-    return new OnDiskMergeImporter.StrategyImpl(rootContainer, cfg);
+    return new OnDiskMergeImporter.StrategyImpl(serverContext, rootContainer, cfg);
   }
 
   @Override

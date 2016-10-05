@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +88,7 @@ final class UpgradeTasks
   static int countErrors;
 
   /** Contains all the indexes to rebuild. */
-  private static final Set<String> indexesToRebuild = new HashSet<>();
+  private static final Set<String> indexesToRebuild = new LinkedHashSet<>();
 
   /** A flag to avoid rebuild single indexes if 'rebuild all' is selected. */
   private static boolean isRebuildAllIndexesIsPresent;
@@ -729,21 +730,20 @@ final class UpgradeTasks
           for (final Map.Entry<String, Set<String>> backendEntry : baseDNsForBackends.entrySet())
           {
             final String backend = backendEntry.getKey();
-            final List<String> filteredIndexes = filterExistingIndexes(indexesToRebuild, backend);
-            if (filteredIndexes.isEmpty())
+            if (indexesToRebuild.isEmpty())
             {
               logger.debug(INFO_UPGRADE_NO_INDEX_TO_REBUILD_FOR_BACKEND.get(backend));
               continue;
             }
 
             final List<String> args = new ArrayList<>();
-            for (final String indexToRebuild : filteredIndexes)
+            for (final String indexToRebuild : indexesToRebuild)
             {
               args.add("--index");
               args.add(indexToRebuild);
             }
             final Set<String> baseDNs = backendEntry.getValue();
-            rebuildIndex(INFO_UPGRADE_REBUILD_INDEX_STARTS.get(filteredIndexes, baseDNs), context, baseDNs, args);
+            rebuildIndex(INFO_UPGRADE_REBUILD_INDEX_STARTS.get(indexesToRebuild, baseDNs), context, baseDNs, args);
           }
         }
       }
