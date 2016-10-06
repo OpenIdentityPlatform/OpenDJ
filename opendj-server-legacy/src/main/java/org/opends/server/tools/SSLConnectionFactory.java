@@ -23,11 +23,15 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -35,9 +39,12 @@ import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.extensions.BlindTrustManagerProvider;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.util.SelectableCertificateKeyManager;
+
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 
 import static org.opends.messages.ToolMessages.*;
 
@@ -49,6 +56,26 @@ public class SSLConnectionFactory
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * List of available TLS protocols. By default, corresponds to all TLS protocols available in the JVM.
+   * The list may be overridden if <em>org.opends.ldaps.protocols</em> system property is set.
+   */
+  private static final String[] TLS_PROTOCOLS;
+
+  static
+  {
+    List<String> protocols = null;
+    try
+    {
+      protocols = ConnectionFactoryProvider.getDefaultProtocols();
+    }
+    catch (NoSuchAlgorithmException ex)
+    {
+      logger.trace("Unable to retrieve default TLS protocols of the JVM, defaulting to TLSv1", ex);
+      protocols = Arrays.asList(SSLContextBuilder.PROTOCOL_TLS1);
+    }
+    TLS_PROTOCOLS = protocols.toArray(new String[protocols.size()]);
+  }
 
   private SSLSocketFactory sslSocketFactory;
 
@@ -148,10 +175,16 @@ public class SSLConnectionFactory
   {
     if(sslSocketFactory == null)
     {
-      throw new SSLConnectionException(
-              ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
+      throw new SSLConnectionException(ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
     }
-    return sslSocketFactory.createSocket(hostName, portNumber);
+    return socketWithEnabledProtocols(sslSocketFactory.createSocket(hostName, portNumber));
+  }
+
+  private Socket socketWithEnabledProtocols(Socket socket)
+  {
+    SSLSocket sslSocket = (SSLSocket) socket;
+    sslSocket.setEnabledProtocols(TLS_PROTOCOLS);
+    return sslSocket;
   }
 
   /**
@@ -174,10 +207,9 @@ public class SSLConnectionFactory
   {
     if (sslSocketFactory == null)
     {
-      throw new SSLConnectionException(ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED
-          .get());
+      throw new SSLConnectionException(ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
     }
-    return sslSocketFactory.createSocket(host, portNumber);
+    return socketWithEnabledProtocols(sslSocketFactory.createSocket(host, portNumber));
   }
 
   /**
@@ -206,10 +238,9 @@ public class SSLConnectionFactory
   {
     if(sslSocketFactory == null)
     {
-      throw new SSLConnectionException(
-              ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
+      throw new SSLConnectionException(ERR_TOOLS_SSL_CONNECTION_NOT_INITIALIZED.get());
     }
-    return sslSocketFactory.createSocket(s, hostName, portNumber, autoClose);
+    return socketWithEnabledProtocols(sslSocketFactory.createSocket(s, hostName, portNumber, autoClose));
   }
 
   /**
