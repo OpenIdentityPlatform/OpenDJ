@@ -25,6 +25,7 @@ import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.CASE_SENSITIVE_ST
 import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.IGNORE_WHITE_SPACE;
 import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.INDEXED_FIELD_PATTERNS;
 import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.ValidationPolicy.LENIENT;
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.jsonParsingException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +57,6 @@ import org.forgerock.util.query.QueryFilter;
 import org.forgerock.util.query.QueryFilterVisitor;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 
 /**
@@ -203,12 +203,8 @@ final class JsonQueryEqualityMatchingRuleImpl implements MatchingRuleImpl {
             return normalizedValue.toByteString();
         } catch (DecodeException e) {
             throw e;
-        } catch (JsonProcessingException e) {
-            throw DecodeException.error(ERR_JSON_PARSE_ERROR.get(e.getLocation().getLineNr(),
-                                                                 e.getLocation().getColumnNr(),
-                                                                 e.getOriginalMessage()));
         } catch (IOException e) {
-            throw DecodeException.error(ERR_JSON_IO_ERROR.get(e.getMessage()));
+            throw DecodeException.error(jsonParsingException(e));
         }
     }
 
@@ -380,12 +376,8 @@ final class JsonQueryEqualityMatchingRuleImpl implements MatchingRuleImpl {
                 }
             } catch (DecodeException e) {
                 throw e;
-            } catch (JsonProcessingException e) {
-                throw DecodeException.error(ERR_JSON_PARSE_ERROR.get(e.getLocation().getLineNr(),
-                                                                     e.getLocation().getColumnNr(),
-                                                                     e.getOriginalMessage()));
             } catch (IOException e) {
-                throw DecodeException.error(ERR_JSON_IO_ERROR.get(e.getMessage()));
+                throw DecodeException.error(jsonParsingException(e));
             }
         }
 

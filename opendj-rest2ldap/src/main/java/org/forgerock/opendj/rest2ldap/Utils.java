@@ -26,6 +26,7 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_UNRECOGNIZED_JSON_VALUE;
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.getJsonSyntax;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +46,7 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.rest2ldap.schema.JsonSchema;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
@@ -54,8 +56,8 @@ import org.forgerock.util.promise.NeverThrowsException;
  */
 final class Utils {
 
-    private static final Function<Object, ByteString, NeverThrowsException> BASE64_TO_BYTESTRING =
-            new Function<Object, ByteString, NeverThrowsException>() {
+    private static final Function<Object, ByteString, LocalizedIllegalArgumentException> BASE64_TO_BYTESTRING =
+            new Function<Object, ByteString, LocalizedIllegalArgumentException>() {
                 @Override
                 public ByteString apply(final Object value) {
                     return ByteString.valueOfBase64(String.valueOf(value));
@@ -70,7 +72,7 @@ final class Utils {
                 }
             };
 
-    static Function<Object, ByteString, NeverThrowsException> base64ToByteString() {
+    static Function<Object, ByteString, LocalizedIllegalArgumentException> base64ToByteString() {
         return BASE64_TO_BYTESTRING;
     }
 
@@ -78,8 +80,9 @@ final class Utils {
         return BYTESTRING_TO_BASE64;
     }
 
-    static Function<ByteString, Object, NeverThrowsException> byteStringToJson(final AttributeDescription ad) {
-        return new Function<ByteString, Object, NeverThrowsException>() {
+    static Function<ByteString, Object, LocalizedIllegalArgumentException> byteStringToJson(
+            final AttributeDescription ad) {
+        return new Function<ByteString, Object, LocalizedIllegalArgumentException>() {
             @Override
             public Object apply(final ByteString value) {
                 final Syntax syntax = ad.getAttributeType().getSyntax();
@@ -88,8 +91,9 @@ final class Utils {
                 } else if (syntax.equals(getIntegerSyntax())) {
                     return byteStringToLong().apply(value);
                 } else if (syntax.equals(getGeneralizedTimeSyntax())) {
-                    return printDateTime(byteStringToGeneralizedTime().apply(value)
-                            .toCalendar());
+                    return printDateTime(byteStringToGeneralizedTime().apply(value).toCalendar());
+                } else if (syntax.equals(getJsonSyntax())) {
+                    return JsonSchema.byteStringToJson().apply(value);
                 } else {
                     return byteStringToString().apply(value);
                 }
@@ -120,17 +124,20 @@ final class Utils {
         }
     }
 
-    static Function<Object, ByteString, NeverThrowsException> jsonToByteString(final AttributeDescription ad) {
-        return new Function<Object, ByteString, NeverThrowsException>() {
+    static Function<Object, ByteString, Exception> jsonToByteString(
+            final AttributeDescription ad) {
+        return new Function<Object, ByteString, Exception>() {
             @Override
-            public ByteString apply(final Object value) {
+            public ByteString apply(final Object value) throws Exception {
+                final Syntax syntax = ad.getAttributeType().getSyntax();
                 if (isJsonPrimitive(value)) {
-                    final Syntax syntax = ad.getAttributeType().getSyntax();
                     if (syntax.equals(getGeneralizedTimeSyntax())) {
                         return ByteString.valueOfObject(GeneralizedTime.valueOf(parseDateTime(value.toString())));
                     } else {
                         return ByteString.valueOfObject(value);
                     }
+                } else if (syntax.equals(getJsonSyntax())) {
+                    return JsonSchema.jsonToByteString().apply(value);
                 } else {
                     throw new LocalizedIllegalArgumentException(ERR_UNRECOGNIZED_JSON_VALUE.get(value.getClass()
                                                                                                      .getName()));

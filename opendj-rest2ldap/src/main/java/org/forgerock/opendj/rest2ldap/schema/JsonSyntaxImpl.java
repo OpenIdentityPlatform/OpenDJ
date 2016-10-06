@@ -16,13 +16,12 @@
 package org.forgerock.opendj.rest2ldap.schema;
 
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_JSON_EMPTY_CONTENT;
-import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_JSON_IO_ERROR;
-import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_JSON_PARSE_ERROR;
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_JSON_TRAILING_CONTENT;
 import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.EMR_CASE_IGNORE_JSON_QUERY_OID;
 import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.VALIDATION_POLICY;
 import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.ValidationPolicy.DISABLED;
 import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.SYNTAX_JSON_DESCRIPTION;
+import static org.forgerock.opendj.rest2ldap.schema.JsonSchema.jsonParsingException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +33,6 @@ import org.forgerock.opendj.ldap.schema.SyntaxImpl;
 import org.forgerock.opendj.rest2ldap.schema.JsonSchema.ValidationPolicy;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 
 /** This class implements the JSON attribute syntax. */
@@ -110,13 +108,8 @@ final class JsonSyntaxImpl implements SyntaxImpl {
                 return false;
             }
             return true;
-        } catch (JsonProcessingException e) {
-            invalidReason.append(ERR_JSON_PARSE_ERROR.get(e.getLocation().getLineNr(),
-                                                          e.getLocation().getColumnNr(),
-                                                          e.getOriginalMessage()));
-            return false;
         } catch (IOException e) {
-            invalidReason.append(ERR_JSON_IO_ERROR.get(e.getMessage()));
+            invalidReason.append(jsonParsingException(e));
             return false;
         }
     }
