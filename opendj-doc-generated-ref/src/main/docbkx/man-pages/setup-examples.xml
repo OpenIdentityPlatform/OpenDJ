@@ -41,7 +41,7 @@ Configuring Certificates ..... Done.
 Importing Automatically-Generated Data (100 Entries) ......... Done.
 Starting Directory Server .......... Done.
 
-To see basic server configuration status and configuration you can launch
+To see basic server configuration status and configuration, you can launch
  /path/to/opendj/bin/status</computeroutput>
  </screen>
 </refsect1>
