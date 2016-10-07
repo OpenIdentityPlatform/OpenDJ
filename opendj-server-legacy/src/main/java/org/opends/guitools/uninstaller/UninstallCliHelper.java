@@ -1051,6 +1051,9 @@ public class UninstallCliHelper extends ConsoleApplication {
       info.setTrustManager(userData.getTrustManager());
       info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
       info.setConnectTimeout(getConnectTimeout());
+      if (userData.getAdminPwd() == null) {
+        throw new UserDataException(null, LocalizableMessage.raw("No administrator password provided"));
+      }
       conn = new ConnectionWrapper(
           info.getAdminConnectorHostPort(), connectionType,
           getAdministratorDN(userData.getAdminUID()), userData.getAdminPwd(),

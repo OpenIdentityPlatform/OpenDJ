@@ -96,9 +96,6 @@ public class ConfigFromFile extends ConfigReader
     final Set<DN> alternateBindDNs = new HashSet<>();
     try
     {
-      DirectoryServer.getInstance().initializeConfiguration();
-
-      readSchemaIfNeeded(errors);
       readConfig(connectionHandlers, backendDescriptors, alternateBindDNs, errors);
     }
     catch (final OpenDsException oe)
