@@ -89,6 +89,7 @@
                         <configuration>
                             <messageFiles>
                                 <messageFile>com/forgerock/opendj/ldap/core.properties</messageFile>
+                                <messageFile>com/forgerock/opendj/security/keystore.properties</messageFile>
                             </messageFiles>
                         </configuration>
                     </execution>
