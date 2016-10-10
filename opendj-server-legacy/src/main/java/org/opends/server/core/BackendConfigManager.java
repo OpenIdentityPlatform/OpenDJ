@@ -579,6 +579,11 @@ public class BackendConfigManager implements
     BaseDnRegistry reg = DirectoryServer.copyBaseDnRegistry();
     for (DN baseDN : baseDNs)
     {
+      if (baseDN.isRootDN())
+      {
+        unacceptableReason.add(ERR_CONFIG_BACKEND_BASE_IS_EMPTY.get(backendDN));
+        return false;
+      }
       try
       {
         reg.registerBaseDN(baseDN, backend, false);
