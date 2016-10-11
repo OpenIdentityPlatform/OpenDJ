@@ -27,10 +27,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.forgerock.openig.oauth2.AccessTokenInfo;
-import org.forgerock.openig.oauth2.AccessTokenException;
-import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.Handler;
+import org.forgerock.http.oauth2.AccessTokenException;
+import org.forgerock.http.oauth2.AccessTokenInfo;
+import org.forgerock.http.oauth2.AccessTokenResolver;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.json.JsonValue;
 import org.forgerock.opendj.rest2ldap.authz.Authorization;

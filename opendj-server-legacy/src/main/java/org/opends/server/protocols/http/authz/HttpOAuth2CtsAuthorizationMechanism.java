@@ -19,7 +19,7 @@ import static org.forgerock.opendj.adapter.server3x.Adapters.newRootConnectionFa
 import static org.forgerock.opendj.rest2ldap.authz.Authorization.newCtsAccessTokenResolver;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_AUTHZ_REFERENCED_DN_DOESNT_EXISTS;
 
-import org.forgerock.openig.oauth2.AccessTokenResolver;
+import org.forgerock.http.oauth2.AccessTokenResolver;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.HTTPOauth2CtsAuthorizationMechanismCfg;

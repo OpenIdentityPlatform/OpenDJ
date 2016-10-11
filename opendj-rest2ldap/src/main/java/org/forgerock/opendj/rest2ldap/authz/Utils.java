@@ -21,7 +21,7 @@ import static org.forgerock.util.Utils.closeSilently;
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.openig.oauth2.AccessTokenException;
+import org.forgerock.http.oauth2.AccessTokenException;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;
 import org.forgerock.i18n.LocalizableMessage;

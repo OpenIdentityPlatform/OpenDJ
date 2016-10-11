@@ -34,7 +34,6 @@
             org.forgerock.opendj.*;provide:=true,
             org.forgerock.json.*;provide:=true
         </opendj.osgi.import.additional>
-        <openig.toolkit.version>5.0.0-SNAPSHOT</openig.toolkit.version>
     </properties>
 
 
@@ -64,11 +63,10 @@
             <artifactId>i18n-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.forgerock.openig</groupId>
-            <artifactId>openig-toolkit</artifactId>
-            <version>${openig.toolkit.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.forgerock.http</groupId>
+			<artifactId>chf-oauth2</artifactId>
+		</dependency>
 
         <dependency>
             <groupId>org.forgerock.http</groupId>

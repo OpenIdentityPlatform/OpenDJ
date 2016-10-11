@@ -26,10 +26,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.forgerock.openig.oauth2.AccessTokenInfo;
-import org.forgerock.openig.oauth2.AccessTokenException;
-import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.Handler;
+import org.forgerock.http.oauth2.AccessTokenException;
+import org.forgerock.http.oauth2.AccessTokenInfo;
+import org.forgerock.http.oauth2.AccessTokenResolver;
 import org.forgerock.http.protocol.Responses;
 import org.forgerock.http.protocol.Entity;
 import org.forgerock.http.protocol.Form;

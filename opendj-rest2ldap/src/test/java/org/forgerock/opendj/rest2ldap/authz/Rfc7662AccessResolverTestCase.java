@@ -27,11 +27,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import org.forgerock.openig.oauth2.AccessTokenInfo;
-import org.forgerock.openig.oauth2.AccessTokenException;
-import org.forgerock.openig.oauth2.AccessTokenResolver;
 import org.forgerock.http.Handler;
 import org.forgerock.http.MutableUri;
+import org.forgerock.http.oauth2.AccessTokenException;
+import org.forgerock.http.oauth2.AccessTokenInfo;
+import org.forgerock.http.oauth2.AccessTokenResolver;
 import org.forgerock.http.protocol.Request;
 import org.forgerock.http.protocol.Response;
 import org.forgerock.http.protocol.Status;

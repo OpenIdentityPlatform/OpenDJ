@@ -22,7 +22,7 @@ import static org.opends.server.util.StaticUtils.getFileForPath;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.forgerock.openig.oauth2.AccessTokenResolver;
+import org.forgerock.http.oauth2.AccessTokenResolver;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.HTTPOauth2FileAuthorizationMechanismCfg;
 import org.opends.server.core.ServerContext;

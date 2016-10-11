@@ -33,10 +33,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.forgerock.openig.oauth2.AccessTokenException;
-import org.forgerock.openig.oauth2.AccessTokenInfo;
-import org.forgerock.openig.oauth2.AccessTokenResolver;
-import org.forgerock.openig.oauth2.resolver.CachingAccessTokenResolver;
+import org.forgerock.http.oauth2.AccessTokenException;
+import org.forgerock.http.oauth2.AccessTokenInfo;
+import org.forgerock.http.oauth2.AccessTokenResolver;
+import org.forgerock.http.oauth2.resolver.CachingAccessTokenResolver;
 import org.forgerock.json.JsonException;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.opendj.config.server.ConfigException;

@@ -26,8 +26,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.ExecutionException;
 
-import org.forgerock.openig.oauth2.AccessTokenInfo;
-import org.forgerock.openig.oauth2.AccessTokenResolver;
+import org.forgerock.http.oauth2.AccessTokenInfo;
+import org.forgerock.http.oauth2.AccessTokenResolver;
 import org.forgerock.json.JsonPointer;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Connection;

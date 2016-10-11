@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import org.forgerock.openig.oauth2.AccessTokenResolver;
+import org.forgerock.http.oauth2.AccessTokenResolver;
 import org.forgerock.json.JsonValueException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.testng.ForgeRockTestCase;
