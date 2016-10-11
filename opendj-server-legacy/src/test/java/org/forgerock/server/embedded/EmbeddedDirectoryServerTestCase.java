@@ -102,6 +102,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     assertTrue(server.isRunning());
   }
 
+  @Test
   public void testReadConfigurationOffline() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
@@ -125,11 +126,13 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     }
   }
 
+  @Test
   public void testReadConfigurationOnline() throws Exception
   {
     readConfiguration(getServer());
   }
 
+  @Test
   public void testUpdateConfiguration() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
@@ -157,6 +160,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
    * This test only ensures that the rebuild index process is correctly launched and does not fail.
    * There is no assertions.
    */
+  @Test
   public void testRebuildIndexOffline() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
@@ -182,6 +186,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
    * This test only ensures that the upgrade index is correctly launched and does not fail.
    * There is no assertions.
    */
+  @Test
   public void testUpgradeOffline() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
@@ -200,11 +205,13 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
    * This test only ensures that the upgrade index is correctly launched and does not fail.
    * There is no assertions.
    */
+  @Test
   public void testUpgradeOnline() throws Exception
   {
     getServer().upgrade(upgradeParams().isIgnoreErrors(false));
   }
 
+  @Test
   public void testImportDataOnline() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
@@ -231,6 +238,7 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
     }
   }
 
+  @Test
   public void testSetupFromArchive() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
@@ -269,5 +277,4 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
       server.start();
     }
   }
-
 }

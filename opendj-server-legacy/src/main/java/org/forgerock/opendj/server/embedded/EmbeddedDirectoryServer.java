@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.adapter.server3x.Adapters;
@@ -60,6 +62,13 @@ public class EmbeddedDirectoryServer
   private static final String ARCHIVE_ROOT_DIRECTORY = DynamicConstants.SHORT_NAME.toLowerCase();
   private static final String QUICKSETUP_ROOT_PROPERTY = "org.opends.quicksetup.Root";
   private static final String QUICKSETUP_INSTANCE_PROPERTY = "org.opends.quicksetup.instance";
+
+  /** List of directories resulting from the OpenDJ archive where all files should be set as executable. */
+  private static final List<String> EXECUTABLE_DJ_DIRECTORIES = Arrays.asList("opendj/bin");
+  /** List of individual files resulting from the OpenDJ archive which should be set as executable. */
+  private static final List<String> EXECUTABLE_DJ_FILES =
+      Arrays.asList("opendj/setup", "opendj/upgrade", "opendj/uninstall", "opendj/setup.bat", "opendj/upgrade.bat",
+          "opendj/uninstall.bat");
 
   /** The parameters for install and instance directories, and configuration file of the server. */
   private final ConfigParameters configParams;
@@ -443,7 +452,7 @@ public class EmbeddedDirectoryServer
       }
       // the directory where the zip file is extracted should be one level up from the server root.
       File deployDirectory = serverRoot.getParentFile();
-      StaticUtils.extractZipArchive(openDJZipFile, deployDirectory);
+      StaticUtils.extractZipArchive(openDJZipFile, deployDirectory, EXECUTABLE_DJ_DIRECTORIES, EXECUTABLE_DJ_FILES);
     }
     catch (IOException e)
     {

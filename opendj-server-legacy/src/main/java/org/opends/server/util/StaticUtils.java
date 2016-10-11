@@ -95,6 +95,8 @@ public final class StaticUtils
   /** Size of buffer used to copy/move/extract files. */
   public static final int BUFFER_SIZE = 8192;
 
+  private static final String[] EXECUTABLE_FILES_SUFFIXES = { ".sh", ".bat", ".exe" };
+
   /**
    * Number of bytes in a Kibibyte.
    * <p>
@@ -2487,16 +2489,28 @@ public final class StaticUtils
   /**
    * Extracts the provided zip archive to the provided target directory.
    * <p>
-   * Archive files ending by "sh" or beginning by "bin" are set as executable files.
+   * A file is set to executable if one or more of the following three conditions apply:
+   * <ul>
+   *   <li>It ends with a suffix identified as executable file suffix (.sh, .bat, .exe)</li>
+   *   <li>It is listed in the provided executableFiles</li>
+   *   <li>It is included in a directory that is listed in the provided executableDirectories</li>
+   * </ul>
    *
    * @param zipFile
    *            The zip file to extract.
    * @param targetDirectory
    *            The target directory for the content of the archive.
+   * @param executableDirectories
+   *            List of extracted directories which should have all their files set as executable.
+   *            Each directory must be provided as a path relative to the target directory (e.g. "opendj/bin")
+   * @param executableFiles
+   *            List of individual files which should be set as executable.
+   *            Each file must be provided as a path relative to the target directory (e.g. "opendj/setup")
    * @throws IOException
    *            If zip archive can't be read or target files can be written.
    */
-  public static void extractZipArchive(File zipFile, File targetDirectory) throws IOException
+  public static void extractZipArchive(File zipFile, File targetDirectory, List<String> executableDirectories,
+      List<String> executableFiles) throws IOException
   {
     try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(zipFile)))
     {
@@ -2512,10 +2526,31 @@ public final class StaticUtils
         }
         extractFileFromZip(zipStream, targetFile);
 
-        if (fileEntry.getName().endsWith("sh") || fileEntry.getName().startsWith("bin"))
+        for (String suffix : EXECUTABLE_FILES_SUFFIXES)
         {
-          targetFile.setExecutable(true);
+          if (fileEntry.getName().toLowerCase().endsWith(suffix))
+          {
+            targetFile.setExecutable(true);
+          }
         }
+      }
+    }
+    for (String dir: executableDirectories)
+    {
+      File directory = new File(targetDirectory.getPath(), dir);
+      for (File file: directory.listFiles())
+      {
+        if (file.isFile()) {
+          file.setExecutable(true);
+        }
+      }
+    }
+    for (String name : executableFiles)
+    {
+      File file = new File(targetDirectory.getPath(), name);
+      if (file.exists())
+      {
+        file.setExecutable(true);
       }
     }
   }
