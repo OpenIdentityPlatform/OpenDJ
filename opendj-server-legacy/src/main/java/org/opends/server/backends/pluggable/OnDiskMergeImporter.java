@@ -516,7 +516,7 @@ final class OnDiskMergeImporter
       {
         // Name could be a (attributeType)((.indexType)|(.matchingRule))
         // Add a trailing "." to ensure that resulting parts has always at least two parts.
-        final String parts[] = (name + ".").split("\\.");
+        final String parts[] = (name + ".*").split("\\.");
 
         // Is name represents all VLV index ?
         final SelectIndexName selector = new SelectIndexName();

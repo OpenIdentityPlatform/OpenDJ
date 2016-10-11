@@ -199,34 +199,46 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     };
   }
 
-  @Test(dataProvider="expandIndexData")
+  @Test(dataProvider = "expandIndexData")
   public void testCanExpandIndexNames(final String[] indexNames, final String[] expectedExpandedIndexNames)
-      throws InitializationException {
+      throws InitializationException
+  {
     final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
     assertThat(strategy.expandIndexNames(entryContainer, asList(indexNames)))
       .containsExactlyInAnyOrder(expectedExpandedIndexNames);
   }
 
-  @Test(expectedExceptions=InitializationException.class)
-  public void testThrowOnUnindexedType() throws InitializationException {
+  @Test
+  public void testIgnoreUnindexedType() throws InitializationException
+  {
     final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
-    strategy.expandIndexNames(entryContainer, asList(".approximate"));
+    assertThat(strategy.expandIndexNames(entryContainer, asList(".approximate"))).isEmpty();
   }
 
-  @Test(expectedExceptions=InitializationException.class)
-  public void testThrowOnUnrecognizedMatchingRule() throws InitializationException {
+  @Test
+  public void testIgnoreUnindexedMatchingRule() throws InitializationException
+  {
+    final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
+    assertThat(strategy.expandIndexNames(entryContainer, asList(".IntegerFirstComponentMatch"))).isEmpty();
+  }
+
+  @Test(expectedExceptions = InitializationException.class)
+  public void testThrowOnUnrecognizedSecondPart() throws InitializationException
+  {
     final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
     strategy.expandIndexNames(entryContainer, asList(".unknown"));
   }
 
-  @Test(expectedExceptions=InitializationException.class)
-  public void testThrowOnUnrecognizedAttribute() throws InitializationException {
+  @Test(expectedExceptions = InitializationException.class)
+  public void testThrowOnUnrecognizedAttributeType() throws InitializationException
+  {
     final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
     strategy.expandIndexNames(entryContainer, asList("unknown"));
   }
 
-  @Test(expectedExceptions=InitializationException.class)
-  public void testThrowOnUnrecognizedVlvIndex() throws InitializationException {
+  @Test(expectedExceptions = InitializationException.class)
+  public void testThrowOnUnrecognizedVlvIndex() throws InitializationException
+  {
     final StrategyImpl strategy = new StrategyImpl(serverContext, backend.getRootContainer(), backendCfg);
     strategy.expandIndexNames(entryContainer, asList("vlv.unknown"));
   }
