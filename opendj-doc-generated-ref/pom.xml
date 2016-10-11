@@ -471,7 +471,7 @@
                                             <application>org.opends.server.tools.ImportLDIF</application>
                                             <trailingSectionPaths>
                                                 <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                                                <trailingSectionPath>export-ldif-examples.xml</trailingSectionPath>
+                                                <trailingSectionPath>import-ldif-examples.xml</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 
