@@ -423,7 +423,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
       return true;
     }
-    return false;
+    // Replica offline messages should not get to a connected DS, they are meant to be
+    // exchanged only between RSes
+    return updateMsg instanceof ReplicaOfflineMsg;
   }
 
   private PreparedAssuredInfo getPreparedAssuredInfo(UpdateMsg updateMsg,

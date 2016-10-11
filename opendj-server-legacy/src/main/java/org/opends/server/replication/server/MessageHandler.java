@@ -304,6 +304,13 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           synchronized (msgQueue) // TODO JNR why synchronize(msgQueue) here?
           {
             msg = lateQueue.removeFirst();
+            // By default a server is always not following. A weird case where messages not representing
+            // an operation may happen, making the late queue repeatedly fill and be emptied without ever
+            // getting the server out of state "not following".
+            if (lateQueue.isEmpty() && msgQueue.isEmpty())
+            {
+              following = true;
+            }
           }
           if (updateServerState(msg))
           {
