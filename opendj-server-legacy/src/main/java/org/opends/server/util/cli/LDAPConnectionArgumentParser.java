@@ -260,13 +260,15 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
    * @param err
    *          stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
+   * @throws SSLConnectionException
+   *           if there was a problem connecting with SSL to the server
    * @throws LDAPConnectionException
-   *           if there was a problem connecting to the server
+   *           if there was any other problem connecting to the server
    * @throws ArgumentException
    *           if there was a problem indicated by the input arguments
    */
   public LDAPConnection connect(LDAPConnectionConsoleInteraction ui, PrintStream out, PrintStream err)
-      throws LDAPConnectionException, ArgumentException
+      throws LDAPConnectionException, SSLConnectionException, ArgumentException
   {
     try
     {
@@ -280,7 +282,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
     {
       err.println(isSSLException(e) ?
           ERR_TASKINFO_LDAP_EXCEPTION_SSL.get(ui.getHostName(), ui.getPortNumber()) : e.getMessageObject());
-      return null;
+      throw e;
     }
   }
 

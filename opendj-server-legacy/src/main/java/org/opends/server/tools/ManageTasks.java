@@ -267,8 +267,8 @@ public class ManageTasks extends ConsoleApplication {
            printSummaryTable();
            return 0;
         }
-      } catch (LDAPConnectionException lce) {
-        println(INFO_TASKINFO_LDAP_EXCEPTION.get(lce.getMessageObject()));
+      } catch (LDAPConnectionException | SSLConnectionException e) {
+        println(INFO_TASKINFO_LDAP_EXCEPTION.get(e.getMessageObject()));
         return 1;
       } catch (Exception e) {
         println(LocalizableMessage.raw(StaticUtils.getExceptionMessage(e)));
