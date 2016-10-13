@@ -1,0 +1,36 @@
+//
+// Example configuration for Elastic Search handler.
+// Edit a copy of the file with your settings.
+// Strip comments before use with grep -v '^[ ]*//' < your-file.json
+//
+{
+  "class": "org.forgerock.audit.handlers.elasticsearch.ElasticsearchAuditEventHandler",
+  "config": {
+    // Buffering is optional. Once enabled, its fields are optional.
+    "buffering": {
+      "enabled": false,
+      "maxBatchedEvents": 500,
+      "maxSize": 10000,
+      "writeInterval": "100 millis"
+    },
+    // Optional
+    "connection": {
+      "host": "localhost",
+      "port": 9200,
+      "useSSL": false,
+      "username": "myUsername",
+      "password": "myPassword"
+    },
+    "enabled": false,
+    // Optional
+    "indexMapping": {
+      "indexName": "audit"
+    },
+    "name": "elasticsearch",
+    "topics": [
+      "ldap-access",
+      "http-access"
+    ]
+  }
+}
+
