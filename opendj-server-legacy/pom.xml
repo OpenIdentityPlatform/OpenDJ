@@ -159,6 +159,16 @@
 
     <dependency>
       <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-audit-handler-splunk</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-audit-handler-jms</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-audit-json</artifactId>
     </dependency>
 
