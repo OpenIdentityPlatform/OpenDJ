@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +53,7 @@ import org.forgerock.opendj.server.config.server.PDBBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.DiskSpaceMonitorHandler;
+import org.opends.server.backends.pluggable.spi.EmptyCursor;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
@@ -388,6 +390,8 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
 
   /** Common interface for internal WriteableTransaction implementations. */
   private interface StorageImpl extends WriteableTransaction, Closeable {
+    <T>T read(ReadOperation<T> operation) throws Exception;
+    void write(WriteOperation operation) throws Exception;
   }
 
   /** PersistIt implementation of the {@link WriteableTransaction} interface. */
@@ -589,6 +593,65 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
       }
       exchanges.clear();
     }
+
+    @Override
+    public <T> T read(ReadOperation<T> operation) throws Exception
+    {
+      final Transaction txn = db.getTransaction();
+      for (;;)
+      {
+        txn.begin();
+        try
+        {
+          final T result = operation.run(this);
+          txn.commit(commitPolicy);
+          return result;
+        }
+        catch (final RollbackException e)
+        {
+          // retry
+        }
+        catch (final Exception e)
+        {
+          txn.rollback();
+          throw e;
+        }
+        finally
+        {
+          txn.end();
+        }
+      }
+    }
+
+    @Override
+    public void write(WriteOperation operation) throws Exception
+    {
+      final Transaction txn = db.getTransaction();
+      for (;;)
+      {
+        txn.begin();
+        try
+        {
+          operation.run(this);
+          txn.commit(commitPolicy);
+          return;
+        }
+        catch (final RollbackException e)
+        {
+          // retry after random sleep (reduces transactions collision. Drawback: increased latency)
+          Thread.sleep((long) (Math.random() * MAX_SLEEP_ON_RETRY_MS));
+        }
+        catch (final Exception e)
+        {
+          txn.rollback();
+          throw e;
+        }
+        finally
+        {
+          txn.end();
+        }
+      }
+    }
   }
 
   /** PersistIt read-only implementation of {@link StorageImpl} interface. */
@@ -673,6 +736,91 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     {
       throw new ReadOnlyStorageException();
     }
+
+    @Override
+    public <T> T read(ReadOperation<T> operation) throws Exception
+    {
+      return delegate.read(operation);
+    }
+
+    @Override
+    public void write(WriteOperation operation) throws Exception
+    {
+      operation.run(this);
+    }
+  }
+
+  /** No operation storage faking database files are present and empty. */
+  private final class ReadOnlyEmptyStorageImpl implements StorageImpl
+  {
+    @Override
+    public void close() throws IOException
+    {
+      // Nothing to do
+    }
+
+    @Override
+    public void openTree(TreeName name, boolean createOnDemand)
+    {
+      if (createOnDemand)
+      {
+        throw new ReadOnlyStorageException();
+      }
+    }
+
+    @Override
+    public void deleteTree(TreeName name)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public void put(TreeName treeName, ByteSequence key, ByteSequence value)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public boolean update(TreeName treeName, ByteSequence key, UpdateFunction f)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public boolean delete(TreeName treeName, ByteSequence key)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public ByteString read(TreeName treeName, ByteSequence key)
+    {
+      return null;
+    }
+
+    @Override
+    public Cursor<ByteString, ByteString> openCursor(TreeName treeName)
+    {
+      return new EmptyCursor<>();
+    }
+
+    @Override
+    public long getRecordCount(TreeName treeName)
+    {
+      return 0;
+    }
+
+    @Override
+    public <T> T read(ReadOperation<T> operation) throws Exception
+    {
+      return operation.run(this);
+    }
+
+    @Override
+    public void write(WriteOperation operation) throws Exception
+    {
+      operation.run(this);
+    }
   }
 
   Exchange getNewExchange(final TreeName treeName, final boolean create) throws PersistitException
@@ -693,6 +841,12 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   }
 
   private StorageImpl newStorageImpl() {
+    // If no persistent files have been created yet and we're opening READ-ONLY
+    // there is no volume and no db to use, since open was not called. Fake it.
+    if (db == null)
+    {
+      return new ReadOnlyEmptyStorageImpl();
+    }
     final WriteableStorageImpl writeableStorage = new WriteableStorageImpl();
     return accessMode.isWriteable() ? writeableStorage : new ReadOnlyStorageImpl(writeableStorage);
   }
@@ -703,7 +857,9 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   private final File backendDirectory;
   private CommitPolicy commitPolicy;
   private AccessMode accessMode;
+  /** It is NULL when opening the storage READ-ONLY and no files have been created yet. */
   private Persistit db;
+  /** It is NULL when opening the storage READ-ONLY and no files have been created yet, same as {@link #db}. */
   private Volume volume;
   private PDBBackendCfg config;
   private DiskSpaceMonitor diskMonitor;
@@ -785,16 +941,22 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         throw new IllegalStateException(e);
       }
     }
-    if (config.getDBCacheSize() > 0)
+    if (memQuota != null)
     {
-      memQuota.releaseMemory(config.getDBCacheSize());
-    }
-    else
-    {
-      memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
+      if (config.getDBCacheSize() > 0)
+      {
+        memQuota.releaseMemory(config.getDBCacheSize());
+      }
+      else
+      {
+        memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
+      }
     }
     config.removePDBChangeListener(this);
-    diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
+    if (diskMonitor != null)
+    {
+      diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
+    }
   }
 
   private static BufferPoolConfiguration getBufferPoolCfg(Configuration dbCfg)
@@ -806,7 +968,30 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   public void open(AccessMode accessMode) throws ConfigException, StorageRuntimeException
   {
     Reject.ifNull(accessMode, "accessMode must not be null");
+    if (isBackendIncomplete(accessMode))
+    {
+      // Do not open volume on disk
+      return;
+    }
     open0(buildConfiguration(accessMode));
+  }
+
+  private boolean isBackendIncomplete(AccessMode accessMode)
+  {
+    return !accessMode.isWriteable() && (!backendDirectory.exists() || backendDirectoryIncomplete());
+  }
+
+  // TODO: it belongs to disk-based Storage Interface.
+  private boolean backendDirectoryIncomplete()
+  {
+    try
+    {
+      return !getFilesToBackup().hasNext();
+    }
+    catch (DirectoryException ignored)
+    {
+      return true;
+    }
   }
 
   private void open0(final Configuration dbCfg) throws ConfigException
@@ -843,42 +1028,18 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public <T> T read(final ReadOperation<T> operation) throws Exception
   {
-    // This check may be unnecessary for PDB, but it will help us detect bad business logic
-    // in the pluggable backend that would cause problems for JE.
-    final Transaction txn = db.getTransaction();
-    for (;;)
+    try (final StorageImpl storageImpl = newStorageImpl())
     {
-      txn.begin();
-      try
+      final T result = storageImpl.read(operation);
+      return result;
+    }
+    catch (final StorageRuntimeException e)
+    {
+      if (e.getCause() != null)
       {
-        try (final StorageImpl storageImpl = newStorageImpl())
-        {
-          final T result = operation.run(storageImpl);
-          txn.commit(commitPolicy);
-          return result;
-        }
-        catch (final StorageRuntimeException e)
-        {
-          if (e.getCause() != null)
-          {
-              throw (Exception) e.getCause();
-          }
-          throw e;
-        }
+        throw (Exception) e.getCause();
       }
-      catch (final RollbackException e)
-      {
-        // retry
-      }
-      catch (final Exception e)
-      {
-        txn.rollback();
-        throw e;
-      }
-      finally
-      {
-        txn.end();
-      }
+      throw e;
     }
   }
 
@@ -892,41 +1053,17 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public void write(final WriteOperation operation) throws Exception
   {
-    final Transaction txn = db.getTransaction();
-    for (;;)
+    try (final StorageImpl storageImpl = newStorageImpl())
     {
-      txn.begin();
-      try
+      storageImpl.write(operation);
+    }
+    catch (final StorageRuntimeException e)
+    {
+      if (e.getCause() != null)
       {
-        try (final StorageImpl storageImpl = newStorageImpl())
-        {
-          operation.run(storageImpl);
-          txn.commit(commitPolicy);
-          return;
-        }
-        catch (final StorageRuntimeException e)
-        {
-          if (e.getCause() != null)
-          {
-            throw (Exception) e.getCause();
-          }
-          throw e;
-        }
+        throw (Exception) e.getCause();
       }
-      catch (final RollbackException e)
-      {
-        // retry after random sleep (reduces transactions collision. Drawback: increased latency)
-        Thread.sleep((long) (Math.random() * MAX_SLEEP_ON_RETRY_MS));
-      }
-      catch (final Exception e)
-      {
-        txn.rollback();
-        throw e;
-      }
-      finally
-      {
-        txn.end();
-      }
+      throw e;
     }
   }
 
@@ -1101,6 +1238,10 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
   @Override
   public Set<TreeName> listTrees()
   {
+    if (volume == null)
+    {
+      return Collections.<TreeName>emptySet();
+    }
     try
     {
       String[] treeNames = volume.getTreeNames();

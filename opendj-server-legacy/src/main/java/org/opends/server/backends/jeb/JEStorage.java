@@ -56,6 +56,7 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.JEBackendCfg;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.DiskSpaceMonitorHandler;
+import org.opends.server.backends.pluggable.spi.EmptyCursor;
 import org.opends.server.backends.pluggable.spi.AccessMode;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
@@ -352,7 +353,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
      * <ol>
      * <li>Opening the EntryContainer calls {@link #openTree(TreeName, boolean)} for each index</li>
      * <li>Then the underlying storage is closed</li>
-     * <li>Then {@link Importer#startImport()} is called</li>
+     * <li>Then {@link #startImport()} is called</li>
      * <li>Then ID2Entry#put() is called</li>
      * <li>Which in turn calls ID2Entry#encodeEntry()</li>
      * <li>Which in turn finally calls PersistentCompressedSchema#store()</li>
@@ -520,7 +521,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     }
   }
 
-  /** JE read-only implementation of {@link StorageImpl} interface. */
+  /** JE read-only implementation of {@link WriteableTransaction} interface. */
   private final class ReadOnlyTransactionImpl implements WriteableTransaction
   {
     private final WriteableTransactionImpl delegate;
@@ -583,8 +584,69 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     }
   }
 
+  /** No operation storage transaction faking database files are present and empty. */
+  private final class ReadOnlyEmptyTransactionImpl implements WriteableTransaction
+  {
+    @Override
+    public void openTree(TreeName name, boolean createOnDemand)
+    {
+      if (createOnDemand)
+      {
+        throw new ReadOnlyStorageException();
+      }
+    }
+
+    @Override
+    public void deleteTree(TreeName name)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public void put(TreeName treeName, ByteSequence key, ByteSequence value)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public boolean update(TreeName treeName, ByteSequence key, UpdateFunction f)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public boolean delete(TreeName treeName, ByteSequence key)
+    {
+      throw new ReadOnlyStorageException();
+    }
+
+    @Override
+    public ByteString read(TreeName treeName, ByteSequence key)
+    {
+      return null;
+    }
+
+    @Override
+    public Cursor<ByteString, ByteString> openCursor(TreeName treeName)
+    {
+      return new EmptyCursor<>();
+    }
+
+    @Override
+    public long getRecordCount(TreeName treeName)
+    {
+      return 0;
+    }
+  }
+
   private WriteableTransaction newWriteableTransaction(Transaction txn)
   {
+    // If no database files have been created yet and we're opening READ-ONLY
+    // there is no db to use, since open was not called. Fake it.
+    if (env == null)
+    {
+      return new ReadOnlyEmptyTransactionImpl();
+    }
     final WriteableTransactionImpl writeableStorage = new WriteableTransactionImpl(txn);
     return accessMode.isWriteable() ? writeableStorage : new ReadOnlyTransactionImpl(writeableStorage);
   }
@@ -601,6 +663,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   private JEBackendCfg config;
   private AccessMode accessMode;
 
+  /** It is NULL when opening the storage READ-ONLY and no files have been created yet. */
   private Environment env;
   private EnvironmentConfig envConfig;
   private MemoryQuota memQuota;
@@ -713,24 +776,56 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
       }
     }
 
-    if (config.getDBCacheSize() > 0)
+    if (memQuota != null)
     {
-      memQuota.releaseMemory(config.getDBCacheSize());
-    }
-    else
-    {
-      memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
+      if (config.getDBCacheSize() > 0)
+      {
+        memQuota.releaseMemory(config.getDBCacheSize());
+      }
+      else
+      {
+        memQuota.releaseMemory(memQuota.memPercentToBytes(config.getDBCachePercent()));
+      }
     }
     config.removeJEChangeListener(this);
-    diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
+    envConfig = null;
+    if (diskMonitor != null)
+    {
+      diskMonitor.deregisterMonitoredDirectory(getDirectory(), this);
+    }
   }
 
   @Override
   public void open(AccessMode accessMode) throws ConfigException, StorageRuntimeException
   {
     Reject.ifNull(accessMode, "accessMode must not be null");
+    if (isBackendIncomplete(accessMode))
+    {
+      envConfig = new EnvironmentConfig();
+      envConfig.setAllowCreate(false).setTransactional(false);
+      // Do not open files on disk
+      return;
+    }
     buildConfiguration(accessMode, false);
     open0();
+  }
+
+  private boolean isBackendIncomplete(AccessMode accessMode)
+  {
+    return !accessMode.isWriteable() && (!backendDirectory.exists() || backendDirectoryIncomplete());
+  }
+
+  // TODO: it belongs to disk-based Storage Interface.
+  private boolean backendDirectoryIncomplete()
+  {
+    try
+    {
+      return !getFilesToBackup().hasNext();
+    }
+    catch (DirectoryException ignored)
+    {
+      return true;
+    }
   }
 
   private void open0() throws ConfigException
@@ -1073,6 +1168,10 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
   @Override
   public Set<TreeName> listTrees()
   {
+    if (env == null)
+    {
+      return Collections.<TreeName>emptySet();
+    }
     try
     {
       List<String> treeNames = env.getDatabaseNames();

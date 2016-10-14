@@ -421,6 +421,7 @@ public class EntryContainer
       state.open(txn, shouldCreate);
       dn2uri.open(txn, shouldCreate);
 
+      final boolean isNotEmpty = !isEmpty(txn);
       for (String idx : config.listBackendIndexes())
       {
         BackendIndexCfg indexCfg = config.getBackendIndex(idx);
@@ -428,7 +429,7 @@ public class EntryContainer
         CryptoSuite cryptoSuite = newCryptoSuite(indexCfg.isConfidentialityEnabled());
         final AttributeIndex index = newAttributeIndex(indexCfg, cryptoSuite);
         index.open(txn, shouldCreate);
-        if(!index.isTrusted())
+        if(!index.isTrusted() && isNotEmpty)
         {
           logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, index.getName());
         }
@@ -442,7 +443,7 @@ public class EntryContainer
 
         VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, storage, this, txn);
         vlvIndex.open(txn, shouldCreate);
-        if(!vlvIndex.isTrusted())
+        if(!vlvIndex.isTrusted() && isNotEmpty)
         {
           logger.info(NOTE_INDEX_ADD_REQUIRES_REBUILD, vlvIndex.getName());
         }
@@ -456,6 +457,11 @@ public class EntryContainer
       close();
       throw de;
     }
+  }
+
+  boolean isEmpty(ReadableTransaction txn)
+  {
+    return getHighestEntryID(txn).longValue() == 0;
   }
 
   /**

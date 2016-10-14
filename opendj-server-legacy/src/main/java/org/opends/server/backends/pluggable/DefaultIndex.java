@@ -102,7 +102,7 @@ class DefaultIndex extends AbstractTree implements Index
       codec = new EntryIDSet.EntryIDSetCodecV3(codec, cryptoSuite);
     }
     trusted = flags.contains(TRUSTED);
-    if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
+    if (createOnDemand && !trusted && entryContainer.isEmpty(txn))
     {
       // If there are no entries in the entry container then there
       // is no reason why this index can't be upgraded to trusted.
