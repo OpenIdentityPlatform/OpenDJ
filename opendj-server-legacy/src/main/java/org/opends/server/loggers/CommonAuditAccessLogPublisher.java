@@ -190,7 +190,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
           final DN authzDN = authInfo.getAuthorizationDN();
           if (!authDN.equals(authzDN))
           {
-            builder.runAs(authzDN.toString());
+            builder.runAs(authzDN == null ? "" : authzDN.toString());
           }
         }
         else
