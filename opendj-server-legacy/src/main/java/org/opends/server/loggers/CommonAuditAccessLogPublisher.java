@@ -447,7 +447,12 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
     {
       builder.response(status, String.valueOf(resultCode), executionTime.getFirst(), executionTime.getSecond());
     }
-    builder.ldapMaskedResultAndMessage(operation);
+    if (shouldLogControlOids())
+    {
+      builder.ldapResponseControls(operation);
+    }
+    builder.ldapMaskedResultAndMessage(operation)
+        .ldapAdditionalItems(operation);
     return builder;
   }
 
@@ -460,14 +465,13 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
       .client(clientConn.getClientAddress(), clientConn.getClientPort())
       .server(clientConn.getServerAddress(), clientConn.getServerPort())
       .request(clientConn.getProtocol(), opType)
-      .ldapAdditionalItems(operation)
       .ldapSync(operation)
       .ldapIds(operation)
       .transactionId(getTransactionId(operation));
 
     if (shouldLogControlOids())
     {
-      builder.ldapControls(operation);
+      builder.ldapRequestControls(operation);
     }
     return builder;
   }

@@ -81,13 +81,18 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
     return self();
   }
 
-  public T ldapControls(Operation operation)
+  public T ldapRequestControls(Operation operation)
   {
     List<Control> requestControls = operation.getRequestControls();
     if (!requestControls.isEmpty())
     {
       getOpRequest().put("controls", getControlsAsString(requestControls));
     }
+    return self();
+  }
+
+  public T ldapResponseControls(Operation operation)
+  {
     List<Control> responseControls = operation.getResponseControls();
     if (!responseControls.isEmpty())
     {
