@@ -37,6 +37,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
+import org.forgerock.opendj.ldap.RequestLoadBalancer.RequestWithIndex;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -850,33 +851,34 @@ public class RequestLoadBalancerTestCase extends SdkTestCase {
         stub(this.connection3);
         loadBalancer = new RequestLoadBalancer("Test",
                                                asList(factory1, factory2, factory3),
-                                               defaultOptions(), newNextFactoryFunction());
+                                               defaultOptions(), newNextFactoryFunction(),
+                                               Connections.NOOP_END_OF_REQUEST_FUNCTION);
     }
 
-    private Function<Request, Integer, NeverThrowsException> newNextFactoryFunction() {
-        return new Function<Request, Integer, NeverThrowsException>() {
+    private Function<Request, RequestWithIndex, NeverThrowsException> newNextFactoryFunction() {
+        return new Function<Request, RequestWithIndex, NeverThrowsException>() {
             @Override
-            public Integer apply(final Request request) {
+            public RequestWithIndex apply(final Request request) {
                 if (request == addRequest1 || request == bindRequest1 || request == compareRequest1
                         || request == deleteRequest1 || request == extendedRequest1 || request == modifyRequest1
                         || request == modifyDNRequest1 || request == searchRequest1) {
-                    return 0;
+                    return new RequestWithIndex(request, 0);
                 }
 
                 if (request == addRequest2 || request == bindRequest2 || request == compareRequest2
                         || request == deleteRequest2 || request == extendedRequest2 || request == modifyRequest2
                         || request == modifyDNRequest2 || request == searchRequest2) {
-                    return 1;
+                    return new RequestWithIndex(request, 1);
                 }
 
                 if (request == addRequest3 || request == bindRequest3 || request == compareRequest3
                         || request == deleteRequest3 || request == extendedRequest3 || request == modifyRequest3
                         || request == modifyDNRequest3 || request == searchRequest3) {
-                    return 2;
+                    return new RequestWithIndex(request, 2);
                 }
 
                 fail("Received unexpected request");
-                return -1; // Keep compiler happy.
+                return new RequestWithIndex(request, -1); // Keep compiler happy.
             }
         };
     }

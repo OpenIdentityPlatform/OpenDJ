@@ -12,13 +12,18 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
 
 import javax.net.ssl.SSLContext;
@@ -33,12 +38,16 @@ import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
+import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
 import org.forgerock.util.Reject;
+
+import com.forgerock.opendj.ldap.CoreMessages;
 
 /**
  * This class contains various methods for creating and manipulating requests.
@@ -60,6 +69,133 @@ public final class Requests {
     // TODO: update request from persistent search result.
 
     // TODO: synchronized requests?
+
+    /**
+     * Creates a new request that is a shallow copy of the provided request, except for
+     * controls list which is a new list containing the original controls (and not the original list
+     * of controls) possibly filtered by the provided exclusion parameter.
+     * <p>
+     * The intended usage is to be able to perform modification of the controls of a request without
+     * affecting the original request.
+     *
+     * @param request
+     *          the original request
+     * @param excludeControlOids
+     *          OIDs of controls to exclude from the new request
+     * @return the new request
+     */
+    public static Request shallowCopyOfRequest(Request request, String... excludeControlOids) {
+        List<String> exclusions = Arrays.asList(excludeControlOids);
+        if (request instanceof AbandonRequest) {
+            AbandonRequest req = copyOfAbandonRequest((AbandonRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof AddRequest) {
+            AddRequest req = (AddRequest) request;
+            AddRequest newReq = newAddRequest(new LinkedHashMapEntry(req));
+            return copyControls(req, newReq, exclusions);
+        } else if (request instanceof AnonymousSASLBindRequest) {
+            AnonymousSASLBindRequest req = copyOfAnonymousSASLBindRequest((AnonymousSASLBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof CancelExtendedRequest) {
+            CancelExtendedRequest req = copyOfCancelExtendedRequest((CancelExtendedRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof CompareRequest) {
+            CompareRequest req = copyOfCompareRequest((CompareRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof CRAMMD5SASLBindRequest) {
+            CRAMMD5SASLBindRequest req = copyOfCRAMMD5SASLBindRequest((CRAMMD5SASLBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof DeleteRequest) {
+            DeleteRequest req = copyOfDeleteRequest((DeleteRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof DigestMD5SASLBindRequest) {
+            DigestMD5SASLBindRequest req = copyOfDigestMD5SASLBindRequest((DigestMD5SASLBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof ExternalSASLBindRequest) {
+            ExternalSASLBindRequest req = copyOfExternalSASLBindRequest((ExternalSASLBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof GenericBindRequest) {
+            GenericBindRequest req = copyOfGenericBindRequest((GenericBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof GenericExtendedRequest) {
+            GenericExtendedRequest req = copyOfGenericExtendedRequest((GenericExtendedRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof GSSAPISASLBindRequest) {
+            GSSAPISASLBindRequest req = copyOfGSSAPISASLBindRequest((GSSAPISASLBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof ModifyDNRequest) {
+            ModifyDNRequest req = copyOfModifyDNRequest((ModifyDNRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof ModifyRequest) {
+            ModifyRequest req = (ModifyRequest) request;
+            ModifyRequest newReq = newModifyRequest(req.getName());
+            for (Modification mod : req.getModifications()) {
+                newReq.addModification(mod);
+            }
+            return copyControls(req, newReq, exclusions);
+        } else if (request instanceof PasswordModifyExtendedRequest) {
+            PasswordModifyExtendedRequest req =
+                    copyOfPasswordModifyExtendedRequest((PasswordModifyExtendedRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof PlainSASLBindRequest) {
+            PlainSASLBindRequest req = copyOfPlainSASLBindRequest((PlainSASLBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof SearchRequest) {
+            SearchRequest req = copyOfSearchRequest((SearchRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof SimpleBindRequest) {
+            SimpleBindRequest req = copyOfSimpleBindRequest((SimpleBindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof StartTLSExtendedRequest) {
+            StartTLSExtendedRequest req = copyOfStartTLSExtendedRequest((StartTLSExtendedRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof UnbindRequest) {
+            UnbindRequest req = copyOfUnbindRequest((UnbindRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else if (request instanceof WhoAmIExtendedRequest) {
+            WhoAmIExtendedRequest req = copyOfWhoAmIExtendedRequest((WhoAmIExtendedRequest) request);
+            filterControls(req.getControls(), exclusions);
+            return req;
+        } else {
+            throw new LocalizedIllegalArgumentException(CoreMessages.ERR_UNKNOWN_REQUEST_TYPE.get(request));
+        }
+    }
+
+    private static Request copyControls(Request source, Request destination, List<String> excludeControlOids) {
+        for (final Control control : source.getControls()) {
+            if (!excludeControlOids.contains(control.getOID())) {
+                destination.addControl(control);
+            }
+        }
+        return destination;
+    }
+
+    private static void filterControls(List<Control> controls, List<String> excludedControlOids) {
+        for (Iterator<Control> it = controls.iterator(); it.hasNext();) {
+            Control control = it.next();
+            if (excludedControlOids.contains(control.getOID())) {
+                it.remove();
+            }
+        }
+    }
 
     /**
      * Creates a new abandon request that is an exact copy of the provided

@@ -17,12 +17,14 @@ package org.forgerock.opendj.ldap;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.Connections.newShardedRequestLoadBalancerFunction;
+import static org.forgerock.opendj.ldap.Connections.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import org.forgerock.opendj.ldap.Connections.LeastRequestsDispatcher;
+import org.forgerock.opendj.ldap.RequestLoadBalancer.RequestWithIndex;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
@@ -35,11 +37,14 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Request;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.ldap.controls.AffinityControl;
 
 @SuppressWarnings("javadoc")
 public class ConnectionsTestCase extends SdkTestCase {
@@ -70,8 +75,8 @@ public class ConnectionsTestCase extends SdkTestCase {
 
     @Test
     public void shardedRequestLoadBalancerUsesConsistentIndexing() {
-        final Function<Request, Integer, NeverThrowsException> f =
-                newShardedRequestLoadBalancerFunction(asList(mock(ConnectionFactory.class),
+        final Function<Request, RequestWithIndex, NeverThrowsException> f =
+                newShardedRequestLoadBalancerNextFunction(asList(mock(ConnectionFactory.class),
                                                              mock(ConnectionFactory.class)));
 
         // These two DNs have a different hash code.
@@ -138,7 +143,75 @@ public class ConnectionsTestCase extends SdkTestCase {
         assertThat(index(f, genericExtendedRequest)).isBetween(0, 1);
     }
 
-    private void assertRequestsAreRoutedConsistently(final Function<Request, Integer, NeverThrowsException> f,
+    @Test
+    public void leastRequestsDispatcherMustChooseTheLessSaturatedServer() {
+        LeastRequestsDispatcher dispatcher = new Connections.LeastRequestsDispatcher(3);
+        Function<Request, RequestWithIndex, NeverThrowsException> next =
+                newLeastRequestsLoadBalancerNextFunction(dispatcher);
+        Function<Integer, Void, NeverThrowsException> end =
+                newLeastRequestsLoadBalancerEndOfRequestFunction(dispatcher);
+
+        final SearchRequest[] reqs = new SearchRequest[11];
+        for (int i = 0; i < reqs.length; i++) {
+            reqs[i] = mock(SearchRequest.class);
+        }
+        assertThat(next.apply(reqs[0]).getServerIndex()).isEqualTo(0);  // number of reqs = [1, 0, 0]
+        assertThat(next.apply(reqs[1]).getServerIndex()).isEqualTo(1);  // number of reqs = [1, 1, 0]
+        assertThat(next.apply(reqs[2]).getServerIndex()).isEqualTo(2);  // number of reqs = [1, 1, 1]
+        end.apply(1);                                                   // number of reqs = [1, 0, 1]
+        assertThat(next.apply(reqs[3]).getServerIndex()).isEqualTo(1);  // number of reqs = [1, 1, 1]
+        end.apply(1);                                                   // number of reqs = [1, 0, 1]
+        assertThat(next.apply(reqs[5]).getServerIndex()).isEqualTo(1);  // number of reqs = [1, 1, 1]
+        assertThat(next.apply(reqs[6]).getServerIndex()).isEqualTo(0);  // number of reqs = [2, 1, 1]
+        assertThat(next.apply(reqs[7]).getServerIndex()).isEqualTo(1);  // number of reqs = [2, 2, 1]
+        assertThat(next.apply(reqs[8]).getServerIndex()).isEqualTo(2);  // number of reqs = [2, 2, 2]
+        assertThat(next.apply(reqs[9]).getServerIndex()).isEqualTo(0);  // number of reqs = [3, 2, 2]
+        end.apply(2);                                                   // number of reqs = [3, 2, 1]
+        assertThat(next.apply(reqs[10]).getServerIndex()).isEqualTo(2); // number of reqs = [3, 2, 2]
+    }
+
+    @Test
+    public void leastRequestsDispatcherMustTakeConnectionAffinityControlIntoAccount() {
+        LeastRequestsDispatcher dispatcher = new Connections.LeastRequestsDispatcher(3);
+        Function<Request, RequestWithIndex, NeverThrowsException> next =
+                newLeastRequestsLoadBalancerNextFunction(dispatcher);
+
+        final Request[] reqs = new Request[11];
+        for (int i = 0; i < reqs.length; i++) {
+            reqs[i] = Requests.newDeleteRequest("o=example");
+        }
+        assertThat(next.apply(reqs[0]).getServerIndex()).isEqualTo(0); // number of reqs = [1, 0, 0]
+
+        // control should now force the same connection three times
+        // control should be removed from the RequestWithIndex object used to perform the actual query
+        for (int i = 1; i <= 3; i++) {
+            reqs[i].addControl(AffinityControl.newControl(ByteString.valueOfUtf8("val"), false));
+        }
+        RequestWithIndex req1 = next.apply(reqs[1]);
+        assertThat(req1.getServerIndex()).isEqualTo(0); // number of reqs = [2, 0, 0]
+        assertThat(req1.getRequest().getControls()).isEmpty();
+        assertThat(reqs[1].getControls()).hasSize(1);
+
+        RequestWithIndex req2 = next.apply(reqs[2]);
+        assertThat(req2.getServerIndex()).isEqualTo(0); // number of reqs = [3, 0, 0]
+        assertThat(req2.getRequest().getControls()).isEmpty();
+        assertThat(reqs[2].getControls()).hasSize(1);
+
+        RequestWithIndex req3 = next.apply(reqs[3]);
+        assertThat(req3.getServerIndex()).isEqualTo(0); // number of reqs = [4, 0, 0]
+        assertThat(req3.getRequest().getControls()).isEmpty();
+        assertThat(reqs[3].getControls()).hasSize(1);
+
+        // back to default "saturation-based" behavior
+        assertThat(next.apply(reqs[4]).getServerIndex()).isEqualTo(1); // number of reqs = [4, 1, 0]
+        assertThat(next.apply(reqs[5]).getServerIndex()).isEqualTo(2); // number of reqs = [4, 1, 1]
+        assertThat(next.apply(reqs[6]).getServerIndex()).isEqualTo(1); // number of reqs = [4, 2, 1]
+        assertThat(next.apply(reqs[7]).getServerIndex()).isEqualTo(2); // number of reqs = [4, 2, 2]
+        assertThat(next.apply(reqs[8]).getServerIndex()).isEqualTo(1); // number of reqs = [4, 3, 2]
+        assertThat(next.apply(reqs[9]).getServerIndex()).isEqualTo(2); // number of reqs = [4, 3, 3]
+    }
+
+    private void assertRequestsAreRoutedConsistently(final Function<Request, RequestWithIndex, NeverThrowsException> f,
                                                      final Request r,
                                                      final int firstExpectedIndex,
                                                      final int secondExpectedIndex) {
@@ -146,7 +219,7 @@ public class ConnectionsTestCase extends SdkTestCase {
         assertThat(index(f, r)).isEqualTo(secondExpectedIndex);
     }
 
-    private int index(final Function<Request, Integer, NeverThrowsException> function, final Request request) {
-        return function.apply(request);
+    private int index(final Function<Request, RequestWithIndex, NeverThrowsException> function, final Request request) {
+        return function.apply(request).getServerIndex();
     }
 }

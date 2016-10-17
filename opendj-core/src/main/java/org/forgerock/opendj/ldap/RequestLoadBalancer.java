@@ -59,15 +59,22 @@ final class RequestLoadBalancer extends LoadBalancer {
      * A function which returns the index of the first connection factory which should be used in order to satisfy the
      * next request. Implementations may base the decision on properties of the provided request, such as the target DN,
      * whether the request is a read or update request, etc.
+     * Additionally a new request is returned with the index, because some modifications may be needed (removal of
+     * a control for example) but the original request should not be modified. The new request must be used
+     * for the actual LDAP operation.
      */
-    private final Function<Request, Integer, NeverThrowsException> nextFactoryFunction;
+    private final Function<Request, RequestWithIndex, NeverThrowsException> nextFactoryFunction;
+    /** A function which is called after a request is terminated. */
+    private final Function<Integer, Void, NeverThrowsException> endOfRequestFunction;
 
     RequestLoadBalancer(final String loadBalancerName,
                         final Collection<? extends ConnectionFactory> factories,
                         final Options options,
-                        final Function<Request, Integer, NeverThrowsException> nextFactoryFunction) {
+                        final Function<Request, RequestWithIndex, NeverThrowsException> nextFactoryFunction,
+                        final Function<Integer, Void, NeverThrowsException> endOfRequestFunction) {
         super(loadBalancerName, factories, options);
         this.nextFactoryFunction = nextFactoryFunction;
+        this.endOfRequestFunction = endOfRequestFunction;
     }
 
     @Override
@@ -97,12 +104,15 @@ final class RequestLoadBalancer extends LoadBalancer {
         @Override
         public LdapPromise<Result> addAsync(
                 final AddRequest request, final IntermediateResponseHandler intermediateResponseHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, Result, LdapException>() {
-                @Override
-                public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.addAsync(request, intermediateResponseHandler);
-                }
-            });
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext,
+                    new AsyncFunction<Connection, Result, LdapException>() {
+                        @Override
+                        public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
+                            return connection.addAsync((AddRequest) connectionContext.getRequest(),
+                                                       intermediateResponseHandler);
+                        }
+                    });
         }
 
         @Override
@@ -113,10 +123,12 @@ final class RequestLoadBalancer extends LoadBalancer {
         @Override
         public LdapPromise<BindResult> bindAsync(
                 final BindRequest request, final IntermediateResponseHandler intermediateResponseHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, BindResult, LdapException>() {
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext, new AsyncFunction<Connection, BindResult, LdapException>() {
                 @Override
                 public Promise<BindResult, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.bindAsync(request, intermediateResponseHandler);
+                    return connection.bindAsync((BindRequest) connectionContext.getRequest(),
+                                                intermediateResponseHandler);
                 }
             });
         }
@@ -129,34 +141,44 @@ final class RequestLoadBalancer extends LoadBalancer {
         @Override
         public LdapPromise<CompareResult> compareAsync(
                 final CompareRequest request, final IntermediateResponseHandler intermediateResponseHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, CompareResult, LdapException>() {
-                @Override
-                public Promise<CompareResult, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.compareAsync(request, intermediateResponseHandler);
-                }
-            });
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext,
+                    new AsyncFunction<Connection, CompareResult, LdapException>() {
+                        @Override
+                        public Promise<CompareResult, LdapException> apply(final Connection connection)
+                                throws LdapException {
+                            return connection.compareAsync((CompareRequest) connectionContext.getRequest(),
+                                                           intermediateResponseHandler);
+                        }
+                    });
         }
 
         @Override
         public LdapPromise<Result> deleteAsync(
                 final DeleteRequest request, final IntermediateResponseHandler intermediateResponseHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, Result, LdapException>() {
-                @Override
-                public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.deleteAsync(request, intermediateResponseHandler);
-                }
-            });
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext,
+                    new AsyncFunction<Connection, Result, LdapException>() {
+                        @Override
+                        public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
+                            return connection.deleteAsync((DeleteRequest) connectionContext.getRequest(),
+                                                          intermediateResponseHandler);
+                        }
+                    });
         }
 
         @Override
         public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(
                 final ExtendedRequest<R> request, final IntermediateResponseHandler intermediateResponseHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, R, LdapException>() {
-                @Override
-                public Promise<R, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.extendedRequestAsync(request, intermediateResponseHandler);
-                }
-            });
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext,
+                    new AsyncFunction<Connection, R, LdapException>() {
+                        @Override
+                        public Promise<R, LdapException> apply(final Connection connection) throws LdapException {
+                            return connection.extendedRequestAsync((ExtendedRequest<R>) connectionContext.getRequest(),
+                                                                   intermediateResponseHandler);
+                        }
+                    });
         }
 
         @Override
@@ -172,23 +194,29 @@ final class RequestLoadBalancer extends LoadBalancer {
         @Override
         public LdapPromise<Result> modifyAsync(
                 final ModifyRequest request, final IntermediateResponseHandler intermediateResponseHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, Result, LdapException>() {
-                @Override
-                public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.modifyAsync(request, intermediateResponseHandler);
-                }
-            });
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext,
+                    new AsyncFunction<Connection, Result, LdapException>() {
+                        @Override
+                        public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
+                            return connection.modifyAsync((ModifyRequest) connectionContext.getRequest(),
+                                                          intermediateResponseHandler);
+                        }
+                    });
         }
 
         @Override
         public LdapPromise<Result> modifyDNAsync(
                 final ModifyDNRequest request, final IntermediateResponseHandler intermediateResponseHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, Result, LdapException>() {
-                @Override
-                public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.modifyDNAsync(request, intermediateResponseHandler);
-                }
-            });
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext,
+                    new AsyncFunction<Connection, Result, LdapException>() {
+                        @Override
+                        public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
+                            return connection.modifyDNAsync((ModifyDNRequest) connectionContext.getRequest(),
+                                                            intermediateResponseHandler);
+                        }
+                    });
         }
 
         @Override
@@ -201,51 +229,111 @@ final class RequestLoadBalancer extends LoadBalancer {
                 final SearchRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final SearchResultHandler entryHandler) {
-            return getConnectionAndSendRequest(request, new AsyncFunction<Connection, Result, LdapException>() {
-                @Override
-                public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
-                    return connection.searchAsync(request, intermediateResponseHandler, entryHandler);
-                }
-            });
-        }
-
-        private <R> LdapPromise<R> getConnectionAndSendRequest(
-                final Request request, final AsyncFunction<Connection, R, LdapException> sendRequest) {
-            if (state.isClosed()) {
-                throw new IllegalStateException();
-            }
-            final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
-            return getConnectionAsync(request)
-                    .thenOnResult(new ResultHandler<Connection>() {
+            final ConnectionContext connectionContext = getConnection(request);
+            return executeRequest(connectionContext,
+                    new AsyncFunction<Connection, Result, LdapException>() {
                         @Override
-                        public void handleResult(final Connection connection) {
-                            connectionHolder.set(connection);
-                        }
-                    })
-                    .thenAsync(sendRequest)
-                    .thenFinally(new Runnable() {
-                        @Override
-                        public void run() {
-                            closeSilently(connectionHolder.get());
+                        public Promise<Result, LdapException> apply(final Connection connection) throws LdapException {
+                            return connection.searchAsync((SearchRequest) connectionContext.getRequest(),
+                                                          intermediateResponseHandler,
+                                                          entryHandler);
                         }
                     });
         }
 
-        private LdapPromise<Connection> getConnectionAsync(final Request request) {
+        private ConnectionContext getConnection(final Request request) {
+            if (state.isClosed()) {
+                throw new IllegalStateException();
+            }
             try {
-                final int index = nextFactoryFunction.apply(request);
-                final ConnectionFactory factory = getMonitoredConnectionFactory(index);
-                return LdapPromises.asPromise(factory.getConnectionAsync()
-                                                     .thenOnException(new ExceptionHandler<LdapException>() {
-                                                         @Override
-                                                         public void handleException(final LdapException e) {
-                                                             state.notifyConnectionError(false, e);
-                                                         }
-                                                     }));
+                final RequestWithIndex requestWithIndex = nextFactoryFunction.apply(request);
+                final ConnectionFactory factory = getMonitoredConnectionFactory(requestWithIndex.getServerIndex());
+                return new ConnectionContext(
+                        LdapPromises.asPromise(factory.getConnectionAsync()
+                                .thenOnException(new ExceptionHandler<LdapException>() {
+                                    @Override
+                                    public void handleException(final LdapException e) {
+                                        state.notifyConnectionError(false, e);
+                                    }
+                                })),
+                        requestWithIndex);
             } catch (final LdapException e) {
                 state.notifyConnectionError(false, e);
-                return newFailedLdapPromise(e);
+                LdapPromise<Connection> failedLdapPromise = newFailedLdapPromise(e);
+                return new ConnectionContext(failedLdapPromise, new RequestWithIndex(request, -1));
             }
+        }
+
+        private <R> LdapPromise<R> executeRequest(final ConnectionContext connectionContext,
+                final AsyncFunction<Connection, R, LdapException> requestSender) {
+            return connectionContext.getConnectionPromise()
+                    .thenOnResult(new ResultHandler<Connection>() {
+                        @Override
+                        public void handleResult(final Connection connection) {
+                            connectionContext.setConnection(connection);
+                        }
+                    })
+                    .thenAsync(requestSender)
+                    .thenFinally(new Runnable() {
+                        @Override
+                        public void run() {
+                            closeSilently(connectionContext.getConnection());
+                            endOfRequestFunction.apply(connectionContext.getServerIndex());
+                        }
+                    });
+        }
+    }
+
+    /** Utility class for a request and a server index. */
+    static class RequestWithIndex {
+        private final Request request;
+        /** The index of server chosen for the connection. */
+        private final int serverIndex;
+
+        RequestWithIndex(Request request, int serverIndex) {
+            this.serverIndex = serverIndex;
+            this.request = request;
+        }
+
+        Request getRequest() {
+            return request;
+        }
+
+        int getServerIndex() {
+            return serverIndex;
+        }
+    }
+
+    /** Utility class to hold together parameters for a request and the connection used to perform it. */
+    private static class ConnectionContext {
+        private final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
+        private final LdapPromise<Connection> connectionPromise;
+        private final RequestWithIndex requestWithIndex;
+
+        ConnectionContext(LdapPromise<Connection> connectionPromise, RequestWithIndex requestWithIndex) {
+            this.requestWithIndex = requestWithIndex;
+            this.connectionPromise = connectionPromise;
+        }
+
+
+        Connection getConnection() {
+            return connectionHolder.get();
+        }
+
+        void setConnection(Connection connection) {
+            connectionHolder.set(connection);
+        }
+
+        LdapPromise<Connection> getConnectionPromise() {
+            return connectionPromise;
+        }
+
+        int getServerIndex() {
+            return requestWithIndex.getServerIndex();
+        }
+
+        Request getRequest() {
+            return requestWithIndex.getRequest();
         }
     }
 }

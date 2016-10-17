@@ -27,7 +27,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import java.util.concurrent.atomic.AtomicLongArray;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.RequestLoadBalancer.RequestWithIndex;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
@@ -39,21 +41,29 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Request;
+import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.util.Function;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
+import org.forgerock.util.annotations.VisibleForTesting;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
+
+import com.forgerock.opendj.ldap.CoreMessages;
+import com.forgerock.opendj.ldap.controls.AffinityControl;
 
 /**
  * This class contains methods for creating and manipulating connection
  * factories and connections.
  */
 public final class Connections {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * Specifies the interval between successive attempts to reconnect to offline load-balanced connection factories.
      * The default configuration is to attempt to reconnect every second.
@@ -421,6 +431,7 @@ public final class Connections {
      * @return The new round-robin load balancer.
      * @see #newShardedRequestLoadBalancer(Collection, Options)
      * @see #newFailoverLoadBalancer(Collection, Options)
+     * @see #newLeastRequestsLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
      * @see #LOAD_BALANCER_SCHEDULER
@@ -488,6 +499,7 @@ public final class Connections {
      * @return The new fail-over load balancer.
      * @see #newRoundRobinLoadBalancer(Collection, Options)
      * @see #newShardedRequestLoadBalancer(Collection, Options)
+     * @see #newLeastRequestsLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
      * @see #LOAD_BALANCER_SCHEDULER
@@ -539,6 +551,7 @@ public final class Connections {
      * @return The new affinity load balancer.
      * @see #newRoundRobinLoadBalancer(Collection, Options)
      * @see #newFailoverLoadBalancer(Collection, Options)
+     * @see #newLeastRequestsLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
      * @see #LOAD_BALANCER_SCHEDULER
@@ -548,21 +561,23 @@ public final class Connections {
         return new RequestLoadBalancer("ShardedRequestLoadBalancer",
                                        factories,
                                        options,
-                                       newShardedRequestLoadBalancerFunction(factories));
+                                       newShardedRequestLoadBalancerNextFunction(factories),
+                                       NOOP_END_OF_REQUEST_FUNCTION);
+
     }
 
-    // Package private for testing.
-    static Function<Request, Integer, NeverThrowsException> newShardedRequestLoadBalancerFunction(
+    @VisibleForTesting
+    static Function<Request, RequestWithIndex, NeverThrowsException> newShardedRequestLoadBalancerNextFunction(
             final Collection<? extends ConnectionFactory> factories) {
-        return new Function<Request, Integer, NeverThrowsException>() {
+        return new Function<Request, RequestWithIndex, NeverThrowsException>() {
             private final int maxIndex = factories.size();
 
             @Override
-            public Integer apply(final Request request) {
+            public RequestWithIndex apply(final Request request) {
                 // Normalize the hash to a valid factory index, taking care of negative hash values and especially
                 // Integer.MIN_VALUE (see doc for Math.abs()).
                 final int index = computeIndexBasedOnDnHashCode(request);
-                return index == Integer.MIN_VALUE ? 0 : (Math.abs(index) % maxIndex);
+                return new RequestWithIndex(request, index == Integer.MIN_VALUE ? 0 : (Math.abs(index) % maxIndex));
             }
 
             private int computeIndexBasedOnDnHashCode(final Request request) {
@@ -617,6 +632,166 @@ public final class Connections {
                 return ThreadLocalRandom.current().nextInt(0, maxIndex);
             }
         };
+    }
+
+    /**
+     * Creates a new "least requests" load-balancer which will load-balance individual requests across the provided
+     * set of connection factories, each typically representing a single replica, using an algorithm that ensures that
+     * requests are routed to the replica which has the minimum number of active requests.
+     * <p>
+     * In other words, this load-balancer provides availability and partition tolerance, but sacrifices consistency.
+     * When a replica is not available, its number of active requests will not decrease until the requests time out,
+     * which will have the effect of directing requests to the other replicas. Consistency is low compared to the
+     * "sharded" load-balancer, because there is no guarantee that requests for the same DN are directed to the same
+     * replica.
+     * <p/>
+     * It is possible to increase consistency by providing a {@link AffinityControl} with a
+     * request. The control value will then be used to compute a hash that will determine the connection to use. In that
+     * case, the "least requests" behavior is completely overridden, i.e. the most saturated connection may be chosen
+     * depending on the hash value.
+     * <p/>
+     * <b>NOTE:</b> this connection factory returns fake connections, since real connections are obtained for each
+     * request. Therefore, the returned fake connections have certain limitations: abandon requests will be ignored
+     * since they cannot be routed; connection event listeners can be registered, but will only be notified when the
+     * fake connection is closed or when all of the connection factories are unavailable.
+     * <p/>
+     * <b>NOTE:</b>Server selection is only based on information which is local to the client application. If other
+     * applications are accessing the same servers then their additional load is not taken into account. Therefore,
+     * this load balancer is only effective if all client applications access the servers in a similar way.
+     * <p/>
+     * The implementation periodically attempts to connect to failed connection factories in order to determine if they
+     * have become available again.
+     *
+     * @param factories
+     *            The connection factories.
+     * @param options
+     *            This configuration options for the load-balancer.
+     * @return The new least requests load balancer.
+     * @see #newRoundRobinLoadBalancer(Collection, Options)
+     * @see #newFailoverLoadBalancer(Collection, Options)
+     * @see #newShardedRequestLoadBalancer(Collection, Options)
+     * @see #LOAD_BALANCER_EVENT_LISTENER
+     * @see #LOAD_BALANCER_MONITORING_INTERVAL
+     * @see #LOAD_BALANCER_SCHEDULER
+     */
+    public static ConnectionFactory newLeastRequestsLoadBalancer(
+            final Collection<? extends ConnectionFactory> factories, final Options options) {
+        final LeastRequestsDispatcher dispatcher = new LeastRequestsDispatcher(factories.size());
+        return new RequestLoadBalancer("SaturationBasedRequestLoadBalancer", factories, options,
+                newLeastRequestsLoadBalancerNextFunction(dispatcher),
+                newLeastRequestsLoadBalancerEndOfRequestFunction(dispatcher));
+    }
+
+    private static final DecodeOptions CONTROL_DECODE_OPTIONS = new DecodeOptions();
+
+    @VisibleForTesting
+    static Function<Request, RequestWithIndex, NeverThrowsException> newLeastRequestsLoadBalancerNextFunction(
+            final LeastRequestsDispatcher dispatcher) {
+        return new Function<Request, RequestWithIndex, NeverThrowsException>() {
+            private final int maxIndex = dispatcher.size();
+
+            @Override
+            public RequestWithIndex apply(final Request request) {
+                int affinityBasedIndex = parseAffinityRequestControl(request);
+                int finalIndex = dispatcher.selectServer(affinityBasedIndex);
+                Request cleanedRequest = (affinityBasedIndex == -1)
+                        ? request : Requests.shallowCopyOfRequest(request, AffinityControl.OID);
+                return new RequestWithIndex(cleanedRequest, finalIndex);
+            }
+
+            private int parseAffinityRequestControl(final Request request) {
+                try {
+                    AffinityControl control = request.getControl(AffinityControl.DECODER, CONTROL_DECODE_OPTIONS);
+                    if (control != null) {
+                        int index = control.getAffinityValue().hashCode();
+                        return index == Integer.MIN_VALUE ? 0 : (Math.abs(index) % maxIndex);
+                    }
+                } catch (DecodeException e) {
+                    logger.warn(CoreMessages.WARN_DECODING_AFFINITY_CONTROL.get(e.getMessage()));
+                }
+                return -1;
+            }
+        };
+    }
+
+    @VisibleForTesting
+    static Function<Integer, Void, NeverThrowsException> newLeastRequestsLoadBalancerEndOfRequestFunction(
+            final LeastRequestsDispatcher dispatcher) {
+        return new Function<Integer, Void, NeverThrowsException>() {
+            @Override
+            public Void apply(final Integer index) {
+                dispatcher.terminatedRequest(index);
+                return null;
+            }
+        };
+    }
+
+    /** No-op "end of request" function for the saturation-based request load balancer. */
+    static final Function<Integer, Void, NeverThrowsException> NOOP_END_OF_REQUEST_FUNCTION =
+            new Function<Integer, Void, NeverThrowsException>() {
+                @Override
+                public Void apply(Integer index) {
+                    return null;
+                }
+            };
+
+    /**
+     * Dispatch requests to the server index which has the least active requests.
+     * <p>
+     * A server is actually represented only by its index. Provided an initial number of servers, the requests are
+     * dispatched to the less saturated index, i.e. which corresponds to the server that has the lowest number of active
+     * requests.
+     */
+    @VisibleForTesting
+    static class LeastRequestsDispatcher {
+        /** Counter for each server. */
+        private final AtomicLongArray serversCounters;
+
+        LeastRequestsDispatcher(int numberOfServers) {
+            serversCounters = new AtomicLongArray(numberOfServers);
+        }
+
+        int size() {
+            return serversCounters.length();
+        }
+
+        /**
+         * Returns the server index to use.
+         *
+         * @param forceIndex
+         *            Forces a server index to use if different from -1. In that case, the default behavior of the
+         *            dispatcher is overridden. If -1 is provided, then the default behavior of the dispatcher applies.
+         * @return the server index
+         */
+        int selectServer(int forceIndex) {
+            int index = forceIndex == -1 ? getLessSaturatedIndex() : forceIndex;
+            serversCounters.incrementAndGet(index);
+            return index;
+        }
+
+        /**
+         * Signals to this dispatcher that a request has been finished for the provided server index.
+         *
+         * @param index
+         *            The index of server that processed the request.
+         */
+        void terminatedRequest(Integer index) {
+            serversCounters.decrementAndGet(index);
+        }
+
+        private int getLessSaturatedIndex() {
+            long min = Long.MAX_VALUE;
+            int minIndex = -1;
+            // Modifications during this loop are ok, effects on result is should not be dramatic
+            for (int i = 0; i < serversCounters.length(); i++) {
+                long count = serversCounters.get(i);
+                if (count < min) {
+                    min = count;
+                    minIndex = i;
+                }
+            }
+            return minIndex;
+        }
     }
 
     /**
