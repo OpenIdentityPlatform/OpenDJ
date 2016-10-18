@@ -11,17 +11,20 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.io.LDAPReaderWriterTestCase;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.util.Options;
 import org.glassfish.grizzly.memory.HeapMemoryManager;
+import org.glassfish.grizzly.memory.MemoryManager;
+
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.LDAP_DECODE_OPTIONS;
 
 /**
@@ -32,7 +35,7 @@ public class GrizzlyLDAPReaderWriterTestCase extends LDAPReaderWriterTestCase {
 
     @Override
     protected LDAPWriter<? extends ASN1Writer> getLDAPWriter() {
-        return GrizzlyUtils.getWriter();
+        return GrizzlyUtils.getWriter(MemoryManager.DEFAULT_MEMORY_MANAGER);
     }
 
     @Override
@@ -41,11 +44,9 @@ public class GrizzlyLDAPReaderWriterTestCase extends LDAPReaderWriterTestCase {
     }
 
     @Override
-    protected void transferFromWriterToReader(LDAPWriter<? extends ASN1Writer> writer,
-            LDAPReader<? extends ASN1Reader> reader) {
-        ASN1BufferReader asn1Reader = (ASN1BufferReader) reader.getASN1Reader();
-        ASN1BufferWriter asn1Writer = (ASN1BufferWriter) writer.getASN1Writer();
-        asn1Reader.appendBytesRead(asn1Writer.getBuffer());
+    protected LDAPReader<? extends ASN1Reader> getLDAPReader(LDAPWriter<? extends ASN1Writer> writer) {
+        return LDAP.<ASN1BufferReader> getReader(
+                new ASN1BufferReader(0, ((ASN1BufferWriter) writer.getASN1Writer()).getBuffer()),
+                Options.defaultOptions().get(LDAP_DECODE_OPTIONS));
     }
-
 }

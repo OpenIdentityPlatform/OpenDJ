@@ -11,25 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2016 ForgeRock AS.
+ * Copyright 2016 ForgeRock AS.
  */
 
-package org.forgerock.opendj.grizzly;
+/** Classes implementing a Grizzly based {@link org.opends.server.api.ConnectionHandler} using reactive api. */
+package org.forgerock.opendj.reactive;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1ReaderTestCase;
-import org.glassfish.grizzly.memory.ByteBufferWrapper;
-
-/**
- * This class provides test cases for ASN1BufferReader.
- */
-public class ASN1BufferReaderTestCase extends ASN1ReaderTestCase {
-    @Override
-    protected ASN1Reader getReader(final byte[] b, final int maxElementSize) throws IOException {
-        return new ASN1BufferReader(maxElementSize, new ByteBufferWrapper(ByteBuffer.wrap(b)));
-    }
-}

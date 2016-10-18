@@ -17,6 +17,10 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -27,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
@@ -62,14 +67,10 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.Options;
 
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
-import org.forgerock.util.Options;
-
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 /**
  * A simple ldap server that manages 1000 entries and used for running
@@ -225,7 +226,9 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                         props.put(Sasl.QOP, "auth-conf,auth-int,auth");
                         saslServer =
                                 Sasl.createSaslServer(saslMech, "ldap",
-                                        listener.getHostName(), props,
+                                       ((InetSocketAddress) listener.getSocketAddresses().iterator().next())
+                                       .getHostName(),
+                                       props,
                                         new CallbackHandler() {
                                             @Override
                                             public void handle(Callback[] callbacks)
@@ -264,38 +267,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
                         String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
                         if ("auth-int".equalsIgnoreCase(qop) || "auth-conf".equalsIgnoreCase(qop)) {
-                            ConnectionSecurityLayer csl = new ConnectionSecurityLayer() {
-                                @Override
-                                public void dispose() {
-                                    try {
-                                        saslServer.dispose();
-                                    } catch (SaslException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                                @Override
-                                public byte[] unwrap(byte[] incoming, int offset, int len) throws LdapException {
-                                    try {
-                                        return saslServer.unwrap(incoming, offset, len);
-                                    } catch (SaslException e) {
-                                        throw newLdapException(
-                                                Responses.newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
-                                    }
-                                }
-
-                                @Override
-                                public byte[] wrap(byte[] outgoing, int offset, int len) throws LdapException {
-                                    try {
-                                        return saslServer.wrap(outgoing, offset, len);
-                                    } catch (SaslException e) {
-                                        throw newLdapException(
-                                                Responses.newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
-                                    }
-                                }
-                            };
-
-                            clientContext.enableConnectionSecurityLayer(csl);
+                            clientContext.enableSASL(saslServer);
                         }
 
                     } else {
@@ -423,8 +395,11 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
                 final R result = request.getResultDecoder().newExtendedErrorResult(ResultCode.SUCCESS, "", "");
                 resultHandler.handleResult(result);
-                clientContext.enableTLS(sslContext, null, sslContext.getSocketFactory()
-                        .getSupportedCipherSuites(), false, false);
+                final SSLEngine engine = sslContext.createSSLEngine();
+                engine.setEnabledCipherSuites(sslContext.getServerSocketFactory().getSupportedCipherSuites());
+                engine.setNeedClientAuth(false);
+                engine.setUseClientMode(false);
+                clientContext.enableTLS(engine);
             }
         }
 
@@ -568,6 +543,6 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         if (!isRunning) {
             throw new IllegalStateException("Server is not running");
         }
-        return listener.getSocketAddress();
+        return (InetSocketAddress) listener.getSocketAddresses().iterator().next();
     }
 }

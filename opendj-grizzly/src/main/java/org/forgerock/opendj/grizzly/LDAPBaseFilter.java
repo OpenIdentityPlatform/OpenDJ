@@ -11,25 +11,15 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
-import java.io.IOException;
-
-import org.forgerock.opendj.io.LDAPMessageHandler;
-import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.BaseFilter;
-import org.glassfish.grizzly.filterchain.FilterChainContext;
-import org.glassfish.grizzly.filterchain.NextAction;
 
 /**
  * Base class for LDAP-enabled filter.
- * <p>
- * Provides a common {@code handleRead()} method for both client and server
- * filters.
  */
 abstract class LDAPBaseFilter extends BaseFilter {
 
@@ -58,64 +48,4 @@ abstract class LDAPBaseFilter extends BaseFilter {
         this.decodeOptions = options;
         this.maxASN1ElementSize = maxASN1ElementSize;
     }
-
-    @Override
-    public final NextAction handleRead(final FilterChainContext ctx) throws IOException {
-        final LDAPBaseHandler handler = getLDAPHandler(ctx);
-        final LDAPReader<ASN1BufferReader> reader = handler.getReader();
-        final ASN1BufferReader asn1Reader = reader.getASN1Reader();
-        final Buffer buffer = (Buffer) ctx.getMessage();
-
-        asn1Reader.appendBytesRead(buffer);
-        try {
-            while (reader.hasMessageAvailable()) {
-                reader.readMessage(handler);
-            }
-        } catch (IOException e) {
-            handleReadException(ctx, e);
-            throw e;
-        } finally {
-            asn1Reader.disposeBytesRead();
-        }
-
-        return ctx.getStopAction();
-    }
-
-    /**
-     * Handle an exception occuring during a read within the
-     * {@code handleRead()} method.
-     *
-     * @param ctx
-     *            context when reading
-     * @param e
-     *            exception occuring while reading
-     */
-    abstract void handleReadException(FilterChainContext ctx, IOException e);
-
-    /**
-     * Interface for the {@code LDAPMessageHandler} used in the filter, that
-     * must be able to retrieve a Grizzly reader.
-     */
-    interface LDAPBaseHandler extends LDAPMessageHandler {
-        /**
-         * Returns the LDAP reader for this handler.
-         * @return the reader
-         */
-        LDAPReader<ASN1BufferReader> getReader();
-    }
-
-    /**
-     * Returns the LDAP message handler associated to the underlying connection
-     * of the provided context.
-     * <p>
-     * If no handler exists yet for the underlying connection, a new one is
-     * created and recorded for the connection.
-     *
-     * @param ctx
-     *            current filter chain context
-     * @return the response handler associated to the connection, which can be a
-     *         new one if no handler have been created yet
-     */
-    abstract LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx);
-
 }

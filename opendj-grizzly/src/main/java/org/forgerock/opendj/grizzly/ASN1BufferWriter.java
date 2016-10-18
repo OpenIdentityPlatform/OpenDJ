@@ -16,10 +16,9 @@
  */
 package org.forgerock.opendj.grizzly;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -30,7 +29,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Cacheable;
-import org.glassfish.grizzly.memory.ByteBufferWrapper;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 import com.forgerock.opendj.util.StaticUtils;
 
@@ -46,7 +45,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             writeLength(parent, buffer.length());
             parent.writeByteArray(buffer.getBackingArray(), 0, buffer.length());
             buffer.clearAndTruncate(DEFAULT_MAX_INTERNAL_BUFFER_SIZE, BUFFER_INIT_SIZE);
-            logger.trace("WRITE ASN.1 END SEQUENCE(length=%d)", buffer.length());
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 END SEQUENCE(length=%d)", buffer.length());
+            }
             return parent;
         }
 
@@ -67,39 +68,13 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         }
 
         @Override
-        public void writeByteArray(final byte[] bs, final int offset, final int length) throws IOException {
-            buffer.appendBytes(bs, offset, length);
-        }
-    }
-
-    private static final class RecyclableBuffer extends ByteBufferWrapper {
-        private volatile boolean usable = true;
-
-        private RecyclableBuffer() {
-            visible = ByteBuffer.allocate(BUFFER_INIT_SIZE);
-            allowBufferDispose = true;
+        public void writeByteSequence(ByteSequence bs) {
+            buffer.appendBytes(bs);
         }
 
         @Override
-        public void dispose() {
-            usable = true;
-        }
-
-        /**
-         * Ensures that the specified number of additional bytes will fit in the
-         * buffer and resizes it if necessary.
-         *
-         * @param size
-         *            The number of additional bytes.
-         */
-        public void ensureAdditionalCapacity(final int size) {
-            final int newCount = visible.position() + size;
-            if (newCount > visible.capacity()) {
-                final ByteBuffer newByteBuffer =
-                        ByteBuffer.allocate(Math.max(visible.capacity() << 1, newCount));
-                visible.flip();
-                visible = newByteBuffer.put(visible);
-            }
+        public void writeByteArray(final byte[] bs, final int offset, final int length) throws IOException {
+            buffer.appendBytes(bs, offset, length);
         }
     }
 
@@ -118,7 +93,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
                 child = new ChildSequenceBuffer();
                 child.parent = this;
             }
-            outBuffer.ensureAdditionalCapacity(1);
+            ensureAdditionalCapacity(1);
             outBuffer.put(type);
             child.buffer.clear();
             return child;
@@ -126,14 +101,21 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
 
         @Override
         public void writeByte(final byte b) throws IOException {
-            outBuffer.ensureAdditionalCapacity(1);
+            ensureAdditionalCapacity(1);
             outBuffer.put(b);
+        }
+
+        @Override
+        public void writeByteSequence(ByteSequence bs) {
+            ensureAdditionalCapacity(bs.length());
+            bs.copyTo(outBuffer.toByteBuffer());
+            outBuffer.position(outBuffer.position() + bs.length());
         }
 
         @Override
         public void writeByteArray(final byte[] bs, final int offset, final int length)
                 throws IOException {
-            outBuffer.ensureAdditionalCapacity(length);
+            ensureAdditionalCapacity(length);
             outBuffer.put(bs, offset, length);
         }
     }
@@ -145,33 +127,44 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
 
         void writeByte(byte b) throws IOException;
 
+        void writeByteSequence(ByteSequence bs) throws IOException;
+
         void writeByteArray(byte[] bs, int offset, int length) throws IOException;
     }
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** Initial size of newly created buffers. */
-    private static final int BUFFER_INIT_SIZE = 1024;
+    private static final int BUFFER_INIT_SIZE = 4096;
     /** Default maximum size for cached protocol/entry encoding buffers. */
     private static final int DEFAULT_MAX_INTERNAL_BUFFER_SIZE = 32 * 1024;
 
     /** Reset the writer. */
     void reset() {
-        if (!outBuffer.usable) {
-            // If the output buffer is unusable, create a new one.
-            outBuffer = new RecyclableBuffer();
+        if (outBuffer.capacity() > DEFAULT_MAX_INTERNAL_BUFFER_SIZE) {
+            outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
+        } else {
+            outBuffer.clear();
         }
-        outBuffer.clear();
     }
 
+    private final MemoryManager<Buffer> memoryManager;
     private SequenceBuffer sequenceBuffer;
-    private RecyclableBuffer outBuffer;
+    private Buffer outBuffer;
     private final RootSequenceBuffer rootBuffer;
 
     /** Creates a new ASN.1 writer that writes to a StreamWriter. */
-    ASN1BufferWriter() {
+    ASN1BufferWriter(MemoryManager memoryManager) {
         this.sequenceBuffer = this.rootBuffer = new RootSequenceBuffer();
-        this.outBuffer = new RecyclableBuffer();
+        this.memoryManager = memoryManager;
+        this.outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
+    }
+
+    void ensureAdditionalCapacity(final int size) {
+        final int newCount = outBuffer.position() + size;
+        if (newCount > outBuffer.capacity()) {
+            outBuffer = memoryManager.reallocate(outBuffer, Math.max(outBuffer.capacity() << 1, newCount));
+        }
     }
 
     /**
@@ -201,7 +194,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     @Override
     public void recycle() {
         sequenceBuffer = rootBuffer;
-        outBuffer.clear();
+        outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
     }
 
     @Override
@@ -210,7 +203,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         writeLength(sequenceBuffer, 1);
         sequenceBuffer.writeByte(booleanValue ? ASN1.BOOLEAN_VALUE_TRUE : ASN1.BOOLEAN_VALUE_FALSE);
 
-        logger.trace("WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)", type, 1, booleanValue);
+        if (logger.isTraceEnabled()) {
+            logger.trace("WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)", type, 1, booleanValue);
+        }
         return this;
     }
 
@@ -238,27 +233,35 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
                 || ((intValue & 0x0000007F) == intValue)) {
             writeLength(sequenceBuffer, 1);
             sequenceBuffer.writeByte((byte) intValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, intValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, intValue);
+            }
         } else if (((intValue < 0) && ((intValue & 0xFFFF8000) == 0xFFFF8000))
                 || ((intValue & 0x00007FFF) == intValue)) {
             writeLength(sequenceBuffer, 2);
             sequenceBuffer.writeByte((byte) (intValue >> 8));
             sequenceBuffer.writeByte((byte) intValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, intValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, intValue);
+            }
         } else if (((intValue < 0) && ((intValue & 0xFF800000) == 0xFF800000))
                 || ((intValue & 0x007FFFFF) == intValue)) {
             writeLength(sequenceBuffer, 3);
             sequenceBuffer.writeByte((byte) (intValue >> 16));
             sequenceBuffer.writeByte((byte) (intValue >> 8));
             sequenceBuffer.writeByte((byte) intValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, intValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, intValue);
+            }
         } else {
             writeLength(sequenceBuffer, 4);
             sequenceBuffer.writeByte((byte) (intValue >> 24));
             sequenceBuffer.writeByte((byte) (intValue >> 16));
             sequenceBuffer.writeByte((byte) (intValue >> 8));
             sequenceBuffer.writeByte((byte) intValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, intValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, intValue);
+            }
         }
         return this;
     }
@@ -270,20 +273,26 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
                 || ((longValue & 0x000000000000007FL) == longValue)) {
             writeLength(sequenceBuffer, 1);
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, longValue);
+            }
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFF8000L) == 0xFFFFFFFFFFFF8000L))
                 || ((longValue & 0x0000000000007FFFL) == longValue)) {
             writeLength(sequenceBuffer, 2);
             sequenceBuffer.writeByte((byte) (longValue >> 8));
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, longValue);
+            }
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFF800000L) == 0xFFFFFFFFFF800000L))
                 || ((longValue & 0x00000000007FFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 3);
             sequenceBuffer.writeByte((byte) (longValue >> 16));
             sequenceBuffer.writeByte((byte) (longValue >> 8));
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, longValue);
+            }
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFF80000000L) == 0xFFFFFFFF80000000L))
                 || ((longValue & 0x000000007FFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 4);
@@ -291,7 +300,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             sequenceBuffer.writeByte((byte) (longValue >> 16));
             sequenceBuffer.writeByte((byte) (longValue >> 8));
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, longValue);
+            }
         } else if (((longValue < 0) && ((longValue & 0xFFFFFF8000000000L) == 0xFFFFFF8000000000L))
                 || ((longValue & 0x0000007FFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 5);
@@ -300,7 +311,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             sequenceBuffer.writeByte((byte) (longValue >> 16));
             sequenceBuffer.writeByte((byte) (longValue >> 8));
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 5, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 5, longValue);
+            }
         } else if (((longValue < 0) && ((longValue & 0xFFFF800000000000L) == 0xFFFF800000000000L))
                 || ((longValue & 0x00007FFFFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 6);
@@ -310,7 +323,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             sequenceBuffer.writeByte((byte) (longValue >> 16));
             sequenceBuffer.writeByte((byte) (longValue >> 8));
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 6, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 6, longValue);
+            }
         } else if (((longValue < 0) && ((longValue & 0xFF80000000000000L) == 0xFF80000000000000L))
                 || ((longValue & 0x007FFFFFFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 7);
@@ -321,7 +336,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             sequenceBuffer.writeByte((byte) (longValue >> 16));
             sequenceBuffer.writeByte((byte) (longValue >> 8));
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 7, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 7, longValue);
+            }
         } else {
             writeLength(sequenceBuffer, 8);
             sequenceBuffer.writeByte((byte) (longValue >> 56));
@@ -332,7 +349,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             sequenceBuffer.writeByte((byte) (longValue >> 16));
             sequenceBuffer.writeByte((byte) (longValue >> 8));
             sequenceBuffer.writeByte((byte) longValue);
-            logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 8, longValue);
+            if (logger.isTraceEnabled()) {
+                logger.trace("WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 8, longValue);
+            }
         }
         return this;
     }
@@ -342,7 +361,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, 0);
 
-        logger.trace("WRITE ASN.1 NULL(type=0x%x, length=%d)", type, 0);
+        if (logger.isTraceEnabled()) {
+            logger.trace("WRITE ASN.1 NULL(type=0x%x, length=%d)", type, 0);
+        }
         return this;
     }
 
@@ -353,7 +374,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         writeLength(sequenceBuffer, length);
         sequenceBuffer.writeByteArray(value, offset, length);
 
-        logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, length);
+        if (logger.isTraceEnabled()) {
+            logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, length);
+        }
         return this;
     }
 
@@ -362,12 +385,15 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
             throws IOException {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, value.length());
-        // TODO: Is there a more efficient way to do this?
-        for (int i = 0; i < value.length(); i++) {
-            sequenceBuffer.writeByte(value.byteAt(i));
-        }
+        sequenceBuffer.writeByteSequence(value);
+//        // TODO: Is there a more efficient way to do this?
+//        for (int i = 0; i < value.length(); i++) {
+//            sequenceBuffer.writeByte(value.byteAt(i));
+//        }
 
-        logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, value.length());
+        if (logger.isTraceEnabled()) {
+            logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, value.length());
+        }
         return this;
     }
 
@@ -384,7 +410,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         writeLength(sequenceBuffer, bytes.length);
         sequenceBuffer.writeByteArray(bytes, 0, bytes.length);
 
-        logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d, value=%s)", type, bytes.length, value);
+        if (logger.isTraceEnabled()) {
+            logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d, value=%s)", type, bytes.length, value);
+        }
         return this;
     }
 
@@ -393,7 +421,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         // Get a child sequence buffer
         sequenceBuffer = sequenceBuffer.startSequence(type);
 
-        logger.trace("WRITE ASN.1 START SEQUENCE(type=0x%x)", type);
+        if (logger.isTraceEnabled()) {
+            logger.trace("WRITE ASN.1 START SEQUENCE(type=0x%x)", type);
+        }
         return this;
     }
 
@@ -404,8 +434,8 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return writeStartSequence(type);
     }
 
-    Buffer getBuffer() {
-        outBuffer.usable = false;
+    public Buffer getBuffer() {
+        outBuffer.allowBufferDispose(true);
         return outBuffer.flip();
     }
 

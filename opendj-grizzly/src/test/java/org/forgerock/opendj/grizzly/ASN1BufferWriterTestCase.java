@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2013 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -27,13 +27,15 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
 import org.glassfish.grizzly.memory.MemoryManager;
+import org.testng.annotations.Test;
 
 /**
  * This class provides testcases for ASN1BufferWriter.
  */
+@Test
 public class ASN1BufferWriterTestCase extends ASN1WriterTestCase {
 
-    private final ASN1BufferWriter writer = new ASN1BufferWriter();
+    private final ASN1BufferWriter writer = new ASN1BufferWriter(MemoryManager.DEFAULT_MEMORY_MANAGER);
 
     @Override
     protected byte[] getEncodedBytes() throws IOException, DecodeException {
@@ -45,11 +47,7 @@ public class ASN1BufferWriterTestCase extends ASN1WriterTestCase {
 
     @Override
     protected ASN1Reader getReader(final byte[] encodedBytes) throws DecodeException, IOException {
-        final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(encodedBytes));
-        final ASN1BufferReader reader =
-                new ASN1BufferReader(0, MemoryManager.DEFAULT_MEMORY_MANAGER);
-        reader.appendBytesRead(buffer);
-        return reader;
+        return new ASN1BufferReader(0, new ByteBufferWrapper(ByteBuffer.wrap(encodedBytes)));
     }
 
     @Override

@@ -11,13 +11,14 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
@@ -28,7 +29,7 @@ import org.forgerock.util.Options;
  */
 public final class BasicLDAPListener implements LDAPListenerImpl {
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
-    private final InetSocketAddress socketAddress;
+    private final Set<? extends SocketAddress> socketAddresses;
 
     /**
      * Creates a new LDAP listener implementation which does nothing.
@@ -43,11 +44,11 @@ public final class BasicLDAPListener implements LDAPListenerImpl {
      * @throws IOException
      *             is never thrown with this do-nothing implementation
      */
-    public BasicLDAPListener(final InetSocketAddress address,
+    public BasicLDAPListener(final Set<? extends SocketAddress> addresses,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
         this.connectionFactory = factory;
-        this.socketAddress = address;
+        this.socketAddresses = addresses;
     }
 
     @Override
@@ -56,15 +57,15 @@ public final class BasicLDAPListener implements LDAPListenerImpl {
     }
 
     @Override
-    public InetSocketAddress getSocketAddress() {
-        return socketAddress;
+    public Set<? extends SocketAddress> getSocketAddresses() {
+        return socketAddresses;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LDAPListener(");
-        builder.append(getSocketAddress());
+        builder.append(getSocketAddresses());
         builder.append(')');
         return builder.toString();
     }

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -31,7 +31,9 @@ import org.glassfish.grizzly.ThreadCache;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.FilterChainEnabledTransport;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.ssl.SSLFilter;
@@ -65,11 +67,14 @@ final class GrizzlyUtils {
      *         is a {@code FilterChain}, and having the provided filter as the
      *         last filter
      */
-    static FilterChain buildFilterChain(Processor<?> processor, Filter filter) {
+    static FilterChain buildFilterChain(Processor<?> processor, Filter... filters) {
         if (processor instanceof FilterChain) {
-            return FilterChainBuilder.stateless().addAll((FilterChain) processor).add(filter).build();
+            return FilterChainBuilder.stateless().addAll((FilterChain) processor).addAll(filters).build();
+        } else if (processor instanceof FilterChainEnabledTransport) {
+            return FilterChainBuilder.stateless().add(((FilterChainEnabledTransport) processor).getTransportFilter())
+                                                 .addAll(filters).build();
         } else {
-            return FilterChainBuilder.stateless().add(new TransportFilter()).add(filter).build();
+            return FilterChainBuilder.stateless().add(new TransportFilter()).addAll(filters).build();
         }
     }
 
@@ -113,17 +118,14 @@ final class GrizzlyUtils {
      */
     static FilterChain addFilterToChain(final Filter filter, final FilterChain chain) {
         // By default, before LDAP filter which is the last one
-        int indexToAddFilter = chain.size() - 1;
         if (filter instanceof SSLFilter) {
-            // Before any ConnectionSecurityLayerFilters if present
-            for (int i = chain.size() - 2; i >= 0; i--) {
-                if (!(chain.get(i) instanceof ConnectionSecurityLayerFilter)) {
-                    indexToAddFilter = i + 1;
-                    break;
-                }
-            }
+            return FilterChainBuilder.stateless().addAll(chain).add(1, filter).build();
         }
-        return FilterChainBuilder.stateless().addAll(chain).add(indexToAddFilter, filter).build();
+        if (filter instanceof SaslFilter) {
+            final int pos = chain.get(1) instanceof SSLFilter ? 2 : 1;
+            return FilterChainBuilder.stateless().addAll(chain).add(pos, filter).build();
+        }
+        return FilterChainBuilder.stateless().addAll(chain).add(chain.size() - 1, filter).build();
     }
 
     /**
@@ -141,7 +143,7 @@ final class GrizzlyUtils {
      */
     static LDAPReader<ASN1BufferReader> createReader(DecodeOptions decodeOptions,
             int maxASN1ElementSize, MemoryManager<?> memoryManager) {
-        ASN1BufferReader asn1Reader = new ASN1BufferReader(maxASN1ElementSize, memoryManager);
+        ASN1BufferReader asn1Reader = new ASN1BufferReader(maxASN1ElementSize, BuffersBuffer.create(memoryManager));
         return LDAP.getReader(asn1Reader, decodeOptions);
     }
 
@@ -155,10 +157,10 @@ final class GrizzlyUtils {
      * @return a LDAP writer
      */
     @SuppressWarnings("unchecked")
-    static LDAPWriter<ASN1BufferWriter> getWriter() {
+    static LDAPWriter<ASN1BufferWriter> getWriter(final MemoryManager memoryManager) {
         LDAPWriter<ASN1BufferWriter> writer = ThreadCache.takeFromCache(WRITER_INDEX);
         if (writer == null) {
-            writer = LDAP.getWriter(new ASN1BufferWriter());
+            writer = LDAP.getWriter(new ASN1BufferWriter(memoryManager));
         }
         writer.getASN1Writer().reset();
         return writer;

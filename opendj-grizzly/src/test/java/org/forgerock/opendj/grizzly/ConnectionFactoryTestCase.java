@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -20,26 +20,17 @@ package org.forgerock.opendj.grizzly;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.Connections.newFailoverLoadBalancer;
-import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
-import static org.forgerock.opendj.ldap.Connections.newRoundRobinLoadBalancer;
+import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-import static org.forgerock.opendj.ldap.TestCaseUtils.getServerSocketAddress;
-import static org.forgerock.opendj.ldap.requests.Requests.newCRAMMD5SASLBindRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newDigestMD5SASLBindRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.newSuccessfulLdapPromise;
 import static org.forgerock.util.Options.defaultOptions;
 import static org.forgerock.util.time.Duration.duration;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -148,7 +139,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         // Use custom search request.
         SearchRequest request = Requests.newSearchRequest(
             "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT, "(objectclass=*)", "cn");
-
+//
         InetSocketAddress serverAddress = getServerSocketAddress();
         factories[0][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
                                                     serverAddress.getPort(),
@@ -255,7 +246,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      *
      * @throws Exception
      */
-    @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
+    @Test(dataProvider = "connectionFactories") //, timeOut = TEST_TIMEOUT_MS)
     public void testBlockingPromiseNoHandler(ConnectionFactory factory) throws Exception {
         final Promise<? extends Connection, LdapException> promise = factory.getConnectionAsync();
         final Connection con = promise.get();
@@ -555,8 +546,9 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer);
         try {
-            LDAPConnectionFactory clientFactory =
-                    new LDAPConnectionFactory(listener.getHostName(), listener.getPort());
+            LDAPConnectionFactory clientFactory = new LDAPConnectionFactory(
+                    ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getHostName(),
+                    ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getPort());
             final Connection client = clientFactory.getConnection();
             connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
             MockConnectionEventListener mockListener = null;
@@ -638,8 +630,9 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer);
         try {
             LDAPConnectionFactory clientFactory =
-                    new LDAPConnectionFactory(listener.getHostName(),
-                            listener.getPort());
+                    new LDAPConnectionFactory(
+                            ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getHostName(),
+                            ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getPort());
             final Connection client = clientFactory.getConnection();
             connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
             try {

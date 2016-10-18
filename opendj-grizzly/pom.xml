@@ -69,6 +69,10 @@
             <artifactId>forgerock-build-tools</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+          <groupId>org.forgerock.http</groupId>
+          <artifactId>chf-http-core</artifactId>
+        </dependency>
     </dependencies>
 
 

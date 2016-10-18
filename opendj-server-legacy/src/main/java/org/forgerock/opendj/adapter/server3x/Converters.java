@@ -15,12 +15,11 @@
  */
 package org.forgerock.opendj.adapter.server3x;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
-
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.util.CollectionUtils.*;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.opends.server.extensions.ExtensionsConstants.TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD;
+import static org.opends.server.util.CollectionUtils.newArrayList;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,21 +32,28 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.AttributeParser;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
+import org.forgerock.util.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DirectoryServer;
@@ -62,6 +68,8 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
+
+import com.forgerock.opendj.util.Iterables;
 
 /** Common utility methods. */
 public final class Converters {
@@ -451,6 +459,130 @@ public final class Converters {
     }
 
     /**
+     * Converts from OpenDJ server {@link org.opends.server.types.Attribute} to OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.Attribute}.
+     *
+     * @param attribute
+     *            value to convert
+     * @return the converted value
+     */
+    public static org.forgerock.opendj.ldap.Attribute partiallyWrap(final org.opends.server.types.Attribute attribute) {
+        return new Attribute() {
+
+            @Override
+            public AttributeDescription getAttributeDescription() {
+                return attribute.getAttributeDescription();
+            }
+
+            @Override
+            public String getAttributeDescriptionAsString() {
+                return attribute.getAttributeDescription().toString();
+            }
+
+            @Override
+            public Iterator<ByteString> iterator() {
+                return attribute.iterator();
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return attribute.isEmpty();
+            }
+
+            @Override
+            public int size() {
+                return attribute.size();
+            }
+
+            @Override
+            public boolean contains(Object value) {
+                return attribute.contains((ByteString) value);
+            }
+
+            @Override
+            public <T> T[] toArray(T[] array) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public ByteString[] toArray() {
+                throw new UnsupportedOperationException();
+
+            }
+
+            @Override
+            public <T> boolean retainAll(Collection<T> values, Collection<? super T> missingValues) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean retainAll(Collection<?> values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> boolean removeAll(Collection<T> values, Collection<? super T> missingValues) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean removeAll(Collection<?> values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean remove(Object value) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public AttributeParser parse() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public String firstValueAsString() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public ByteString firstValue() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean containsAll(Collection<?> values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void clear() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> boolean addAll(Collection<T> values, Collection<? super T> duplicateValues) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean addAll(Collection<? extends ByteString> values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean add(Object... values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean add(ByteString value) {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    /**
      * Converts from an <code>Iterable</code> of OpenDJ server
      * {@link org.opends.server.types.Attribute} to a <code>List</code> of OpenDJ
      * LDAP SDK {@link org.forgerock.opendj.ldap.Attribute}.
@@ -490,6 +622,163 @@ public final class Converters {
             searchResultEntry.addControl(from(c));
         }
         return searchResultEntry;
+    }
+
+    /**
+     * Converts from OpenDJ server
+     * {@link org.opends.server.types.SearchResultEntry} to OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.responses.SearchResultEntry}.
+     *
+     * @param srvResultEntry
+     *          value to convert
+     * @return the converted value
+     */
+    public static org.forgerock.opendj.ldap.responses.SearchResultEntry partiallyWrap(
+            final org.opends.server.types.SearchResultEntry srvResultEntry) {
+
+        final ArrayList<Control> controls = new ArrayList<>(srvResultEntry.getControls().size());
+        for(org.opends.server.types.Control control : srvResultEntry.getControls()) {
+          controls.add(Converters.from(control));
+        }
+
+        return new SearchResultEntry() {
+            @Override
+            public DN getName() {
+                return srvResultEntry.getName();
+            }
+
+            @Override
+            public Iterable<Attribute> getAllAttributes() {
+                return Iterables.transformedIterable(srvResultEntry.getAllAttributes(),
+                        new Function<org.opends.server.types.Attribute, Attribute, NeverThrowsException>() {
+                    @Override
+                    public Attribute apply(org.opends.server.types.Attribute value) throws NeverThrowsException {
+                        return Converters.partiallyWrap(value);
+                    }
+                });
+            }
+
+            @Override
+            public Attribute getAttribute(String attributeDescription) {
+                return Converters.from(srvResultEntry.getAllAttributes(attributeDescription).iterator().next());
+            }
+
+            @Override
+            public int getAttributeCount() {
+                return srvResultEntry.getAttributes().size();
+            }
+
+            @Override
+            public List<Control> getControls() {
+                return controls;
+            }
+
+            @Override
+            public AttributeParser parseAttribute(String attributeDescription) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public AttributeParser parseAttribute(AttributeDescription attributeDescription) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean containsControl(String oid) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public SearchResultEntry setName(String dn) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public SearchResultEntry setName(DN dn) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public SearchResultEntry replaceAttribute(String attributeDescription, Object... values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean replaceAttribute(Attribute attribute) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public SearchResultEntry removeAttribute(String attributeDescription, Object... values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean removeAttribute(AttributeDescription attributeDescription) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean removeAttribute(Attribute attribute, Collection<? super ByteString> missingValues) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
+                    throws DecodeException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Attribute getAttribute(AttributeDescription attributeDescription) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Iterable<Attribute> getAllAttributes(String attributeDescription) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean containsAttribute(String attributeDescription, Object... values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean containsAttribute(Attribute attribute, Collection<? super ByteString> missingValues) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public SearchResultEntry clearAttributes() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public SearchResultEntry addControl(Control control) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public SearchResultEntry addAttribute(String attributeDescription, Object... values) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean addAttribute(Attribute attribute, Collection<? super ByteString> duplicateValues) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean addAttribute(Attribute attribute) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     /**

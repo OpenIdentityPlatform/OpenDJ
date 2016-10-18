@@ -11,12 +11,24 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
+import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
+import static org.forgerock.opendj.ldap.CommonLDAPOptions.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
+import static org.forgerock.util.time.Duration.duration;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,16 +39,16 @@ import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LdapPromise;
+import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.MockConnectionEventListener;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
@@ -58,15 +70,6 @@ import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
-
-import static org.fest.assertions.Assertions.*;
-import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.util.time.Duration.duration;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
 
 /**
  * Tests the {@link LDAPConnectionFactory} class.
@@ -97,9 +100,11 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     private final Semaphore searchLatch = new Semaphore(0);
     private final AtomicReference<LDAPClientContext> context = new AtomicReference<>();
     private final LDAPListener server = createServer();
-    private final InetSocketAddress socketAddress = server.getSocketAddress();
-    public final ConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
-            socketAddress.getPort(), Options.defaultOptions().set(REQUEST_TIMEOUT, duration("1 ms")));
+    private final Set<? extends SocketAddress> socketAddresses = server.getSocketAddresses();
+    public final ConnectionFactory factory = new LDAPConnectionFactory(
+                    ((InetSocketAddress) socketAddresses.iterator().next()).getHostName(),
+                    ((InetSocketAddress) socketAddresses.iterator().next()).getPort(),
+                    Options.defaultOptions().set(REQUEST_TIMEOUT, duration("1 ms")));
     private final ConnectionFactory pool = Connections.newFixedConnectionPool(factory, 10);
     private volatile ServerConnection<Integer> serverConnection;
 

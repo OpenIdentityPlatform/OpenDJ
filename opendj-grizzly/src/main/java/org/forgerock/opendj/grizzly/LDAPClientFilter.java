@@ -17,13 +17,19 @@
 
 package org.forgerock.opendj.grizzly;
 
+import static org.forgerock.opendj.ldap.CommonLDAPOptions.LDAP_DECODE_OPTIONS;
+import static org.forgerock.opendj.ldap.ResultCode.CLIENT_SIDE_LOCAL_ERROR;
+import static org.forgerock.opendj.ldap.responses.Responses.newResult;
+
 import java.io.EOFException;
 import java.io.IOException;
 
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.AbstractLDAPMessageHandler;
 import org.forgerock.opendj.io.LDAP;
+import org.forgerock.opendj.io.LDAPMessageHandler;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
@@ -53,16 +59,13 @@ import org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.ExtendedResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.ResultLdapPromiseImpl;
 import org.forgerock.opendj.ldap.spi.SearchResultLdapPromiseImpl;
+import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
-
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.forgerock.opendj.ldap.responses.Responses.*;
 
 /**
  * Grizzly filter implementation for decoding LDAP responses and handling client
@@ -75,34 +78,12 @@ final class LDAPClientFilter extends LDAPBaseFilter {
     private static final Attribute<ClientResponseHandler> RESPONSE_HANDLER_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("ClientResponseHandler");
 
-    static final class ClientResponseHandler extends AbstractLDAPMessageHandler implements
-            LDAPBaseHandler {
+    static final class ClientResponseHandler extends AbstractLDAPMessageHandler {
 
-        private final LDAPReader<ASN1BufferReader> reader;
         private FilterChainContext context;
-
-        /**
-         * Creates a handler with the provided reader.
-         *
-         * @param reader
-         *            LDAP reader to use for reading incoming messages
-         */
-        ClientResponseHandler(LDAPReader<ASN1BufferReader> reader) {
-            this.reader = reader;
-        }
 
         void setFilterChainContext(FilterChainContext context) {
             this.context = context;
-        }
-
-        /**
-         * Returns the LDAP reader.
-         *
-         * @return the reader to read incoming LDAP messages
-         */
-        @Override
-        public LDAPReader<ASN1BufferReader> getReader() {
-            return this.reader;
         }
 
         @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -139,7 +120,8 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                                 // bind response.
                                 final int msgID = ldapConnection.continuePendingBindRequest(promise);
 
-                                LDAPWriter<ASN1BufferWriter> ldapWriter = GrizzlyUtils.getWriter();
+                                LDAPWriter<ASN1BufferWriter> ldapWriter =
+                                        GrizzlyUtils.getWriter(context.getMemoryManager());
                                 try {
                                     final GenericBindRequest nextRequest =
                                             bindClient.nextBindRequest();
@@ -435,6 +417,32 @@ final class LDAPClientFilter extends LDAPBaseFilter {
     }
 
     @Override
+    public final NextAction handleRead(final FilterChainContext ctx) throws IOException {
+        final LDAPMessageHandler handler = getLDAPHandler(ctx);
+        final Buffer buffer = (Buffer) ctx.getMessage();
+
+        try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
+            final LDAPReader<? extends ASN1Reader> ldapReader = LDAP.getReader(reader, decodeOptions);
+            while (ldapReader.hasMessageAvailable()) {
+                ldapReader.readMessage(handler);
+            }
+            buffer.shrink();
+        } catch (IOException e) {
+            handleReadException(ctx, e);
+            throw e;
+        }
+        return ctx.getStopAction(buffer.hasRemaining() ? buffer : null);
+    }
+
+    private final void handleReadException(FilterChainContext ctx, IOException e) {
+        final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
+        final Result errorResult =
+                Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
+                        .setDiagnosticMessage(e.getMessage());
+        ldapConnection.close(null, false, errorResult);
+    }
+
+    @Override
     public NextAction handleClose(final FilterChainContext ctx) throws IOException {
         final Connection<?> connection = ctx.getConnection();
         final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.remove(connection);
@@ -443,15 +451,6 @@ final class LDAPClientFilter extends LDAPBaseFilter {
             ldapConnection.close(null, false, errorResult);
         }
         return ctx.getInvokeAction();
-    }
-
-    @Override
-    final void handleReadException(FilterChainContext ctx, IOException e) {
-        final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-        final Result errorResult =
-                Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
-                        .setDiagnosticMessage(e.getMessage());
-        ldapConnection.close(null, false, errorResult);
     }
 
     /**
@@ -466,15 +465,11 @@ final class LDAPClientFilter extends LDAPBaseFilter {
      * @return the response handler associated to the context, which can be a
      *         new one if no handler have been created yet
      */
-    @Override
-    final LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx) {
+    final LDAPMessageHandler getLDAPHandler(final FilterChainContext ctx) {
         Connection<?> connection = ctx.getConnection();
         ClientResponseHandler handler = RESPONSE_HANDLER_ATTR.get(connection);
         if (handler == null) {
-            LDAPReader<ASN1BufferReader> reader =
-                    GrizzlyUtils.createReader(decodeOptions, maxASN1ElementSize, connection
-                            .getTransport().getMemoryManager());
-            handler = new ClientResponseHandler(reader);
+            handler = new ClientResponseHandler();
             RESPONSE_HANDLER_ATTR.set(connection, handler);
         }
         handler.setFilterChainContext(ctx);

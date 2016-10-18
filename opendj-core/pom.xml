@@ -50,6 +50,18 @@
         </dependency>
 
         <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>2.0.0-RC3</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.forgerock.commons</groupId>
             <artifactId>i18n-slf4j</artifactId>
         </dependency>
@@ -113,8 +125,7 @@
                             com.forgerock.opendj.ldap*,
                             org.forgerock.opendj.io,
                             org.forgerock.opendj.ldap*,
-                            org.forgerock.opendj.ldif,
-                            org.forgerock.opendj.security
+                            org.forgerock.opendj.ldif
                         </Export-Package>
                         <Build-Maven>Apache Maven ${maven.version}</Build-Maven>
                         <SCM-Revision>${buildRevision}</SCM-Revision>

@@ -11,12 +11,13 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
@@ -51,8 +52,8 @@ public interface TransportProvider extends Provider {
   /**
      * Returns an implementation of {@code LDAPListener}.
      *
-     * @param address
-     *            The address to listen on.
+     * @param addresses
+     *            The addresses to listen on.
      * @param factory
      *            The server connection factory which will be used to create
      *            server connections.
@@ -63,8 +64,7 @@ public interface TransportProvider extends Provider {
      *             If an error occurred while trying to listen on the provided
      *             address.
      */
-    LDAPListenerImpl getLDAPListener(InetSocketAddress address,
+    LDAPListenerImpl getLDAPListener(Set<? extends SocketAddress> addresses,
             ServerConnectionFactory<LDAPClientContext, Integer> factory, Options options)
             throws IOException;
-
 }

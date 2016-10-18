@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -111,7 +111,7 @@ public final class Server {
                             @Override
                             public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
                                     throws LdapException {
-                                clientContext.enableTLS(sslContext, null, null, false, false);
+                                clientContext.enableTLS(sslContext.createSSLEngine());
                                 return connectionHandler.handleAccept(clientContext);
                             }
                         };

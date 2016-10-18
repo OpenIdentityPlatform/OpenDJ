@@ -19,6 +19,7 @@ package org.forgerock.opendj.grizzly;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -29,9 +30,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.memory.BuffersBuffer;
-import org.glassfish.grizzly.memory.CompositeBuffer;
-import org.glassfish.grizzly.memory.MemoryManager;
 
 /** Grizzly ASN1 reader implementation. */
 final class ASN1BufferReader extends AbstractASN1Reader {
@@ -127,15 +125,16 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    private static final int MAX_STRING_BUFFER_SIZE = 1024;
+    private int markState;
+    private SequenceLimiter markReadLimiter;
+
     private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     private byte peekType;
     private int peekLength = -1;
     private int lengthBytesNeeded;
     private final int maxElementSize;
-    private final CompositeBuffer buffer;
+    private final Buffer buffer;
     private SequenceLimiter readLimiter;
-    private final byte[] stringBuffer;
 
     /**
      * Creates a new ASN1 reader whose source is the provided input stream and
@@ -147,11 +146,10 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      * @param memoryManager
      *            The memory manager to use for buffering.
      */
-    ASN1BufferReader(final int maxElementSize, final MemoryManager<?> memoryManager) {
+    ASN1BufferReader(final int maxElementSize, final Buffer buffer) {
         this.readLimiter = new RootSequenceLimiter();
-        this.stringBuffer = new byte[MAX_STRING_BUFFER_SIZE];
+        this.buffer = buffer;
         this.maxElementSize = maxElementSize;
-        this.buffer = BuffersBuffer.create(memoryManager);
     }
 
     /**
@@ -162,7 +160,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      */
     @Override
     public void close() throws IOException {
-        buffer.dispose();
+        // Nothing to do
     }
 
     /**
@@ -388,26 +386,20 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             return "";
         }
 
-        byte[] readBuffer;
-        if (peekLength <= stringBuffer.length) {
-            readBuffer = stringBuffer;
-        } else {
-            readBuffer = new byte[peekLength];
-        }
-
         readLimiter.checkLimit(peekLength);
-        buffer.get(readBuffer, 0, peekLength);
 
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
 
         String str;
         try {
-            str = new String(readBuffer, 0, peekLength, "UTF-8");
+            str = buffer.toStringContent(Charset.forName("UTF-8"), buffer.position(), buffer.position() + peekLength);
         } catch (final Exception e) {
             // TODO: I18N
             logger.warn(LocalizableMessage.raw("Unable to decode ASN.1 OCTETSTRING bytes as UTF-8 string: %s", e));
 
-            str = new String(stringBuffer, 0, peekLength);
+            str = buffer.toStringContent(Charset.defaultCharset(), buffer.position(), buffer.position() + peekLength);
+        } finally {
+            buffer.position(buffer.position() + peekLength);
         }
 
         logger.trace("READ ASN.1 OCTETSTRING(type=0x%x, length=%d, value=%s)", peekType, peekLength, str);
@@ -453,12 +445,16 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return this;
     }
 
-    void appendBytesRead(final Buffer buffer) {
-        this.buffer.append(buffer);
+    void mark() {
+        buffer.mark();
+        markState = state;
+        markReadLimiter = readLimiter;
     }
 
-    void disposeBytesRead() {
-        this.buffer.shrink();
+    void reset() {
+        buffer.reset();
+        state = markState;
+        readLimiter = markReadLimiter;
     }
 
     /**

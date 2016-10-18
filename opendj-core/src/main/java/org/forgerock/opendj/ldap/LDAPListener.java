@@ -12,14 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
@@ -97,6 +99,12 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
     public static final Option<Integer> REQUEST_MAX_SIZE_IN_BYTES = Option.withDefault(5 * 1024 * 1024);
 
     /**
+     * Specifies the maximum number of concurrent requests per connection. Once this number is reached,
+     * back-pressure mechanism will stop reading requests from the connection.
+     */
+    public static final Option<Integer> MAX_CONCURRENT_REQUESTS = Option.withDefault(1024);
+
+    /**
      * We implement the factory using the pimpl idiom in order have
      * cleaner Javadoc which does not expose implementation methods.
      */
@@ -145,9 +153,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
     public LDAPListener(final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
-        Reject.ifNull(factory, options);
-        this.provider = getTransportProvider(options);
-        this.impl = provider.getLDAPListener(new InetSocketAddress(port), factory, options);
+        this(new InetSocketAddress(port), factory, options);
     }
 
     /**
@@ -188,12 +194,14 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *             If {@code address}, {code factory}, or {@code options} was
      *             {@code null}.
      */
-    public LDAPListener(final InetSocketAddress address,
+    public LDAPListener(final SocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
         Reject.ifNull(address, factory, options);
         this.provider = getTransportProvider(options);
-        this.impl = provider.getLDAPListener(address, factory, options);
+        final Set<SocketAddress> addresses = new HashSet<>();
+        addresses.add(address);
+        this.impl = provider.getLDAPListener(addresses, factory, options);
     }
 
     /**
@@ -241,10 +249,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
     public LDAPListener(final String host, final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
-        Reject.ifNull(host, factory, options);
-        final InetSocketAddress address = new InetSocketAddress(host, port);
-        this.provider = getTransportProvider(options);
-        this.impl = provider.getLDAPListener(address, factory, options);
+        this(new InetSocketAddress(host, port), factory, options);
     }
 
     /** Closes this LDAP connection listener. */
@@ -254,42 +259,12 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
     }
 
     /**
-     * Returns the {@code InetAddress} that this LDAP listener is listening on.
-     *
-     * @return The {@code InetAddress} that this LDAP listener is listening on.
-     */
-    public InetAddress getAddress() {
-        return getSocketAddress().getAddress();
-    }
-
-    /**
-     * Returns the host name that this LDAP listener is listening on. The
-     * returned host name is the same host name that was provided during
-     * construction and may be an IP address. More specifically, this method
-     * will not perform a reverse DNS lookup.
-     *
-     * @return The host name that this LDAP listener is listening on.
-     */
-    public String getHostName() {
-        return Connections.getHostString(getSocketAddress());
-    }
-
-    /**
-     * Returns the port that this LDAP listener is listening on.
-     *
-     * @return The port that this LDAP listener is listening on.
-     */
-    public int getPort() {
-        return getSocketAddress().getPort();
-    }
-
-    /**
      * Returns the address that this LDAP listener is listening on.
      *
      * @return The address that this LDAP listener is listening on.
      */
-    public InetSocketAddress getSocketAddress() {
-        return impl.getSocketAddress();
+    public Set<? extends SocketAddress> getSocketAddresses() {
+        return impl.getSocketAddresses();
     }
 
     /**

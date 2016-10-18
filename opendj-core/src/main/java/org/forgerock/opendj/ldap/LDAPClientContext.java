@@ -12,15 +12,16 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 import java.net.InetSocketAddress;
 
-import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
+import javax.security.sasl.SaslServer;
 
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
@@ -31,6 +32,29 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
  * the connection.
  */
 public interface LDAPClientContext {
+
+    /** Listens for disconnection event. */
+    public interface DisconnectListener {
+        /**
+         * Invoked when the connection has been closed as a result of a client disconnect, a fatal connection error, or
+         * a server-side {@link #disconnect}.
+         *
+         * @param context
+         *            The {@link LDAPClientContext} which has been disconnected
+         * @param resultCode
+         *            The {@link ResultCode} of the notification sent, or null
+         * @param message
+         *            The message of the notification sent, or null
+         */
+        void connectionDisconnected(final LDAPClientContext context, final ResultCode resultCode, final String message);
+    }
+
+    /**
+     * Register a listener which will be notified when this {@link LDAPClientContext} is disconnected.
+     *
+     * @param listener The {@link DisconnectListener} to register.
+     */
+    void onDisconnect(final DisconnectListener listener);
 
     /**
      * Disconnects the client without sending a disconnect notification.
@@ -56,7 +80,7 @@ public interface LDAPClientContext {
      *            The diagnostic message, which may be empty or {@code null}
      *            indicating that none was provided.
      */
-    void disconnect(ResultCode resultCode, String message);
+    void disconnect(final ResultCode resultCode, final String message);
 
     /**
      * Returns the {@code InetSocketAddress} associated with the local system.
@@ -123,40 +147,20 @@ public interface LDAPClientContext {
     void sendUnsolicitedNotification(ExtendedResult notification);
 
     /**
-     * Installs the provided connection security layer to the underlying
-     * connection. This may be used to add a SASL integrity and/or
-     * confidentiality protection layer after SASL authentication has completed,
-     * but could also be used to add other layers such as compression. Multiple
-     * layers may be installed.
-     *
-     * @param layer
-     *            The negotiated bind context that can be used to encode and
-     *            decode data on the connection.
-     */
-    void enableConnectionSecurityLayer(ConnectionSecurityLayer layer);
-
-    /**
      * Installs the TLS/SSL security layer on the underlying connection. The
      * TLS/SSL security layer will be installed beneath any existing connection
      * security layers and can only be installed at most once.
      *
-     * @param sslContext
-     *            The {@code SSLContext} which should be used to secure the
-     * @param protocols
-     *            Names of all the protocols to enable or {@code null} to use
-     *            the default protocols.
-     * @param suites
-     *            Names of all the suites to enable or {@code null} to use the
-     *            default cipher suites.
-     * @param wantClientAuth
-     *            Set to {@code true} if client authentication is requested, or
-     *            {@code false} if no client authentication is desired.
-     * @param needClientAuth
-     *            Set to {@code true} if client authentication is required, or
-     *            {@code false} if no client authentication is desired.
-     * @throws IllegalStateException
-     *             If the TLS/SSL security layer has already been installed.
+     * @param sslEngine
+     *            The {@code SSLEngine} which should be used to secure the conneciton.
      */
-    void enableTLS(SSLContext sslContext, String[] protocols, String[] suites,
-            boolean wantClientAuth, boolean needClientAuth);
+    void enableTLS(SSLEngine sslEngine);
+
+    /**
+     * Installs the SASL security layer on the underlying connection.
+     *
+     * @param saslServer
+     *            The {@code SaslServer} which should be used to secure the conneciton.
+     */
+    void enableSASL(SaslServer saslServer);
 }

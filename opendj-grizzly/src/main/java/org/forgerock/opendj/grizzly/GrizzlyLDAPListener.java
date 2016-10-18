@@ -12,30 +12,40 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2015 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
 import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
+import static org.forgerock.opendj.ldap.CommonLDAPOptions.LDAP_DECODE_OPTIONS;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.ServerConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
+import org.forgerock.util.Function;
 import org.forgerock.util.Options;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
+import com.forgerock.reactive.ReactiveHandler;
+import com.forgerock.reactive.Stream;
 
 /**
  * LDAP listener implementation using Grizzly for transport.
@@ -43,80 +53,76 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
 public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
-    private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
-    private final TCPNIOServerConnection serverConnection;
+    private final Collection<TCPNIOServerConnection> serverConnections;
     private final AtomicBoolean isClosed = new AtomicBoolean();
-    private final InetSocketAddress socketAddress;
+    private final Set<SocketAddress> socketAddresses;
     private final Options options;
 
     /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections using the provided address and connection options.
+     * Creates a new LDAP listener implementation which will listen for LDAP client connections using the provided
+     * address and connection options.
      *
-     * @param address
-     *            The address to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     * @param addresses
+     *            The addresses to listen on.
      * @param options
      *            The LDAP listener options.
+     * @param handler
+     *            The server connection factory which will be used to create server connections.
      * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
+     *             If an error occurred while trying to listen on the provided address.
      */
-    public GrizzlyLDAPListener(final InetSocketAddress address,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final Options options) throws IOException {
-        this(address, factory, options, null);
+    public GrizzlyLDAPListener(final Set<? extends SocketAddress> addresses, final Options options,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                           LdapException> handler) throws IOException {
+        this(addresses, handler, options, null);
     }
 
     /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections using the provided address, connection options and
-     * provided TCP transport.
+     * Creates a new LDAP listener implementation which will listen for LDAP client connections using the provided
+     * address, connection options and provided TCP transport.
      *
-     * @param address
-     *            The address to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     * @param addresses
+     *            The addresses to listen on.
+     * @param handler
+     *            The server connection factory which will be used to create server connections.
      * @param options
      *            The LDAP listener options.
      * @param transport
-     *            Grizzly TCP Transport NIO implementation to use for
-     *            connections. If {@code null}, default transport will be used.
+     *            Grizzly TCP Transport NIO implementation to use for connections. If {@code null}, default transport
+     *            will be used.
      * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
+     *             If an error occurred while trying to listen on the provided address.
      */
-    public GrizzlyLDAPListener(final InetSocketAddress address,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+    public GrizzlyLDAPListener(final Set<? extends SocketAddress> addresses,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                           LdapException> handler,
             final Options options, TCPNIOTransport transport) throws IOException {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
-        this.connectionFactory = factory;
         this.options = Options.copyOf(options);
-        final LDAPServerFilter serverFilter =
-                new LDAPServerFilter(this, options.get(LDAP_DECODE_OPTIONS), options.get(REQUEST_MAX_SIZE_IN_BYTES));
-        final FilterChain ldapChain =
-                GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), serverFilter);
-        final TCPNIOBindingHandler bindingHandler =
-                TCPNIOBindingHandler.builder(this.transport.get()).processor(ldapChain).build();
-        this.serverConnection = bindingHandler.bind(address, options.get(CONNECT_MAX_BACKLOG));
-
-        /*
-         * Get the socket address now, ensuring that the host is the same as the
-         * one provided in the constructor. The port will have changed if 0 was
-         * passed in.
-         */
-        final int port = ((InetSocketAddress) serverConnection.getLocalAddress()).getPort();
-        socketAddress = new InetSocketAddress(Connections.getHostString(address), port);
+        final LDAPServerFilter serverFilter = new LDAPServerFilter(handler, options,
+                options.get(LDAP_DECODE_OPTIONS), options.get(MAX_CONCURRENT_REQUESTS));
+        final FilterChain ldapChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(),
+                new LdapCodec(options.get(REQUEST_MAX_SIZE_IN_BYTES), options.get(LDAP_DECODE_OPTIONS)), serverFilter);
+        final TCPNIOBindingHandler bindingHandler = TCPNIOBindingHandler.builder(this.transport.get())
+                .processor(ldapChain).build();
+        this.serverConnections = new ArrayList<>(addresses.size());
+        this.socketAddresses = new HashSet<>(addresses.size());
+        for (final SocketAddress address : addresses) {
+            final TCPNIOServerConnection bound = bindingHandler.bind(address, options.get(CONNECT_MAX_BACKLOG));
+            serverConnections.add(bound);
+            socketAddresses.add(bound.getLocalAddress());
+        }
     }
 
     @Override
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
             try {
-                serverConnection.close().get();
+                for (TCPNIOConnection serverConnection : serverConnections) {
+                    serverConnection.close().get();
+                }
             } catch (final InterruptedException e) {
                 // Cannot handle here.
                 Thread.currentThread().interrupt();
@@ -129,21 +135,17 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     }
 
     @Override
-    public InetSocketAddress getSocketAddress() {
-        return socketAddress;
+    public Set<? extends SocketAddress> getSocketAddresses() {
+        return socketAddresses;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LDAPListener(");
-        builder.append(getSocketAddress());
+        builder.append(socketAddresses);
         builder.append(')');
         return builder.toString();
-    }
-
-    ServerConnectionFactory<LDAPClientContext, Integer> getConnectionFactory() {
-        return connectionFactory;
     }
 
     Options getLDAPListenerOptions() {

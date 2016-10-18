@@ -11,12 +11,13 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.Closeable;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Set;
 
 /**
  * Interface for all classes that actually implement {@code LDAPListener}.
@@ -31,11 +32,11 @@ import java.net.InetSocketAddress;
 public interface LDAPListenerImpl extends Closeable {
 
     /**
-     * Returns the address that this LDAP listener is listening on.
+     * Returns the addresses that this LDAP listener is listening on.
      *
-     * @return The address that this LDAP listener is listening on.
+     * @return The addresses that this LDAP listener is listening on.
      */
-    InetSocketAddress getSocketAddress();
+    Set<? extends SocketAddress> getSocketAddresses();
 
     /**
      * Closes this stream and releases any system resources associated

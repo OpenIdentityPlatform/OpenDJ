@@ -11,25 +11,19 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2016 ForgeRock AS.
+ * Copyright 2016 ForgeRock AS.
  */
-
-package org.forgerock.opendj.grizzly;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1ReaderTestCase;
-import org.glassfish.grizzly.memory.ByteBufferWrapper;
+package com.forgerock.reactive;
 
 /**
- * This class provides test cases for ASN1BufferReader.
+ * A functional interface similar to Runnable but allows throwing a checked exception.
  */
-public class ASN1BufferReaderTestCase extends ASN1ReaderTestCase {
-    @Override
-    protected ASN1Reader getReader(final byte[] b, final int maxElementSize) throws IOException {
-        return new ASN1BufferReader(maxElementSize, new ByteBufferWrapper(ByteBuffer.wrap(b)));
-    }
+public interface Action {
+    /**
+     * Runs the action and optionally throws a checked exception.
+     *
+     * @throws Exception
+     *             if the implementation wishes to throw a checked exception
+     */
+    void run() throws Exception;
 }

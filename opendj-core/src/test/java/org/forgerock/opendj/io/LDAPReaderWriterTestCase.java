@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.io;
 
@@ -487,8 +487,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             throws Exception {
         LDAPWriter<? extends ASN1Writer> writer = getLDAPWriter();
         writing.perform(writer);
-        LDAPReader<? extends ASN1Reader> reader = getLDAPReader();
-        transferFromWriterToReader(writer, reader);
+        LDAPReader<? extends ASN1Reader> reader = getLDAPReader(writer);
         reader.readMessage(messageHandler);
     }
 
@@ -503,8 +502,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
     protected abstract LDAPReader<? extends ASN1Reader> getLDAPReader();
 
     /**
-     * Transfer raw data from writer to the reader.
+     * Create a reader reading data contained in the writer.
      */
-    protected abstract void transferFromWriterToReader(LDAPWriter<? extends ASN1Writer> writer,
-            LDAPReader<? extends ASN1Reader> reader);
+    protected abstract LDAPReader<? extends ASN1Reader> getLDAPReader(LDAPWriter<? extends ASN1Writer> writer);
 }

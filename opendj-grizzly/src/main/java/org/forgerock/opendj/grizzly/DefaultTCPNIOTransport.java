@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2014 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -66,12 +66,7 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
         if (useWorkerThreadsStr != null) {
             useWorkerThreadStrategy = Boolean.parseBoolean(useWorkerThreadsStr);
         } else {
-            /*
-             * The most best performing strategy to use is the
-             * SameThreadIOStrategy, however it can only be used in cases where
-             * result listeners will not block.
-             */
-            useWorkerThreadStrategy = true;
+            useWorkerThreadStrategy = false;
         }
 
         if (useWorkerThreadStrategy) {

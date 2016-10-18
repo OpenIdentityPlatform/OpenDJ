@@ -24,7 +24,7 @@ import org.forgerock.util.Options;
 /**
  * Common options for LDAP clients and listeners.
  */
-abstract class CommonLDAPOptions {
+public abstract class CommonLDAPOptions {
     /**
      * Specifies the class loader which will be used to load the
      * {@link org.forgerock.opendj.ldap.spi.TransportProvider TransportProvider}.
