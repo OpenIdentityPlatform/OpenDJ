@@ -310,7 +310,7 @@ public abstract class ConsoleApplication {
      * @param progress
      *            The current percentage progress to print.
      */
-    private final void printProgressBar(final int linePos, final int progress) {
+    private void printProgressBar(final int linePos, final int progress) {
         if (!isQuiet()) {
             final int spacesLeft = MAX_LINE_WIDTH - linePos - 10;
             StringBuilder bar = new StringBuilder();
@@ -464,24 +464,23 @@ public abstract class ConsoleApplication {
         if (msgStyle != null && msgStyle == Style.TITLE) {
             println();
         }
-        while (true) {
-            if (defaultValue != null) {
-                prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
-            }
-            final String response = readLineOfInput(prompt);
 
-            if (msgStyle != null && (msgStyle == Style.TITLE || msgStyle == Style.SUBTITLE)) {
-                println();
-            }
-
-            if ("".equals(response)) {
-                if (defaultValue != null) {
-                    return defaultValue;
-                }
-                println(INFO_ERROR_EMPTY_RESPONSE.get());
-            }
-            return response;
+        if (defaultValue != null) {
+            prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
         }
+        final String response = readLineOfInput(prompt);
+
+        if (msgStyle != null && (msgStyle == Style.TITLE || msgStyle == Style.SUBTITLE)) {
+            println();
+        }
+
+        if ("".equals(response)) {
+            if (defaultValue != null) {
+                return defaultValue;
+            }
+            println(INFO_ERROR_EMPTY_RESPONSE.get());
+        }
+        return response;
     }
 
     /**

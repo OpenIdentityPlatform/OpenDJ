@@ -201,17 +201,10 @@ public class ArgumentParser implements ToolRefDocContainer {
      *            Indicates whether long arguments should be treated in a
      *            case-sensitive manner.
      */
-    public ArgumentParser(final String mainClassName, final LocalizableMessage toolDescription,
-            final boolean longArgumentsCaseSensitive) {
-        this.mainClassName = mainClassName;
-        this.toolDescription = toolDescription;
-        this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
-
-        allowsTrailingArguments = false;
-        trailingArgsDisplayName = null;
-        maxTrailingArguments = 0;
-        minTrailingArguments = 0;
-        initGroups();
+    public ArgumentParser(final String mainClassName,
+                          final LocalizableMessage toolDescription,
+                          final boolean longArgumentsCaseSensitive) {
+        this(mainClassName, toolDescription, longArgumentsCaseSensitive, false, 0, 0, null);
     }
 
     /**

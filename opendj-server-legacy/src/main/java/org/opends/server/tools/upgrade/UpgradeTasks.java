@@ -1365,12 +1365,6 @@ final class UpgradeTasks
     };
   }
 
-  /** Prevent instantiation. */
-  private UpgradeTasks()
-  {
-    // Do nothing.
-  }
-
   /**
    * This task exists because OpenDJ 3.0.0 added an attribute type definition for
    * {@code ds-cfg-csv-delimiter-char}, but unfortunately trailing spaces existed after the closing
@@ -1520,5 +1514,11 @@ final class UpgradeTasks
             "(objectClass=ds-cfg-root-config)", ldif.toArray(new String[0]));
       }
     };
+  }
+
+  /** Prevent instantiation. */
+  private UpgradeTasks()
+  {
+    // Do nothing.
   }
 }
