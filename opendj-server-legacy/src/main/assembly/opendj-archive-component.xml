@@ -79,6 +79,9 @@
     <fileSet>
        <directory>${project.build.directory}/legal-notices</directory>
        <outputDirectory>legal-notices</outputDirectory>
+      <includes>
+        <include>*.txt</include>
+      </includes>
     </fileSet>
 
     <!-- Adds sh in lib/ directory -->

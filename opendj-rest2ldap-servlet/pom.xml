@@ -30,9 +30,8 @@
   <packaging>war</packaging>
 
   <properties>
-    <!-- When released, with the 'binary.license.url' property set,
-         this artifact will contain an additional binary license -->
-    <include.binary.license>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</include.binary.license>
+    <!-- If the binary-licensing profile is activated, we need the ForgeRock license there -->
+    <forgerock.license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</forgerock.license.output.dir>
   </properties>
 
   <dependencies>

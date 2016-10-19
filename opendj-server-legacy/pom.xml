@@ -60,9 +60,6 @@
     <!-- Other properties -->
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
 
-    <!-- If we release this project, we need to include the Forgerock binary license -->
-    <include.binary.license>${project.build.directory}/legal-notices/</include.binary.license>
-
     <!-- Additional OSGI import package for this module -->
     <opendj.osgi.import.additional>
       org.forgerock.opendj.*;provide:=true,

@@ -29,8 +29,8 @@
     <packaging>war</packaging>
 
     <properties>
-        <!-- Folder to store the ForgeRock binary license. The license url could be specified with the option -Dbinary.license.url on the maven command line -->
-        <include.binary.license>${project.basedir}/legal-notices/</include.binary.license>
+        <!-- If the binary-licensing profile is activated, we need the ForgeRock license there -->
+        <forgerock.license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</forgerock.license.output.dir>
         <opendj.server.module.name>opendj-server-legacy</opendj.server.module.name>
         <opendj.jars.folder>opendj-jars</opendj.jars.folder>
     </properties>
@@ -263,7 +263,7 @@
                             </excludes>
                         </resource>
 
-                        <!-- Include THIRDPARTYREADME.txt and the FR binary license (if exists) -->
+                        <!-- Include THIRDPARTYREADME.txt -->
                         <resource>
                             <targetPath>WEB-INF/legal-notices</targetPath>
                             <directory>legal-notices</directory>

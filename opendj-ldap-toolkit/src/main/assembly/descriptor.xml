@@ -43,6 +43,17 @@
             </includes>
         </fileSet>
 
+        <!-- Get the ForgeRock binary license (if exists) -->
+        <fileSet>
+            <directory>${project.build.directory}/legal-notices</directory>
+            <outputDirectory>legal-notices</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <includes>
+                <include>*.txt</include>
+            </includes>
+        </fileSet>
+
         <!-- Include CDDLv1_0.txt -->
         <fileSet>
             <directory>${basedir}/../legal-notices</directory>
