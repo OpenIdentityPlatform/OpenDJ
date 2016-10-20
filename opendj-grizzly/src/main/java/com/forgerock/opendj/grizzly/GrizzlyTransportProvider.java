@@ -101,10 +101,22 @@ public final class GrizzlyTransportProvider implements TransportProvider {
         final ServerConnectionAdaptor<Integer> adapter = new ServerConnectionAdaptor<>(serverConnection);
         clientContext.onDisconnect(new DisconnectListener() {
             @Override
-            public void connectionDisconnected(LDAPClientContext context, ResultCode resultCode, String message) {
-                serverConnection.handleConnectionDisconnected(resultCode, message);
+            public void exceptionOccurred(final LDAPClientContext context, final Throwable error) {
+                serverConnection.handleConnectionError(error);
+            }
+
+            @Override
+            public void connectionClosed(final LDAPClientContext context, final UnbindRequest unbindRequest) {
+                serverConnection.handleConnectionClosed(0, unbindRequest);
+            }
+
+            @Override
+            public void connectionDisconnected(final LDAPClientContext context, final ResultCode resultCode,
+                    final String diagnosticMessage) {
+                serverConnection.handleConnectionDisconnected(resultCode, diagnosticMessage);
             }
         });
+
         return new ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>() {
             @Override
             public Single<Stream<Response>> handle(final LDAPClientContext context,

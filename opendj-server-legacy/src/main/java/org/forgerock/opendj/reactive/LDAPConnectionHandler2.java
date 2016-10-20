@@ -747,8 +747,8 @@ public final class LDAPConnectionHandler2 extends
                                 LdapException>() {
                     @Override
                     public ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>
-                        apply(LDAPClientContext value) throws LdapException {
-                        final LDAPClientConnection2 conn = canAccept(value);
+                        apply(LDAPClientContext clientContext) throws LdapException {
+                        final LDAPClientConnection2 conn = canAccept(clientContext);
                         return new ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>() {
                             @Override
                             public Single<Stream<Response>> handle(LDAPClientContext context,

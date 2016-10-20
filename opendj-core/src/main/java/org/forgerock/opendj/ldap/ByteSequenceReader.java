@@ -28,7 +28,7 @@ import com.forgerock.opendj.util.PackedLong;
  * {@code ByteSequenceReader} must be created using the associated
  * {@code ByteSequence}'s {@code asReader()} method.
  */
-public final class ByteSequenceReader {
+public class ByteSequenceReader {
 
     /** The current position in the byte sequence. */
     private int pos;
@@ -55,7 +55,7 @@ public final class ByteSequenceReader {
      * @param sequence
      *            The byte sequence to be read.
      */
-    ByteSequenceReader(final ByteSequence sequence) {
+    public ByteSequenceReader(final ByteSequence sequence) {
         this.sequence = sequence;
     }
 

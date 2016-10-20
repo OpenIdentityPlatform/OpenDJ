@@ -23,6 +23,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 import javax.security.sasl.SaslServer;
 
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
 /**
@@ -36,17 +37,39 @@ public interface LDAPClientContext {
     /** Listens for disconnection event. */
     public interface DisconnectListener {
         /**
-         * Invoked when the connection has been closed as a result of a client disconnect, a fatal connection error, or
-         * a server-side {@link #disconnect}.
+         * Invoked when the connection has been disconnected because of an error (i.e: message too big).
+         *
+         * @param context
+         *            The {@link LDAPClientContext} which has failed
+         * @param error
+         *            The error
+         */
+        void exceptionOccurred(final LDAPClientContext context, final Throwable error);
+
+        /**
+         * Invoked when the client closes the connection, possibly using an unbind request.
+         *
+         * @param context
+         *            The {@link LDAPClientContext} which has been disconnected
+         * @param unbindRequest
+         *            The unbind request, which may be {@code null} if one was not sent before the connection was
+         *            closed.
+         */
+        void connectionClosed(final LDAPClientContext context, final UnbindRequest unbindRequest);
+
+        /**
+         * Invoked when the connection has been disconnected by the server.
          *
          * @param context
          *            The {@link LDAPClientContext} which has been disconnected
          * @param resultCode
-         *            The {@link ResultCode} of the notification sent, or null
-         * @param message
-         *            The message of the notification sent, or null
+         *            The result code which was included with the disconnect notification, or {@code null} if no
+         *            disconnect notification was sent.
+         * @param diagnosticMessage
+         *            The diagnostic message, which may be empty or {@code null} indicating that none was provided.
          */
-        void connectionDisconnected(final LDAPClientContext context, final ResultCode resultCode, final String message);
+        void connectionDisconnected(final LDAPClientContext context, final ResultCode resultCode,
+                final String diagnosticMessage);
     }
 
     /**
@@ -57,30 +80,24 @@ public interface LDAPClientContext {
     void onDisconnect(final DisconnectListener listener);
 
     /**
-     * Disconnects the client without sending a disconnect notification.
-     * <p>
-     * <b>Server connections:</b> invoking this method causes
-     * {@link ServerConnection#handleConnectionDisconnected
-     * handleConnectionDisconnected} to be called before this method returns.
+     * Disconnects the client without sending a disconnect notification. Invoking this method causes
+     * {@link DisconnectListener#connectionDisconnected(LDAPClientContext, ResultCode, String)} to be called before this
+     * method returns.
      */
     void disconnect();
 
     /**
-     * Disconnects the client and sends a disconnect notification, if possible,
-     * containing the provided result code and diagnostic message.
-     * <p>
-     * <b>Server connections:</b> invoking this method causes
-     * {@link ServerConnection#handleConnectionDisconnected
-     * handleConnectionDisconnected} to be called before this method returns.
+     * Disconnects the client and sends a disconnect notification, containing the provided result code and diagnostic
+     * message. Invoking this method causes
+     * {@link DisconnectListener#connectionDisconnected(LDAPClientContext, ResultCode, String)} to be called before this
+     * method returns.
      *
      * @param resultCode
-     *            The result code which should be included with the disconnect
-     *            notification.
-     * @param message
-     *            The diagnostic message, which may be empty or {@code null}
-     *            indicating that none was provided.
+     *            The result code to include with the disconnect notification
+     * @param diagnosticMessage
+     *            The diagnostic message to include with the disconnect notification
      */
-    void disconnect(final ResultCode resultCode, final String message);
+    void disconnect(final ResultCode resultCode, final String diagnosticMessage);
 
     /**
      * Returns the {@code InetSocketAddress} associated with the local system.

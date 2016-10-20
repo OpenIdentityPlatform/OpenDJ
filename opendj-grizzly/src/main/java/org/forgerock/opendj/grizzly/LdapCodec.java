@@ -36,7 +36,7 @@ import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
-final class LdapCodec extends LDAPBaseFilter {
+abstract class LdapCodec extends LDAPBaseFilter {
 
     LdapCodec(final int maxElementSize, final DecodeOptions decodeOptions) {
         super(decodeOptions, maxElementSize);
@@ -44,14 +44,28 @@ final class LdapCodec extends LDAPBaseFilter {
 
     @Override
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
-        final Buffer buffer = ctx.getMessage();
-        final LdapRawMessage message = readMessage(buffer);
-        if (message != null) {
-            ctx.setMessage(message);
-            return ctx.getInvokeAction(getRemainingBuffer(buffer));
+        try {
+            final Buffer buffer = ctx.getMessage();
+            final LdapRawMessage message;
+
+            message = readMessage(buffer);
+            if (message != null) {
+                ctx.setMessage(message);
+                return ctx.getInvokeAction(getRemainingBuffer(buffer));
+            }
+            return ctx.getStopAction(getRemainingBuffer(buffer));
+        } catch (Exception e) {
+            onLdapCodecError(ctx, e);
+            // make the connection deaf to any following input
+            // onLdapDecodeError call will take care of error processing
+            // and closing the connection
+            final NextAction suspendAction = ctx.getSuspendAction();
+            ctx.completeAndRecycle();
+            return suspendAction;
         }
-        return ctx.getStopAction(getRemainingBuffer(buffer));
     }
+
+    protected abstract void onLdapCodecError(FilterChainContext ctx, Throwable error);
 
     private LdapRawMessage readMessage(final Buffer buffer) throws IOException {
         try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
@@ -123,10 +137,18 @@ final class LdapCodec extends LDAPBaseFilter {
         try {
             final Buffer buffer = toBuffer(writer, ctx.<LdapResponseMessage> getMessage());
             ctx.setMessage(buffer);
+            return ctx.getInvokeAction();
+        } catch (Exception e) {
+            onLdapCodecError(ctx, e);
+            // make the connection deaf to any following input
+            // onLdapDecodeError call will take care of error processing
+            // and closing the connection
+            final NextAction suspendAction = ctx.getSuspendAction();
+            ctx.completeAndRecycle();
+            return suspendAction;
         } finally {
             GrizzlyUtils.recycleWriter(writer);
         }
-        return ctx.getInvokeAction();
     }
 
     private Buffer toBuffer(final LDAPWriter<ASN1BufferWriter> writer, final LdapResponseMessage message)

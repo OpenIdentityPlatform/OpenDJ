@@ -34,14 +34,14 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslServer;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.AbstractLDAPMessageHandler;
 import org.forgerock.opendj.io.LDAP;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.controls.Control;
-import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.opendj.ldap.responses.CompareResult;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.IntermediateResponse;
 import org.forgerock.opendj.ldap.responses.Response;
@@ -55,8 +55,6 @@ import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.forgerock.util.Function;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
-import org.glassfish.grizzly.CloseReason;
-import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
@@ -72,8 +70,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import com.forgerock.reactive.Completable;
-import com.forgerock.reactive.Completable.Emitter;
+import com.forgerock.reactive.Consumer;
 import com.forgerock.reactive.ReactiveHandler;
+import com.forgerock.reactive.Single;
 import com.forgerock.reactive.Stream;
 
 import io.reactivex.internal.util.BackpressureHelper;
@@ -84,12 +83,14 @@ import io.reactivex.internal.util.BackpressureHelper;
  */
 final class LDAPServerFilter extends BaseFilter {
 
+    private static final Object DUMMY = new byte[0];
+
     private static final Attribute<ClientConnectionImpl> LDAP_CONNECTION_ATTR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute("LDAPServerConnection");
 
     private final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
-                           LdapException> connectionHandler;
+                           LdapException> connectionHandlerFactory;
 
     /**
      * Map of cipher phrases to effective key size (bits). Taken from the
@@ -132,11 +133,11 @@ final class LDAPServerFilter extends BaseFilter {
      *            The maximum BER element size, or <code>0</code> to indicate that there is no limit.
      */
     LDAPServerFilter(
-            Function<LDAPClientContext,
-                     ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
-                     LdapException> connectionHandler,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                           LdapException> connectionHandlerFactory,
             final Options connectionOptions, final DecodeOptions options, final int maxPendingRequests) {
-        this.connectionHandler = connectionHandler;
+        this.connectionHandlerFactory = connectionHandlerFactory;
         this.connectionOptions = connectionOptions;
         this.maxConcurrentRequests = maxPendingRequests;
     }
@@ -152,98 +153,86 @@ final class LDAPServerFilter extends BaseFilter {
         configureConnection(connection, logger, connectionOptions);
         final ClientConnectionImpl clientContext = new ClientConnectionImpl(connection);
         LDAP_CONNECTION_ATTR.set(connection, clientContext);
-        final ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>> handler = connectionHandler
-                .apply(clientContext);
+        final ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>> requestHandler =
+                connectionHandlerFactory.apply(clientContext);
 
-        streamFromPublisher(clientContext).flatMap(new Function<LdapRawMessage, Publisher<Integer>, Exception>() {
-            @Override
-            public Publisher<Integer> apply(final LdapRawMessage rawRequest) throws Exception {
-                return handler
-                        .handle(clientContext, rawRequest)
-                        .flatMap(new Function<Stream<Response>, Publisher<Integer>, Exception>() {
-                            @Override
-                            public Publisher<Integer> apply(final Stream<Response> response) {
-                                return clientContext.write(response.onErrorResumeWith(toErrorMessage(rawRequest))
-                                                                   .map(toResponseMessage(rawRequest))).toSingle(1);
-                            }
-                        });
-            }
-        }, maxConcurrentRequests).subscribe();
+        clientContext
+            .read()
+            .flatMap(new Function<LdapRawMessage, Publisher<Object>, Exception>() {
+                @Override
+                public Publisher<Object> apply(final LdapRawMessage rawRequest) throws Exception {
+                    if (rawRequest.getMessageType() == OP_TYPE_UNBIND_REQUEST) {
+                        clientContext.notifyAndClose(rawRequest);
+                        return singleFrom(DUMMY);
+                    }
+                    Single<Stream<Response>> response;
+                    try {
+                        response = requestHandler.handle(clientContext, rawRequest);
+                    } catch (Exception e) {
+                        response = singleError(e);
+                    }
+                    return response
+                            .flatMap(new Function<Stream<Response>, Single<Object>, Exception>() {
+                                @Override
+                                public Single<Object> apply(final Stream<Response> response) {
+                                    return clientContext.write(response.map(toLdapResponseMessage(rawRequest)))
+                                                        .toSingle(DUMMY);
+                                }
+                            })
+                            .onErrorResumeWith(new Function<Throwable, Single<Object>, Exception>() {
+                                @Override
+                                public Single<Object> apply(final Throwable error) throws Exception {
+                                    if (!(error instanceof LdapException)) {
+                                        // Unexpected error, propagate it.
+                                        return singleError(error);
+                                    }
+                                    final LdapException exception = (LdapException) error;
+                                    return clientContext
+                                            .write(singleFrom(toLdapResponseMessage(rawRequest, exception.getResult())))
+                                            .toSingle(DUMMY);
+                                }
+                            });
+                }
+            }, maxConcurrentRequests)
+            .onErrorDo(new Consumer<Throwable>() {
+                @Override
+                public void accept(final Throwable error) throws Exception {
+                    clientContext.notifyAndCloseSilently(error);
+                }
+            })
+            .subscribe();
         return ctx.getStopAction();
     }
 
-    private Function<Throwable, Publisher<Response>, Exception> toErrorMessage(final LdapRawMessage rawRequest) {
-        return new Function<Throwable, Publisher<Response>, Exception>() {
-            @Override
-            public Publisher<Response> apply(Throwable error) throws Exception {
-                if (!(error instanceof LdapException)) {
-                    // Propagate error
-                    return streamError(error);
-                }
-
-                final Result result = ((LdapException) error).getResult();
-                switch (rawRequest.getMessageType()) {
-                case OP_TYPE_BIND_REQUEST:
-                    if (result instanceof BindResult) {
-                        return streamFrom((Response) result);
-                    }
-                    return streamFrom((Response) populateNewResultFromResult(
-                            Responses.newBindResult(result.getResultCode()), result));
-                case OP_TYPE_COMPARE_REQUEST:
-                    if (result instanceof CompareResult) {
-                        return streamFrom((Response) result);
-                    }
-                    return streamFrom((Response) populateNewResultFromResult(
-                            Responses.newCompareResult(result.getResultCode()), result));
-                case OP_TYPE_EXTENDED_REQUEST:
-                    if (result instanceof ExtendedResult) {
-                        return streamFrom((Response) result);
-                    }
-                    return streamFrom((Response) populateNewResultFromResult(
-                            Responses.newGenericExtendedResult(result.getResultCode()), result));
-                default:
-                    return streamFrom((Response) result);
-                }
-            }
-        };
-    }
-
-    private Result populateNewResultFromResult(final Result newResult,
-            final Result result) {
-        newResult.setDiagnosticMessage(result.getDiagnosticMessage());
-        newResult.setMatchedDN(result.getMatchedDN());
-        newResult.setCause(result.getCause());
-        for (final Control control : result.getControls()) {
-            newResult.addControl(control);
+    private final LdapResponseMessage toLdapResponseMessage(final LdapRawMessage rawRequest, final Result result) {
+        switch (rawRequest.getMessageType()) {
+        case OP_TYPE_ADD_REQUEST:
+            return newResponseMessage(OP_TYPE_ADD_RESPONSE, rawRequest.getMessageId(), result);
+        case OP_TYPE_BIND_REQUEST:
+            return newResponseMessage(OP_TYPE_BIND_RESPONSE, rawRequest.getMessageId(), result);
+        case OP_TYPE_COMPARE_REQUEST:
+            return newResponseMessage(OP_TYPE_COMPARE_RESPONSE, rawRequest.getMessageId(), result);
+        case OP_TYPE_DELETE_REQUEST:
+            return newResponseMessage(OP_TYPE_DELETE_RESPONSE, rawRequest.getMessageId(), result);
+        case OP_TYPE_EXTENDED_REQUEST:
+            return newResponseMessage(OP_TYPE_EXTENDED_RESPONSE, rawRequest.getMessageId(), result);
+        case OP_TYPE_MODIFY_DN_REQUEST:
+            return newResponseMessage(OP_TYPE_MODIFY_DN_RESPONSE, rawRequest.getMessageId(), result);
+        case OP_TYPE_MODIFY_REQUEST:
+            return newResponseMessage(OP_TYPE_MODIFY_RESPONSE, rawRequest.getMessageId(), result);
+        case OP_TYPE_SEARCH_REQUEST:
+            return newResponseMessage(OP_TYPE_SEARCH_RESULT_DONE, rawRequest.getMessageId(), result);
+        default:
+            throw new IllegalArgumentException("Unknown request: " + rawRequest.getMessageType());
         }
-        return newResult;
     }
 
-    private Function<Response, LdapResponseMessage, Exception> toResponseMessage(final LdapRawMessage rawRequest) {
+    private Function<Response, LdapResponseMessage, Exception> toLdapResponseMessage(final LdapRawMessage rawRequest) {
         return new Function<Response, LdapResponseMessage, Exception>() {
             @Override
             public LdapResponseMessage apply(final Response response) {
                 if (response instanceof Result) {
-                    switch (rawRequest.getMessageType()) {
-                    case OP_TYPE_ADD_REQUEST:
-                        return newResponseMessage(OP_TYPE_ADD_RESPONSE, rawRequest.getMessageId(), response);
-                    case OP_TYPE_BIND_REQUEST:
-                        return newResponseMessage(OP_TYPE_BIND_RESPONSE, rawRequest.getMessageId(), response);
-                    case OP_TYPE_COMPARE_REQUEST:
-                        return newResponseMessage(OP_TYPE_COMPARE_RESPONSE, rawRequest.getMessageId(), response);
-                    case OP_TYPE_DELETE_REQUEST:
-                        return newResponseMessage(OP_TYPE_DELETE_RESPONSE, rawRequest.getMessageId(), response);
-                    case OP_TYPE_EXTENDED_REQUEST:
-                        return newResponseMessage(OP_TYPE_EXTENDED_RESPONSE, rawRequest.getMessageId(), response);
-                    case OP_TYPE_MODIFY_DN_REQUEST:
-                        return newResponseMessage(OP_TYPE_MODIFY_DN_RESPONSE, rawRequest.getMessageId(), response);
-                    case OP_TYPE_MODIFY_REQUEST:
-                        return newResponseMessage(OP_TYPE_MODIFY_RESPONSE, rawRequest.getMessageId(), response);
-                    case OP_TYPE_SEARCH_REQUEST:
-                        return newResponseMessage(OP_TYPE_SEARCH_RESULT_DONE, rawRequest.getMessageId(), response);
-                    default:
-                        throw new IllegalArgumentException("Unknown request: " + rawRequest.getMessageType());
-                    }
+                    return toLdapResponseMessage(rawRequest, (Result) response);
                 }
                 if (response instanceof IntermediateResponse) {
                     return newResponseMessage(OP_TYPE_INTERMEDIATE_RESPONSE, rawRequest.getMessageId(), response);
@@ -274,7 +263,7 @@ final class LDAPServerFilter extends BaseFilter {
         return ctx.getStopAction();
     }
 
-    final class ClientConnectionImpl implements LDAPClientContext, Publisher<LdapRawMessage> {
+    final class ClientConnectionImpl implements LDAPClientContext {
 
         final class GrizzlyBackpressureSubscription implements Subscription {
             private final AtomicLong pendingRequests = new AtomicLong();
@@ -339,38 +328,24 @@ final class LDAPServerFilter extends BaseFilter {
 
         private ClientConnectionImpl(final Connection<?> connection) {
             this.connection = connection;
-            connection.closeFuture().addCompletionHandler(new CompletionHandler<CloseReason>() {
-                @Override
-                public void completed(CloseReason result) {
-                    disconnect0(null, null);
-                }
+        }
 
+        Stream<LdapRawMessage> read() {
+            return streamFromPublisher(new Publisher<LdapRawMessage>() {
                 @Override
-                public void updated(CloseReason result) {
-                }
-
-                @Override
-                public void failed(Throwable throwable) {
-                }
-
-                @Override
-                public void cancelled() {
+                public void subscribe(final Subscriber<? super LdapRawMessage> subscriber) {
+                    if (upstream != null) {
+                        return;
+                    }
+                    upstream = new GrizzlyBackpressureSubscription(subscriber);
                 }
             });
         }
 
-        @Override
-        public void subscribe(final Subscriber<? super LdapRawMessage> s) {
-            if (upstream != null) {
-                return;
-            }
-            this.upstream = new GrizzlyBackpressureSubscription(s);
-        }
-
         Completable write(final Publisher<LdapResponseMessage> messages) {
-            return newCompletable(new Completable.OnSubscribe() {
+            return newCompletable(new Completable.Emitter() {
                 @Override
-                public void onSubscribe(Emitter e) {
+                public void subscribe(Completable.Subscriber e) {
                     messages.subscribe(new LdapResponseMessageWriter(connection, e));
                 }
             });
@@ -378,9 +353,9 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void enableTLS(final SSLEngine sslEngine) {
-            Reject.ifNull(sslEngine);
+            Reject.ifNull(sslEngine, "sslEngine must not be null");
             synchronized (this) {
-                if (isTLSEnabled()) {
+                if (isFilterExists(SSLFilter.class)) {
                     throw new IllegalStateException("TLS already enabled");
                 }
                 SSLUtils.setSSLEngine(connection, sslEngine);
@@ -390,8 +365,14 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void enableSASL(final SaslServer saslServer) {
-            SaslUtils.setSaslServer(connection, saslServer);
-            installFilter(new SaslFilter());
+            Reject.ifNull(saslServer, "saslServer must not be null");
+            synchronized (this) {
+                if (isFilterExists(SaslFilter.class)) {
+                    throw new IllegalStateException("Sasl already enabled");
+                }
+                SaslUtils.setSaslServer(connection, saslServer);
+                installFilter(new SaslFilter());
+            }
         }
 
         @Override
@@ -474,16 +455,11 @@ final class LDAPServerFilter extends BaseFilter {
             GrizzlyUtils.addFilterToConnection(filter, connection);
         }
 
-        /**
-         * Indicates whether TLS is enabled this provided connection.
-         *
-         * @return {@code true} if TLS is enabled on this connection, otherwise {@code false}.
-         */
-        private boolean isTLSEnabled() {
+        private boolean isFilterExists(Class<?> filterKlass) {
             synchronized (this) {
                 final FilterChain currentFilterChain = (FilterChain) connection.getProcessor();
                 for (final Filter filter : currentFilterChain) {
-                    if (filter instanceof SSLFilter) {
+                    if (filterKlass.isAssignableFrom(filter.getClass())) {
                         return true;
                     }
                 }
@@ -493,35 +469,97 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void onDisconnect(DisconnectListener listener) {
+            Reject.ifNull(listener, "listener must not be null");
             listeners.add(listener);
         }
 
         @Override
         public void disconnect() {
-            disconnect0(null, null);
+            if (isClosed.compareAndSet(false, true)) {
+                try {
+                    for (DisconnectListener listener : listeners) {
+                        listener.connectionDisconnected(this, null, null);
+                    }
+                } finally {
+                    closeConnection();
+                }
+            }
+        }
+
+        private void closeConnection() {
+            if (upstream != null) {
+                upstream.cancel();
+                upstream = null;
+            }
+            connection.closeSilently();
         }
 
         @Override
-        public void disconnect(final ResultCode resultCode, final String message) {
-            sendUnsolicitedNotification(
-                    Responses.newGenericExtendedResult(resultCode)
-                             .setOID(LDAP.OID_NOTICE_OF_DISCONNECTION)
-                             .setDiagnosticMessage(message));
-            disconnect0(resultCode, message);
+        public void disconnect(final ResultCode resultCode, final String diagnosticMessage) {
+            // Close this connection context.
+            if (isClosed.compareAndSet(false, true)) {
+                sendUnsolicitedNotification(Responses.newGenericExtendedResult(resultCode)
+                                                     .setOID(LDAP.OID_NOTICE_OF_DISCONNECTION)
+                                                     .setDiagnosticMessage(diagnosticMessage));
+                try {
+                    for (DisconnectListener listener : listeners) {
+                        listener.connectionDisconnected(this, resultCode, diagnosticMessage);
+                    }
+                } finally {
+                    closeConnection();
+                }
+            }
         }
 
-        private void disconnect0(final ResultCode resultCode, final String message) {
+        private void notifyAndClose(final LdapRawMessage unbindRequest) {
+            // Close this connection context.
+            if (isClosed.compareAndSet(false, true)) {
+                if (unbindRequest == null) {
+                    doNotifySilentlyConnectionClosed(null);
+                } else {
+                    try {
+                        LDAP.getReader(unbindRequest.getContent(), new DecodeOptions())
+                                .readMessage(new AbstractLDAPMessageHandler() {
+                                    @Override
+                                    public void unbindRequest(int messageID, UnbindRequest unbindRequest)
+                                            throws DecodeException, IOException {
+                                        doNotifySilentlyConnectionClosed(unbindRequest);
+                                    }
+                                });
+                    } catch (Exception e) {
+                        doNotifySilentlyConnectionClosed(null);
+                    }
+                }
+            }
+        }
+
+        private void doNotifySilentlyConnectionClosed(final UnbindRequest unbindRequest) {
+            try {
+                for (final DisconnectListener listener : listeners) {
+                    try {
+                        listener.connectionClosed(this, unbindRequest);
+                    } catch (Exception e) {
+                        // TODO: Log as a warning ?
+                    }
+                }
+            } finally {
+                closeConnection();
+            }
+        }
+
+        private void notifyAndCloseSilently(final Throwable error) {
             // Close this connection context.
             if (isClosed.compareAndSet(false, true)) {
                 try {
-                    // Notify the server connection: it may be null if disconnect is
-                    // invoked during accept.
-                    for (DisconnectListener listener : listeners) {
-                        listener.connectionDisconnected(this, resultCode, message);
+                    for (final DisconnectListener listener : listeners) {
+                        try {
+                            listener.exceptionOccurred(this, error);
+                        } catch (Exception e) {
+                            // TODO: Log as a warning ?
+                        }
                     }
                 } finally {
-                    // Close the connection.
-                    connection.closeSilently();
+                    closeConnection();
                 }
             }
         }

@@ -27,14 +27,14 @@ import org.reactivestreams.Publisher;
 public interface Single<V> extends Publisher<V> {
 
     /** Emitter is used to notify when the operation has been completed, successfully or not. */
-    public interface Emitter<V> {
+    public interface Subscriber<V> {
         /**
          * Signal a success value.
          *
          * @param t
          *            the value, not null
          */
-        void onSuccess(V t);
+        void onComplete(V t);
 
         /**
          * Signal an exception.
@@ -46,13 +46,13 @@ public interface Single<V> extends Publisher<V> {
     }
 
     /** Adapts the streaming api to a callback one. */
-    public interface OnSubscribe<V> {
+    public interface Emitter<V> {
         /**
          * Called for each SingleObserver that subscribes.
          * @param e the safe emitter instance, never null
          * @throws Exception on error
          */
-        void onSubscribe(Emitter<V> e) throws Exception;
+        void subscribe(Subscriber<V> e) throws Exception;
     }
 
     /**
@@ -82,7 +82,17 @@ public interface Single<V> extends Publisher<V> {
      *            Function to apply to perform the asynchronous transformation
      * @return A new {@link Single} transforming the datum emitted by this {@link Single}.
      */
-    <O> Single<O> flatMap(Function<V, Publisher<O>, Exception> function);
+    <O> Single<O> flatMap(Function<V, Single<O>, Exception> function);
+
+    /**
+     * When an error occurs in this stream, continue the processing with the new {@link Single} provided by the
+     * function.
+     *
+     * @param function
+     *            Generates the single which must will used to resume operation when this {@link Single} failed.
+     * @return A new {@link Single}
+     */
+    Single<V> onErrorResumeWith(Function<Throwable, Single<V>, Exception> function);
 
     /**
      * Subscribe to the single value emitted by this {@link Single}.

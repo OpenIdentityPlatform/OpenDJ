@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
 import org.forgerock.util.Function;
 import org.forgerock.util.Options;
 import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
@@ -66,7 +67,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      *            The addresses to listen on.
      * @param options
      *            The LDAP listener options.
-     * @param handler
+     * @param requestHandlerFactory
      *            The server connection factory which will be used to create server connections.
      * @throws IOException
      *             If an error occurred while trying to listen on the provided address.
@@ -74,8 +75,8 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     public GrizzlyLDAPListener(final Set<? extends SocketAddress> addresses, final Options options,
             final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
-                           LdapException> handler) throws IOException {
-        this(addresses, handler, options, null);
+                           LdapException> requestHandlerFactory) throws IOException {
+        this(addresses, requestHandlerFactory, options, null);
     }
 
     /**
@@ -84,7 +85,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      *
      * @param addresses
      *            The addresses to listen on.
-     * @param handler
+     * @param requestHandlerFactory
      *            The server connection factory which will be used to create server connections.
      * @param options
      *            The LDAP listener options.
@@ -97,14 +98,20 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     public GrizzlyLDAPListener(final Set<? extends SocketAddress> addresses,
             final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
-                           LdapException> handler,
+                           LdapException> requestHandlerFactory,
             final Options options, TCPNIOTransport transport) throws IOException {
+
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.options = Options.copyOf(options);
-        final LDAPServerFilter serverFilter = new LDAPServerFilter(handler, options,
+        final LDAPServerFilter serverFilter = new LDAPServerFilter(requestHandlerFactory, options,
                 options.get(LDAP_DECODE_OPTIONS), options.get(MAX_CONCURRENT_REQUESTS));
         final FilterChain ldapChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(),
-                new LdapCodec(options.get(REQUEST_MAX_SIZE_IN_BYTES), options.get(LDAP_DECODE_OPTIONS)), serverFilter);
+                new LdapCodec(options.get(REQUEST_MAX_SIZE_IN_BYTES), options.get(LDAP_DECODE_OPTIONS)) {
+                    @Override
+                    protected void onLdapCodecError(FilterChainContext ctx, Throwable error) {
+                        serverFilter.exceptionOccurred(ctx, error);
+                    }
+                }, serverFilter);
         final TCPNIOBindingHandler bindingHandler = TCPNIOBindingHandler.builder(this.transport.get())
                 .processor(ldapChain).build();
         this.serverConnections = new ArrayList<>(addresses.size());

@@ -711,6 +711,10 @@ public final class LDAPClientConnection2 extends ClientConnection implements
         logger.traceException(e);
       }
     }
+    else
+    {
+        clientContext.disconnect();
+    }
 
     // NYI -- Deregister the client connection from any server components that
     // might know about it.

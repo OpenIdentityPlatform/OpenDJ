@@ -21,9 +21,9 @@ import org.reactivestreams.Publisher;
 public interface Completable extends Publisher<Void> {
 
     /** Emitter is used to notify when the operation has been completed, successfully or not. */
-    public interface Emitter {
+    public interface Subscriber {
         /** Notify that this {@link Completable} is now completed. */
-        void complete();
+        void onComplete();
 
         /**
          * Notify that this {@link Completable} cannot be completed because of an error.
@@ -35,14 +35,14 @@ public interface Completable extends Publisher<Void> {
     }
 
     /** Adapts the streaming api to a callback one. */
-    public interface OnSubscribe {
+    public interface Emitter {
         /**
          * Called when the streaming api has been subscribed.
          *
          * @param e
-         *            The {@link Emitter} to use to communicate the completeness of this {@link Completable}
+         *            The {@link Subscriber} to use to communicate the completeness of this {@link Completable}
          */
-        void onSubscribe(Emitter e);
+        void subscribe(Subscriber e);
     }
 
     /**

@@ -17,7 +17,6 @@ package com.forgerock.reactive;
 
 import org.forgerock.util.Function;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 
 import io.reactivex.CompletableEmitter;
 import io.reactivex.CompletableOnSubscribe;
@@ -112,21 +111,34 @@ public final class RxJavaStreams {
     }
 
     /**
+     * Create a new {@link Single} from the given error.
+     *
+     * @param <V>
+     *            Type of the datum emitted
+     * @param error
+     *            The error emitted by this {@link Single}
+     * @return A new {@link Single}
+     */
+    public static <V> Single<V> singleError(final Throwable error) {
+        return new RxJavaSingle<>(io.reactivex.Single.<V>error(error));
+    }
+
+    /**
      * Creates a bridge from callback world to {@link Single}.
      *
      * @param <V>
      *            Type of the datum emitted
-     * @param onSubscribe
+     * @param emitter
      *            Action to perform once this {@link Single} has been subscribed to.
      * @return A new {@link Single}
      */
-    public static <V> Single<V> newSingle(final Single.OnSubscribe<V> onSubscribe) {
+    public static <V> Single<V> newSingle(final Single.Emitter<V> emitter) {
         return new RxJavaSingle<>(io.reactivex.Single.create(new SingleOnSubscribe<V>() {
             @Override
             public void subscribe(final SingleEmitter<V> e) throws Exception {
-                onSubscribe.onSubscribe(new Single.Emitter<V>() {
+                emitter.subscribe(new Single.Subscriber<V>() {
                     @Override
-                    public void onSuccess(V value) {
+                    public void onComplete(V value) {
                         e.onSuccess(value);
                     }
 
@@ -146,18 +158,18 @@ public final class RxJavaStreams {
      *            Action to perform once this {@link Completable} has been subscribed to.
      * @return A new {@link Completable}
      */
-    public static Completable newCompletable(final Completable.OnSubscribe onSubscribe) {
+    public static Completable newCompletable(final Completable.Emitter onSubscribe) {
         return new RxJavaCompletable(io.reactivex.Completable.create(new CompletableOnSubscribe() {
             @Override
             public void subscribe(final CompletableEmitter e) throws Exception {
-                onSubscribe.onSubscribe(new Completable.Emitter() {
+                onSubscribe.subscribe(new Completable.Subscriber() {
                     @Override
-                    public void complete() {
+                    public void onComplete() {
                         e.onComplete();
                     }
                     @Override
-                    public void onError(Throwable t) {
-                        e.onError(t);
+                    public void onError(final Throwable error) {
+                        e.onError(error);
                     }
                 });
             }
@@ -166,14 +178,14 @@ public final class RxJavaStreams {
 
     private static final class RxJavaStream<V> implements Stream<V> {
 
-        private Flowable<V> impl;
+        private final Flowable<V> impl;
 
         private RxJavaStream(final Flowable<V> impl) {
             this.impl = impl;
         }
 
         @Override
-        public void subscribe(Subscriber<? super V> s) {
+        public void subscribe(org.reactivestreams.Subscriber<? super V> s) {
             impl.subscribe(s);
         }
 
@@ -219,6 +231,16 @@ public final class RxJavaStreams {
         }
 
         @Override
+        public Stream<V> onErrorDo(final Consumer<Throwable> onError) {
+            return new RxJavaStream<>(impl.doOnError(new io.reactivex.functions.Consumer<Throwable>() {
+                @Override
+                public void accept(Throwable t) throws Exception {
+                    onError.accept(t);
+                }
+            }));
+        }
+
+        @Override
         public Stream<V> onErrorResumeWith(final Function<Throwable, Publisher<V>, Exception> function) {
             return new RxJavaStream<>(
                     impl.onErrorResumeNext(new io.reactivex.functions.Function<Throwable, Publisher<? extends V>>() {
@@ -259,7 +281,7 @@ public final class RxJavaStreams {
         }
 
         @Override
-        public void subscribe(Subscriber<? super V> s) {
+        public void subscribe(org.reactivestreams.Subscriber<? super V> s) {
             impl.toFlowable().subscribe(s);
         }
 
@@ -279,13 +301,24 @@ public final class RxJavaStreams {
         }
 
         @Override
-        public <O> Single<O> flatMap(final Function<V, Publisher<O>, Exception> function) {
+        public <O> Single<O> flatMap(final Function<V, Single<O>, Exception> function) {
             return new RxJavaSingle<>(impl.flatMap(new io.reactivex.functions.Function<V, SingleSource<O>>() {
                 @Override
                 public SingleSource<O> apply(V t) throws Exception {
                     return io.reactivex.Single.fromPublisher(function.apply(t));
                 }
             }));
+        }
+
+        @Override
+        public Single<V> onErrorResumeWith(final Function<Throwable, Single<V>, Exception> function) {
+            return new RxJavaSingle<>(
+                    impl.onErrorResumeNext(new io.reactivex.functions.Function<Throwable, SingleSource<V>>() {
+                        @Override
+                        public SingleSource<V> apply(Throwable error) throws Exception {
+                            return io.reactivex.Single.fromPublisher(function.apply(error));
+                        }
+                    }));
         }
     }
 
@@ -303,7 +336,7 @@ public final class RxJavaStreams {
         }
 
         @Override
-        public void subscribe(Subscriber<? super Void> s) {
+        public void subscribe(org.reactivestreams.Subscriber<? super Void> s) {
             impl.<Void>toFlowable().subscribe(s);
         }
     }

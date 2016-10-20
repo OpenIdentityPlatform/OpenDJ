@@ -26,10 +26,10 @@ import com.forgerock.reactive.Completable;
 final class LdapResponseMessageWriter implements Subscriber<LdapResponseMessage> {
 
     private final Connection<?> connection;
-    private final Completable.Emitter completable;
+    private final Completable.Subscriber completable;
     private Subscription upstream;
 
-    LdapResponseMessageWriter(final Connection<?> connection, final Completable.Emitter completable) {
+    LdapResponseMessageWriter(final Connection<?> connection, final Completable.Subscriber completable) {
         this.connection = connection;
         this.completable = completable;
     }
@@ -72,6 +72,6 @@ final class LdapResponseMessageWriter implements Subscriber<LdapResponseMessage>
 
     @Override
     public void onComplete() {
-        completable.complete();
+        completable.onComplete();
     }
 }
