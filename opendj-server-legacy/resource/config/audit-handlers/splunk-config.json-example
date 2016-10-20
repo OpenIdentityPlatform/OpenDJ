@@ -1,5 +1,5 @@
 //
-// Example configuration for splunk handler.
+// Example configuration for Splunk handler.
 // Edit a copy of the file with your settings.
 // Strip comments before use with grep -v '^[ ]*//' < your-file.json
 //

@@ -1,5 +1,5 @@
 //
-// Example configuration for splunk handler.
+// Example configuration for JMS handler.
 // Edit a copy of the file with your settings.
 // Strip comments before use with grep -v '^[ ]*//' < your-file.json
 //
@@ -18,11 +18,11 @@
     // Permitted values: NON_PERSISTENT, PERSISTENT
     "deliveryMode": "NON_PERSISTENT",
     "enabled": false,
-    // Optional
-    "topicName": "audit",
     "jndi": {
       // Optional
       "connectionFactoryName": "connectionFactory",
+      // Optional
+      "topicName": "audit",
       "contextProperties": {
         "java.naming.factory.initial": "org.apache.activemq.jndi.ActiveMQInitialContextFactory",
         "java.naming.provider.url": "tcp://localhost:61616",
