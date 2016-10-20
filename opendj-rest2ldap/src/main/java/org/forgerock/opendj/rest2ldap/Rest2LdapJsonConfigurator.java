@@ -79,7 +79,6 @@ import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.rest2ldap.schema.JsonSchema;
 import org.forgerock.services.context.Context;
 import org.forgerock.util.Options;
 import org.forgerock.util.promise.Promise;
@@ -358,12 +357,10 @@ public final class Rest2LdapJsonConfigurator {
                     .isMultiValued(mapper.get("isMultiValued").defaultTo(false).asBoolean())
                     .writability(parseWritability(mapper));
         case "json":
-            return simple(mapper.get("ldapAttribute").defaultTo(defaultLdapAttribute).required().asString())
+            return json(mapper.get("ldapAttribute").defaultTo(defaultLdapAttribute).required().asString())
                     .defaultJsonValue(mapper.get("defaultJsonValue").getObject())
                     .isRequired(mapper.get("isRequired").defaultTo(false).asBoolean())
                     .isMultiValued(mapper.get("isMultiValued").defaultTo(false).asBoolean())
-                    .encoder(JsonSchema.jsonToByteString())
-                    .decoder(JsonSchema.byteStringToJson())
                     .jsonSchema(mapper.isDefined("schema") ? mapper.get("schema") : null)
                     .writability(parseWritability(mapper));
         case "reference":

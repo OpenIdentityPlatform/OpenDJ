@@ -295,6 +295,28 @@ public final class Rest2Ldap {
     }
 
     /**
+     * Returns a property mapper which provides a mapping from a JSON value to a LDAP attribute having the JSON syntax.
+     *
+     * @param attribute
+     *         The LDAP attribute to be mapped.
+     * @return The property mapper.
+     */
+    public static JsonPropertyMapper json(final AttributeDescription attribute) {
+        return new JsonPropertyMapper(attribute);
+    }
+
+    /**
+     * Returns a property mapper which provides a mapping from a JSON value to a LDAP attribute having the JSON syntax.
+     *
+     * @param attribute
+     *         The LDAP attribute to be mapped.
+     * @return The property mapper.
+     */
+    public static JsonPropertyMapper json(final String attribute) {
+        return json(AttributeDescription.valueOf(attribute));
+    }
+
+    /**
      * Adapts a {@code Throwable} to a {@code ResourceException}. If the {@code Throwable} is an LDAP
      * {@link LdapException} then an appropriate {@code ResourceException} is returned, otherwise an {@code
      * InternalServerErrorException} is returned.
