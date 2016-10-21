@@ -887,7 +887,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
         logger.warn(INFO_DISABLE_CONNECTION, friendlyName);
         enabled = false;
       }
-      keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), aliases);
+      keyManagers = SelectableCertificateKeyManager.wrap(keyManagerProvider.getKeyManagers(), aliases, friendlyName);
     }
 
     DN trustMgrDN = config.getTrustManagerProviderDN();

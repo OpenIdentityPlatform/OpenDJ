@@ -99,27 +99,27 @@ public final class SSLContextBuilder {
      *             missing algorithms.
      */
     public SSLContext getSSLContext() throws GeneralSecurityException {
-        TrustManager[] tm = null;
-        if (trustManager != null) {
-            tm = new TrustManager[] { trustManager };
-        }
-
-        KeyManager[] km = null;
-        if (keyManager != null) {
-            km = new KeyManager[]{keyManager};
-        }
-
-        SSLContext sslContext;
-        if (provider != null) {
-            sslContext = SSLContext.getInstance(protocol, provider);
-        } else if (providerName != null) {
-            sslContext = SSLContext.getInstance(protocol, providerName);
-        } else {
-            sslContext = SSLContext.getInstance(protocol);
-        }
-        sslContext.init(km, tm, random);
-
+        SSLContext sslContext = getInstance();
+        sslContext.init(getKeyManagers(), getTrustManagers(), random);
         return sslContext;
+    }
+
+    private SSLContext getInstance() throws GeneralSecurityException {
+        if (provider != null) {
+            return SSLContext.getInstance(protocol, provider);
+        } else if (providerName != null) {
+            return SSLContext.getInstance(protocol, providerName);
+        } else {
+            return SSLContext.getInstance(protocol);
+        }
+    }
+
+    private KeyManager[] getKeyManagers() {
+        return keyManager != null ? new KeyManager[] { keyManager } : null;
+    }
+
+    private TrustManager[] getTrustManagers() {
+        return trustManager != null ? new TrustManager[] { trustManager } : null;
     }
 
     /**

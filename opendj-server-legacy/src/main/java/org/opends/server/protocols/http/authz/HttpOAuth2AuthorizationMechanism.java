@@ -113,20 +113,20 @@ abstract class HttpOAuth2AuthorizationMechanism<T extends HTTPOauth2Authorizatio
 
   static Options toHttpOptions(DN trustManagerDN, DN keyManagerDN) throws ConfigException
   {
-    final Options options = Options.defaultOptions();
     try
     {
+      final Options options = Options.defaultOptions();
       options.set(OPTION_TRUST_MANAGERS, trustManagerDN != null
           ? getTrustManagerProvider(trustManagerDN).getTrustManagers() : null);
       options.set(OPTION_KEY_MANAGERS, keyManagerDN != null
           ? getKeyManagerProvider(keyManagerDN).getKeyManagers() : null);
       options.set(OPTION_SSL_CIPHER_SUITES, new ArrayList<>(getCryptoManager().getSslCipherSuites()));
       options.set(OPTION_SSL_ENABLED_PROTOCOLS, new ArrayList<>(getCryptoManager().getSslProtocols()));
+      return options;
     }
     catch (DirectoryException e)
     {
       throw new ConfigException(e.getMessageObject(), e);
     }
-    return options;
   }
 }
