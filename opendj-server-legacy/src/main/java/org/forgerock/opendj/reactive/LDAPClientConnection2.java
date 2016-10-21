@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -41,7 +42,9 @@ import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPClientContext.DisconnectListener;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.responses.Responses;
@@ -221,6 +224,33 @@ public final class LDAPClientConnection2 extends ClientConnection implements
     }
 
     connectionID = DirectoryServer.newConnectionAccepted(this);
+    clientContext.onDisconnect(new DisconnectListener()
+    {
+      @Override
+      public void exceptionOccurred(LDAPClientContext context, Throwable error)
+      {
+        if (error instanceof LocalizableException)
+        {
+          disconnect(DisconnectReason.PROTOCOL_ERROR, true, ((LocalizableException) error).getMessageObject());
+        }
+        else
+        {
+          disconnect(DisconnectReason.PROTOCOL_ERROR, true, null);
+        }
+      }
+
+      @Override
+      public void connectionDisconnected(LDAPClientContext context, ResultCode resultCode, String diagnosticMessage)
+      {
+        disconnect(DisconnectReason.SERVER_ERROR, false, null);
+      }
+
+      @Override
+      public void connectionClosed(LDAPClientContext context, UnbindRequest unbindRequest)
+      {
+        disconnect(DisconnectReason.CLIENT_DISCONNECT, false, null);
+      }
+    });
   }
 
   /**

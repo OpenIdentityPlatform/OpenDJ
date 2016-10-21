@@ -69,6 +69,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import com.forgerock.reactive.Action;
 import com.forgerock.reactive.Completable;
 import com.forgerock.reactive.Consumer;
 import com.forgerock.reactive.ReactiveHandler;
@@ -162,7 +163,7 @@ final class LDAPServerFilter extends BaseFilter {
                 @Override
                 public Publisher<Object> apply(final LdapRawMessage rawRequest) throws Exception {
                     if (rawRequest.getMessageType() == OP_TYPE_UNBIND_REQUEST) {
-                        clientContext.notifyAndClose(rawRequest);
+                        clientContext.notifyConnectionClosed(rawRequest);
                         return singleFrom(DUMMY);
                     }
                     Single<Stream<Response>> response;
@@ -197,7 +198,13 @@ final class LDAPServerFilter extends BaseFilter {
             .onErrorDo(new Consumer<Throwable>() {
                 @Override
                 public void accept(final Throwable error) throws Exception {
-                    clientContext.notifyAndCloseSilently(error);
+                    clientContext.notifyErrorAndCloseSilently(error);
+                }
+            })
+            .onCompleteDo(new Action() {
+                @Override
+                public void run() throws Exception {
+                    clientContext.notifyConnectionClosed(null);
                 }
             })
             .subscribe();
@@ -511,7 +518,7 @@ final class LDAPServerFilter extends BaseFilter {
             }
         }
 
-        private void notifyAndClose(final LdapRawMessage unbindRequest) {
+        private void notifyConnectionClosed(final LdapRawMessage unbindRequest) {
             // Close this connection context.
             if (isClosed.compareAndSet(false, true)) {
                 if (unbindRequest == null) {
@@ -547,7 +554,7 @@ final class LDAPServerFilter extends BaseFilter {
             }
         }
 
-        private void notifyAndCloseSilently(final Throwable error) {
+        private void notifyErrorAndCloseSilently(final Throwable error) {
             // Close this connection context.
             if (isClosed.compareAndSet(false, true)) {
                 try {

@@ -211,26 +211,6 @@ public final class RxJavaStreams {
         }
 
         @Override
-        public void subscribe(final Consumer<V> onResult, final Consumer<Throwable> onError, final Action onComplete) {
-            impl.subscribe(new io.reactivex.functions.Consumer<V>() {
-                @Override
-                public void accept(V t) throws Exception {
-                    onResult.accept(t);
-                }
-            }, new io.reactivex.functions.Consumer<Throwable>() {
-                @Override
-                public void accept(Throwable t) throws Exception {
-                    onError.accept(t);
-                }
-            }, new io.reactivex.functions.Action() {
-                @Override
-                public void run() throws Exception {
-                    onComplete.run();
-                }
-            });
-        }
-
-        @Override
         public Stream<V> onErrorDo(final Consumer<Throwable> onError) {
             return new RxJavaStream<>(impl.doOnError(new io.reactivex.functions.Consumer<Throwable>() {
                 @Override
@@ -249,6 +229,16 @@ public final class RxJavaStreams {
                             return function.apply(t);
                         }
                     }));
+        }
+
+        @Override
+        public Stream<V> onCompleteDo(final Action action) {
+            return new RxJavaStream<>(impl.doOnComplete(new io.reactivex.functions.Action() {
+                @Override
+                public void run() throws Exception {
+                    action.run();
+                }
+            }));
         }
 
         @Override

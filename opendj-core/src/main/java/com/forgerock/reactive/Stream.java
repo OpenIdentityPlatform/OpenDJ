@@ -53,18 +53,6 @@ public interface Stream<V> extends Publisher<V> {
             int maxConcurrency);
 
     /**
-     * Subscribe to the data emitted by this {@link Stream}.
-     *
-     * @param onResult
-     *            The {@link Consumer} invoked for each data of this stream
-     * @param onError
-     *            The {@link Consumer} invoked on error in this stream.
-     * @param onComplete
-     *            The {@link Action} invoked once this {@link Stream} is completed.
-     */
-    void subscribe(Consumer<V> onResult, Consumer<Throwable> onError, Action onComplete);
-
-    /**
      * When an error occurs in this stream, continue the processing with the new {@link Stream} provided by the
      * function.
      *
@@ -82,6 +70,15 @@ public interface Stream<V> extends Publisher<V> {
      * @return a new {@link Stream}
      */
     Stream<V> onErrorDo(Consumer<Throwable> onError);
+
+    /**
+     * Invokes the on complete {@link Action} when this stream is completed.
+     *
+     * @param onComplete
+     *            The {@link Action} to invoke on stream completion
+     * @return a new {@link Stream}
+     */
+    Stream<V> onCompleteDo(Action onComplete);
 
     /**
      * Subscribe to this stream and drop all data produced by it.
