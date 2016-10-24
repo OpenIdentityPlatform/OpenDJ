@@ -632,9 +632,16 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
         txn.begin();
         try
         {
-          operation.run(this);
-          txn.commit(commitPolicy);
-          return;
+          try
+          {
+            operation.run(this);
+            txn.commit(commitPolicy);
+            return;
+          }
+          catch (final StorageRuntimeException e)
+          {
+            throw unwrap(e);
+          }
         }
         catch (final RollbackException e)
         {
@@ -1035,11 +1042,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
     catch (final StorageRuntimeException e)
     {
-      if (e.getCause() != null)
-      {
-        throw (Exception) e.getCause();
-      }
-      throw e;
+      throw unwrap(e);
     }
   }
 
@@ -1059,12 +1062,17 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
     catch (final StorageRuntimeException e)
     {
-      if (e.getCause() != null)
-      {
-        throw (Exception) e.getCause();
-      }
-      throw e;
+      throw unwrap(e);
     }
+  }
+
+  private Exception unwrap(StorageRuntimeException e) throws Exception
+  {
+    if (e.getCause() != null)
+    {
+      throw (Exception) e.getCause();
+    }
+    throw e;
   }
 
   @Override
