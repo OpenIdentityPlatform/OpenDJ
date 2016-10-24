@@ -20,7 +20,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
-import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
@@ -362,29 +361,37 @@ public final class LDAPModify extends ConsoleApplication {
                                                          noop,
                                                          this)) {
             reader = createLDIFChangeRecordReader(filename, argParser.getTrailingArguments());
-
-            final VisitorImpl visitor = new VisitorImpl(connection);
             try (final EntryWriter w = writer) {
-                try {
-                    while (reader.hasNext()) {
-                        final ChangeRecord cr = reader.readChangeRecord();
-                        final int result = cr.accept(visitor, null);
-                        if (result != 0 && !continueOnError.isPresent()) {
-                            return result;
-                        }
-                    }
-                } catch (final IOException ioe) {
-                    throw newToolParamException(
-                            ioe, ERR_LDIF_FILE_READ_ERROR.get(filename.getValue(), ioe.getLocalizedMessage()));
-                }
+                return processModify(connection, reader, continueOnError.isPresent());
             } catch (final IOException e) {
                 throw newToolException(e, ResultCode.UNDEFINED, ERR_LDAP_MODIFY_WRITTING_ENTRIES.get(e.getMessage()));
             }
         } finally {
             closeSilently(reader);
         }
+    }
 
-        return ResultCode.SUCCESS.intValue();
+    private int processModify(final Connection connection,
+                              final ChangeRecordReader reader,
+                              final boolean continueOnError) {
+        final VisitorImpl visitor = new VisitorImpl(connection);
+        while (true) {
+            try {
+                if (!reader.hasNext()) {
+                    return ResultCode.SUCCESS.intValue();
+                }
+                final ChangeRecord cr = reader.readChangeRecord();
+                final int result = cr.accept(visitor, null);
+                if (result != 0 && !continueOnError) {
+                    return result;
+                }
+            } catch (final IOException ioe) {
+                errPrintln(ERR_LDIF_FILE_READ_ERROR.get(ioe.getLocalizedMessage()));
+                if (!continueOnError) {
+                    return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
+                }
+            }
+        }
     }
 
     private ChangeRecordReader createLDIFChangeRecordReader(final StringArgument fileNameArg,
