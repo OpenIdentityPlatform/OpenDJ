@@ -36,7 +36,7 @@ import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.forgerock.opendj.server.config.server.SoftReferenceEntryCacheCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorData;
@@ -327,7 +327,7 @@ public class SoftReferenceEntryCache
   public void clearSubtree(DN baseDN)
   {
     // Determine the backend used to hold the specified base DN and clear it.
-    Backend<?> backend = DirectoryServer.getBackend(baseDN);
+    LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
     if (backend == null)
     {
       // FIXME -- Should we clear everything just to be safe?

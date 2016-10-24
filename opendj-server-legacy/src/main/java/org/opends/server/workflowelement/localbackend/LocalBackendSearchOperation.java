@@ -22,7 +22,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
@@ -50,7 +50,7 @@ public class LocalBackendSearchOperation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend in which the search is to be performed. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
 
   /** The client connection for the search operation. */
   private ClientConnection clientConnection;

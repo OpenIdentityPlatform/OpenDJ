@@ -51,7 +51,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
 import org.opends.server.controls.EntryChangelogNotificationControl;
 import org.opends.server.controls.ExternalChangelogRequestControl;
@@ -365,7 +365,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   {
     String test = "CookieTwoSuffixes";
     debugInfo(test, "Starting test\n\n");
-    Backend<?> backendForSecondSuffix = null;
+    LocalBackend<?> backendForSecondSuffix = null;
     try
     {
       backendForSecondSuffix = initializeMemoryBackend(true, TEST_BACKEND_ID2);
@@ -506,7 +506,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       debugInfo(test, "Starting test");
 
       // Use o=test3 to avoid collision with o=test2 already used by a previous test
-      Backend<?> backend3 = null;
+      LocalBackend<?> backend3 = null;
       LDAPReplicationDomain domain2 = null;
       try {
         ReplicationBroker broker = enableReplication(server1);
@@ -634,8 +634,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     final DN baseDN4 = DN.valueOf("o=" + backendId4);
     final String backendId5 = "test5";
     final DN baseDN5 = DN.valueOf("o=" + backendId5);
-    Backend<?> backend4 = null;
-    Backend<?> backend5 = null;
+    LocalBackend<?> backend4 = null;
+    LocalBackend<?> backend5 = null;
     LDAPReplicationDomain domain4 = null;
     LDAPReplicationDomain domain5 = null;
     LDAPReplicationDomain domain41 = null;
@@ -1517,7 +1517,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   /** Creates a memory backend, to be used as additional backend in tests. */
-  private static Backend<?> initializeMemoryBackend(boolean createBaseEntry, String backendId) throws Exception
+  private static LocalBackend<?> initializeMemoryBackend(boolean createBaseEntry, String backendId) throws Exception
   {
     DN baseDN = DN.valueOf("o=" + backendId);
 
@@ -1547,9 +1547,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return memoryBackend;
   }
 
-  private static void removeBackend(Backend<?>... backends)
+  private static void removeBackend(LocalBackend<?>... backends)
   {
-    for (Backend<?> backend : backends)
+    for (LocalBackend<?> backend : backends)
     {
       if (backend != null)
       {

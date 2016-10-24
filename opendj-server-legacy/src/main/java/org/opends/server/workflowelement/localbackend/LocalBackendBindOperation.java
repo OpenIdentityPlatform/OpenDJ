@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AuthenticationPolicyState;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.controls.*;
@@ -57,7 +57,7 @@ public class LocalBackendBindOperation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend in which the bind operation should be processed. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
 
   /**
    * Indicates whether the bind response should include the first warning

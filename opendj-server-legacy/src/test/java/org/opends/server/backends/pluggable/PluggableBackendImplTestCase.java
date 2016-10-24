@@ -52,7 +52,7 @@ import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn.Scope;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
 import org.forgerock.opendj.server.config.server.BackendVLVIndexCfg;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;

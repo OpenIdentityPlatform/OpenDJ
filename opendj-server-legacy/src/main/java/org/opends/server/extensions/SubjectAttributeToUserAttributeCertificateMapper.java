@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.CertificateMapperCfg;
 import org.forgerock.opendj.server.config.server.SubjectAttributeToUserAttributeCertificateMapperCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -119,7 +119,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       for (AttributeType t : attributeMap.values())
       {
-        Backend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
@@ -296,7 +296,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       for (AttributeType t : newAttributeMap.values())
       {
-        Backend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
         if (b != null && !b.isIndexed(t, IndexType.EQUALITY))
         {
           LocalizableMessage message =

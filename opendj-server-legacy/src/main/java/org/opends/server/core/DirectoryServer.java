@@ -86,7 +86,7 @@ import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.AuthenticationPolicy;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
@@ -586,7 +586,7 @@ public final class DirectoryServer
   private BaseDnRegistry baseDnRegistry;
 
   /** The set of backends registered with the server. */
-  private TreeMap<String, Backend<?>> backends;
+  private TreeMap<String, LocalBackend<?>> backends;
 
   /** The set of supported controls registered with the Directory Server. */
   private final TreeSet<String> supportedControls = newTreeSet(
@@ -1741,7 +1741,7 @@ public final class DirectoryServer
     return directoryServer.compressedSchema;
   }
 
-  private Backend<?> getConfigurationBackend()
+  private LocalBackend<?> getConfigurationBackend()
   {
     return getBackend(ConfigurationBackend.CONFIG_BACKEND_ID);
   }
@@ -1829,7 +1829,7 @@ public final class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  private static void createAndRegisterWorkflows(Backend<?> backend) throws DirectoryException
+  private static void createAndRegisterWorkflows(LocalBackend<?> backend) throws DirectoryException
   {
     // Create a workflow for each backend base DN and register the workflow
     // with the default/internal/admin network group.
@@ -1848,7 +1848,7 @@ public final class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  private static void createWorkflow(DN baseDN, Backend<?> backend) throws DirectoryException
+  private static void createWorkflow(DN baseDN, LocalBackend<?> backend) throws DirectoryException
   {
     LocalBackendWorkflowElement.createAndRegister(baseDN, backend);
   }
@@ -3460,7 +3460,7 @@ public final class DirectoryServer
    * @return  The set of backends that have been registered with the Directory
    *          Server.
    */
-  public static Collection<Backend<?>> getBackends()
+  public static Collection<LocalBackend<?>> getBackends()
   {
     return new ArrayList<>(directoryServer.backends.values());
   }
@@ -3473,7 +3473,7 @@ public final class DirectoryServer
    * @return  The backend with the specified backend ID, or {@code null} if
    *          there is none.
    */
-  public static Backend<?> getBackend(String backendID)
+  public static LocalBackend<?> getBackend(String backendID)
   {
     return directoryServer.backends.get(backendID);
   }
@@ -3504,7 +3504,7 @@ public final class DirectoryServer
    *                              conflicts with the backend ID of an existing
    *                              backend.
    */
-  public static void registerBackend(Backend<?> backend) throws DirectoryException
+  public static void registerBackend(LocalBackend<?> backend) throws DirectoryException
   {
     ifNull(backend);
 
@@ -3513,7 +3513,7 @@ public final class DirectoryServer
 
     synchronized (directoryServer)
     {
-      TreeMap<String, Backend<?>> newBackends = new TreeMap<>(directoryServer.backends);
+      TreeMap<String, LocalBackend<?>> newBackends = new TreeMap<>(directoryServer.backends);
       if (newBackends.containsKey(backendID))
       {
         LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
@@ -3548,13 +3548,13 @@ public final class DirectoryServer
    * @param  backend  The backend to deregister with the server.  It must not be
    *                  {@code null}.
    */
-  public static void deregisterBackend(Backend<?> backend)
+  public static void deregisterBackend(LocalBackend<?> backend)
   {
     ifNull(backend);
 
     synchronized (directoryServer)
     {
-      TreeMap<String, Backend<?>> newBackends = new TreeMap<>(directoryServer.backends);
+      TreeMap<String, LocalBackend<?>> newBackends = new TreeMap<>(directoryServer.backends);
       newBackends.remove(backend.getBackendID());
 
       directoryServer.backends = newBackends;
@@ -3584,7 +3584,7 @@ public final class DirectoryServer
    * @return  The backend with the specified base DN, or {@code null} if there
    *          is no backend registered with the specified base DN.
    */
-  public static Backend<?> getBackendWithBaseDN(DN baseDN)
+  public static LocalBackend<?> getBackendWithBaseDN(DN baseDN)
   {
     return directoryServer.baseDnRegistry.getBaseDnMap().get(baseDN);
   }
@@ -3600,15 +3600,15 @@ public final class DirectoryServer
    *          specified entry, or {@code null} if no appropriate backend is
    *          registered with the server.
    */
-  public static Backend<?> getBackend(DN entryDN)
+  public static LocalBackend<?> getBackend(DN entryDN)
   {
     if (entryDN.isRootDN())
     {
       return directoryServer.rootDSEBackend;
     }
 
-    Map<DN, Backend<?>> baseDNs = directoryServer.baseDnRegistry.getBaseDnMap();
-    Backend<?> b = baseDNs.get(entryDN);
+    Map<DN, LocalBackend<?>> baseDNs = directoryServer.baseDnRegistry.getBaseDnMap();
+    LocalBackend<?> b = baseDNs.get(entryDN);
     while (b == null)
     {
       entryDN = entryDN.parent();
@@ -3627,7 +3627,7 @@ public final class DirectoryServer
    * Obtains a copy of the server's base DN registry.  The copy can be used
    * to test registration/deregistration of base DNs but cannot be used to
    * modify the backends.  To modify the server's live base DN to backend
-   * mappings use {@link #registerBaseDN(DN, Backend, boolean)} and
+   * mappings use {@link #registerBaseDN(DN, LocalBackend, boolean)} and
    * {@link #deregisterBaseDN(DN)}.
    *
    * @return copy of the base DN registry
@@ -3652,7 +3652,7 @@ public final class DirectoryServer
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              register the provided base DN.
    */
-  public static void registerBaseDN(DN baseDN, Backend<?> backend, boolean isPrivate)
+  public static void registerBaseDN(DN baseDN, LocalBackend<?> backend, boolean isPrivate)
          throws DirectoryException
   {
     ifNull(baseDN, backend);
@@ -3720,7 +3720,7 @@ public final class DirectoryServer
    *
    * @return  The set of public naming contexts defined in the Directory Server.
    */
-  public static Map<DN, Backend<?>> getPublicNamingContexts()
+  public static Map<DN, LocalBackend<?>> getPublicNamingContexts()
   {
     return directoryServer.baseDnRegistry.getPublicNamingContextsMap();
   }
@@ -3732,7 +3732,7 @@ public final class DirectoryServer
    *
    * @return  The set of public naming contexts defined in the Directory Server.
    */
-  public static Map<DN, Backend<?>> getAllPublicNamingContexts()
+  public static Map<DN, LocalBackend<?>> getAllPublicNamingContexts()
   {
     return directoryServer.baseDnRegistry.getAllPublicNamingContextsMap();
   }
@@ -3744,7 +3744,7 @@ public final class DirectoryServer
    * @return  The set of private naming contexts defined in the Directory
    *          Server.
    */
-  public static Map<DN, Backend<?>> getPrivateNamingContexts()
+  public static Map<DN, LocalBackend<?>> getPrivateNamingContexts()
   {
     return directoryServer.baseDnRegistry.getPrivateNamingContextsMap();
   }
@@ -3843,7 +3843,7 @@ public final class DirectoryServer
     {
       return directoryServer.rootDSEBackend.getRootDSE();
     }
-    final Backend<?> backend = getBackend(entryDN);
+    final LocalBackend<?> backend = getBackend(entryDN);
     return backend != null ? backend.getEntry(entryDN) : null;
   }
 
@@ -3870,7 +3870,7 @@ public final class DirectoryServer
 
     // Ask the appropriate backend if the entry exists.
     // If it is not appropriate for any backend, then return false.
-    Backend<?> backend = getBackend(entryDN);
+    LocalBackend<?> backend = getBackend(entryDN);
     return backend != null && backend.entryExists(entryDN);
   }
 
@@ -4682,7 +4682,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the backup is to be performed.
    * @param  config   The configuration for the backup to be performed.
    */
-  public static void notifyBackupBeginning(Backend<?> backend, BackupConfig config)
+  public static void notifyBackupBeginning(LocalBackend<?> backend, BackupConfig config)
   {
     for (BackupTaskListener listener : directoryServer.backupTaskListeners)
     {
@@ -4705,7 +4705,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the backup that was performed.
    * @param  successful  Indicates whether the backup completed successfully.
    */
-  public static void notifyBackupEnded(Backend<?> backend, BackupConfig config, boolean successful)
+  public static void notifyBackupEnded(LocalBackend<?> backend, BackupConfig config, boolean successful)
   {
     for (BackupTaskListener listener : directoryServer.backupTaskListeners)
     {
@@ -4749,7 +4749,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the restore is to be performed.
    * @param  config   The configuration for the restore to be performed.
    */
-  public static void notifyRestoreBeginning(Backend<?> backend, RestoreConfig config)
+  public static void notifyRestoreBeginning(LocalBackend<?> backend, RestoreConfig config)
   {
     for (RestoreTaskListener listener : directoryServer.restoreTaskListeners)
     {
@@ -4772,7 +4772,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the restore that was performed.
    * @param  successful  Indicates whether the restore completed successfully.
    */
-  public static void notifyRestoreEnded(Backend<?> backend, RestoreConfig config, boolean successful)
+  public static void notifyRestoreEnded(LocalBackend<?> backend, RestoreConfig config, boolean successful)
   {
     for (RestoreTaskListener listener : directoryServer.restoreTaskListeners)
     {
@@ -4817,7 +4817,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the export is to be performed.
    * @param  config   The configuration for the export to be performed.
    */
-  public static void notifyExportBeginning(Backend<?> backend, LDIFExportConfig config)
+  public static void notifyExportBeginning(LocalBackend<?> backend, LDIFExportConfig config)
   {
     for (ExportTaskListener listener : directoryServer.exportTaskListeners)
     {
@@ -4840,7 +4840,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the export that was performed.
    * @param  successful  Indicates whether the export completed successfully.
    */
-  public static void notifyExportEnded(Backend<?> backend, LDIFExportConfig config, boolean successful)
+  public static void notifyExportEnded(LocalBackend<?> backend, LDIFExportConfig config, boolean successful)
   {
     for (ExportTaskListener listener : directoryServer.exportTaskListeners)
     {
@@ -4885,7 +4885,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the import is to be performed.
    * @param  config   The configuration for the import to be performed.
    */
-  public static void notifyImportBeginning(Backend<?> backend, LDIFImportConfig config)
+  public static void notifyImportBeginning(LocalBackend<?> backend, LDIFImportConfig config)
   {
     for (ImportTaskListener listener : directoryServer.importTaskListeners)
     {
@@ -4908,7 +4908,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the import that was performed.
    * @param  successful  Indicates whether the import completed successfully.
    */
-  public static void notifyImportEnded(Backend<?> backend, LDIFImportConfig config, boolean successful)
+  public static void notifyImportEnded(LocalBackend<?> backend, LDIFImportConfig config, boolean successful)
   {
     for (ImportTaskListener listener : directoryServer.importTaskListeners)
     {
@@ -5218,7 +5218,7 @@ public final class DirectoryServer
   /** Shutdown directory server backends. */
   public static void shutdownBackends()
   {
-    for (Backend<?> backend : directoryServer.backends.values())
+    for (LocalBackend<?> backend : directoryServer.backends.values())
     {
       try
       {

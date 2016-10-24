@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicy;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
@@ -87,7 +87,7 @@ public class LocalBackendAddOperation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend in which the entry is to be added. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
 
   /** Indicates whether the request includes the LDAP no-op control. */
   private boolean noOp;

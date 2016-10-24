@@ -36,8 +36,8 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -261,7 +261,7 @@ public class ExportTask extends Task
 
     // Get the backend into which the LDIF should be imported.
 
-    Backend<?> backend = DirectoryServer.getBackend(backendID);
+    LocalBackend<?> backend = DirectoryServer.getBackend(backendID);
 
     if (backend == null)
     {
@@ -316,7 +316,7 @@ public class ExportTask extends Task
           return TaskState.STOPPED_BY_ERROR;
         }
 
-        if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
+        if (! LocalBackend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
           logger.error(ERR_LDIFEXPORT_INVALID_INCLUDE_BASE, s, backendID);

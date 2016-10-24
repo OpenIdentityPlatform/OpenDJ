@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.LDIFBackendCfg;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -80,7 +80,7 @@ import org.opends.server.util.StaticUtils;
  * re-written on disk.
  */
 public class LDIFBackend
-       extends Backend<LDIFBackendCfg>
+       extends LocalBackend<LDIFBackendCfg>
        implements ConfigurationChangeListener<LDIFBackendCfg>, AlertGenerator
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

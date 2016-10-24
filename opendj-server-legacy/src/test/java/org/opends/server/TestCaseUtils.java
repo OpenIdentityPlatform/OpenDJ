@@ -80,7 +80,7 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.backends.MemoryBackend;
@@ -628,7 +628,7 @@ public final class TestCaseUtils {
 
   private static void clearJEBackends() throws Exception
   {
-    for (Backend<?> backend : DirectoryServer.getBackends())
+    for (LocalBackend<?> backend : DirectoryServer.getBackends())
     {
       if (backend instanceof BackendImpl) {
         clearBackend(backend.getBackendID());
@@ -929,7 +929,7 @@ public final class TestCaseUtils {
    */
   public static void clearBackend(String backendId, String baseDN) throws Exception
   {
-    Backend<?> b = DirectoryServer.getBackend(backendId);
+    LocalBackend<?> b = DirectoryServer.getBackend(backendId);
     if (clearBackend(b) && baseDN != null)
     {
       Entry e = createEntry(DN.valueOf(baseDN));
@@ -937,7 +937,7 @@ public final class TestCaseUtils {
     }
   }
 
-  private static boolean clearBackend(Backend<?> b)
+  private static boolean clearBackend(LocalBackend<?> b)
   {
     if (b instanceof BackendImpl)
     {

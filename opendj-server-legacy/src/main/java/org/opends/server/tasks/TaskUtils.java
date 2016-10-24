@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.types.Entry;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
@@ -144,7 +144,7 @@ public class TaskUtils
    * @return The configuration entry of the backend, or null if it could not
    * be found.
    */
-  public static BackendCfg getConfigEntry(Backend<?> backend)
+  public static BackendCfg getConfigEntry(LocalBackend<?> backend)
   {
     try
     {

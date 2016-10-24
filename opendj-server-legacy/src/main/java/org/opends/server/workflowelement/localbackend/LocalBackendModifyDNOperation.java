@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.controls.LDAPAssertionRequestControl;
@@ -78,7 +78,7 @@ public class LocalBackendModifyDNOperation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend in which the operation is to be processed. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
 
   /** Indicates whether the no-op control was included in the request. */
   private boolean noOp;
@@ -262,7 +262,7 @@ public class LocalBackendModifyDNOperation
 
     // Get the backend for the current entry, and the backend for the new
     // entry. If either is null, or if they are different, then fail.
-    Backend<?> currentBackend = backend;
+    LocalBackend<?> currentBackend = backend;
     if (currentBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);
@@ -270,7 +270,7 @@ public class LocalBackendModifyDNOperation
       return;
     }
 
-    Backend<?> newBackend = DirectoryServer.getBackend(newDN);
+    LocalBackend<?> newBackend = DirectoryServer.getBackend(newDN);
     if (newBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);

@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.ConfigurationBackend.ConfigurationBackendCfg;
@@ -70,7 +70,7 @@ import org.opends.server.util.BackupManager;
 import org.opends.server.util.StaticUtils;
 
 /** Back-end responsible for management of configuration entries. */
-public class ConfigurationBackend extends Backend<ConfigurationBackendCfg> implements Backupable
+public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> implements Backupable
 {
   /**
    * Dummy {@link BackendCfg} implementation for the {@link ConfigurationBackend}. No config is

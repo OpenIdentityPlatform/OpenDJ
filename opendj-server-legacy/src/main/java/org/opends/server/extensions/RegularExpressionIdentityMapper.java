@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.IdentityMapperCfg;
 import org.forgerock.opendj.server.config.server.RegularExpressionIdentityMapperCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -138,7 +138,7 @@ public class RegularExpressionIdentityMapper
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend b = DirectoryServer.getBackend(baseDN);
+        LocalBackend b = DirectoryServer.getBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_REGEXMAP_ATTR_UNINDEXED.get(
@@ -291,7 +291,7 @@ public class RegularExpressionIdentityMapper
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend b = DirectoryServer.getBackend(baseDN);
+        LocalBackend b = DirectoryServer.getBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_REGEXMAP_ATTR_UNINDEXED.get(

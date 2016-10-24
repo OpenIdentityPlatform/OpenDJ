@@ -32,8 +32,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -136,7 +136,7 @@ public class RestoreTask extends Task
    * @param backend The backend on which the lock is to be acquired.
    * @return true if the lock was successfully acquired.
    */
-  private boolean lockBackend(Backend<?> backend)
+  private boolean lockBackend(LocalBackend<?> backend)
   {
     try
     {
@@ -161,7 +161,7 @@ public class RestoreTask extends Task
    * @param backend The backend on which the lock is held.
    * @return true if the lock was successfully released.
    */
-  private boolean unlockBackend(Backend<?> backend)
+  private boolean unlockBackend(LocalBackend<?> backend)
   {
     try
     {
@@ -261,7 +261,7 @@ public class RestoreTask extends Task
 
     String backendID = TaskUtils.getBackendID(configEntry);
 
-    Backend<?> backend = DirectoryServer.getBackend(backendID);
+    LocalBackend<?> backend = DirectoryServer.getBackend(backendID);
     if (!backend.supports(BackendOperation.RESTORE))
     {
       logger.error(ERR_RESTOREDB_CANNOT_RESTORE, backend.getBackendID());

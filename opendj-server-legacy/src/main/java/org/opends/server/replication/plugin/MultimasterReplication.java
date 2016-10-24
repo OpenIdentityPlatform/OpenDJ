@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
@@ -587,7 +587,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processBackupBegin(Backend<?> backend, BackupConfig config)
+  public void processBackupBegin(LocalBackend<?> backend, BackupConfig config)
   {
     for (DN dn : backend.getBaseDNs())
     {
@@ -600,7 +600,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processBackupEnd(Backend<?> backend, BackupConfig config, boolean successful)
+  public void processBackupEnd(LocalBackend<?> backend, BackupConfig config, boolean successful)
   {
     for (DN dn : backend.getBaseDNs())
     {
@@ -613,7 +613,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processRestoreBegin(Backend<?> backend, RestoreConfig config)
+  public void processRestoreBegin(LocalBackend<?> backend, RestoreConfig config)
   {
     for (DN dn : backend.getBaseDNs())
     {
@@ -626,7 +626,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processRestoreEnd(Backend<?> backend, RestoreConfig config, boolean successful)
+  public void processRestoreEnd(LocalBackend<?> backend, RestoreConfig config, boolean successful)
   {
     for (DN dn : backend.getBaseDNs())
     {
@@ -639,7 +639,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processImportBegin(Backend<?> backend, LDIFImportConfig config)
+  public void processImportBegin(LocalBackend<?> backend, LDIFImportConfig config)
   {
     for (DN dn : backend.getBaseDNs())
     {
@@ -652,7 +652,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processImportEnd(Backend<?> backend, LDIFImportConfig config, boolean successful)
+  public void processImportEnd(LocalBackend<?> backend, LDIFImportConfig config, boolean successful)
   {
     for (DN dn : backend.getBaseDNs())
     {
@@ -665,7 +665,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processExportBegin(Backend<?> backend, LDIFExportConfig config)
+  public void processExportBegin(LocalBackend<?> backend, LDIFExportConfig config)
   {
     for (DN dn : backend.getBaseDNs())
     {
@@ -678,7 +678,7 @@ public class MultimasterReplication
   }
 
   @Override
-  public void processExportEnd(Backend<?> backend, LDIFExportConfig config, boolean successful)
+  public void processExportEnd(LocalBackend<?> backend, LDIFExportConfig config, boolean successful)
   {
     for (DN dn : backend.getBaseDNs())
     {

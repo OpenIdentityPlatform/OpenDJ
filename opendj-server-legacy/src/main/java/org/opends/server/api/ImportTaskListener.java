@@ -42,7 +42,7 @@ public interface ImportTaskListener
    * @param  config   Configuration information about the LDIF import
    *                  to be performed.
    */
-  void processImportBegin(Backend<?> backend, LDIFImportConfig config);
+  void processImportBegin(LocalBackend<?> backend, LDIFImportConfig config);
 
   /**
    * Performs any processing that might be necessary after the server
@@ -56,5 +56,5 @@ public interface ImportTaskListener
    * @param  successful  Indicates whether the import operation
    *                     completed successfully.
    */
-  void processImportEnd(Backend<?> backend, LDIFImportConfig config, boolean successful);
+  void processImportEnd(LocalBackend<?> backend, LDIFImportConfig config, boolean successful);
 }

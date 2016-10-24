@@ -42,7 +42,7 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
@@ -1432,7 +1432,7 @@ public class BackendStat
 
   private static Map<PluggableBackendCfg, BackendImpl<?>> getPluggableBackends()
   {
-    List<Backend<?>> backendList = new ArrayList<>();
+    List<LocalBackend<?>> backendList = new ArrayList<>();
     List<BackendCfg> entryList = new ArrayList<>();
     List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
@@ -1440,7 +1440,7 @@ public class BackendStat
     final Map<PluggableBackendCfg, BackendImpl<?>> pluggableBackends = new LinkedHashMap<>();
     for (int i = 0; i < backendList.size(); i++)
     {
-      Backend<?> backend = backendList.get(i);
+      LocalBackend<?> backend = backendList.get(i);
       if (backend instanceof BackendImpl)
       {
         pluggableBackends.put((PluggableBackendCfg) entryList.get(i), (BackendImpl<?>) backend);

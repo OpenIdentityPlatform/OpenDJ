@@ -73,20 +73,20 @@ import org.opends.server.types.WritabilityMode;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class Backend<C extends Configuration>
+public abstract class LocalBackend<C extends Configuration>
 // should have been BackendCfg instead of Configuration
 {
   /**
    * The backend that holds a portion of the DIT that is hierarchically above
    * the information in this backend.
    */
-  private Backend<?> parentBackend;
+  private LocalBackend<?> parentBackend;
 
   /**
    * The set of backends that hold portions of the DIT that are hierarchically
    * below the information in this backend.
    */
-  private Backend<?>[] subordinateBackends = new Backend[0];
+  private LocalBackend<?>[] subordinateBackends = new LocalBackend[0];
 
   /** The backend monitor associated with this backend. */
   private BackendMonitor backendMonitor;
@@ -860,7 +860,7 @@ public abstract class Backend<C extends Configuration>
    * @return  The parent backend for this backend, or {@code null} if
    *          there is none.
    */
-  public final Backend<?> getParentBackend()
+  public final LocalBackend<?> getParentBackend()
   {
     return parentBackend;
   }
@@ -870,7 +870,7 @@ public abstract class Backend<C extends Configuration>
    *
    * @param  parentBackend  The parent backend for this backend.
    */
-  public final synchronized void setParentBackend(Backend<?> parentBackend)
+  public final synchronized void setParentBackend(LocalBackend<?> parentBackend)
   {
     this.parentBackend = parentBackend;
   }
@@ -881,7 +881,7 @@ public abstract class Backend<C extends Configuration>
    * @return  The set of subordinate backends for this backend, or an
    *          empty array if none exist.
    */
-  public final Backend<?>[] getSubordinateBackends()
+  public final LocalBackend<?>[] getSubordinateBackends()
   {
     return subordinateBackends;
   }
@@ -894,14 +894,14 @@ public abstract class Backend<C extends Configuration>
    *                             subordinate backends for this
    *                             backend.
    */
-  public final synchronized void addSubordinateBackend(Backend<?> subordinateBackend)
+  public final synchronized void addSubordinateBackend(LocalBackend<?> subordinateBackend)
   {
-    LinkedHashSet<Backend<?>> backendSet = new LinkedHashSet<>();
+    LinkedHashSet<LocalBackend<?>> backendSet = new LinkedHashSet<>();
     Collections.addAll(backendSet, subordinateBackends);
 
     if (backendSet.add(subordinateBackend))
     {
-      subordinateBackends = backendSet.toArray(new Backend[backendSet.size()]);
+      subordinateBackends = backendSet.toArray(new LocalBackend[backendSet.size()]);
     }
   }
 
@@ -913,12 +913,12 @@ public abstract class Backend<C extends Configuration>
    *                             subordinate backends for this
    *                             backend.
    */
-  public final synchronized void removeSubordinateBackend(Backend<?> subordinateBackend)
+  public final synchronized void removeSubordinateBackend(LocalBackend<?> subordinateBackend)
   {
-    ArrayList<Backend<?>> backendList = new ArrayList<>(subordinateBackends.length);
+    ArrayList<LocalBackend<?>> backendList = new ArrayList<>(subordinateBackends.length);
 
     boolean found = false;
-    for (Backend<?> b : subordinateBackends)
+    for (LocalBackend<?> b : subordinateBackends)
     {
       if (b.equals(subordinateBackend))
       {
@@ -932,7 +932,7 @@ public abstract class Backend<C extends Configuration>
 
     if (found)
     {
-      subordinateBackends = backendList.toArray(new Backend[backendList.size()]);
+      subordinateBackends = backendList.toArray(new LocalBackend[backendList.size()]);
     }
   }
 
@@ -952,7 +952,7 @@ public abstract class Backend<C extends Configuration>
     {
       if (entryDN.isSubordinateOrEqualTo(dn))
       {
-        for (Backend<?> b : subordinateBackends)
+        for (LocalBackend<?> b : subordinateBackends)
         {
           if (b.handlesEntry(entryDN))
           {

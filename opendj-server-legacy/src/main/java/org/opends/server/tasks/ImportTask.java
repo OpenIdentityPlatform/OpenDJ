@@ -37,8 +37,8 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -214,7 +214,7 @@ public class ImportTask extends Task
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    Backend<?> backend = null;
+    LocalBackend<?> backend = null;
     ArrayList<DN> defaultIncludeBranches;
     HashSet<DN> excludeBranches = new HashSet<>(excludeBranchStrings.size());
     HashSet<DN> includeBranches = new HashSet<>(includeBranchStrings.size());
@@ -299,7 +299,7 @@ public class ImportTask extends Task
       // Find the backend that includes all the branches.
       for(DN includeBranch : includeBranches)
       {
-        Backend<?> locatedBackend = DirectoryServer.getBackend(includeBranch);
+        LocalBackend<?> locatedBackend = DirectoryServer.getBackend(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)
@@ -328,7 +328,7 @@ public class ImportTask extends Task
 
     for(DN includeBranch : includeBranches)
     {
-      if (!Backend.handlesEntry(includeBranch, defaultIncludeBranches, excludeBranches))
+      if (!LocalBackend.handlesEntry(includeBranch, defaultIncludeBranches, excludeBranches))
       {
         LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
             includeBranch, backend.getBackendID());
@@ -416,7 +416,7 @@ public class ImportTask extends Task
     }
 
     // Get the backend into which the LDIF should be imported.
-    Backend<?> backend = null;
+    LocalBackend<?> backend = null;
     HashSet<DN> defaultIncludeBranches;
     HashSet<DN> excludeBranches = new HashSet<>(excludeBranchStrings.size());
     HashSet<DN> includeBranches = new HashSet<>(includeBranchStrings.size());
@@ -457,7 +457,7 @@ public class ImportTask extends Task
       // Find the backend that includes all the branches.
       for(DN includeBranch : includeBranches)
       {
-        Backend<?> locatedBackend = DirectoryServer.getBackend(includeBranch);
+        LocalBackend<?> locatedBackend = DirectoryServer.getBackend(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)
@@ -479,7 +479,7 @@ public class ImportTask extends Task
 
     if (backend.getSubordinateBackends() != null)
     {
-      for (Backend<?> subBackend : backend.getSubordinateBackends())
+      for (LocalBackend<?> subBackend : backend.getSubordinateBackends())
       {
         for (DN baseDN : subBackend.getBaseDNs())
         {
@@ -520,7 +520,7 @@ public class ImportTask extends Task
       // Make sure the selected backend will handle all the include branches
       for (DN includeBranch : includeBranches)
       {
-        if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
+        if (! LocalBackend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
           logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch, backend.getBackendID());

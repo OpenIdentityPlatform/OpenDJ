@@ -43,7 +43,7 @@ public interface BackupTaskListener
    * @param  config   Configuration information about the backup to be
    *                  performed.
    */
-  void processBackupBegin(Backend<?> backend, BackupConfig config);
+  void processBackupBegin(LocalBackend<?> backend, BackupConfig config);
 
   /**
    * Performs any processing that might be necessary after the server
@@ -57,5 +57,5 @@ public interface BackupTaskListener
    * @param  successful  Indicates whether the backup operation
    *                     completed successfully.
    */
-  void processBackupEnd(Backend<?> backend, BackupConfig config, boolean successful);
+  void processBackupEnd(LocalBackend<?> backend, BackupConfig config, boolean successful);
 }

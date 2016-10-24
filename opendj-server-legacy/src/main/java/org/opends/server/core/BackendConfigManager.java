@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.backends.ConfigurationBackend;
 import org.opends.server.config.ConfigConstants;
@@ -64,7 +64,7 @@ public class BackendConfigManager implements
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The mapping between configuration entry DNs and their corresponding backend implementations. */
-  private final ConcurrentHashMap<DN, Backend<? extends BackendCfg>> registeredBackends = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<DN, LocalBackend<? extends BackendCfg>> registeredBackends = new ConcurrentHashMap<>();
   private final ServerContext serverContext;
 
   /**
@@ -178,7 +178,7 @@ public class BackendConfigManager implements
       // contain a valid backend implementation, then log an error and skip it.
       String className = backendCfg.getJavaClass();
 
-      Backend<? extends BackendCfg> backend;
+      LocalBackend<? extends BackendCfg> backend;
       try
       {
         backend = loadBackendClass(className).newInstance();
@@ -201,7 +201,7 @@ public class BackendConfigManager implements
     initializeBackend(configBackend, configBackend.getBackendCfg());
   }
 
-  private void initializeBackend(Backend<? extends BackendCfg> backend, BackendCfg backendCfg)
+  private void initializeBackend(LocalBackend<? extends BackendCfg> backend, BackendCfg backendCfg)
   {
     ConfigChangeResult ccr = new ConfigChangeResult();
     initializeBackend(backend, backendCfg, ccr);
@@ -211,7 +211,7 @@ public class BackendConfigManager implements
     }
   }
 
-  private void initializeBackend(Backend<? extends BackendCfg> backend, BackendCfg backendCfg, ConfigChangeResult ccr)
+  private void initializeBackend(LocalBackend<? extends BackendCfg> backend, BackendCfg backendCfg, ConfigChangeResult ccr)
   {
     backend.setBackendID(backendCfg.getBackendId());
     backend.setWritabilityMode(toWritabilityMode(backendCfg.getWritabilityMode()));
@@ -226,7 +226,7 @@ public class BackendConfigManager implements
    * Acquire a shared lock on this backend. This will prevent operations like LDIF import or restore
    * from occurring while the backend is active.
    */
-  private boolean acquireSharedLock(Backend<?> backend, String backendID, final ConfigChangeResult ccr)
+  private boolean acquireSharedLock(LocalBackend<?> backend, String backendID, final ConfigChangeResult ccr)
   {
     try
     {
@@ -259,7 +259,7 @@ public class BackendConfigManager implements
     ccr.addMessage(message);
   }
 
-  private void releaseSharedLock(Backend<?> backend, String backendID)
+  private void releaseSharedLock(LocalBackend<?> backend, String backendID)
   {
     try
     {
@@ -292,7 +292,7 @@ public class BackendConfigManager implements
 
     // See if the backend is registered with the server.  If it is, then
     // see what's changed and whether those changes are acceptable.
-    Backend<?> backend = registeredBackends.get(backendDN);
+    LocalBackend<?> backend = registeredBackends.get(backendDN);
     if (backend != null)
     {
       LinkedHashSet<DN> removedDNs = new LinkedHashSet<>(backend.getBaseDNs());
@@ -349,14 +349,14 @@ public class BackendConfigManager implements
       String className = configEntry.getJavaClass();
       try
       {
-        Class<Backend<BackendCfg>> backendClass = loadBackendClass(className);
-        if (! Backend.class.isAssignableFrom(backendClass))
+        Class<LocalBackend<BackendCfg>> backendClass = loadBackendClass(className);
+        if (! LocalBackend.class.isAssignableFrom(backendClass))
         {
           unacceptableReason.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
           return false;
         }
 
-        Backend<BackendCfg> b = backendClass.newInstance();
+        LocalBackend<BackendCfg> b = backendClass.newInstance();
         if (! b.isConfigurationAcceptable(configEntry, unacceptableReason, serverContext))
         {
           return false;
@@ -381,7 +381,7 @@ public class BackendConfigManager implements
   public ConfigChangeResult applyConfigurationChange(BackendCfg cfg)
   {
     DN backendDN = cfg.dn();
-    Backend<? extends BackendCfg> backend = registeredBackends.get(backendDN);
+    LocalBackend<? extends BackendCfg> backend = registeredBackends.get(backendDN);
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See if the entry contains an attribute that indicates whether the
@@ -438,7 +438,7 @@ public class BackendConfigManager implements
       try
       {
         Class<?> backendClass = DirectoryServer.loadClass(className);
-        if (Backend.class.isAssignableFrom(backendClass))
+        if (LocalBackend.class.isAssignableFrom(backendClass))
         {
           // It appears to be a valid backend class.  We'll return that the
           // change is successful, but indicate that some administrative
@@ -494,7 +494,7 @@ public class BackendConfigManager implements
     return ccr;
   }
 
-  private boolean registerBackend(Backend<? extends BackendCfg> backend, BackendCfg backendCfg, ConfigChangeResult ccr)
+  private boolean registerBackend(LocalBackend<? extends BackendCfg> backend, BackendCfg backendCfg, ConfigChangeResult ccr)
   {
     for (BackendInitializationListener listener : getBackendInitializationListeners())
     {
@@ -560,7 +560,7 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = configEntry.getJavaClass();
 
-    Backend<BackendCfg> backend;
+    LocalBackend<BackendCfg> backend;
     try
     {
       backend = loadBackendClass(className).newInstance();
@@ -646,7 +646,7 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = cfg.getJavaClass();
 
-    Backend<? extends BackendCfg> backend;
+    LocalBackend<? extends BackendCfg> backend;
     try
     {
       backend = loadBackendClass(className).newInstance();
@@ -665,7 +665,7 @@ public class BackendConfigManager implements
     return ccr;
   }
 
-  private boolean configureAndOpenBackend(Backend<?> backend, BackendCfg cfg, ConfigChangeResult ccr)
+  private boolean configureAndOpenBackend(LocalBackend<?> backend, BackendCfg cfg, ConfigChangeResult ccr)
   {
     try
     {
@@ -686,16 +686,16 @@ public class BackendConfigManager implements
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  private void configureAndOpenBackend(Backend backend, BackendCfg cfg) throws ConfigException, InitializationException
+  private void configureAndOpenBackend(LocalBackend backend, BackendCfg cfg) throws ConfigException, InitializationException
   {
     backend.configureBackend(cfg, serverContext);
     backend.openBackend();
   }
 
   @SuppressWarnings("unchecked")
-  private Class<Backend<BackendCfg>> loadBackendClass(String className) throws Exception
+  private Class<LocalBackend<BackendCfg>> loadBackendClass(String className) throws Exception
   {
-    return (Class<Backend<BackendCfg>>) DirectoryServer.loadClass(className);
+    return (Class<LocalBackend<BackendCfg>>) DirectoryServer.loadClass(className);
   }
 
   private WritabilityMode toWritabilityMode(BackendCfgDefn.WritabilityMode writabilityMode)
@@ -725,7 +725,7 @@ public class BackendConfigManager implements
     // provided DN.  If not, then we don't care if the entry is deleted.  If we
     // do know about it, then that means that it is enabled and we will not
     // allow removing a backend that is enabled.
-    Backend<?> backend = registeredBackends.get(backendDN);
+    LocalBackend<?> backend = registeredBackends.get(backendDN);
     if (backend == null)
     {
       return true;
@@ -734,7 +734,7 @@ public class BackendConfigManager implements
 
     // See if the backend has any subordinate backends.  If so, then it is not
     // acceptable to remove it.  Otherwise, it should be fine.
-    Backend<?>[] subBackends = backend.getSubordinateBackends();
+    LocalBackend<?>[] subBackends = backend.getSubordinateBackends();
     if (subBackends != null && subBackends.length != 0)
     {
       unacceptableReason.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
@@ -751,7 +751,7 @@ public class BackendConfigManager implements
 
     // See if this backend config manager has a backend registered with the
     // provided DN.  If not, then we don't care if the entry is deleted.
-    Backend<?> backend = registeredBackends.get(backendDN);
+    LocalBackend<?> backend = registeredBackends.get(backendDN);
     if (backend == null)
     {
       return ccr;
@@ -759,7 +759,7 @@ public class BackendConfigManager implements
 
     // See if the backend has any subordinate backends.  If so, then it is not
     // acceptable to remove it.  Otherwise, it should be fine.
-    Backend<?>[] subBackends = backend.getSubordinateBackends();
+    LocalBackend<?>[] subBackends = backend.getSubordinateBackends();
     if (subBackends != null && subBackends.length > 0)
     {
       ccr.setResultCode(UNWILLING_TO_PERFORM);
@@ -785,7 +785,7 @@ public class BackendConfigManager implements
     return ccr;
   }
 
-  private void deregisterBackend(DN backendDN, Backend<?> backend)
+  private void deregisterBackend(DN backendDN, LocalBackend<?> backend)
   {
     for (BackendInitializationListener listener : getBackendInitializationListeners())
     {

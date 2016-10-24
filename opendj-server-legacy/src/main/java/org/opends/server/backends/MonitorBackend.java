@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.MonitorBackendCfg;
 import org.forgerock.util.Reject;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.AddOperation;
@@ -85,7 +85,7 @@ import org.opends.server.util.TimeThread;
  * requested monitor and dynamically generate the associated entry. It will also
  * construct a base monitor entry with some useful server-wide data.
  */
-public class MonitorBackend extends Backend<MonitorBackendCfg> implements
+public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
     ConfigurationChangeListener<MonitorBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

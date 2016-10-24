@@ -30,8 +30,8 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
@@ -166,7 +166,7 @@ public class RebuildTask extends Task
     rebuildConfig.setTmpDirectory(tmpDirectory);
     rebuildConfig.setRebuildMode(rebuildMode);
 
-    final Backend<?> backend = DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
+    final LocalBackend<?> backend = DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
     if (backend == null)
     {
       logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDN);

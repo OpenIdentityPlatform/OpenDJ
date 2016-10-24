@@ -34,8 +34,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -430,12 +430,12 @@ public class ExportLDIF extends TaskTool {
     // through them, finding the one backend that should be used for the export,
     // and also finding backends with subordinate base DNs that should be
     // excluded from the export.
-    Backend<?>    backend                = null;
+    LocalBackend<?>    backend                = null;
     List<DN>      baseDNList             = null;
     List<DN>      defaultIncludeBranches = null;
     ArrayList<DN> excludeBranches        = null;
 
-    List<Backend<?>> backendList = new ArrayList<>();
+    List<LocalBackend<?>> backendList = new ArrayList<>();
     List<BackendCfg> entryList = new ArrayList<>();
     List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
@@ -443,7 +443,7 @@ public class ExportLDIF extends TaskTool {
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
-      Backend<?> b = backendList.get(i);
+      LocalBackend<?> b = backendList.get(i);
       if (! backendID.getValue().equals(b.getBackendID()))
       {
         continue;
@@ -514,7 +514,7 @@ public class ExportLDIF extends TaskTool {
           return 1;
         }
 
-        if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
+        if (! LocalBackend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
           logger.error(ERR_LDIFEXPORT_INVALID_INCLUDE_BASE, s, backendID.getValue());

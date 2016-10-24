@@ -78,8 +78,8 @@ import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.Isolatio
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorData;
@@ -254,17 +254,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   @Override
-  public void performBackendPreInitializationProcessing(Backend<?> backend) {
+  public void performBackendPreInitializationProcessing(LocalBackend<?> backend) {
     // Nothing to do
   }
 
   @Override
-  public void performBackendPostFinalizationProcessing(Backend<?> backend) {
+  public void performBackendPostFinalizationProcessing(LocalBackend<?> backend) {
     // Nothing to do
   }
 
   @Override
-  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+  public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
     if (!ignoreBackendInitializationEvent
             && getBackend().getBackendID().equals(backend.getBackendID())) {
       enable();
@@ -272,7 +272,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   @Override
-  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+  public void performBackendPreFinalizationProcessing(LocalBackend<?> backend) {
     // Do not disable itself during a shutdown
     // And ignore the event if this replica is the event trigger (e.g. importing).
     if (!ignoreBackendInitializationEvent
@@ -555,7 +555,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     storeECLConfiguration(configuration);
     solveConflictFlag = isSolveConflict(configuration);
 
-    Backend<?> backend = getBackend();
+    LocalBackend<?> backend = getBackend();
     if (backend == null)
     {
       throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(getBaseDN()));
@@ -3382,7 +3382,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   private long exportBackend(OutputStream output, boolean checksumOutput)
       throws DirectoryException
   {
-    Backend<?> backend = getBackend();
+    LocalBackend<?> backend = getBackend();
 
     //  Acquire a shared lock for the backend.
     try
@@ -3509,7 +3509,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    * @throws DirectoryException
    *           If the backend could not be disabled or locked exclusively.
    */
-  private void preBackendImport(Backend<?> backend) throws DirectoryException
+  private void preBackendImport(LocalBackend<?> backend) throws DirectoryException
   {
     // Prevent the processing of the backend finalisation event as the import will disable the attached backend
     ignoreBackendInitializationEvent = true;
@@ -3537,7 +3537,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   @Override
   protected void importBackend(InputStream input) throws DirectoryException
   {
-    Backend<?> backend = getBackend();
+    LocalBackend<?> backend = getBackend();
 
     LDIFImportConfig importConfig = null;
     ImportExportContext ieCtx = getImportExportContext();
@@ -3621,7 +3621,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    * @param backend The backend implied in the import.
    * @exception DirectoryException Thrown when an error occurs.
    */
-  private void closeBackendImport(Backend<?> backend) throws DirectoryException
+  private void closeBackendImport(LocalBackend<?> backend) throws DirectoryException
   {
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();
@@ -3692,7 +3692,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    * Returns the backend associated to this domain.
    * @return The associated backend.
    */
-  private Backend<?> getBackend()
+  private LocalBackend<?> getBackend()
   {
     return DirectoryServer.getBackend(getBaseDN());
   }
@@ -4215,7 +4215,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   @Override
   public long countEntries() throws DirectoryException
   {
-    Backend<?> backend = getBackend();
+    LocalBackend<?> backend = getBackend();
     if (!backend.supports(BackendOperation.LDIF_EXPORT))
     {
       LocalizableMessage msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());

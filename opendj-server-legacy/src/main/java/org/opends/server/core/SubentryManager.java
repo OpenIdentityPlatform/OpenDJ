@@ -33,7 +33,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DITCacheMap;
@@ -257,7 +257,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * all subentries that it may contain and register them with this manager.
    */
   @Override
-  public void performBackendPreInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(LocalBackend<?> backend)
   {
     InternalClientConnection conn = getRootConnection();
     SubentriesControl control = new SubentriesControl(true, true);
@@ -533,7 +533,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * all subentries associated with the provided backend.
    */
   @Override
-  public void performBackendPostFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(LocalBackend<?> backend)
   {
     lock.writeLock().lock();
     try
@@ -547,7 +547,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  private void performBackendPostFinalizationProcessing(Map<DN, List<SubEntry>> subEntryMap, Backend<?> backend)
+  private void performBackendPostFinalizationProcessing(Map<DN, List<SubEntry>> subEntryMap, LocalBackend<?> backend)
   {
     Iterator<List<SubEntry>> subEntryListsIt = subEntryMap.values().iterator();
     while (subEntryListsIt.hasNext())
@@ -572,12 +572,12 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+  public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 
   @Override
-  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+  public void performBackendPreFinalizationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 

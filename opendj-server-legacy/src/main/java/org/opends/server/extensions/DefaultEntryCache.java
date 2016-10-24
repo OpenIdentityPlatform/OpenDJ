@@ -25,7 +25,7 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorData;
@@ -345,7 +345,7 @@ public class DefaultEntryCache
    *                  about to be put into service.
    */
   @Override
-  public void performBackendPreInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(LocalBackend<?> backend)
   {
     // Do nothing.
   }
@@ -359,7 +359,7 @@ public class DefaultEntryCache
    *                  and is about to be finalized.
    */
   @Override
-  public void performBackendPostFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(LocalBackend<?> backend)
   {
     // Do not clear any backends if the server is shutting down.
     if (!DirectoryServer.getInstance().isShuttingDown())
@@ -369,12 +369,12 @@ public class DefaultEntryCache
   }
 
   @Override
-  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+  public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 
   @Override
-  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+  public void performBackendPreFinalizationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 }

@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
@@ -213,7 +213,7 @@ public class LocalBackendWorkflowElement
   private final DN baseDN;
 
   /** The backend associated with the local workflow element. */
-  private final Backend<?> backend;
+  private final LocalBackend<?> backend;
 
   /** The set of local backend workflow elements registered with the server. */
   private static TreeMap<DN, LocalBackendWorkflowElement> registeredLocalBackends = new TreeMap<>();
@@ -229,7 +229,7 @@ public class LocalBackendWorkflowElement
    * @param backend
    *          the backend associated to that workflow element
    */
-  private LocalBackendWorkflowElement(DN baseDN, Backend<?> backend)
+  private LocalBackendWorkflowElement(DN baseDN, LocalBackend<?> backend)
   {
     this.baseDN = baseDN;
     this.backend  = backend;
@@ -256,7 +256,7 @@ public class LocalBackendWorkflowElement
    * @return the existing local backend workflow element if it was already
    *         created or a newly created local backend workflow element.
    */
-  public static LocalBackendWorkflowElement createAndRegister(DN baseDN, Backend<?> backend)
+  public static LocalBackendWorkflowElement createAndRegister(DN baseDN, LocalBackend<?> backend)
   {
     LocalBackendWorkflowElement localBackend = registeredLocalBackends.get(baseDN);
     if (localBackend == null)
@@ -807,7 +807,7 @@ public class LocalBackendWorkflowElement
    * @return The backend associated with this local backend workflow
    *         element.
    */
-  public Backend<?> getBackend()
+  public LocalBackend<?> getBackend()
   {
     return backend;
   }
@@ -832,7 +832,7 @@ public class LocalBackendWorkflowElement
    * @throws DirectoryException
    *           If the update operation has been rejected.
    */
-  static void checkIfBackendIsWritable(Backend<?> backend, Operation op,
+  static void checkIfBackendIsWritable(LocalBackend<?> backend, Operation op,
       DN entryDN, LocalizableMessageDescriptor.Arg1<Object> serverMsg,
       LocalizableMessageDescriptor.Arg1<Object> backendMsg)
       throws DirectoryException
@@ -1133,10 +1133,10 @@ public class LocalBackendWorkflowElement
   private static Collection<LocalBackendWorkflowElement> getSubordinates(LocalBackendWorkflowElement workflow)
   {
     final DN baseDN = workflow.getBaseDN();
-    final Backend<?> backend = workflow.getBackend();
+    final LocalBackend<?> backend = workflow.getBackend();
 
     final ArrayList<LocalBackendWorkflowElement> results = new ArrayList<>();
-    for (Backend<?> subordinate : backend.getSubordinateBackends())
+    for (LocalBackend<?> subordinate : backend.getSubordinateBackends())
     {
       for (DN subordinateDN : subordinate.getBaseDNs())
       {

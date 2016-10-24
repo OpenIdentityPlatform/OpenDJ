@@ -49,7 +49,7 @@ import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
 import org.forgerock.opendj.server.config.meta.GroupImplementationCfgDefn;
 import org.forgerock.opendj.server.config.server.GroupImplementationCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.Group;
@@ -516,7 +516,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * manager.
    */
   @Override
-  public void performBackendPreInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(LocalBackend<?> backend)
   {
     InternalClientConnection conn = getRootConnection();
 
@@ -603,7 +603,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * instances associated with entries in the provided backend.
    */
   @Override
-  public void performBackendPostFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(LocalBackend<?> backend)
   {
     lock.writeLock().lock();
     try
@@ -626,12 +626,12 @@ public class GroupManager extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+  public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 
   @Override
-  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+  public void performBackendPreFinalizationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 

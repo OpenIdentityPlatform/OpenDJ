@@ -70,7 +70,7 @@ import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.SchemaBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
@@ -109,7 +109,7 @@ import org.opends.server.util.StaticUtils;
  * It is a kind of meta-backend in that it doesn't actually hold any data but
  * rather dynamically generates the schema entry whenever it is requested.
  */
-public class SchemaBackend extends Backend<SchemaBackendCfg>
+public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
      implements ConfigurationChangeListener<SchemaBackendCfg>, AlertGenerator, Backupable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

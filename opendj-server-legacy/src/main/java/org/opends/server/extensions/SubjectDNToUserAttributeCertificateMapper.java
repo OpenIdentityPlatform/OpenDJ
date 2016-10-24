@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.CertificateMapperCfg;
 import org.forgerock.opendj.server.config.server.SubjectDNToUserAttributeCertificateMapperCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -105,7 +105,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     AttributeType t = configuration.getSubjectAttribute();
     for (DN baseDN : cfgBaseDNs)
     {
-      Backend b = DirectoryServer.getBackend(baseDN);
+      LocalBackend b = DirectoryServer.getBackend(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),

@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -64,7 +64,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   /** LDIFImportConfig used for importing entries. */
   private LDIFImportConfig importConfig;
   /** Test Backend. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
 
   /** Constant value of userCertificate attribute. */
   private static final String CERT=

@@ -25,8 +25,8 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -52,7 +52,7 @@ public class GenericBackendTestCase extends BackendTestCase
   @DataProvider(name = "backends")
   public Object[][] getBackends()
   {
-    List<Backend<?>> backendList = new ArrayList<>(DirectoryServer.getBackends());
+    List<LocalBackend<?>> backendList = new ArrayList<>(DirectoryServer.getBackends());
     Object[][] objectArray = new Object[backendList.size()][1];
     for (int i=0; i < objectArray.length; i++)
     {
@@ -61,32 +61,32 @@ public class GenericBackendTestCase extends BackendTestCase
     return objectArray;
   }
 
-  /** Tests the {@link Backend#getBaseDNs} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getBaseDNs} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetBaseDNs(Backend<?> b)
+  public void testGetBaseDNs(LocalBackend<?> b)
   {
     Set<DN> baseDNs = b.getBaseDNs();
     assertNotNull(baseDNs);
     assertNotEquals(baseDNs.size(), 0);
   }
 
-  /** Tests the {@link Backend#getSupportedControls} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getSupportedControls} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetSupportedControls(Backend<?> b)
+  public void testGetSupportedControls(LocalBackend<?> b)
   {
     assertNotNull(b.getSupportedControls());
   }
 
   /** Tests the supports control method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testSupportsControl(Backend<?> b)
+  public void testSupportsControl(LocalBackend<?> b)
   {
     assertFalse(b.supportsControl("1.2.3.4"));
   }
 
-  /** Tests the {@link Backend#getSupportedFeatures} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getSupportedFeatures} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetSupportedFeatures(Backend<?> b)
+  public void testGetSupportedFeatures(LocalBackend<?> b)
   {
     assertNotNull(b.getSupportedFeatures());
     b.getSupportedFeatures();
@@ -94,88 +94,88 @@ public class GenericBackendTestCase extends BackendTestCase
 
   /** Tests the supports LDIF export method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testSupportsLDIFExport(Backend<?> b)
+  public void testSupportsLDIFExport(LocalBackend<?> b)
   {
     b.supports(BackendOperation.LDIF_EXPORT);
   }
 
   /** Tests the supports LDIF import method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testSupportsLDIFImport(Backend<?> b)
+  public void testSupportsLDIFImport(LocalBackend<?> b)
   {
     b.supports(BackendOperation.LDIF_IMPORT);
   }
 
   /** Tests the supports Backup method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testSupportsBackup(Backend<?> b)
+  public void testSupportsBackup(LocalBackend<?> b)
   {
     b.supports(BackendOperation.BACKUP);
   }
 
   /** Tests the supports restore method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testSupportsRestore(Backend<?> b)
+  public void testSupportsRestore(LocalBackend<?> b)
   {
     b.supports(BackendOperation.RESTORE);
   }
 
-  /** Tests the {@link Backend#getBackendID} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getBackendID} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetBackendID(Backend<?> b)
+  public void testGetBackendID(LocalBackend<?> b)
   {
     assertNotNull(b.getBackendID());
     assertTrue(b.getBackendID().length() > 0);
   }
 
-  /** Tests the {@link Backend#isPrivateBackend} method for the provided backend. */
+  /** Tests the {@link LocalBackend#isPrivateBackend} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testIsPrivateBackend(Backend<?> b)
+  public void testIsPrivateBackend(LocalBackend<?> b)
   {
     b.isPrivateBackend();
   }
 
-  /** Tests the {@link Backend#getWritabilityMode} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getWritabilityMode} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetWritabilityMode(Backend<?> b)
+  public void testGetWritabilityMode(LocalBackend<?> b)
   {
     assertNotNull(b.getWritabilityMode());
   }
 
-  /** Tests the {@link Backend#getBackendMonitor} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getBackendMonitor} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetBackendMonitor(Backend<?> b)
+  public void testGetBackendMonitor(LocalBackend<?> b)
   {
     assertNotNull(b.getBackendMonitor());
   }
 
-  /** Tests the {@link Backend#getEntryCount} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getEntryCount} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetEntryCount(Backend<?> b)
+  public void testGetEntryCount(LocalBackend<?> b)
   {
     b.getEntryCount();
   }
 
-  /** Tests the {@link Backend#getParentBackend} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getParentBackend} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetParentBackend(Backend<?> b)
+  public void testGetParentBackend(LocalBackend<?> b)
   {
     b.getParentBackend();
   }
 
-  /** Tests the {@link Backend#getSubordinateBackends} method for the provided backend. */
+  /** Tests the {@link LocalBackend#getSubordinateBackends} method for the provided backend. */
   @Test(dataProvider = "backends")
-  public void testGetSubordinateBackends(Backend<?> b)
+  public void testGetSubordinateBackends(LocalBackend<?> b)
   {
     assertNotNull(b.getSubordinateBackends());
   }
 
   /**
-   * Tests the {@link Backend#handlesEntry} method for the provided backend for each of the declared
+   * Tests the {@link LocalBackend#handlesEntry} method for the provided backend for each of the declared
    * base DNs.
    */
   @Test(dataProvider = "backends")
-  public void testHandlesEntry(Backend<?> b) throws Exception
+  public void testHandlesEntry(LocalBackend<?> b) throws Exception
   {
     for (DN baseDN : b.getBaseDNs())
     {

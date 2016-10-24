@@ -43,7 +43,7 @@ public interface ExportTaskListener
    * @param  config   Configuration information about the LDIF export
    *                  to be performed.
    */
-  void processExportBegin(Backend<?> backend, LDIFExportConfig config);
+  void processExportBegin(LocalBackend<?> backend, LDIFExportConfig config);
 
   /**
    * Performs any processing that might be necessary after the server
@@ -57,5 +57,5 @@ public interface ExportTaskListener
    * @param  successful  Indicates whether the export operation
    *                     completed successfully.
    */
-  void processExportEnd(Backend<?> backend, LDIFExportConfig config, boolean successful);
+  void processExportEnd(LocalBackend<?> backend, LDIFExportConfig config, boolean successful);
 }

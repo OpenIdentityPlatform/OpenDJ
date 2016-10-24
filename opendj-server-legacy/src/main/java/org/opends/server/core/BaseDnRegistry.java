@@ -27,7 +27,7 @@ import java.util.TreeMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -36,13 +36,13 @@ import org.opends.server.types.DirectoryException;
  */
 public class BaseDnRegistry {
   /** The set of base DNs registered with the server. */
-  private final TreeMap<DN, Backend<?>> baseDNs = new TreeMap<>();
+  private final TreeMap<DN, LocalBackend<?>> baseDNs = new TreeMap<>();
   /** The set of private naming contexts registered with the server. */
-  private final TreeMap<DN, Backend<?>> privateNamingContexts = new TreeMap<>();
+  private final TreeMap<DN, LocalBackend<?>> privateNamingContexts = new TreeMap<>();
   /** The set of public naming contexts registered with the server. */
-  private final TreeMap<DN, Backend<?>> publicNamingContexts = new TreeMap<>();
+  private final TreeMap<DN, LocalBackend<?>> publicNamingContexts = new TreeMap<>();
   /** The set of public naming contexts, including sub-suffixes, registered with the server. */
-  private final TreeMap<DN, Backend<?>> allPublicNamingContexts = new TreeMap<>();
+  private final TreeMap<DN, LocalBackend<?>> allPublicNamingContexts = new TreeMap<>();
 
   /**
    * Indicates whether this base DN registry is in test mode.
@@ -62,11 +62,11 @@ public class BaseDnRegistry {
    *         committed to the server
    * @throws DirectoryException if the base DN cannot be registered
    */
-  public List<LocalizableMessage> registerBaseDN(DN baseDN, Backend<?> backend, boolean isPrivate)
+  public List<LocalizableMessage> registerBaseDN(DN baseDN, LocalBackend<?> backend, boolean isPrivate)
       throws DirectoryException
   {
     // Check to see if the base DN is already registered with the server.
-    Backend<?> existingBackend = baseDNs.get(baseDN);
+    LocalBackend<?> existingBackend = baseDNs.get(baseDN);
     if (existingBackend != null)
     {
       LocalizableMessage message = ERR_REGISTER_BASEDN_ALREADY_EXISTS.
@@ -80,7 +80,7 @@ public class BaseDnRegistry {
     LinkedList<DN> otherBaseDNs = new LinkedList<>();
     for (DN dn : baseDNs.keySet())
     {
-      Backend<?> b = baseDNs.get(dn);
+      LocalBackend<?> b = baseDNs.get(dn);
       if (b.equals(backend))
       {
         otherBaseDNs.add(dn);
@@ -97,7 +97,7 @@ public class BaseDnRegistry {
     // Check to see if the new base DN is subordinate to any other base DN
     // already defined.  If it is, then any other base DN(s) for the same
     // backend must also be subordinate to the same base DN.
-    final Backend<?> superiorBackend = getSuperiorBackend(baseDN, otherBaseDNs, backend.getBackendID());
+    final LocalBackend<?> superiorBackend = getSuperiorBackend(baseDN, otherBaseDNs, backend.getBackendID());
     if (superiorBackend == null && backend.getParentBackend() != null)
     {
       LocalizableMessage message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
@@ -107,11 +107,11 @@ public class BaseDnRegistry {
 
     // Check to see if the new base DN should be the superior base DN for any
     // other base DN(s) already defined.
-    LinkedList<Backend<?>> subordinateBackends = new LinkedList<>();
+    LinkedList<LocalBackend<?>> subordinateBackends = new LinkedList<>();
     LinkedList<DN>      subordinateBaseDNs  = new LinkedList<>();
     for (DN dn : baseDNs.keySet())
     {
-      Backend<?> b = baseDNs.get(dn);
+      LocalBackend<?> b = baseDNs.get(dn);
       DN parentDN = dn.parent();
       while (parentDN != null)
       {
@@ -175,9 +175,9 @@ public class BaseDnRegistry {
 
     if (!testOnly)
     {
-      for (Backend<?> b : subordinateBackends)
+      for (LocalBackend<?> b : subordinateBackends)
       {
-        Backend<?> oldParentBackend = b.getParentBackend();
+        LocalBackend<?> oldParentBackend = b.getParentBackend();
         if (oldParentBackend != null)
         {
           oldParentBackend.removeSubordinateBackend(b);
@@ -201,10 +201,10 @@ public class BaseDnRegistry {
     return errors;
   }
 
-  private Backend<?> getSuperiorBackend(DN baseDN, LinkedList<DN> otherBaseDNs, String backendID)
+  private LocalBackend<?> getSuperiorBackend(DN baseDN, LinkedList<DN> otherBaseDNs, String backendID)
       throws DirectoryException
   {
-    Backend<?> superiorBackend = null;
+    LocalBackend<?> superiorBackend = null;
     DN parentDN = baseDN.parent();
     while (parentDN != null)
     {
@@ -244,7 +244,7 @@ public class BaseDnRegistry {
 
     // Make sure that the Directory Server actually contains a backend with
     // the specified base DN.
-    Backend<?> backend = baseDNs.get(baseDN);
+    LocalBackend<?> backend = baseDNs.get(baseDN);
     if (backend == null)
     {
       LocalizableMessage message =
@@ -254,11 +254,11 @@ public class BaseDnRegistry {
 
     // Check to see if the backend has a parent backend, and whether it has
     // any subordinates with base DNs that are below the base DN to remove.
-    Backend<?>             superiorBackend     = backend.getParentBackend();
-    LinkedList<Backend<?>> subordinateBackends = new LinkedList<>();
+    LocalBackend<?>             superiorBackend     = backend.getParentBackend();
+    LinkedList<LocalBackend<?>> subordinateBackends = new LinkedList<>();
     if (backend.getSubordinateBackends() != null)
     {
-      for (Backend<?> b : backend.getSubordinateBackends())
+      for (LocalBackend<?> b : backend.getSubordinateBackends())
       {
         for (DN dn : b.getBaseDNs())
         {
@@ -280,7 +280,7 @@ public class BaseDnRegistry {
         continue;
       }
 
-      Backend<?> b = baseDNs.get(dn);
+      LocalBackend<?> b = baseDNs.get(dn);
       if (backend.equals(b))
       {
         otherBaseDNs.add(dn);
@@ -301,7 +301,7 @@ public class BaseDnRegistry {
     {
       // If there were any subordinate backends, then all of their base DNs
       // will now be promoted to naming contexts.
-      for (Backend<?> b : subordinateBackends)
+      for (LocalBackend<?> b : subordinateBackends)
       {
         if (!testOnly)
         {
@@ -345,7 +345,7 @@ public class BaseDnRegistry {
 
         if (!testOnly)
         {
-          for (Backend<?> b : subordinateBackends)
+          for (LocalBackend<?> b : subordinateBackends)
           {
             backend.removeSubordinateBackend(b);
             superiorBackend.addSubordinateBackend(b);
@@ -394,7 +394,7 @@ public class BaseDnRegistry {
    *
    * @return mapping from base DN to backend
    */
-  Map<DN, Backend<?>> getBaseDnMap()
+  Map<DN, LocalBackend<?>> getBaseDnMap()
   {
     return this.baseDNs;
   }
@@ -405,7 +405,7 @@ public class BaseDnRegistry {
    *
    * @return mapping from naming context to backend
    */
-  Map<DN, Backend<?>> getPublicNamingContextsMap()
+  Map<DN, LocalBackend<?>> getPublicNamingContextsMap()
   {
     return this.publicNamingContexts;
   }
@@ -416,7 +416,7 @@ public class BaseDnRegistry {
    *
    * @return mapping from naming context to backend
    */
-  Map<DN, Backend<?>> getAllPublicNamingContextsMap()
+  Map<DN, LocalBackend<?>> getAllPublicNamingContextsMap()
   {
     return this.allPublicNamingContexts;
   }
@@ -427,7 +427,7 @@ public class BaseDnRegistry {
    *
    * @return mapping from naming context to backend
    */
-  Map<DN, Backend<?>> getPrivateNamingContextsMap()
+  Map<DN, LocalBackend<?>> getPrivateNamingContextsMap()
   {
     return this.privateNamingContexts;
   }

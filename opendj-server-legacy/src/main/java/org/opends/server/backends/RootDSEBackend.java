@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -92,7 +92,7 @@ import org.opends.server.util.LDIFWriter;
  * with the other backends.
  */
 public class RootDSEBackend
-       extends Backend<RootDSEBackendCfg>
+       extends LocalBackend<RootDSEBackendCfg>
        implements ConfigurationChangeListener<RootDSEBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -130,7 +130,7 @@ public class RootDSEBackend
    * The set of subordinate base DNs and their associated backends that will be
    * used for non-base searches.
    */
-  private ConcurrentHashMap<DN, Backend<?>> subordinateBaseDNs;
+  private ConcurrentHashMap<DN, LocalBackend<?>> subordinateBaseDNs;
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -189,7 +189,7 @@ public class RootDSEBackend
         subordinateBaseDNs = new ConcurrentHashMap<>();
         for (DN baseDN : subDNs)
         {
-          Backend<?> backend = DirectoryServer.getBackend(baseDN);
+          LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
           if (backend != null)
           {
             subordinateBaseDNs.put(baseDN, backend);
@@ -316,10 +316,10 @@ public class RootDSEBackend
     }
 
     long count = 1;
-    for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
+    for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
     {
       DN subBase = entry.getKey();
-      Backend<?> b = entry.getValue();
+      LocalBackend<?> b = entry.getValue();
       Entry subBaseEntry = b.getEntry(subBase);
       if (subBaseEntry != null)
       {
@@ -342,7 +342,7 @@ public class RootDSEBackend
 
     long count = 0;
 
-    for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
+    for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
     {
       DN subBase = entry.getKey();
       Entry subBaseEntry = entry.getValue().getEntry(subBase);
@@ -374,7 +374,7 @@ public class RootDSEBackend
     // specified.
     if (subordinateBaseDNs != null)
     {
-      for (Backend<?> b : subordinateBaseDNs.values())
+      for (LocalBackend<?> b : subordinateBaseDNs.values())
       {
         if (b.handlesEntry(entryDN))
         {
@@ -410,7 +410,7 @@ public class RootDSEBackend
     Map<AttributeType, List<Attribute>> dseUserAttrs = new HashMap<>();
     Map<AttributeType, List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
-    Map<DN, Backend<?>> publicNamingContexts = showSubordinatesNamingContexts ?
+    Map<DN, LocalBackend<?>> publicNamingContexts = showSubordinatesNamingContexts ?
         DirectoryServer.getAllPublicNamingContexts() :
         DirectoryServer.getPublicNamingContexts();
     Attribute publicNamingContextAttr = createAttribute(ATTR_NAMING_CONTEXTS, publicNamingContexts.keySet());
@@ -570,12 +570,12 @@ public class RootDSEBackend
 
     // If it was not the null DN, then iterate through the associated
     // subordinate backends to make the determination.
-    for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
+    for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
     {
       DN baseDN = entry.getKey();
       if (entryDN.isSubordinateOrEqualTo(baseDN))
       {
-        Backend<?> b = entry.getValue();
+        LocalBackend<?> b = entry.getValue();
         if (b.entryExists(entryDN))
         {
           return true;
@@ -639,12 +639,12 @@ public class RootDSEBackend
         break;
 
       case SINGLE_LEVEL:
-        for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
+        for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
         {
           searchOperation.checkIfCanceled(false);
 
           DN subBase = entry.getKey();
-          Backend<?> b = entry.getValue();
+          LocalBackend<?> b = entry.getValue();
           Entry subBaseEntry = b.getEntry(subBase);
           if (subBaseEntry != null && filter.matchesEntry(subBaseEntry))
           {
@@ -657,12 +657,12 @@ public class RootDSEBackend
       case SUBORDINATES:
         try
         {
-          for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
+          for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
           {
             searchOperation.checkIfCanceled(false);
 
             DN subBase = entry.getKey();
-            Backend<?> b = entry.getValue();
+            LocalBackend<?> b = entry.getValue();
 
             searchOperation.setBaseDN(subBase);
             try
@@ -720,7 +720,7 @@ public class RootDSEBackend
    * @return the subordinate base DNs of the root DSE
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public Map<DN, Backend<?>> getSubordinateBaseDNs()
+  public Map<DN, LocalBackend<?>> getSubordinateBaseDNs()
   {
     if (subordinateBaseDNs != null)
     {
@@ -842,7 +842,7 @@ public class RootDSEBackend
       {
         for (DN baseDN : subDNs)
         {
-          Backend<?> backend = DirectoryServer.getBackend(baseDN);
+          LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
             unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
@@ -869,7 +869,7 @@ public class RootDSEBackend
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Check to see if we should apply a new set of base DNs.
-    ConcurrentHashMap<DN, Backend<?>> subBases;
+    ConcurrentHashMap<DN, LocalBackend<?>> subBases;
     try
     {
       Set<DN> subDNs = cfg.getSubordinateBaseDN();
@@ -883,7 +883,7 @@ public class RootDSEBackend
         subBases = new ConcurrentHashMap<>();
         for (DN baseDN : subDNs)
         {
-          Backend<?> backend = DirectoryServer.getBackend(baseDN);
+          LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.

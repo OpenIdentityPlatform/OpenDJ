@@ -24,7 +24,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.NumSubordinatesVirtualAttributeCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -60,7 +60,7 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getName());
+    LocalBackend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
@@ -81,7 +81,7 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    Backend<?> backend = DirectoryServer.getBackend(entry.getName());
+    LocalBackend<?> backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
@@ -97,7 +97,7 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
-    Backend<?> backend = DirectoryServer.getBackend(entry.getName());
+    LocalBackend<?> backend = DirectoryServer.getBackend(entry.getName());
     try
     {
       long count = backend.getNumberOfChildren(entry.getName());

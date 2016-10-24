@@ -31,8 +31,8 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
@@ -215,16 +215,16 @@ public class VerifyIndex
 
     // Get information about the backends defined in the server.  Iterate
     // through them, finding the one backend to be verified.
-    List<Backend<?>> backendList = new ArrayList<>();
+    List<LocalBackend<?>> backendList = new ArrayList<>();
     List<BackendCfg> entryList = new ArrayList<>();
     List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
-    Backend<?> backend = null;
+    LocalBackend<?> backend = null;
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
-      Backend<?> b = backendList.get(i);
+      LocalBackend<?> b = backendList.get(i);
       List<DN>    baseDNs = dnList.get(i);
 
       if (baseDNs.contains(verifyBaseDN))

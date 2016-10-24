@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.BackupBackendCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -84,7 +84,7 @@ import org.opends.server.util.SchemaUtils;
  * unknown backup directory is included in the base DN.
  */
 public class BackupBackend
-       extends Backend<BackupBackendCfg>
+       extends LocalBackend<BackupBackendCfg>
        implements ConfigurationChangeListener<BackupBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

@@ -24,7 +24,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.HasSubordinatesVirtualAttributeCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
@@ -60,7 +60,7 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getName());
+    LocalBackend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
@@ -81,7 +81,7 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getName());
+    LocalBackend backend = DirectoryServer.getBackend(entry.getName());
 
     try
     {
@@ -99,7 +99,7 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getName());
+    LocalBackend backend = DirectoryServer.getBackend(entry.getName());
     MatchingRule matchingRule =
         rule.getAttributeType().getEqualityMatchingRule();
 

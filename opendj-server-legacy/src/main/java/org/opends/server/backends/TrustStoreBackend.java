@@ -66,7 +66,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.TrustStoreBackendCfg;
 import org.forgerock.util.Reject;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -97,7 +97,7 @@ import org.opends.server.util.SetupUtils;
  * This class defines a backend used to provide an LDAP view of public keys
  * stored in a key store.
  */
-public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
+public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
        implements ConfigurationChangeListener<TrustStoreBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

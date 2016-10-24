@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
@@ -72,7 +72,7 @@ public class AddOperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
@@ -1209,7 +1209,7 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
@@ -1241,7 +1241,7 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
@@ -1266,7 +1266,7 @@ public class AddOperationTestCase
     {
       conn.bind("cn=Directory Manager", "password");
 
-      Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+      LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
       b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
       long addRequests  = ldapStatistics.getAddRequests();

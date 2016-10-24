@@ -80,7 +80,7 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -427,7 +427,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   private TrustStoreBackend getTrustStoreBackend()
        throws ConfigException
   {
-    Backend<?> b = DirectoryServer.getBackend(ID_ADS_TRUST_STORE_BACKEND);
+    LocalBackend<?> b = DirectoryServer.getBackend(ID_ADS_TRUST_STORE_BACKEND);
     if (b == null)
     {
       throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(ID_ADS_TRUST_STORE_BACKEND));

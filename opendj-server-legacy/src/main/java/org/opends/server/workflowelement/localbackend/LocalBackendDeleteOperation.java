@@ -22,7 +22,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.controls.LDAPAssertionRequestControl;
@@ -65,7 +65,7 @@ public class LocalBackendDeleteOperation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend in which the operation is to be processed. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
 
   /** Indicates whether the LDAP no-op control has been requested. */
   private boolean noOp;
@@ -273,7 +273,7 @@ public class LocalBackendDeleteOperation
       // the entry actually exists and does not have any children (or possibly
       // handling a subtree delete). But we will need to check if there are
       // any subordinate backends that should stop us from attempting the delete
-      for (Backend<?> b : backend.getSubordinateBackends())
+      for (LocalBackend<?> b : backend.getSubordinateBackends())
       {
         for (DN dn : b.getBaseDNs())
         {

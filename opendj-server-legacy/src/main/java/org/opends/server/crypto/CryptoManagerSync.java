@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.admin.ads.ADSContext;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult.PostResponse;
@@ -198,7 +198,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void performBackendPreInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(LocalBackend<?> backend)
   {
     for (DN baseDN : backend.getBaseDNs())
     {
@@ -210,18 +210,18 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   }
 
   @Override
-  public void performBackendPostFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(LocalBackend<?> backend)
   {
     // No implementation required.
   }
 
   @Override
-  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+  public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 
   @Override
-  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+  public void performBackendPreFinalizationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 

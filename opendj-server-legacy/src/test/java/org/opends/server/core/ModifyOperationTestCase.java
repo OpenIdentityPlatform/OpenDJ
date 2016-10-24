@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
@@ -96,7 +96,7 @@ public class ModifyOperationTestCase
     for (Object[] backendBaseDN2 : getBaseDNs())
     {
       final DN baseDN = DN.valueOf(backendBaseDN2[0].toString());
-      Backend<?> b = DirectoryServer.getBackend(baseDN);
+      LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
       b.setWritabilityMode(WritabilityMode.ENABLED);
     }
   }
@@ -2429,7 +2429,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
@@ -2467,7 +2467,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
@@ -2505,7 +2505,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
@@ -3230,7 +3230,7 @@ public class ModifyOperationTestCase
         "cn: Test User",
         "userPassword: password",
         "userPassword;deleted: oldpassword");
-    Backend<?> backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
+    LocalBackend<?> backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.
@@ -3271,7 +3271,7 @@ public class ModifyOperationTestCase
         "cn: Test User",
         "userPassword: password",
         "userPassword;deleted: oldpassword");
-    Backend<?> backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
+    LocalBackend<?> backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.

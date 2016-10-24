@@ -39,7 +39,7 @@ import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.forgerock.opendj.server.config.server.FIFOEntryCacheCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
@@ -600,7 +600,7 @@ public class FIFOEntryCache
   {
     // Determine which backend should be used for the provided base DN.  If
     // there is none, then we don't need to do anything.
-    Backend<?> backend = DirectoryServer.getBackend(baseDN);
+    LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
     if (backend == null)
     {
       return;
@@ -635,7 +635,7 @@ public class FIFOEntryCache
    * @param  baseDN   The base DN below which all entries should be flushed.
    * @param  backend  The backend for which to remove the appropriate entries.
    */
-  private void clearSubtree(DN baseDN, Backend<?> backend)
+  private void clearSubtree(DN baseDN, LocalBackend<?> backend)
   {
     // See if there are any entries for the provided backend in the cache.  If
     // not, then return.
@@ -676,7 +676,7 @@ public class FIFOEntryCache
 
     // See if the backend has any subordinate backends.  If so, then process
     // them recursively.
-    for (Backend<?> subBackend : backend.getSubordinateBackends())
+    for (LocalBackend<?> subBackend : backend.getSubordinateBackends())
     {
       boolean isAppropriate = false;
       for (DN subBase : subBackend.getBaseDNs())

@@ -41,7 +41,7 @@ import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.PasswordPolicyImportPluginCfg;
 import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.opends.server.api.AuthenticationPolicy;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
@@ -221,7 +221,7 @@ public final class PasswordPolicyImportPlugin
   }
 
   @Override
-  public void processImportBegin(Backend<?> backend, LDIFImportConfig config)
+  public void processImportBegin(LocalBackend<?> backend, LDIFImportConfig config)
   {
     // Find the set of attribute types with the auth password and user password
     // syntax defined in the schema.
@@ -269,7 +269,7 @@ public final class PasswordPolicyImportPlugin
   }
 
   @Override
-  public void processImportEnd(Backend<?> backend, LDIFImportConfig config, boolean successful)
+  public void processImportEnd(LocalBackend<?> backend, LDIFImportConfig config, boolean successful)
   {
     // No implementation is required.
   }

@@ -33,8 +33,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.core.DirectoryServer;
@@ -77,7 +77,7 @@ public class RebuildIndex extends TaskTool
       INFO_REBUILDINDEX_TOOL_DESCRIPTION.get());
 
   private RebuildConfig rebuildConfig = new RebuildConfig();
-  private Backend<?> currentBackend;
+  private LocalBackend<?> currentBackend;
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -410,7 +410,7 @@ public class RebuildIndex extends TaskTool
    *          process.
    * @return An integer representing the result of the process.
    */
-  private int rebuildIndex(final Backend<?> backend, final RebuildConfig rebuildConfig)
+  private int rebuildIndex(final LocalBackend<?> backend, final RebuildConfig rebuildConfig)
   {
     // Acquire an exclusive lock for the backend.
     //TODO: Find a way to do this with the server online.
@@ -479,18 +479,18 @@ public class RebuildIndex extends TaskTool
    * @throws Exception
    *           If an exception occurred during the backend search.
    */
-  private Backend<?> retrieveBackend(final DN selectedDN) throws ConfigException, Exception
+  private LocalBackend<?> retrieveBackend(final DN selectedDN) throws ConfigException, Exception
   {
-    final List<Backend<?>> backendList = new ArrayList<>();
+    final List<LocalBackend<?>> backendList = new ArrayList<>();
     final List<BackendCfg> entryList = new ArrayList<>();
     final List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
-    Backend<?> backend = null;
+    LocalBackend<?> backend = null;
     final int numBackends = backendList.size();
     for (int i = 0; i < numBackends; i++)
     {
-      final Backend<?> b = backendList.get(i);
+      final LocalBackend<?> b = backendList.get(i);
       final List<DN> baseDNs = dnList.get(i);
       if (baseDNs.contains(selectedDN))
       {
@@ -682,7 +682,7 @@ public class RebuildIndex extends TaskTool
    *
    * @return The current backend.
    */
-  public Backend<?> getCurrentBackend()
+  public LocalBackend<?> getCurrentBackend()
   {
     return currentBackend;
   }
@@ -693,7 +693,7 @@ public class RebuildIndex extends TaskTool
    * @param currentBackend
    *          The current backend to set.
    */
-  public void setCurrentBackend(Backend<?> currentBackend)
+  public void setCurrentBackend(LocalBackend<?> currentBackend)
   {
     this.currentBackend = currentBackend;
   }

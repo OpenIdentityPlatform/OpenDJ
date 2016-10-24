@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -309,7 +309,7 @@ public class AciListenerManager implements
     this.plugin = new AciChangeListenerPlugin();
 
     // Process ACI from already registered backends.
-    for (Backend<?> backend : DirectoryServer.getBackends())
+    for (LocalBackend<?> backend : DirectoryServer.getBackends())
     {
       performBackendPreInitializationProcessing(backend);
     }
@@ -337,7 +337,7 @@ public class AciListenerManager implements
    * that it may contain and add them to the ACI list.
    */
   @Override
-  public void performBackendPreInitializationProcessing(Backend<?> backend)
+  public void performBackendPreInitializationProcessing(LocalBackend<?> backend)
   {
     // Check to make sure that the backend has a presence index defined
     // for the ACI attribute. If it does not, then log a warning message
@@ -406,18 +406,18 @@ public class AciListenerManager implements
    * the provided backend.
    */
   @Override
-  public void performBackendPostFinalizationProcessing(Backend<?> backend)
+  public void performBackendPostFinalizationProcessing(LocalBackend<?> backend)
   {
     aciList.removeAci(backend);
   }
 
   @Override
-  public void performBackendPostInitializationProcessing(Backend<?> backend) {
+  public void performBackendPostInitializationProcessing(LocalBackend<?> backend) {
     // Nothing to do.
   }
 
   @Override
-  public void performBackendPreFinalizationProcessing(Backend<?> backend) {
+  public void performBackendPreFinalizationProcessing(LocalBackend<?> backend) {
     // nothing to do.
   }
 

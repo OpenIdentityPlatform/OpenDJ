@@ -46,7 +46,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.TaskBackendCfg;
 import org.forgerock.util.Reject;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backupable;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -82,7 +82,7 @@ import org.opends.server.util.StaticUtils;
  * recurring basis.
  */
 public class TaskBackend
-       extends Backend<TaskBackendCfg>
+       extends LocalBackend<TaskBackendCfg>
        implements ConfigurationChangeListener<TaskBackendCfg>, Backupable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

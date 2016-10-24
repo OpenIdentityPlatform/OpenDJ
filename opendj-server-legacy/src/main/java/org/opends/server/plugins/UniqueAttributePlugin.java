@@ -40,7 +40,7 @@ import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.forgerock.opendj.server.config.server.UniqueAttributePluginCfg;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
@@ -158,7 +158,7 @@ public class UniqueAttributePlugin
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
@@ -690,7 +690,7 @@ public class UniqueAttributePlugin
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(

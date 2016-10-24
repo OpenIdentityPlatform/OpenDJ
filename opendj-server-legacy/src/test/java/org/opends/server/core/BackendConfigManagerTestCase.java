@@ -23,7 +23,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -152,7 +152,7 @@ public class BackendConfigManagerTestCase
 
     processAdd(backendEntry);
 
-    Backend<?> backend = DirectoryServer.getBackend(backendID);
+    LocalBackend<?> backend = DirectoryServer.getBackend(backendID);
     assertBackend(baseDN, backend);
     createEntry(baseDN, backend);
 
@@ -185,7 +185,7 @@ public class BackendConfigManagerTestCase
     // Modify the backend to enable it.
     enableBackend(backendEntry, true);
 
-    Backend<?> backend = DirectoryServer.getBackend(backendID);
+    LocalBackend<?> backend = DirectoryServer.getBackend(backendID);
     assertBackend(baseDN, backend);
     createEntry(baseDN, backend);
 
@@ -219,7 +219,7 @@ public class BackendConfigManagerTestCase
                                                   parentBaseDN);
     processAdd(parentBackendEntry);
 
-    Backend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
+    LocalBackend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
     assertBackend(parentBaseDN, parentBackend);
     createEntry(parentBaseDN, parentBackend);
 
@@ -231,7 +231,7 @@ public class BackendConfigManagerTestCase
                                                  childBaseDN);
     processAdd(childBackendEntry);
 
-    Backend<?> childBackend = DirectoryServer.getBackend(childBackendID);
+    LocalBackend<?> childBackend = DirectoryServer.getBackend(childBackendID);
     assertNotNull(childBackend);
     assertEquals(childBackend,
                  DirectoryServer.getBackendWithBaseDN(childBaseDN));
@@ -288,7 +288,7 @@ public class BackendConfigManagerTestCase
                                                  childBaseDN);
     processAdd(childBackendEntry);
 
-    Backend<?> childBackend = DirectoryServer.getBackend(childBackendID);
+    LocalBackend<?> childBackend = DirectoryServer.getBackend(childBackendID);
     assertBackend(childBaseDN, childBackend);
     createEntry(childBaseDN, childBackend);
     assertTrue(DirectoryServer.isNamingContext(childBaseDN));
@@ -302,7 +302,7 @@ public class BackendConfigManagerTestCase
                                                   parentBaseDN);
     processAdd(parentBackendEntry);
 
-    Backend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
+    LocalBackend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
     assertNotNull(parentBackend);
     assertEquals(parentBackend,
                  DirectoryServer.getBackendWithBaseDN(parentBaseDN));
@@ -333,7 +333,7 @@ public class BackendConfigManagerTestCase
     assertNull(DirectoryServer.getBackend(parentBackendID));
   }
 
-  private void assertBackend(DN baseDN, Backend<?> backend) throws DirectoryException
+  private void assertBackend(DN baseDN, LocalBackend<?> backend) throws DirectoryException
   {
     assertNotNull(backend);
     assertEquals(backend, DirectoryServer.getBackendWithBaseDN(baseDN));
@@ -361,7 +361,7 @@ public class BackendConfigManagerTestCase
                                                   parentBaseDN);
     processAdd(parentBackendEntry);
 
-    Backend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
+    LocalBackend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
     assertBackend(parentBaseDN, parentBackend);
     createEntry(parentBaseDN, parentBackend);
     assertTrue(DirectoryServer.isNamingContext(parentBaseDN));
@@ -374,7 +374,7 @@ public class BackendConfigManagerTestCase
                                                       grandchildBaseDN);
     processAdd(grandchildBackendEntry);
 
-    Backend<?> grandchildBackend = DirectoryServer.getBackend(grandchildBackendID);
+    LocalBackend<?> grandchildBackend = DirectoryServer.getBackend(grandchildBackendID);
     assertNotNull(grandchildBackend);
     assertEquals(grandchildBackend,
                  DirectoryServer.getBackendWithBaseDN(grandchildBaseDN));
@@ -398,7 +398,7 @@ public class BackendConfigManagerTestCase
                                                  childBaseDN);
     processAdd(childBackendEntry);
 
-    Backend<?> childBackend = DirectoryServer.getBackend(childBackendID);
+    LocalBackend<?> childBackend = DirectoryServer.getBackend(childBackendID);
     createBackend(childBaseDN, childBackend, parentBackend, grandchildBackend);
     createEntry(childBaseDN, childBackend);
 
@@ -476,8 +476,8 @@ public class BackendConfigManagerTestCase
     assertEquals(internalSearch.getSearchEntries().size(), expected);
   }
 
-  private void createBackend(DN childBaseDN, Backend<?> childBackend, Backend<?> parentBackend,
-      Backend<?> grandchildBackend) throws DirectoryException
+  private void createBackend(DN childBaseDN, LocalBackend<?> childBackend, LocalBackend<?> parentBackend,
+      LocalBackend<?> grandchildBackend) throws DirectoryException
   {
     assertNotNull(childBackend);
     assertEquals(childBackend, DirectoryServer.getBackendWithBaseDN(childBaseDN));
@@ -490,7 +490,7 @@ public class BackendConfigManagerTestCase
     assertEquals(grandchildBackend.getParentBackend(), childBackend);
   }
 
-  private void createEntry(DN baseDN, Backend<?> backend) throws DirectoryException
+  private void createEntry(DN baseDN, LocalBackend<?> backend) throws DirectoryException
   {
     Entry e = StaticUtils.createEntry(baseDN);
     processAdd(e);

@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.ConfigurationBackend;
 import org.opends.server.controls.LDAPAssertionRequestControl;
@@ -64,7 +64,7 @@ public class LocalBackendCompareOperation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend in which the comparison is to be performed. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
   /** The client connection for this operation. */
   private ClientConnection clientConnection;
   /** The DN of the entry to compare. */

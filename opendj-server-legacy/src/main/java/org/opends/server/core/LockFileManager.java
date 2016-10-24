@@ -23,7 +23,7 @@ import java.nio.channels.FileLock;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.messages.CoreMessages.*;
@@ -436,7 +436,7 @@ public class LockFileManager
    * @return  The filename that should be used for the lock file for the
    *          specified backend.
    */
-  public static String getBackendLockFileName(Backend backend)
+  public static String getBackendLockFileName(LocalBackend backend)
   {
     StringBuilder buffer = new StringBuilder();
     buffer.append(getLockDirectoryPath());

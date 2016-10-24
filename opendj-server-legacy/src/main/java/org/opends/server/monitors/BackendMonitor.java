@@ -26,7 +26,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
@@ -40,7 +40,7 @@ public class BackendMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
   /** The backend with which this monitor is associated. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
 
   /** The name for this monitor. */
   private String monitorName;
@@ -53,7 +53,7 @@ public class BackendMonitor
    *
    * @param  backend  The backend with which this monitor is associated.
    */
-  public BackendMonitor(Backend<?> backend)
+  public BackendMonitor(LocalBackend<?> backend)
   {
     this.backend = backend;
   }

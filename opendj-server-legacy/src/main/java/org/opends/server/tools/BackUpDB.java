@@ -41,8 +41,8 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.util.Utils;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.JDKLogging;
@@ -429,20 +429,20 @@ public class BackUpDB extends TaskTool
 
     // Get information about the backends defined in the server, and determine
     // whether we are backing up multiple backends or a single backend.
-    List<Backend<?>> backendList = new ArrayList<>();
+    List<LocalBackend<?>> backendList = new ArrayList<>();
     List<BackendCfg> entryList = new ArrayList<>();
     List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
     int numBackends = backendList.size();
 
     boolean multiple;
-    List<Backend<?>> backendsToArchive = new ArrayList<>(numBackends);
+    List<LocalBackend<?>> backendsToArchive = new ArrayList<>(numBackends);
     Map<String, BackendCfg> configEntries = new HashMap<>(numBackends);
     if (backUpAll.isPresent())
     {
       for (int i=0; i < numBackends; i++)
       {
-        Backend<?> b = backendList.get(i);
+        LocalBackend<?> b = backendList.get(i);
         if (b.supports(BackendOperation.BACKUP))
         {
           backendsToArchive.add(b);
@@ -460,7 +460,7 @@ public class BackUpDB extends TaskTool
       HashSet<String> requestedBackends = new HashSet<>(backendID.getValues());
       for (int i=0; i < numBackends; i++)
       {
-        Backend<?> b = backendList.get(i);
+        LocalBackend<?> b = backendList.get(i);
         if (requestedBackends.contains(b.getBackendID()))
         {
           if (b.supports(BackendOperation.BACKUP))
@@ -499,7 +499,7 @@ public class BackUpDB extends TaskTool
 
     // Iterate through the backends to archive and back them up individually.
     boolean errorsEncountered = false;
-    for (Backend<?> b : backendsToArchive)
+    for (LocalBackend<?> b : backendsToArchive)
     {
       if (!acquireSharedLock(b))
       {
@@ -635,7 +635,7 @@ public class BackUpDB extends TaskTool
     return 0;
   }
 
-  private boolean acquireSharedLock(Backend<?> b)
+  private boolean acquireSharedLock(LocalBackend<?> b)
   {
     try
     {
@@ -655,7 +655,7 @@ public class BackUpDB extends TaskTool
     }
   }
 
-  private boolean releaseSharedLock(Backend<?> b)
+  private boolean releaseSharedLock(LocalBackend<?> b)
   {
     try
     {
@@ -675,7 +675,7 @@ public class BackUpDB extends TaskTool
     }
   }
 
-  private void unlockBackend(Backend<?> b)
+  private void unlockBackend(LocalBackend<?> b)
   {
     try
     {

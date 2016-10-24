@@ -42,7 +42,7 @@ public interface RestoreTaskListener
    * @param  config   Configuration information about the restore to
    *                  be performed.
    */
-  void processRestoreBegin(Backend<?> backend, RestoreConfig config);
+  void processRestoreBegin(LocalBackend<?> backend, RestoreConfig config);
 
   /**
    * Performs any processing that might be necessary after the server
@@ -56,5 +56,5 @@ public interface RestoreTaskListener
    * @param  successful  Indicates whether the restore operation
    *                     completed successfully.
    */
-  void processRestoreEnd(Backend<?> backend, RestoreConfig config, boolean successful);
+  void processRestoreEnd(LocalBackend<?> backend, RestoreConfig config, boolean successful);
 }

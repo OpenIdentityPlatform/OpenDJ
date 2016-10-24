@@ -37,8 +37,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.DirectoryServer.InitializationBuilder;
@@ -585,7 +585,7 @@ public class ImportLDIF extends TaskTool {
     // through them, finding the one backend into which the LDIF should be
     // imported and finding backends with subordinate base DNs that should be
     // excluded from the import.
-    Backend<?> backend = null;
+    LocalBackend<?> backend = null;
     Set<DN> defaultIncludeBranches = null;
     Set<DN> excludeBranches = new HashSet<>();
     Set<DN> includeBranches = new HashSet<>();
@@ -609,7 +609,7 @@ public class ImportLDIF extends TaskTool {
       }
     }
 
-    ArrayList<Backend<?>> backendList = new ArrayList<>();
+    ArrayList<LocalBackend<?>> backendList = new ArrayList<>();
     ArrayList<BackendCfg> entryList = new ArrayList<>();
     ArrayList<List<DN>> dnList = new ArrayList<>();
     int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
@@ -621,7 +621,7 @@ public class ImportLDIF extends TaskTool {
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
-      Backend<?> b = backendList.get(i);
+      LocalBackend<?> b = backendList.get(i);
 
       if(backendID.isPresent())
       {
@@ -701,7 +701,7 @@ public class ImportLDIF extends TaskTool {
       // Make sure the selected backend will handle all the include branches
       for(DN includeBranch : includeBranches)
       {
-        if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
+        if (! LocalBackend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
           logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch, backendID.getValue());

@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.MemoryBackendCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -92,7 +92,7 @@ import org.opends.server.util.LDIFWriter;
  * entry has any children (which must not be the case for delete operations).
  */
 public class MemoryBackend
-       extends Backend<MemoryBackendCfg>
+       extends LocalBackend<MemoryBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

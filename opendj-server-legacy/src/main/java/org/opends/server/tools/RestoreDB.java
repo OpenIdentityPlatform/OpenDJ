@@ -36,8 +36,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.util.Utils;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.JDKLogging;
@@ -394,17 +394,17 @@ public class RestoreDB extends TaskTool {
 
     // Get information about the backends defined in the server and determine
     // which to use for the restore.
-    List<Backend<?>> backendList = new ArrayList<>();
+    List<LocalBackend<?>> backendList = new ArrayList<>();
     List<BackendCfg> entryList = new ArrayList<>();
     List<List<DN>> dnList = new ArrayList<>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
 
-    Backend<?> backend = null;
+    LocalBackend<?> backend = null;
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
-      Backend<?> b = backendList.get(i);
+      LocalBackend<?> b = backendList.get(i);
       BackendCfg e = entryList.get(i);
       if (e.dn().equals(configEntryDN))
       {

@@ -40,8 +40,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -102,7 +102,7 @@ public class BackupTask extends Task
    */
   private Map<String,Entry> configEntries;
 
-  private ArrayList<Backend<?>> backendsToArchive;
+  private ArrayList<LocalBackend<?>> backendsToArchive;
 
   /** {@inheritDoc} */
   @Override
@@ -255,7 +255,7 @@ public class BackupTask extends Task
     {
       for (Map.Entry<String,Entry> mapEntry : configEntries.entrySet())
       {
-        Backend<?> b = DirectoryServer.getBackend(mapEntry.getKey());
+        LocalBackend<?> b = DirectoryServer.getBackend(mapEntry.getKey());
         if (b != null && b.supports(BackendOperation.BACKUP))
         {
           backendsToArchive.add(b);
@@ -268,7 +268,7 @@ public class BackupTask extends Task
       // be used.
       for (String id : backendIDList)
       {
-        Backend<?> b = DirectoryServer.getBackend(id);
+        LocalBackend<?> b = DirectoryServer.getBackend(id);
         if (b == null || configEntries.get(id) == null)
         {
           logger.error(ERR_BACKUPDB_NO_BACKENDS_FOR_ID, id);
@@ -309,7 +309,7 @@ public class BackupTask extends Task
    * @param backupLocation The backup directory.
    * @return true if the backend was successfully archived.
    */
-  private boolean backupBackend(Backend<?> b, File backupLocation)
+  private boolean backupBackend(LocalBackend<?> b, File backupLocation)
   {
     // Get the config entry for this backend.
     BackendCfg cfg = TaskUtils.getConfigEntry(b);
@@ -410,7 +410,7 @@ public class BackupTask extends Task
    * @param b The backend on which the lock is to be acquired.
    * @return true if the lock was successfully acquired.
    */
-  private boolean lockBackend(Backend<?> b)
+  private boolean lockBackend(LocalBackend<?> b)
   {
     try
     {
@@ -436,7 +436,7 @@ public class BackupTask extends Task
    * @param b The backend on which the lock is held.
    * @return true if the lock was successfully released.
    */
-  private boolean unlockBackend(Backend<?> b)
+  private boolean unlockBackend(LocalBackend<?> b)
   {
     try
     {
@@ -505,7 +505,7 @@ public class BackupTask extends Task
 
     // Iterate through the backends to archive and back them up individually.
     boolean errorsEncountered = false;
-    for (Backend<?> b : backendsToArchive)
+    for (LocalBackend<?> b : backendsToArchive)
     {
       if (isCancelled())
       {

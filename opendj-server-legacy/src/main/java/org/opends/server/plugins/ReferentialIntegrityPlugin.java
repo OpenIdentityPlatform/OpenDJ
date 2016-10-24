@@ -55,7 +55,7 @@ import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReferentialIntegrityPluginCfgDefn.CheckReferencesScopeCriteria;
 import org.forgerock.opendj.server.config.server.PluginCfg;
 import org.forgerock.opendj.server.config.server.ReferentialIntegrityPluginCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
@@ -297,7 +297,7 @@ public class ReferentialIntegrityPlugin
 
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
         if (b != null && !b.isIndexed(type, IndexType.EQUALITY))
         {
           isAcceptable = false;

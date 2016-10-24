@@ -26,7 +26,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -60,7 +60,7 @@ public class BackendToolUtils
    * @return 0 if everything went fine. 1 if an error occurred.
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public static int getBackends(final List<Backend<?>> backendList, final List<BackendCfg> entryList,
+  public static int getBackends(final List<LocalBackend<?>> backendList, final List<BackendCfg> entryList,
       final List<List<DN>> dnList)
   {
     try
@@ -80,11 +80,11 @@ public class BackendToolUtils
         }
 
         final Class<?> backendClass = getBackendClass(backendClassName, configEntry);
-        final Backend backend;
+        final LocalBackend backend;
         final BackendCfg cfg;
         try
         {
-          backend = (Backend) backendClass.newInstance();
+          backend = (LocalBackend) backendClass.newInstance();
           backend.setBackendID(backendID);
           cfg = root.getBackend(backendID);
           backend.configureBackend(cfg, DirectoryServer.getInstance().getServerContext());

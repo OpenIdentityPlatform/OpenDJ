@@ -40,7 +40,7 @@ import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicy;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SynchronizationProvider;
@@ -98,7 +98,7 @@ public class LocalBackendModifyOperation
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend in which the target entry exists. */
-  private Backend<?> backend;
+  private LocalBackend<?> backend;
   /** The client connection associated with this operation. */
   private ClientConnection clientConnection;
   private boolean preOperationPluginsExecuted;

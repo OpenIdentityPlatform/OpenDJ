@@ -28,8 +28,8 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
-import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
@@ -610,7 +610,7 @@ public class LDIFBackendTestCase
   @Test
   public void testHasSubordinates() throws Exception
   {
-    Backend<?> b = getLDIFBackend();
+    LocalBackend<?> b = getLDIFBackend();
 
     assertEquals(b.hasSubordinates(DN.valueOf("o=ldif")), ConditionResult.TRUE);
     assertEquals(b.hasSubordinates(DN.valueOf("uid=user.1,ou=People,o=ldif")),
@@ -636,7 +636,7 @@ public class LDIFBackendTestCase
   @Test
   public void testNumSubordinates() throws Exception
   {
-    Backend<?> b = getLDIFBackend();
+    LocalBackend<?> b = getLDIFBackend();
 
     assertEquals(b.getNumberOfChildren(DN.valueOf("o=ldif")), 1);
     assertEquals(b.getNumberOfEntriesInBaseDN(DN.valueOf("o=ldif")), 27);
@@ -665,7 +665,7 @@ public class LDIFBackendTestCase
   @Test
   public void testLDIFExport() throws Exception
   {
-    Backend<?> b = getLDIFBackend();
+    LocalBackend<?> b = getLDIFBackend();
     assertTrue(b.supports(BackendOperation.LDIF_EXPORT));
 
     String tempFilePath = TestCaseUtils.createTempFile();
@@ -726,7 +726,7 @@ public class LDIFBackendTestCase
 
   private LDIFBackend getLDIFBackend()
   {
-    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
+    LocalBackend<?> b = DirectoryServer.getBackend("ldifRoot");
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
     return (LDIFBackend) b;

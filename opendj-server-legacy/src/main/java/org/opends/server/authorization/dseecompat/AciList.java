@@ -32,7 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
@@ -369,7 +369,7 @@ public class AciList {
    * @param backend  The backend to check if each DN is handled by that
    * backend.
    */
-  public void removeAci(Backend<?> backend) {
+  public void removeAci(LocalBackend<?> backend) {
 
     lock.writeLock().lock();
     try

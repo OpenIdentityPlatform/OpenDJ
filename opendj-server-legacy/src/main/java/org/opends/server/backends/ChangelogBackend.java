@@ -56,7 +56,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.EntryChangelogNotificationControl;
 import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.core.AddOperation;
@@ -160,7 +160,7 @@ import org.opends.server.util.StaticUtils;
  *
  * @see ReplicationServer
  */
-public class ChangelogBackend extends Backend<Configuration>
+public class ChangelogBackend extends LocalBackend<Configuration>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

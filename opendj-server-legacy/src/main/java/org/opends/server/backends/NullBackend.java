@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.BackendCfg;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.PagedResultsControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -86,7 +86,7 @@ import org.opends.server.util.LDIFWriter;
  * not represent a complete and stable API, should be considered private
  * and subject to change without notice.
  */
-public class NullBackend extends Backend<BackendCfg>
+public class NullBackend extends LocalBackend<BackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

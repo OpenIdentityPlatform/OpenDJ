@@ -43,7 +43,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
 import org.forgerock.util.Reject;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
@@ -83,7 +83,7 @@ import org.opends.server.util.RuntimeInformation;
  * @param <C>
  *          the type of the BackendCfg for the current backend
  */
-public abstract class BackendImpl<C extends PluggableBackendCfg> extends Backend<C> implements
+public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBackend<C> implements
     ConfigurationChangeListener<PluggableBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

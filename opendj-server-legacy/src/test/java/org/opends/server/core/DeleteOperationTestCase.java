@@ -25,7 +25,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
@@ -58,7 +58,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
@@ -569,7 +569,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -591,7 +591,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -613,7 +613,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     String[] args = getArgs("o=test");

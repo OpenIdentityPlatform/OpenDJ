@@ -62,49 +62,49 @@ public class TestTaskListener
   }
 
   @Override
-  public void processBackupBegin(Backend<?> backend, BackupConfig config)
+  public void processBackupBegin(LocalBackend<?> backend, BackupConfig config)
   {
     backupBeginCount.incrementAndGet();
   }
 
   @Override
-  public void processBackupEnd(Backend<?> backend, BackupConfig config, boolean successful)
+  public void processBackupEnd(LocalBackend<?> backend, BackupConfig config, boolean successful)
   {
     backupEndCount.incrementAndGet();
   }
 
   @Override
-  public void processRestoreBegin(Backend<?> backend, RestoreConfig config)
+  public void processRestoreBegin(LocalBackend<?> backend, RestoreConfig config)
   {
     restoreBeginCount.incrementAndGet();
   }
 
   @Override
-  public void processRestoreEnd(Backend<?> backend, RestoreConfig config, boolean successful)
+  public void processRestoreEnd(LocalBackend<?> backend, RestoreConfig config, boolean successful)
   {
     restoreEndCount.incrementAndGet();
   }
 
   @Override
-  public void processExportBegin(Backend<?> backend, LDIFExportConfig config)
+  public void processExportBegin(LocalBackend<?> backend, LDIFExportConfig config)
   {
     exportBeginCount.incrementAndGet();
   }
 
   @Override
-  public void processExportEnd(Backend<?> backend, LDIFExportConfig config, boolean successful)
+  public void processExportEnd(LocalBackend<?> backend, LDIFExportConfig config, boolean successful)
   {
     exportEndCount.incrementAndGet();
   }
 
   @Override
-  public void processImportBegin(Backend<?> backend, LDIFImportConfig config)
+  public void processImportBegin(LocalBackend<?> backend, LDIFImportConfig config)
   {
     importBeginCount.incrementAndGet();
   }
 
   @Override
-  public void processImportEnd(Backend<?> backend, LDIFImportConfig config, boolean successful)
+  public void processImportEnd(LocalBackend<?> backend, LDIFImportConfig config, boolean successful)
   {
     importEndCount.incrementAndGet();
   }
