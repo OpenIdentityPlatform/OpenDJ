@@ -21,11 +21,12 @@ import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.cli.Utils.throwIfArgumentsConflict;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 import static com.forgerock.opendj.ldap.tools.Utils.addControlsToRequest;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
+import static com.forgerock.opendj.ldap.tools.Utils.runToolAndExit;
 
 import java.io.PrintStream;
 
@@ -41,9 +42,9 @@ import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 /**
  * A tool that can be used to issue LDAP password modify extended requests to
@@ -57,7 +58,7 @@ import com.forgerock.opendj.cli.StringArgument;
  * All of these are optional components that may be included or omitted from the
  * request.
  */
-public final class LDAPPasswordModify extends ConsoleApplication {
+public final class LDAPPasswordModify extends ToolConsoleApplication {
 
     /**
      * The main method for ldappasswordmodify tool.
@@ -66,36 +67,29 @@ public final class LDAPPasswordModify extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        System.exit(filterExitCode(run(System.out, System.err, args)));
+        runToolAndExit(new LDAPPasswordModify(System.out, System.err), args);
     }
 
     /**
-     * Run {@link LDAPPasswordModify} tool with the provided arguments.
-     * Output and errors will be written on the provided streams.
-     * This method can be used to run the tool programmatically.
+     * This method should be used to run this ldap tool programmatically.
+     * Output and errors will be printed on provided {@link PrintStream}.
      *
      * @param out
-     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     *            The {@link PrintStream} to use to write tool output.
      * @param err
-     *      {@link PrintStream} which will be used by the tool to write errors.
+     *            The {@link PrintStream} to use to write tool errors.
      * @param args
-     *      Arguments set to pass to the tool.
-     * @return
-     *      An integer which represents the result code of the tool.
+     *            The arguments to use with this tool.
+     * @return The code returned by the tool
      */
     public static int run(final PrintStream out, final PrintStream err, final String... args) {
-        final LDAPPasswordModify ldapPasswordModify = new LDAPPasswordModify(out, err);
-        try {
-            return ldapPasswordModify.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldapPasswordModify);
-            return e.getResultCode();
-        }
+        return runTool(new LDAPPasswordModify(out, err), args);
     }
 
     private BooleanArgument verbose;
 
-    private LDAPPasswordModify(final PrintStream out, final PrintStream err) {
+    @VisibleForTesting
+    LDAPPasswordModify(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -109,7 +103,8 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    private int run(final String[] args) throws LDAPToolException {
+    @Override
+    int run(final String... args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION.get();
         final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPPasswordModify.class.getName())

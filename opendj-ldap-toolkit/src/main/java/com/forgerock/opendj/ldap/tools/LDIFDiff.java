@@ -20,13 +20,14 @@ import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDI
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static com.forgerock.opendj.ldap.tools.Utils.computeWrapColumn;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolInputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.getLDIFToolOutputStream;
 import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
+import static com.forgerock.opendj.ldap.tools.Utils.runToolAndExit;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.IOException;
@@ -46,14 +47,14 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 /**
  * This utility can be used to compare two LDIF files and report the differences
  * in LDIF format.
  */
-public final class LDIFDiff extends ConsoleApplication {
+public final class LDIFDiff extends ToolConsoleApplication {
 
     static final int NO_DIFFERENCES_FOUND = 0;
     static final int DIFFERENCES_FOUND = 1;
@@ -65,34 +66,27 @@ public final class LDIFDiff extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        System.exit(filterExitCode(run(System.out, System.err, args)));
+        runToolAndExit(new LDIFDiff(System.out, System.err), args);
     }
 
     /**
-     * Run {@link LDIFDiff} tool with the provided arguments.
-     * Output and errors will be written on the provided streams.
-     * This method can be used to run the tool programmatically.
+     * This method should be used to run this tool programmatically.
+     * Output and errors will be printed on provided {@link PrintStream}.
      *
      * @param out
-     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     *            The {@link PrintStream} to use to write tool output.
      * @param err
-     *      {@link PrintStream} which will be used by the tool to write errors.
+     *            The {@link PrintStream} to use to write tool errors.
      * @param args
-     *      Arguments set to pass to the tool.
-     * @return
-     *      An integer which represents the result code of the tool.
+     *            The arguments to use with this tool.
+     * @return The code returned by the tool
      */
     public static int run(final PrintStream out, final PrintStream err, final String... args) {
-        final LDIFDiff ldifDiff = new LDIFDiff(out, err);
-        try {
-            return ldifDiff.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldifDiff);
-            return e.getResultCode();
-        }
+        return runTool(new LDIFDiff(out, err), args);
     }
 
-    private LDIFDiff(final PrintStream out, final PrintStream err) {
+    @VisibleForTesting
+    LDIFDiff(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -101,7 +95,8 @@ public final class LDIFDiff extends ConsoleApplication {
         return false;
     }
 
-    private int run(final String[] args) throws LDAPToolException {
+    @Override
+    int run(final String... args) throws LDAPToolException {
         final ArgumentParser argParser = LDAPToolArgumentParser.builder(LDIFDiff.class.getName())
                 .toolDescription(INFO_LDIFDIFF_TOOL_DESCRIPTION.get())
                 .trailingArguments(2, "source target")

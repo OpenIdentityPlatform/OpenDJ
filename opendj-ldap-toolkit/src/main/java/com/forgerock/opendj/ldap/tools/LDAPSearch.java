@@ -63,12 +63,12 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.opendj.util.StaticUtils;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 import static com.forgerock.opendj.cli.CliMessages.INFO_NUM_ENTRIES_PLACEHOLDER;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
@@ -81,6 +81,8 @@ import static com.forgerock.opendj.ldap.tools.Utils.printlnTextMsg;
 import static com.forgerock.opendj.ldap.tools.Utils.readAssertionControl;
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
 import static com.forgerock.opendj.ldap.tools.Utils.readFilterFromString;
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
+import static com.forgerock.opendj.ldap.tools.Utils.runToolAndExit;
 import static org.forgerock.util.Utils.*;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
@@ -89,7 +91,7 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
 /** A tool that can be used to issue Search requests to the Directory Server. */
-public final class LDAPSearch extends ConsoleApplication {
+public final class LDAPSearch extends ToolConsoleApplication {
 
     /**
      * The main method for ldapsearch tool.
@@ -98,34 +100,23 @@ public final class LDAPSearch extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        System.exit(filterExitCode(run(System.out, System.err, args)));
+        runToolAndExit(new LDAPSearch(System.out, System.err), args);
     }
 
     /**
-     * Run {@link LDAPSearch} tool with the provided arguments.
-     * Output and errors will be written on the provided streams.
-     * This method can be used to run the tool programmatically.
+     * This method should be used to run this ldap tool programmatically.
+     * Output and errors will be printed on provided {@link PrintStream}.
      *
      * @param out
-     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     *            The {@link PrintStream} to use to write tool output.
      * @param err
-     *      {@link PrintStream} which will be used by the tool to write errors.
+     *            The {@link PrintStream} to use to write tool errors.
      * @param args
-     *      Arguments set to pass to the tool.
-     * @return
-     *      An integer which represents the result code of the tool.
+     *            The arguments to use with this tool.
+     * @return The code returned by the tool
      */
     public static int run(final PrintStream out, final PrintStream err, final String... args) {
-        final LDAPSearch ldapSearch = new LDAPSearch(out, err);
-        try {
-            return ldapSearch.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldapSearch);
-            return e.getResultCode();
-        } catch (final ArgumentException e) {
-            ldapSearch.errPrintln(ERR_ERROR_PARSING_ARGS.get(e.getMessageObject()));
-            return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-        }
+        return runTool(new LDAPSearch(out, err), args);
     }
 
     private class LDAPSearchResultHandler implements SearchResultHandler {
@@ -209,7 +200,8 @@ public final class LDAPSearch extends ConsoleApplication {
 
     private EntryWriter ldifWriter;
 
-    private LDAPSearch(final PrintStream out, final PrintStream err) {
+    @VisibleForTesting
+    LDAPSearch(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -223,7 +215,16 @@ public final class LDAPSearch extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    private int run(final String[] args) throws LDAPToolException, ArgumentException {
+    @Override
+    int run(final String... args) throws LDAPToolException {
+        try {
+            return runLdapSearch(args);
+        } catch (final ArgumentException e) {
+            throw newToolParamException(e, ERR_ERROR_PARSING_ARGS.get(e.getMessageObject()));
+        }
+    }
+
+    int runLdapSearch(final String[] args) throws LDAPToolException, ArgumentException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();
         final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPSearch.class.getName())

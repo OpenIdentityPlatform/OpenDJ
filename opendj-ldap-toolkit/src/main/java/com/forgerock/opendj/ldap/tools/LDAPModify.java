@@ -21,7 +21,6 @@ import static com.forgerock.opendj.cli.CliMessages.INFO_FILE_PLACEHOLDER;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
 import static com.forgerock.opendj.ldap.tools.Utils.printSuccessMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readAssertionControl;
@@ -29,6 +28,8 @@ import static com.forgerock.opendj.ldap.tools.Utils.readControls;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.cli.CommonArguments.*;
 
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
+import static com.forgerock.opendj.ldap.tools.Utils.runToolAndExit;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.IOException;
@@ -65,14 +66,14 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 /**
  * A tool that can be used to issue update (Add/Delete/Modify/ModifyDN) requests
  * to the Directory Server.
  */
-public final class LDAPModify extends ConsoleApplication {
+public final class LDAPModify extends ToolConsoleApplication {
 
     /**
      * The main method for ldapmodify tool.
@@ -81,31 +82,23 @@ public final class LDAPModify extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        System.exit(filterExitCode(run(System.out, System.err, args)));
+        runToolAndExit(new LDAPModify(System.out, System.err), args);
     }
 
     /**
-     * Run {@link LDAPModify} tool with the provided arguments.
-     * Output and errors will be written on the provided streams.
-     * This method can be used to run the tool programmatically.
+     * This method should be used to run this ldap tool programmatically.
+     * Output and errors will be printed on provided {@link PrintStream}.
      *
      * @param out
-     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     *            The {@link PrintStream} to use to write tool output.
      * @param err
-     *      {@link PrintStream} which will be used by the tool to write errors.
+     *            The {@link PrintStream} to use to write tool errors.
      * @param args
-     *      Arguments set to pass to the tool.
-     * @return
-     *      An integer which represents the result code of the tool.
+     *            The arguments to use with this tool.
+     * @return The code returned by the tool
      */
     public static int run(final PrintStream out, final PrintStream err, final String... args) {
-        final LDAPModify ldapModify = new LDAPModify(out, err);
-        try {
-            return ldapModify.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldapModify);
-            return e.getResultCode();
-        }
+        return runTool(new LDAPModify(out, err), args);
     }
 
     private final class VisitorImpl implements ChangeRecordVisitor<Integer, Void> {
@@ -240,7 +233,8 @@ public final class LDAPModify extends ConsoleApplication {
     private Collection<Control> controls;
     private BooleanArgument verbose;
 
-    private LDAPModify(final PrintStream out, final PrintStream err) {
+    @VisibleForTesting
+    LDAPModify(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -254,7 +248,8 @@ public final class LDAPModify extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    private int run(final String[] args) throws LDAPToolException {
+    @Override
+    int run(final String... args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
         final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPModify.class.getName())
                 .toolDescription(INFO_LDAPMODIFY_TOOL_DESCRIPTION.get())

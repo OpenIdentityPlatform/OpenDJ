@@ -28,18 +28,18 @@ import static com.forgerock.opendj.cli.CommonArguments.propertiesFileArgument;
 import static com.forgerock.opendj.cli.CommonArguments.showUsageArgument;
 import static com.forgerock.opendj.cli.CommonArguments.verboseArgument;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.addControlsToRequest;
 import static com.forgerock.opendj.ldap.tools.Utils.getConnection;
 import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.printSuccessMessage;
 import static com.forgerock.opendj.ldap.tools.Utils.readControls;
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
+import static com.forgerock.opendj.ldap.tools.Utils.runToolAndExit;
 import static org.forgerock.i18n.LocalizableMessage.raw;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,7 +61,7 @@ import java.util.Collections;
 import java.util.List;
 
 /** A tool that can be used to issue delete requests to the Directory Server. */
-public final class LDAPDelete extends ConsoleApplication {
+public final class LDAPDelete extends ToolConsoleApplication {
 
     /**
      * The main method for ldapdelete tool.
@@ -69,34 +70,27 @@ public final class LDAPDelete extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        System.exit(filterExitCode(run(System.out, System.err, args)));
+        runToolAndExit(new LDAPDelete(System.out, System.err), args);
     }
 
     /**
-     * Run {@link LDAPDelete} tool with the provided arguments.
-     * Output and errors will be written on the provided streams.
-     * This method can be used to run the tool programmatically.
+     * This method should be used to run this ldap tool programmatically.
+     * Output and errors will be printed on provided {@link PrintStream}.
      *
      * @param out
-     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     *            The {@link PrintStream} to use to write tool output.
      * @param err
-     *      {@link PrintStream} which will be used by the tool to write errors.
+     *            The {@link PrintStream} to use to write tool errors.
      * @param args
-     *      Arguments set to pass to the tool.
-     * @return
-     *      An integer which represents the result code of the tool.
+     *            The arguments to use with this tool.
+     * @return The code returned by the tool
      */
     public static int run(final PrintStream out, final PrintStream err, final String... args) {
-        final LDAPDelete ldapDelete = new LDAPDelete(out, err);
-        try {
-            return ldapDelete.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(ldapDelete);
-            return e.getResultCode();
-        }
+        return runTool(new LDAPDelete(out, err), args);
     }
 
-    private LDAPDelete(final PrintStream out, final PrintStream err) {
+    @VisibleForTesting
+    LDAPDelete(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -112,7 +106,8 @@ public final class LDAPDelete extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    private int run(String[] args) throws LDAPToolException {
+    @Override
+    int run(String... args) throws LDAPToolException {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPDELETE_TOOL_DESCRIPTION.get();
         final LDAPToolArgumentParser argParser = LDAPToolArgumentParser.builder(LDAPDelete.class.getName())

@@ -20,7 +20,6 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.CliMessages.ERR_FILEARG_NO_SUCH_FILE;
 import static com.forgerock.opendj.cli.CommonArguments.showUsageArgument;
 import static com.forgerock.opendj.cli.ToolVersionHandler.newSdkVersionHandler;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.throwIfArgumentsConflict;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_LENGTH;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
@@ -28,6 +27,7 @@ import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
+import static com.forgerock.opendj.ldap.tools.Utils.runToolAndExit;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static org.forgerock.util.Utils.closeSilently;
 
@@ -49,11 +49,11 @@ import java.util.StringTokenizer;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 /**
  * Tool that can be used for performing base64 encoding and decoding.
@@ -62,7 +62,7 @@ import org.forgerock.opendj.ldap.ResultCode;
  * sets of three bytes with eight significant bits each to sets of four bytes
  * with six significant bits each.
  */
-public final class Base64 extends ConsoleApplication {
+public final class Base64 extends ToolConsoleApplication {
 
     /**
      * The main method for base64 tool.
@@ -71,34 +71,11 @@ public final class Base64 extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        System.exit(filterExitCode(run(System.out, System.err, args)));
+        runToolAndExit(new Base64(System.out, System.err), args);
     }
 
-    /**
-     * Run {@link Base64} tool with the provided arguments.
-     * Output and errors will be write on the provided streams.
-     * This method can be use to run the tool programmatically.
-     *
-     * @param out
-     *      {@link PrintStream} which will be use by the tool to write results and information messages.
-     * @param err
-     *      {@link PrintStream} which will be use by the tool to write errors.
-     * @param args
-     *      Arguments set to pass to the tool.
-     * @return
-     *      An integer which represents the result code of the tool.
-     */
-    public static int run(final PrintStream out, final PrintStream err, final String... args) {
-        final Base64 base64 = new Base64(out, err);
-        try {
-            return base64.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(base64);
-            return e.getResultCode();
-        }
-    }
-
-    private Base64(final PrintStream out, final PrintStream err) {
+    @VisibleForTesting
+    Base64(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -107,7 +84,8 @@ public final class Base64 extends ConsoleApplication {
         return false;
     }
 
-    private int run(final String[] args) throws LDAPToolException {
+    @Override
+    int run(final String... args) throws LDAPToolException {
         final SubCommandArgumentParser argParser =
                 new SubCommandArgumentParser(Base64.class.getName(), INFO_BASE64_TOOL_DESCRIPTION.get(), false);
         argParser.setShortToolDescription(REF_SHORT_DESC_BASE64.get());

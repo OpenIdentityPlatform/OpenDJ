@@ -24,9 +24,10 @@ import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolExceptionAlreadyPrinted;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.ldap.tools.Utils.computeWrapColumn;
 import static com.forgerock.opendj.ldap.tools.Utils.parseArguments;
+import static com.forgerock.opendj.ldap.tools.Utils.runTool;
+import static com.forgerock.opendj.ldap.tools.Utils.runToolAndExit;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedWriter;
@@ -50,9 +51,10 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldif.EntryGenerator;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 /** Program that generate LDIF content based on a template. */
-public final class MakeLDIF extends ConsoleApplication {
+public final class MakeLDIF extends ToolConsoleApplication {
     /** The value for the constant option in LDIF generator tools. */
     public static final String OPTION_LONG_CONSTANT = "constant";
 
@@ -66,34 +68,27 @@ public final class MakeLDIF extends ConsoleApplication {
      *            The command-line arguments provided to this program.
      */
     public static void main(final String[] args) {
-        System.exit(filterExitCode(run(System.out, System.err, args)));
+        runToolAndExit(new MakeLDIF(System.out, System.err), args);
     }
 
     /**
-     * Run {@link MakeLDIF} tool with the provided arguments.
-     * Output and errors will be written on the provided streams.
-     * This method can be used to run the tool programmatically.
+     * This method should be used to run this tool programmatically.
+     * Output and errors will be printed on provided {@link PrintStream}.
      *
      * @param out
-     *      {@link PrintStream} which will be used by the tool to write results and information messages.
+     *            The {@link PrintStream} to use to write tool output.
      * @param err
-     *      {@link PrintStream} which will be used by the tool to write errors.
+     *            The {@link PrintStream} to use to write tool errors.
      * @param args
-     *      Arguments set to pass to the tool.
-     * @return
-     *      An integer which represents the result code of the tool.
+     *            The arguments to use with this tool.
+     * @return The code returned by the tool
      */
     public static int run(final PrintStream out, final PrintStream err, final String... args) {
-        final MakeLDIF makeLDIF = new MakeLDIF(out, err);
-        try {
-            return makeLDIF.run(args);
-        } catch (final LDAPToolException e) {
-            e.printErrorMessage(makeLDIF);
-            return e.getResultCode();
-        }
+        return runTool(new MakeLDIF(out, err), args);
     }
 
-    private MakeLDIF(final PrintStream out, final PrintStream err) {
+    @VisibleForTesting
+    MakeLDIF(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -105,7 +100,8 @@ public final class MakeLDIF extends ConsoleApplication {
     /** The total number of entries that have been written. */
     private long numberOfEntriesWritten;
 
-    private int run(final String[] args) throws LDAPToolException {
+    @Override
+    int run(final String... args) throws LDAPToolException {
         final LocalizableMessage toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = LDAPToolArgumentParser.builder(MakeLDIF.class.getName())
                 .toolDescription(toolDescription)

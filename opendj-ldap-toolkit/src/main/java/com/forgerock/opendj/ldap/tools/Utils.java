@@ -18,6 +18,7 @@ package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.USE_SYSTEM_STREAM_TOKEN;
 import static com.forgerock.opendj.cli.CliConstants.NO_WRAPPING_BY_DEFAULT;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
 import static com.forgerock.opendj.cli.Utils.secondsToTimeString;
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException;
@@ -75,6 +76,7 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 /**
  * This class provides utility functions for all the client side tools.
@@ -456,6 +458,20 @@ final class Utils {
             return wrapColumn.getIntValue();
         }
         return NO_WRAPPING_BY_DEFAULT;
+    }
+
+    static void runToolAndExit(final ToolConsoleApplication tool, final String[] args) {
+        System.exit(filterExitCode(runTool(tool, args)));
+    }
+
+    @VisibleForTesting
+    static int runTool(final ToolConsoleApplication tool, final String... args) {
+        try {
+            return tool.run(args);
+        } catch (final LDAPToolException e) {
+            e.printErrorMessage(tool);
+            return e.getResultCode();
+        }
     }
 
     /** Prevent instantiation. */
