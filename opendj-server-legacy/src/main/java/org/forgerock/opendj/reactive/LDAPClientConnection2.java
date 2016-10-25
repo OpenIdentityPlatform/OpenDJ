@@ -99,9 +99,9 @@ import com.forgerock.reactive.Single;
 import com.forgerock.reactive.Stream;
 
 import io.reactivex.BackpressureOverflowStrategy;
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
-import io.reactivex.FlowableEmitter.BackpressureMode;
 import io.reactivex.FlowableOnSubscribe;
 
 /**
@@ -954,7 +954,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             public void subscribe(FlowableEmitter<Response> emitter) throws Exception {
                 processLDAPMessage(queueingStrategy, LDAPReader.readMessage(message.getContent()), emitter);
             }
-        }, BackpressureMode.NONE).onBackpressureBuffer(64, null, BackpressureOverflowStrategy.ERROR)));
+        }, BackpressureStrategy.NONE).onBackpressureBuffer(64, null, BackpressureOverflowStrategy.ERROR)));
     }
 
     private boolean processLDAPMessage(final QueueingStrategy queueingStrategy, final LDAPMessage message,

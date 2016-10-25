@@ -16,7 +16,7 @@
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.Closeable;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.Set;
 
 /**
@@ -36,7 +36,7 @@ public interface LDAPListenerImpl extends Closeable {
      *
      * @return The addresses that this LDAP listener is listening on.
      */
-    Set<? extends SocketAddress> getSocketAddresses();
+    Set<InetSocketAddress> getSocketAddresses();
 
     /**
      * Closes this stream and releases any system resources associated

@@ -18,7 +18,6 @@ package org.forgerock.opendj.ldap.spi;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.Response;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
  * Contains statics methods to create ldap messages.
@@ -40,15 +39,13 @@ public final class LdapMessages {
      *            Protocol version to use (only for Bind requests)
      * @param rawDn
      *            Unparsed name contained in the request (or null if DN is not applicable)
-     * @param schema
-     *            Schema to use to parse the DN
      * @param reader
      *            An {@link ASN1Reader} containing the full encoded ldap message packet.
      * @return A new {@link LdapRawMessage}
      */
     public static LdapRawMessage newRawMessage(final byte messageType, final int messageId, final int protocolVersion,
-            final String rawDn, final Schema schema, final ASN1Reader reader) {
-        return new LdapRawMessage(messageType, messageId, protocolVersion, rawDn, schema, reader);
+            final String rawDn, final ASN1Reader reader) {
+        return new LdapRawMessage(messageType, messageId, protocolVersion, rawDn, reader);
     }
 
     /**
@@ -73,16 +70,13 @@ public final class LdapMessages {
      */
     public static final class LdapRawMessage extends LdapMessageEnvelope<ASN1Reader> {
         private final String rawDn;
-        private final Schema schema;
         private final int version;
-        private DN dn;
 
         private LdapRawMessage(final byte messageType, final int messageId, final int version, final String rawDn,
-                final Schema schema, final ASN1Reader content) {
+                final ASN1Reader content) {
             super(messageType, messageId, content);
             this.version = version;
             this.rawDn = rawDn;
-            this.schema = schema;
         }
 
         /**
@@ -101,23 +95,6 @@ public final class LdapMessages {
          */
         public String getRawDn() {
             return rawDn;
-        }
-
-        /**
-         * Get the decoded form of the {@link DN} contained in the message (or null if the message doesn't contains a
-         * DN).
-         *
-         * @return The decoded {@link DN} contained in the request, or null if the message doesn't contains a DN.
-         */
-        public DN getDn() {
-            if (rawDn == null) {
-                return null;
-            }
-            if (dn != null) {
-                return dn;
-            }
-            dn = DN.valueOf(rawDn.toString(), schema);
-            return dn;
         }
     }
 

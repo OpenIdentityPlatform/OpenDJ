@@ -71,7 +71,6 @@ import org.reactivestreams.Subscription;
 
 import com.forgerock.reactive.Action;
 import com.forgerock.reactive.Completable;
-import com.forgerock.reactive.Consumer;
 import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Single;
 import com.forgerock.reactive.Stream;
@@ -195,10 +194,12 @@ final class LDAPServerFilter extends BaseFilter {
                             });
                 }
             }, maxConcurrentRequests)
-            .onErrorDo(new Consumer<Throwable>() {
+            .onErrorResumeWith(new Function<Throwable, Publisher<Object>, Exception>() {
                 @Override
-                public void accept(final Throwable error) throws Exception {
+                public Publisher<Object> apply(Throwable error) throws Exception {
                     clientContext.notifyErrorAndCloseSilently(error);
+                    // Swallow the error to prevent the subscribe() below to report it on the console.
+                    return streamFrom(DUMMY);
                 }
             })
             .onCompleteDo(new Action() {

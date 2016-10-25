@@ -19,7 +19,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 import static org.forgerock.opendj.ldap.CommonLDAPOptions.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 import static org.forgerock.util.time.Duration.duration;
 import static org.mockito.Matchers.*;
@@ -349,7 +349,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
 
     private LDAPListener createServer() {
         try {
-            return new LDAPListener(findFreeSocketAddress(),
+            return new LDAPListener(loopbackWithDynamicPort(),
                     new ServerConnectionFactory<LDAPClientContext, Integer>() {
                         @Override
                         public ServerConnection<Integer> handleAccept(

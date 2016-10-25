@@ -21,7 +21,7 @@ import static org.forgerock.opendj.ldap.CommonLDAPOptions.LDAP_DECODE_OPTIONS;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -56,7 +56,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
     private final Collection<TCPNIOServerConnection> serverConnections;
     private final AtomicBoolean isClosed = new AtomicBoolean();
-    private final Set<SocketAddress> socketAddresses;
+    private final Set<InetSocketAddress> socketAddresses;
     private final Options options;
 
     /**
@@ -72,7 +72,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      * @throws IOException
      *             If an error occurred while trying to listen on the provided address.
      */
-    public GrizzlyLDAPListener(final Set<? extends SocketAddress> addresses, final Options options,
+    public GrizzlyLDAPListener(final Set<InetSocketAddress> addresses, final Options options,
             final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
                            LdapException> requestHandlerFactory) throws IOException {
@@ -95,7 +95,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      * @throws IOException
      *             If an error occurred while trying to listen on the provided address.
      */
-    public GrizzlyLDAPListener(final Set<? extends SocketAddress> addresses,
+    public GrizzlyLDAPListener(final Set<InetSocketAddress> addresses,
             final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
                            LdapException> requestHandlerFactory,
@@ -116,10 +116,10 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
                 .processor(ldapChain).build();
         this.serverConnections = new ArrayList<>(addresses.size());
         this.socketAddresses = new HashSet<>(addresses.size());
-        for (final SocketAddress address : addresses) {
+        for (final InetSocketAddress address : addresses) {
             final TCPNIOServerConnection bound = bindingHandler.bind(address, options.get(CONNECT_MAX_BACKLOG));
             serverConnections.add(bound);
-            socketAddresses.add(bound.getLocalAddress());
+            socketAddresses.add((InetSocketAddress) bound.getLocalAddress());
         }
     }
 
@@ -142,7 +142,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     }
 
     @Override
-    public Set<? extends SocketAddress> getSocketAddresses() {
+    public Set<InetSocketAddress> getSocketAddresses() {
         return socketAddresses;
     }
 

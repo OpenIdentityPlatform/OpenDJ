@@ -17,7 +17,7 @@
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -29,7 +29,7 @@ import org.forgerock.util.Options;
  */
 public final class BasicLDAPListener implements LDAPListenerImpl {
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
-    private final Set<? extends SocketAddress> socketAddresses;
+    private final Set<InetSocketAddress> socketAddresses;
 
     /**
      * Creates a new LDAP listener implementation which does nothing.
@@ -44,7 +44,7 @@ public final class BasicLDAPListener implements LDAPListenerImpl {
      * @throws IOException
      *             is never thrown with this do-nothing implementation
      */
-    public BasicLDAPListener(final Set<? extends SocketAddress> addresses,
+    public BasicLDAPListener(final Set<InetSocketAddress> addresses,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
         this.connectionFactory = factory;
@@ -57,7 +57,7 @@ public final class BasicLDAPListener implements LDAPListenerImpl {
     }
 
     @Override
-    public Set<? extends SocketAddress> getSocketAddresses() {
+    public Set<InetSocketAddress> getSocketAddresses() {
         return socketAddresses;
     }
 

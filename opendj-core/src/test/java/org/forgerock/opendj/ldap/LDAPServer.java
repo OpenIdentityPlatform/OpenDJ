@@ -19,7 +19,7 @@ package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.loopbackWithDynamicPort;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -226,8 +226,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                         props.put(Sasl.QOP, "auth-conf,auth-int,auth");
                         saslServer =
                                 Sasl.createSaslServer(saslMech, "ldap",
-                                       ((InetSocketAddress) listener.getSocketAddresses().iterator().next())
-                                       .getHostName(),
+                                       listener.getSocketAddresses().iterator().next().getHostName(),
                                        props,
                                         new CallbackHandler() {
                                             @Override
@@ -518,7 +517,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             return;
         }
         sslContext = new SSLContextBuilder().getSSLContext();
-        listener = new LDAPListener(findFreeSocketAddress(), getInstance(),
+        listener = new LDAPListener(loopbackWithDynamicPort(), getInstance(),
                         Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096));
         isRunning = true;
     }

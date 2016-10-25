@@ -215,11 +215,6 @@ final class Utils {
      * Sets default system property settings for the xxxrate performance tools.
      */
     static void setDefaultPerfToolProperties() {
-        // Use SameThreadStrategy by default.
-        if (System.getProperty("org.forgerock.opendj.transport.useWorkerThreads") == null) {
-            System.setProperty("org.forgerock.opendj.transport.useWorkerThreads", "false");
-        }
-
         /* Configure connections to be terminate immediately after closing (this
          prevents port exhaustion in xxxrate tools when
          connecting/disconnecting).*/

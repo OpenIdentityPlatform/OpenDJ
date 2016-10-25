@@ -20,6 +20,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -137,14 +138,14 @@ final class ASN1BufferReader extends AbstractASN1Reader {
     private SequenceLimiter readLimiter;
 
     /**
-     * Creates a new ASN1 reader whose source is the provided input stream and
+     * Creates a new ASN1 reader whose source is the provided buffer and
      * having a user defined maximum BER element size.
      *
      * @param maxElementSize
      *            The maximum BER element size, or <code>0</code> to indicate
      *            that there is no limit.
-     * @param memoryManager
-     *            The memory manager to use for buffering.
+     * @param buffer
+     *            The buffer where the content will be read from.
      */
     ASN1BufferReader(final int maxElementSize, final Buffer buffer) {
         this.readLimiter = new RootSequenceLimiter();
@@ -392,7 +393,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
         String str;
         try {
-            str = buffer.toStringContent(Charset.forName("UTF-8"), buffer.position(), buffer.position() + peekLength);
+            str = buffer.toStringContent(StandardCharsets.UTF_8, buffer.position(), buffer.position() + peekLength);
         } catch (final Exception e) {
             // TODO: I18N
             logger.warn(LocalizableMessage.raw("Unable to decode ASN.1 OCTETSTRING bytes as UTF-8 string: %s", e));

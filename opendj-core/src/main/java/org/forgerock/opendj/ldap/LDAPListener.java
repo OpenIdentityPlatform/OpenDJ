@@ -19,8 +19,7 @@ package org.forgerock.opendj.ldap;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
@@ -194,14 +193,12 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *             If {@code address}, {code factory}, or {@code options} was
      *             {@code null}.
      */
-    public LDAPListener(final SocketAddress address,
+    public LDAPListener(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final Options options) throws IOException {
         Reject.ifNull(address, factory, options);
         this.provider = getTransportProvider(options);
-        final Set<SocketAddress> addresses = new HashSet<>();
-        addresses.add(address);
-        this.impl = provider.getLDAPListener(addresses, factory, options);
+        this.impl = provider.getLDAPListener(Collections.singleton(address), factory, options);
     }
 
     /**
@@ -263,7 +260,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *
      * @return The address that this LDAP listener is listening on.
      */
-    public Set<? extends SocketAddress> getSocketAddresses() {
+    public Set<InetSocketAddress> getSocketAddresses() {
         return impl.getSocketAddresses();
     }
 

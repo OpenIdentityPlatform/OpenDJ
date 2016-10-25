@@ -37,17 +37,17 @@ public interface LDAPClientContext {
     /** Listens for disconnection event. */
     public interface DisconnectListener {
         /**
-         * Invoked when the connection has been disconnected because of an error (i.e: message too big).
+         * Invoked when the connection has been disconnected because of an error (e.g: message too big).
          *
          * @param context
          *            The {@link LDAPClientContext} which has failed
          * @param error
          *            The error
          */
-        void exceptionOccurred(final LDAPClientContext context, final Throwable error);
+        void exceptionOccurred(LDAPClientContext context, Throwable error);
 
         /**
-         * Invoked when the client closes the connection, possibly using an unbind request.
+         * Invoked when the client closed the connection, possibly using an unbind request.
          *
          * @param context
          *            The {@link LDAPClientContext} which has been disconnected
@@ -55,7 +55,7 @@ public interface LDAPClientContext {
          *            The unbind request, which may be {@code null} if one was not sent before the connection was
          *            closed.
          */
-        void connectionClosed(final LDAPClientContext context, final UnbindRequest unbindRequest);
+        void connectionClosed(LDAPClientContext context, UnbindRequest unbindRequest);
 
         /**
          * Invoked when the connection has been disconnected by the server.
@@ -68,8 +68,7 @@ public interface LDAPClientContext {
          * @param diagnosticMessage
          *            The diagnostic message, which may be empty or {@code null} indicating that none was provided.
          */
-        void connectionDisconnected(final LDAPClientContext context, final ResultCode resultCode,
-                final String diagnosticMessage);
+        void connectionDisconnected(LDAPClientContext context, ResultCode resultCode, String diagnosticMessage);
     }
 
     /**
@@ -77,7 +76,7 @@ public interface LDAPClientContext {
      *
      * @param listener The {@link DisconnectListener} to register.
      */
-    void onDisconnect(final DisconnectListener listener);
+    void onDisconnect(DisconnectListener listener);
 
     /**
      * Disconnects the client without sending a disconnect notification. Invoking this method causes
@@ -97,7 +96,7 @@ public interface LDAPClientContext {
      * @param diagnosticMessage
      *            The diagnostic message to include with the disconnect notification
      */
-    void disconnect(final ResultCode resultCode, final String diagnosticMessage);
+    void disconnect(ResultCode resultCode, String diagnosticMessage);
 
     /**
      * Returns the {@code InetSocketAddress} associated with the local system.

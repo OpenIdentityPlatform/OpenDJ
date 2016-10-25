@@ -544,7 +544,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     }
                 });
 
-        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer);
+        LDAPListener listener = new LDAPListener(new InetSocketAddress("127.0.0.1", 0), mockServer);
         try {
             LDAPConnectionFactory clientFactory = new LDAPConnectionFactory(
                     ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getHostName(),
@@ -627,12 +627,12 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     }
                 });
 
-        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer);
+        LDAPListener listener = new LDAPListener(new InetSocketAddress("127.0.0.1", 0), mockServer);
         try {
             LDAPConnectionFactory clientFactory =
                     new LDAPConnectionFactory(
-                            ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getHostName(),
-                            ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getPort());
+                            listener.getSocketAddresses().iterator().next().getHostName(),
+                            listener.getSocketAddresses().iterator().next().getPort());
             final Connection client = clientFactory.getConnection();
             connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
             try {

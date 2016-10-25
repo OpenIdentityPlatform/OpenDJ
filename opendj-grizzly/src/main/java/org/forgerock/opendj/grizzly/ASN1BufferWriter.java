@@ -139,15 +139,6 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     /** Default maximum size for cached protocol/entry encoding buffers. */
     private static final int DEFAULT_MAX_INTERNAL_BUFFER_SIZE = 32 * 1024;
 
-    /** Reset the writer. */
-    void reset() {
-        if (outBuffer.capacity() > DEFAULT_MAX_INTERNAL_BUFFER_SIZE) {
-            outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
-        } else {
-            outBuffer.clear();
-        }
-    }
-
     private final MemoryManager<Buffer> memoryManager;
     private SequenceBuffer sequenceBuffer;
     private Buffer outBuffer;
@@ -158,6 +149,15 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         this.sequenceBuffer = this.rootBuffer = new RootSequenceBuffer();
         this.memoryManager = memoryManager;
         this.outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
+    }
+
+    /** Reset the writer. */
+    void reset() {
+        if (outBuffer.capacity() > DEFAULT_MAX_INTERNAL_BUFFER_SIZE) {
+            outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
+        } else {
+            outBuffer.clear();
+        }
     }
 
     void ensureAdditionalCapacity(final int size) {
@@ -386,10 +386,6 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, value.length());
         sequenceBuffer.writeByteSequence(value);
-//        // TODO: Is there a more efficient way to do this?
-//        for (int i = 0; i < value.length(); i++) {
-//            sequenceBuffer.writeByte(value.byteAt(i));
-//        }
 
         if (logger.isTraceEnabled()) {
             logger.trace("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, value.length());

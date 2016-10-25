@@ -30,10 +30,12 @@ import org.glassfish.grizzly.memory.HeapMemoryManager;
 
 final class SaslFilter extends BaseFilter {
 
+    private static final int INT_SIZE = 4;
+
     @Override
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
         final Buffer message = ctx.getMessage();
-        if (message.remaining() < 4) {
+        if (message.remaining() < INT_SIZE) {
             return ctx.getStopAction(message);
         }
 

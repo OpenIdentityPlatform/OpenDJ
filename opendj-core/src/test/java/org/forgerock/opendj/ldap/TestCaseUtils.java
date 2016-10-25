@@ -12,13 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2012-2015 ForgeRock AS.
+ * Portions Copyright 2012-2016 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.List;
@@ -84,6 +85,15 @@ public final class TestCaseUtils {
     }
 
     /**
+     * Create a new {@link InetSocketAddress} configured with loopback address and dynamic port 0
+     *
+     * @return A new loopback {@link InetSocketAddress}
+     */
+    public static InetSocketAddress loopbackWithDynamicPort() {
+        return new InetSocketAddress(InetAddress.getLoopbackAddress(), 0);
+    }
+
+    /**
      * Finds a free server socket port on the local host.
      *
      * @return The free port.
@@ -91,7 +101,7 @@ public final class TestCaseUtils {
     public static InetSocketAddress findFreeSocketAddress() {
         try (ServerSocket serverLdapSocket = new ServerSocket()) {
             serverLdapSocket.setReuseAddress(true);
-            serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+            serverLdapSocket.bind(loopbackWithDynamicPort());
             return (InetSocketAddress) serverLdapSocket.getLocalSocketAddress();
         } catch (IOException e) {
             throw new RuntimeException(e);

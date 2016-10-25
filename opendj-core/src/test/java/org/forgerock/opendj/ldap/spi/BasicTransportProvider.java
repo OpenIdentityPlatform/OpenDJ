@@ -16,7 +16,7 @@
 package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -44,7 +44,7 @@ public class BasicTransportProvider implements TransportProvider {
     }
 
     @Override
-    public LDAPListenerImpl getLDAPListener(Set<? extends SocketAddress> addresses,
+    public LDAPListenerImpl getLDAPListener(Set<InetSocketAddress> addresses,
             ServerConnectionFactory<LDAPClientContext, Integer> factory, Options options) throws IOException {
         return new BasicLDAPListener(addresses, factory, options);
     }

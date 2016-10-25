@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2013 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
 
 import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.loopbackWithDynamicPort;
 import static org.testng.Assert.assertTrue;
 
 import java.net.Socket;
@@ -46,10 +46,8 @@ public class DefaultTCPNIOTransportTestCase extends SdkTestCase {
     @Test(enabled = false)
     public void testGetInstance() throws Exception {
         // Create a transport.
-        final ReferenceCountedObject<TCPNIOTransport>.Reference transport =
-                DEFAULT_TRANSPORT.acquire();
-        SocketAddress socketAddress = findFreeSocketAddress();
-        transport.get().bind(socketAddress);
+        final ReferenceCountedObject<TCPNIOTransport>.Reference transport = DEFAULT_TRANSPORT.acquire();
+        SocketAddress socketAddress = transport.get().bind(loopbackWithDynamicPort()).getLocalAddress();
 
         // Establish a socket connection to see if the transport factory works.
         final Socket socket = new Socket();

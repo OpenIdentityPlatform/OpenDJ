@@ -119,8 +119,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
                 rawDn = null;
                 protocolVersion = -1;
             }
-            return LdapMessages.newRawMessage(messageType, messageId, protocolVersion, rawDn,
-                    rawDn != null ? decodeOptions.getSchemaResolver().resolveSchema(rawDn) : null, reader);
+            return LdapMessages.newRawMessage(messageType, messageId, protocolVersion, rawDn, reader);
         } finally {
             reader.reset();
         }
