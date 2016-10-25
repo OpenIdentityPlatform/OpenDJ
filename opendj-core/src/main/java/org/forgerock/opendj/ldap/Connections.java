@@ -48,7 +48,6 @@ import org.forgerock.util.Function;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
-import org.forgerock.util.annotations.VisibleForTesting;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
@@ -566,7 +565,6 @@ public final class Connections {
 
     }
 
-    @VisibleForTesting
     static Function<Request, RequestWithIndex, NeverThrowsException> newShardedRequestLoadBalancerNextFunction(
             final Collection<? extends ConnectionFactory> factories) {
         return new Function<Request, RequestWithIndex, NeverThrowsException>() {
@@ -684,7 +682,6 @@ public final class Connections {
 
     private static final DecodeOptions CONTROL_DECODE_OPTIONS = new DecodeOptions();
 
-    @VisibleForTesting
     static Function<Request, RequestWithIndex, NeverThrowsException> newLeastRequestsLoadBalancerNextFunction(
             final LeastRequestsDispatcher dispatcher) {
         return new Function<Request, RequestWithIndex, NeverThrowsException>() {
@@ -714,7 +711,6 @@ public final class Connections {
         };
     }
 
-    @VisibleForTesting
     static Function<Integer, Void, NeverThrowsException> newLeastRequestsLoadBalancerEndOfRequestFunction(
             final LeastRequestsDispatcher dispatcher) {
         return new Function<Integer, Void, NeverThrowsException>() {
@@ -742,7 +738,6 @@ public final class Connections {
      * dispatched to the less saturated index, i.e. which corresponds to the server that has the lowest number of active
      * requests.
      */
-    @VisibleForTesting
     static class LeastRequestsDispatcher {
         /** Counter for each server. */
         private final AtomicLongArray serversCounters;
