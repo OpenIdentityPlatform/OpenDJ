@@ -170,9 +170,9 @@ public final class Controls {
                     Requests.newSearchRequest(dn,
                             SearchScope.BASE_OBJECT, "(&)", "description")
                             .addControl(control);
-            final ConnectionEntryReader reader = connection.search(read);
 
-            try (final LDIFEntryWriter writer = new LDIFEntryWriter(System.out)) {
+            try (final ConnectionEntryReader reader = connection.search(read);
+                 final LDIFEntryWriter writer = new LDIFEntryWriter(System.out)) {
                 while (reader.hasNext()) {
                     writer.writeEntry(reader.readEntry());
                 }
