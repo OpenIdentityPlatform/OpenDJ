@@ -139,7 +139,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         // Use custom search request.
         SearchRequest request = Requests.newSearchRequest(
             "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT, "(objectclass=*)", "cn");
-//
+
         InetSocketAddress serverAddress = getServerSocketAddress();
         factories[0][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
                                                     serverAddress.getPort(),
@@ -246,7 +246,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      *
      * @throws Exception
      */
-    @Test(dataProvider = "connectionFactories") //, timeOut = TEST_TIMEOUT_MS)
+    @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testBlockingPromiseNoHandler(ConnectionFactory factory) throws Exception {
         final Promise<? extends Connection, LdapException> promise = factory.getConnectionAsync();
         final Connection con = promise.get();

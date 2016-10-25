@@ -25,6 +25,7 @@ import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.memory.Buffers;
+import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.HeapMemoryManager;
 
 final class SaslFilter extends BaseFilter {
@@ -82,17 +83,25 @@ final class SaslFilter extends BaseFilter {
 
     private Buffer wrap(final FilterChainContext ctx, final Buffer buffer) throws SaslException {
         final SaslServer server = SaslUtils.getSaslServer(ctx.getConnection());
+        final Buffer contentBuffer;
         if (buffer.hasArray()) {
-            return Buffers.wrap(ctx.getMemoryManager(),
+            contentBuffer = Buffers.wrap(ctx.getMemoryManager(),
                     server.wrap(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining()));
-        }
-        final Buffer heapBuffer = toHeapBuffer(buffer, buffer.remaining());
-        try {
-            return Buffers.wrap(ctx.getMemoryManager(), server.wrap(heapBuffer.array(),
-                    heapBuffer.arrayOffset() + heapBuffer.position(), heapBuffer.remaining()));
+        } else {
+            final Buffer heapBuffer = toHeapBuffer(buffer, buffer.remaining());
+            try {
+                contentBuffer = Buffers.wrap(
+                        ctx.getMemoryManager(),
+                        server.wrap(heapBuffer.array(), heapBuffer.arrayOffset() + heapBuffer.position(),
+                                heapBuffer.remaining()));
 
-        } finally {
-            heapBuffer.dispose();
+            } finally {
+                heapBuffer.dispose();
+            }
         }
+        final Buffer headerBuffer = ctx.getMemoryManager().allocate(4);
+        headerBuffer.putInt(contentBuffer.limit());
+        headerBuffer.flip();
+        return BuffersBuffer.create(ctx.getMemoryManager(), headerBuffer, contentBuffer);
     }
 }
