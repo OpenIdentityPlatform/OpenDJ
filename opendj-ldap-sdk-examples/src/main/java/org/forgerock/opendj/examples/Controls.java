@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2015 ForgeRock AS.
+ * Copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
@@ -19,6 +19,7 @@ package org.forgerock.opendj.examples;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.forgerock.opendj.ldap.controls.AffinityControl;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -111,6 +112,7 @@ public final class Controls {
 
             // Uncomment a method to run one of the examples.
 
+            //useAffinityControl(connection);
             //useADNotificationRequestControl(connection);
             //useAssertionControl(connection);
             useAuthorizationIdentityRequestControl(connection);
@@ -138,6 +140,50 @@ public final class Controls {
             System.exit(e.getResult().getResultCode().intValue());
             return;
         }
+    }
+
+    /**
+     * Use the OpenDJ affinity control to bypass load balancing.
+     * <br>
+     * In other words, each request with a control having the same value
+     * is sent to the same LDAP server.
+     *
+     * @param connection Active connection to the directory server.
+     * @throws LdapException Operation failed.
+     */
+    static void useAffinityControl(Connection connection) throws LdapException {
+        // --- JCite affinity ---
+        if (isSupported(AffinityControl.OID)) {
+            final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
+
+            // Get an affinity control with a random value.
+            final AffinityControl control = AffinityControl.newControl(true);
+
+            final ModifyRequest modification =
+                    Requests.newModifyRequest(dn)
+                            .addControl(control)
+                            .addModification(ModificationType.ADD, "description",
+                                    "Added with an Affinity control");
+            connection.modify(modification);
+
+            final SearchRequest read =
+                    Requests.newSearchRequest(dn,
+                            SearchScope.BASE_OBJECT, "(&)", "description")
+                            .addControl(control);
+            final ConnectionEntryReader reader = connection.search(read);
+
+            try (final LDIFEntryWriter writer = new LDIFEntryWriter(System.out)) {
+                while (reader.hasNext()) {
+                    writer.writeEntry(reader.readEntry());
+                }
+            } catch (final IOException e) {
+                System.err.println(e.getMessage());
+                System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
+            }
+        } else {
+            System.err.println("AffinityControl not supported.");
+        }
+        // --- JCite affinity ---
     }
 
     /**
