@@ -21,13 +21,12 @@ import static org.opends.messages.BackendMessages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -47,7 +46,6 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PersistentSearch.CancellationCallback;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
-import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
@@ -73,7 +71,7 @@ import org.opends.server.types.WritabilityMode;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class LocalBackend<C extends Configuration>
+public abstract class LocalBackend<C extends Configuration> extends Backend<C>
 // should have been BackendCfg instead of Configuration
 {
   /**
@@ -88,14 +86,8 @@ public abstract class LocalBackend<C extends Configuration>
    */
   private LocalBackend<?>[] subordinateBackends = new LocalBackend[0];
 
-  /** The backend monitor associated with this backend. */
-  private BackendMonitor backendMonitor;
-
   /** Indicates whether this is a private backend or one that holds user data. */
   private boolean isPrivateBackend;
-
-  /** The unique identifier for this backend. */
-  private String backendID;
 
   /** The writability mode for this backend. */
   private WritabilityMode writabilityMode = WritabilityMode.ENABLED;
@@ -103,45 +95,13 @@ public abstract class LocalBackend<C extends Configuration>
   /** The set of persistent searches registered with this backend. */
   private final ConcurrentLinkedQueue<PersistentSearch> persistentSearches = new ConcurrentLinkedQueue<>();
 
-  /**
-   * Configure this backend based on the information in the provided configuration.
-   * When the method returns, the backend will have been configured (ready to be opened) but still unable
-   * to process operations.
-   *
-   * @param  cfg          The configuration of this backend.
-   * @param  serverContext The server context for this instance
-   * @throws  ConfigException
-   *                      If there is an error in the configuration.
-   */
-  public abstract void configureBackend(C cfg, ServerContext serverContext) throws ConfigException;
-
-  /**
-   * Indicates whether the provided configuration is acceptable for
-   * this backend.  It should be possible to call this method on an
-   * uninitialized backend instance in order to determine whether the
-   * backend would be able to use the provided configuration.
-   * <BR><BR>
-   * Note that implementations which use a subclass of the provided
-   * configuration class will likely need to cast the configuration
-   * to the appropriate subclass type.
-   *
-   * @param  configuration        The backend configuration for which
-   *                              to make the determination.
-   * @param  unacceptableReasons  A list that may be used to hold the
-   *                              reasons that the provided
-   *                              configuration is not acceptable.
-   * @param serverContext         this Directory Server instance's server context
-   * @return  {@code true} if the provided configuration is acceptable
-   *          for this backend, or {@code false} if not.
-   */
-  public boolean isConfigurationAcceptable(
-                      C configuration,
-                      List<LocalizableMessage> unacceptableReasons, ServerContext serverContext)
+  public static LocalBackend<?> asLocalBackend(Backend<?> backend)
   {
-    // This default implementation does not perform any special
-    // validation.  It should be overridden by backend implementations
-    // that wish to perform more detailed validation.
-    return true;
+    if (backend instanceof LocalBackend)
+    {
+      return (LocalBackend<?>) backend;
+    }
+    throw new IllegalArgumentException("Backend " + backend.getBackendID() + " is not a local backend");
   }
 
   /**
@@ -155,20 +115,10 @@ public abstract class LocalBackend<C extends Configuration>
    * @throws  InitializationException  If a problem occurs during opening that is not
    *                                   related to the server configuration.
    */
+  @Override
   public abstract void openBackend() throws ConfigException, InitializationException;
 
-  /**
-   * Performs any necessary work to finalize this backend. The backend must be an opened backend,
-   * so do not use this method on backends where only <code>configureBackend()</code> has been called.
-   * This may be called during the Directory Server shutdown process or if a backend is disabled
-   * with the server online.
-   * It must not return until the backend is closed.
-   * <p>
-   * This method may not throw any exceptions. If any problems are encountered,
-   * then they may be logged but the closure should progress as completely as
-   * possible.
-   * <p>
-   */
+  @Override
   public final void finalizeBackend()
   {
     for (PersistentSearch psearch : persistentSearches)
@@ -191,15 +141,6 @@ public abstract class LocalBackend<C extends Configuration>
   public void closeBackend()
   {
   }
-
-  /**
-   * Retrieves the set of base-level DNs that may be used within this
-   * backend.
-   *
-   * @return  The set of base-level DNs that may be used within this
-   *          backend.
-   */
-  public abstract Set<DN> getBaseDNs();
 
   /**
    * Indicates whether search operations which target the specified
@@ -351,18 +292,6 @@ public abstract class LocalBackend<C extends Configuration>
   }
 
   /**
-   * Retrieves the requested entry from this backend. The caller is not required to hold any locks
-   * on the specified DN.
-   *
-   * @param entryDN
-   *          The distinguished name of the entry to retrieve.
-   * @return The requested entry, or {@code null} if the entry does not exist.
-   * @throws DirectoryException
-   *           If a problem occurs while trying to retrieve the entry.
-   */
-  public abstract Entry getEntry(DN entryDN) throws DirectoryException;
-
-  /**
    * Indicates whether the requested entry has any subordinates.
    *
    * @param entryDN The distinguished name of the entry.
@@ -422,6 +351,18 @@ public abstract class LocalBackend<C extends Configuration>
   {
     return getEntry(entryDN) != null;
   }
+
+  /**
+   * Retrieves the requested entry from this backend. The caller is not required to hold any locks
+   * on the specified DN.
+   *
+   * @param entryDN
+   *          The distinguished name of the entry to retrieve.
+   * @return The requested entry, or {@code null} if the entry does not exist.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to retrieve the entry.
+   */
+  public abstract Entry getEntry(DN entryDN) throws DirectoryException;
 
   /**
    * Adds the provided entry to this backend.  This method must ensure
@@ -539,39 +480,6 @@ public abstract class LocalBackend<C extends Configuration>
    */
   public abstract void search(SearchOperation searchOperation)
          throws DirectoryException, CanceledOperationException;
-
-  /**
-   * Retrieves the OIDs of the controls that may be supported by this
-   * backend.
-   *
-   * @return  The OIDs of the controls that may be supported by this
-   *          backend.
-   */
-  public abstract Set<String> getSupportedControls();
-
-  /**
-   * Indicates whether this backend supports the specified control.
-   *
-   * @param  controlOID  The OID of the control for which to make the
-   *                     determination.
-   *
-   * @return  {@code true} if this backends supports the control with
-   *          the specified OID, or {@code false} if it does not.
-   */
-  public final boolean supportsControl(String controlOID)
-  {
-    Set<String> supportedControls = getSupportedControls();
-    return supportedControls != null && supportedControls.contains(controlOID);
-  }
-
-  /**
-   * Retrieves the OIDs of the features that may be supported by this
-   * backend.
-   *
-   * @return  The OIDs of the features that may be supported by this
-   *          backend.
-   */
-  public abstract Set<String> getSupportedFeatures();
 
   /** Enumeration of optional backend operations. */
   public static enum BackendOperation
@@ -726,48 +634,6 @@ public abstract class LocalBackend<C extends Configuration>
   public abstract void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException;
 
   /**
-   * Retrieves the unique identifier for this backend.
-   *
-   * @return  The unique identifier for this backend.
-   */
-  public final String getBackendID()
-  {
-    return backendID;
-  }
-
-  /**
-   * Specifies the unique identifier for this backend.
-   *
-   * @param  backendID  The unique identifier for this backend.
-   */
-  public final void setBackendID(String backendID)
-  {
-    this.backendID = backendID;
-  }
-
-  /**
-   * Indicates whether this backend holds private data or user data.
-   *
-   * @return  {@code true} if this backend holds private data, or
-   *          {@code false} if it holds user data.
-   */
-  public final boolean isPrivateBackend()
-  {
-    return isPrivateBackend;
-  }
-
-  /**
-   * Specifies whether this backend holds private data or user data.
-   *
-   * @param  isPrivateBackend  Specifies whether this backend holds
-   *                           private data or user data.
-   */
-  public final void setPrivateBackend(boolean isPrivateBackend)
-  {
-    this.isPrivateBackend = isPrivateBackend;
-  }
-
-  /**
    * Retrieves the writability mode for this backend.
    *
    * @return  The writability mode for this backend.
@@ -787,16 +653,27 @@ public abstract class LocalBackend<C extends Configuration>
     this.writabilityMode = writabilityMode != null ? writabilityMode : WritabilityMode.ENABLED;
   }
 
-  /**
-   * Retrieves the backend monitor that is associated with this
-   * backend.
-   *
-   * @return  The backend monitor that is associated with this
-   *          backend, or {@code null} if none has been assigned.
-   */
-  public final BackendMonitor getBackendMonitor()
+  @Override
+  public final boolean isPrivateBackend()
   {
-    return backendMonitor;
+    return isPrivateBackend;
+  }
+
+  /**
+   * Specifies whether this backend holds private data or user data.
+   *
+   * @param  isPrivateBackend  Specifies whether this backend holds
+   *                           private data or user data.
+   */
+  public final void setPrivateBackend(boolean isPrivateBackend)
+  {
+    this.isPrivateBackend = isPrivateBackend;
+  }
+
+  @Override
+  public final boolean isDefaultRoute()
+  {
+    return false;
   }
 
   /**
@@ -835,14 +712,8 @@ public abstract class LocalBackend<C extends Configuration>
     return persistentSearches;
   }
 
-  /**
-   * Sets the backend monitor for this backend.
-   *
-   * @param  backendMonitor  The backend monitor for this backend.
-   */
-  public final void setBackendMonitor(BackendMonitor backendMonitor)
-  {
-    this.backendMonitor = backendMonitor;
+  public Set<PasswordStorageScheme<?>> getPasswordStorageSchemes() {
+    return new HashSet<PasswordStorageScheme<?>>(DirectoryServer.getPasswordStorageSchemes());
   }
 
   /**
@@ -854,66 +725,38 @@ public abstract class LocalBackend<C extends Configuration>
    */
   public abstract long getEntryCount();
 
-  /**
-   * Retrieves the parent backend for this backend.
-   *
-   * @return  The parent backend for this backend, or {@code null} if
-   *          there is none.
-   */
+  @Override
   public final LocalBackend<?> getParentBackend()
   {
     return parentBackend;
   }
 
-  /**
-   * Specifies the parent backend for this backend.
-   *
-   * @param  parentBackend  The parent backend for this backend.
-   */
-  public final synchronized void setParentBackend(LocalBackend<?> parentBackend)
+  @Override
+  public final synchronized void setParentBackend(Backend<?> parentBackend)
   {
-    this.parentBackend = parentBackend;
+    this.parentBackend = (LocalBackend<?>) parentBackend;
   }
 
-  /**
-   * Retrieves the set of subordinate backends for this backend.
-   *
-   * @return  The set of subordinate backends for this backend, or an
-   *          empty array if none exist.
-   */
+  @Override
   public final LocalBackend<?>[] getSubordinateBackends()
   {
     return subordinateBackends;
   }
 
-  /**
-   * Adds the provided backend to the set of subordinate backends for
-   * this backend.
-   *
-   * @param  subordinateBackend  The backend to add to the set of
-   *                             subordinate backends for this
-   *                             backend.
-   */
-  public final synchronized void addSubordinateBackend(LocalBackend<?> subordinateBackend)
+  @Override
+  public final synchronized void addSubordinateBackend(Backend<?> subordinateBackend)
   {
     LinkedHashSet<LocalBackend<?>> backendSet = new LinkedHashSet<>();
     Collections.addAll(backendSet, subordinateBackends);
 
-    if (backendSet.add(subordinateBackend))
+    if (backendSet.add((LocalBackend<?>) subordinateBackend))
     {
       subordinateBackends = backendSet.toArray(new LocalBackend[backendSet.size()]);
     }
   }
 
-  /**
-   * Removes the provided backend from the set of subordinate backends
-   * for this backend.
-   *
-   * @param  subordinateBackend  The backend to remove from the set of
-   *                             subordinate backends for this
-   *                             backend.
-   */
-  public final synchronized void removeSubordinateBackend(LocalBackend<?> subordinateBackend)
+  @Override
+  public final synchronized void removeSubordinateBackend(Backend<?> subordinateBackend)
   {
     ArrayList<LocalBackend<?>> backendList = new ArrayList<>(subordinateBackends.length);
 
