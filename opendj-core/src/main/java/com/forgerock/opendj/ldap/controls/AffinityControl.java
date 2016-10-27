@@ -29,9 +29,11 @@ import org.forgerock.util.Reject;
 /**
  * Control that provides a value for affinity.
  * <p>
- * As an example, this control can be used for connection affinity when using a load-balancer ({@link Connections}).
+ * As an example, this control can be used for connection affinity when using a load-balancer (
+ * {@link org.forgerock.opendj.ldap.Connections Connections}).
  *
- * @see Connections#newLeastRequestsLoadBalancer(Collection, Options)
+ * @see org.forgerock.opendj.ldap.Connections#newLeastRequestsLoadBalancer(java.util.Collection,
+ *      org.forgerock.util.Options)
  */
 public final class AffinityControl implements Control {
 

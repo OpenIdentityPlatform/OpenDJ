@@ -315,7 +315,6 @@ final class RequestLoadBalancer extends LoadBalancer {
             this.connectionPromise = connectionPromise;
         }
 
-
         Connection getConnection() {
             return connectionHolder.get();
         }

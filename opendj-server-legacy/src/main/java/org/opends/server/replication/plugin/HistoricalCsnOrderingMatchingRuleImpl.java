@@ -37,9 +37,7 @@ import static org.forgerock.opendj.ldap.Assertion.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * Matching rule used to establish an order between historical information and index them.
- */
+/** Matching rule used to establish an order between historical information and index them. */
 public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRuleImpl
 {
   private static final String ORDERING_ID = "changeSequenceNumberOrderingMatch";
@@ -64,16 +62,15 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     @Override
     public String keyToHumanReadableString(ByteSequence key)
     {
-      ByteStringBuilder bsb = new ByteStringBuilder();
-      bsb.appendBytes(key.subSequence(2, 10));
-      bsb.appendBytes(key.subSequence(0, 2));
-      bsb.appendBytes(key.subSequence(10, 14));
-      CSN csn = CSN.valueOf(bsb.toByteString());
-      return csn.toStringUI();
+      ByteString bs = new ByteStringBuilder()
+          .appendBytes(key.subSequence(2, 10))
+          .appendBytes(key.subSequence(0, 2))
+          .appendBytes(key.subSequence(10, 14))
+          .toByteString();
+      return CSN.valueOf(bs).toStringUI();
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException
   {
@@ -86,21 +83,19 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     {
       int csnIndex = value.toString().indexOf(':') + 1;
       String csn = value.subSequence(csnIndex, csnIndex + 28).toString();
-      ByteStringBuilder builder = new ByteStringBuilder(14);
-      builder.appendBytes(hexStringToByteArray(csn.substring(16, 20)));
-      builder.appendBytes(hexStringToByteArray(csn.substring(0, 16)));
-      builder.appendBytes(hexStringToByteArray(csn.substring(20, 28)));
-      return builder.toByteString();
+      return new ByteStringBuilder(14)
+          .appendBytes(hexStringToByteArray(csn.substring(16, 20)))
+          .appendBytes(hexStringToByteArray(csn.substring(0, 16)))
+          .appendBytes(hexStringToByteArray(csn.substring(20, 28)))
+          .toByteString();
     }
     catch (Exception e)
     {
-      // This should never occur in practice since these attributes are managed
-      // internally.
+      // This should never occur in practice since these attributes are managed internally.
       throw DecodeException.error(WARN_INVALID_SYNC_HIST_VALUE.get(value), e);
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public Assertion getAssertion(final Schema schema, final ByteSequence value) throws DecodeException
   {
@@ -121,7 +116,6 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     };
   }
 
-  /** {@inheritDoc} */
   @Override
   public Assertion getSubstringAssertion(Schema schema, ByteSequence subInitial,
       List<? extends ByteSequence> subAnyElements, ByteSequence subFinal) throws DecodeException
@@ -129,7 +123,6 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     return UNDEFINED_ASSERTION;
   }
 
-  /** {@inheritDoc} */
   @Override
   public Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException
   {
@@ -150,7 +143,6 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     };
   }
 
-  /** {@inheritDoc} */
   @Override
   public Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException
   {
@@ -176,5 +168,4 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
   {
     return indexers;
   }
-
 }

@@ -14,7 +14,6 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions Copyright 2011-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.RequestHandlerFactoryAdapter.adaptRequestHandler;
@@ -60,7 +59,6 @@ import com.forgerock.opendj.ldap.controls.AffinityControl;
  * factories and connections.
  */
 public final class Connections {
-
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /**
@@ -562,7 +560,6 @@ public final class Connections {
                                        options,
                                        newShardedRequestLoadBalancerNextFunction(factories),
                                        NOOP_END_OF_REQUEST_FUNCTION);
-
     }
 
     static Function<Request, RequestWithIndex, NeverThrowsException> newShardedRequestLoadBalancerNextFunction(
@@ -777,7 +774,7 @@ public final class Connections {
         private int getLessSaturatedIndex() {
             long min = Long.MAX_VALUE;
             int minIndex = -1;
-            // Modifications during this loop are ok, effects on result is should not be dramatic
+            // Modifications during this loop are ok, effects on result should not be dramatic
             for (int i = 0; i < serversCounters.length(); i++) {
                 long count = serversCounters.get(i);
                 if (count < min) {
