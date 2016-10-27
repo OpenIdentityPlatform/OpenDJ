@@ -13,6 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2008 Sun Microsystems, Inc.
+  Portions Copyright 2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="backend" plural-name="backends"
   package="org.forgerock.opendj.server.config"
@@ -29,7 +30,6 @@
     remotely in an external system, or generated on the fly
     (for example, calculated from other information that is available).
   </adm:description>
-  <adm:tag name="database" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-backend</ldap:name>
@@ -89,41 +89,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-backend-id</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="writability-mode" mandatory="true">
-    <adm:synopsis>
-      Specifies the behavior that the backend should use when processing
-      write operations.
-    </adm:synopsis>
-    <adm:syntax>
-      <adm:enumeration>
-        <adm:value name="enabled">
-          <adm:synopsis>
-            Allows write operations to be performed in that backend (if
-            the requested operation is valid, the user has permission to
-            perform the operation, the backend supports that type of
-            write operation, and the global writability-mode property is
-            also enabled).
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="disabled">
-          <adm:synopsis>
-            Causes all write attempts to fail.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="internal-only">
-          <adm:synopsis>
-            Causes external write attempts to fail but allows writes by
-            replication and internal operations.
-          </adm:synopsis>
-        </adm:value>
-      </adm:enumeration>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-writability-mode</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

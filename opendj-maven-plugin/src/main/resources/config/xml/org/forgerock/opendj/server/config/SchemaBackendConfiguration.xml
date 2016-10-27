@@ -13,10 +13,10 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2008 Sun Microsystems, Inc.
-  Portions Copyright 2011 ForgeRock AS.
+  Portions Copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="schema-backend" plural-name="schema-backends"
-  package="org.forgerock.opendj.server.config" extends="backend"
+  package="org.forgerock.opendj.server.config" extends="local-backend"
   advanced="true" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
   <adm:synopsis>
@@ -38,7 +38,7 @@
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-schema-backend</ldap:name>
-      <ldap:superior>ds-cfg-backend</ldap:superior>
+      <ldap:superior>ds-cfg-local-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
   <adm:property-override name="java-class" advanced="true">

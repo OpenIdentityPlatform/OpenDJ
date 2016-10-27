@@ -16,7 +16,7 @@
   ! -->
 <adm:managed-object abstract="true" name="pluggable-backend"
   plural-name="pluggable-backends" package="org.forgerock.opendj.server.config"
-  extends="backend" xmlns:adm="http://opendj.forgerock.org/admin"
+  extends="local-backend" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
   xmlns:cli="http://opendj.forgerock.org/admin-cli">
   <adm:synopsis>
@@ -26,7 +26,7 @@
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-pluggable-backend</ldap:name>
-      <ldap:superior>ds-cfg-backend</ldap:superior>
+      <ldap:superior>ds-cfg-local-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
   <adm:relation name="backend-index">
