@@ -70,7 +70,7 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.util.CollectionUtils;
+import org.opends.server.util.Args;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -2066,18 +2066,16 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private static String[] args(boolean usePermissiveModifyControl)
   {
-    final List<String> args = CollectionUtils.newArrayList(
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password"
-    );
+    final Args args = new Args()
+        .add("-h", "127.0.0.1")
+        .add("-p", TestCaseUtils.getServerLdapPort())
+        .add("-D", "cn=Directory Manager")
+        .add("-w", "password");
     if (usePermissiveModifyControl)
     {
-      args.add("-J");
-      args.add(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL);
+      args.add("-J", ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL);
     }
-    return args.toArray(new String[0]);
+    return args.toArray();
   }
 
   /**

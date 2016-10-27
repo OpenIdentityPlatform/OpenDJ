@@ -17,7 +17,6 @@
 package org.opends.server.core;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.forgerock.opendj.ldap.tools.LDAPCompare;
 import org.forgerock.opendj.ldap.ByteString;
@@ -33,6 +32,7 @@ import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Control;
 import org.opends.server.types.LDAPException;
+import org.opends.server.util.Args;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -49,33 +49,6 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class RejectUnauthReqTests extends CoreTestCase
 {
-  private class Args
-  {
-    private final List<String> args = new ArrayList<>();
-
-    public void add(String arg)
-    {
-      args.add(arg);
-    }
-
-    public void add(String arg, Object value)
-    {
-      args.add(arg);
-      args.add(value.toString());
-    }
-
-    public String[] toArray()
-    {
-      return args.toArray(new String[args.size()]);
-    }
-
-    @Override
-    public String toString()
-    {
-      return args.toString();
-    }
-  }
-
   /**
    * Utility method which is called by the testcase sending an ADD request.
    *
@@ -101,14 +74,14 @@ public class RejectUnauthReqTests extends CoreTestCase
 
   private String[] args(boolean authenticate, String filePath)
   {
-    Args args = new Args();
-    args.add("--noPropertiesFile");
-    args.add("-h", "127.0.0.1");
-    args.add("-p", TestCaseUtils.getServerLdapPort());
+    Args args = new Args()
+        .add("--noPropertiesFile")
+        .add("-h", "127.0.0.1")
+        .add("-p", TestCaseUtils.getServerLdapPort());
     if (authenticate)
     {
-      args.add("-D", "cn=directory manager");
-      args.add("-w", "password");
+      args.add("-D", "cn=directory manager")
+          .add("-w", "password");
     }
     args.add("-f", filePath);
     return args.toArray();

@@ -18,20 +18,18 @@ package org.opends.server.tools;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.upgrade.UpgradeCli;
+import org.opends.server.util.Args;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
-import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.testng.Assert.*;
 
 /** A set of test cases for the Upgrade tool. */
@@ -56,14 +54,10 @@ public class UpgradeTestCase extends ToolsTestCase
    */
   private String[] setArgs(String... args)
   {
-    final List<String> argsList = new LinkedList<>();
-    argsList.add("--configFile");
-    argsList.add(configFilePath);
-    if (args != null)
-    {
-      Collections.addAll(argsList, args);
-    }
-    return argsList.toArray(new String[argsList.size()]);
+    return new Args()
+        .add("--configFile", configFilePath)
+        .addAll(args)
+        .toArray();
   }
 
   /**

@@ -20,18 +20,19 @@ import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.DigestMD5SASLMechanismHandlerCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import com.forgerock.opendj.ldap.tools.LDAPSearch;
 import org.opends.server.types.AuthenticationInfo;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.Args;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -43,9 +44,7 @@ import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-/**
- * A set of test cases for the DIGEST-MD5 SASL mechanism handler.
- */
+/** A set of test cases for the DIGEST-MD5 SASL mechanism handler. */
 public class DigestMD5SASLMechanismHandlerTestCase
        extends ExtensionsTestCase
 {
@@ -205,19 +204,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:test.user",
-      "-o", "authzid=u:test.user",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=u:test.user", "authzid=u:test.user", "password");
     assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
@@ -248,19 +235,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=test.user,o=test",
-      "-o", "authzid=dn:uid=test.user,o=test",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=test.user,o=test", "authzid=dn:uid=test.user,o=test", "password");
     assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
   }
 
@@ -291,19 +266,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:test.user",
-      "-o", "authzid=u:test.user",
-      "-w", "wrongpassword",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=u:test.user", "authzid=u:test.user", "wrongpassword");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -334,19 +297,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=test.user,o=test",
-      "-o", "authzid=dn:uid=test.user,o=test",
-      "-w", "wrongpassword",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=test.user,o=test", "authzid=dn:uid=test.user,o=test", "wrongpassword");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -375,19 +326,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:test.user",
-      "-o", "authzid=u:test.user",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=u:test.user", "authzid=u:test.user", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -416,19 +355,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=test.user,o=test",
-      "-o", "authzid=dn:uid=test.user,o=test",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=test.user,o=test", "authzid=dn:uid=test.user,o=test", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -457,19 +384,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:invaliddn",
-      "-o", "authzid=dn:invaliddn",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:invaliddn", "authzid=dn:invaliddn", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -498,19 +413,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:doesntexist",
-      "-o", "authzid=u:doesntexist",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=u:doesntexist", "authzid=u:doesntexist", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -539,19 +442,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=doesntexist,o=test",
-      "-o", "authzid=dn:uid=doesntexist,o=test",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=doesntexist,o=test", "authzid=dn:uid=doesntexist,o=test", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -569,19 +460,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=u:",
-      "-o", "authzid=u:",
-      "-w", "",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=u:", "authzid=u:", "");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -599,19 +478,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:",
-      "-o", "authzid=dn:",
-      "-w", "",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:", "authzid=dn:", "");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -629,19 +496,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=",
-      "-o", "authzid=",
-      "-w", "",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=", "authzid=", "");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -673,19 +528,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=test.user,o=test",
-      "-o", "authzid=",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=test.user,o=test", "authzid=", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -702,19 +545,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   public void testLDAPBindFailIrreversiblePasswordWithRootDN()
          throws Exception
   {
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Directory Manager",
-      "-o", "authzid=dn:cn=Directory Manager",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:cn=Directory Manager", "authzid=dn:cn=Directory Manager", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -746,19 +577,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:cn=Second Root DN",
-      "-o", "authzid=dn:cn=Second Root DN",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:cn=Second Root DN", "authzid=dn:cn=Second Root DN", "password");
     assertEquals(LDAPSearch.run(nullPrintStream(), System.err, args), 0);
 
 
@@ -794,19 +613,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=test.user,o=test",
-      "-o", "authzid=dn:uid=nonexistent,o=test",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=test.user,o=test", "authzid=dn:uid=nonexistent,o=test", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -838,19 +645,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=test.user,o=test",
-      "-o", "authzid=u:nonexistent",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=test.user,o=test", "authzid=u:nonexistent", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
@@ -882,23 +677,25 @@ public class DigestMD5SASLMechanismHandlerTestCase
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config");
 
-    String[] args =
-    {
-      "--noPropertiesFile",
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-o", "mech=DIGEST-MD5",
-      "-o", "authid=dn:uid=test.user,o=test",
-      "-o", "authzid=dn:malformed",
-      "-w", "password",
-      "-b", "",
-      "-s", "base",
-      "(objectClass=*)"
-    };
+    String[] args = args("authid=dn:uid=test.user,o=test", "authzid=dn:malformed", "password");
     assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), args) == 0);
   }
 
-
+  private String[] args(String authid, String authzid, String password)
+  {
+    return new Args()
+        .add("--noPropertiesFile")
+        .add("-h", "127.0.0.1")
+        .add("-p", TestCaseUtils.getServerLdapPort())
+        .add("-o", "mech=DIGEST-MD5")
+        .add("-o", authid)
+        .add("-o", authzid)
+        .add("-w", password)
+        .add("-b", "")
+        .add("-s", "base")
+        .add("(objectClass=*)")
+        .toArray();
+  }
 
   /**
    * Verifies that the server will reject a DIGEST-MD5 bind in which the first
