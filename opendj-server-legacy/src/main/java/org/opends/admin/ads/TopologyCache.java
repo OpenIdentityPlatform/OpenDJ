@@ -511,8 +511,11 @@ public class TopologyCache
   {
     try
     {
-      replica.setAgeOfOldestMissingChange(
-          sr.parseAttribute("approx-older-change-not-synchronized-millis").asLong());
+      final Long value = sr.parseAttribute("approx-older-change-not-synchronized-millis").asLong();
+      if (value != null)
+      {
+        replica.setAgeOfOldestMissingChange(value);
+      }
     }
     catch (LocalizedIllegalArgumentException t)
     {
