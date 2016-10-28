@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.datamodel;
 
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import static org.opends.server.tools.ConfigureWindowsService.*;
 
@@ -520,13 +519,13 @@ public class ControlPanelInfo
           desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
           desc.setSystemInformationMonitor(rCtx.getSystemInformation());
           desc.setWorkQueueMonitor(rCtx.getWorkQueue());
-          desc.setOpenDJVersion(firstValueAsString(rCtx.getVersionMonitor(), "fullVersion"));
-          String installPath = firstValueAsString(rCtx.getSystemInformation(), "installPath");
+          desc.setOpenDJVersion(rCtx.getVersionMonitor().parseAttribute("fullVersion").asString());
+          String installPath = rCtx.getSystemInformation().parseAttribute("installPath").asString();
           if (installPath != null)
           {
             desc.setInstallPath(installPath);
           }
-          String instancePath = firstValueAsString(rCtx.getSystemInformation(), "instancePath");
+          String instancePath = rCtx.getSystemInformation().parseAttribute("instancePath").asString();
           if (instancePath != null)
           {
             desc.setInstancePath(instancePath);

@@ -110,27 +110,6 @@ public class BackendToolUtils
     }
   }
 
-  /**
-   * Returns a string from the single valued attribute in provided entry.
-   *
-   * @param entry the entry
-   * @param attrName the attribute name
-   * @return the string value if available or {@code null}
-   */
-  public static String getStringSingleValuedAttribute(Entry entry, String attrName)
-  {
-    Iterator<Attribute> attributes = entry.getAllAttributes(attrName).iterator();
-    if (attributes.hasNext())
-    {
-      Attribute attribute = attributes.next();
-      for (ByteString byteString : attribute)
-      {
-        return byteString.toString();
-      }
-    }
-    return null;
-  }
-
   private static List<DN> getBaseDNsForEntry(final Entry configEntry) throws Exception
   {
     try
@@ -173,7 +152,7 @@ public class BackendToolUtils
   {
     try
     {
-      return getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_CLASS);
+      return configEntry.parseAttribute(ATTR_BACKEND_CLASS).asString();
     }
     catch (final Exception e)
     {
@@ -186,7 +165,7 @@ public class BackendToolUtils
   {
     try
     {
-      return getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
+      return configEntry.parseAttribute(ATTR_BACKEND_ID).asString();
     }
     catch (final Exception e)
     {

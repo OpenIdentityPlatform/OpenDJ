@@ -39,6 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
@@ -1674,7 +1675,14 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   private static int getNumSubOrdinates(Entry entry)
   {
-    return toInt(firstValueAsString(entry, NUMSUBORDINATES_ATTR));
+    try
+    {
+      return entry.parseAttribute(NUMSUBORDINATES_ATTR).asInteger(0);
+    }
+    catch (LocalizedIllegalArgumentException e)
+    {
+      return 0;
+    }
   }
 
   /**
@@ -1687,27 +1695,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public static boolean getHasSubOrdinates(Entry entry)
   {
-    String v = firstValueAsString(entry, HASSUBORDINATES_ATTR);
-    if (v != null) {
-      return "true".equalsIgnoreCase(v);
-    }
-    return getNumSubOrdinates(entry) > 0;
-  }
-
-  private static int toInt(String v)
-  {
-    if (v == null)
-    {
-      return 0;
-    }
-    try
-    {
-      return Integer.parseInt(v);
-    }
-    catch (NumberFormatException x)
-    {
-      return 0;
-    }
+    Boolean val = entry.parseAttribute(HASSUBORDINATES_ATTR).asBoolean();
+    return val != null ? val : getNumSubOrdinates(entry) > 0;
   }
 
   /**

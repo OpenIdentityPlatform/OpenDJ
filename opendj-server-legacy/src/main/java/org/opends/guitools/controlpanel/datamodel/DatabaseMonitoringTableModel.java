@@ -16,7 +16,6 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -295,14 +294,15 @@ public class DatabaseMonitoringTableModel extends SortableTableModel implements 
 
   private String[] getLine(BackendDescriptor backend)
   {
+    final String defaultVal = NO_VALUE_SET.toString();
+
     String[] line = new String[attributes.size() + 1];
     line[0] = getName(backend);
     int i = 1;
     SearchResultEntry monitoringEntry = getMonitoringEntry(backend);
     for (String attr : attributes)
     {
-      String o = firstValueAsString(monitoringEntry, attr);
-      line[i] = o != null ? o : NO_VALUE_SET.toString();
+      line[i] = monitoringEntry.parseAttribute(attr).asString(defaultVal);
       i++;
     }
     return line;

@@ -18,7 +18,6 @@ package org.opends.admin.ads;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -780,7 +779,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        String backendId = firstValueAsString(sr, "ds-cfg-backend-id");
+        String backendId = sr.parseAttribute("ds-cfg-backend-id").asString();
         if (!isConfigBackend(backendId) || isSchemaBackend(backendId))
         {
           Set<String> entries;
@@ -1021,7 +1020,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         SearchResultEntry sr = entryReader.readEntry();
 
         desc.serverProperties.put(ServerProperty.SCHEMA_GENERATION_ID,
-            firstValueAsString(sr, "ds-sync-generation-id"));
+            sr.parseAttribute("ds-sync-generation-id").asString());
       }
     }
   }

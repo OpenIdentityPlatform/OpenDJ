@@ -22,7 +22,6 @@ import static com.forgerock.opendj.util.OperatingSystem.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.util.Utils.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Installation.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -930,12 +929,10 @@ public class Utils
     try
     {
       SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
-
-      String v = firstValueAsString(sr, "currentTime");
+      String v = sr.parseAttribute("currentTime").asString();
 
       SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
       formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-
       return formatter.parse(v).getTime();
     }
     catch (Throwable t)

@@ -401,7 +401,7 @@ public class ListBackends
       String backendID = null;
       try
       {
-        backendID = BackendToolUtils.getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
+        backendID = configEntry.parseAttribute(ATTR_BACKEND_ID).asString();
         if (backendID == null)
         {
           continue;

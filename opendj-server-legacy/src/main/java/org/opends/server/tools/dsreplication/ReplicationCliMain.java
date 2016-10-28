@@ -1345,20 +1345,20 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         sr = entryReader.readEntry();
       }
-
-      String newStartCSN = firstValueAsString(sr, "replicationCSN");
+      String newStartCSN = sr.parseAttribute("replicationCSN").asString();
       if (newStartCSN == null)
       {
         errPrintln(ERROR_RESET_CHANGE_NUMBER_NO_CSN_FOUND.get(newStartCN, uData.getSourceHostPort()));
         return ERROR_RESET_CHANGE_NUMBER_NO_CSN;
       }
-      String targetDN = firstValueAsString(sr, "targetDN");
+      DN targetDN;
       DN targetBaseDN = DN.rootDN();
       try
       {
+        targetDN = sr.parseAttribute("targetDN").asDN();
         for (DN dn : getCommonSuffixes(connSource, connDest, SuffixRelationType.REPLICATED))
         {
-          if (DN.valueOf(targetDN).isSubordinateOrEqualTo(dn) && dn.isSubordinateOrEqualTo(targetBaseDN))
+          if (targetDN.isSubordinateOrEqualTo(dn) && dn.isSubordinateOrEqualTo(targetBaseDN))
           {
             targetBaseDN = dn;
           }
@@ -1399,7 +1399,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       SearchResultEntry sr =
           conn.getConnection().searchSingleEntry("", BASE_OBJECT, "objectclass=*", "lastChangeNumber");
-      return firstValueAsString(sr, "lastChangeNumber");
+      return sr.parseAttribute("lastChangeNumber").asString();
     }
     catch (LdapException e)
     {

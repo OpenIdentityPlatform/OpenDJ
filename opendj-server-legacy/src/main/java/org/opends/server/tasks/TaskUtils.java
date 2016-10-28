@@ -33,7 +33,6 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.tools.BackendToolUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
@@ -51,9 +50,7 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-/**
- * This class defines a number of static utility methods for server tasks.
- */
+/** This class defines a number of static utility methods for server tasks. */
 public class TaskUtils
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -71,7 +68,7 @@ public class TaskUtils
   {
     try
     {
-      return BackendToolUtils.getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
+      return configEntry.parseAttribute(ATTR_BACKEND_ID).asString();
     }
     catch (Exception e)
     {
@@ -117,7 +114,7 @@ public class TaskUtils
         try
         {
           configEntry = Converters.to(configHandler.getEntry(childrenDn));
-          backendID = BackendToolUtils.getStringSingleValuedAttribute(configEntry, ATTR_BACKEND_ID);
+          backendID = configEntry.parseAttribute(ATTR_BACKEND_ID).asString();
           if (backendID == null)
           {
             continue;

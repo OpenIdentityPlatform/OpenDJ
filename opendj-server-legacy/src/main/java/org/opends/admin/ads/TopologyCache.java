@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
@@ -49,7 +50,6 @@ import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -458,7 +458,7 @@ public class TopologyCache
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        final DN dn = DN.valueOf(firstValueAsString(sr, "domain-name"));
+        final DN dn = sr.parseAttribute("domain-name").asDN();
         int replicaId = -1;
         try
         {
@@ -509,18 +509,14 @@ public class TopologyCache
 
   private void setAgeOfOldestMissingChange(ReplicaDescriptor replica, SearchResultEntry sr)
   {
-    String s = firstValueAsString(sr, "approx-older-change-not-synchronized-millis");
-    if (s != null)
+    try
     {
-      try
-      {
-        replica.setAgeOfOldestMissingChange(Long.valueOf(s));
-      }
-      catch (Throwable t)
-      {
-        logger.warn(LocalizableMessage.raw(
-            "Unexpected error reading age of oldest change: " + t, t));
-      }
+      replica.setAgeOfOldestMissingChange(
+          sr.parseAttribute("approx-older-change-not-synchronized-millis").asLong());
+    }
+    catch (LocalizedIllegalArgumentException t)
+    {
+      logger.warn(LocalizableMessage.raw("Unexpected error reading age of oldest change: " + t, t));
     }
   }
 

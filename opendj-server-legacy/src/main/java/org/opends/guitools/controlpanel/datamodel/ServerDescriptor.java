@@ -35,10 +35,10 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.guitools.controlpanel.util.ConfigFromConnection;
 import org.opends.quicksetup.UserData;
 import org.opends.server.tools.tasks.TaskEntry;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -509,7 +509,7 @@ public class ServerDescriptor
     {
       return false;
     }
-    String os = firstValueAsString(sr, "operatingSystem");
+    String os = sr.parseAttribute("operatingSystem").asString();
     return os != null && OperatingSystem.WINDOWS.equals(OperatingSystem.forName(os));
   }
 
