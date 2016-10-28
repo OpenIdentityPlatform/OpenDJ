@@ -240,7 +240,7 @@ public class ResetUserPasswordTask extends Task
         while (entries.hasNext())
         {
           SearchResultEntry sr = entries.readEntry();
-          return asSetOfDN(sr, attrName).contains(bindDN);
+          return sr.parseAttribute(attrName).asSetOfDN().contains(bindDN);
         }
       }
       catch (Throwable t)

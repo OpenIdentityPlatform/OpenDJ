@@ -879,7 +879,7 @@ public class NodeRefresher extends AbstractNodeTask {
    */
   private static boolean isReferralEntry(SearchResultEntry entry)
   {
-    for (String value : asSetOfString(entry, "objectClass"))
+    for (String value : entry.parseAttribute("objectClass").asSetOfString())
     {
       if ("referral".equalsIgnoreCase(value))
       {

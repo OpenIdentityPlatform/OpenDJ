@@ -6838,8 +6838,8 @@ public class ReplicationCliMain extends ConsoleApplication
             "ds-task-processed-entry-count", "ds-task-log-message", "ds-task-state" );
 
         // Get the number of entries that have been handled and a percentage...
-        long processed = asInteger(sr, "ds-task-processed-entry-count");
-        long unprocessed = asInteger(sr, "ds-task-unprocessed-entry-count");
+        long processed = sr.parseAttribute("ds-task-processed-entry-count").asLong();
+        long unprocessed = sr.parseAttribute("ds-task-unprocessed-entry-count").asLong();
         totalEntries = Math.max(totalEntries, processed+unprocessed);
 
         LocalizableMessage msg = getMsg(lastDisplayedMsg, processed, unprocessed);

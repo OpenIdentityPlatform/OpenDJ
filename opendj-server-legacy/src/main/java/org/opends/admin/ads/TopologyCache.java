@@ -462,7 +462,7 @@ public class TopologyCache
         int replicaId = -1;
         try
         {
-          replicaId = sr.getAttribute("server-id").parse().asInteger();
+          replicaId = sr.parseAttribute("server-id").asInteger();
         }
         catch (Throwable t)
         {
@@ -492,7 +492,7 @@ public class TopologyCache
 
   private void setMissingChanges(ReplicaDescriptor replica, SearchResultEntry sr)
   {
-    Integer value = asInteger(sr, "missing-changes");
+    Integer value = sr.parseAttribute("missing-changes").asInteger();
     if (value != null)
     {
       try

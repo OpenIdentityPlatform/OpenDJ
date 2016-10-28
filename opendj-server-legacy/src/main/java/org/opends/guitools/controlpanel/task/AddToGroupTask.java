@@ -217,14 +217,14 @@ public class AddToGroupTask extends Task
       while (reader.hasNext())
       {
         SearchResultEntry sr = reader.readEntry();
-        Set<String> objectClasses = asSetOfString(sr, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+        Set<String> objectClasses = sr.parseAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME).asSetOfString();
         if (objectClasses.contains(OC_GROUP_OF_UNIQUE_NAMES))
         {
           memberAttr = ATTR_UNIQUE_MEMBER;
         }
         Set<DN> dnsToAdd = new LinkedHashSet<>(dns);
         // remove all existing members
-        dnsToAdd.removeAll(asSetOfDN(sr, memberAttr));
+        dnsToAdd.removeAll(sr.parseAttribute(memberAttr).asSetOfDN());
         if (!dnsToAdd.isEmpty())
         {
           modRequest.addModification(ADD, memberAttr, dnsToAdd.toArray());

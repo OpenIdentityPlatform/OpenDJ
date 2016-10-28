@@ -1386,8 +1386,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       node.setHasSubOrdinates(
           node.getNumSubOrdinates() > 0 || getHasSubOrdinates(entry));
       node.setReferral(getReferral(entry));
-      Set<String> ocValues = asSetOfString(entry, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-      node.setObjectClassValues(ocValues.toArray(new String[0]));
+      String[] ocValues = entry.parseAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME).asSetOfString().toArray(new String[0]);
+      node.setObjectClassValues(ocValues);
     }
 
     int aciCount = getAciCount(entry);
@@ -1489,7 +1489,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private int getAciCount(SearchResultEntry entry)
   {
     if ((displayFlags & DISPLAY_ACI_COUNT) != 0 && entry != null) {
-      return asSetOfString(entry, "aci").size();
+      return entry.parseAttribute("aci").asSetOfByteString().size();
     }
     return 0;
   }
@@ -1515,7 +1515,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     SortedSet<String> objectClasses = new TreeSet<>();
     if (entry != null) {
-      objectClasses.addAll(asSetOfString(entry, "objectClass"));
+      objectClasses.addAll(entry.parseAttribute("objectClass").asSetOfString());
     }
 
     if (node instanceof SuffixNode)
@@ -1719,12 +1719,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public static String[] getReferral(SearchResultEntry entry)
   {
-    Set<String> values = asSetOfString(entry, OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    Set<String> values = entry.parseAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME).asSetOfString();
     for (String value : values)
     {
       if ("referral".equalsIgnoreCase(value))
       {
-        Set<String> refValues = asSetOfString(entry, ATTR_REFERRAL_URL);
+        Set<String> refValues = entry.parseAttribute(ATTR_REFERRAL_URL).asSetOfString();
         return !refValues.isEmpty() ? refValues.toArray(new String[0]) : null;
       }
     }

@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.util;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -41,7 +40,6 @@ import java.util.TimeZone;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -666,44 +664,30 @@ public class ConfigFromConnection extends ConfigReader
 
     if (numberConnections == -1)
     {
-      Integer nb = sr.getAttribute("currentConnections").parse().asInteger();
+      Integer nb = sr.parseAttribute("currentConnections").asInteger();
       if (nb != null)
       {
         numberConnections = nb;
       }
     }
 
-    Attribute dnAttr = sr.getAttribute("domain-name");
-    Attribute replicaIdAttr = sr.getAttribute("server-id");
-    Attribute missingChanges = sr.getAttribute("missing-changes");
+    DN suffixDn = sr.parseAttribute("domain-name").asDN();
+    Integer replicaId = sr.parseAttribute("server-id").asInteger();
+    Integer missingChanges = sr.parseAttribute("missing-changes").asInteger();
 
-    if (dnAttr != null && replicaIdAttr != null && missingChanges != null)
+    if (suffixDn != null && replicaId != null && missingChanges != null)
     {
-      DN dn = dnAttr.parse().asDN();
-      Integer replicaId = replicaIdAttr.parse().asInteger();
       for (BackendDescriptor backend : backends)
       {
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
           try
           {
-            if (baseDN.getDn().equals(dn) && Objects.equals(baseDN.getReplicaID(), replicaId))
+            if (baseDN.getDn().equals(suffixDn) && Objects.equals(baseDN.getReplicaID(), replicaId))
             {
-              try
-              {
-                baseDN.setAgeOfOldestMissingChange(
-                    sr.getAttribute("approx-older-change-not-synchronized-millis").parse().asLong());
-              }
-              catch (NullPointerException | LocalizedIllegalArgumentException ignored)
-              {
-              }
-              try
-              {
-                baseDN.setMissingChanges(missingChanges.parse().asInteger());
-              }
-              catch (NullPointerException | LocalizedIllegalArgumentException ignored)
-              {
-              }
+              baseDN.setAgeOfOldestMissingChange(
+                  sr.parseAttribute("approx-older-change-not-synchronized-millis").asLong());
+              baseDN.setMissingChanges(missingChanges);
             }
           }
           catch (Throwable ignored)
@@ -715,8 +699,8 @@ public class ConfigFromConnection extends ConfigReader
     else
     {
       Attribute backendIdAttr = sr.getAttribute("ds-backend-id");
-      Attribute entryCount = sr.getAttribute("ds-backend-entry-count");
-      Set<String> baseDnEntries = asSetOfString(sr, "ds-base-dn-entry-count");
+      Integer entryCount = sr.parseAttribute("ds-backend-entry-count").asInteger();
+      Set<String> baseDnEntries = sr.parseAttribute("ds-base-dn-entry-count").asSetOfString();
       if (backendIdAttr != null && (entryCount != null || !baseDnEntries.isEmpty()))
       {
         String backendID = backendIdAttr.firstValueAsString();
@@ -726,7 +710,7 @@ public class ConfigFromConnection extends ConfigReader
           {
             if (entryCount != null)
             {
-              backend.setEntries(entryCount.parse().asInteger());
+              backend.setEntries(entryCount);
             }
             for (String s : baseDnEntries)
             {
@@ -1042,7 +1026,7 @@ public class ConfigFromConnection extends ConfigReader
     DN parent = dn.parent();
     if (parent != null && parent.equals(monitorDN))
     {
-      Set<String> vs = sr.getAttribute("cn").parse().asSetOfString();
+      Set<String> vs = sr.parseAttribute("cn").asSetOfString();
       if (!vs.isEmpty())
       {
         String cn = vs.iterator().next();
@@ -1058,7 +1042,7 @@ public class ConfigFromConnection extends ConfigReader
 
   private static boolean isTaskEntry(SearchResultEntry sr)
   {
-    for (String oc : sr.getAttribute("objectclass").parse().asSetOfString())
+    for (String oc : sr.parseAttribute("objectclass").asSetOfString())
     {
       if (oc.equalsIgnoreCase("ds-task"))
       {

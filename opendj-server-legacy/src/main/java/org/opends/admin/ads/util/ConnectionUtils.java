@@ -16,11 +16,7 @@
  */
 package org.opends.admin.ads.util;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.forgerock.opendj.ldap.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 
 /**
@@ -47,69 +43,5 @@ public class ConnectionUtils
   {
     Attribute attr = entry.getAttribute(attrDesc);
     return (attr != null && !attr.isEmpty()) ? attr.firstValueAsString() : null;
-  }
-
-  /**
-   * Returns the first value decoded as an Integer, or {@code null} if the attribute does not
-   * contain any values.
-   *
-   * @param entry
-   *          the entry
-   * @param attrDesc
-   *          the attribute description
-   * @return The first value decoded as an Integer.
-   */
-  public static Integer asInteger(Entry entry, String attrDesc)
-  {
-    Attribute attr = entry.getAttribute(attrDesc);
-    return attr != null ? attr.parse().asInteger() : null;
-  }
-
-  /**
-   * Returns the first value decoded as a Boolean, or {@code null} if the attribute does not contain
-   * any values.
-   *
-   * @param entry
-   *          the entry
-   * @param attrDesc
-   *          the attribute description
-   * @return The first value decoded as an Boolean.
-   */
-  public static Boolean asBoolean(Entry entry, String attrDesc)
-  {
-    Attribute attr = entry.getAttribute(attrDesc);
-    return attr != null ? attr.parse().asBoolean() : null;
-  }
-
-  /**
-   * Returns the values decoded as a set of Strings.
-   *
-   * @param entry
-   *          the entry
-   * @param attrDesc
-   *          the attribute description
-   * @return The values decoded as a set of Strings. Never {@code null} and never contains
-   *         {@code null} values.
-   */
-  public static Set<String> asSetOfString(Entry entry, String attrDesc)
-  {
-    Attribute attr = entry.getAttribute(attrDesc);
-    return attr != null ? attr.parse().asSetOfString() : Collections.<String> emptySet();
-  }
-
-  /**
-   * Returns the values decoded as a set of DNs.
-   *
-   * @param entry
-   *          the entry
-   * @param attrDesc
-   *          the attribute description
-   * @return The values decoded as a set of DNs. Never {@code null} and never contains {@code null}
-   *         values.
-   */
-  public static Set<DN> asSetOfDN(Entry entry, String attrDesc)
-  {
-    Attribute attr = entry.getAttribute(attrDesc);
-    return attr != null ? attr.parse().asSetOfDN() : Collections.<DN> emptySet();
   }
 }

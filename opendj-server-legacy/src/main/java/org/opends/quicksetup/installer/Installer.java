@@ -4205,10 +4205,9 @@ public class Installer extends GuiApplication
       try
       {
         SearchResultEntry sr = conn.getConnection().searchSingleEntry(searchRequest);
-        // Get the number of entries that have been handled and
-        // a percentage...
-        long processed = asInteger(sr, "ds-task-processed-entry-count");
-        long unprocessed = asInteger(sr, "ds-task-unprocessed-entry-count");
+        // Get the number of entries that have been handled and a percentage...
+        long processed = sr.parseAttribute("ds-task-processed-entry-count").asLong();
+        long unprocessed = sr.parseAttribute("ds-task-unprocessed-entry-count").asLong();
         totalEntries = Math.max(totalEntries, processed + unprocessed);
 
         LocalizableMessage msg = getLocalizedMessage(lastDisplayedMsg, processed, unprocessed);

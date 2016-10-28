@@ -35,6 +35,7 @@ import javax.naming.ldap.Rdn;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
@@ -43,6 +44,7 @@ import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.util.Function;
 import org.forgerock.util.Pair;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.quicksetup.Constants;
@@ -680,9 +682,9 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        Integer portNumber = asInteger(sr, "ds-cfg-listen-port");
-        boolean enabled = asBoolean(sr, "ds-cfg-enabled");
-        if (asBoolean(sr, "ds-cfg-use-ssl"))
+        Integer portNumber = sr.parseAttribute("ds-cfg-listen-port").asInteger();
+        Boolean enabled = sr.parseAttribute("ds-cfg-enabled").asBoolean();
+        if (sr.parseAttribute("ds-cfg-use-ssl").asBoolean())
         {
           ldapsPorts.add(portNumber);
           ldapsEnabled.add(enabled);
@@ -691,7 +693,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         {
           ldapPorts.add(portNumber);
           ldapEnabled.add(enabled);
-          startTLSEnabled.add(asBoolean(sr, "ds-cfg-allow-start-tls"));
+          startTLSEnabled.add(sr.parseAttribute("ds-cfg-allow-start-tls").asBoolean());
         }
       }
     }
@@ -704,7 +706,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         "cn=config", WHOLE_SUBTREE, "(objectclass=ds-cfg-administration-connector)",
         "ds-cfg-listen-port", "objectclass");
     SearchResultEntry sr = conn.getConnection().searchSingleEntry(request);
-    Integer adminConnectorPort = asInteger(sr, "ds-cfg-listen-port");
+    Integer adminConnectorPort = sr.parseAttribute("ds-cfg-listen-port").asInteger();
 
     // Even if we have a single port, use an array to be consistent with
     // other protocols.
@@ -744,9 +746,9 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
       {
         SearchResultEntry sr = entryReader.readEntry();
 
-        Integer portNumber = asInteger(sr, "ds-cfg-listen-port");
-        boolean enabled = asBoolean(sr, "ds-cfg-enabled");
-        if (asBoolean(sr, "ds-cfg-use-ssl"))
+        Integer portNumber = sr.parseAttribute("ds-cfg-listen-port").asInteger();
+        boolean enabled = sr.parseAttribute("ds-cfg-enabled").asBoolean();
+        if (sr.parseAttribute("ds-cfg-use-ssl").asBoolean())
         {
           jmxsPorts.add(portNumber);
           jmxsEnabled.add(enabled);
@@ -792,14 +794,14 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
           }
 
           Set<ReplicaDescriptor> replicas = desc.getReplicas();
-          Set<DN> baseDns = asSetOfDN(sr, "ds-cfg-base-dn");
+          Set<DN> baseDns = sr.parseAttribute("ds-cfg-base-dn").asSetOfDN();
           for (DN baseDn : baseDns)
           {
             if (isAddReplica(cacheFilter, baseDn))
             {
               ReplicaDescriptor replica = new ReplicaDescriptor();
               replica.setServer(desc);
-              replica.setObjectClasses(asSetOfString(sr, ConfigConstants.ATTR_OBJECTCLASS));
+              replica.setObjectClasses(sr.parseAttribute(ConfigConstants.ATTR_OBJECTCLASS).asSetOfString());
               replica.setBackendId(backendId);
               replica.setSuffix(new SuffixDescriptor(baseDn, replica));
               replica.setEntries(getNumberOfEntriesForBaseDn(entries, baseDn));
@@ -854,7 +856,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         "(objectclass=ds-cfg-synchronization-provider)",
         "ds-cfg-enabled");
     SearchResultEntry sre = conn.getConnection().searchSingleEntry(request);
-    serverProps.put(ServerProperty.IS_REPLICATION_ENABLED, asBoolean(sre, "ds-cfg-enabled"));
+    serverProps.put(ServerProperty.IS_REPLICATION_ENABLED, sre.parseAttribute("ds-cfg-enabled").asBoolean());
 
     Set<HostPort> allReplicationServers = new LinkedHashSet<>();
 
@@ -874,9 +876,9 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         {
           SearchResultEntry sr = entryReader.readEntry();
 
-          int serverId = asInteger(sr, "ds-cfg-server-id");
-          Set<HostPort> replicationServers = toHostPorts(asSetOfString(sr, "ds-cfg-replication-server"));
-          Set<DN> dns = asSetOfDN(sr, "ds-cfg-base-dn");
+          int serverId = sr.parseAttribute("ds-cfg-server-id").asInteger();
+          Set<HostPort> replicationServers = sr.parseAttribute("ds-cfg-replication-server").asSetOf(hostPorts());
+          Set<DN> dns = sr.parseAttribute("ds-cfg-base-dn").asSetOfDN();
           for (DN dn : dns)
           {
             for (ReplicaDescriptor replica : desc.getReplicas())
@@ -910,24 +912,29 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         SearchResultEntry sr = entryReader.readEntry();
 
         serverProps.put(ServerProperty.IS_REPLICATION_SERVER, Boolean.TRUE);
-        serverProps.put(ServerProperty.REPLICATION_SERVER_PORT, asInteger(sr, "ds-cfg-replication-port"));
-        serverProps.put(ServerProperty.REPLICATION_SERVER_ID, asInteger(sr, "ds-cfg-replication-server-id"));
-        allReplicationServers.addAll(toHostPorts(asSetOfString(sr, "ds-cfg-replication-server")));
+        serverProps.put(ServerProperty.REPLICATION_SERVER_PORT,
+            sr.parseAttribute("ds-cfg-replication-port").asInteger());
+        serverProps.put(ServerProperty.REPLICATION_SERVER_ID,
+            sr.parseAttribute("ds-cfg-replication-server-id").asInteger());
+        allReplicationServers.addAll(sr.parseAttribute("ds-cfg-replication-server").asSetOf(hostPorts()));
         serverProps.put(ServerProperty.EXTERNAL_REPLICATION_SERVERS, allReplicationServers);
       }
     }
 
-    serverProps.put(ServerProperty.IS_REPLICATION_SECURE, isReplicationSecure(conn, asBoolean(sre, "ds-cfg-enabled")));
+    serverProps.put(ServerProperty.IS_REPLICATION_SECURE,
+        isReplicationSecure(conn, sre.parseAttribute("ds-cfg-enabled").asBoolean()));
   }
 
-  private static Set<HostPort> toHostPorts(Set<String> hostPorts)
+  private static Function<ByteString, HostPort, RuntimeException> hostPorts()
   {
-    final LinkedHashSet<HostPort> results = new LinkedHashSet<>();
-    for (String hostPort : hostPorts)
+    return new Function<ByteString, HostPort, RuntimeException>()
     {
-      results.add(HostPort.valueOf(hostPort));
-    }
-    return results;
+      @Override
+      public HostPort apply(ByteString value)
+      {
+        return HostPort.valueOf(value.toString());
+      }
+    };
   }
 
   private static boolean isReplicationSecure(ConnectionWrapper conn, boolean replicationEnabled) throws IOException
@@ -942,7 +949,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
         while (entryReader.hasNext())
         {
           SearchResultEntry sr = entryReader.readEntry();
-          return asBoolean(sr, "ds-cfg-ssl-encryption");
+          return sr.parseAttribute("ds-cfg-ssl-encryption").asBoolean();
         }
       }
     }
@@ -1086,7 +1093,7 @@ public class ServerDescriptor implements Comparable<ServerDescriptor>
       while (entryReader.hasNext())
       {
         SearchResultEntry sr = entryReader.readEntry();
-        results.addAll(asSetOfString(sr, "ds-base-dn-entry-count"));
+        results.addAll(sr.parseAttribute("ds-base-dn-entry-count").asSetOfString());
       }
     }
     return results;

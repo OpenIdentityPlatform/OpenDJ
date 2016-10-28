@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.browser.BrowserController.*;
 import static org.opends.guitools.controlpanel.ui.ControlCenterMainPane.*;
 import static org.opends.messages.AdminToolMessages.*;
@@ -77,6 +76,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.AbstractIndexDescriptor;
@@ -102,8 +102,6 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.server.types.OpenDsException;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -2037,7 +2035,7 @@ public abstract class StatusGenericPanel extends JPanel implements ConfigChangeL
       while (entryReader.hasNext())
       {
         SearchResultEntry sr = entryReader.readEntry();
-        for (String oc : asSetOfString(sr, ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME))
+        for (String oc : sr.parseAttribute(OBJECTCLASS_ATTRIBUTE_TYPE_NAME).asSetOfString())
         {
           for (String objectClass : objectClasses)
           {
