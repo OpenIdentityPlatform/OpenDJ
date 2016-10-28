@@ -569,64 +569,131 @@ public final class Connections {
 
             @Override
             public RequestWithIndex apply(final Request request) {
-                // Normalize the hash to a valid factory index, taking care of negative hash values and especially
-                // Integer.MIN_VALUE (see doc for Math.abs()).
-                final int index = computeIndexBasedOnDnHashCode(request);
-                return new RequestWithIndex(request, index == Integer.MIN_VALUE ? 0 : (Math.abs(index) % maxIndex));
-            }
-
-            private int computeIndexBasedOnDnHashCode(final Request request) {
-                // The following conditions are ordered such that the most common operations appear first in order to
-                // reduce the average number of branches. A better solution would be to use a visitor, but a visitor
-                // would only apply to the core operations, not extended operations or SASL binds.
-                if (request instanceof SearchRequest) {
-                    return ((SearchRequest) request).getName().hashCode();
-                } else if (request instanceof ModifyRequest) {
-                    return ((ModifyRequest) request).getName().hashCode();
-                } else if (request instanceof SimpleBindRequest) {
-                    return hashCodeOfDnString(((SimpleBindRequest) request).getName());
-                } else if (request instanceof AddRequest) {
-                    return ((AddRequest) request).getName().hashCode();
-                } else if (request instanceof DeleteRequest) {
-                    return ((DeleteRequest) request).getName().hashCode();
-                } else if (request instanceof CompareRequest) {
-                    return ((CompareRequest) request).getName().hashCode();
-                } else if (request instanceof ModifyDNRequest) {
-                    return ((ModifyDNRequest) request).getName().hashCode();
-                } else if (request instanceof PasswordModifyExtendedRequest) {
-                    return hashCodeOfAuthzid(((PasswordModifyExtendedRequest) request).getUserIdentityAsString());
-                } else if (request instanceof PlainSASLBindRequest) {
-                    return hashCodeOfAuthzid(((PlainSASLBindRequest) request).getAuthenticationID());
-                } else if (request instanceof DigestMD5SASLBindRequest) {
-                    return hashCodeOfAuthzid(((DigestMD5SASLBindRequest) request).getAuthenticationID());
-                } else if (request instanceof GSSAPISASLBindRequest) {
-                    return hashCodeOfAuthzid(((GSSAPISASLBindRequest) request).getAuthenticationID());
-                } else if (request instanceof CRAMMD5SASLBindRequest) {
-                    return hashCodeOfAuthzid(((CRAMMD5SASLBindRequest) request).getAuthenticationID());
-                } else {
-                    return distributeRequestAtRandom();
-                }
-            }
-
-            private int hashCodeOfAuthzid(final String authzid) {
-                if (authzid != null && authzid.startsWith("dn:")) {
-                    return hashCodeOfDnString(authzid.substring(3));
-                }
-                return distributeRequestAtRandom();
-            }
-
-            private int hashCodeOfDnString(final String dnString) {
-                try {
-                    return DN.valueOf(dnString).hashCode();
-                } catch (final IllegalArgumentException ignored) {
-                    return distributeRequestAtRandom();
-                }
-            }
-
-            private int distributeRequestAtRandom() {
-                return ThreadLocalRandom.current().nextInt(0, maxIndex);
+                final int index = computePartitionIdFromDN(dnOfRequest(request), maxIndex);
+                return new RequestWithIndex(request, index);
             }
         };
+    }
+
+    /**
+     * Returns the partition ID which should be selected based on the provided DN and number of partitions, taking care
+     * of negative hash values and especially Integer.MIN_VALUE (see doc for Math.abs()). If the provided DN is
+     * {@code null} then a random partition ID will be returned.
+     *
+     * @param dn
+     *         The DN whose partition ID is to be determined, which may be {@code null}.
+     * @param numberOfPartitions
+     *         The total number of partitions.
+     * @return A partition ID in the range 0 <= partitionID < numberOfPartitions.
+     */
+    private static int computePartitionIdFromDN(final DN dn, final int numberOfPartitions) {
+        final int index = dn != null ? dn.hashCode() : ThreadLocalRandom.current().nextInt(0, numberOfPartitions);
+        return index == Integer.MIN_VALUE ? 0 : (Math.abs(index) % numberOfPartitions);
+    }
+
+    /**
+     * Returns the DN of the entry targeted by the provided request, or {@code null} if the target entry cannot be
+     * determined. This method will return {@code null} for most extended operations and SASL bind requests which
+     * specify a non-DN authorization ID.
+     *
+     * @param request
+     *         The request whose target entry DN is to be determined.
+     * @return The DN of the entry targeted by the provided request, or {@code null} if the target entry cannot be
+     *         determined.
+     */
+    static DN dnOfRequest(final Request request) {
+        // The following conditions are ordered such that the most common operations appear first in order to
+        // reduce the average number of branches. A better solution would be to use a visitor, but a visitor
+        // would only apply to the core operations, not extended operations or SASL binds.
+        if (request instanceof SearchRequest) {
+            return ((SearchRequest) request).getName();
+        } else if (request instanceof ModifyRequest) {
+            return ((ModifyRequest) request).getName();
+        } else if (request instanceof SimpleBindRequest) {
+            return dnOf(((SimpleBindRequest) request).getName());
+        } else if (request instanceof AddRequest) {
+            return ((AddRequest) request).getName();
+        } else if (request instanceof DeleteRequest) {
+            return ((DeleteRequest) request).getName();
+        } else if (request instanceof CompareRequest) {
+            return ((CompareRequest) request).getName();
+        } else if (request instanceof ModifyDNRequest) {
+            return ((ModifyDNRequest) request).getName();
+        } else if (request instanceof PasswordModifyExtendedRequest) {
+            return dnOfAuthzid(((PasswordModifyExtendedRequest) request).getUserIdentityAsString());
+        } else if (request instanceof PlainSASLBindRequest) {
+            return dnOfAuthzid(((PlainSASLBindRequest) request).getAuthenticationID());
+        } else if (request instanceof DigestMD5SASLBindRequest) {
+            return dnOfAuthzid(((DigestMD5SASLBindRequest) request).getAuthenticationID());
+        } else if (request instanceof GSSAPISASLBindRequest) {
+            return dnOfAuthzid(((GSSAPISASLBindRequest) request).getAuthenticationID());
+        } else if (request instanceof CRAMMD5SASLBindRequest) {
+            return dnOfAuthzid(((CRAMMD5SASLBindRequest) request).getAuthenticationID());
+        } else {
+            return null;
+        }
+    }
+
+    private static DN dnOfAuthzid(final String authzid) {
+        if (authzid != null && authzid.startsWith("dn:")) {
+            return dnOf(authzid.substring(3));
+        }
+        return null;
+    }
+
+    private static DN dnOf(final String dnString) {
+        try {
+            return DN.valueOf(dnString);
+        } catch (final IllegalArgumentException ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Creates a distribution load balancer which uses consistent hashing to distributes requests across a set of
+     * partitions based on a hash of each request's target DN. More precisely, a partition is selected as follows:
+     * <ul>
+     * <li>if the targeted entry lies beneath the partition base DN then the partition is selected based on a hash of
+     * the DN which is superior to the target DN and immediately subordinate to the partition base DN</li>
+     * <li>otherwise, if the request is not a search then the request is routed to a random partition</li>
+     * <li>otherwise, if the search request targets the partition base DN, or a superior thereof, then the search is
+     * routed to a random partition or broadcast to all partitions, depending on the search scope. When broadcasting,
+     * care is taken to re-scope sub-requests in order to avoid returning duplicate entries</li>
+     * <li>otherwise, the search is routed to a random partition because its scope lies outside of the partition
+     * space.</li>
+     * </ul>
+     * This load balancer allows client applications to linearly scale their deployment for write throughput as well
+     * as total number of entries. For example, if a single replicated topology can support 10000 updates/s and a
+     * total of 100M entries, then a 4 way distributed topology could support up to 40000 updates/s and 400M entries.
+     * <p/>
+     * <b>NOTE:</b> there are a number of assumptions in the design of this load balancer as well as a number of
+     * limitations:
+     * <ul>
+     * <li>simple paged results, server side sorting, and VLV request controls are not supported for searches which
+     * traverse all partitions. </li>
+     * <li>persistent searches which traverse all partitions are only supported if they request changes only. </li>
+     * <li>requests which target an entry which is not below the partition base DN will be routed to a partition
+     * selected based on the request's DN, thereby providing affinity. Note that this behavior assumes that entries
+     * which are not below the partition base DN are replicated across all partitions.</li>
+     * <li>searches that traverse multiple partitions as well as entries above the partition base DN may return
+     * results in a non-hierarchical order. Specifically, entries from a partition (below the partition base DN)
+     * may be returned before entries above the partition base DN. Although not required by the LDAP standard, some
+     * legacy clients expect entries to be returned in hierarchical order.
+     * </li>
+     * </ul>
+     *
+     * @param partitionBaseDN
+     *         The DN beneath which data is partitioned. All other data is assumed to be shared across all partitions.
+     * @param partitions
+     *         The consistent hash map containing the partitions to be distributed.
+     * @param options
+     *         The configuration options for the load-balancer (no options are supported currently).
+     * @return The new distribution load balancer.
+     */
+    @SuppressWarnings("unused")
+    public static ConnectionFactory newFixedSizeDistributionLoadBalancer(final DN partitionBaseDN,
+            final ConsistentHashMap<? extends ConnectionFactory> partitions, final Options options) {
+        return new ConsistentHashDistributionLoadBalancer(partitionBaseDN, partitions);
     }
 
     /**
