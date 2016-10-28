@@ -74,10 +74,10 @@ public class ConnectionsTestCase extends SdkTestCase {
     }
 
     @Test
-    public void shardedRequestLoadBalancerUsesConsistentIndexing() {
+    public void affinityRequestLoadBalancerUsesConsistentIndexing() {
         final Function<Request, RequestWithIndex, NeverThrowsException> f =
-                newShardedRequestLoadBalancerNextFunction(asList(mock(ConnectionFactory.class),
-                                                             mock(ConnectionFactory.class)));
+                newAffinityRequestLoadBalancerNextFunction(asList(mock(ConnectionFactory.class),
+                                                                  mock(ConnectionFactory.class)));
 
         // These two DNs have a different hash code.
         final DN dn1 = DN.valueOf("cn=target1,dc=example,dc=com");

@@ -426,7 +426,7 @@ public final class Connections {
      * @param options
      *         This configuration options for the load-balancer.
      * @return The new round-robin load balancer.
-     * @see #newShardedRequestLoadBalancer(Collection, Options)
+     * @see #newAffinityRequestLoadBalancer(Collection, Options)
      * @see #newFailoverLoadBalancer(Collection, Options)
      * @see #newLeastRequestsLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
@@ -495,7 +495,7 @@ public final class Connections {
      *         This configuration options for the load-balancer.
      * @return The new fail-over load balancer.
      * @see #newRoundRobinLoadBalancer(Collection, Options)
-     * @see #newShardedRequestLoadBalancer(Collection, Options)
+     * @see #newAffinityRequestLoadBalancer(Collection, Options)
      * @see #newLeastRequestsLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
@@ -513,7 +513,7 @@ public final class Connections {
     }
 
     /**
-     * Creates a new "sharded" load-balancer which will load-balance individual requests across the provided set of
+     * Creates a new "affinity" load-balancer which will load-balance individual requests across the provided set of
      * connection factories, each typically representing a single replica, using an algorithm that ensures that requests
      * targeting a given DN will always be routed to the same replica. In other words, this load-balancer increases
      * consistency whilst maintaining read-scalability by simulating a "single master" replication topology, where each
@@ -553,16 +553,16 @@ public final class Connections {
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
      * @see #LOAD_BALANCER_SCHEDULER
      */
-    public static ConnectionFactory newShardedRequestLoadBalancer(
+    public static ConnectionFactory newAffinityRequestLoadBalancer(
             final Collection<? extends ConnectionFactory> factories, final Options options) {
-        return new RequestLoadBalancer("ShardedRequestLoadBalancer",
+        return new RequestLoadBalancer("AffinityRequestLoadBalancer",
                                        factories,
                                        options,
-                                       newShardedRequestLoadBalancerNextFunction(factories),
+                                       newAffinityRequestLoadBalancerNextFunction(factories),
                                        NOOP_END_OF_REQUEST_FUNCTION);
     }
 
-    static Function<Request, RequestWithIndex, NeverThrowsException> newShardedRequestLoadBalancerNextFunction(
+    static Function<Request, RequestWithIndex, NeverThrowsException> newAffinityRequestLoadBalancerNextFunction(
             final Collection<? extends ConnectionFactory> factories) {
         return new Function<Request, RequestWithIndex, NeverThrowsException>() {
             private final int maxIndex = factories.size();
@@ -637,7 +637,7 @@ public final class Connections {
      * In other words, this load-balancer provides availability and partition tolerance, but sacrifices consistency.
      * When a replica is not available, its number of active requests will not decrease until the requests time out,
      * which will have the effect of directing requests to the other replicas. Consistency is low compared to the
-     * "sharded" load-balancer, because there is no guarantee that requests for the same DN are directed to the same
+     * "affinity" load-balancer, because there is no guarantee that requests for the same DN are directed to the same
      * replica.
      * <p/>
      * It is possible to increase consistency by providing a {@link AffinityControl} with a
@@ -664,7 +664,7 @@ public final class Connections {
      * @return The new least requests load balancer.
      * @see #newRoundRobinLoadBalancer(Collection, Options)
      * @see #newFailoverLoadBalancer(Collection, Options)
-     * @see #newShardedRequestLoadBalancer(Collection, Options)
+     * @see #newAffinityRequestLoadBalancer(Collection, Options)
      * @see #LOAD_BALANCER_EVENT_LISTENER
      * @see #LOAD_BALANCER_MONITORING_INTERVAL
      * @see #LOAD_BALANCER_SCHEDULER

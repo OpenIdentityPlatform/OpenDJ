@@ -57,7 +57,7 @@ import com.forgerock.reactive.ServerConnectionFactoryAdapter;
  *         <remoteAddress1> <remotePort1> [<remoteAddress2> <remotePort2> ...]}
  * </pre>
  *
- * Where {@code <mode>} is one of "round-robin", "fail-over", or "sharded". The default is round-robin.
+ * Where {@code <mode>} is one of "round-robin", "fail-over", or "affinity". The default is round-robin.
  */
 public final class Proxy {
     /**
@@ -164,11 +164,11 @@ public final class Proxy {
             return LoadBalancingAlgorithm.ROUND_ROBIN;
         case "fail-over":
             return LoadBalancingAlgorithm.FAIL_OVER;
-        case "sharded":
-            return LoadBalancingAlgorithm.SHARDED;
+        case "affinity":
+            return LoadBalancingAlgorithm.AFFINITY;
         default:
             System.err.println("Unrecognized load-balancing algorithm '" + algorithmName + "'. Should be one of "
-                                       + "'round-robin', 'fail-over', or 'sharded'.");
+                                       + "'round-robin', 'fail-over', or 'affinity'.");
             System.exit(1);
         }
         return LoadBalancingAlgorithm.ROUND_ROBIN; // keep compiler happy.
@@ -189,10 +189,10 @@ public final class Proxy {
                 return Connections.newFailoverLoadBalancer(factories, options);
             }
         },
-        SHARDED {
+        AFFINITY {
             @Override
             ConnectionFactory newLoadBalancer(final Collection<ConnectionFactory> factories, final Options options) {
-                return Connections.newShardedRequestLoadBalancer(factories, options);
+                return Connections.newAffinityRequestLoadBalancer(factories, options);
             }
         };
 
