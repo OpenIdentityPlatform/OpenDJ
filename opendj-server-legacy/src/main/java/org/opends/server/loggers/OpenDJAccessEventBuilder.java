@@ -15,8 +15,6 @@
  */
 package org.opends.server.loggers;
 
-import static org.forgerock.json.JsonValue.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +42,6 @@ import org.opends.server.types.Operation;
  */
 class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> extends AccessAuditEventBuilder<T>
 {
-
   private JsonValue opRequest;
   private JsonValue opResponse;
 
@@ -199,7 +196,7 @@ class OpenDJAccessAuditEventBuilder<T extends OpenDJAccessAuditEventBuilder<T>> 
     getOpRequest().put("filter", searchOperation.getRawFilter().toString());
 
     final Set<String> attrs = searchOperation.getAttributes();
-    if ((attrs == null) || attrs.isEmpty())
+    if (attrs == null || attrs.isEmpty())
     {
       getOpRequest().put("attrs", Arrays.asList("ALL"));
     }

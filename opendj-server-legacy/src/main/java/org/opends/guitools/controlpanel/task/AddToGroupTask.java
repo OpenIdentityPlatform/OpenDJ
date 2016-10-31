@@ -19,7 +19,6 @@ package org.opends.guitools.controlpanel.task;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.guitools.controlpanel.browser.BrowserController.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -48,7 +47,6 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.messages.AdminToolMessages;
 
 /** The class that is in charge of adding a set of entries to a set of static groups. */
 public class AddToGroupTask extends Task
@@ -102,7 +100,7 @@ public class AddToGroupTask extends Task
   @Override
   public LocalizableMessage getTaskDescription()
   {
-    return AdminToolMessages.INFO_CTRL_PANEL_ADD_TO_GROUP_TASK_DESCRIPTION.get();
+    return INFO_CTRL_PANEL_ADD_TO_GROUP_TASK_DESCRIPTION.get();
   }
 
   @Override

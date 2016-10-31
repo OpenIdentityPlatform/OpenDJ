@@ -18,7 +18,6 @@ package org.opends.guitools.controlpanel.task;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
-import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 
