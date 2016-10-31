@@ -178,7 +178,7 @@
                             <extendedClasspath>
                                 ${project.build.directory}/dependency/freemarker-${freemarker.version}.jar
                             </extendedClasspath>
-                            <outputDir>${project.build.directory}/generated-man-pages</outputDir>
+                            <outputDir>${project.build.directory}/docbkx-sources/man-pages</outputDir>
                             <tools>
                                 <tool>
                                     <name>addrate</name>
@@ -199,12 +199,31 @@
                                 </tool>
 
                                 <tool>
+                                    <name>base64</name>
+                                    <application>com.forgerock.opendj.ldap.tools.Base64</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                                        <trailingSectionPath>base64-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
                                     <name>ldapcompare</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDAPCompare</application>
                                     <trailingSectionPaths>
                                         <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
                                         <trailingSectionPath>files.xml</trailingSectionPath>
                                         <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldapdelete</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDAPDelete</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>files.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldapdelete-examples.xml</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>
 
@@ -392,15 +411,6 @@
                                         </tool>
 
                                         <tool>
-                                            <name>base64</name>
-                                            <application>org.opends.server.util.Base64</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                                                <trailingSectionPath>base64-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
                                             <name>control-panel</name>
                                             <application>org.opends.guitools.controlpanel.ControlPanelLauncher
                                             </application>
@@ -476,101 +486,11 @@
                                         </tool>
 
                                         <tool>
-                                            <name>ldapcompare</name>
-                                            <application>org.opends.server.tools.LDAPCompare</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>ldapcompare-exit-codes.xml</trailingSectionPath>
-                                                <trailingSectionPath>files.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>ldapdelete</name>
-                                            <application>org.opends.server.tools.LDAPDelete</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                                                <trailingSectionPath>files.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldapdelete-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>ldapmodify</name>
-                                            <application>org.opends.server.tools.LDAPModify</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                                                <trailingSectionPath>files.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldapmodify-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>ldappasswordmodify</name>
-                                            <application>org.opends.server.tools.LDAPPasswordModify</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                                                <trailingSectionPath>files.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldappasswordmodify-examples.xml
-                                                </trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>ldapsearch</name>
-                                            <application>org.opends.server.tools.LDAPSearch</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>filters.xml</trailingSectionPath>
-                                                <trailingSectionPath>attributes.xml</trailingSectionPath>
-                                                <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-                                                <trailingSectionPath>files.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldapsearch-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>ldif-diff</name>
-                                            <application>org.opends.server.tools.LDIFDiff</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-5-6-other.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldif-diff-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>ldifmodify</name>
-                                            <application>org.opends.server.tools.LDIFModify</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldifmodify-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>ldifsearch</name>
-                                            <application>org.opends.server.tools.LDIFSearch</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                                                <trailingSectionPath>ldifsearch-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
                                             <name>list-backends</name>
                                             <application>org.opends.server.tools.ListBackends</application>
                                             <trailingSectionPaths>
                                                 <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
                                                 <trailingSectionPath>list-backends-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
-                                            <name>make-ldif</name>
-                                            <application>org.opends.server.tools.makeldif.MakeLDIF</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                                                <trailingSectionPath>make-ldif-examples.xml</trailingSectionPath>
-                                                <trailingSectionPath>make-ldif-see-also.xml</trailingSectionPath>
                                             </trailingSectionPaths>
                                         </tool>
 

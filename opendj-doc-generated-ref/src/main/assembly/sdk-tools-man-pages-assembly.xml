@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
  -->
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -29,62 +29,72 @@
   <files>
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-addrate.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-addrate.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-authrate.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-authrate.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-ldapcompare.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-base64.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-ldapmodify.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapcompare.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-ldappasswordmodify.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapdelete.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-ldapsearch.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapmodify.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-ldifdiff.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldappasswordmodify.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-ldifmodify.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapsearch.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-ldifsearch.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifdiff.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-makeldif.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifmodify.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-modrate.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifsearch.xml</source>
     </file>
 
     <file>
       <outputDirectory>man-pages</outputDirectory>
-      <source>target/generated-man-pages/man-searchrate.xml</source>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-makeldif.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-modrate.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-searchrate.xml</source>
     </file>
   </files>
 
