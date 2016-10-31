@@ -15,15 +15,17 @@
  */
 package org.opends.server.core;
 
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.forgerock.http.routing.Router;
 import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
 import org.opends.server.schema.SchemaHandler;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 /** Context for the server, giving access to global properties of the server. */
 public interface ServerContext
@@ -127,4 +129,10 @@ public interface ServerContext
    */
   CryptoManager getCryptoManager();
 
+  /**
+   * Returns the UNIX's cron-like executor service.
+   *
+   * @return the UNIX's cron-like executor service
+   */
+  ScheduledExecutorService getCronExecutorService();
 }

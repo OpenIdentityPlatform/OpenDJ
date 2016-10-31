@@ -17,6 +17,7 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -54,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
@@ -68,6 +70,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.AlertHandlerCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
@@ -152,10 +155,10 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.BuildVersion;
+import org.opends.server.util.CronExecutorService;
 import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
@@ -646,6 +649,7 @@ public final class DirectoryServer
   private CommonAudit commonAudit;
 
   private Router httpRouter;
+  private CronExecutorService cronExecutorService;
 
   /** Class that prints the version of OpenDJ server to System.out. */
   public static final class DirectoryServerVersionHandler implements VersionHandler
@@ -1054,6 +1058,12 @@ public final class DirectoryServer
     {
       return directoryServer.cryptoManager;
     }
+
+    @Override
+    public ScheduledExecutorService getCronExecutorService()
+    {
+      return directoryServer.cronExecutorService;
+    }
   }
 
   /**
@@ -1461,6 +1471,7 @@ public final class DirectoryServer
 
       commonAudit = new CommonAudit(serverContext);
       httpRouter = new Router();
+      cronExecutorService = new CronExecutorService();
 
       // Allow internal plugins to be registered.
       pluginConfigManager.initializePluginConfigManager();
