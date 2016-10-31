@@ -28,7 +28,6 @@ import static org.testng.Assert.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -52,6 +51,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -319,13 +319,12 @@ public class HistoricalTest extends ReplicationTestCase
       .maxSleep(2, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         assertEquals(getEntryValue(entryDN, attrDesc), expectedValue);
-        return null;
       }
     });
   }

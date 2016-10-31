@@ -30,7 +30,6 @@ import static org.testng.Assert.*;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -66,6 +65,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -1047,13 +1047,12 @@ public class UpdateOperationTest extends ReplicationTestCase
       .maxSleep(200, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         assertNotEquals(getMonitorDelta() , 0);
-        return null;
       }
     });
   }
@@ -1326,13 +1325,12 @@ public class UpdateOperationTest extends ReplicationTestCase
           .maxSleep(5, SECONDS)
           .sleepTimes(100, MILLISECONDS)
           .toTimer();
-        timer.repeatUntilSuccess(new Callable<Void>()
+        timer.repeatUntilSuccess(new CallableVoid()
         {
           @Override
-          public Void call() throws Exception
+          public void call() throws Exception
           {
             assertNotEquals(getMonitorAttrValue(baseDN, "replayed-updates"), initialCount);
-            return null;
           }
         });
       }

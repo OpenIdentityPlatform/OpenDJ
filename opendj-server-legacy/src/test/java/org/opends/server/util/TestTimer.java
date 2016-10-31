@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2015 ForgeRock AS.
+ * Copyright 2015-2016 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -27,10 +27,25 @@ import org.forgerock.util.Reject;
 public interface TestTimer
 {
   /**
-   * Constant that can be used at the end of {@code Callable<Void>.call()} to better explicit this
-   * is the end of the method.
+   * Equivalent to {@code Callable<Void>} or a {@code Runnable} that can throw exception.
+   * <p>
+   * <b>Note:</b> The name has been designed to stay close to {@code Callable<Void>} to allow to
+   * easily change test code back and forth between {@code java.util.Callable} and
+   * {@code CallableVoid} while writing the test code. It also avoids name collisions while writing
+   * the rest of the OpenDJ code base.
    */
-  Void END_RUN = null;
+  public static interface CallableVoid
+  {
+    /**
+     * Equivalent of {@link Runnable#run()} or {@link Callable#call()}.
+     *
+     * @throws Exception
+     *           if an error occurred
+     * @see {@link Runnable#run()}
+     * @see {@link Callable#call()}
+     */
+    void call() throws Exception;
+  }
 
   /**
    * Repeatedly call the supplied callable (respecting a sleep interval) until:
@@ -46,7 +61,7 @@ public interface TestTimer
    * </ul>
    * <p>
    * Note: The test code in the callable can be written as any test code outside a callable. In
-   * particular, asserts can and should be used inside the {@link Callable#call()}.
+   * particular, asserts can and should be used inside the {@link Callable#call()} method.
    *
    * @param callable
    *          the callable to repeat until success
@@ -60,6 +75,31 @@ public interface TestTimer
    *           If the thread is interrupted while sleeping
    */
   <R> R repeatUntilSuccess(Callable<R> callable) throws Exception, InterruptedException;
+
+  /**
+   * Repeatedly call the supplied callable (respecting a sleep interval) until:
+   * <ul>
+   * <li>it returns,</li>
+   * <li>it throws an exception other than {@link AssertionError},</li>
+   * <li>the current timer times out.</li>
+   * </ul>
+   * If the current timer times out, then it will:
+   * <ul>
+   * <li>either rethrow an {@link AssertionError} thrown by the callable,</li>
+   * <li>or return {@code null}.</li>
+   * </ul>
+   * <p>
+   * Note: The test code in the callable can be written as any test code outside a callable. In
+   * particular, asserts can and should be used inside the {@link TestTimer.Callable#call()} method.
+   *
+   * @param callable
+   *          the callable to repeat until success
+   * @throws Exception
+   *           The exception thrown by the provided callable
+   * @throws InterruptedException
+   *           If the thread is interrupted while sleeping
+   */
+  void repeatUntilSuccess(CallableVoid callable) throws Exception, InterruptedException;
 
   /** Builder for a {@link TestTimer}. */
   public static final class Builder
@@ -170,6 +210,20 @@ public interface TestTimer
       }
       while (!hasTimedOut());
       return null;
+    }
+
+    @Override
+    public void repeatUntilSuccess(final CallableVoid callable) throws Exception, InterruptedException
+    {
+      repeatUntilSuccess(new Callable<Void>()
+      {
+        @Override
+        public Void call() throws Exception
+        {
+          callable.call();
+          return null;
+        }
+      });
     }
 
     @Override

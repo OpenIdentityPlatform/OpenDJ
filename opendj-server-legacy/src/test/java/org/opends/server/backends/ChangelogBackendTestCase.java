@@ -29,7 +29,6 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.TestTimer.*;
 import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -103,6 +102,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
@@ -482,10 +482,10 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       .maxSleep(3, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
         CursorOptions options = new CursorOptions(GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
@@ -494,7 +494,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         {
           assertTrue(cursor.next(), "Expected to find at least one change in replicaDB for " + replicaId);
           assertEquals(cursor.getRecord().getCSN(), csn);
-          return END_RUN;
         }
       }
     });
@@ -1241,13 +1240,12 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       .maxSleep(500, MILLISECONDS)
       .sleepTimes(50, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         assertEquals(operation.getResultCode(), expectedResult, operation.getErrorMessage().toString());
-        return END_RUN;
       }
     });
   }

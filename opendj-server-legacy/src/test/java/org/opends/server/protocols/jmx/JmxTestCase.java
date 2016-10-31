@@ -24,7 +24,6 @@ import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.DN;
@@ -36,6 +35,7 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Modification;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -83,14 +83,13 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
       .maxSleep(20, SECONDS)
       .sleepTimes(200, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         Assertions.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate).isNotNull();
         Assertions.assertThat(rmiConnector.jmxRmiConnectorNoClientCertificate.isActive()).isTrue();
-        return null;
       }
     });
     return jmxConnectionHandler;

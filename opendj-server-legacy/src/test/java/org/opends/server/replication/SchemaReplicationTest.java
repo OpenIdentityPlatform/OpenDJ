@@ -23,11 +23,11 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
@@ -41,11 +41,11 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -229,15 +229,14 @@ public class SchemaReplicationTest extends ReplicationTestCase
         .maxSleep(5, SECONDS)
         .sleepTimes(100, MILLISECONDS)
         .toTimer();
-      timer.repeatUntilSuccess(new Callable<Void>()
+      timer.repeatUntilSuccess(new CallableVoid()
       {
         @Override
-        public Void call() throws Exception
+        public void call() throws Exception
         {
           String fileStr = readAsString(schemaFile);
           assertTrue(fileStr.contains(stateStr), "The Schema persistentState (CSN:" + stateStr
               + ") has not been saved to " + schemaFile + " : " + fileStr);
-          return null;
         }
       });
     } finally

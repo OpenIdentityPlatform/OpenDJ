@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -56,6 +55,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Entry;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -143,13 +143,12 @@ public class StateMachineTest extends ReplicationTestCase
       .maxSleep(30, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         assertTrue(isConnected(dsId), "checkConnection: DS " + dsId + " is not connected to the RS");
-        return null;
       }
     });
   }
@@ -1130,13 +1129,12 @@ public class StateMachineTest extends ReplicationTestCase
       .maxSleep(30, SECONDS)
       .sleepTimes(500, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         assertEquals(domain.getStatus(), expectedStatus);
-        return null;
       }
     });
   }

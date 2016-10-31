@@ -27,7 +27,6 @@ import java.net.SocketTimeoutException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
@@ -61,6 +60,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -366,16 +366,15 @@ public class GenerationIdTest extends ReplicationTestCase
         .maxSleep(1, MINUTES)
         .sleepTimes(200, MILLISECONDS)
         .toTimer();
-      timer.repeatUntilSuccess(new Callable<Void>()
+      timer.repeatUntilSuccess(new CallableVoid()
       {
         @Override
-        public Void call() throws Exception
+        public void call() throws Exception
         {
           LDAPReplicationDomain doToco = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
           assertNotNull(doToco);
           assertTrue(doToco.isConnected(), "not connected");
           debugInfo("ReplicationDomain: Import/Export is running ? " + doToco.ieRunning());
-          return null;
         }
       });
     }
@@ -434,13 +433,12 @@ public class GenerationIdTest extends ReplicationTestCase
           .maxSleep(10, SECONDS)
           .sleepTimes(100, MILLISECONDS)
           .toTimer();
-        timer.repeatUntilSuccess(new Callable<Void>()
+        timer.repeatUntilSuccess(new CallableVoid()
         {
           @Override
-          public Void call() throws Exception
+          public void call() throws Exception
           {
             assertNull(LDAPReplicationDomain.retrievesReplicationDomain(baseDN));
-            return null;
           }
         });
       }
@@ -858,15 +856,14 @@ public class GenerationIdTest extends ReplicationTestCase
       .maxSleep(timeout, MILLISECONDS)
       .sleepTimes(50, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         LDAPReplicationDomain domain = MultimasterReplication.findDomain(baseDN, null);
         assertNotNull(domain);
         assertTrue(domain.isConnected(), "server should have been connected to replication domain" + baseDN);
-        return null;
       }
     });
   }
@@ -996,13 +993,12 @@ public class GenerationIdTest extends ReplicationTestCase
       .maxSleep(10, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         assertGenIdEquals(expectedGenId);
-        return null;
       }
     });
   }

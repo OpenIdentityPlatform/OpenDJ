@@ -75,6 +75,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.TestTimer;
+import org.opends.server.util.TestTimer.CallableVoid;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -244,20 +245,19 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       .maxSleep(secTimeout, SECONDS)
       .sleepTimes(1, SECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         if (rb.isConnected())
         {
           logger.trace("checkConnection: connection of broker " + rb.getServerId()
               + " to RS " + rb.getRsGroupId() + " obtained.");
-          return null;
+          return;
         }
 
         rb.start();
-        return null;
       }
     });
   }
@@ -517,10 +517,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       .maxSleep(timeoutInSecs, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         final Entry newEntry = DirectoryServer.getEntry(dn);
         assertNotNull(newEntry);
@@ -529,7 +529,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         Attribute attr = attrs.iterator().next();
         boolean foundAttributeValue = attr.contains(ByteString.valueOfUtf8(valueString));
         assertEquals(foundAttributeValue, expectedAttributeValueFound, foundMsg);
-        return null;
       }
     });
   }
@@ -544,13 +543,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       .maxSleep(timeoutInMillis, MILLISECONDS)
       .sleepTimes(200, MILLISECONDS)
       .toTimer();
-    timer.repeatUntilSuccess(new Callable<Void>()
+    timer.repeatUntilSuccess(new CallableVoid()
     {
       @Override
-      public Void call() throws Exception
+      public void call() throws Exception
       {
         assertEquals(DirectoryServer.entryExists(dn), exist, "Expected entry with dn \"" + dn + "\" would exist");
-        return null;
       }
     });
 
