@@ -48,7 +48,7 @@ class DebugStackTraceFormatter
   {
     private boolean isFrameForPackage(StackTraceElement frame, String packageName)
     {
-      return frame != null ? startsWith(frame.getClassName(), packageName) : false;
+      return frame != null && startsWith(frame.getClassName(), packageName);
     }
 
     private boolean startsWith(String className, String packageName)

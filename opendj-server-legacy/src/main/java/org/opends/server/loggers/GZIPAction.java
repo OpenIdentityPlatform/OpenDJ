@@ -30,9 +30,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  */
 class GZIPAction implements PostRotationAction
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
 
   private File originalFile;
   private File newFile;
@@ -74,7 +72,7 @@ class GZIPAction implements PostRotationAction
 
       try (FileInputStream fis = new FileInputStream(originalFile);
           FileOutputStream fos = new FileOutputStream(newFile);
-          GZIPOutputStream gzip = new GZIPOutputStream(fos);)
+          GZIPOutputStream gzip = new GZIPOutputStream(fos))
       {
         byte[] buf = new byte[8192];
         int n;

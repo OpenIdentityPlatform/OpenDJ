@@ -17,12 +17,9 @@ package org.opends.server.loggers;
 
 import org.forgerock.json.resource.RequestHandler;
 
-/**
- * Common interface for all log publisher that log to Common Audit.
- */
+/** Common interface for all log publisher that log to Common Audit. */
 interface CommonAuditLogPublisher
 {
-
   /**
    * Sets the handler to use for publishing audit events.
    *
@@ -30,5 +27,4 @@ interface CommonAuditLogPublisher
    *          The common audit handler accepting requests.
    */
   void setRequestHandler(RequestHandler handler);
-
 }

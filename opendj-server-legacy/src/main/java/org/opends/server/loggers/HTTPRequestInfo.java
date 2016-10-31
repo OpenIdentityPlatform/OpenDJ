@@ -17,12 +17,9 @@ package org.opends.server.loggers;
 
 import java.net.URI;
 
-/**
- * Contains the information required for logging the HTTP request.
- */
+/** Contains the information required for logging the HTTP request. */
 public interface HTTPRequestInfo
 {
-
   /**
    * Returns the server's host.
    *
@@ -145,5 +142,4 @@ public interface HTTPRequestInfo
    *          the HTTP status code that was returned to the client.
    */
   void log(int statusCode);
-
 }

@@ -82,7 +82,6 @@ import org.forgerock.opendj.server.config.server.SizeLimitLogRetentionPolicyCfg;
 import org.forgerock.opendj.server.config.server.SizeLimitLogRotationPolicyCfg;
 import org.forgerock.opendj.server.config.server.TimeLimitLogRotationPolicyCfg;
 import org.opends.server.core.ServerContext;
-import org.opends.server.util.StaticUtils;
 
 /**
  * Entry point for the common audit facility.
@@ -352,7 +351,6 @@ public class CommonAudit
     {
       return existingAuditServiceProxy;
     }
-
   }
 
   private AuditServiceProxy buildAuditService(AuditServiceSetup setup)
@@ -564,7 +562,7 @@ public class CommonAudit
       else if (policyConfig instanceof TimeLimitLogRotationPolicyCfg)
       {
         long rotationInterval = ((TimeLimitLogRotationPolicyCfg) policyConfig).getRotationInterval();
-        fileRotation.setRotationInterval(String.valueOf(rotationInterval) + " ms");
+        fileRotation.setRotationInterval(rotationInterval + " ms");
       }
       else
       {
@@ -626,12 +624,12 @@ public class CommonAudit
       try
       {
         int time = Integer.valueOf(timeOfDay.substring(0, 2)) * 60 + Integer.valueOf(timeOfDay.substring(2, 4));
-        times.add(String.valueOf(time) + " minutes");
+        times.add(time + " minutes");
       }
       catch (NumberFormatException | IndexOutOfBoundsException e)
       {
-        throw new ConfigException(ERR_COMMON_AUDIT_INVALID_TIME_OF_DAY.get(publisher.getDn(), timeOfDay,
-            StaticUtils.stackTraceToSingleLineString(e)));
+        throw new ConfigException(ERR_COMMON_AUDIT_INVALID_TIME_OF_DAY.get(
+            publisher.getDn(), timeOfDay, stackTraceToSingleLineString(e)));
       }
     }
     return times;
@@ -826,7 +824,6 @@ public class CommonAudit
     {
       return config.dn().hashCode();
     }
-
   }
 
   /** Types of audit handlers managed. */
@@ -835,7 +832,7 @@ public class CommonAudit
     CSV, JSON, EXTERNAL
   }
 
-  /** Log types for LDAP or HTTP, to get specific configuration depending on the handler. **/
+  /** Log types for LDAP or HTTP, to get specific configuration depending on the handler. */
   private enum LogType
   {
     UNCONFIGURED
@@ -961,7 +958,7 @@ public class CommonAudit
    * a common ancestor with all the parameters (e.g Access Log, HTTP Access Log, ...), hence this class
    * is necessary to avoid duplicating code that setup configuration of the handler.
    */
-  private abstract static class HandlerConfigData
+  private static abstract class HandlerConfigData
   {
     private final String logDirectory;
     private final SortedSet<String> rotationPolicies;
@@ -990,9 +987,7 @@ public class CommonAudit
     }
   }
 
-  /**
-   * Contains common parameters for the Json handler.
-   */
+  /** Contains common parameters for the Json handler. */
   private static class JsonConfigData extends HandlerConfigData
   {
     JsonConfigData(String logDirectory, SortedSet<String> rotationPolicies, SortedSet<String> retentionPolicies)
@@ -1112,5 +1107,4 @@ public class CommonAudit
       return configurationFile;
     }
   }
-
 }

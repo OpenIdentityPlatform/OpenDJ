@@ -16,10 +16,7 @@
  */
 package org.opends.server.loggers;
 
-/**
- * This interface describes the action that needs to be taken
- * at the time of a rotation.
- */
+/** This interface describes the action that needs to be taken at the time of a rotation. */
 interface PostRotationAction
 {
   /**
@@ -30,6 +27,4 @@ interface PostRotationAction
    *          <CODE>false</CODE> if it was not.
    */
   boolean execute();
-
 }
-

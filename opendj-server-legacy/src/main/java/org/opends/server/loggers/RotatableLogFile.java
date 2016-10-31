@@ -17,12 +17,9 @@ package org.opends.server.loggers;
 
 import java.util.Calendar;
 
-/**
- * Represents a file that can be rotated based on size or on time.
- */
+/** Represents a file that can be rotated based on size or on time. */
 public interface RotatableLogFile
 {
-
   /**
    * Retrieves the number of bytes written to the file.
    *
@@ -37,5 +34,4 @@ public interface RotatableLogFile
    * @return The last time file rotation occurred.
    */
   Calendar getLastRotationTime();
-
 }

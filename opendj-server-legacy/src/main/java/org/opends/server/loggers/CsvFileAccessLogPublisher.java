@@ -31,14 +31,11 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.CsvFileAccessLogPublisherCfg;
 
-/**
- * Common Audit publisher which publishes access events to CSV files.
- */
+/** Common Audit publisher which publishes access events to CSV files. */
 final class CsvFileAccessLogPublisher
   extends CommonAuditAccessLogPublisher<CsvFileAccessLogPublisherCfg>
   implements ConfigurationChangeListener<CsvFileAccessLogPublisherCfg>
 {
-
   @Override
   boolean shouldLogControlOids()
   {

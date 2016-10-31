@@ -73,7 +73,6 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
   extends AbstractTextAccessLogPublisher<T>
   implements CommonAuditLogPublisher
 {
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Audit service handler. */
@@ -238,7 +237,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
         .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
         .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .request(clientConnection.getProtocol(), "CONNECT")
-        .transactionId(CommonAudit.DEFAULT_TRANSACTION_ID)
+        .transactionId(DEFAULT_TRANSACTION_ID)
         .response(ResponseStatus.SUCCESSFUL, String.valueOf(ResultCode.SUCCESS.intValue()), 0, TimeUnit.MILLISECONDS)
         .ldapConnectionId(clientConnection.getConnectionID());
 
@@ -273,7 +272,7 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
         .client(clientConnection.getClientAddress(), clientConnection.getClientPort())
         .server(clientConnection.getServerAddress(), clientConnection.getServerPort())
         .request(clientConnection.getProtocol(), "DISCONNECT")
-        .transactionId(CommonAudit.DEFAULT_TRANSACTION_ID)
+        .transactionId(DEFAULT_TRANSACTION_ID)
         .response(ResponseStatus.SUCCESSFUL, String.valueOf(ResultCode.SUCCESS.intValue()), 0, TimeUnit.MILLISECONDS)
         .ldapConnectionId(clientConnection.getConnectionID())
         .ldapReason(disconnectReason)
@@ -389,7 +388,6 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
     builder.ldapAuthType(authType);
 
     builder.ldapDn(bindOperation.getRawBindDN().toString());
-
   }
 
   private void appendCompareRequest(final CompareOperation compareOperation,
@@ -533,5 +531,4 @@ abstract class CommonAuditAccessLogPublisher<T extends AccessLogPublisherCfg>
           }
         });
   }
-
 }

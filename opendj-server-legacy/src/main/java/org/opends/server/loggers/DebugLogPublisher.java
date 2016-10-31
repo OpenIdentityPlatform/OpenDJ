@@ -84,20 +84,10 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *         or {@code null} if no method-level tracing is configured
    *         for the scope.
    */
-  final Map<String,TraceSettings> getMethodSettings(
-                                              String className)
+  final Map<String, TraceSettings> getMethodSettings(String className)
   {
-    if(methodTraceSettings == null)
-    {
-      return null;
-    }
-    else
-    {
-      return methodTraceSettings.get(className);
-    }
+    return methodTraceSettings != null ? methodTraceSettings.get(className) : null;
   }
-
-
 
   /**
    * Get the trace settings for a specified class.

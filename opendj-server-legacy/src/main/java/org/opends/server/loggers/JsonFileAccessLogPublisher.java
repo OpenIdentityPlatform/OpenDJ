@@ -22,14 +22,11 @@ import org.forgerock.opendj.server.config.server.JsonFileAccessLogPublisherCfg;
 
 import java.util.List;
 
-/**
- * Common Audit publisher which publishes access events to Json files.
- */
+/** Common Audit publisher which publishes access events to Json files. */
 final class JsonFileAccessLogPublisher
   extends CommonAuditAccessLogPublisher<JsonFileAccessLogPublisherCfg>
   implements ConfigurationChangeListener<JsonFileAccessLogPublisherCfg>
 {
-
   @Override
   boolean shouldLogControlOids()
   {

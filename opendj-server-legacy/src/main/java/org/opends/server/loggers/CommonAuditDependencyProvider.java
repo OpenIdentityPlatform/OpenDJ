@@ -23,12 +23,9 @@ import org.forgerock.audit.providers.LocalHostNameProvider;
 import org.forgerock.audit.providers.ProductInfoProvider;
 import org.opends.server.util.DynamicConstants;
 
-/**
- * Simple implementation of dependency provider for common audit.
- */
+/** Simple implementation of dependency provider for common audit. */
 class CommonAuditDependencyProvider implements DependencyProvider
 {
-
   @Override
   public <T> T getDependency(Class<T> clazz) throws ClassNotFoundException
   {
@@ -63,13 +60,10 @@ class CommonAuditDependencyProvider implements DependencyProvider
   /** DJ implementation for ProductInfoProvider. */
   private static class DJProductInfoProvider implements ProductInfoProvider
   {
-
     @Override
     public String getProductName()
     {
       return DynamicConstants.PRODUCT_NAME;
     }
-
   }
-
 }

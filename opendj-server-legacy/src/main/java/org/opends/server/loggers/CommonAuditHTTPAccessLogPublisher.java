@@ -37,7 +37,6 @@ class CommonAuditHTTPAccessLogPublisher<T extends HTTPAccessLogPublisherCfg>
   extends HTTPAccessLogPublisher<T>
   implements CommonAuditLogPublisher, ConfigurationChangeListener<T>
 {
-
   /** Current configuration for this publisher. */
   private T config;
 
@@ -95,5 +94,4 @@ class CommonAuditHTTPAccessLogPublisher<T extends HTTPAccessLogPublisherCfg>
   {
     // nothing to do
   }
-
 }

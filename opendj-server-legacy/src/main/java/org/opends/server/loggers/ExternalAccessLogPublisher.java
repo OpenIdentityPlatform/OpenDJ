@@ -22,15 +22,11 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.ExternalAccessLogPublisherCfg;
 
-/**
- * Common audit publisher which publishes access events to some external
- * publisher.
- */
+/** Common audit publisher which publishes access events to some external publisher. */
 final class ExternalAccessLogPublisher
   extends CommonAuditAccessLogPublisher<ExternalAccessLogPublisherCfg>
   implements ConfigurationChangeListener<ExternalAccessLogPublisherCfg>
 {
-
   @Override
   boolean shouldLogControlOids()
   {
