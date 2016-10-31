@@ -290,10 +290,9 @@ public final class Base64 extends ToolConsoleApplication {
                     outputStream.write(decodedData);
                 }
             } else {
-                final PrintStream outputPrintStream = getOutputStream();
-                outputPrintStream.write(decodedData);
-                outputPrintStream.println();
-                outputPrintStream.flush();
+                try (final PrintStream outputPrintStream = getOutputStream()) {
+                    outputPrintStream.write(decodedData);
+                }
             }
         } catch (final Exception e) {
             throw newToolException(e, ResultCode.OPERATIONS_ERROR,
