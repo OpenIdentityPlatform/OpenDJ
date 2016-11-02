@@ -12,9 +12,9 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2012-2015 ForgeRock AS.
+  Copyright 2012-2016 ForgeRock AS.
 -->
-<refentry xml:id='make-ldif-template-5'
+<refentry xml:id='makeldif-template-5'
           xmlns='http://docbook.org/ns/docbook'
           version='5.0' xml:lang='en'
           xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
@@ -23,20 +23,20 @@
           xmlns:xlink='http://www.w3.org/1999/xlink'>
  <info>
   <copyright>
-   <year>2012-2015</year>
+   <year>2012-2016</year>
    <holder>ForgeRock AS.</holder>
   </copyright>
  </info>
 
  <refmeta>
-  <refentrytitle>make-ldif.template</refentrytitle><manvolnum>5</manvolnum>
+  <refentrytitle>makeldif.template</refentrytitle><manvolnum>5</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
   <refmiscinfo class="version">${docTargetVersion}</refmiscinfo>
  </refmeta>
 
  <refnamediv>
-  <refname>make-ldif.template</refname>
-  <refpurpose>template file for the make-ldif command</refpurpose>
+  <refname>makeldif.template</refname>
+  <refpurpose>template file for the makeldif command</refpurpose>
  </refnamediv>
 
  <refsynopsisdiv>
@@ -48,7 +48,7 @@
 
 # Optionally include classes that define custom tags.
 # Custom tag classes extend org.opends.server.tools.makeldif.Tag and
-# must be on the class path when you run make-ldif.
+# must be on the class path when you run makeldif.
 #
 include <replaceable>custom.makeldif.tag.ClassName</replaceable>
 ...
@@ -65,7 +65,7 @@ define <replaceable>constant-name</replaceable>=<replaceable>value</replaceable>
 #  ou=People,dc=example,dc=com
 #  ou=Groups,dc=example,dc=com
 #
-# make-ldif generates the necessary object class definitions and RDNs.
+# makeldif generates the necessary object class definitions and RDNs.
 #
 # A branch can have subordinateTemplates that define templates to use for
 # the branch entry.
@@ -109,13 +109,13 @@ rdnAttr: <replaceable>attribute</replaceable>[+<replaceable>attribute</replaceab
    Template files specify how to build LDIF.
    They allow you to define variables, insert random values from other files,
    and generally build arbitrarily large LDIF files for testing purposes.
-   You pass template files to the <command>make-ldif</command> command
+   You pass template files to the <command>makeldif</command> command
    when generating LDIF.
   </para>
 
   <para>
    The Synopsis above shows the layout
-   for a <command>make-ldif</command> template file.
+   for a <command>makeldif</command> template file.
    This section focuses on what you can do to specify entry attribute values,
    called <replaceable>attr-value</replaceable> in the Synopsis section.
   </para>
@@ -124,7 +124,7 @@ rdnAttr: <replaceable>attribute</replaceable>[+<replaceable>attribute</replaceab
    <title>Specifying Attribute Values</title>
 
    <para>
-    When specifying attribute values in <command>make-ldif</command> templates,
+    When specifying attribute values in <command>makeldif</command> templates,
     you can use static text and constants that you have defined,
     enclosing names for constants in brackets, <literal>[myConstant]</literal>.
     You can use more than one constant per line, as in the following example.
@@ -551,8 +551,7 @@ description: This is the description for {cn}.]]></programlisting>
   <title>See Also</title>
 
   <para>
-     <xref linkend="make-ldif-1" />,
-   the OpenDJ directory server template file
+   <xref linkend="makeldif-1" />, the template file
    <filename>/path/to/opendj/config/MakeLDIF/example.template</filename>
   </para>
  </refsect1>

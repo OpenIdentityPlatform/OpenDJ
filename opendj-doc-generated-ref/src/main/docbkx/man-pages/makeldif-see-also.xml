@@ -12,25 +12,16 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <refsect1 xmlns="http://docbook.org/ns/docbook"
           version="5.0" xml:lang="en"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://docbook.org/ns/docbook
                               http://docbook.org/xml/5.0/xsd/docbook.xsd">
- <title>Examples</title>
+ <title>See Also</title>
 
  <para>
-  The following example uses the default template to generate LDIF.
+  <xref linkend="makeldif-template-5" />
  </para>
-
- <screen>
-$ <userinput>make-ldif -t ../config/MakeLDIF/example.template -o ../ldif/generated.ldif</userinput>
-<computeroutput>Processed 1000 entries
-Processed 2000 entries
-...
-Processed 10000 entries
-LDIF processing complete.  10003 entries written</computeroutput>
- </screen>
 </refsect1>

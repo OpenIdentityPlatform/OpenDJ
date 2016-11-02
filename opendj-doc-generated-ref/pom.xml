@@ -211,7 +211,7 @@
                                     <name>ldapcompare</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDAPCompare</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldapcompare-exit-codes.xml</trailingSectionPath>
                                         <trailingSectionPath>files.xml</trailingSectionPath>
                                         <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
                                     </trailingSectionPaths>
@@ -265,7 +265,7 @@
                                     <name>ldifdiff</name>
                                     <application>com.forgerock.opendj.ldap.tools.LDIFDiff</application>
                                     <trailingSectionPaths>
-                                        <trailingSectionPath>exit-codes-0-5-6-other.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldifdiff-exit-codes.xml</trailingSectionPath>
                                         <trailingSectionPath>ldifdiff-examples.xml</trailingSectionPath>
                                     </trailingSectionPaths>
                                 </tool>

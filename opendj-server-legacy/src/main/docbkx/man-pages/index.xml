@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <book xml:id="reference"
       xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en"
@@ -32,7 +32,7 @@
   </abstract>
 
   <copyright>
-   <year>2015</year>
+   <year>2015-2016</year>
    <holder>ForgeRock AS.</holder>
   </copyright>
 
@@ -101,7 +101,7 @@
   <xinclude:include href="man-ldapsearch.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href="man-ldif-diff.xml">
+  <xinclude:include href="man-ldifdiff.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
   <xinclude:include href="man-ldifmodify.xml">
@@ -113,10 +113,10 @@
   <xinclude:include href="man-list-backends.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href="man-make-ldif.xml">
+  <xinclude:include href="man-makeldif.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
-  <xinclude:include href="man-make-ldif-template.xml" />
+  <xinclude:include href="man-makeldif-template.xml" />
   <xinclude:include href="man-manage-account.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>

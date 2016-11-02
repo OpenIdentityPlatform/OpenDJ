@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Reject;
 
 /**
- * A template driven entry generator, as used by the make-ldif tool.
+ * A template driven entry generator, as used by the makeldif tool.
  * <p>
  * To build a generator with default values, including default template file,
  * use the empty constructor:

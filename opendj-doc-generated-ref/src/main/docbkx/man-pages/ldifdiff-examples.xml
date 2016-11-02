@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <refsect1 xmlns="http://docbook.org/ns/docbook"
           version="5.0" xml:lang="en"
@@ -53,7 +53,7 @@ mail: newuser@example.com
 userPassword: secret12
 description: A new description.</computeroutput>
 
-$ <userinput>ldif-diff -s /path/to/newuser.ldif -t /path/to/neweruser.ldif</userinput>
+$ <userinput>ldifdiff -s /path/to/newuser.ldif -t /path/to/neweruser.ldif</userinput>
 <computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 add: userPassword

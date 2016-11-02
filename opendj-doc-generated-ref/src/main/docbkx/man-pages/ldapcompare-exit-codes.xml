@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <refsect1 xmlns="http://docbook.org/ns/docbook"
           version="5.0" xml:lang="en"
@@ -35,8 +35,7 @@
    <term>5</term>
    <listitem>
     <para>
-     The <option>-m</option> option was used,
-     and at least one of the LDAP compare operations did not match.
+     The LDAP compare operation did not match.
     </para>
    </listitem>
   </varlistentry>
@@ -45,7 +44,7 @@
    <listitem>
     <para>
      The <option>-m</option> option was used,
-     and all the LDAP compare operations did match.
+     and the LDAP compare operation did match.
     </para>
    </listitem>
   </varlistentry>

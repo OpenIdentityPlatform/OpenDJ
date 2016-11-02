@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <refsect1 xmlns="http://docbook.org/ns/docbook"
           version="5.0" xml:lang="en"
@@ -23,7 +23,7 @@
 
  <para>
   The following example demonstrates use of the command
-  to add an entry to the directory.
+  to add an entry to the directory:
  </para>
 
  <screen>
@@ -50,14 +50,13 @@ ou: Product Development
 ou: People
 gidNumber: 10636</computeroutput>
 
-$ <userinput>ldapmodify -p 1389 -a -f newuser.ldif \
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+$ <userinput>ldapmodify -p 1389 -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery newuser.ldif</userinput>
 <computeroutput>Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
 ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
  </screen>
 
  <para>
-  The following listing shows a UNIX shell script that adds a user entry.
+  The following listing shows a UNIX shell script that adds a user entry:
  </para>
 
  <programlisting language="shell">
@@ -78,7 +77,7 @@ PORT=1389
 ADMIN=uid=kvaughan,ou=people,dc=example,dc=com
 PWD=bribery
 
-$LDAPMODIFY -h $HOST -p $PORT -D $ADMIN -w $PWD -a &lt;&lt;EOF
+$LDAPMODIFY -h $HOST -p $PORT -D $ADMIN -w $PWD &lt;&lt;EOF
 dn: uid=$1,ou=people,dc=example,dc=com
 uid: $1
 objectClass: top
@@ -94,7 +93,7 @@ EOF
 
  <para>
   The following example demonstrates adding a Description attribute
-  to the new user's entry.
+  to the new user's entry:
  </para>
 
  <screen>
@@ -104,15 +103,14 @@ changetype: modify
 add: description
 description: A new user's entry</computeroutput>
 
-$ <userinput>ldapmodify -p 1389 -f newdesc.ldif \
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+$ <userinput>ldapmodify -p 1389 -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery newdesc.ldif</userinput>
 <computeroutput>Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
  </screen>
 
  <para>
   The following example demonstrates changing the Description attribute
-  for the new user's entry.
+  for the new user's entry:
  </para>
 
  <screen>
@@ -122,14 +120,13 @@ changetype: modify
 replace: description
 description: Another description</computeroutput>
 
-$ <userinput>ldapmodify -p 1389 -f moddesc.ldif \
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+$ <userinput>ldapmodify -p 1389 -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery moddesc.ldif</userinput>
 <computeroutput>Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
  </screen>
 
  <para>
-  The following example demonstrates deleting the new user's entry.
+  The following example demonstrates deleting the new user's entry:
  </para>
 
  <screen>
@@ -137,8 +134,7 @@ $ <userinput>cat deluser.ldif</userinput>
 <computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: delete</computeroutput>
 
-$ <userinput>ldapmodify -p 1389 -f deluser.ldif \
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+$ <userinput>ldapmodify -p 1389 -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery deluser.ldif</userinput>
 <computeroutput>Processing DELETE request for uid=newuser,ou=People,dc=example,dc=com
 DELETE operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
  </screen>

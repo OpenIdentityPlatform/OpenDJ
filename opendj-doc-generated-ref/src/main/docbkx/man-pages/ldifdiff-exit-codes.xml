@@ -12,16 +12,41 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2016 ForgeRock AS.
 -->
 <refsect1 xmlns="http://docbook.org/ns/docbook"
           version="5.0" xml:lang="en"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://docbook.org/ns/docbook
                               http://docbook.org/xml/5.0/xsd/docbook.xsd">
- <title>See Also</title>
+ <title>Exit Codes</title>
 
- <para>
-  <xref linkend="make-ldif-template-5" />
- </para>
+ <variablelist>
+  <varlistentry>
+   <term>0</term>
+   <listitem>
+    <para>
+     No differences were found.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>1</term>
+   <listitem>
+    <para>
+     Differences were found.
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry>
+   <term>other</term>
+   <listitem>
+    <para>
+     An error occurred.
+    </para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
 </refsect1>
