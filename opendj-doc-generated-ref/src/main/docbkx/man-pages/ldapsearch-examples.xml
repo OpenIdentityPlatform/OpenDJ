@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <refsect1 xmlns="http://docbook.org/ns/docbook"
           version="5.0" xml:lang="en"
@@ -24,7 +24,7 @@
  <para>
   The following example searches for entries
   with UID containing <literal>jensen</literal>,
-  returning only DNs and uid values.
+  returning only DNs and uid values:
  </para>
 
  <screen>
@@ -58,7 +58,7 @@ Result Code:  0 (Success)</computeroutput>
   You can also use <literal>@<replaceable>objectclass</replaceable></literal> notation
   in the attribute list to return the attributes of a particular object class.
   The following example shows how to return attributes
-  of the <literal>inetOrgPerson</literal> object class.
+  of the <literal>inetOrgPerson</literal> object class:
  </para>
 
  <screen>
@@ -85,7 +85,7 @@ facsimileTelephoneNumber: +1 408 555 1992</computeroutput>
 
  <para>
   You can use <literal>+</literal> in the attribute list
-  to return all operational attributes, as in the following example.
+  to return all operational attributes, as in the following example:
  </para>
 
  <screen>
@@ -94,7 +94,6 @@ $ <userinput>ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" +</userinpu
 numSubordinates: 0
 structuralObjectClass: inetOrgPerson
 etag: 0000000073c29972
-pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
 subschemaSubentry: cn=schema
 hasSubordinates: false
 entryDN: uid=bjensen,ou=people,dc=example,dc=com
