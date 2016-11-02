@@ -229,9 +229,7 @@ public class BoundedWorkQueueStrategy implements QueueingStrategy
     }
     else
     {
-      throw new RuntimeException(
-          "Not implemented for " + operation == null ? null : operation
-              .getClass().getName());
+      throw new RuntimeException("Not implemented for " + (operation == null ? null : operation.getClass().getName()));
     }
   }
 
