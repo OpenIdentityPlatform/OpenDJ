@@ -21,7 +21,6 @@ import static org.opends.messages.BackendMessages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Queue;
 import java.util.Set;
@@ -705,11 +704,6 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
   public Queue<PersistentSearch> getPersistentSearches()
   {
     return persistentSearches;
-  }
-
-  @Override
-  public Set<PasswordStorageScheme<?>> getSupportedPasswordStorageSchemes() {
-    return new HashSet<PasswordStorageScheme<?>>(DirectoryServer.getPasswordStorageSchemes());
   }
 
   /**

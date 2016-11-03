@@ -533,16 +533,6 @@ public class BackendConfigManager implements
       }
       localBackends.put(backendID, backend);
 
-      for (String oid : backend.getSupportedControls())
-      {
-        registerSupportedControl(oid);
-      }
-
-      for (String oid : backend.getSupportedFeatures())
-      {
-        registerSupportedFeature(oid);
-      }
-
       LocalBackendMonitor monitor = new LocalBackendMonitor(backend);
       monitor.initializeMonitorProvider(null);
       backend.setBackendMonitor(monitor);

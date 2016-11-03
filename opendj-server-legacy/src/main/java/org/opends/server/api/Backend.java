@@ -112,13 +112,6 @@ public abstract class Backend<C extends Configuration>
   public abstract boolean isDefaultRoute();
 
   /**
-   * Retrieves the password storage schemes defined for this backend.
-   *
-   * @return the set of supported password storage schemes
-   */
-  public abstract Set<PasswordStorageScheme<?>> getSupportedPasswordStorageSchemes();
-
-  /**
    * Retrieves the OIDs of the controls that may be supported by this
    * backend.
    *

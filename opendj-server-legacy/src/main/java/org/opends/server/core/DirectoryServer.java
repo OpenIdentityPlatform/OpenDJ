@@ -83,6 +83,7 @@ import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.Backend;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
@@ -3627,8 +3628,14 @@ public final class DirectoryServer
    */
   public static TreeSet<String> getSupportedControls()
   {
-    return directoryServer.supportedControls;
+    TreeSet<String> controls = new TreeSet<>(directoryServer.supportedControls);
+    for (Backend<?> backend : directoryServer.backendConfigManager.getAllBackends())
+    {
+      controls.addAll(backend.getSupportedControls());
+    }
+    return controls;
   }
+
 
   /**
    * Indicates whether the specified OID is registered with the Directory Server
@@ -3642,7 +3649,7 @@ public final class DirectoryServer
    */
   public static boolean isSupportedControl(String controlOID)
   {
-    return directoryServer.supportedControls.contains(controlOID);
+    return getSupportedControls().contains(controlOID);
   }
 
   /**
@@ -3686,7 +3693,12 @@ public final class DirectoryServer
    */
   public static TreeSet<String> getSupportedFeatures()
   {
-    return directoryServer.supportedFeatures;
+    TreeSet<String> features = new TreeSet<>(directoryServer.supportedFeatures);
+    for (Backend<?> backend : directoryServer.backendConfigManager.getAllBackends())
+    {
+      features.addAll(backend.getSupportedFeatures());
+    }
+    return features;
   }
 
   /**
@@ -3701,7 +3713,7 @@ public final class DirectoryServer
    */
   public static boolean isSupportedFeature(String featureOID)
   {
-    return directoryServer.supportedFeatures.contains(featureOID);
+    return getSupportedFeatures().contains(featureOID);
   }
 
   /**

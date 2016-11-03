@@ -335,7 +335,7 @@ public class RootDSEBackend
     addAttribute(privateNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedControl" attribute.
-    Attribute supportedControlAttr = createAttribute(ATTR_SUPPORTED_CONTROL, getAllControls());
+    Attribute supportedControlAttr = createAttribute(ATTR_SUPPORTED_CONTROL, DirectoryServer.getSupportedControls());
     addAttribute(supportedControlAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedExtension" attribute.
@@ -412,18 +412,6 @@ public class RootDSEBackend
                         dseOperationalAttrs);
     e.processVirtualAttributes();
     return e;
-  }
-
-  private Set<String> getAllControls()
-  {
-    // TODO: this duplicates what is done in DirectoryServer (see DirectoryServer.getSupportedControls())
-    // How should this be handled ?
-    final Set<String> controls = new HashSet<>();
-    for (Backend<?> backend : serverContext.getBackendConfigManager().getAllBackends())
-    {
-      controls.addAll(backend.getSupportedControls());
-    }
-    return controls;
   }
 
   private Set<DN> getAllPublicNamingContexts()
