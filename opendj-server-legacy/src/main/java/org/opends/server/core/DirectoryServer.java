@@ -166,7 +166,6 @@ import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.VersionHandler;
 import com.forgerock.opendj.util.OperatingSystem;
 
 /**
@@ -639,7 +638,7 @@ public final class DirectoryServer
   private CronExecutorService cronExecutorService;
 
   /** Class that prints the version of OpenDJ server to System.out. */
-  public static final class DirectoryServerVersionHandler implements VersionHandler
+  public static final class DirectoryServerVersionHandler implements com.forgerock.opendj.cli.VersionHandler
   {
     @Override
     public void printVersion()
