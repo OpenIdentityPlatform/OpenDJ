@@ -50,6 +50,7 @@ import org.forgerock.opendj.server.config.server.CertificateMapperCfg;
 import org.forgerock.opendj.server.config.server.SubjectAttributeToUserAttributeCertificateMapperCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.CertificateMapper;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -115,11 +116,13 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     // Make sure that all the user attributes are configured with equality
     // indexes in all appropriate backends.
     Set<DN> cfgBaseDNs = getUserBaseDNs(configuration);
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (DN baseDN : cfgBaseDNs)
     {
       for (AttributeType t : attributeMap.values())
       {
-        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
@@ -292,11 +295,13 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     // Make sure that all the user attributes are configured with equality
     // indexes in all appropriate backends.
     Set<DN> cfgBaseDNs = getUserBaseDNs(configuration);
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (DN baseDN : cfgBaseDNs)
     {
       for (AttributeType t : newAttributeMap.values())
       {
-        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
         if (b != null && !b.isIndexed(t, IndexType.EQUALITY))
         {
           LocalizableMessage message =

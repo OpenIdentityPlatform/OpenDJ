@@ -295,7 +295,7 @@ public class RebuildIndex extends TaskTool
   @Override
   protected void cleanup()
   {
-    DirectoryServer.shutdownBackends();
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager().shutdownLocalBackends();
   }
 
   /**

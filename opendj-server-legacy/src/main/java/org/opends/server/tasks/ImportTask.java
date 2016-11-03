@@ -42,6 +42,7 @@ import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.tools.makeldif.TemplateFile;
@@ -282,7 +283,7 @@ public class ImportTask extends Task
 
     if(backendID != null)
     {
-      backend = DirectoryServer.getBackend(backendID);
+      backend = getServerContext().getBackendConfigManager().getLocalBackend(backendID);
       if (backend == null)
       {
         LocalizableMessage message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
@@ -297,9 +298,10 @@ public class ImportTask extends Task
     else
     {
       // Find the backend that includes all the branches.
+      BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
       for(DN includeBranch : includeBranches)
       {
-        LocalBackend<?> locatedBackend = DirectoryServer.getLocalBackend(includeBranch);
+        LocalBackend<?> locatedBackend = backendConfigManager.getLocalBackend(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)
@@ -439,7 +441,7 @@ public class ImportTask extends Task
 
     if(backendID != null)
     {
-      backend = DirectoryServer.getBackend(backendID);
+      backend = getServerContext().getBackendConfigManager().getLocalBackend(backendID);
 
       if (backend == null)
       {
@@ -455,9 +457,10 @@ public class ImportTask extends Task
     else
     {
       // Find the backend that includes all the branches.
+      BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
       for(DN includeBranch : includeBranches)
       {
-        LocalBackend<?> locatedBackend = DirectoryServer.getLocalBackend(includeBranch);
+        LocalBackend<?> locatedBackend = backendConfigManager.getLocalBackend(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)
@@ -714,7 +717,7 @@ public class ImportTask extends Task
         // It is necessary to retrieve the backend structure again
         // because disabling and enabling it again may have resulted
         // in a new backend being registered to the server.
-        backend = DirectoryServer.getBackend(backend.getBackendID());
+        backend = getServerContext().getBackendConfigManager().getLocalBackend(backend.getBackendID());
       }
       catch (DirectoryException e)
       {

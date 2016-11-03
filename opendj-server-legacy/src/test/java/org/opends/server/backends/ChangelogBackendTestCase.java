@@ -51,12 +51,13 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
 import org.opends.server.controls.EntryChangelogNotificationControl;
 import org.opends.server.controls.ExternalChangelogRequestControl;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
@@ -1527,7 +1528,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     //  is re-enabled, a new backend object is in fact created and old reference
     //  to memory backend must be invalidated. So to prevent this problem, we
     //  retrieve the memory backend reference each time before cleaning it.
-    MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(backendId);
+    BackendConfigManager backendConfigManager = TestCaseUtils.getServerContext().getBackendConfigManager();
+    MemoryBackend memoryBackend =
+        (MemoryBackend) backendConfigManager.getLocalBackend(backendId);
 
     if (memoryBackend == null)
     {
@@ -1536,7 +1539,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       memoryBackend.setBaseDNs(baseDN);
       memoryBackend.configureBackend(null, getServerContext());
       memoryBackend.openBackend();
-      DirectoryServer.registerBackend(memoryBackend);
+      backendConfigManager.registerLocalBackend(memoryBackend);
     }
 
     memoryBackend.clearMemoryBackend();
@@ -1557,7 +1560,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         MemoryBackend memoryBackend = (MemoryBackend) backend;
         memoryBackend.clearMemoryBackend();
         memoryBackend.finalizeBackend();
-        DirectoryServer.deregisterBackend(memoryBackend);
+        TestCaseUtils.getServerContext().getBackendConfigManager().deregisterLocalBackend(memoryBackend);
       }
     }
   }

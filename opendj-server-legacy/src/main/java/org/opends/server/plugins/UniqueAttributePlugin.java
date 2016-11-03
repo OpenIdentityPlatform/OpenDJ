@@ -46,6 +46,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginResult.PreOperation;
 import org.opends.server.api.plugin.PluginType;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -154,11 +155,13 @@ public class UniqueAttributePlugin
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (AttributeType t : configuration.getType())
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
@@ -686,11 +689,13 @@ public class UniqueAttributePlugin
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (AttributeType t : configuration.getType())
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(

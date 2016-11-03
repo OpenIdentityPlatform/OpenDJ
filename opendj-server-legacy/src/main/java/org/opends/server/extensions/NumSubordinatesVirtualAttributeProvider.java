@@ -60,8 +60,8 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    LocalBackend backend = DirectoryServer.getLocalBackend(entry.getName());
-
+    LocalBackend<?> backend =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(entry.getName());
     try
     {
       long count = backend.getNumberOfChildren(entry.getName());
@@ -81,8 +81,8 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    LocalBackend<?> backend = DirectoryServer.getLocalBackend(entry.getName());
-
+    LocalBackend<?> backend =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(entry.getName());
     try
     {
        return backend.getNumberOfChildren(entry.getName()) >= 0;
@@ -97,7 +97,8 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
-    LocalBackend<?> backend = DirectoryServer.getLocalBackend(entry.getName());
+    LocalBackend<?> backend =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(entry.getName());
     try
     {
       long count = backend.getNumberOfChildren(entry.getName());

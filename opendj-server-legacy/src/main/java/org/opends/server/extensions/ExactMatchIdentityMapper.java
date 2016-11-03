@@ -36,6 +36,7 @@ import org.forgerock.opendj.server.config.server.ExactMatchIdentityMapperCfg;
 import org.forgerock.opendj.server.config.server.IdentityMapperCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.IdentityMapper;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -107,11 +108,13 @@ public class ExactMatchIdentityMapper
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (AttributeType t : attributeTypes)
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend b = DirectoryServer.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_EXACTMAP_ATTR_UNINDEXED.get(
@@ -270,11 +273,13 @@ public class ExactMatchIdentityMapper
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (AttributeType t : configuration.getMatchAttribute())
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend b = DirectoryServer.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_EXACTMAP_ATTR_UNINDEXED.get(

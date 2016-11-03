@@ -255,7 +255,7 @@ public class BackupTask extends Task
     {
       for (Map.Entry<String,Entry> mapEntry : configEntries.entrySet())
       {
-        LocalBackend<?> b = DirectoryServer.getBackend(mapEntry.getKey());
+        LocalBackend<?> b = getServerContext().getBackendConfigManager().getLocalBackend(mapEntry.getKey());
         if (b != null && b.supports(BackendOperation.BACKUP))
         {
           backendsToArchive.add(b);
@@ -268,7 +268,7 @@ public class BackupTask extends Task
       // be used.
       for (String id : backendIDList)
       {
-        LocalBackend<?> b = DirectoryServer.getBackend(id);
+        LocalBackend<?> b = getServerContext().getBackendConfigManager().getLocalBackend(id);
         if (b == null || configEntries.get(id) == null)
         {
           logger.error(ERR_BACKUPDB_NO_BACKENDS_FOR_ID, id);

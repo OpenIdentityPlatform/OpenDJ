@@ -726,7 +726,7 @@ public class LDIFBackendTestCase
 
   private LDIFBackend getLDIFBackend()
   {
-    LocalBackend<?> b = DirectoryServer.getBackend("ldifRoot");
+    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend("ldifRoot");
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
     return (LDIFBackend) b;

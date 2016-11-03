@@ -23,11 +23,11 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Entry;
@@ -108,7 +108,8 @@ public class TasksTestCase extends DirectoryServerTestCase {
   @Test(enabled=false) // This isn't a test method, but TestNG thinks it is.
   public static Task getTask(final DN taskEntryDN) throws Exception
   {
-    final TaskBackend taskBackend = (TaskBackend) DirectoryServer.getLocalBackend(DN.valueOf("cn=tasks"));
+    final TaskBackend taskBackend = (TaskBackend)
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("cn=tasks"));
 
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(10, SECONDS)

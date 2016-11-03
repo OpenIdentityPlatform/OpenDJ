@@ -680,7 +680,7 @@ public class RootDSEBackend
       {
         for (DN baseDN : subDNs)
         {
-          LocalBackend<?> backend = DirectoryServer.getLocalBackend(baseDN);
+          LocalBackend<?> backend = serverContext.getBackendConfigManager().getLocalBackend(baseDN);
           if (backend == null)
           {
             unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
@@ -721,7 +721,7 @@ public class RootDSEBackend
         subBases = new ConcurrentHashMap<>();
         for (DN baseDN : subDNs)
         {
-          LocalBackend<?> backend = DirectoryServer.getLocalBackend(baseDN);
+          LocalBackend<?> backend = serverContext.getBackendConfigManager().getLocalBackend(baseDN);
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.

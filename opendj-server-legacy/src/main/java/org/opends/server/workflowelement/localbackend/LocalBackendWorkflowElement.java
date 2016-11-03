@@ -59,7 +59,6 @@ import org.opends.server.types.WritabilityMode;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ProtocolMessages.ERR_PROXYAUTH_AUTHZ_NOT_PERMITTED;
-import static org.opends.server.core.DirectoryServer.getRootDSEBackend;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -732,8 +731,7 @@ public class LocalBackendWorkflowElement
    */
   public static boolean execute(Operation operation, DN entryDN) throws CanceledOperationException
   {
-    BackendAndName backendAndName = entryDN.isRootDN()
-        ? new BackendAndName(getRootDSEBackend(), entryDN) : getBackendManager().getLocalBackend(entryDN);
+    BackendAndName backendAndName = getBackendManager().getLocalBackendAndName(entryDN);
 
     if (backendAndName == null)
     {

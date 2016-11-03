@@ -270,7 +270,8 @@ public class LocalBackendModifyDNOperation
       return;
     }
 
-    LocalBackend<?> newBackend = DirectoryServer.getLocalBackend(newDN);
+    LocalBackend<?> newBackend =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(newDN);
     if (newBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);

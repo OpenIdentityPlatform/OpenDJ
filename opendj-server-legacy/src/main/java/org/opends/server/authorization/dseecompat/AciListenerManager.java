@@ -25,7 +25,6 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
@@ -40,6 +39,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -309,7 +309,8 @@ public class AciListenerManager implements
     this.plugin = new AciChangeListenerPlugin();
 
     // Process ACI from already registered backends.
-    for (LocalBackend<?> backend : DirectoryServer.getBackends())
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+    for (LocalBackend<?> backend : serverContext.getBackendConfigManager().getLocalBackends())
     {
       performBackendPreInitializationProcessing(backend);
     }

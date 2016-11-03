@@ -27,7 +27,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
-import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -52,7 +51,8 @@ public class GenericBackendTestCase extends BackendTestCase
   @DataProvider(name = "backends")
   public Object[][] getBackends()
   {
-    List<LocalBackend<?>> backendList = new ArrayList<>(DirectoryServer.getBackends());
+    List<LocalBackend<?>> backendList = new ArrayList<>(
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackends());
     Object[][] objectArray = new Object[backendList.size()][1];
     for (int i=0; i < objectArray.length; i++)
     {

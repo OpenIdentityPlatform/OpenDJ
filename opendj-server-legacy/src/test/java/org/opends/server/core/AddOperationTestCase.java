@@ -72,7 +72,8 @@ public class AddOperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b =
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
@@ -1209,7 +1210,8 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b =
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
@@ -1241,7 +1243,8 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b =
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
@@ -1266,7 +1269,8 @@ public class AddOperationTestCase
     {
       conn.bind("cn=Directory Manager", "password");
 
-      LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
+      LocalBackend<?> b =
+          TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test"));
       b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
       long addRequests  = ldapStatistics.getAddRequests();

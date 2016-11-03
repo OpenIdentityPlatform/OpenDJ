@@ -51,10 +51,12 @@ import org.forgerock.opendj.server.config.meta.LocalBackendCfgDefn;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.LocalBackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
+import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backend;
 import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.backends.ConfigurationBackend;
+import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.monitors.LocalBackendMonitor;
 import org.opends.server.types.DirectoryException;
@@ -86,6 +88,8 @@ public class BackendConfigManager implements
 
   private final ServerContext serverContext;
   private final BaseDnRegistry localBackendsRegistry;
+
+  private RootDSEBackend rootDSEBackend;
 
   /** Lock to protect reads of the backend maps. */
   private final ReadLock readLock;
@@ -156,6 +160,32 @@ public class BackendConfigManager implements
       throw new ConfigException(ERR_CONFIG_BACKEND_BASE_DOES_NOT_EXIST.get());
     }
     initializeBackends(backendIDsToStart, root);
+  }
+
+  /**
+   * Creates and initializes the Root DSE backend.
+   *
+   * @throws InitializationException
+   *            If the configuration entry can't be found
+   * @throws ConfigException
+   *            If an error occurs during configuration
+   */
+  public void initializeRootDSEBackend() throws InitializationException, ConfigException
+  {
+    RootDSEBackendCfg rootDSECfg;
+    try
+    {
+      rootDSECfg = serverContext.getRootConfig().getRootDSEBackend();
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      throw new InitializationException(ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
+          stackTraceToSingleLineString(e)), e);
+    }
+    rootDSEBackend = new RootDSEBackend();
+    rootDSEBackend.configureBackend(rootDSECfg, serverContext);
+    rootDSEBackend.openBackend();
   }
 
   /**
@@ -373,6 +403,16 @@ public class BackendConfigManager implements
   }
 
   /**
+   * Retrieves the Root DSE backend.
+   *
+   * @return the Root DSE backend.
+   */
+  public RootDSEBackend getRootDSEBackend()
+  {
+    return rootDSEBackend;
+  }
+
+  /**
    * Retrieves the local backend and the corresponding baseDN that should be used to handle operations
    * on the specified entry.
    *
@@ -381,9 +421,25 @@ public class BackendConfigManager implements
    * @return The local backend with its matching base DN or {@code null} if no appropriate backend
    *         is registered with the server.
    */
-  public BackendAndName getLocalBackend(DN entryDN)
+  public BackendAndName getLocalBackendAndName(DN entryDN)
   {
-    return localBackendsRegistry.getBackendAndName(entryDN);
+    return entryDN.isRootDN() ?
+        new BackendAndName(getRootDSEBackend(), entryDN) : localBackendsRegistry.getBackendAndName(entryDN);
+  }
+
+  /**
+   * Retrieves the local backend that should be used to handle operations
+   * on the specified entry.
+   *
+   * @param entryDN
+   *          The DN of the entry for which to retrieve the corresponding backend.
+   * @return The local backend or {@code null} if no appropriate backend
+   *         is registered with the server.
+   */
+  public LocalBackend<?> getLocalBackend(DN entryDN)
+  {
+    BackendAndName backend = getLocalBackendAndName(entryDN);
+    return backend != null ? backend.getBackend() : null;
   }
 
   /**
@@ -1140,7 +1196,7 @@ public class BackendConfigManager implements
       }
 
       registeredBackends.remove(backendDN);
-      DirectoryServer.deregisterBackend(localBackend);
+      deregisterLocalBackend(localBackend);
 
       for (LocalBackendInitializationListener listener : initializationListeners)
       {

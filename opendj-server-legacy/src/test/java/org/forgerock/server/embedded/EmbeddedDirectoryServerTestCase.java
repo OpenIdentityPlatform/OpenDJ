@@ -36,6 +36,7 @@ import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
 import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServerException;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.util.StaticUtils;
@@ -136,14 +137,15 @@ public class EmbeddedDirectoryServerTestCase extends UtilTestCase
   public void testUpdateConfiguration() throws Exception
   {
     EmbeddedDirectoryServer server = getServer();
-    assertTrue(DirectoryServer.hasBackend(USER_ROOT));
+    BackendConfigManager backendConfigManager = TestCaseUtils.getServerContext().getBackendConfigManager();
+    assertTrue(backendConfigManager.hasLocalBackend(USER_ROOT));
 
     toggleBackendActivation(server, false);
-    assertFalse(DirectoryServer.hasBackend(USER_ROOT));
+    assertFalse(backendConfigManager.hasLocalBackend(USER_ROOT));
 
     // revert to initial configuration
     toggleBackendActivation(server, true);
-    assertTrue(DirectoryServer.hasBackend(USER_ROOT));
+    assertTrue(backendConfigManager.hasLocalBackend(USER_ROOT));
   }
 
   private void toggleBackendActivation(EmbeddedDirectoryServer server, final boolean enabled) throws Exception

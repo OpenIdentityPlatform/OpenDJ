@@ -904,7 +904,7 @@ public class ImportLDIF extends TaskTool {
   @Override
   protected void cleanup()
   {
-    DirectoryServer.shutdownBackends();
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager().shutdownLocalBackends();
   }
 
   private boolean useBackend(Set<DN> includeBranches, List<DN> dnlist)

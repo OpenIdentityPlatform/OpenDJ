@@ -490,7 +490,8 @@ public class GenerationIdTest extends ReplicationTestCase
     // non persistent data
     LDIFImportConfig importConfig = new LDIFImportConfig(ldifFile.getAbsolutePath());
 
-    MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
+    MemoryBackend memoryBackend =
+        (MemoryBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(TEST_BACKEND_ID);
     memoryBackend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
   }
 

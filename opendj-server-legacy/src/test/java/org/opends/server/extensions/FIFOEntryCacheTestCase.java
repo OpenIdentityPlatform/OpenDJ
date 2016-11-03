@@ -22,7 +22,6 @@ import org.opends.server.TestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.forgerock.opendj.server.config.meta.*;
 import org.forgerock.opendj.server.config.server.FIFOEntryCacheCfg;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
@@ -252,7 +251,8 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    String b = DirectoryServer.getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b =
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
@@ -322,7 +322,8 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    String b = DirectoryServer.getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b =
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);

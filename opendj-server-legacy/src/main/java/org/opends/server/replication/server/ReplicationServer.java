@@ -52,6 +52,7 @@ import org.forgerock.opendj.server.config.server.ReplicationServerCfg;
 import org.forgerock.opendj.server.config.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.backends.ChangelogBackend;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
@@ -465,7 +466,9 @@ public class ReplicationServer
    */
   private void enableExternalChangeLog() throws ConfigException
   {
-    if (DirectoryServer.hasBackend(ChangelogBackend.BACKEND_ID))
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    if (backendConfigManager.hasLocalBackend(ChangelogBackend.BACKEND_ID))
     {
       // Backend has already been created and initialized
       // This can occurs in tests
@@ -477,7 +480,7 @@ public class ReplicationServer
       changelogBackend.openBackend();
       try
       {
-        DirectoryServer.registerBackend(changelogBackend);
+        backendConfigManager.registerLocalBackend(changelogBackend);
       }
       catch (Exception e)
       {
@@ -499,7 +502,9 @@ public class ReplicationServer
   {
     if (changelogBackend != null)
     {
-      DirectoryServer.deregisterBackend(changelogBackend);
+      BackendConfigManager backendConfigManager =
+          DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+      backendConfigManager.deregisterLocalBackend(changelogBackend);
       changelogBackend.finalizeBackend();
       changelogBackend = null;
     }

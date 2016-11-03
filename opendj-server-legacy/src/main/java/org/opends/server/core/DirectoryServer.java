@@ -73,7 +73,6 @@ import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.forgerock.opendj.server.config.server.PasswordValidatorCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
-import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.opendj.server.config.server.SynchronizationProviderCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.AdministrationDataSync;
@@ -111,14 +110,12 @@ import org.opends.server.api.WorkQueue;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.backends.ConfigurationBackend;
 import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.config.AdministrationConnector;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.core.BackendConfigManager.BackendAndName;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.DiskSpaceMonitor;
@@ -551,8 +548,6 @@ public final class DirectoryServer
   /** The result code that should be used for internal "server" errors. */
   private ResultCode serverErrorResultCode;
 
-  /** The special backend used for the Directory Server root DSE. */
-  private RootDSEBackend rootDSEBackend;
   /** The root DN config manager for the server. */
   private RootDNConfigManager rootDNConfigManager;
 
@@ -1730,11 +1725,6 @@ public final class DirectoryServer
     return directoryServer.compressedSchema;
   }
 
-  private LocalBackend<?> getConfigurationBackend()
-  {
-    return getBackend(ConfigurationBackend.CONFIG_BACKEND_ID);
-  }
-
   /**
    * Registers the provided local backend initialization listener with the Directory
    * Server.
@@ -1764,22 +1754,7 @@ public final class DirectoryServer
   private void initializeRootAndAdminDataBackends() throws ConfigException, InitializationException
   {
     backendConfigManager.initializeBackendConfig(Arrays.asList("adminRoot", "ads-truststore"));
-
-    RootDSEBackendCfg rootDSECfg;
-    try
-    {
-      rootDSECfg = serverContext.getRootConfig().getRootDSEBackend();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      throw new InitializationException(ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
-          stackTraceToSingleLineString(e)), e);
-    }
-
-    rootDSEBackend = new RootDSEBackend();
-    rootDSEBackend.configureBackend(rootDSECfg, serverContext);
-    rootDSEBackend.openBackend();
+    backendConfigManager.initializeRootDSEBackend();
   }
 
   private void initializeRemainingBackends() throws ConfigException, InitializationException
@@ -3367,110 +3342,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the set of local backends that have been registered with the Directory
-   * Server.
-   *
-   * @return  The set of local backends that have been registered with the Directory
-   *          Server.
-   */
-  public static Collection<LocalBackend<?>> getBackends()
-  {
-    return directoryServer.backendConfigManager.getLocalBackends();
-  }
-
-  /**
-   * Retrieves the backend with the specified backend ID.
-   *
-   * @param  backendID  The backend ID of the backend to retrieve.
-   *
-   * @return  The backend with the specified backend ID, or {@code null} if
-   *          there is none.
-   */
-  public static LocalBackend<?> getBackend(String backendID)
-  {
-    return directoryServer.backendConfigManager.getLocalBackend(backendID);
-  }
-
-  /**
-   * Indicates whether the Directory Server has a backend with the specified
-   * backend ID.
-   *
-   * @param  backendID  The backend ID for which to make the determination.
-   *
-   * @return  {@code true} if the Directory Server has a backend with the
-   *          specified backend ID, or {@code false} if not.
-   */
-  public static boolean hasBackend(String backendID)
-  {
-    return directoryServer.backendConfigManager.hasLocalBackend(backendID);
-  }
-
-  /**
-   * Registers the provided backend with the Directory Server.  Note that this
-   * will not register the set of configured suffixes with the server, as that
-   * must be done by the backend itself.
-   *
-   * @param  backend  The backend to register with the server.  Neither the
-   *                  backend nor its backend ID may be null.
-   *
-   * @throws  DirectoryException  If the backend ID for the provided backend
-   *                              conflicts with the backend ID of an existing
-   *                              backend.
-   */
-  public static void registerBackend(LocalBackend<?> backend) throws DirectoryException
-  {
-    directoryServer.backendConfigManager.registerLocalBackend(backend);
-  }
-
-  /**
-   * Deregisters the provided backend with the Directory Server.  Note that this
-   * will not deregister the set of configured suffixes with the server, as that
-   * must be done by the backend itself.
-   *
-   * @param  backend  The backend to deregister with the server.  It must not be
-   *                  {@code null}.
-   */
-  public static void deregisterBackend(LocalBackend<?> backend)
-  {
-    directoryServer.backendConfigManager.deregisterLocalBackend(backend);
-  }
-
-  /**
-   * Retrieves the local backend with the specified base DN.
-   *
-   * @param  baseDN  The DN that is registered as one of the base DNs for the
-   *                 backend to retrieve.
-   *
-   * @return  The local backend with the specified base DN, or {@code null} if there
-   *          is no local backend registered with the specified base DN.
-   */
-  public static LocalBackend<?> getLocalBackendWithBaseDN(DN baseDN)
-  {
-    return directoryServer.backendConfigManager.getLocalBackendWithBaseDN(baseDN);
-  }
-
-  /**
-   * Retrieves the local backend that should be used to handle operations on the
-   * specified entry.
-   *
-   * @param  entryDN  The DN of the entry for which to retrieve the
-   *                  corresponding backend.
-   *
-   * @return  The backend that should be used to handle operations on the
-   *          specified entry, or {@code null} if no appropriate backend is
-   *          registered with the server.
-   */
-  public static LocalBackend<?> getLocalBackend(DN entryDN)
-  {
-    if (entryDN.isRootDN())
-    {
-      return directoryServer.rootDSEBackend;
-    }
-    BackendAndName backend = directoryServer.backendConfigManager.getLocalBackend(entryDN);
-    return backend != null ? backend.getBackend() : null;
-  }
-
-  /**
    * Retrieves the set of public naming contexts defined in the Directory
    * Server, mapped from the naming context DN to the corresponding backend.
    *
@@ -3534,7 +3405,7 @@ public final class DirectoryServer
    */
   public static Entry getRootDSE()
   {
-    return directoryServer.rootDSEBackend.getRootDSE();
+    return getRootDSEBackend().getRootDSE();
   }
 
   /**
@@ -3544,7 +3415,7 @@ public final class DirectoryServer
    */
   public static RootDSEBackend getRootDSEBackend()
   {
-    return directoryServer.rootDSEBackend;
+    return directoryServer.backendConfigManager.getRootDSEBackend();
   }
 
   /**
@@ -3585,9 +3456,9 @@ public final class DirectoryServer
   {
     if (entryDN.isRootDN())
     {
-      return directoryServer.rootDSEBackend.getRootDSE();
+      return directoryServer.backendConfigManager.getRootDSEBackend().getRootDSE();
     }
-    final LocalBackend<?> backend = getLocalBackend(entryDN);
+    final LocalBackend<?> backend = directoryServer.backendConfigManager.getLocalBackend(entryDN);
     return backend != null ? backend.getEntry(entryDN) : null;
   }
 
@@ -3614,7 +3485,7 @@ public final class DirectoryServer
 
     // Ask the appropriate backend if the entry exists.
     // If it is not appropriate for any backend, then return false.
-    LocalBackend<?> backend = getLocalBackend(entryDN);
+    LocalBackend<?> backend = directoryServer.backendConfigManager.getLocalBackend(entryDN);
     return backend != null && backend.entryExists(entryDN);
   }
 
@@ -4968,12 +4839,6 @@ public final class DirectoryServer
     DirectoryEnvironmentConfig envConfig = directoryServer.environmentConfig;
     directoryServer.destroy();
     directoryServer = getNewInstance(envConfig);
-  }
-
-  /** Shutdown directory server backends. */
-  public static void shutdownBackends()
-  {
-    directoryServer.backendConfigManager.shutdownLocalBackends();
   }
 
   /**

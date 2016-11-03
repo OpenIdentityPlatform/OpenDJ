@@ -33,7 +33,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.common.CSNGenerator;
@@ -321,7 +320,8 @@ public class DependencyTest extends ReplicationTestCase
          "o: test",
          "entryuuid: " + stringUID(1));
 
-    MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
+    MemoryBackend memoryBackend =
+        (MemoryBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(TEST_BACKEND_ID);
     memoryBackend.addEntry(topEntry, null);
   }
 

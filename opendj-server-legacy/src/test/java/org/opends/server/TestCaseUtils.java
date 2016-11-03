@@ -88,6 +88,7 @@ import org.opends.server.backends.pluggable.BackendImpl;
 import org.opends.server.backends.pluggable.EntryContainer;
 import org.opends.server.backends.pluggable.RootContainer;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
@@ -629,7 +630,7 @@ public final class TestCaseUtils {
 
   private static void clearJEBackends() throws Exception
   {
-    for (LocalBackend<?> backend : DirectoryServer.getBackends())
+    for (LocalBackend<?> backend : getServerContext().getBackendConfigManager().getLocalBackends())
     {
       if (backend instanceof BackendImpl) {
         clearBackend(backend.getBackendID());
@@ -889,8 +890,8 @@ public final class TestCaseUtils {
     // is re-enabled, a new backend object is in fact created and old reference
     // to memory backend must be invalidated. So to prevent this problem, we
     // retrieve the memory backend reference each time before cleaning it.
-    MemoryBackend memoryBackend = (MemoryBackend) getServerContext().getBackendConfigManager()
-        .getLocalBackend(backendID);
+    BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
+    MemoryBackend memoryBackend = (MemoryBackend) backendConfigManager.getLocalBackend(backendID);
 
     if (memoryBackend == null)
     {
@@ -899,7 +900,7 @@ public final class TestCaseUtils {
       memoryBackend.setBaseDNs(baseDN);
       memoryBackend.configureBackend(null, getServerContext());
       memoryBackend.openBackend();
-      DirectoryServer.registerBackend(memoryBackend);
+      backendConfigManager.registerLocalBackend(memoryBackend);
     }
 
     memoryBackend.clearMemoryBackend();
@@ -914,7 +915,8 @@ public final class TestCaseUtils {
   /** Clears a memory-based backend. */
   public static void clearMemoryBackend(String backendID) throws Exception
   {
-    MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(backendID);
+    MemoryBackend memoryBackend =
+        (MemoryBackend) getServerContext().getBackendConfigManager().getLocalBackend(backendID);
     // FIXME JNR I suspect we could call finalizeBackend() here (but also in other
     // places in this class), because finalizeBackend() calls clearMemoryBackend().
     if (memoryBackend != null)
@@ -942,11 +944,11 @@ public final class TestCaseUtils {
    */
   public static void clearBackend(String backendId, String baseDN) throws Exception
   {
-    LocalBackend<?> b = DirectoryServer.getBackend(backendId);
+    LocalBackend<?> b = getServerContext().getBackendConfigManager().getLocalBackend(backendId);
     if (clearBackend(b) && baseDN != null)
     {
       Entry e = createEntry(DN.valueOf(baseDN));
-      DirectoryServer.getBackend(backendId).addEntry(e, mock(AddOperation.class));
+      b.addEntry(e, mock(AddOperation.class));
     }
   }
 
