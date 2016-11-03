@@ -186,6 +186,8 @@ public abstract class PropertyMapper {
      *
      * @param context The request context.
      * @param resource The exact type of resource being updated.
+     * @param path the path to update.
+     * @param e the entry containing the new value.
      * @param v
      *            The JSON value to be converted to LDAP attributes, which may
      *            be {@code null} indicating that the JSON value was not present
@@ -195,8 +197,12 @@ public abstract class PropertyMapper {
     abstract Promise<List<Modification>, ResourceException> update(Context context, Resource resource,
                                                                    JsonPointer path, Entry e, JsonValue v);
 
-    // TODO: methods for obtaining schema information (e.g. name, description, type information).
     // TODO: methods for creating sort controls.
 
+    /**
+     * Returns the non-null JSON schema for this property mapper.
+     *
+     * @return the non-null JSON schema for this property mapper
+     */
     abstract JsonValue toJsonSchema();
 }

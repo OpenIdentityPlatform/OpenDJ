@@ -446,7 +446,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
         for (Mapping mapping : mappings.values()) {
             final String attribute = mapping.name;
             PropertyMapper mapper = mapping.mapper;
-            jsonProps.put(attribute, mapper.toJsonSchema());
+            jsonProps.put(attribute, mapper.toJsonSchema().getObject());
             if (mapper.isRequired()) {
                 requiredFields.add(attribute);
             }
@@ -457,7 +457,7 @@ public final class ObjectPropertyMapper extends PropertyMapper {
             jsonSchema.put("required", requiredFields);
         }
         if (jsonProps.size() > 0) {
-            jsonSchema.put("properties", jsonProps);
+            jsonSchema.put("properties", jsonProps.getObject());
         }
         return jsonSchema;
     }

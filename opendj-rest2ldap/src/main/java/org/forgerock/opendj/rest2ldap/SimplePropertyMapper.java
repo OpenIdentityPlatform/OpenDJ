@@ -228,7 +228,7 @@ public final class SimplePropertyMapper extends AbstractLdapPropertyMapper<Simpl
                 field("type", "array"),
                 // LDAP has set semantics => all items are unique
                 field("uniqueItems", true),
-                field("items", itemsSchema(attrType))));
+                field("items", itemsSchema(attrType).getObject())));
         } else {
             jsonSchema = itemsSchema(attrType);
         }

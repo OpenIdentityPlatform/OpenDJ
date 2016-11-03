@@ -171,13 +171,14 @@ final class JsonConstantPropertyMapper extends PropertyMapper {
             for (String key : value.keys()) {
                 jsonProps.put(key, toJsonSchema(value.get(key)));
             }
-            jsonSchema.put("properties", jsonSchema);
+            jsonSchema.put("properties", jsonProps.getObject());
             return jsonSchema;
         } else if (value.isCollection()) {
             final JsonValue jsonSchema = json(object(field("type", "array")));
             final JsonValue firstItem = value.get(value.keys().iterator().next());
             // assume all items have the same schema
-            jsonSchema.put("items", toJsonSchema(firstItem));
+            JsonValue firstItemJson = toJsonSchema(firstItem);
+            jsonSchema.put("items", firstItemJson != null ? firstItemJson.getObject() : null);
             if (value.getObject() instanceof Set) {
                 jsonSchema.put("uniqueItems", true);
             }
@@ -194,7 +195,7 @@ final class JsonConstantPropertyMapper extends PropertyMapper {
         } else if (value.isNull()) {
             return json(object(field("type", "null")));
         } else {
-            return null;
+            throw new IllegalStateException("Unsupported json value: " + value);
         }
     }
 }

@@ -857,7 +857,7 @@ public final class Resource {
             }
             final JsonValue jsonSchema = mapper.toJsonSchema();
             if (jsonSchema != null) {
-                properties.put(propertyName, jsonSchema);
+                properties.put(propertyName, jsonSchema.getObject());
             }
         }
 
@@ -870,14 +870,14 @@ public final class Resource {
             jsonSchema.put("required", requiredFields);
         }
         if (properties.size() > 0) {
-            jsonSchema.put("properties", properties);
+            jsonSchema.put("properties", properties.getObject());
         }
 
         if (superType != null) {
             return schema(json(object(
                 field("allOf", array(
                     object(field("$ref", "#/definitions/" + superType.id)),
-                    jsonSchema)))));
+                    jsonSchema.getObject())))));
         }
         return schema(jsonSchema);
     }
