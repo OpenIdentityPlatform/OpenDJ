@@ -4028,19 +4028,18 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.5
   MUST ( ds-cfg-backend-id $
          ds-cfg-base-dn $
          ds-cfg-java-class $
-         ds-cfg-enabled $
-         ds-cfg-writability-mode )
+         ds-cfg-enabled )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.8
   NAME 'ds-cfg-schema-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   MAY ( ds-cfg-schema-entry-dn $
         ds-cfg-show-all-attributes )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.9
   NAME 'ds-cfg-task-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   MAY ( ds-cfg-task-backing-file $
         ds-cfg-task-retention-time $
@@ -4693,7 +4692,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.66
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.67
   NAME 'ds-cfg-backup-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   MAY ds-cfg-backup-directory
   X-ORIGIN 'OpenDS Directory Server' )
@@ -5199,12 +5198,12 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.125
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.126
   NAME 'ds-cfg-memory-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.127
   NAME 'ds-cfg-monitor-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.128
@@ -5360,7 +5359,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.157
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.158
   NAME 'ds-cfg-config-file-handler-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   X-DEPRECATED-SINCE '3.5.0'
   X-ORIGIN 'OpenDS Directory Server' )
@@ -5387,7 +5386,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.160
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.161
   NAME 'ds-cfg-trust-store-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   MAY ( ds-cfg-trust-store-type $
         ds-cfg-trust-store-file $
@@ -5456,7 +5455,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.171
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.172
   NAME 'ds-cfg-ldif-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   MUST ds-cfg-ldif-file
   MAY ds-cfg-is-private-backend
@@ -5608,7 +5607,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.950
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.200
   NAME 'ds-cfg-null-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.201
@@ -5837,7 +5836,7 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.21
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.22
   NAME 'ds-cfg-pluggable-backend'
-  SUP ds-cfg-backend
+  SUP ds-cfg-local-backend
   STRUCTURAL
   MAY ( ds-cfg-index-entry-limit $
         ds-cfg-preload-time-limit $
@@ -6103,4 +6102,10 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.53
         ds-cfg-case-sensitive-strings $
         ds-cfg-ignore-white-space $
         ds-cfg-indexed-field )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.54
+  NAME 'ds-cfg-local-backend'
+  SUP ds-cfg-backend
+  STRUCTURAL
+  MUST ( ds-cfg-writability-mode )
   X-ORIGIN 'OpenDJ Directory Server' )

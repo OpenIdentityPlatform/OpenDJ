@@ -435,6 +435,7 @@ dn: ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-pluggable-backend
 objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
@@ -454,6 +455,7 @@ dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-pluggable-backend
 objectClass: ds-cfg-je-backend
 ds-cfg-enabled: true
@@ -812,6 +814,7 @@ dn: ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-pluggable-backend
 objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
@@ -983,6 +986,7 @@ dn: ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-pluggable-backend
 objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
@@ -1151,6 +1155,7 @@ dn: ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-pluggable-backend
 objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
@@ -1350,6 +1355,7 @@ dn: ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-pluggable-backend
 objectClass: ds-cfg-je-backend
 ds-cfg-enabled: false
@@ -1585,6 +1591,7 @@ dn: ds-cfg-backend-id=ldifRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-ldif-backend
 ds-cfg-backend-id: ldifRoot
 ds-cfg-enabled: true

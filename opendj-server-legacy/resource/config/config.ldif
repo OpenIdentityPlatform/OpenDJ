@@ -188,6 +188,7 @@ cn: Backends
 dn: ds-cfg-backend-id=backup,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-backup-backend
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.backends.BackupBackend
@@ -199,6 +200,7 @@ ds-cfg-backup-directory: bak
 dn: ds-cfg-backend-id=ads-truststore,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-trust-store-backend
 ds-cfg-backend-id: ads-truststore
 ds-cfg-enabled: true
@@ -212,6 +214,7 @@ ds-cfg-trust-store-pin-file: config/ads-truststore.pin
 dn: ds-cfg-backend-id=monitor,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-monitor-backend
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.backends.MonitorBackend
@@ -222,6 +225,7 @@ ds-cfg-base-dn: cn=monitor
 dn: ds-cfg-backend-id=schema,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-schema-backend
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.backends.SchemaBackend
@@ -233,6 +237,7 @@ ds-cfg-show-all-attributes: false
 dn: ds-cfg-backend-id=tasks,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-task-backend
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.backends.task.TaskBackend
@@ -245,6 +250,7 @@ ds-cfg-task-retention-time: 24 hours
 dn: ds-cfg-backend-id=adminRoot,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-backend
 objectClass: ds-cfg-ldif-backend
 ds-cfg-backend-id: adminRoot
 ds-cfg-enabled: true
