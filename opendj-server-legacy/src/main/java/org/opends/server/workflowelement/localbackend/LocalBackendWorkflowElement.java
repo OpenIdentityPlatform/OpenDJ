@@ -762,7 +762,7 @@ public class LocalBackendWorkflowElement
 
   private static BackendConfigManager getBackendManager()
   {
-    return DirectoryServer.getInstance().getServerContext().getBackendManager();
+    return DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
   }
 
   /**

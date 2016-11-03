@@ -141,5 +141,5 @@ public interface ServerContext
    *
    * @return backend manager
    */
-  BackendConfigManager getBackendManager();
+  BackendConfigManager getBackendConfigManager();
 }

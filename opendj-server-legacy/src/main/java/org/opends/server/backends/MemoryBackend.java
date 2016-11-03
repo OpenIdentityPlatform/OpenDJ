@@ -105,6 +105,8 @@ public class MemoryBackend
   private Map<DN, HashSet<DN>> childDNs;
   /** The mapping between entry DNs and the corresponding entries. */
   private LinkedHashMap<DN,Entry> entryMap;
+  /** The server context. */
+  private ServerContext serverContext;
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -132,6 +134,7 @@ public class MemoryBackend
   @Override
   public void configureBackend(MemoryBackendCfg config, ServerContext serverContext) throws ConfigException
   {
+    this.serverContext = serverContext;
     if (config != null)
     {
       this.baseDNs = config.getBaseDN();
@@ -157,7 +160,7 @@ public class MemoryBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false);
+        serverContext.getBackendConfigManager().registerBaseDN(dn, this, false);
       }
       catch (Exception e)
       {
@@ -186,7 +189,7 @@ public class MemoryBackend
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(dn);
+        serverContext.getBackendConfigManager().deregisterBaseDN(dn);
       }
       catch (Exception e)
       {

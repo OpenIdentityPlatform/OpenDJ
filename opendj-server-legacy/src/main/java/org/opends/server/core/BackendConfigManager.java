@@ -20,11 +20,9 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.util.Reject.ifNull;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.api.LocalBackend.asLocalBackend;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,6 +33,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -51,9 +53,10 @@ import org.forgerock.opendj.server.config.server.LocalBackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backend;
-import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.backends.ConfigurationBackend;
 import org.opends.server.config.ConfigConstants;
+import org.opends.server.monitors.LocalBackendMonitor;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -72,10 +75,22 @@ public class BackendConfigManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** The mapping beetwen backends IDs and local backend implementations. */
+  private final Map<String, LocalBackend<?>> localBackends = new ConcurrentHashMap<>();
+
   /** The mapping between configuration entry DNs and their corresponding backend implementations. */
-  private final ConcurrentHashMap<DN, Backend<? extends BackendCfg>> registeredBackends = new ConcurrentHashMap<>();
+  private final Map<DN, Backend<? extends BackendCfg>> registeredBackends = new ConcurrentHashMap<>();
+
+  /** The set of local backend initialization listeners. */
+  private final Set<LocalBackendInitializationListener> initializationListeners = new CopyOnWriteArraySet<>();
+
   private final ServerContext serverContext;
   private final BaseDnRegistry localBackendsRegistry;
+
+  /** Lock to protect reads of the backend maps. */
+  private final ReadLock readLock;
+  /** Lock to protect updates of the backends maps. */
+  private final WriteLock writeLock;
 
   /**
    * Creates a new instance of this backend config manager.
@@ -87,6 +102,9 @@ public class BackendConfigManager implements
   {
     this.serverContext = serverContext;
     this.localBackendsRegistry = new BaseDnRegistry();
+    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    readLock = lock.readLock();
+    writeLock = lock.writeLock();
   }
 
   /**
@@ -165,7 +183,7 @@ public class BackendConfigManager implements
       {
         continue;
       }
-      if (DirectoryServer.hasBackend(backendID))
+      if (hasLocalBackend(backendID))
       {
         // Skip this backend if it is already initialized and registered as available.
         continue;
@@ -236,9 +254,30 @@ public class BackendConfigManager implements
 
   private void setLocalBackendWritabilityMode(Backend<?> backend, BackendCfg backendCfg)
   {
-    LocalBackend<?> localBackend = asLocalBackend(backend);
-    LocalBackendCfg localCfg = (LocalBackendCfg) backendCfg;
-    localBackend.setWritabilityMode(toWritabilityMode(localCfg.getWritabilityMode()));
+    if (backend instanceof LocalBackend)
+    {
+      LocalBackend<?> localBackend = (LocalBackend<?>) backend;
+      LocalBackendCfg localCfg = (LocalBackendCfg) backendCfg;
+      localBackend.setWritabilityMode(toWritabilityMode(localCfg.getWritabilityMode()));
+    }
+  }
+
+  /**
+   * Returns the provided backend instance as a LocalBackend.
+   *
+   * @param backend
+   *            A backend
+   * @return a local backend
+   * @throws IllegalArgumentException
+   *            If the provided backend is not a LocalBackend
+   */
+  public static LocalBackend<?> asLocalBackend(Backend<?> backend)
+  {
+    if (backend instanceof LocalBackend)
+    {
+      return (LocalBackend<?>) backend;
+    }
+    throw new IllegalArgumentException("Backend " + backend.getBackendID() + " is not a local backend");
   }
 
   /**
@@ -300,13 +339,23 @@ public class BackendConfigManager implements
   }
 
   /**
-   * Returns the collection of all backends.
+   * Returns the set of all backends.
    *
    * @return all backends
    */
-  public Collection<Backend<?>> getAllBackends()
+  public Set<Backend<?>> getAllBackends()
   {
-    return new ArrayList<Backend<?>>(registeredBackends.values());
+    return new HashSet<Backend<?>>(registeredBackends.values());
+  }
+
+  /**
+   * Returns the set of local backends.
+   *
+   * @return the local backends
+   */
+  public Set<LocalBackend<?>> getLocalBackends()
+  {
+    return new HashSet<LocalBackend<?>>(localBackends.values());
   }
 
   /**
@@ -338,7 +387,32 @@ public class BackendConfigManager implements
   }
 
   /**
-   * Retrieves the set of subordinate backends that of the backend that corresponds to provided base DN.
+   * Retrieves a local backend provided its identifier.
+   *
+   * @param backendId
+   *          Identifier of the backend
+   * @return the local backend, or {@code null} if there is no local backend registered with the
+   *            specified id.
+   */
+  public LocalBackend<?> getLocalBackend(String backendId)
+  {
+    return localBackends.get(backendId);
+  }
+
+  /**
+   * Indicates whether the local backend with the provided id exists.
+   *
+   * @param backendID
+   *          The backend ID for which to make the determination.
+   * @return {@code true} if a backend with the specified backend ID exists, {@code false} otherwise
+   */
+  public boolean hasLocalBackend(String backendID)
+  {
+    return localBackends.containsKey(backendID);
+  }
+
+  /**
+   * Retrieves the set of subordinate backends of the backend that corresponds to provided base DN.
    *
    * @param baseDN
    *          The base DN for which to retrieve the subordinates backends.
@@ -435,6 +509,61 @@ public class BackendConfigManager implements
   }
 
   /**
+   * Registers a local backend.
+   *
+   * @param backend
+   *          The backend to register with the server.
+   *          Neither the backend nor its backend ID may be null.
+   * @throws DirectoryException
+   *           If the backend ID for the provided backend conflicts with the backend ID of an
+   *           existing backend.
+   */
+  public void registerLocalBackend(LocalBackend<?> backend) throws DirectoryException
+  {
+    ifNull(backend);
+    String backendID = backend.getBackendID();
+    ifNull(backendID);
+    writeLock.lock();
+    try
+    {
+      if (localBackends.containsKey(backendID))
+      {
+        LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      }
+      localBackends.put(backendID, backend);
+
+      for (String oid : backend.getSupportedControls())
+      {
+        registerSupportedControl(oid);
+      }
+
+      for (String oid : backend.getSupportedFeatures())
+      {
+        registerSupportedFeature(oid);
+      }
+
+      LocalBackendMonitor monitor = new LocalBackendMonitor(backend);
+      monitor.initializeMonitorProvider(null);
+      backend.setBackendMonitor(monitor);
+      registerMonitorProvider(monitor);
+    }
+    finally {
+      writeLock.unlock();
+    }
+  }
+
+  /**
+   * Registers a local backend initialization listener.
+   *
+   * @param  listener  The listener to register.
+   */
+  public void registerBackendInitializationListener(LocalBackendInitializationListener listener)
+  {
+    initializationListeners.add(listener);
+  }
+
+  /**
    * Deregisters the provided base DN.
    *
    * @param baseDN
@@ -448,6 +577,42 @@ public class BackendConfigManager implements
     for (LocalizableMessage error : warnings)
     {
       logger.error(error);
+    }
+  }
+
+  /**
+   * Deregisters a local backend initialization listener.
+   *
+   * @param  listener  The listener to deregister.
+   */
+  public void deregisterBackendInitializationListener(LocalBackendInitializationListener listener)
+  {
+    initializationListeners.remove(listener);
+  }
+
+  /**
+   * Deregisters a local backend.
+   *
+   * @param backend
+   *          The backend to deregister with the server. It must not be {@code null}.
+   */
+  public void deregisterLocalBackend(LocalBackend<?> backend)
+  {
+    ifNull(backend);
+    writeLock.lock();
+    try
+    {
+      localBackends.remove(backend.getBackendID());
+      LocalBackendMonitor monitor = backend.getBackendMonitor();
+      if (monitor != null)
+      {
+        deregisterMonitorProvider(monitor);
+        monitor.finalizeMonitorProvider();
+        backend.setBackendMonitor(null);
+      }
+    }
+    finally {
+      writeLock.unlock();
     }
   }
 
@@ -672,14 +837,14 @@ public class BackendConfigManager implements
     if (backend instanceof LocalBackend<?>)
     {
       LocalBackend<?> localBackend = (LocalBackend<?>) backend;
-      for (BackendInitializationListener listener : getBackendInitializationListeners())
+      for (LocalBackendInitializationListener listener : initializationListeners)
       {
         listener.performBackendPreInitializationProcessing(localBackend);
       }
 
       try
       {
-        DirectoryServer.registerBackend(localBackend);
+        registerLocalBackend(localBackend);
       }
       catch (Exception e)
       {
@@ -695,7 +860,7 @@ public class BackendConfigManager implements
         return false;
       }
 
-      for (BackendInitializationListener listener : getBackendInitializationListeners())
+      for (LocalBackendInitializationListener listener : initializationListeners)
       {
         listener.performBackendPostInitializationProcessing(localBackend);
       }
@@ -718,7 +883,7 @@ public class BackendConfigManager implements
     // See if the entry contains an attribute that specifies the backend ID.  If
     // it does not, then skip it.
     String backendID = configEntry.getBackendId();
-    if (DirectoryServer.hasBackend(backendID))
+    if (hasLocalBackend(backendID))
     {
       unacceptableReason.add(WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(backendDN, backendID));
       return false;
@@ -809,7 +974,7 @@ public class BackendConfigManager implements
     // See if the entry contains an attribute that specifies the backend ID.  If
     // it does not, then skip it.
     String backendID = cfg.getBackendId();
-    if (DirectoryServer.hasBackend(backendID))
+    if (hasLocalBackend(backendID))
     {
       LocalizableMessage message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(backendDN, backendID);
       logger.warn(message);
@@ -976,7 +1141,7 @@ public class BackendConfigManager implements
     if (backend instanceof LocalBackend<?>)
     {
       LocalBackend<?> localBackend = (LocalBackend<?>) backend;
-      for (BackendInitializationListener listener : getBackendInitializationListeners())
+      for (LocalBackendInitializationListener listener : initializationListeners)
       {
         listener.performBackendPreFinalizationProcessing(localBackend);
       }
@@ -984,13 +1149,59 @@ public class BackendConfigManager implements
       registeredBackends.remove(backendDN);
       DirectoryServer.deregisterBackend(localBackend);
 
-      for (BackendInitializationListener listener : getBackendInitializationListeners())
+      for (LocalBackendInitializationListener listener : initializationListeners)
       {
         listener.performBackendPostFinalizationProcessing(localBackend);
       }
     }
     else {
       // TODO: manage proxy deregistering here
+    }
+  }
+
+  /** Shutdown all local backends. */
+  public void shutdownLocalBackends()
+  {
+    for (LocalBackend<?> backend : localBackends.values())
+    {
+      try
+      {
+        for (LocalBackendInitializationListener listener : initializationListeners)
+        {
+          listener.performBackendPreFinalizationProcessing(backend);
+        }
+
+        backend.finalizeBackend();
+
+        for (LocalBackendInitializationListener listener : initializationListeners)
+        {
+          listener.performBackendPostFinalizationProcessing(backend);
+        }
+
+        // Remove the shared lock for this backend.
+        try
+        {
+          String lockFile = LockFileManager.getBackendLockFileName(backend);
+          StringBuilder failureReason = new StringBuilder();
+          if (!LockFileManager.releaseLock(lockFile, failureReason))
+          {
+            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(), failureReason);
+            // FIXME -- Do we need to send an admin alert?
+          }
+        }
+        catch (Exception e2)
+        {
+          logger.traceException(e2);
+
+          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(),
+              stackTraceToSingleLineString(e2));
+          // FIXME -- Do we need to send an admin alert?
+        }
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
     }
   }
 

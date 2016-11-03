@@ -198,7 +198,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false);
+        serverContext.getBackendConfigManager().registerBaseDN(dn, this, false);
       }
       catch (Exception e)
       {
@@ -224,7 +224,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(dn);
+        serverContext.getBackendConfigManager().deregisterBaseDN(dn);
       }
       catch (Exception e)
       {
@@ -862,7 +862,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
       if (!newBaseDNs.contains(baseDN))
       {
         // The base DN was deleted.
-        DirectoryServer.deregisterBaseDN(baseDN);
+        serverContext.getBackendConfigManager().deregisterBaseDN(baseDN);
         EntryContainer ec = rootContainer.unregisterEntryContainer(baseDN);
         ec.close();
         ec.delete(txn);
@@ -881,7 +881,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
           // The base DN was added.
           EntryContainer ec = rootContainer.openEntryContainer(baseDN, txn, AccessMode.READ_WRITE);
           rootContainer.registerEntryContainer(baseDN, ec);
-          DirectoryServer.registerBaseDN(baseDN, this, false);
+          serverContext.getBackendConfigManager().registerBaseDN(baseDN, this, false);
         }
         catch (Exception e)
         {

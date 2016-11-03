@@ -26,7 +26,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
@@ -45,7 +45,7 @@ import org.opends.server.types.InitializationException;
 public class DefaultEntryCache
        extends EntryCache<EntryCacheCfg>
        implements ConfigurationChangeListener<EntryCacheCfg>,
-       BackendInitializationListener
+       LocalBackendInitializationListener
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

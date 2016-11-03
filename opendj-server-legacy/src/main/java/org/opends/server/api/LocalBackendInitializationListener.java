@@ -21,14 +21,14 @@ package org.opends.server.api;
 /**
  * This interface defines a set of methods that may be used by server
  * components to perform any processing that they might find necessary
- * whenever a backend is initialized and/or finalized.
+ * whenever a local backend is initialized and/or finalized.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public interface BackendInitializationListener
+public interface LocalBackendInitializationListener
 {
   /**
    * Performs any processing that may be required whenever a backend

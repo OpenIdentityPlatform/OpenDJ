@@ -90,6 +90,7 @@ import org.opends.server.backends.pluggable.RootContainer;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.loggers.AccessLogPublisher;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.DebugLogger;
@@ -812,6 +813,17 @@ public final class TestCaseUtils {
     DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(schemaBeforeStartingFakeServer);
   }
 
+  /** Returns the server context. */
+  public static ServerContext getServerContext()
+  {
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+    if (serverContext == null)
+    {
+      throw new RuntimeException("Server context is null");
+    }
+    return serverContext;
+  }
+
   /**
    * Shut down the server. This should only be called at the end of the test
    * suite and not by any unit tests.
@@ -877,14 +889,15 @@ public final class TestCaseUtils {
     // is re-enabled, a new backend object is in fact created and old reference
     // to memory backend must be invalidated. So to prevent this problem, we
     // retrieve the memory backend reference each time before cleaning it.
-    MemoryBackend memoryBackend =
-        (MemoryBackend)DirectoryServer.getBackend(backendID);
+    MemoryBackend memoryBackend = (MemoryBackend) getServerContext().getBackendConfigManager()
+        .getLocalBackend(backendID);
 
     if (memoryBackend == null)
     {
       memoryBackend = new MemoryBackend();
       memoryBackend.setBackendID(backendID);
       memoryBackend.setBaseDNs(baseDN);
+      memoryBackend.configureBackend(null, getServerContext());
       memoryBackend.openBackend();
       DirectoryServer.registerBackend(memoryBackend);
     }

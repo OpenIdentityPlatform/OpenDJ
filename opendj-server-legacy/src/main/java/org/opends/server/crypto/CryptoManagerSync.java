@@ -43,7 +43,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult.PostResponse;
 import org.opends.server.config.ConfigConstants;
@@ -73,7 +73,7 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
  * from the admin data branch to the crypto manager secret-key cache.
  */
 public class CryptoManagerSync extends InternalDirectoryServerPlugin
-     implements BackendInitializationListener
+     implements LocalBackendInitializationListener
 {
   /** The debug log tracer for this object. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

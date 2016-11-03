@@ -88,7 +88,8 @@ public class BackendConfigManagerTestCase
   @Test(expectedExceptions = { DirectoryException.class })
   public void testDeregisterNonExistentBaseDN() throws Exception
   {
-    DirectoryServer.deregisterBaseDN(DN.valueOf("o=unregistered"));
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      .deregisterBaseDN(DN.valueOf("o=unregistered"));
   }
 
 
@@ -179,19 +180,19 @@ public class BackendConfigManagerTestCase
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
     processAdd(backendEntry);
-    assertNull(DirectoryServer.getBackend(backendID));
+    assertNull(getLocalBackend(backendID));
     assertFalse(DirectoryServer.isNamingContext(baseDN));
 
     // Modify the backend to enable it.
     enableBackend(backendEntry, true);
 
-    LocalBackend<?> backend = DirectoryServer.getBackend(backendID);
+    LocalBackend<?> backend = getLocalBackend(backendID);
     assertBackend(baseDN, backend);
     createEntry(baseDN, backend);
 
     // Modify the backend to disable it.
     enableBackend(backendEntry, false);
-    assertNull(DirectoryServer.getBackend(backendID));
+    assertNull(getLocalBackend(backendID));
     assertFalse(DirectoryServer.entryExists(baseDN));
     assertFalse(DirectoryServer.isNamingContext(baseDN));
 
@@ -199,6 +200,11 @@ public class BackendConfigManagerTestCase
     // Delete the disabled backend.
     DeleteOperation deleteOperation = getRootConnection().processDelete(backendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private LocalBackend<?> getLocalBackend(String backendID)
+  {
+    return getServerContext().getBackendConfigManager().getLocalBackend(backendID);
   }
 
 

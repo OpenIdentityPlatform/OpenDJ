@@ -257,7 +257,8 @@ public class ChangelogBackend extends LocalBackend<Configuration>
 
     try
     {
-      DirectoryServer.registerBaseDN(CHANGELOG_BASE_DN, this, true);
+      DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        .registerBaseDN(CHANGELOG_BASE_DN, this, true);
     }
     catch (final DirectoryException e)
     {
@@ -271,7 +272,7 @@ public class ChangelogBackend extends LocalBackend<Configuration>
   {
     try
     {
-      DirectoryServer.deregisterBaseDN(CHANGELOG_BASE_DN);
+      DirectoryServer.getInstance().getServerContext().getBackendConfigManager().deregisterBaseDN(CHANGELOG_BASE_DN);
     }
     catch (final DirectoryException e)
     {

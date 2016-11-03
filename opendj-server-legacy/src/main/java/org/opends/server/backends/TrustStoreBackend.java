@@ -117,6 +117,8 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
   /** The certificate manager for the trust store. */
   private CertificateManager certificateManager;
+  /** The server context. */
+  private ServerContext serverContext;
 
   /**
    * Creates a new backend.  All backend
@@ -138,6 +140,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
   @Override
   public void configureBackend(TrustStoreBackendCfg config, ServerContext serverContext) throws ConfigException
   {
+    this.serverContext = serverContext;
     Reject.ifNull(config);
     configuration = config;
   }
@@ -204,7 +207,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     // Register the trust store base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(getBaseDN(), this, true);
+      serverContext.getBackendConfigManager().registerBaseDN(getBaseDN(), this, true);
     }
     catch (Exception e)
     {
@@ -302,7 +305,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
     try
     {
-      DirectoryServer.deregisterBaseDN(getBaseDN());
+      serverContext.getBackendConfigManager().deregisterBaseDN(getBaseDN());
     }
     catch (Exception e)
     {

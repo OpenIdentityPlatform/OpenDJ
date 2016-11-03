@@ -80,7 +80,7 @@ import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
-import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.ServerShutdownListener;
@@ -174,7 +174,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
  */
 public final class LDAPReplicationDomain extends ReplicationDomain
        implements ConfigurationChangeListener<ReplicationDomainCfg>,
-                  AlertGenerator, BackendInitializationListener, ServerShutdownListener
+                  AlertGenerator, LocalBackendInitializationListener, ServerShutdownListener
 {
   /**
    * Set of attributes that will return all the user attributes and the

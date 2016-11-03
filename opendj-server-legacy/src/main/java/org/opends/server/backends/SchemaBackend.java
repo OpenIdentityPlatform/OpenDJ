@@ -214,7 +214,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
     DirectoryServer.setSchemaDN(baseDNs.iterator().next());
     for (DN baseDN : baseDNs) {
       try {
-        DirectoryServer.registerBaseDN(baseDN, this, true);
+        serverContext.getBackendConfigManager().registerBaseDN(baseDN, this, true);
       } catch (Exception e) {
         logger.traceException(e);
 
@@ -237,7 +237,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(baseDN);
+        serverContext.getBackendConfigManager().deregisterBaseDN(baseDN);
       }
       catch (Exception e)
       {
@@ -1783,7 +1783,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
       {
         try
         {
-          DirectoryServer.deregisterBaseDN(dn);
+          serverContext.getBackendConfigManager().deregisterBaseDN(dn);
           ccr.addMessage(INFO_SCHEMA_DEREGISTERED_BASE_DN.get(dn));
         }
         catch (Exception e)
@@ -1800,7 +1800,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
       {
         try
         {
-          DirectoryServer.registerBaseDN(dn, this, true);
+          serverContext.getBackendConfigManager().registerBaseDN(dn, this, true);
           ccr.addMessage(INFO_SCHEMA_REGISTERED_BASE_DN.get(dn));
         }
         catch (Exception e)

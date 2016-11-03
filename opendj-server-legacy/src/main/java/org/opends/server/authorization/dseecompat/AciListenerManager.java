@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
@@ -64,7 +64,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperatio
  * finalized.
  */
 public class AciListenerManager implements
-    BackendInitializationListener, AlertGenerator
+    LocalBackendInitializationListener, AlertGenerator
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

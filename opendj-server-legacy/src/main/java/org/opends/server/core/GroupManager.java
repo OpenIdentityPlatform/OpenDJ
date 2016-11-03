@@ -50,7 +50,7 @@ import org.forgerock.opendj.server.config.meta.GroupImplementationCfgDefn;
 import org.forgerock.opendj.server.config.server.GroupImplementationCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.Group;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
@@ -95,7 +95,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
        implements ConfigurationChangeListener<GroupImplementationCfg>,
                   ConfigurationAddListener<GroupImplementationCfg>,
                   ConfigurationDeleteListener<GroupImplementationCfg>,
-                  BackendInitializationListener
+                  LocalBackendInitializationListener
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

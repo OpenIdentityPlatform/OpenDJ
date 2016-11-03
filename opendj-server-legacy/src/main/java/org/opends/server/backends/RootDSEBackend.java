@@ -331,7 +331,7 @@ public class RootDSEBackend
 
     // Add the "ds-private-naming-contexts" attribute.
     Attribute privateNamingContextAttr = createAttribute(
-        ATTR_PRIVATE_NAMING_CONTEXTS, serverContext.getBackendManager().getPrivateNamingContexts().keySet());
+        ATTR_PRIVATE_NAMING_CONTEXTS, serverContext.getBackendConfigManager().getPrivateNamingContexts().keySet());
     addAttribute(privateNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedControl" attribute.
@@ -419,7 +419,7 @@ public class RootDSEBackend
     // TODO: this duplicates what is done in DirectoryServer (see DirectoryServer.getSupportedControls())
     // How should this be handled ?
     final Set<String> controls = new HashSet<>();
-    for (Backend<?> backend : serverContext.getBackendManager().getAllBackends())
+    for (Backend<?> backend : serverContext.getBackendConfigManager().getAllBackends())
     {
       controls.addAll(backend.getSupportedControls());
     }
@@ -429,7 +429,7 @@ public class RootDSEBackend
   private Set<DN> getAllPublicNamingContexts()
   {
     Set<DN> namingContexts = new HashSet<>();
-    for (Backend<?> backend : serverContext.getBackendManager().getAllBackends())
+    for (Backend<?> backend : serverContext.getBackendConfigManager().getAllBackends())
     {
       namingContexts.addAll(backend.getBaseDNs());
     }
@@ -440,7 +440,7 @@ public class RootDSEBackend
   {
     // TODO: this implementation is insufficient because it handles only the local backends
     // The non-local backends must be added for completeness
-    return new HashSet<DN>(serverContext.getBackendManager().getPublicNamingContexts().keySet());
+    return new HashSet<DN>(serverContext.getBackendConfigManager().getPublicNamingContexts().keySet());
   }
 
   private void addAll(Collection<Attribute> attributes,

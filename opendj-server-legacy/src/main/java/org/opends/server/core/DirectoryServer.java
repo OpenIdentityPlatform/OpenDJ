@@ -17,7 +17,6 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
-
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -36,7 +35,6 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -87,7 +84,6 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
@@ -121,6 +117,7 @@ import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.core.BackendConfigManager.BackendAndName;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.DiskSpaceMonitor;
@@ -135,7 +132,6 @@ import org.opends.server.loggers.RetentionPolicy;
 import org.opends.server.loggers.RotationPolicy;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
-import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
@@ -417,8 +413,6 @@ public final class DirectoryServer
   private List<ServerShutdownListener> shutdownListeners;
   /** The set of synchronization providers that have been registered with the Directory Server. */
   private List<SynchronizationProvider<SynchronizationProviderCfg>> synchronizationProviders;
-  /** The set of backend initialization listeners registered with the Directory Server. */
-  private Set<BackendInitializationListener> backendInitializationListeners;
 
   /** The set of root DNs registered with the Directory Server. */
   private Set<DN> rootDNs;
@@ -579,9 +573,6 @@ public final class DirectoryServer
 
   /** The synchronization provider configuration manager for the Directory Server. */
   private SynchronizationProviderConfigManager synchronizationProviderConfigManager;
-
-  /** The set of backends registered with the server. */
-  private TreeMap<String, LocalBackend<?>> backends;
 
   /** The set of supported controls registered with the Directory Server. */
   private final TreeSet<String> supportedControls = newTreeSet(
@@ -1061,7 +1052,7 @@ public final class DirectoryServer
     }
 
     @Override
-    public BackendConfigManager getBackendManager()
+    public BackendConfigManager getBackendConfigManager()
     {
       return directoryServer.backendConfigManager;
     }
@@ -1215,8 +1206,6 @@ public final class DirectoryServer
       directoryServer.defaultPasswordPolicyDN = null;
       directoryServer.defaultPasswordPolicy = null;
       directoryServer.monitorProviders = new ConcurrentHashMap<>();
-      directoryServer.backends = new TreeMap<>();
-      directoryServer.backendInitializationListeners = new CopyOnWriteArraySet<>();
       directoryServer.initializationCompletedListeners = new CopyOnWriteArrayList<>();
       directoryServer.shutdownListeners = new CopyOnWriteArrayList<>();
       directoryServer.synchronizationProviders = new CopyOnWriteArrayList<>();
@@ -1497,6 +1486,8 @@ public final class DirectoryServer
 
       new AlertHandlerConfigManager(serverContext).initializeAlertHandlers();
 
+      backendConfigManager = new BackendConfigManager(serverContext);
+
       // Initialize the default entry cache. We have to have one before
       // <CODE>initializeRootAndAdminDataBackends()</CODE> method kicks in further down.
       entryCacheConfigManager = new EntryCacheConfigManager(serverContext);
@@ -1745,48 +1736,33 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the set of backend initialization listeners that have been
-   * registered with the Directory Server.  The contents of the returned set
-   * must not be altered.
-   *
-   * @return  The set of backend initialization listeners that have been
-   *          registered with the Directory Server.
-   */
-  public static Set<BackendInitializationListener>
-                     getBackendInitializationListeners()
-  {
-    return directoryServer.backendInitializationListeners;
-  }
-
-  /**
-   * Registers the provided backend initialization listener with the Directory
+   * Registers the provided local backend initialization listener with the Directory
    * Server.
    *
-   * @param  listener  The backend initialization listener to register with the
+   * @param  listener  The local backend initialization listener to register with the
    *                   Directory Server.
    */
   public static void registerBackendInitializationListener(
-                          BackendInitializationListener listener)
+                          LocalBackendInitializationListener listener)
   {
-    directoryServer.backendInitializationListeners.add(listener);
+    directoryServer.backendConfigManager.registerBackendInitializationListener(listener);
   }
 
   /**
-   * Deregisters the provided backend initialization listener with the Directory
+   * Deregisters the provided local backend initialization listener with the Directory
    * Server.
    *
    * @param  listener  The backend initialization listener to deregister with
    *                   the Directory Server.
    */
   public static void deregisterBackendInitializationListener(
-                          BackendInitializationListener listener)
+                          LocalBackendInitializationListener listener)
   {
-    directoryServer.backendInitializationListeners.remove(listener);
+    directoryServer.backendConfigManager.deregisterBackendInitializationListener(listener);
   }
 
   private void initializeRootAndAdminDataBackends() throws ConfigException, InitializationException
   {
-    backendConfigManager = new BackendConfigManager(serverContext);
     backendConfigManager.initializeBackendConfig(Arrays.asList("adminRoot", "ads-truststore"));
 
     RootDSEBackendCfg rootDSECfg;
@@ -3391,15 +3367,15 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the set of backends that have been registered with the Directory
-   * Server, as a mapping between the backend ID and the corresponding backend.
+   * Retrieves the set of local backends that have been registered with the Directory
+   * Server.
    *
-   * @return  The set of backends that have been registered with the Directory
+   * @return  The set of local backends that have been registered with the Directory
    *          Server.
    */
   public static Collection<LocalBackend<?>> getBackends()
   {
-    return new ArrayList<>(directoryServer.backends.values());
+    return directoryServer.backendConfigManager.getLocalBackends();
   }
 
   /**
@@ -3412,7 +3388,7 @@ public final class DirectoryServer
    */
   public static LocalBackend<?> getBackend(String backendID)
   {
-    return directoryServer.backends.get(backendID);
+    return directoryServer.backendConfigManager.getLocalBackend(backendID);
   }
 
   /**
@@ -3426,7 +3402,7 @@ public final class DirectoryServer
    */
   public static boolean hasBackend(String backendID)
   {
-    return directoryServer.backends.containsKey(backendID);
+    return directoryServer.backendConfigManager.hasLocalBackend(backendID);
   }
 
   /**
@@ -3443,38 +3419,7 @@ public final class DirectoryServer
    */
   public static void registerBackend(LocalBackend<?> backend) throws DirectoryException
   {
-    ifNull(backend);
-
-    String backendID = backend.getBackendID();
-    ifNull(backendID);
-
-    synchronized (directoryServer)
-    {
-      TreeMap<String, LocalBackend<?>> newBackends = new TreeMap<>(directoryServer.backends);
-      if (newBackends.containsKey(backendID))
-      {
-        LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-
-      newBackends.put(backendID, backend);
-      directoryServer.backends = newBackends;
-
-      for (String oid : backend.getSupportedControls())
-      {
-        registerSupportedControl(oid);
-      }
-
-      for (String oid : backend.getSupportedFeatures())
-      {
-        registerSupportedFeature(oid);
-      }
-
-      BackendMonitor monitor = new BackendMonitor(backend);
-      monitor.initializeMonitorProvider(null);
-      backend.setBackendMonitor(monitor);
-      registerMonitorProvider(monitor);
-    }
+    directoryServer.backendConfigManager.registerLocalBackend(backend);
   }
 
   /**
@@ -3487,23 +3432,7 @@ public final class DirectoryServer
    */
   public static void deregisterBackend(LocalBackend<?> backend)
   {
-    ifNull(backend);
-
-    synchronized (directoryServer)
-    {
-      TreeMap<String, LocalBackend<?>> newBackends = new TreeMap<>(directoryServer.backends);
-      newBackends.remove(backend.getBackendID());
-
-      directoryServer.backends = newBackends;
-
-      BackendMonitor monitor = backend.getBackendMonitor();
-      if (monitor != null)
-      {
-        deregisterMonitorProvider(monitor);
-        monitor.finalizeMonitorProvider();
-        backend.setBackendMonitor(null);
-      }
-    }
+    directoryServer.backendConfigManager.deregisterLocalBackend(backend);
   }
 
   /**
@@ -3537,50 +3466,8 @@ public final class DirectoryServer
     {
       return directoryServer.rootDSEBackend;
     }
-    return directoryServer.backendConfigManager.getLocalBackend(entryDN).getBackend();
-  }
-
-  /**
-   * Registers the provided base DN with the server.
-   *
-   * @param  baseDN     The base DN to register with the server.  It must not be
-   *                    {@code null}.
-   * @param  backend    The backend responsible for the provided base DN.  It
-   *                    must not be {@code null}.
-   * @param  isPrivate  Indicates whether the base DN should be considered a
-   *                    private base DN.  If the provided base DN is a naming
-   *                    context, then this controls whether it is public or
-   *                    private.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              register the provided base DN.
-   */
-  public static void registerBaseDN(DN baseDN, LocalBackend<?> backend, boolean isPrivate)
-         throws DirectoryException
-  {
-    ifNull(baseDN, backend);
-    synchronized (directoryServer)
-    {
-      directoryServer.backendConfigManager.registerBaseDN(baseDN, backend, isPrivate);
-    }
-  }
-
-  /**
-   * Deregisters the provided base DN with the server.
-   *
-   * @param  baseDN     The base DN to deregister with the server.  It must not
-   *                    be {@code null}.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              deregister the provided base DN.
-   */
-  public static void deregisterBaseDN(DN baseDN)
-         throws DirectoryException
-  {
-    ifNull(baseDN);
-    synchronized(directoryServer) {
-      directoryServer.backendConfigManager.deregisterBaseDN(baseDN);
-    }
+    BackendAndName backend = directoryServer.backendConfigManager.getLocalBackend(entryDN);
+    return backend != null ? backend.getBackend() : null;
   }
 
   /**
@@ -5020,7 +4907,7 @@ public final class DirectoryServer
       }
     }
 
-    shutdownBackends();
+    directoryServer.backendConfigManager.shutdownLocalBackends();
 
     if (directoryServer.configurationHandler != null) {
       directoryServer.configurationHandler.finalize();
@@ -5075,47 +4962,7 @@ public final class DirectoryServer
   /** Shutdown directory server backends. */
   public static void shutdownBackends()
   {
-    for (LocalBackend<?> backend : directoryServer.backends.values())
-    {
-      try
-      {
-        for (BackendInitializationListener listener : getBackendInitializationListeners())
-        {
-          listener.performBackendPreFinalizationProcessing(backend);
-        }
-
-        for (BackendInitializationListener listener : directoryServer.backendInitializationListeners)
-        {
-          listener.performBackendPostFinalizationProcessing(backend);
-        }
-
-        backend.finalizeBackend();
-
-        // Remove the shared lock for this backend.
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(backend);
-          StringBuilder failureReason = new StringBuilder();
-          if (! LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(), failureReason);
-            // FIXME -- Do we need to send an admin alert?
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.traceException(e2);
-
-          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK,
-              backend.getBackendID(), stackTraceToSingleLineString(e2));
-          // FIXME -- Do we need to send an admin alert?
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
+    directoryServer.backendConfigManager.shutdownLocalBackends();
   }
 
   /**
@@ -5142,12 +4989,6 @@ public final class DirectoryServer
     schemaDN                 = null;
     shutdownHook             = null;
     workQueue                = null;
-
-    if (backends != null)
-    {
-      backends.clear();
-      backends = null;
-    }
 
     if (schemaHandler != null)
     {

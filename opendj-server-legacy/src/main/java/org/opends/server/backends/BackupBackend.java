@@ -104,6 +104,9 @@ public class BackupBackend
   /** A cache of BackupDirectories. */
   private HashMap<File,CachedBackupDirectory> backupDirectories;
 
+  /** The server context. */
+  private ServerContext serverContext;
+
   /**
    * To avoid parsing and reparsing the contents of backup.info files, we
    * cache the BackupDirectory for each directory using this class.
@@ -172,6 +175,7 @@ public class BackupBackend
   @Override
   public void configureBackend(BackupBackendCfg config, ServerContext serverContext) throws ConfigException
   {
+    this.serverContext = serverContext;
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (config == null)
@@ -232,7 +236,7 @@ public class BackupBackend
     // Register the backup base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(backupBaseDN, this, true);
+      serverContext.getBackendConfigManager().registerBaseDN(backupBaseDN, this, true);
     }
     catch (Exception e)
     {
@@ -251,7 +255,7 @@ public class BackupBackend
 
     try
     {
-      DirectoryServer.deregisterBaseDN(backupBaseDN);
+      serverContext.getBackendConfigManager().deregisterBaseDN(backupBaseDN);
     }
     catch (Exception e)
     {

@@ -240,7 +240,8 @@ public abstract class Task
     getInfo().stopPooling();
     if (getInfo().mustDeregisterConfig())
     {
-      DirectoryServer.deregisterBaseDN(DN.valueOf("cn=config"));
+      DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        .deregisterBaseDN(DN.valueOf("cn=config"));
     }
     DirectoryServer.getInstance().initializeConfiguration(ConfigReader.configFile);
     getInfo().setMustDeregisterConfig(true);

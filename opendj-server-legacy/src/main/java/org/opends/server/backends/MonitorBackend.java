@@ -102,6 +102,8 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
   private DN baseMonitorDN;
   /** The set of base DNs for this backend. */
   private Set<DN> baseDNs;
+  /** The server context. */
+  private ServerContext serverContext;
 
   /**
    * Creates a new backend with the provided information. All backend
@@ -167,6 +169,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
       throws ConfigException
   {
     Reject.ifNull(config);
+    this.serverContext = serverContext;
 
     final MonitorBackendCfg cfg = config;
     final Entry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
@@ -296,7 +299,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
     currentConfig.removeMonitorChangeListener(this);
     try
     {
-      DirectoryServer.deregisterBaseDN(baseMonitorDN);
+      serverContext.getBackendConfigManager().deregisterBaseDN(baseMonitorDN);
     }
     catch (final Exception e)
     {
@@ -387,7 +390,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
     // Register the monitor base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(baseMonitorDN, this, true);
+      serverContext.getBackendConfigManager().registerBaseDN(baseMonitorDN, this, true);
     }
     catch (final Exception e)
     {

@@ -136,7 +136,7 @@ public class NullBackend extends LocalBackend<BackendCfg>
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false);
+        serverContext.getBackendConfigManager().registerBaseDN(dn, this, false);
       }
       catch (Exception e)
       {
@@ -177,7 +177,7 @@ public class NullBackend extends LocalBackend<BackendCfg>
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(dn);
+        serverContext.getBackendConfigManager().deregisterBaseDN(dn);
       }
       catch (Exception e)
       {

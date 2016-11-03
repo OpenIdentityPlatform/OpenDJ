@@ -50,7 +50,6 @@ import org.opends.server.backends.ConfigurationBackend.ConfigurationBackendCfg;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
@@ -192,6 +191,9 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
    */
   private final Object configLock = new Object();
 
+  /** The server context. */
+  private final ServerContext serverContext;
+
   /**
    * Creates and initializes a new instance of this backend.
    *
@@ -205,6 +207,7 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
   public ConfigurationBackend(ServerContext serverContext, ConfigurationHandler configurationHandler)
       throws InitializationException
   {
+    this.serverContext = serverContext;
     this.configurationHandler = configurationHandler;
     this.configRootEntry = Converters.to(configurationHandler.getRootEntry());
     baseDNs = Collections.singleton(configRootEntry.getName());
@@ -227,7 +230,7 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
   {
     try
     {
-      DirectoryServer.deregisterBaseDN(configRootEntry.getName());
+      serverContext.getBackendConfigManager().deregisterBaseDN(configRootEntry.getName());
     }
     catch (Exception e)
     {
@@ -247,7 +250,7 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
     DN baseDN = configRootEntry.getName();
     try
     {
-      DirectoryServer.registerBaseDN(baseDN, this, true);
+      serverContext.getBackendConfigManager().registerBaseDN(baseDN, this, true);
     }
     catch (DirectoryException e)
     {

@@ -107,6 +107,9 @@ public class LDIFBackend
   /** The path to the LDIF file containing the data for this backend. */
   private String ldifFilePath;
 
+  /** The server context. */
+  private ServerContext serverContext;
+
   /**
    * Creates a new backend with the provided information.  All backend
    * implementations must implement a default constructor that use
@@ -132,8 +135,7 @@ public class LDIFBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this,
-                                       currentConfig.isIsPrivateBackend());
+        serverContext.getBackendConfigManager().registerBaseDN(dn, this, currentConfig.isIsPrivateBackend());
       }
       catch (Exception e)
       {
@@ -337,7 +339,7 @@ public class LDIFBackend
       {
         try
         {
-          DirectoryServer.deregisterBaseDN(dn);
+          serverContext.getBackendConfigManager().deregisterBaseDN(dn);
         }
         catch (Exception e)
         {
@@ -1191,6 +1193,7 @@ public class LDIFBackend
   @Override
   public void configureBackend(LDIFBackendCfg config, ServerContext serverContext) throws ConfigException
   {
+    this.serverContext = serverContext;
     if (config != null)
     {
       currentConfig = config;

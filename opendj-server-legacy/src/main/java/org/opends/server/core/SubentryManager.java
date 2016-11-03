@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.SubentryChangeListener;
@@ -86,7 +86,7 @@ import static org.opends.server.util.ServerConstants.*;
  * in all cases, then we will need an alternate strategy.
  */
 public class SubentryManager extends InternalDirectoryServerPlugin
-        implements BackendInitializationListener
+        implements LocalBackendInitializationListener
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
