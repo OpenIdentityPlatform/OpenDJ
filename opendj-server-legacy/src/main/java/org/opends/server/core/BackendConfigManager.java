@@ -207,7 +207,7 @@ public class BackendConfigManager implements
       // contain a valid backend implementation, then log an error and skip it.
       String className = backendCfg.getJavaClass();
 
-      LocalBackend<? extends BackendCfg> backend;
+      Backend<? extends BackendCfg> backend;
       try
       {
         backend = loadBackendClass(className).newInstance();
@@ -677,8 +677,8 @@ public class BackendConfigManager implements
       String className = configEntry.getJavaClass();
       try
       {
-        Class<LocalBackend<BackendCfg>> backendClass = loadBackendClass(className);
-        if (! LocalBackend.class.isAssignableFrom(backendClass))
+        Class<Backend<BackendCfg>> backendClass = loadBackendClass(className);
+        if (! Backend.class.isAssignableFrom(backendClass))
         {
           unacceptableReason.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
           return false;
@@ -894,7 +894,7 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = configEntry.getJavaClass();
 
-    LocalBackend<BackendCfg> backend;
+    Backend<BackendCfg> backend;
     try
     {
       backend = loadBackendClass(className).newInstance();
@@ -910,27 +910,30 @@ public class BackendConfigManager implements
 
 
     // Make sure that all of the base DNs are acceptable for use in the server.
-    BaseDnRegistry registry = localBackendsRegistry.copy();
-    for (DN baseDN : baseDNs)
+    if (backend instanceof LocalBackend<?>)
     {
-      if (baseDN.isRootDN())
+      BaseDnRegistry registry = localBackendsRegistry.copy();
+      for (DN baseDN : baseDNs)
       {
-        unacceptableReason.add(ERR_CONFIG_BACKEND_BASE_IS_EMPTY.get(backendDN));
-        return false;
-      }
-      try
-      {
-        registry.registerBaseDN(baseDN, backend, false);
-      }
-      catch (DirectoryException de)
-      {
-        unacceptableReason.add(de.getMessageObject());
-        return false;
-      }
-      catch (Exception e)
-      {
-        unacceptableReason.add(getExceptionMessage(e));
-        return false;
+        if (baseDN.isRootDN())
+        {
+          unacceptableReason.add(ERR_CONFIG_BACKEND_BASE_IS_EMPTY.get(backendDN));
+          return false;
+        }
+        try
+        {
+          registry.registerBaseDN(baseDN, (LocalBackend<?>) backend, false);
+        }
+        catch (DirectoryException de)
+        {
+          unacceptableReason.add(de.getMessageObject());
+          return false;
+        }
+        catch (Exception e)
+        {
+          unacceptableReason.add(getExceptionMessage(e));
+          return false;
+        }
       }
     }
 
@@ -980,7 +983,7 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = cfg.getJavaClass();
 
-    LocalBackend<? extends BackendCfg> backend;
+    Backend<? extends BackendCfg> backend;
     try
     {
       backend = loadBackendClass(className).newInstance();
@@ -1027,9 +1030,9 @@ public class BackendConfigManager implements
   }
 
   @SuppressWarnings("unchecked")
-  private Class<LocalBackend<BackendCfg>> loadBackendClass(String className) throws Exception
+  private Class<Backend<BackendCfg>> loadBackendClass(String className) throws Exception
   {
-    return (Class<LocalBackend<BackendCfg>>) DirectoryServer.loadClass(className);
+    return (Class<Backend<BackendCfg>>) DirectoryServer.loadClass(className);
   }
 
   private WritabilityMode toWritabilityMode(LocalBackendCfgDefn.WritabilityMode writabilityMode)
