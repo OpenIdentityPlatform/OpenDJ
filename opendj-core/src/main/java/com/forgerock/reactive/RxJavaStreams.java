@@ -20,6 +20,7 @@ import org.reactivestreams.Publisher;
 
 import io.reactivex.CompletableEmitter;
 import io.reactivex.CompletableOnSubscribe;
+import io.reactivex.CompletableSource;
 import io.reactivex.Flowable;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
@@ -174,6 +175,17 @@ public final class RxJavaStreams {
                 });
             }
         }));
+    }
+
+    /**
+     * Create a new {@link Completable} from the given error.
+     *
+     * @param error
+     *            The error emitted by this {@link Completable}
+     * @return A new {@link Completable}
+     */
+    public static Completable completableError(final Throwable error) {
+        return new RxJavaCompletable(io.reactivex.Completable.error(error));
     }
 
     private static final class RxJavaStream<V> implements Stream<V> {
@@ -338,6 +350,17 @@ public final class RxJavaStreams {
         @Override
         public void subscribe(org.reactivestreams.Subscriber<? super Void> s) {
             impl.<Void>toFlowable().subscribe(s);
+        }
+
+        @Override
+        public Completable onErrorResumeWith(final Function<Throwable, Completable, Exception> function) {
+            return new RxJavaCompletable(
+                    impl.onErrorResumeNext(new io.reactivex.functions.Function<Throwable, CompletableSource>() {
+                        @Override
+                        public CompletableSource apply(Throwable error) throws Exception {
+                            return io.reactivex.Completable.fromPublisher(function.apply(error));
+                        }
+                    }));
         }
     }
 }

@@ -131,7 +131,7 @@ public abstract class ReactiveFilter<C, I1, O1, I2, O2> {
         final ReactiveFilter<C, I1, O1, I2, O2> parent = this;
         return new ReactiveHandler<C, I1, O1>() {
             @Override
-            public Single<O1> handle(final C context, final I1 request) throws Exception {
+            public O1 handle(final C context, final I1 request) throws Exception {
                 return parent.filter(context, request, handler);
             }
         };
@@ -150,7 +150,7 @@ public abstract class ReactiveFilter<C, I1, O1, I2, O2> {
      * @throws Exception
      *             If the operation cannot be done
      */
-    public abstract Single<O1> filter(final C context, final I1 request, final ReactiveHandler<C, I2, O2> next)
+    public abstract O1 filter(final C context, final I1 request, final ReactiveHandler<C, I2, O2> next)
             throws Exception;
 
     private static final class ConcatenatedFilter<C, I1, O1, I2, O2> extends ReactiveFilter<C, I1, O1, I2, O2> {
@@ -178,7 +178,7 @@ public abstract class ReactiveFilter<C, I1, O1, I2, O2> {
         }
 
         @Override
-        public Single<O1> filter(C context, I1 request, ReactiveHandler<C, I2, O2> handler) throws Exception {
+        public O1 filter(C context, I1 request, ReactiveHandler<C, I2, O2> handler) throws Exception {
             return converter.apply(handler).handle(context, request);
         }
     }

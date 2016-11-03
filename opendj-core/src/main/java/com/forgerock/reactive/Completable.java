@@ -15,6 +15,7 @@
  */
 package com.forgerock.reactive;
 
+import org.forgerock.util.Function;
 import org.reactivestreams.Publisher;
 
 /** {@link Completable} is used to communicates a terminated operation which doesn't produce a result. */
@@ -44,6 +45,16 @@ public interface Completable extends Publisher<Void> {
          */
         void subscribe(Subscriber e);
     }
+
+    /**
+     * When an error occurs in this completable, continue the processing with the new {@link Completable} provided by
+     * the function.
+     *
+     * @param function
+     *            Generates the stream which must will used to resume operation when this {@link Completable} failed.
+     * @return A new {@link Completable}
+     */
+    Completable onErrorResumeWith(Function<Throwable, Completable, Exception> function);
 
     /**
      * Creates a {@link Single} which will emit the specified value when this {@link Completable} complete.

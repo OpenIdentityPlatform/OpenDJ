@@ -90,7 +90,6 @@ import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.reactive.ReactiveHandler;
-import com.forgerock.reactive.Single;
 import com.forgerock.reactive.Stream;
 
 /**
@@ -668,7 +667,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                         });
                         return new ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>() {
                             @Override
-                            public Single<Stream<Response>> handle(LDAPClientContext context, LdapRawMessage request)
+                            public Stream<Response> handle(LDAPClientContext context, LdapRawMessage request)
                                     throws Exception {
                                 return conn.handle(queueingStrategy, request);
                             }

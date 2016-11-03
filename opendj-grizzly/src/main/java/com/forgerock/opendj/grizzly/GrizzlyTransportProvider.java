@@ -15,7 +15,7 @@
  */
 package com.forgerock.opendj.grizzly;
 
-import static com.forgerock.reactive.RxJavaStreams.*;
+import static com.forgerock.reactive.RxJavaStreams.streamFromPublisher;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -56,7 +56,6 @@ import org.forgerock.util.Function;
 import org.forgerock.util.Options;
 
 import com.forgerock.reactive.ReactiveHandler;
-import com.forgerock.reactive.Single;
 import com.forgerock.reactive.Stream;
 
 import io.reactivex.BackpressureStrategy;
@@ -121,10 +120,10 @@ public final class GrizzlyTransportProvider implements TransportProvider {
         final DecodeOptions decodeOptions = options.get(CommonLDAPOptions.LDAP_DECODE_OPTIONS);
         return new ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>() {
             @Override
-            public Single<Stream<Response>> handle(final LDAPClientContext context,
+            public Stream<Response> handle(final LDAPClientContext context,
                     final LdapRawMessage rawRequest) throws Exception {
                 final LDAPReader<ASN1Reader> reader = LDAP.getReader(rawRequest.getContent(), decodeOptions);
-                return singleFrom(streamFromPublisher(Flowable.create(new FlowableOnSubscribe<Response>() {
+                return streamFromPublisher(Flowable.create(new FlowableOnSubscribe<Response>() {
                     @Override
                     public void subscribe(final FlowableEmitter<Response> emitter) throws Exception {
                         reader.readMessage(new AbstractLDAPMessageHandler() {
@@ -190,7 +189,7 @@ public final class GrizzlyTransportProvider implements TransportProvider {
                         });
                         emitter.onComplete();
                     }
-                }, BackpressureStrategy.ERROR)));
+                }, BackpressureStrategy.ERROR));
             }
         };
     }

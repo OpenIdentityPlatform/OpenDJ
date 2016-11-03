@@ -72,7 +72,6 @@ import org.reactivestreams.Subscription;
 import com.forgerock.reactive.Action;
 import com.forgerock.reactive.Completable;
 import com.forgerock.reactive.ReactiveHandler;
-import com.forgerock.reactive.Single;
 import com.forgerock.reactive.Stream;
 
 import io.reactivex.internal.util.BackpressureHelper;
@@ -82,8 +81,6 @@ import io.reactivex.internal.util.BackpressureHelper;
  * over LDAP.
  */
 final class LDAPServerFilter extends BaseFilter {
-
-    private static final Object DUMMY = new byte[0];
 
     private static final Attribute<ClientConnectionImpl> LDAP_CONNECTION_ATTR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute("LDAPServerConnection");
@@ -153,59 +150,47 @@ final class LDAPServerFilter extends BaseFilter {
         final ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>> requestHandler =
                 connectionHandlerFactory.apply(clientContext);
 
-        clientContext
-            .read()
-            .flatMap(new Function<LdapRawMessage, Publisher<Object>, Exception>() {
-                @Override
-                public Publisher<Object> apply(final LdapRawMessage rawRequest) throws Exception {
-                    if (rawRequest.getMessageType() == OP_TYPE_UNBIND_REQUEST) {
-                        clientContext.notifyConnectionClosed(rawRequest);
-                        return singleFrom(DUMMY);
-                    }
-                    Single<Stream<Response>> response;
-                    try {
-                        response = requestHandler.handle(clientContext, rawRequest);
-                    } catch (Exception e) {
-                        response = singleError(e);
-                    }
-                    return response
-                            .flatMap(new Function<Stream<Response>, Single<Object>, Exception>() {
-                                @Override
-                                public Single<Object> apply(final Stream<Response> response) {
-                                    return clientContext.write(response.map(toLdapResponseMessage(rawRequest)))
-                                                        .toSingle(DUMMY);
+        clientContext.read().flatMap(new Function<LdapRawMessage, Publisher<Void>, Exception>() {
+            @Override
+            public Publisher<Void> apply(final LdapRawMessage rawRequest) throws Exception {
+                if (rawRequest.getMessageType() == OP_TYPE_UNBIND_REQUEST) {
+                    clientContext.notifyConnectionClosed(rawRequest);
+                    return emptyStream();
+                }
+                Stream<Response> response;
+                try {
+                    response = requestHandler.handle(clientContext, rawRequest);
+                } catch (Exception e) {
+                    response = streamError(e);
+                }
+                return clientContext
+                        .write(response.map(toLdapResponseMessage(rawRequest)))
+                        .onErrorResumeWith(new Function<Throwable, Completable, Exception>() {
+                            @Override
+                            public Completable apply(final Throwable error) throws Exception {
+                                if (!(error instanceof LdapException)) {
+                                    // Unexpected error, propagate it.
+                                    return completableError(error);
                                 }
-                            })
-                            .onErrorResumeWith(new Function<Throwable, Single<Object>, Exception>() {
-                                @Override
-                                public Single<Object> apply(final Throwable error) throws Exception {
-                                    if (!(error instanceof LdapException)) {
-                                        // Unexpected error, propagate it.
-                                        return singleError(error);
-                                    }
-                                    final LdapException exception = (LdapException) error;
-                                    return clientContext
-                                            .write(singleFrom(toLdapResponseMessage(rawRequest, exception.getResult())))
-                                            .toSingle(DUMMY);
-                                }
-                            });
-                }
-            }, maxConcurrentRequests)
-            .onErrorResumeWith(new Function<Throwable, Publisher<Object>, Exception>() {
-                @Override
-                public Publisher<Object> apply(Throwable error) throws Exception {
-                    clientContext.notifyErrorAndCloseSilently(error);
-                    // Swallow the error to prevent the subscribe() below to report it on the console.
-                    return streamFrom(DUMMY);
-                }
-            })
-            .onCompleteDo(new Action() {
-                @Override
-                public void run() throws Exception {
-                    clientContext.notifyConnectionClosed(null);
-                }
-            })
-            .subscribe();
+                                final LdapException exception = (LdapException) error;
+                                return clientContext
+                                        .write(singleFrom(toLdapResponseMessage(rawRequest, exception.getResult())));
+                            }
+                        });
+            }
+        }, maxConcurrentRequests).onErrorResumeWith(new Function<Throwable, Publisher<Void>, Exception>() {
+            @Override
+            public Publisher<Void> apply(Throwable error) throws Exception {
+                clientContext.notifyErrorAndCloseSilently(error);
+                // Swallow the error to prevent the subscribe() below to report it on the console.
+                return emptyStream();
+            }
+        }).onCompleteDo(new Action() {
+            @Override
+            public void run() throws Exception {
+                clientContext.notifyConnectionClosed(null);
+            }
+        }).subscribe();
         return ctx.getStopAction();
     }
 

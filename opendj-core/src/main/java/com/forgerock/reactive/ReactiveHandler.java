@@ -37,5 +37,5 @@ public interface ReactiveHandler<CTX, REQ, REP> {
      * @throws Exception
      *             if the request cannot be processed
      */
-    Single<REP> handle(final CTX context, final REQ request) throws Exception;
+    REP handle(final CTX context, final REQ request) throws Exception;
 }
