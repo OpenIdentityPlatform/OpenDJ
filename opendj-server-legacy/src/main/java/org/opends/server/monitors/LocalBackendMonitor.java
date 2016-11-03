@@ -36,7 +36,7 @@ import org.opends.server.core.DirectoryServer;
  * for an enabled Directory Server backend, including its backend ID, base DNs,
  * writability mode, and the number of entries it contains.
  */
-public class BackendMonitor
+public class LocalBackendMonitor
        extends MonitorProvider<MonitorProviderCfg>
 {
   /** The backend with which this monitor is associated. */
@@ -53,7 +53,7 @@ public class BackendMonitor
    *
    * @param  backend  The backend with which this monitor is associated.
    */
-  public BackendMonitor(LocalBackend<?> backend)
+  public LocalBackendMonitor(LocalBackend<?> backend)
   {
     this.backend = backend;
   }

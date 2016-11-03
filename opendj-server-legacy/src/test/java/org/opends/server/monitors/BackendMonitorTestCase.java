@@ -20,7 +20,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.Test;
 
-/** This class defines a set of tests for the {@link BackendMonitor} class. */
+/** This class defines a set of tests for the {@link LocalBackendMonitor} class. */
 @Test
 public class BackendMonitorTestCase extends GenericMonitorTestCase
 {

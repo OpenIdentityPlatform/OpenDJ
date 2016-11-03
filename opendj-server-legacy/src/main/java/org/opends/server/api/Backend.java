@@ -22,7 +22,6 @@ import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.core.ServerContext;
-import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -35,9 +34,6 @@ import org.opends.server.types.InitializationException;
 public abstract class Backend<C extends Configuration>
   //implements ReactiveHandler<LdapClientConnection, Request, Response>
 {
-
-  /** The backend monitor associated with this backend. */
-  private BackendMonitor backendMonitor;
 
   /** The unique identifier for this backend. */
   private String backendID;
@@ -100,18 +96,6 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Retrieves the backend monitor that is associated with this
-   * backend.
-   *
-   * @return  The backend monitor that is associated with this
-   *          backend, or {@code null} if none has been assigned.
-   */
-  public final BackendMonitor getBackendMonitor()
-  {
-    return backendMonitor;
-  }
-
-  /**
    * Retrieves the set of base-level DNs that may be used within this
    * backend.
    *
@@ -119,6 +103,13 @@ public abstract class Backend<C extends Configuration>
    *          backend.
    */
   public abstract Set<DN> getBaseDNs();
+
+  /**
+   * Indicates whether this backend should be considered a default (wild-card) route.
+   *
+   * @return {@code true} if the backend should be considered as the default route, {@code false} otherwise
+   */
+  public abstract boolean isDefaultRoute();
 
   /**
    * Retrieves the password storage schemes defined for this backend.
@@ -175,34 +166,12 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Indicates whether this backend should be considered a default (wild-card) route.
-   *
-   * @return {@code true} if the backend should be considered as the default route, {@code false} otherwise
-   */
-  public abstract boolean isDefaultRoute();
-
-  /**
    * Indicates whether this backend holds private data or user data.
    *
    * @return  {@code true} if this backend holds private data, or
    *          {@code false} if it holds user data.
    */
   public abstract boolean isPrivateBackend();
-
-  /**
-   * Indicates whether this backend supports the specified control.
-   *
-   * @param  controlOID  The OID of the control for which to make the
-   *                     determination.
-   *
-   * @return  {@code true} if this backends supports the control with
-   *          the specified OID, or {@code false} if it does not.
-   */
-  public final boolean supportsControl(String controlOID)
-  {
-    Set<String> supportedControls = getSupportedControls();
-    return supportedControls != null && supportedControls.contains(controlOID);
-  }
 
   /**
    * Specifies the unique identifier for this backend.
@@ -212,16 +181,6 @@ public abstract class Backend<C extends Configuration>
   public final void setBackendID(String backendID)
   {
     this.backendID = backendID;
-  }
-
-  /**
-   * Sets the backend monitor for this backend.
-   *
-   * @param  backendMonitor  The backend monitor for this backend.
-   */
-  public final void setBackendMonitor(BackendMonitor backendMonitor)
-  {
-    this.backendMonitor = backendMonitor;
   }
 
 }

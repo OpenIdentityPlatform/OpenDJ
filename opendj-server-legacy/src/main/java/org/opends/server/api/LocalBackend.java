@@ -46,6 +46,7 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PersistentSearch.CancellationCallback;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
+import org.opends.server.monitors.LocalBackendMonitor;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
@@ -95,23 +96,8 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
   /** The set of persistent searches registered with this backend. */
   private final ConcurrentLinkedQueue<PersistentSearch> persistentSearches = new ConcurrentLinkedQueue<>();
 
-  /**
-   * Returns the provided backend instance as a LocalBackend.
-   *
-   * @param backend
-   *            A backend
-   * @return a local backend
-   * @throws IllegalArgumentException
-   *            If the provided backend is not a LocalBackend
-   */
-  public static LocalBackend<?> asLocalBackend(Backend<?> backend)
-  {
-    if (backend instanceof LocalBackend)
-    {
-      return (LocalBackend<?>) backend;
-    }
-    throw new IllegalArgumentException("Backend " + backend.getBackendID() + " is not a local backend");
-  }
+  /** The backend monitor associated with this backend. */
+  private LocalBackendMonitor backendMonitor;
 
   /**
    * Opens this backend based on the information provided when the backend was configured.
@@ -845,6 +831,43 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
       }
     }
     return false;
+  }
+
+  /**
+   * Retrieves the backend monitor that is associated with this
+   * backend.
+   *
+   * @return  The backend monitor that is associated with this
+   *          backend, or {@code null} if none has been assigned.
+   */
+  public final LocalBackendMonitor getBackendMonitor()
+  {
+    return backendMonitor;
+  }
+
+  /**
+   * Sets the backend monitor for this backend.
+   *
+   * @param  backendMonitor  The backend monitor for this backend.
+   */
+  public final void setBackendMonitor(LocalBackendMonitor backendMonitor)
+  {
+    this.backendMonitor = backendMonitor;
+  }
+
+  /**
+   * Indicates whether this backend supports the specified control.
+   *
+   * @param  controlOID  The OID of the control for which to make the
+   *                     determination.
+   *
+   * @return  {@code true} if this backends supports the control with
+   *          the specified OID, or {@code false} if it does not.
+   */
+  public final boolean supportsControl(String controlOID)
+  {
+    Set<String> supportedControls = getSupportedControls();
+    return supportedControls != null && supportedControls.contains(controlOID);
   }
 
   /**
