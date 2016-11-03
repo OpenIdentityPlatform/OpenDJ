@@ -18,7 +18,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
-import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
 
 import java.net.InetAddress;
 import java.security.cert.Certificate;
@@ -29,12 +29,12 @@ import java.util.List;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.reactive.LDAPClientConnection2;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DirectoryException;
@@ -628,8 +628,8 @@ abstract class AciContainer implements AciTargetMatchContext, AciEvalContext {
              */
             if (authInfo.hasAuthenticationType(AuthenticationType.SASL)
                 && authInfo.hasSASLMechanism(saslMech)
-                && clientConnection instanceof LDAPClientConnection) {
-                LDAPClientConnection lc = (LDAPClientConnection) clientConnection;
+                && clientConnection instanceof LDAPClientConnection2) {
+                LDAPClientConnection2 lc = (LDAPClientConnection2) clientConnection;
                 Certificate[] certChain = lc.getClientCertificateChain();
                 if (certChain.length != 0) {
                   matched = EnumEvalResult.TRUE;

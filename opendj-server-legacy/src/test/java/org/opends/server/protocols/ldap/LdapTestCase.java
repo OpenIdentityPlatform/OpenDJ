@@ -17,13 +17,13 @@
 package org.opends.server.protocols.ldap;
 
 import static org.mockito.Mockito.mock;
-
-import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.config.ConfigConstants.ATTR_LISTEN_PORT;
 
 import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.opends.server.DirectoryServerTestCase;
@@ -97,14 +97,14 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    * @return Returns the new LDAP connection handler.
    * @throws Exception if the handler cannot be initialized.
    */
-  static LDAPConnectionHandler getLDAPHandlerInstance(Entry handlerEntry)
+  static LDAPConnectionHandler2 getLDAPHandlerInstance(Entry handlerEntry)
       throws Exception
   {
     long serverLdapPort = TestCaseUtils.findFreePort();
     Attribute a = Attributes.create(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
     handlerEntry.addAttribute(a, null);
     LDAPConnectionHandlerCfg config = getConfiguration(handlerEntry);
-    LDAPConnectionHandler handler = new LDAPConnectionHandler();
+    LDAPConnectionHandler2 handler = new LDAPConnectionHandler2();
     handler.initializeConnectionHandler(mock(ServerContext.class), config);
     return handler;
   }

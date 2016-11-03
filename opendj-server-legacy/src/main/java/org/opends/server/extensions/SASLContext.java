@@ -44,6 +44,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.reactive.LDAPClientConnection2;
 import org.ietf.jgss.GSSException;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
@@ -370,10 +371,8 @@ public class SASLContext implements CallbackHandler,
       // use in later processing.
       if (isConfidentialIntegrity())
       {
-        final SASLByteChannel saslByteChannel = SASLByteChannel
-            .getSASLByteChannel(clientConn, mechanism, this);
-        final LDAPClientConnection ldapConn = (LDAPClientConnection) clientConn;
-        ldapConn.setSASLPendingProvider(saslByteChannel);
+        final LDAPClientConnection2 ldapConn = (LDAPClientConnection2) clientConn;
+        ldapConn.enableSASL(saslServer);
       }
       else
       {

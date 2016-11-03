@@ -27,6 +27,7 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.reactive.LDAPClientConnection2;
 import org.forgerock.opendj.server.config.server.ExternalSASLMechanismHandlerCfg;
 import org.forgerock.opendj.server.config.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.CertificateMapper;
@@ -34,7 +35,6 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AuthenticationInfo;
 import org.forgerock.opendj.ldap.DN;
@@ -152,13 +152,13 @@ public class ExternalSASLMechanismHandler
       return;
     }
 
-    if(!(clientConnection instanceof LDAPClientConnection)) {
+    if(!(clientConnection instanceof LDAPClientConnection2)) {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
         LocalizableMessage message = ERR_SASLEXTERNAL_NOT_LDAP_CLIENT_INSTANCE.get();
         bindOperation.setAuthFailureReason(message);
         return;
     }
-    LDAPClientConnection lc = (LDAPClientConnection) clientConnection;
+    LDAPClientConnection2 lc = (LDAPClientConnection2) clientConnection;
     Certificate[] clientCertChain = lc.getClientCertificateChain();
     if (clientCertChain == null || clientCertChain.length == 0) {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);

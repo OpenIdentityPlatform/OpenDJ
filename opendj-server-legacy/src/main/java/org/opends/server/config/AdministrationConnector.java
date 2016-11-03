@@ -35,6 +35,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.forgerock.opendj.server.config.meta.LDAPConnectionHandlerCfgDefn.SSLClientAuthPolicy;
 import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
@@ -47,7 +48,6 @@ import org.forgerock.opendj.server.config.server.TrustManagerProviderCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.SynchronousStrategy;
-import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
@@ -56,8 +56,8 @@ import org.opends.server.util.Platform.KeyType;
 import org.opends.server.util.SetupUtils;
 
 /**
- * This class is a wrapper on top of LDAPConnectionHandler to manage
- * the administration connector, which is an LDAPConnectionHandler
+ * This class is a wrapper on top of LDAPConnectionHandler2 to manage
+ * the administration connector, which is an LDAPConnectionHandler2
  * with specific (limited) configuration properties.
  */
 public final class AdministrationConnector implements
@@ -73,7 +73,7 @@ public final class AdministrationConnector implements
   private static final String FRIENDLY_NAME = "Administration Connector";
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private LDAPConnectionHandler adminConnectionHandler;
+  private LDAPConnectionHandler2 adminConnectionHandler;
   private AdministrationConnectorCfg config;
 
   /** Predefined values for Administration Connector configuration. */
@@ -131,7 +131,7 @@ public final class AdministrationConnector implements
     this.config = configuration;
 
     // Administration Connector uses the LDAP connection handler implementation
-    adminConnectionHandler = new LDAPConnectionHandler(
+    adminConnectionHandler = new LDAPConnectionHandler2(
         new SynchronousStrategy(), FRIENDLY_NAME);
     adminConnectionHandler.initializeConnectionHandler(serverContext, new LDAPConnectionCfgAdapter(config));
     adminConnectionHandler.setAdminConnectionHandler();
@@ -157,7 +157,7 @@ public final class AdministrationConnector implements
    *
    * @return The connection handler linked to this administration connector.
    */
-  public LDAPConnectionHandler getConnectionHandler()
+  public LDAPConnectionHandler2 getConnectionHandler()
   {
     return adminConnectionHandler;
   }

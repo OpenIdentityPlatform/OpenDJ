@@ -111,7 +111,7 @@ public final class Server {
                             @Override
                             public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
                                     throws LdapException {
-                                clientContext.enableTLS(sslContext.createSSLEngine());
+                                clientContext.enableTLS(sslContext.createSSLEngine(), false);
                                 return connectionHandler.handleAccept(clientContext);
                             }
                         };

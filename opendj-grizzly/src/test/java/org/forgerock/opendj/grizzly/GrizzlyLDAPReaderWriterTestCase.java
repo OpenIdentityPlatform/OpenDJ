@@ -35,7 +35,7 @@ public class GrizzlyLDAPReaderWriterTestCase extends LDAPReaderWriterTestCase {
 
     @Override
     protected LDAPWriter<? extends ASN1Writer> getLDAPWriter() {
-        return GrizzlyUtils.getWriter(MemoryManager.DEFAULT_MEMORY_MANAGER);
+        return GrizzlyUtils.getWriter(MemoryManager.DEFAULT_MEMORY_MANAGER, 3);
     }
 
     @Override

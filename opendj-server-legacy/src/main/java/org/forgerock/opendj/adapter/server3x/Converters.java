@@ -631,14 +631,16 @@ public final class Converters {
      *
      * @param srvResultEntry
      *          value to convert
+     * @param ldapVersion
+     *         Version of the ldap protocol
      * @return the converted value
      */
     public static org.forgerock.opendj.ldap.responses.SearchResultEntry partiallyWrap(
-            final org.opends.server.types.SearchResultEntry srvResultEntry) {
+            final org.opends.server.types.SearchResultEntry srvResultEntry, final int ldapVersion) {
 
         final ArrayList<Control> controls = new ArrayList<>(srvResultEntry.getControls().size());
-        for(org.opends.server.types.Control control : srvResultEntry.getControls()) {
-          controls.add(Converters.from(control));
+        for (org.opends.server.types.Control control : srvResultEntry.getControls()) {
+            controls.add(Converters.from(control));
         }
 
         return new SearchResultEntry() {

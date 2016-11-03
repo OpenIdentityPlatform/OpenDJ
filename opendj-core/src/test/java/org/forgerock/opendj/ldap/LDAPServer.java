@@ -392,13 +392,13 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final LdapResultHandler<R> resultHandler) throws UnsupportedOperationException {
             if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
-                final R result = request.getResultDecoder().newExtendedErrorResult(ResultCode.SUCCESS, "", "");
-                resultHandler.handleResult(result);
                 final SSLEngine engine = sslContext.createSSLEngine();
                 engine.setEnabledCipherSuites(sslContext.getServerSocketFactory().getSupportedCipherSuites());
                 engine.setNeedClientAuth(false);
                 engine.setUseClientMode(false);
-                clientContext.enableTLS(engine);
+                clientContext.enableTLS(engine, true);
+                final R result = request.getResultDecoder().newExtendedErrorResult(ResultCode.SUCCESS, "", "");
+                resultHandler.handleResult(result);
             }
         }
 

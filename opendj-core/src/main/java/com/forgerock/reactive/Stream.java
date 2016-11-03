@@ -63,6 +63,15 @@ public interface Stream<V> extends Publisher<V> {
     Stream<V> onErrorResumeWith(Function<Throwable, Publisher<V>, Exception> function);
 
     /**
+     * Invokes the on next {@link Consumer} when this stream emits a value.
+     *
+     * @param onNext
+     *            The {@link Consumer} to invoke when a value is emitted by this stream
+     * @return a new {@link Stream}
+     */
+    Stream<V> onNextDo(Consumer<V> onNext);
+
+    /**
      * Invokes the on error {@link Consumer} when an error occurs on this stream.
      *
      * @param onError

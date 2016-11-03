@@ -120,8 +120,8 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                                 // bind response.
                                 final int msgID = ldapConnection.continuePendingBindRequest(promise);
 
-                                LDAPWriter<ASN1BufferWriter> ldapWriter =
-                                        GrizzlyUtils.getWriter(context.getMemoryManager());
+                                LDAPWriter<ASN1BufferWriter> ldapWriter = GrizzlyUtils.getWriter(
+                                                context.getMemoryManager(), GrizzlyLDAPConnection.LDAP_V3);
                                 try {
                                     final GenericBindRequest nextRequest =
                                             bindClient.nextBindRequest();

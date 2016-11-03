@@ -407,14 +407,14 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    * Updates the appropriate set of counters based on the provided
    * message that has been written to the client.
    *
-   * @param message
-   *          The message that was written to the client.
+   * @param messageType
+   *          The message type that was written to the client.
+   * @param messageId
+   *          The message id that was written to the client
    */
-  public void updateMessageWritten(LDAPMessage message)
-  {
+  public void updateMessageWritten(byte messageType, int messageId) {
       messagesWritten.getAndIncrement();
-
-      switch (message.getProtocolOp().getType())
+      switch (messageType)
       {
       case OP_TYPE_ADD_RESPONSE:
         addResponses.getAndIncrement();
@@ -437,7 +437,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
 
         // We don't want to include unsolicited notifications as
         // "completed" operations.
-        if (message.getMessageID() > 0)
+        if (messageId > 0)
         {
           operationsCompleted.getAndIncrement();
         }
@@ -461,6 +461,18 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
         operationsCompleted.getAndIncrement();
         break;
       }
+  }
+
+  /**
+   * Updates the appropriate set of counters based on the provided
+   * message that has been written to the client.
+   *
+   * @param message
+   *          The message that was written to the client.
+   */
+  public void updateMessageWritten(LDAPMessage message)
+  {
+      updateMessageWritten(message.getProtocolOp().getType(), message.getMessageID());
   }
 
   /**

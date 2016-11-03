@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.io;
@@ -492,11 +492,13 @@ public final class LDAP {
      *            The type of ASN.1 writer used for encoding elements.
      * @param asn1Writer
      *            The ASN.1 writer to which LDAP messages will be written.
+     * @param ldapVersion
+     *            Version of the protocol to use to encode the messages.
      * @return A new LDAP writer which will write LDAP messages to the provided
      *         ASN.1 writer.
      */
-    public static <W extends ASN1Writer> LDAPWriter<W> getWriter(final W asn1Writer) {
-        return new LDAPWriter<>(asn1Writer);
+    public static <W extends ASN1Writer> LDAPWriter<W> getWriter(final W asn1Writer, final int ldapVersion) {
+        return new LDAPWriter<>(asn1Writer, ldapVersion);
     }
 
     /**

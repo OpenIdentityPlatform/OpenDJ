@@ -146,18 +146,14 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
 
     /** Creates a new ASN.1 writer that writes to a StreamWriter. */
     ASN1BufferWriter(MemoryManager memoryManager) {
-        this.sequenceBuffer = this.rootBuffer = new RootSequenceBuffer();
+        this.rootBuffer = new RootSequenceBuffer();
         this.memoryManager = memoryManager;
-        this.outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
     }
 
     /** Reset the writer. */
     void reset() {
-        if (outBuffer.capacity() > DEFAULT_MAX_INTERNAL_BUFFER_SIZE) {
-            outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
-        } else {
-            outBuffer.clear();
-        }
+        sequenceBuffer = rootBuffer;
+        outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
     }
 
     void ensureAdditionalCapacity(final int size) {
@@ -193,8 +189,8 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     /** Recycle the writer to allow re-use. */
     @Override
     public void recycle() {
-        sequenceBuffer = rootBuffer;
-        outBuffer = memoryManager.allocate(BUFFER_INIT_SIZE);
+        sequenceBuffer = null;
+        outBuffer = null;
     }
 
     @Override

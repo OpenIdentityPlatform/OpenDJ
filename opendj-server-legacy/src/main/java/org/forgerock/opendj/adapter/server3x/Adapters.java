@@ -146,7 +146,7 @@ public final class Adapters {
                   @Override
                   public void handleInternalSearchEntry(InternalSearchOperation searchOperation,
                           SearchResultEntry searchEntry) throws DirectoryException {
-                      handler.handleEntry(partiallyWrap(searchEntry));
+                      handler.handleEntry(partiallyWrap(searchEntry, 3));
                   }
               };
 

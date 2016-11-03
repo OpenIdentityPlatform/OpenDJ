@@ -88,6 +88,7 @@ import org.glassfish.grizzly.ssl.SSLFilter;
 
 /** LDAP connection implementation. */
 final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventListener {
+    static final int LDAP_V3 = 3;
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs client
      * config. This prevents Grizzly from needlessly using JVM defaults which
@@ -186,7 +187,7 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
     }
 
     private LdapPromise<Void> sendAbandonRequest(final AbandonRequest request) {
-        final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+        final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
         try {
             final int messageID = nextMsgID.getAndIncrement();
             writer.writeAbandonRequest(messageID, request);
@@ -212,7 +213,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                 pendingRequests.put(messageID, promise);
             }
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     writer.writeAddRequest(messageID, request);
                     connection.write(writer.getASN1Writer().getBuffer(), null);
@@ -285,7 +287,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
             }
 
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     // Use the bind client to get the initial request instead of
                     // using the bind request passed to this method.
@@ -333,7 +336,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                 pendingRequests.put(messageID, promise);
             }
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     writer.writeCompareRequest(messageID, request);
                     connection.write(writer.getASN1Writer().getBuffer(), null);
@@ -363,7 +367,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                 pendingRequests.put(messageID, promise);
             }
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     writer.writeDeleteRequest(messageID, request);
                     connection.write(writer.getASN1Writer().getBuffer(), null);
@@ -409,7 +414,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                 pendingRequests.put(messageID, promise);
             }
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     writer.writeExtendedRequest(messageID, request);
                     connection.write(writer.getASN1Writer().getBuffer(), null);
@@ -454,7 +460,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                 pendingRequests.put(messageID, promise);
             }
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     writer.writeModifyRequest(messageID, request);
                     connection.write(writer.getASN1Writer().getBuffer(), null);
@@ -484,7 +491,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                 pendingRequests.put(messageID, promise);
             }
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     writer.writeModifyDNRequest(messageID, request);
                     connection.write(writer.getASN1Writer().getBuffer(), null);
@@ -524,7 +532,8 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                 pendingRequests.put(messageID, promise);
             }
             try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+                final LDAPWriter<ASN1BufferWriter> writer =
+                        GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
                 try {
                     writer.writeSearchRequest(messageID, request);
                     connection.write(writer.getASN1Writer().getBuffer(), null);
@@ -668,7 +677,7 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
          * connection and release resources.
          */
         if (notifyClose) {
-            final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager());
+            final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(connection.getMemoryManager(), LDAP_V3);
             try {
                 writer.writeUnbindRequest(nextMsgID.getAndIncrement(), unbindRequest);
                 connection.write(writer.getASN1Writer().getBuffer(), null);

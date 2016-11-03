@@ -32,6 +32,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
@@ -73,12 +74,12 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "objectClass: ds-cfg-connection-handler",
         "objectClass: ds-cfg-ldap-connection-handler",
         "cn: LDAP Connection Handler",
-        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-java-class: org.forgerock.opendj.reactive.LDAPConnectionHandler2",
         "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0",
         "ds-cfg-accept-backlog: 128",
         "ds-cfg-allow-ldap-v2: false",
-        "ds-cfg-keep-stats: false",
+        "ds-cfg-keep-stats: true",
         "ds-cfg-use-tcp-keep-alive: true",
         "ds-cfg-use-tcp-no-delay: true",
         "ds-cfg-allow-tcp-reuse-address: true",
@@ -91,10 +92,9 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-ssl-cert-nickname: server-cert",
         "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
         "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
-    LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(LDAPHandlerEntry);
+    LDAPConnectionHandler2 LDAPConnHandler=getLDAPHandlerInstance(LDAPHandlerEntry);
     LDAPConnHandler.allowLDAPv2();
     LDAPConnHandler.allowStartTLS();
-    LDAPConnHandler.keepStats();
     LDAPConnHandler.toString(new StringBuilder());
     LDAPConnHandler.toString();
     LDAPStatistics tracker=LDAPConnHandler.getStatTracker();
@@ -118,7 +118,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     Attribute startTls1=Attributes.create(ATTR_ALLOW_STARTTLS, String.valueOf(false));
     LDAPHandlerEntry.addAttribute(useSSL1,null);
     LDAPHandlerEntry.addAttribute(startTls1,null);
-    LDAPConnectionHandler LDAPSConnHandler = getLDAPHandlerInstance(LDAPHandlerEntry);
+    LDAPConnectionHandler2 LDAPSConnHandler = getLDAPHandlerInstance(LDAPHandlerEntry);
     LDAPSConnHandler.finalizeConnectionHandler(reasonMsg);
     LDAPConnHandler.processServerShutdown(reasonMsg);
   }
@@ -209,7 +209,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "objectClass: ds-cfg-connection-handler",
         "objectClass: ds-cfg-ldap-connection-handler",
         "cn: LDAP Connection Handler",
-        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-java-class: org.forgerock.opendj.reactive.LDAPConnectionHandler2",
         "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0",
         "ds-cfg-accept-backlog: 128",
@@ -227,7 +227,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-ssl-cert-nickname: server-cert",
         "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
         "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
-    LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(GoodHandlerEntry);
+    LDAPConnectionHandler2 LDAPConnHandler=getLDAPHandlerInstance(GoodHandlerEntry);
     //Make attrTypes to remove
     AttributeType at0=DirectoryServer.getSchema().getAttributeType(ATTR_LISTEN_PORT);
 //    AttributeType at1=DirectoryServer.getAttributeType(ATTR_LISTEN_ADDRESS, true);

@@ -16,7 +16,7 @@
  */
 package org.forgerock.opendj.grizzly;
 
-import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
+import static org.forgerock.opendj.grizzly.ServerTCPNIOTransport.SERVER_TRANSPORT;
 import static org.forgerock.opendj.ldap.CommonLDAPOptions.LDAP_DECODE_OPTIONS;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 
@@ -101,7 +101,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
                            LdapException> requestHandlerFactory,
             final Options options, TCPNIOTransport transport) throws IOException {
 
-        this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
+        this.transport = SERVER_TRANSPORT.acquireIfNull(transport);
         this.options = Options.copyOf(options);
         final LDAPServerFilter serverFilter = new LDAPServerFilter(requestHandlerFactory, options,
                 options.get(LDAP_DECODE_OPTIONS), options.get(MAX_CONCURRENT_REQUESTS));

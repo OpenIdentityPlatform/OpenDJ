@@ -30,7 +30,23 @@ import org.glassfish.grizzly.memory.HeapMemoryManager;
 
 final class SaslFilter extends BaseFilter {
 
+    /** Used to check if negotiated QOP is confidentiality or integrity. */
+    static final String SASL_AUTH_CONFIDENTIALITY = "auth-conf";
+
+    static final String SASL_AUTH_INTEGRITY = "auth-int";
+
     private static final int INT_SIZE = 4;
+    private final SaslServer saslServer;
+    private final boolean enableAfterNextMessage;
+
+    SaslFilter(final SaslServer saslServer) {
+        this(saslServer, true);
+    }
+
+    private SaslFilter(final SaslServer saslServer, final boolean enableAfterNextMessage) {
+        this.saslServer = saslServer;
+        this.enableAfterNextMessage = enableAfterNextMessage;
+    }
 
     @Override
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
@@ -53,15 +69,14 @@ final class SaslFilter extends BaseFilter {
     }
 
     private Buffer unwrap(final FilterChainContext ctx, final Buffer buffer, final int length) throws SaslException {
-        final SaslServer server = SaslUtils.getSaslServer(ctx.getConnection());
         if (buffer.hasArray()) {
             return Buffers.wrap(ctx.getMemoryManager(),
-                    server.unwrap(buffer.array(), buffer.arrayOffset() + buffer.position(), length));
+                    saslServer.unwrap(buffer.array(), buffer.arrayOffset() + buffer.position(), length));
         }
         final Buffer heapBuffer = toHeapBuffer(buffer, length);
         try {
             return Buffers.wrap(ctx.getMemoryManager(),
-                    server.unwrap(heapBuffer.array(), heapBuffer.arrayOffset() + heapBuffer.position(), length));
+                    saslServer.unwrap(heapBuffer.array(), heapBuffer.arrayOffset() + heapBuffer.position(), length));
         } finally {
             heapBuffer.dispose();
         }
@@ -77,6 +92,10 @@ final class SaslFilter extends BaseFilter {
 
     @Override
     public NextAction handleWrite(final FilterChainContext ctx) throws IOException {
+        if (enableAfterNextMessage) {
+            ctx.getFilterChain().set(ctx.getFilterIdx(), new SaslFilter(saslServer, false));
+            return ctx.getInvokeAction();
+        }
         final Buffer message = ctx.getMessage();
         ctx.setMessage(wrap(ctx, message));
         message.dispose();
@@ -84,18 +103,15 @@ final class SaslFilter extends BaseFilter {
     }
 
     private Buffer wrap(final FilterChainContext ctx, final Buffer buffer) throws SaslException {
-        final SaslServer server = SaslUtils.getSaslServer(ctx.getConnection());
         final Buffer contentBuffer;
         if (buffer.hasArray()) {
             contentBuffer = Buffers.wrap(ctx.getMemoryManager(),
-                    server.wrap(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining()));
+                    saslServer.wrap(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining()));
         } else {
             final Buffer heapBuffer = toHeapBuffer(buffer, buffer.remaining());
             try {
-                contentBuffer = Buffers.wrap(
-                        ctx.getMemoryManager(),
-                        server.wrap(heapBuffer.array(), heapBuffer.arrayOffset() + heapBuffer.position(),
-                                heapBuffer.remaining()));
+                contentBuffer = Buffers.wrap(ctx.getMemoryManager(), saslServer.wrap(
+                        heapBuffer.array(), heapBuffer.arrayOffset() + heapBuffer.position(), heapBuffer.remaining()));
 
             } finally {
                 heapBuffer.dispose();

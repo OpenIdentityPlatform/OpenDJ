@@ -527,6 +527,26 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /**
+     * Returns an attribute description having the same attribute type as this attribute description
+     * except that all options has been removed.
+     * <p>
+     * This method is idempotent: if this attribute description does not contain
+     * option then this attribute description will be returned.
+     *
+     * @return The new attribute description excluding all {@code option}.
+     * @throws NullPointerException
+     *             If {@code attributeDescription} or {@code option} was
+     *             {@code null}.
+     */
+    public AttributeDescription withoutAnyOptions() {
+        if (!optionsPimpl.hasOptions()) {
+            return this;
+        }
+        final String newAttributeDescription = attributeDescription.substring(0, attributeDescription.indexOf(';'));
+        return new AttributeDescription(newAttributeDescription, nameOrOid, attributeType, ZERO_OPTION_IMPL);
+    }
+
+    /**
      * Creates an attribute description having the provided attribute type and no options.
      *
      * @param attributeType

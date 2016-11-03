@@ -211,6 +211,16 @@ public final class RxJavaStreams {
         }
 
         @Override
+        public Stream<V> onNextDo(final Consumer<V> onNext) {
+            return new RxJavaStream<>(impl.doOnNext(new io.reactivex.functions.Consumer<V>() {
+                @Override
+                public void accept(V value) throws Exception {
+                    onNext.accept(value);
+                }
+            }));
+        }
+
+        @Override
         public Stream<V> onErrorDo(final Consumer<Throwable> onError) {
             return new RxJavaStream<>(impl.doOnError(new io.reactivex.functions.Consumer<Throwable>() {
                 @Override

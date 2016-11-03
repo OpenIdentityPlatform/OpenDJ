@@ -33,13 +33,29 @@ import org.forgerock.opendj.ldap.spi.LdapMessages;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.attributes.Attribute;
+import org.glassfish.grizzly.attributes.AttributeStorage;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
 abstract class LdapCodec extends LDAPBaseFilter {
 
+    private static final Attribute<Boolean> IS_LDAP_V2 = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+            .createAttribute(LdapCodec.class.getName() + ".IsLdapV2", Boolean.FALSE);
+
+    private static final Attribute<Boolean> IS_LDAP_V2_PENDING = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+            .createAttribute(LdapCodec.class.getName() + ".PendingLdapV2", Boolean.FALSE);
+
     LdapCodec(final int maxElementSize, final DecodeOptions decodeOptions) {
         super(decodeOptions, maxElementSize);
+    }
+
+    @Override
+    public NextAction handleAccept(FilterChainContext ctx) throws IOException {
+        // Default value mechanism of Grizzly's attribute doesn't seems to work.
+        IS_LDAP_V2.set(ctx.getConnection(), Boolean.FALSE);
+        return ctx.getInvokeAction();
     }
 
     @Override
@@ -48,7 +64,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
             final Buffer buffer = ctx.getMessage();
             final LdapRawMessage message;
 
-            message = readMessage(buffer);
+            message = readMessage(buffer, ctx.getConnection());
             if (message != null) {
                 ctx.setMessage(message);
                 return ctx.getInvokeAction(getRemainingBuffer(buffer));
@@ -67,7 +83,8 @@ abstract class LdapCodec extends LDAPBaseFilter {
 
     protected abstract void onLdapCodecError(FilterChainContext ctx, Throwable error);
 
-    private LdapRawMessage readMessage(final Buffer buffer) throws IOException {
+    private LdapRawMessage readMessage(final Buffer buffer, final AttributeStorage attributeStorage)
+            throws IOException {
         try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
             final int packetStart = buffer.position();
             if (!reader.elementAvailable()) {
@@ -83,11 +100,12 @@ abstract class LdapCodec extends LDAPBaseFilter {
             final Buffer packet = buffer.slice(packetStart, buffer.position() + length);
             buffer.position(buffer.position() + length);
 
-            return decodePacket(new ASN1BufferReader(maxASN1ElementSize, packet));
+            return decodePacket(new ASN1BufferReader(maxASN1ElementSize, packet), attributeStorage);
         }
     }
 
-    private LdapRawMessage decodePacket(final ASN1BufferReader reader) throws IOException {
+    private LdapRawMessage decodePacket(final ASN1BufferReader reader, final AttributeStorage attributeStorage)
+            throws IOException {
         reader.mark();
         try {
             reader.readStartSequence();
@@ -101,6 +119,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
                 reader.readStartSequence(messageType);
                 protocolVersion = (int) reader.readInteger();
                 rawDn = reader.readOctetStringAsString();
+                IS_LDAP_V2_PENDING.set(attributeStorage, protocolVersion == 2);
                 break;
             case OP_TYPE_DELETE_REQUEST:
                 rawDn = reader.readOctetStringAsString(messageType);
@@ -131,7 +150,14 @@ abstract class LdapCodec extends LDAPBaseFilter {
 
     @Override
     public NextAction handleWrite(final FilterChainContext ctx) throws IOException {
-        final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(ctx.getMemoryManager());
+        final LdapResponseMessage response = ctx.<LdapResponseMessage>getMessage();
+        if (response.getMessageType() == OP_TYPE_BIND_RESPONSE) {
+            final Boolean isLdapV2 = IS_LDAP_V2_PENDING.remove(ctx.getConnection());
+            IS_LDAP_V2.set(ctx.getConnection(), isLdapV2);
+        }
+        final int protocolVersion = IS_LDAP_V2.get(ctx.getConnection()) ? 2 : 3;
+
+        final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(ctx.getMemoryManager(), protocolVersion);
         try {
             final Buffer buffer = toBuffer(writer, ctx.<LdapResponseMessage> getMessage());
             ctx.setMessage(buffer);

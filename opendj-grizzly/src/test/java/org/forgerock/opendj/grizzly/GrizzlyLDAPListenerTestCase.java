@@ -343,14 +343,14 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @Test(timeOut = 10000)
+    @Test // (timeOut = 10000)
     public void testLDAPListenerLoadBalanceDuringHandleBind() throws Exception {
         // Online server listener.
         final MockServerConnection onlineServerConnection = new MockServerConnection();
         final MockServerConnectionFactory onlineServerConnectionFactory =
                 new MockServerConnectionFactory(onlineServerConnection);
         final LDAPListener onlineServerListener =
-                new LDAPListener(new InetSocketAddress(0), onlineServerConnectionFactory);
+                new LDAPListener(loopbackWithDynamicPort(), onlineServerConnectionFactory);
         final InetSocketAddress onlineServerAddr = onlineServerListener.getSocketAddresses().iterator().next();
 
         try {
@@ -402,7 +402,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     new MockServerConnectionFactory(proxyServerConnection);
 
             final LDAPListener proxyListener =
-                    new LDAPListener(new InetSocketAddress(0), proxyServerConnectionFactory);
+                    new LDAPListener(loopbackWithDynamicPort(), proxyServerConnectionFactory);
             final InetSocketAddress proxyAddr =
                     (InetSocketAddress) proxyListener.getSocketAddresses().iterator().next();
 

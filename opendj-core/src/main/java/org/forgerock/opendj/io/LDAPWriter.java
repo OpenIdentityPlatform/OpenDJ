@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2011-2013 ForgeRock AS.
+ * Portions copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.io;
@@ -21,8 +21,12 @@ import java.io.IOException;
 import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -57,9 +61,20 @@ public final class LDAPWriter<W extends ASN1Writer> {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final W writer;
+    private final int protocolVersion;
 
-    LDAPWriter(final W asn1Writer) {
+    LDAPWriter(final W asn1Writer, final int ldapVersion) {
         this.writer = asn1Writer;
+        this.protocolVersion = ldapVersion;
+    }
+
+    /**
+     * Returns the protocol version supported by this {@link LDAPWriter}.
+     *
+     * @return The protocol version supported by this {@link LDAPWriter}
+     */
+    public int getProtocolVersion() {
+        return protocolVersion;
     }
 
     /**
@@ -105,9 +120,21 @@ public final class LDAPWriter<W extends ASN1Writer> {
         logger.trace("ENCODE LDAP ADD REQUEST(messageID=%d, request=%s)", messageID, request);
         writeMessageHeader(messageID);
         {
-            LDAP.writeEntry(writer, LDAP.OP_TYPE_ADD_REQUEST, request);
+            LDAP.writeEntry(writer, LDAP.OP_TYPE_ADD_REQUEST, adaptEntry(request));
         }
         writeMessageFooter(request.getControls());
+    }
+
+    private Entry adaptEntry(Entry entry) {
+        if  (protocolVersion >= 3) {
+            return entry;
+        }
+        final Entry v2entry =  new LinkedHashMapEntry(entry.getName());
+        for (Attribute attribute : entry.getAllAttributes()) {
+            v2entry.addAttribute(
+                    new LinkedAttribute(attribute.getAttributeDescription().withoutAnyOptions(), attribute));
+        }
+        return v2entry;
     }
 
     /**
@@ -565,7 +592,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
         logger.trace("ENCODE LDAP SEARCH RESULT ENTRY(messageID=%d, entry=%s)", messageID, entry);
         writeMessageHeader(messageID);
         {
-            LDAP.writeEntry(writer, LDAP.OP_TYPE_SEARCH_RESULT_ENTRY, entry);
+            LDAP.writeEntry(writer, LDAP.OP_TYPE_SEARCH_RESULT_ENTRY, adaptEntry(entry));
         }
         writeMessageFooter(entry.getControls());
     }
@@ -582,6 +609,9 @@ public final class LDAPWriter<W extends ASN1Writer> {
      */
     public void writeSearchResultReference(final int messageID,
             final SearchResultReference reference) throws IOException {
+        if (protocolVersion <= 2) {
+            return;
+        }
         logger.trace("ENCODE LDAP SEARCH RESULT REFERENCE(messageID=%d, reference=%s)", messageID, reference);
         writeMessageHeader(messageID);
         {
@@ -649,7 +679,7 @@ public final class LDAPWriter<W extends ASN1Writer> {
     }
 
     private void writeMessageFooter(final List<Control> controls) throws IOException {
-        if (!controls.isEmpty()) {
+        if (!controls.isEmpty() && protocolVersion >= 3) {
             writer.writeStartSequence(LDAP.TYPE_CONTROL_SEQUENCE);
             {
                 for (final Control control : controls) {
@@ -675,15 +705,17 @@ public final class LDAPWriter<W extends ASN1Writer> {
         writer.writeEnumerated(rawMessage.getResultCode().intValue());
         writer.writeOctetString(rawMessage.getMatchedDN());
         writer.writeOctetString(rawMessage.getDiagnosticMessage());
-        final List<String> referralURIs = rawMessage.getReferralURIs();
-        if (!referralURIs.isEmpty()) {
-            writer.writeStartSequence(LDAP.TYPE_REFERRAL_SEQUENCE);
-            {
-                for (final String s : referralURIs) {
-                    writer.writeOctetString(s);
+        if (protocolVersion >= 3) {
+            final List<String> referralURIs = rawMessage.getReferralURIs();
+            if (!referralURIs.isEmpty()) {
+                writer.writeStartSequence(LDAP.TYPE_REFERRAL_SEQUENCE);
+                {
+                    for (final String s : referralURIs) {
+                        writer.writeOctetString(s);
+                    }
                 }
+                writer.writeEndSequence();
             }
-            writer.writeEndSequence();
         }
     }
 }

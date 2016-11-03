@@ -163,14 +163,20 @@ public interface LDAPClientContext {
     void sendUnsolicitedNotification(ExtendedResult notification);
 
     /**
-     * Installs the TLS/SSL security layer on the underlying connection. The
-     * TLS/SSL security layer will be installed beneath any existing connection
-     * security layers and can only be installed at most once.
+     * Installs the TLS/SSL security layer on the underlying connection. The TLS/SSL security layer will be installed
+     * beneath any existing connection security layers and can only be installed at most once.
      *
      * @param sslEngine
-     *            The {@code SSLEngine} which should be used to secure the conneciton.
+     *            The {@code SSLEngine} which should be used to secure the connection.
+     * @param startTls
+     *            Must be {@code true} if the TLS filter has to be installed as a consequence of a StartTLS request
+     *            performed by a client. When {@code true} the TLS filter will be installed atomically after the first
+     *            message sent to prevent race-condition.
+     * @return {@code true} if the TLS filter has been enabled, {@code false} if it was already enabled.
+     * @throws NullPointerException
+     *             if sslEngine is null
      */
-    void enableTLS(SSLEngine sslEngine);
+    boolean enableTLS(SSLEngine sslEngine, boolean startTls);
 
     /**
      * Installs the SASL security layer on the underlying connection.

@@ -16,9 +16,9 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.List;
 import java.util.Map;
@@ -26,20 +26,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.ClassPropertyDefinition;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationAddListener;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.forgerock.opendj.server.config.meta.ConnectionHandlerCfgDefn;
 import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.config.AdministrationConnector;
-import org.opends.server.protocols.ldap.LDAPConnectionHandler;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -263,7 +263,7 @@ public class ConnectionHandlerConfigManager implements
 
     // Put this connection handler in the hash so that we will be
     // able to find it if it is altered.
-    LDAPConnectionHandler connectionHandler = ac.getConnectionHandler();
+    LDAPConnectionHandler2 connectionHandler = ac.getConnectionHandler();
     connectionHandlers.put(administrationConnectorCfg.dn(), connectionHandler);
 
     // Register the connection handler with the Directory Server.

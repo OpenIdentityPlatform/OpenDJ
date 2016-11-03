@@ -143,14 +143,11 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     @Override
-    public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
-        LDAP_CONNECTION_ATTR.remove(ctx.getConnection()).upstream.onError(error);
-    }
-
-    @Override
     public NextAction handleAccept(final FilterChainContext ctx) throws IOException {
         final Connection<?> connection = ctx.getConnection();
         configureConnection(connection, logger, connectionOptions);
+        connection.configureBlocking(false);
+
         final ClientConnectionImpl clientContext = new ClientConnectionImpl(connection);
         LDAP_CONNECTION_ATTR.set(connection, clientContext);
         final ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>> requestHandler =
@@ -258,15 +255,27 @@ final class LDAPServerFilter extends BaseFilter {
 
     @Override
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
-        final ClientConnectionImpl sub = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-        return sub.upstream.handleRead(ctx);
+        final ClientConnectionImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
+        if (clientContext != null) {
+            return clientContext.handleRead(ctx);
+        }
+        ctx.suspend();
+        return ctx.getSuspendAction();
+    }
+
+    @Override
+    public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
+        final ClientConnectionImpl clientContext = LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
+        if (clientContext != null) {
+            clientContext.exceptionOccurred(ctx, error);
+        }
     }
 
     @Override
     public NextAction handleClose(final FilterChainContext ctx) throws IOException {
         final ClientConnectionImpl clientContext = LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
-        if (clientContext != null && clientContext.upstream != null) {
-            clientContext.upstream.onComplete();
+        if (clientContext != null) {
+            clientContext.handleClose(ctx);
         }
         return ctx.getStopAction();
     }
@@ -307,11 +316,11 @@ final class LDAPServerFilter extends BaseFilter {
                 }
             }
 
-            public void onError(Throwable t) {
+            public void onError(final Throwable error) {
                 final Subscriber<? super LdapRawMessage> sub = subscriber;
                 if (sub != null) {
                     subscriber = null;
-                    sub.onError(t);
+                    sub.onError(error);
                 }
             }
 
@@ -332,10 +341,35 @@ final class LDAPServerFilter extends BaseFilter {
         private final Connection<?> connection;
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
         private final List<DisconnectListener> listeners = new LinkedList<>();
+        private SaslServer saslServer;
         GrizzlyBackpressureSubscription upstream;
 
         private ClientConnectionImpl(final Connection<?> connection) {
             this.connection = connection;
+        }
+
+        NextAction handleRead(final FilterChainContext ctx)  {
+            final GrizzlyBackpressureSubscription immutableRef = upstream;
+            if (immutableRef != null) {
+                return immutableRef.handleRead(ctx);
+            }
+            ctx.suspend();
+            return ctx.getSuspendAction();
+        }
+
+        void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
+            final GrizzlyBackpressureSubscription immutableRef = upstream;
+            if (immutableRef != null) {
+                immutableRef.onError(error);
+            }
+        }
+
+        NextAction handleClose(final FilterChainContext ctx) {
+            final GrizzlyBackpressureSubscription immutableRef = upstream;
+            if (immutableRef != null) {
+                immutableRef.onComplete();
+            }
+            return ctx.getStopAction();
         }
 
         Stream<LdapRawMessage> read() {
@@ -360,14 +394,15 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void enableTLS(final SSLEngine sslEngine) {
+        public boolean enableTLS(final SSLEngine sslEngine, final boolean startTls) {
             Reject.ifNull(sslEngine, "sslEngine must not be null");
             synchronized (this) {
                 if (isFilterExists(SSLFilter.class)) {
-                    throw new IllegalStateException("TLS already enabled");
+                    return false;
                 }
                 SSLUtils.setSSLEngine(connection, sslEngine);
-                installFilter(new SSLFilter());
+                installFilter(startTls ? new StartTLSFilter(new SSLFilter()) : new SSLFilter());
+                return true;
             }
         }
 
@@ -376,10 +411,10 @@ final class LDAPServerFilter extends BaseFilter {
             Reject.ifNull(saslServer, "saslServer must not be null");
             synchronized (this) {
                 if (isFilterExists(SaslFilter.class)) {
-                    throw new IllegalStateException("Sasl already enabled");
+                    return;
                 }
-                SaslUtils.setSaslServer(connection, saslServer);
-                installFilter(new SaslFilter());
+                this.saslServer = saslServer;
+                installFilter(new SaslFilter(saslServer));
             }
         }
 
@@ -412,15 +447,14 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         private int getSaslSecurityStrengthFactor() {
-            final SaslServer saslServer = SaslUtils.getSaslServer(connection);
             if (saslServer == null) {
                 return 0;
             }
             int ssf = 0;
             final String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
-            if (SaslUtils.SASL_AUTH_INTEGRITY.equalsIgnoreCase(qop)) {
+            if (SaslFilter.SASL_AUTH_INTEGRITY.equalsIgnoreCase(qop)) {
                 ssf = 1;
-            } else if (SaslUtils.SASL_AUTH_CONFIDENTIALITY.equalsIgnoreCase(qop)) {
+            } else if (SaslFilter.SASL_AUTH_CONFIDENTIALITY.equalsIgnoreCase(qop)) {
                 final String negStrength = (String) saslServer.getNegotiatedProperty(Sasl.STRENGTH);
                 if ("low".equalsIgnoreCase(negStrength)) {
                     ssf = 40;

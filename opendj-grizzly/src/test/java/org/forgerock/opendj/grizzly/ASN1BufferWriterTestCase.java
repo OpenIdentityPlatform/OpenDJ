@@ -53,7 +53,7 @@ public class ASN1BufferWriterTestCase extends ASN1WriterTestCase {
     @Override
     protected ASN1Writer getWriter() throws IOException {
         writer.flush();
-        writer.recycle();
+        writer.reset();
         return writer;
     }
 }

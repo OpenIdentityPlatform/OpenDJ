@@ -12,15 +12,15 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.core;
 
 import static org.testng.Assert.*;
 
+import org.forgerock.opendj.reactive.LDAPConnectionHandler2;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.types.Control;
@@ -57,9 +57,9 @@ public abstract class OperationTestCase
   {
     for (ConnectionHandler ch : DirectoryServer.getConnectionHandlers())
     {
-      if (ch instanceof LDAPConnectionHandler)
+      if (ch instanceof LDAPConnectionHandler2)
       {
-        LDAPConnectionHandler lch = (LDAPConnectionHandler) ch;
+          LDAPConnectionHandler2 lch = (LDAPConnectionHandler2) ch;
         if (lch.useSSL())
         {
           ldapsStatistics = lch.getStatTracker();

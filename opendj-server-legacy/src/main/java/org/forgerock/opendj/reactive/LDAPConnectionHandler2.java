@@ -53,9 +53,11 @@ import org.forgerock.opendj.grizzly.GrizzlyLDAPListener;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPClientContext.DisconnectListener;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
@@ -646,6 +648,24 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                     public ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>> apply(
                             LDAPClientContext clientContext) throws LdapException {
                         final LDAPClientConnection2 conn = canAccept(clientContext);
+                        connectionList.add(conn);
+                        clientContext.onDisconnect(new DisconnectListener() {
+                            @Override
+                            public void exceptionOccurred(LDAPClientContext context, Throwable error) {
+                                connectionList.remove(conn);
+                            }
+
+                            @Override
+                            public void connectionDisconnected(LDAPClientContext context, ResultCode resultCode,
+                                    String diagnosticMessage) {
+                                connectionList.remove(conn);
+                            }
+
+                            @Override
+                            public void connectionClosed(LDAPClientContext context, UnbindRequest unbindRequest) {
+                                connectionList.remove(conn);
+                            }
+                        });
                         return new ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>() {
                             @Override
                             public Single<Stream<Response>> handle(LDAPClientContext context, LdapRawMessage request)
@@ -798,7 +818,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
         if (useSSL()) {
             try {
-                clientContext.enableTLS(createSSLEngine());
+                clientContext.enableTLS(createSSLEngine(), false);
             } catch (DirectoryException e) {
                 throw LdapException.newLdapException(e.getResultCode(), e);
             }

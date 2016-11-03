@@ -306,7 +306,7 @@ objectClass: top
 objectClass: ds-cfg-connection-handler
 objectClass: ds-cfg-ldap-connection-handler
 cn: LDAP Connection Handler
-ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
+ds-cfg-java-class: org.forgerock.opendj.reactive.LDAPConnectionHandler2
 ds-cfg-enabled: true
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-listen-port: 389
@@ -330,7 +330,7 @@ objectClass: top
 objectClass: ds-cfg-connection-handler
 objectClass: ds-cfg-ldap-connection-handler
 cn: LDAPS Connection Handler
-ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
+ds-cfg-java-class: org.forgerock.opendj.reactive.LDAPConnectionHandler2
 ds-cfg-enabled: false
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-listen-port: 636

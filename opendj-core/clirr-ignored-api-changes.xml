@@ -159,6 +159,13 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7006</differenceType>
+    <method>%regex[void\s*enableTLS\(javax\.net\.ssl\.SSLContext,\s*java\.lang\.String\[\],\s*java\.lang\.String\[\],\s*boolean,\s*boolean\)]</method>
+    <to>boolean</to>
+    <justification>Simplify management of security layer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
     <differenceType>7012</differenceType>
     <method>void onDisconnect(org.forgerock.opendj.ldap.LDAPClientContext$DisconnectListener)</method>
     <justification>Allows to register connection state listener</justification>
@@ -218,5 +225,11 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>org.forgerock.opendj.ldap.spi.LDAPListenerImpl getLDAPListener(java.net.InetSocketAddress, org.forgerock.opendj.ldap.ServerConnectionFactory, org.forgerock.util.Options)</method>
     <to>%regex[org\.forgerock\.opendj\.ldap\.spi\.LDAPListenerImpl\s*getLDAPListener\(java\.util\.Set,\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory,\s*org\.forgerock\.util\.Options\)]</to>
     <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/io/LDAP</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.io.LDAPWriter getWriter(org.forgerock.opendj.io.ASN1Writer)</method>
+    <justification>Add support for LdapV2 encoding</justification>
   </difference>
 </differences>

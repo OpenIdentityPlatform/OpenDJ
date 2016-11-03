@@ -47,6 +47,9 @@ final class GrizzlyUtils {
     @SuppressWarnings("rawtypes")
     private static final ThreadCache.CachedTypeIndex<LDAPWriter> WRITER_INDEX = ThreadCache
             .obtainIndex(LDAPWriter.class, 1);
+    @SuppressWarnings("rawtypes")
+    private static final ThreadCache.CachedTypeIndex<LDAPWriter> WRITER_INDEX_V2 = ThreadCache
+            .obtainIndex(LDAPWriter.class.getName() + ".ldapV2", LDAPWriter.class, 1);
 
     /**
      * Build a filter chain from the provided processor if possible and the
@@ -118,11 +121,11 @@ final class GrizzlyUtils {
      */
     static FilterChain addFilterToChain(final Filter filter, final FilterChain chain) {
         // By default, before LDAP filter which is the last one
-        if (filter instanceof SSLFilter) {
+        if (filter instanceof SSLFilter || filter instanceof StartTLSFilter) {
             return FilterChainBuilder.stateless().addAll(chain).add(1, filter).build();
         }
         if (filter instanceof SaslFilter) {
-            final int pos = chain.get(1) instanceof SSLFilter ? 2 : 1;
+            final int pos = (chain.get(1) instanceof SSLFilter || chain.get(1) instanceof StartTLSFilter) ? 2 : 1;
             return FilterChainBuilder.stateless().addAll(chain).add(pos, filter).build();
         }
         return FilterChainBuilder.stateless().addAll(chain).add(chain.size() - 1, filter).build();
@@ -157,10 +160,12 @@ final class GrizzlyUtils {
      * @return a LDAP writer
      */
     @SuppressWarnings("unchecked")
-    static LDAPWriter<ASN1BufferWriter> getWriter(final MemoryManager memoryManager) {
-        LDAPWriter<ASN1BufferWriter> writer = ThreadCache.takeFromCache(WRITER_INDEX);
+    static LDAPWriter<ASN1BufferWriter> getWriter(final MemoryManager memoryManager, final int protocolVersion) {
+        LDAPWriter<ASN1BufferWriter> writer = protocolVersion >= 3
+                ? ThreadCache.takeFromCache(WRITER_INDEX)
+                : ThreadCache.takeFromCache(WRITER_INDEX_V2);
         if (writer == null) {
-            writer = LDAP.getWriter(new ASN1BufferWriter(memoryManager));
+            writer = LDAP.getWriter(new ASN1BufferWriter(memoryManager), protocolVersion);
         }
         writer.getASN1Writer().reset();
         return writer;
@@ -176,7 +181,7 @@ final class GrizzlyUtils {
      */
     static void recycleWriter(LDAPWriter<ASN1BufferWriter> writer) {
         writer.getASN1Writer().recycle();
-        ThreadCache.putToCache(WRITER_INDEX, writer);
+        ThreadCache.putToCache(writer.getProtocolVersion() >= 3 ? WRITER_INDEX : WRITER_INDEX_V2, writer);
     }
 
     static void configureConnection(final Connection<?> connection, final LocalizedLogger logger, Options options) {
@@ -184,7 +189,7 @@ final class GrizzlyUtils {
          * Test shows that its much faster with non block writes but risk
          * running out of memory if the server is slow.
          */
-        connection.configureBlocking(true);
+        connection.configureBlocking(false);
 
         // Configure socket options.
         final SocketChannel channel = (SocketChannel) ((TCPNIOConnection) connection).getChannel();
