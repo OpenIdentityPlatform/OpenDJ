@@ -350,19 +350,6 @@
                             </descriptors>
                         </configuration>
                     </execution>
-
-                    <execution>
-                        <id>sdk-tools-man-pages</id>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/sdk-tools-man-pages-assembly.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
@@ -627,6 +614,19 @@
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <executions>
+                            <execution>
+                                <id>sdk-tools-man-pages</id>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/sdk-tools-man-pages-assembly.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+
                             <execution>
                                 <id>server-tools-man-pages-sources</id>
                                 <goals>
