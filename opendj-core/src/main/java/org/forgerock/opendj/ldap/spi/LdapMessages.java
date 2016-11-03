@@ -16,6 +16,7 @@
 package org.forgerock.opendj.ldap.spi;
 
 import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.Response;
 
@@ -44,7 +45,7 @@ public final class LdapMessages {
      * @return A new {@link LdapRawMessage}
      */
     public static LdapRawMessage newRawMessage(final byte messageType, final int messageId, final int protocolVersion,
-            final String rawDn, final ASN1Reader reader) {
+            final ByteString rawDn, final ASN1Reader reader) {
         return new LdapRawMessage(messageType, messageId, protocolVersion, rawDn, reader);
     }
 
@@ -69,10 +70,10 @@ public final class LdapMessages {
      * Represents an encoded LDAP message with it's envelope.
      */
     public static final class LdapRawMessage extends LdapMessageEnvelope<ASN1Reader> {
-        private final String rawDn;
+        private final ByteString rawDn;
         private final int version;
 
-        private LdapRawMessage(final byte messageType, final int messageId, final int version, final String rawDn,
+        private LdapRawMessage(final byte messageType, final int messageId, final int version, final ByteString rawDn,
                 final ASN1Reader content) {
             super(messageType, messageId, content);
             this.version = version;
@@ -93,7 +94,7 @@ public final class LdapMessages {
          *
          * @return The {@link DN} contained in request, or null if the message doesn't contains a DN.
          */
-        public String getRawDn() {
+        public ByteString getRawDn() {
             return rawDn;
         }
     }

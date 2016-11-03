@@ -20,6 +20,7 @@ import static org.forgerock.opendj.io.LDAP.*;
 import java.io.IOException;
 
 import org.forgerock.opendj.io.LDAPWriter;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
@@ -112,17 +113,17 @@ abstract class LdapCodec extends LDAPBaseFilter {
             final int messageId = (int) reader.readInteger();
             final byte messageType = reader.peekType();
 
-            final String rawDn;
+            final ByteString rawDn;
             final int protocolVersion;
             switch (messageType) {
             case OP_TYPE_BIND_REQUEST:
                 reader.readStartSequence(messageType);
                 protocolVersion = (int) reader.readInteger();
-                rawDn = reader.readOctetStringAsString();
+                rawDn = reader.readOctetString();
                 IS_LDAP_V2_PENDING.set(attributeStorage, protocolVersion == 2);
                 break;
             case OP_TYPE_DELETE_REQUEST:
-                rawDn = reader.readOctetStringAsString(messageType);
+                rawDn = reader.readOctetString(messageType);
                 protocolVersion = -1;
                 break;
             case OP_TYPE_ADD_REQUEST:
@@ -131,7 +132,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
             case OP_TYPE_MODIFY_REQUEST:
             case OP_TYPE_SEARCH_REQUEST:
                 reader.readStartSequence(messageType);
-                rawDn = reader.readOctetStringAsString();
+                rawDn = reader.readOctetString();
                 protocolVersion = -1;
                 break;
             default:
