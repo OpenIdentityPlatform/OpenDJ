@@ -224,7 +224,7 @@
 
     <!-- Adds MakeLDIF configuration template resources -->
     <fileSet>
-      <directory>${basedir}/resource/MakeLDIF</directory>
+      <directory>${basedir}/../opendj-core/src/main/resources/org/forgerock/opendj/ldif</directory>
       <outputDirectory>template/config/MakeLDIF</outputDirectory>
       <includes>
         <include>*</include>

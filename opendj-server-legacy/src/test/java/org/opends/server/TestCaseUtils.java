@@ -53,6 +53,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -394,6 +395,8 @@ public final class TestCaseUtils {
 
     // Copy the configuration, schema, and MakeLDIF resources into the
     // appropriate place under the test package.
+    File makeLdifResourcesDir = Paths.get(paths.buildRoot, "..", "opendj-core", "src", "main", "resources",
+                                          "org", "forgerock", "opendj", "ldif").toAbsolutePath().toFile();
     File serverClassesDir = new File(paths.buildDir, "classes");
     File unitClassesDir = new File(paths.unitRoot, "classes");
     File libDir = new File(paths.buildDir.getPath() + "/package/opendj/lib");
@@ -437,7 +440,7 @@ public final class TestCaseUtils {
       // copy upgrade directory
       copyDirectory(upgradeDir, new File(paths.testConfigDir, "upgrade"));
       copyDirectory(new File(resourceDir, "schema"), new File(testSchemaDir, "schema"));
-      copyDirectory(new File(resourceDir, "MakeLDIF"), new File(paths.testConfigDir, "MakeLDIF"));
+      copyDirectory(makeLdifResourcesDir, new File(paths.testConfigDir, "MakeLDIF"));
       copyDirectory(new File(snmpResourceDir, "security"), new File(testSnmpResourceDir, "security"));
       copyFileFromTo("server.keystore", testResourceDir, paths.testConfigDir);
       copyFileFromTo("server.truststore", testResourceDir, paths.testConfigDir);
