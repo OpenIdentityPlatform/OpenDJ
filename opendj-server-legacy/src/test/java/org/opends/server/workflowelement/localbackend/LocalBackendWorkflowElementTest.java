@@ -180,7 +180,8 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
    * This test checks that the workflow takes into account the subordinate
    * naming context defined in the RootDSEBackend.
    */
-  @Test
+  // TODO: re-enable once searching over multiple naming context is re-implemented
+  @Test(enabled=false)
   public void testRootDseSubordinateNamingContext() throws Exception
   {
     // Backends for the test
