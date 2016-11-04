@@ -731,9 +731,9 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
    *
    * @param  parentBackend  The parent backend for this backend.
    */
-  public final synchronized void setParentBackend(Backend<?> parentBackend)
+  public final synchronized void setParentBackend(LocalBackend<?> parentBackend)
   {
-    this.parentBackend = (LocalBackend<?>) parentBackend;
+    this.parentBackend = parentBackend;
   }
 
   /**
@@ -756,12 +756,12 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
    *                             subordinate backends for this
    *                             backend.
    */
-  public final synchronized void addSubordinateBackend(Backend<?> subordinateBackend)
+  public final synchronized void addSubordinateBackend(LocalBackend<?> subordinateBackend)
   {
     LinkedHashSet<LocalBackend<?>> backendSet = new LinkedHashSet<>();
     Collections.addAll(backendSet, subordinateBackends);
 
-    if (backendSet.add((LocalBackend<?>) subordinateBackend))
+    if (backendSet.add(subordinateBackend))
     {
       subordinateBackends = backendSet.toArray(new LocalBackend[backendSet.size()]);
     }

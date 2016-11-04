@@ -22,14 +22,14 @@ import org.testng.annotations.Test;
 
 /** This class defines a set of tests for the {@link LocalBackendMonitor} class. */
 @Test
-public class BackendMonitorTestCase extends GenericMonitorTestCase
+public class LocalBackendMonitorTestCase extends GenericMonitorTestCase
 {
   /**
    * Creates a new instance of this test case class.
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  public BackendMonitorTestCase() throws Exception
+  public LocalBackendMonitorTestCase() throws Exception
   {
     super(null);
   }

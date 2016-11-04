@@ -426,8 +426,6 @@ public class RootDSEBackend
 
   private Set<DN> getTopLevelPublicNamingContexts()
   {
-    // TODO: this implementation is insufficient because it handles only the local backends
-    // The non-local backends must be added for completeness
     return new HashSet<DN>(serverContext.getBackendConfigManager().getPublicNamingContexts().keySet());
   }
 
@@ -490,12 +488,7 @@ public class RootDSEBackend
   @Override
   public boolean entryExists(DN entryDN) throws DirectoryException
   {
-    // If the specified DN was the null DN, then it exists.
-    if (entryDN.isRootDN())
-    {
-      return true;
-    }
-    return false;
+    return entryDN.isRootDN();
   }
 
   @Override

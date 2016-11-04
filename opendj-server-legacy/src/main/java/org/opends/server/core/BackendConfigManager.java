@@ -39,6 +39,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -160,17 +161,10 @@ public class BackendConfigManager implements
       throw new ConfigException(ERR_CONFIG_BACKEND_BASE_DOES_NOT_EXIST.get());
     }
     initializeBackends(backendIDsToStart, root);
+    initializeRootDSEBackend();
   }
 
-  /**
-   * Creates and initializes the Root DSE backend.
-   *
-   * @throws InitializationException
-   *            If the configuration entry can't be found
-   * @throws ConfigException
-   *            If an error occurs during configuration
-   */
-  public void initializeRootDSEBackend() throws InitializationException, ConfigException
+  private void initializeRootDSEBackend() throws InitializationException, ConfigException
   {
     RootDSEBackendCfg rootDSECfg;
     try
@@ -180,8 +174,7 @@ public class BackendConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-      throw new InitializationException(ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
-          stackTraceToSingleLineString(e)), e);
+      throw new InitializationException(ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(stackTraceToSingleLineString(e)), e);
     }
     rootDSEBackend = new RootDSEBackend();
     rootDSEBackend.configureBackend(rootDSECfg, serverContext);
@@ -347,7 +340,7 @@ public class BackendConfigManager implements
     ccr.addMessage(message);
   }
 
-  private void releaseSharedLock(Backend<?> backend, String backendID)
+  private void releaseSharedLock(Arg2<Object, Object> errorMessage, Backend<?> backend, String backendID)
   {
     try
     {
@@ -355,16 +348,13 @@ public class BackendConfigManager implements
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, failureReason);
-        // FIXME -- Do we need to send an admin alert?
+        logger.warn(errorMessage, backendID, failureReason);
       }
     }
-    catch (Exception e2)
+    catch (Exception e)
     {
-      logger.traceException(e2);
-
-      logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backendID, stackTraceToSingleLineString(e2));
-      // FIXME -- Do we need to send an admin alert?
+      logger.traceException(e);
+      logger.warn(errorMessage, backendID, stackTraceToSingleLineString(e));
     }
   }
 
@@ -792,7 +782,7 @@ public class BackendConfigManager implements
 
           backend.finalizeBackend();
 
-          releaseSharedLock(backend, backend.getBackendID());
+          releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, backend.getBackendID());
 
           return ccr;
         } // else already disabled, no need to do anything.
@@ -914,8 +904,7 @@ public class BackendConfigManager implements
       registeredBackends.put(backendCfg.dn(), backend);
       return true;
     }
-    // TODO: manage proxy registration here
-    return true;
+    throw new RuntimeException("registerBackend() is not yet supported for proxy backend.");
   }
 
   @Override
@@ -1073,7 +1062,7 @@ public class BackendConfigManager implements
       ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
           cfg.getJavaClass(), cfg.dn(), stackTraceToSingleLineString(e)));
 
-      releaseSharedLock(backend, cfg.getBackendId());
+      releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, cfg.getBackendId());
       return false;
     }
   }
@@ -1113,7 +1102,6 @@ public class BackendConfigManager implements
   {
     DN backendDN = configEntry.dn();
 
-
     // See if this backend config manager has a backend registered with the
     // provided DN.  If not, then we don't care if the entry is deleted.  If we
     // do know about it, then that means that it is enabled and we will not
@@ -1124,7 +1112,6 @@ public class BackendConfigManager implements
       return true;
     }
 
-    // TODO: what about non local backend ?
     if (backend instanceof LocalBackend)
     {
       // See if the backend has any subordinate backends.  If so, then it is not
@@ -1135,8 +1122,9 @@ public class BackendConfigManager implements
         unacceptableReason.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
         return false;
       }
+      return true;
     }
-    return true;
+    throw new RuntimeException("isConfigurationDeleteAcceptable() is not yet supported for proxy backend.");
   }
 
   @Override
@@ -1153,7 +1141,6 @@ public class BackendConfigManager implements
       return ccr;
     }
 
-    // TODO: what about non local backend ?
     if (backend instanceof LocalBackend)
     {
       // See if the backend has any subordinate backends.  If so, then it is not
@@ -1165,6 +1152,10 @@ public class BackendConfigManager implements
         ccr.addMessage(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
         return ccr;
       }
+    }
+    else
+    {
+      throw new RuntimeException("applyConfigurationDelete() is not yet supported for proxy backend.");
     }
 
     deregisterBackend(backendDN, backend);
@@ -1180,7 +1171,7 @@ public class BackendConfigManager implements
 
     configEntry.removeChangeListener(this);
 
-    releaseSharedLock(backend, backend.getBackendID());
+    releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, backend.getBackendID());
 
     return ccr;
   }
@@ -1204,7 +1195,7 @@ public class BackendConfigManager implements
       }
     }
     else {
-      // TODO: manage proxy deregistering here
+      throw new RuntimeException("deregisterBackend() is not yet supported for proxy backend.");
     }
   }
 
@@ -1227,25 +1218,7 @@ public class BackendConfigManager implements
           listener.performBackendPostFinalizationProcessing(backend);
         }
 
-        // Remove the shared lock for this backend.
-        try
-        {
-          String lockFile = LockFileManager.getBackendLockFileName(backend);
-          StringBuilder failureReason = new StringBuilder();
-          if (!LockFileManager.releaseLock(lockFile, failureReason))
-          {
-            logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(), failureReason);
-            // FIXME -- Do we need to send an admin alert?
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.traceException(e2);
-
-          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend.getBackendID(),
-              stackTraceToSingleLineString(e2));
-          // FIXME -- Do we need to send an admin alert?
-        }
+        releaseSharedLock(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend, backend.getBackendID());
       }
       catch (Exception e)
       {

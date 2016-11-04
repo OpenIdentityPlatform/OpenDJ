@@ -868,6 +868,7 @@ public final class DirectoryServer
 
       try
       {
+        directoryServer.initializeBackendConfigManager();
         directoryServer.initializeRootAndAdminDataBackends();
       }
       catch (InitializationException | ConfigException e)
@@ -1481,7 +1482,7 @@ public final class DirectoryServer
 
       new AlertHandlerConfigManager(serverContext).initializeAlertHandlers();
 
-      backendConfigManager = new BackendConfigManager(serverContext);
+      initializeBackendConfigManager();
 
       // Initialize the default entry cache. We have to have one before
       // <CODE>initializeRootAndAdminDataBackends()</CODE> method kicks in further down.
@@ -1606,6 +1607,11 @@ public final class DirectoryServer
 
       deleteUnnecessaryFiles();
     }
+  }
+
+  private void initializeBackendConfigManager()
+  {
+    backendConfigManager = new BackendConfigManager(serverContext);
   }
 
   /** Delete "server.starting" and "hostname" files if they are present. */
@@ -1754,7 +1760,6 @@ public final class DirectoryServer
   private void initializeRootAndAdminDataBackends() throws ConfigException, InitializationException
   {
     backendConfigManager.initializeBackendConfig(Arrays.asList("adminRoot", "ads-truststore"));
-    backendConfigManager.initializeRootDSEBackend();
   }
 
   private void initializeRemainingBackends() throws ConfigException, InitializationException
