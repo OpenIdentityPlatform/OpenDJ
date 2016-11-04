@@ -1409,21 +1409,33 @@ final class TemplateFile {
         /**
          * Performs any necessary processing to ensure that the branch
          * initialization is completed. In particular, it should make sure that
-         * all referenced subordinate templates actually exist in the template
-         * file.
+         * all referenced subordinate templates actually exist in the template file.
          */
-        private void completeBranchInitialization(final Map<String, Template> templates,
-                            boolean generateBranches) throws DecodeException {
+        private void completeBranchInitialization(final Map<String, Template> templates, boolean generateBranches)
+                throws DecodeException {
             subordinateTemplates = new ArrayList<>();
-            for (int i = 0; i < subordinateTemplateNames.size(); i++) {
-                subordinateTemplates.add(templates.get(subordinateTemplateNames.get(i).toLowerCase()));
-                if (subordinateTemplates.get(i) == null) {
+            for (final String templateName : subordinateTemplateNames) {
+                final Template refTemplate = templates.get(templateName.toLowerCase());
+                if (refTemplate == null) {
                     throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_UNDEFINED_BRANCH_SUBORDINATE.get(
-                            branchDN.toString(), subordinateTemplateNames.get(i)));
+                            branchDN.toString(), templateName));
                 }
+                subordinateTemplates.add(copyTemplate(templates, refTemplate));
             }
 
             nextEntry = buildBranchEntry(generateBranches);
+        }
+
+        private Template copyTemplate(final Map<String, Template> allTemplates, final Template templateToCopy)
+                throws DecodeException {
+            final Template template =  new Template(templateToCopy.templateFile,
+                                                    templateToCopy.name,
+                                                    templateToCopy.rdnAttributes,
+                                                    templateToCopy.subTemplateNames,
+                                                    templateToCopy.numEntriesPerTemplate,
+                                                    templateToCopy.templateLines);
+            template.completeTemplateInitialization(allTemplates);
+            return template;
         }
 
         DN getBranchDN() {
