@@ -20,8 +20,14 @@ import java.net.InetSocketAddress;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.ServerConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.responses.Response;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
+import org.forgerock.util.Function;
 import org.forgerock.util.Options;
+
+import com.forgerock.reactive.ReactiveHandler;
+import com.forgerock.reactive.Stream;
 
 /**
  * Interface for transport providers, which provide implementation
@@ -55,8 +61,7 @@ public interface TransportProvider extends Provider {
      * @param addresses
      *            The addresses to listen on.
      * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     *            The handler factory which will be used to create handlers.
      * @param options
      *            The LDAP listener options.
      * @return an implementation of {@code LDAPListener}
@@ -65,6 +70,8 @@ public interface TransportProvider extends Provider {
      *             address.
      */
     LDAPListenerImpl getLDAPListener(Set<InetSocketAddress> addresses,
-            ServerConnectionFactory<LDAPClientContext, Integer> factory, Options options)
-            throws IOException;
+            Function<LDAPClientContext,
+                     ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                     LdapException> factory,
+            Options options) throws IOException;
 }

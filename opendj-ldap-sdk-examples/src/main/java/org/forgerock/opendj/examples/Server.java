@@ -17,7 +17,7 @@
 
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,6 +37,8 @@ import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.util.Options;
+
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /**
  * An LDAP directory server which exposes data contained in an LDIF file. This
@@ -116,10 +118,13 @@ public final class Server {
                             }
                         };
 
-                listener = new LDAPListener(localAddress, localPort, sslWrapper, options);
+                listener = new LDAPListener(localAddress, localPort,
+                        new ServerConnectionFactoryAdapter(options.get(LDAP_DECODE_OPTIONS), sslWrapper), options);
             } else {
                 // No SSL.
-                listener = new LDAPListener(localAddress, localPort, connectionHandler, options);
+                listener = new LDAPListener(localAddress, localPort,
+                        new ServerConnectionFactoryAdapter(options.get(LDAP_DECODE_OPTIONS), connectionHandler),
+                        options);
             }
             System.out.println("Press any key to stop the server...");
             System.in.read();

@@ -17,7 +17,7 @@
 
 package org.forgerock.opendj.grizzly;
 
-import static org.forgerock.opendj.ldap.CommonLDAPOptions.LDAP_DECODE_OPTIONS;
+import static org.forgerock.opendj.ldap.LDAPListener.LDAP_DECODE_OPTIONS;
 import static org.forgerock.opendj.ldap.ResultCode.CLIENT_SIDE_LOCAL_ERROR;
 import static org.forgerock.opendj.ldap.responses.Responses.newResult;
 

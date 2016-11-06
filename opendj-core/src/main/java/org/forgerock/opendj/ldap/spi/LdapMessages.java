@@ -21,7 +21,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.Response;
 
 /**
- * Contains statics methods to create ldap messages.
+ * Contains static methods to create ldap messages.
  */
 public final class LdapMessages {
 
@@ -30,23 +30,23 @@ public final class LdapMessages {
     }
 
     /**
-     * Creates a new {@link LdapRawMessage} containing a partially decoded LDAP message.
+     * Creates a new {@link     } containing a partially decoded LDAP message.
      *
      * @param messageType
      *            Operation code of the message
      * @param messageId
      *            Unique identifier of this message
-     * @param protocolVersion
+     * @param ldapVersion
      *            Protocol version to use (only for Bind requests)
      * @param rawDn
      *            Unparsed name contained in the request (or null if DN is not applicable)
      * @param reader
      *            An {@link ASN1Reader} containing the full encoded ldap message packet.
-     * @return A new {@link LdapRawMessage}
+     * @return A new {@link LdapRequestEnvelope}
      */
-    public static LdapRawMessage newRawMessage(final byte messageType, final int messageId, final int protocolVersion,
-            final ByteString rawDn, final ASN1Reader reader) {
-        return new LdapRawMessage(messageType, messageId, protocolVersion, rawDn, reader);
+    public static LdapRequestEnvelope newRequestEnvelope(final byte messageType, final int messageId,
+            final int ldapVersion, final ByteString rawDn, final ASN1Reader reader) {
+        return new LdapRequestEnvelope(messageType, messageId, ldapVersion, rawDn, reader);
     }
 
     /**
@@ -67,16 +67,16 @@ public final class LdapMessages {
     }
 
     /**
-     * Represents an encoded LDAP message with it's envelope.
+     * Represents a Ldap Request envelope containing an encoded Request.
      */
-    public static final class LdapRawMessage extends LdapMessageEnvelope<ASN1Reader> {
+    public static final class LdapRequestEnvelope extends LdapMessageEnvelope<ASN1Reader> {
         private final ByteString rawDn;
-        private final int version;
+        private final int ldapVersion;
 
-        private LdapRawMessage(final byte messageType, final int messageId, final int version, final ByteString rawDn,
-                final ASN1Reader content) {
+        private LdapRequestEnvelope(final byte messageType, final int messageId, final int ldapVersion,
+                final ByteString rawDn, final ASN1Reader content) {
             super(messageType, messageId, content);
-            this.version = version;
+            this.ldapVersion = ldapVersion;
             this.rawDn = rawDn;
         }
 
@@ -85,8 +85,8 @@ public final class LdapMessages {
          *
          * @return The ldap protocol version
          */
-        public int getVersion() {
-            return version;
+        public int getLdapVersion() {
+            return ldapVersion;
         }
 
         /**

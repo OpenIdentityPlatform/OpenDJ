@@ -16,9 +16,11 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.loopbackWithDynamicPort;
+import static org.forgerock.opendj.ldap.LDAPListener.LDAP_DECODE_OPTIONS;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -44,6 +46,9 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.Options;
+
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /** Mocked request handler sketelon for tools test cases. */
 class ToolLdapServer implements ServerConnectionFactory<LDAPClientContext, Integer> {
@@ -153,7 +158,8 @@ class ToolLdapServer implements ServerConnectionFactory<LDAPClientContext, Integ
     }
 
     void start() throws IOException {
-        listener = new LDAPListener(findFreeSocketAddress(), this);
+        listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS), this));
     }
 
     void stop() {
@@ -161,10 +167,10 @@ class ToolLdapServer implements ServerConnectionFactory<LDAPClientContext, Integ
     }
 
     String getHostName() {
-        return listener.getSocketAddress().getHostName();
+        return listener.getSocketAddresses().iterator().next().getHostName();
     }
 
     String getPort() {
-        return Integer.toString(listener.getSocketAddress().getPort());
+        return Integer.toString(listener.getSocketAddresses().iterator().next().getPort());
     }
 }

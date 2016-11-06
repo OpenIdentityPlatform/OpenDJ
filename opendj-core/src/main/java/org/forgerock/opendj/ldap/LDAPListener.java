@@ -22,11 +22,17 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
+import org.forgerock.util.Function;
 import org.forgerock.util.Option;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
+
+import com.forgerock.reactive.ReactiveHandler;
+import com.forgerock.reactive.Stream;
 
 /**
  * An LDAP server connection listener which waits for LDAP connection requests
@@ -119,8 +125,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      * @param port
      *            The port to listen on.
      * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     *            The handler factory which will be used to create handlers.
      * @throws IOException
      *             If an error occurred while trying to listen on the provided
      *             address.
@@ -128,7 +133,9 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *             If {code factory} was {@code null}.
      */
     public LDAPListener(final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> factory) throws IOException {
         this(port, factory, Options.defaultOptions());
     }
 
@@ -139,8 +146,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      * @param port
      *            The port to listen on.
      * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     *            The handler factory which will be used to create handlers.
      * @param options
      *            The LDAP listener options.
      * @throws IOException
@@ -150,40 +156,42 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *             If {code factory} or {@code options} was {@code null}.
      */
     public LDAPListener(final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> factory,
             final Options options) throws IOException {
-        this(new InetSocketAddress(port), factory, options);
+        this(Collections.singleton(new InetSocketAddress(port)), factory, options);
     }
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
      * client connections at the provided address.
      *
-     * @param address
-     *            The address to listen on.
+     * @param addresses
+     *            The addresses to listen on.
      * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     *            The handler factory which will be used to create handlers.
      * @throws IOException
      *             If an error occurred while trying to listen on the provided
      *             address.
      * @throws NullPointerException
      *             If {@code address} or {code factory} was {@code null}.
      */
-    public LDAPListener(final InetSocketAddress address,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
-        this(address, factory, Options.defaultOptions());
+    public LDAPListener(final Set<InetSocketAddress> addresses,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> factory) throws IOException {
+        this(addresses, factory, Options.defaultOptions());
     }
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
      * client connections at the provided address.
      *
-     * @param address
-     *            The address to listen on.
+     * @param addresses
+     *            The addresses to listen on.
      * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     *            The handler factory which will be used to create handlers.
      * @param options
      *            The LDAP listener options.
      * @throws IOException
@@ -193,12 +201,14 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *             If {@code address}, {code factory}, or {@code options} was
      *             {@code null}.
      */
-    public LDAPListener(final InetSocketAddress address,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+    public LDAPListener(final Set<InetSocketAddress> addresses,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> factory,
             final Options options) throws IOException {
-        Reject.ifNull(address, factory, options);
+        Reject.ifNull(addresses, factory, options);
         this.provider = getTransportProvider(options);
-        this.impl = provider.getLDAPListener(Collections.singleton(address), factory, options);
+        this.impl = provider.getLDAPListener(addresses, factory, options);
     }
 
     /**
@@ -210,8 +220,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      * @param port
      *            The port to listen on.
      * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     *            The handler factory which will be used to create handlers.
      * @throws IOException
      *             If an error occurred while trying to listen on the provided
      *             address.
@@ -219,7 +228,9 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *             If {@code host} or {code factory} was {@code null}.
      */
     public LDAPListener(final String host, final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> factory) throws IOException {
         this(host, port, factory, Options.defaultOptions());
     }
 
@@ -232,8 +243,7 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      * @param port
      *            The port to listen on.
      * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
+     *            The handler factory which will be used to create handlers.
      * @param options
      *            The LDAP listener options.
      * @throws IOException
@@ -244,9 +254,11 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
      *             {@code null}.
      */
     public LDAPListener(final String host, final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> factory,
             final Options options) throws IOException {
-        this(new InetSocketAddress(host, port), factory, options);
+        this(Collections.singleton(new InetSocketAddress(host, port)), factory, options);
     }
 
     /** Closes this LDAP connection listener. */
@@ -256,12 +268,21 @@ public final class LDAPListener extends CommonLDAPOptions implements Closeable {
     }
 
     /**
-     * Returns the address that this LDAP listener is listening on.
+     * Returns the addresses that this LDAP listener is listening on.
      *
-     * @return The address that this LDAP listener is listening on.
+     * @return The addresses that this LDAP listener is listening on.
      */
     public Set<InetSocketAddress> getSocketAddresses() {
         return impl.getSocketAddresses();
+    }
+
+    /**
+     * Returns the first address that his LDAP listener is listening on.
+     *
+     * @return The addresses that this LDAP listener is listening on.
+     */
+    public InetSocketAddress firstSocketAddress() {
+        return impl.getSocketAddresses().iterator().next();
     }
 
     /**

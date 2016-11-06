@@ -18,16 +18,20 @@ package com.forgerock.reactive;
 import org.forgerock.util.Function;
 import org.reactivestreams.Publisher;
 
-/** {@link Completable} is used to communicates a terminated operation which doesn't produce a result. */
+/**
+ * {@link Completable} is used to communicates a terminated operation which doesn't produce a result. It extends
+ * {@link Publisher} by providing additional reactive methods allowing to act on it. The goal of this interface is to
+ * decouple ourself from reactive framework (RxJava/Reactor).
+ */
 public interface Completable extends Publisher<Void> {
 
-    /** Emitter is used to notify when the operation has been completed, successfully or not. */
+    /** Subscriber is notified when the operation has been completed, successfully or not. */
     public interface Subscriber {
-        /** Notify that this {@link Completable} is now completed. */
+        /** Called once this {@link Completable} is completed. */
         void onComplete();
 
         /**
-         * Notify that this {@link Completable} cannot be completed because of an error.
+         * Called when this {@link Completable} cannot be completed because of an error.
          *
          * @param error
          *            The error preventing this {@link Completable} to complete
@@ -40,10 +44,12 @@ public interface Completable extends Publisher<Void> {
         /**
          * Called when the streaming api has been subscribed.
          *
-         * @param e
+         * @param s
          *            The {@link Subscriber} to use to communicate the completeness of this {@link Completable}
+         * @throws Exception
+         *             on error
          */
-        void subscribe(Subscriber e);
+        void subscribe(Subscriber s) throws Exception;
     }
 
     /**
@@ -57,7 +63,7 @@ public interface Completable extends Publisher<Void> {
     Completable onErrorResumeWith(Function<Throwable, Completable, Exception> function);
 
     /**
-     * Creates a {@link Single} which will emit the specified value when this {@link Completable} complete.
+     * Returns a {@link Single} which will complete with the provided value once this {@link Completable} completes.
      *
      * @param <V>
      *            Type of the value to emit

@@ -49,17 +49,16 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.grizzly.GrizzlyLDAPListener;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPClientContext.DisconnectListener;
+import org.forgerock.opendj.ldap.LDAPClientContext.ConnectionEventListener;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.Response;
-import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.forgerock.util.Function;
@@ -129,7 +128,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     /** SSL instance name used in context creation. */
     private static final String SSL_CONTEXT_INSTANCE_NAME = "TLS";
 
-    private GrizzlyLDAPListener listener;
+    private LDAPListener listener;
 
     /** The current configuration state. */
     private LDAPConnectionHandlerCfg currentConfig;
@@ -636,44 +635,45 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     }
 
     private void startListener() throws IOException {
-        listener = new GrizzlyLDAPListener(
+        listener = new LDAPListener(
                 listenAddresses,
-                Options.defaultOptions().set(LDAPListener.CONNECT_MAX_BACKLOG, backlog)
-                        .set(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES, (int) currentConfig.getMaxRequestSize()),
                 new Function<LDAPClientContext,
-                             ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                             ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                              LdapException>() {
                     @Override
-                    public ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>> apply(
+                    public ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>> apply(
                             LDAPClientContext clientContext) throws LdapException {
                         final LDAPClientConnection2 conn = canAccept(clientContext);
                         connectionList.add(conn);
-                        clientContext.onDisconnect(new DisconnectListener() {
+                        clientContext.addConnectionEventListener(new ConnectionEventListener() {
                             @Override
-                            public void exceptionOccurred(LDAPClientContext context, Throwable error) {
+                            public void handleConnectionError(final LDAPClientContext context, final Throwable error) {
                                 connectionList.remove(conn);
                             }
 
                             @Override
-                            public void connectionDisconnected(LDAPClientContext context, ResultCode resultCode,
-                                    String diagnosticMessage) {
+                            public void handleConnectionDisconnected(final LDAPClientContext context,
+                                    final ResultCode resultCode, String diagnosticMessage) {
                                 connectionList.remove(conn);
                             }
 
                             @Override
-                            public void connectionClosed(LDAPClientContext context, UnbindRequest unbindRequest) {
+                            public void handleConnectionClosed(final LDAPClientContext context,
+                                    final UnbindRequest unbindRequest) {
                                 connectionList.remove(conn);
                             }
                         });
-                        return new ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>() {
+                        return new ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>() {
                             @Override
-                            public Stream<Response> handle(LDAPClientContext context, LdapRawMessage request)
-                                    throws Exception {
+                            public Stream<Response> handle(final LDAPClientContext context,
+                                    final LdapRequestEnvelope request) throws Exception {
                                 return conn.handle(queueingStrategy, request);
                             }
                         };
                     }
-                });
+                }, Options.defaultOptions()
+                          .set(LDAPListener.CONNECT_MAX_BACKLOG, backlog)
+                          .set(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES, (int) currentConfig.getMaxRequestSize()));
     }
 
     /**
@@ -684,8 +684,6 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     public void run() {
         setName(handlerName);
         boolean starting = true;
-        setName(handlerName);
-
         boolean lastIterationFailed = false;
 
         while (!shutdownRequested) {
@@ -724,7 +722,6 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
 
                 // If we have gotten here, then we are about to start listening
                 // for the first time since startup or since we were previously disabled.
-                // Start the embedded HTTP server
                 startListener();
                 lastIterationFailed = false;
             } catch (Exception e) {

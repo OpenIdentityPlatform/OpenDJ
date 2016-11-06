@@ -19,7 +19,9 @@ import org.forgerock.util.Function;
 import org.reactivestreams.Publisher;
 
 /**
- * Stream is a reactive-streams compliant way to chain operations and transformation on a stream of data.
+ * Stream is a reactive-streams compliant way to chain operations and transformation on a stream of data. It extends
+ * {@link Publisher} by providing additional reactive methods allowing to act on it. The goal of this interface is to
+ * decouple ourself from reactive framework (RxJava/Reactor).
  *
  * @param <V>
  *            Type of data emitted
@@ -27,7 +29,7 @@ import org.reactivestreams.Publisher;
 public interface Stream<V> extends Publisher<V> {
 
     /**
-     * Transform the data emitted by this stream.
+     * Transforms the data emitted by this stream.
      *
      * @param <O>
      *            Type of data emitted after transformation
@@ -38,7 +40,8 @@ public interface Stream<V> extends Publisher<V> {
     <O> Stream<O> map(Function<V, O, Exception> function);
 
     /**
-     * Transform each data emitted by this stream into a new stream of data. All these streams are then merged together.
+     * Transforms each data emitted by this stream into a new stream of data. All these streams are then merged
+     * together.
      *
      * @param <O>
      *            Type of data emitted after transformation
@@ -69,7 +72,7 @@ public interface Stream<V> extends Publisher<V> {
      *            The {@link Consumer} to invoke when a value is emitted by this stream
      * @return a new {@link Stream}
      */
-    Stream<V> onNextDo(Consumer<V> onNext);
+    Stream<V> onNext(Consumer<V> onNext);
 
     /**
      * Invokes the on error {@link Consumer} when an error occurs on this stream.
@@ -78,7 +81,7 @@ public interface Stream<V> extends Publisher<V> {
      *            The {@link Consumer} to invoke on error
      * @return a new {@link Stream}
      */
-    Stream<V> onErrorDo(Consumer<Throwable> onError);
+    Stream<V> onError(Consumer<Throwable> onError);
 
     /**
      * Invokes the on complete {@link Action} when this stream is completed.
@@ -87,10 +90,10 @@ public interface Stream<V> extends Publisher<V> {
      *            The {@link Action} to invoke on stream completion
      * @return a new {@link Stream}
      */
-    Stream<V> onCompleteDo(Action onComplete);
+    Stream<V> onComplete(Action onComplete);
 
     /**
-     * Subscribe to this stream and drop all data produced by it.
+     * Subscribes to this stream and drop all data produced by it.
      */
     void subscribe();
 }

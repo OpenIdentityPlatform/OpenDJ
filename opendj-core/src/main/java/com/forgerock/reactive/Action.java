@@ -23,7 +23,7 @@ public interface Action {
      * Runs the action and optionally throws a checked exception.
      *
      * @throws Exception
-     *             if the implementation wishes to throw a checked exception
+     *             If an error occurred while performing the Action
      */
     void run() throws Exception;
 }

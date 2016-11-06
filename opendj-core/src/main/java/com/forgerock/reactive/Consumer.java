@@ -23,12 +23,12 @@ package com.forgerock.reactive;
  */
 public interface Consumer<V> {
     /**
-     * Consume the given value.
+     * Consumes a value.
      *
-     * @param item
+     * @param value
      *            the value
      * @throws Exception
      *             on error
      */
-    void accept(V item) throws Exception;
+    void accept(V value) throws Exception;
 }

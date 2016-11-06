@@ -20,6 +20,7 @@ package org.forgerock.opendj.grizzly;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
@@ -34,6 +35,7 @@ import static org.testng.Assert.*;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +91,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /**
  * Tests the {@code ConnectionFactory} classes.
@@ -544,11 +548,12 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     }
                 });
 
-        LDAPListener listener = new LDAPListener(new InetSocketAddress("127.0.0.1", 0), mockServer);
+        LDAPListener listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS), mockServer));
+        final InetSocketAddress listenerAddr = listener.getSocketAddresses().iterator().next();
         try {
-            LDAPConnectionFactory clientFactory = new LDAPConnectionFactory(
-                    ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getHostName(),
-                    ((InetSocketAddress) listener.getSocketAddresses().iterator().next()).getPort());
+            LDAPConnectionFactory clientFactory = new LDAPConnectionFactory(listenerAddr.getHostName(),
+                    listenerAddr.getPort());
             final Connection client = clientFactory.getConnection();
             connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
             MockConnectionEventListener mockListener = null;
@@ -627,12 +632,12 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     }
                 });
 
-        LDAPListener listener = new LDAPListener(new InetSocketAddress("127.0.0.1", 0), mockServer);
+        LDAPListener listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS), mockServer));
+        final InetSocketAddress listenerAddr = listener.getSocketAddresses().iterator().next();
         try {
-            LDAPConnectionFactory clientFactory =
-                    new LDAPConnectionFactory(
-                            listener.getSocketAddresses().iterator().next().getHostName(),
-                            listener.getSocketAddresses().iterator().next().getPort());
+            LDAPConnectionFactory clientFactory = new LDAPConnectionFactory(listenerAddr.getHostName(),
+                    listenerAddr.getPort());
             final Connection client = clientFactory.getConnection();
             connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
             try {

@@ -460,7 +460,9 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ server {@link org.opends.server.types.Attribute} to OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.Attribute}.
+     * {@link org.forgerock.opendj.ldap.Attribute}. This method is an optimization of the equivalent from() method. It's
+     * only used in encoding/decoding and as such only wrap the required methods: the returned object partially wrap the
+     * incoming one.
      *
      * @param attribute
      *            value to convert
@@ -625,14 +627,15 @@ public final class Converters {
     }
 
     /**
-     * Converts from OpenDJ server
-     * {@link org.opends.server.types.SearchResultEntry} to OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.responses.SearchResultEntry}.
+     * Converts from OpenDJ server {@link org.opends.server.types.SearchResultEntry} to OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.responses.SearchResultEntry}. This method is an optimization of the equivalent
+     * from() method. It's only used in encoding/decoding and as such only wrap the required methods: the returned
+     * object partially wrap the incoming one.
      *
      * @param srvResultEntry
-     *          value to convert
+     *            value to convert
      * @param ldapVersion
-     *         Version of the ldap protocol
+     *            Version of the ldap protocol
      * @return the converted value
      */
     public static org.forgerock.opendj.ldap.responses.SearchResultEntry partiallyWrap(

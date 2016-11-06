@@ -19,40 +19,45 @@ import org.forgerock.util.Function;
 import org.reactivestreams.Publisher;
 
 /**
- * Single is a reactive-streams compatible promise.
+ * Single is a reactive-streams compatible promise. It extends {@link Publisher} by providing additional reactive
+ * methods allowing to act on it. The goal of this interface is to decouple ourself from reactive framework
+ * (RxJava/Reactor).
  *
  * @param <V>
  *            Type of the datum emitted
  */
 public interface Single<V> extends Publisher<V> {
 
-    /** Emitter is used to notify when the operation has been completed, successfully or not. */
+    /** Subscriber is notified when the operation has been completed, successfully or not. */
     public interface Subscriber<V> {
         /**
-         * Signal a success value.
+         * Called once this {@link Single} is completed.
          *
-         * @param t
+         * @param value
          *            the value, not null
          */
-        void onComplete(V t);
+        void onComplete(V value);
 
         /**
-         * Signal an exception.
+         * Called when this {@link Single} cannot be completed because of an error.
          *
-         * @param t
-         *            the exception, not null
+         * @param error
+         *            The error preventing this {@link Single} to complete, not null
          */
-        void onError(Throwable t);
+        void onError(Throwable error);
     }
 
     /** Adapts the streaming api to a callback one. */
     public interface Emitter<V> {
         /**
          * Called for each SingleObserver that subscribes.
-         * @param e the safe emitter instance, never null
-         * @throws Exception on error
+         *
+         * @param s
+         *            The {@link Subscriber} to use to communicate the completeness of this {@link Single}
+         * @throws Exception
+         *             on error
          */
-        void subscribe(Subscriber<V> e) throws Exception;
+        void subscribe(Subscriber<V> s) throws Exception;
     }
 
     /**

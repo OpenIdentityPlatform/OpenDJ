@@ -39,6 +39,7 @@ import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
@@ -49,18 +50,16 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
-import org.forgerock.opendj.ldap.spi.LdapMessages;
-import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.forgerock.util.Function;
 import org.forgerock.util.Options;
 import org.forgerock.util.Reject;
 import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.Grizzly;
-import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.ssl.SSLFilter;
@@ -82,11 +81,8 @@ import io.reactivex.internal.util.BackpressureHelper;
  */
 final class LDAPServerFilter extends BaseFilter {
 
-    private static final Attribute<ClientConnectionImpl> LDAP_CONNECTION_ATTR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
-            .createAttribute("LDAPServerConnection");
-
     private final Function<LDAPClientContext,
-                           ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                            LdapException> connectionHandlerFactory;
 
     /**
@@ -119,6 +115,8 @@ final class LDAPServerFilter extends BaseFilter {
     private final int maxConcurrentRequests;
     private final Options connectionOptions;
 
+    private DecodeOptions decodeOptions;
+
     /**
      * Creates a server filter with provided listener, options and max size of ASN1 element.
      *
@@ -131,11 +129,12 @@ final class LDAPServerFilter extends BaseFilter {
      */
     LDAPServerFilter(
             final Function<LDAPClientContext,
-                           ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                            LdapException> connectionHandlerFactory,
             final Options connectionOptions, final DecodeOptions options, final int maxPendingRequests) {
         this.connectionHandlerFactory = connectionHandlerFactory;
         this.connectionOptions = connectionOptions;
+        this.decodeOptions = options;
         this.maxConcurrentRequests = maxPendingRequests;
     }
 
@@ -146,13 +145,23 @@ final class LDAPServerFilter extends BaseFilter {
         connection.configureBlocking(false);
 
         final ClientConnectionImpl clientContext = new ClientConnectionImpl(connection);
-        LDAP_CONNECTION_ATTR.set(connection, clientContext);
-        final ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>> requestHandler =
-                connectionHandlerFactory.apply(clientContext);
+        connection.setProcessor(FilterChainBuilder
+                .stateless()
+                .addAll((FilterChain) connection.getProcessor())
+                .add(new LdapCodec(connectionOptions.get(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES), decodeOptions) {
+                    @Override
+                    protected void onLdapCodecError(final FilterChainContext ctx, final Throwable error) {
+                        clientContext.exceptionOccurred(ctx, error);
+                    }
+                })
+                .add(clientContext)
+                .build());
 
-        clientContext.read().flatMap(new Function<LdapRawMessage, Publisher<Void>, Exception>() {
+        final ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>> requestHandler =
+                connectionHandlerFactory.apply(clientContext);
+        clientContext.read().flatMap(new Function<LdapRequestEnvelope, Publisher<Void>, Exception>() {
             @Override
-            public Publisher<Void> apply(final LdapRawMessage rawRequest) throws Exception {
+            public Publisher<Void> apply(final LdapRequestEnvelope rawRequest) throws Exception {
                 if (rawRequest.getMessageType() == OP_TYPE_UNBIND_REQUEST) {
                     clientContext.notifyConnectionClosed(rawRequest);
                     return emptyStream();
@@ -185,7 +194,7 @@ final class LDAPServerFilter extends BaseFilter {
                 // Swallow the error to prevent the subscribe() below to report it on the console.
                 return emptyStream();
             }
-        }).onCompleteDo(new Action() {
+        }).onComplete(new Action() {
             @Override
             public void run() throws Exception {
                 clientContext.notifyConnectionClosed(null);
@@ -194,30 +203,16 @@ final class LDAPServerFilter extends BaseFilter {
         return ctx.getStopAction();
     }
 
-    private final LdapResponseMessage toLdapResponseMessage(final LdapRawMessage rawRequest, final Result result) {
-        switch (rawRequest.getMessageType()) {
-        case OP_TYPE_ADD_REQUEST:
-            return newResponseMessage(OP_TYPE_ADD_RESPONSE, rawRequest.getMessageId(), result);
-        case OP_TYPE_BIND_REQUEST:
-            return newResponseMessage(OP_TYPE_BIND_RESPONSE, rawRequest.getMessageId(), result);
-        case OP_TYPE_COMPARE_REQUEST:
-            return newResponseMessage(OP_TYPE_COMPARE_RESPONSE, rawRequest.getMessageId(), result);
-        case OP_TYPE_DELETE_REQUEST:
-            return newResponseMessage(OP_TYPE_DELETE_RESPONSE, rawRequest.getMessageId(), result);
-        case OP_TYPE_EXTENDED_REQUEST:
-            return newResponseMessage(OP_TYPE_EXTENDED_RESPONSE, rawRequest.getMessageId(), result);
-        case OP_TYPE_MODIFY_DN_REQUEST:
-            return newResponseMessage(OP_TYPE_MODIFY_DN_RESPONSE, rawRequest.getMessageId(), result);
-        case OP_TYPE_MODIFY_REQUEST:
-            return newResponseMessage(OP_TYPE_MODIFY_RESPONSE, rawRequest.getMessageId(), result);
-        case OP_TYPE_SEARCH_REQUEST:
-            return newResponseMessage(OP_TYPE_SEARCH_RESULT_DONE, rawRequest.getMessageId(), result);
-        default:
+    private final LdapResponseMessage toLdapResponseMessage(final LdapRequestEnvelope rawRequest, final Result result) {
+        final byte resultType = OP_TO_RESULT_TYPE[rawRequest.getMessageType()];
+        if (resultType == 0) {
             throw new IllegalArgumentException("Unknown request: " + rawRequest.getMessageType());
         }
+        return newResponseMessage(resultType, rawRequest.getMessageId(), result);
     }
 
-    private Function<Response, LdapResponseMessage, Exception> toLdapResponseMessage(final LdapRawMessage rawRequest) {
+    private Function<Response, LdapResponseMessage, Exception> toLdapResponseMessage(
+            final LdapRequestEnvelope rawRequest) {
         return new Function<Response, LdapResponseMessage, Exception>() {
             @Override
             public LdapResponseMessage apply(final Response response) {
@@ -233,58 +228,32 @@ final class LDAPServerFilter extends BaseFilter {
                 if (response instanceof SearchResultReference) {
                     return newResponseMessage(OP_TYPE_SEARCH_RESULT_REFERENCE, rawRequest.getMessageId(), response);
                 }
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException(
+                        "Not implemented for a response of type " + (response != null ? response.getClass() : null));
             }
         };
     }
 
-    @Override
-    public NextAction handleRead(final FilterChainContext ctx) throws IOException {
-        final ClientConnectionImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-        if (clientContext != null) {
-            return clientContext.handleRead(ctx);
-        }
-        ctx.suspend();
-        return ctx.getSuspendAction();
-    }
-
-    @Override
-    public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
-        final ClientConnectionImpl clientContext = LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
-        if (clientContext != null) {
-            clientContext.exceptionOccurred(ctx, error);
-        }
-    }
-
-    @Override
-    public NextAction handleClose(final FilterChainContext ctx) throws IOException {
-        final ClientConnectionImpl clientContext = LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
-        if (clientContext != null) {
-            clientContext.handleClose(ctx);
-        }
-        return ctx.getStopAction();
-    }
-
-    final class ClientConnectionImpl implements LDAPClientContext {
+    final class ClientConnectionImpl extends BaseFilter implements LDAPClientContext {
 
         final class GrizzlyBackpressureSubscription implements Subscription {
             private final AtomicLong pendingRequests = new AtomicLong();
-            private Subscriber<? super LdapRawMessage> subscriber;
+            private Subscriber<? super LdapRequestEnvelope> subscriber;
             volatile FilterChainContext ctx;
 
-            GrizzlyBackpressureSubscription(Subscriber<? super LdapRawMessage> subscriber) {
+            GrizzlyBackpressureSubscription(Subscriber<? super LdapRequestEnvelope> subscriber) {
                 this.subscriber = subscriber;
                 subscriber.onSubscribe(this);
             }
 
             NextAction handleRead(final FilterChainContext ctx) {
-                final Subscriber<? super LdapRawMessage> sub = subscriber;
+                final Subscriber<? super LdapRequestEnvelope> sub = subscriber;
                 if (sub == null) {
                     // Subscription cancelled. Stop reading
                     ctx.suspend();
                     return ctx.getSuspendAction();
                 }
-                sub.onNext((LdapRawMessage) ctx.getMessage());
+                sub.onNext((LdapRequestEnvelope) ctx.getMessage());
                 if (BackpressureHelper.produced(pendingRequests, 1) > 0) {
                     return ctx.getStopAction();
                 }
@@ -302,7 +271,7 @@ final class LDAPServerFilter extends BaseFilter {
             }
 
             public void onError(final Throwable error) {
-                final Subscriber<? super LdapRawMessage> sub = subscriber;
+                final Subscriber<? super LdapRequestEnvelope> sub = subscriber;
                 if (sub != null) {
                     subscriber = null;
                     sub.onError(error);
@@ -310,7 +279,7 @@ final class LDAPServerFilter extends BaseFilter {
             }
 
             public void onComplete() {
-                final Subscriber<? super LdapRawMessage> sub = subscriber;
+                final Subscriber<? super LdapRequestEnvelope> sub = subscriber;
                 if (sub != null) {
                     subscriber = null;
                     sub.onComplete();
@@ -325,16 +294,17 @@ final class LDAPServerFilter extends BaseFilter {
 
         private final Connection<?> connection;
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
-        private final List<DisconnectListener> listeners = new LinkedList<>();
+        private final List<ConnectionEventListener> listeners = new LinkedList<>();
         private SaslServer saslServer;
-        GrizzlyBackpressureSubscription upstream;
+        private GrizzlyBackpressureSubscription downstream;
 
         private ClientConnectionImpl(final Connection<?> connection) {
             this.connection = connection;
         }
 
-        NextAction handleRead(final FilterChainContext ctx)  {
-            final GrizzlyBackpressureSubscription immutableRef = upstream;
+        @Override
+        public NextAction handleRead(final FilterChainContext ctx)  {
+            final GrizzlyBackpressureSubscription immutableRef = downstream;
             if (immutableRef != null) {
                 return immutableRef.handleRead(ctx);
             }
@@ -342,29 +312,35 @@ final class LDAPServerFilter extends BaseFilter {
             return ctx.getSuspendAction();
         }
 
-        void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
-            final GrizzlyBackpressureSubscription immutableRef = upstream;
-            if (immutableRef != null) {
+        @Override
+        public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
+            final GrizzlyBackpressureSubscription immutableRef = downstream;
+            if (immutableRef == null) {
+                ctx.getConnection().closeSilently();
+            } else {
                 immutableRef.onError(error);
             }
         }
 
-        NextAction handleClose(final FilterChainContext ctx) {
-            final GrizzlyBackpressureSubscription immutableRef = upstream;
-            if (immutableRef != null) {
-                immutableRef.onComplete();
+        @Override
+        public NextAction handleClose(final FilterChainContext ctx) {
+            if (isClosed.compareAndSet(false, true)) {
+                final GrizzlyBackpressureSubscription immutableRef = downstream;
+                if (immutableRef != null) {
+                    downstream.onComplete();
+                }
             }
             return ctx.getStopAction();
         }
 
-        Stream<LdapRawMessage> read() {
-            return streamFromPublisher(new Publisher<LdapRawMessage>() {
+        Stream<LdapRequestEnvelope> read() {
+            return streamFromPublisher(new Publisher<LdapRequestEnvelope>() {
                 @Override
-                public void subscribe(final Subscriber<? super LdapRawMessage> subscriber) {
-                    if (upstream != null) {
+                public void subscribe(final Subscriber<? super LdapRequestEnvelope> subscriber) {
+                    if (downstream != null) {
                         return;
                     }
-                    upstream = new GrizzlyBackpressureSubscription(subscriber);
+                    downstream = new GrizzlyBackpressureSubscription(subscriber);
                 }
             });
         }
@@ -382,7 +358,7 @@ final class LDAPServerFilter extends BaseFilter {
         public boolean enableTLS(final SSLEngine sslEngine, final boolean startTls) {
             Reject.ifNull(sslEngine, "sslEngine must not be null");
             synchronized (this) {
-                if (isFilterExists(SSLFilter.class)) {
+                if (filterExists(SSLFilter.class)) {
                     return false;
                 }
                 SSLUtils.setSSLEngine(connection, sslEngine);
@@ -392,15 +368,27 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
+        public SSLSession getSSLSession() {
+            final SSLEngine sslEngine = SSLUtils.getSSLEngine(connection);
+            return sslEngine != null ? sslEngine.getSession() : null;
+        }
+
+        @Override
         public void enableSASL(final SaslServer saslServer) {
             Reject.ifNull(saslServer, "saslServer must not be null");
             synchronized (this) {
-                if (isFilterExists(SaslFilter.class)) {
+                if (filterExists(SaslFilter.class)) {
+                    // FIXME: The current saslServer must be replaced with the new one
                     return;
                 }
                 this.saslServer = saslServer;
                 installFilter(new SaslFilter(saslServer));
             }
+        }
+
+        @Override
+        public SaslServer getSASLServer() {
+            return saslServer;
         }
 
         @Override
@@ -438,27 +426,21 @@ final class LDAPServerFilter extends BaseFilter {
             int ssf = 0;
             final String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
             if (SaslFilter.SASL_AUTH_INTEGRITY.equalsIgnoreCase(qop)) {
-                ssf = 1;
+                return 1;
             } else if (SaslFilter.SASL_AUTH_CONFIDENTIALITY.equalsIgnoreCase(qop)) {
                 final String negStrength = (String) saslServer.getNegotiatedProperty(Sasl.STRENGTH);
                 if ("low".equalsIgnoreCase(negStrength)) {
-                    ssf = 40;
+                    return 40;
                 } else if ("medium".equalsIgnoreCase(negStrength)) {
-                    ssf = 56;
+                    return 56;
                 } else if ("high".equalsIgnoreCase(negStrength)) {
-                    ssf = 128;
+                    return 128;
                 }
                 /*
                  * Treat anything else as if not security is provided and keep the server running
                  */
             }
             return ssf;
-        }
-
-        @Override
-        public SSLSession getSSLSession() {
-            final SSLEngine sslEngine = SSLUtils.getSSLEngine(connection);
-            return sslEngine != null ? sslEngine.getSession() : null;
         }
 
         @Override
@@ -482,7 +464,7 @@ final class LDAPServerFilter extends BaseFilter {
             GrizzlyUtils.addFilterToConnection(filter, connection);
         }
 
-        private boolean isFilterExists(Class<?> filterKlass) {
+        private boolean filterExists(Class<?> filterKlass) {
             synchronized (this) {
                 final FilterChain currentFilterChain = (FilterChain) connection.getProcessor();
                 for (final Filter filter : currentFilterChain) {
@@ -495,7 +477,7 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void onDisconnect(DisconnectListener listener) {
+        public void addConnectionEventListener(ConnectionEventListener listener) {
             Reject.ifNull(listener, "listener must not be null");
             listeners.add(listener);
         }
@@ -504,8 +486,8 @@ final class LDAPServerFilter extends BaseFilter {
         public void disconnect() {
             if (isClosed.compareAndSet(false, true)) {
                 try {
-                    for (DisconnectListener listener : listeners) {
-                        listener.connectionDisconnected(this, null, null);
+                    for (ConnectionEventListener listener : listeners) {
+                        listener.handleConnectionDisconnected(this, null, null);
                     }
                 } finally {
                     closeConnection();
@@ -514,9 +496,9 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         private void closeConnection() {
-            if (upstream != null) {
-                upstream.cancel();
-                upstream = null;
+            if (downstream != null) {
+                downstream.cancel();
+                downstream = null;
             }
             connection.closeSilently();
         }
@@ -526,11 +508,11 @@ final class LDAPServerFilter extends BaseFilter {
             // Close this connection context.
             if (isClosed.compareAndSet(false, true)) {
                 sendUnsolicitedNotification(Responses.newGenericExtendedResult(resultCode)
-                                                     .setOID(LDAP.OID_NOTICE_OF_DISCONNECTION)
+                                                     .setOID(OID_NOTICE_OF_DISCONNECTION)
                                                      .setDiagnosticMessage(diagnosticMessage));
                 try {
-                    for (DisconnectListener listener : listeners) {
-                        listener.connectionDisconnected(this, resultCode, diagnosticMessage);
+                    for (ConnectionEventListener listener : listeners) {
+                        listener.handleConnectionDisconnected(this, resultCode, diagnosticMessage);
                     }
                 } finally {
                     closeConnection();
@@ -538,11 +520,11 @@ final class LDAPServerFilter extends BaseFilter {
             }
         }
 
-        private void notifyConnectionClosed(final LdapRawMessage unbindRequest) {
+        private void notifyConnectionClosed(final LdapRequestEnvelope unbindRequest) {
             // Close this connection context.
             if (isClosed.compareAndSet(false, true)) {
                 if (unbindRequest == null) {
-                    doNotifySilentlyConnectionClosed(null);
+                    notifySilentlyConnectionClosed(null);
                 } else {
                     try {
                         LDAP.getReader(unbindRequest.getContent(), new DecodeOptions())
@@ -550,23 +532,23 @@ final class LDAPServerFilter extends BaseFilter {
                                     @Override
                                     public void unbindRequest(int messageID, UnbindRequest unbindRequest)
                                             throws DecodeException, IOException {
-                                        doNotifySilentlyConnectionClosed(unbindRequest);
+                                        notifySilentlyConnectionClosed(unbindRequest);
                                     }
                                 });
                     } catch (Exception e) {
-                        doNotifySilentlyConnectionClosed(null);
+                        notifySilentlyConnectionClosed(null);
                     }
                 }
             }
         }
 
-        private void doNotifySilentlyConnectionClosed(final UnbindRequest unbindRequest) {
+        private void notifySilentlyConnectionClosed(final UnbindRequest unbindRequest) {
             try {
-                for (final DisconnectListener listener : listeners) {
+                for (final ConnectionEventListener listener : listeners) {
                     try {
-                        listener.connectionClosed(this, unbindRequest);
+                        listener.handleConnectionClosed(this, unbindRequest);
                     } catch (Exception e) {
-                        // TODO: Log as a warning ?
+                        logger.traceException(e);
                     }
                 }
             } finally {
@@ -578,11 +560,11 @@ final class LDAPServerFilter extends BaseFilter {
             // Close this connection context.
             if (isClosed.compareAndSet(false, true)) {
                 try {
-                    for (final DisconnectListener listener : listeners) {
+                    for (final ConnectionEventListener listener : listeners) {
                         try {
-                            listener.exceptionOccurred(this, error);
+                            listener.handleConnectionError(this, error);
                         } catch (Exception e) {
-                            // TODO: Log as a warning ?
+                            logger.traceException(e);
                         }
                     }
                 } finally {
@@ -598,7 +580,7 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void sendUnsolicitedNotification(final ExtendedResult notification) {
-            connection.write(LdapMessages.newResponseMessage(LDAP.OP_TYPE_EXTENDED_RESPONSE, 0, notification));
+            connection.write(newResponseMessage(OP_TYPE_EXTENDED_RESPONSE, 0, notification));
         }
     }
 }

@@ -21,14 +21,22 @@ import java.net.InetSocketAddress;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.ServerConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.responses.Response;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
+import org.forgerock.util.Function;
 import org.forgerock.util.Options;
+
+import com.forgerock.reactive.ReactiveHandler;
+import com.forgerock.reactive.Stream;
 
 /**
  * Basic LDAP listener implementation to use for tests only.
  */
 public final class BasicLDAPListener implements LDAPListenerImpl {
-    private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
+    private final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> connectionFactory;
     private final Set<InetSocketAddress> socketAddresses;
 
     /**
@@ -37,15 +45,16 @@ public final class BasicLDAPListener implements LDAPListenerImpl {
      * @param address
      *            The address to listen on.
      * @param factory
-     *            The server connection factory can be used to create
-     *            server connections.
+     *            The server connection factory can be used to create server connections.
      * @param options
      *            The LDAP listener options.
      * @throws IOException
      *             is never thrown with this do-nothing implementation
      */
     public BasicLDAPListener(final Set<InetSocketAddress> addresses,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+            final Function<LDAPClientContext,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+                           LdapException> factory,
             final Options options) throws IOException {
         this.connectionFactory = factory;
         this.socketAddresses = addresses;
@@ -70,7 +79,9 @@ public final class BasicLDAPListener implements LDAPListenerImpl {
         return builder.toString();
     }
 
-    ServerConnectionFactory<LDAPClientContext, Integer> getConnectionFactory() {
+    Function<LDAPClientContext,
+             ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
+             LdapException> getConnectionFactory() {
         return connectionFactory;
     }
 }

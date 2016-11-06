@@ -15,12 +15,15 @@
  */
 package org.forgerock.opendj.grizzly;
 
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
 import static org.forgerock.opendj.io.LDAP.*;
+import static org.forgerock.opendj.ldap.spi.LdapMessages.newRequestEnvelope;
 
 import java.io.IOException;
 
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
@@ -30,40 +33,31 @@ import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
-import org.forgerock.opendj.ldap.spi.LdapMessages;
-import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.Grizzly;
-import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.attributes.AttributeStorage;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
+/**
+ * Decodes {@link LdapRequestEnvelope} and encodes {@link Response}. This class keeps a state to handler the Ldap V2
+ * detection, a LdapCodec instance cannot be shared accross different connection
+ */
 abstract class LdapCodec extends LDAPBaseFilter {
 
-    private static final Attribute<Boolean> IS_LDAP_V2 = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
-            .createAttribute(LdapCodec.class.getName() + ".IsLdapV2", Boolean.FALSE);
-
-    private static final Attribute<Boolean> IS_LDAP_V2_PENDING = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
-            .createAttribute(LdapCodec.class.getName() + ".PendingLdapV2", Boolean.FALSE);
+    private boolean isLdapV2Pending = false;
+    private boolean isLdapV2 = false;
 
     LdapCodec(final int maxElementSize, final DecodeOptions decodeOptions) {
         super(decodeOptions, maxElementSize);
     }
 
     @Override
-    public NextAction handleAccept(FilterChainContext ctx) throws IOException {
-        // Default value mechanism of Grizzly's attribute doesn't seems to work.
-        IS_LDAP_V2.set(ctx.getConnection(), Boolean.FALSE);
-        return ctx.getInvokeAction();
-    }
-
-    @Override
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
         try {
             final Buffer buffer = ctx.getMessage();
-            final LdapRawMessage message;
+            final LdapRequestEnvelope message;
 
             message = readMessage(buffer, ctx.getConnection());
             if (message != null) {
@@ -73,9 +67,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
             return ctx.getStopAction(getRemainingBuffer(buffer));
         } catch (Exception e) {
             onLdapCodecError(ctx, e);
-            // make the connection deaf to any following input
-            // onLdapDecodeError call will take care of error processing
-            // and closing the connection
+            ctx.getConnection().closeSilently();
             final NextAction suspendAction = ctx.getSuspendAction();
             ctx.completeAndRecycle();
             return suspendAction;
@@ -84,7 +76,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
 
     protected abstract void onLdapCodecError(FilterChainContext ctx, Throwable error);
 
-    private LdapRawMessage readMessage(final Buffer buffer, final AttributeStorage attributeStorage)
+    private LdapRequestEnvelope readMessage(final Buffer buffer, final AttributeStorage attributeStorage)
             throws IOException {
         try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
             final int packetStart = buffer.position();
@@ -95,7 +87,8 @@ abstract class LdapCodec extends LDAPBaseFilter {
             final int length = reader.peekLength();
             if (length > maxASN1ElementSize) {
                 buffer.position(packetStart);
-                throw new IllegalStateException();
+                throw DecodeException.fatalError(
+                        ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(length, maxASN1ElementSize));
             }
 
             final Buffer packet = buffer.slice(packetStart, buffer.position() + length);
@@ -105,7 +98,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
         }
     }
 
-    private LdapRawMessage decodePacket(final ASN1BufferReader reader, final AttributeStorage attributeStorage)
+    private LdapRequestEnvelope decodePacket(final ASN1BufferReader reader, final AttributeStorage attributeStorage)
             throws IOException {
         reader.mark();
         try {
@@ -114,17 +107,17 @@ abstract class LdapCodec extends LDAPBaseFilter {
             final byte messageType = reader.peekType();
 
             final ByteString rawDn;
-            final int protocolVersion;
+            final int ldapVersion;
             switch (messageType) {
             case OP_TYPE_BIND_REQUEST:
                 reader.readStartSequence(messageType);
-                protocolVersion = (int) reader.readInteger();
+                ldapVersion = (int) reader.readInteger();
                 rawDn = reader.readOctetString();
-                IS_LDAP_V2_PENDING.set(attributeStorage, protocolVersion == 2);
+                isLdapV2Pending = ldapVersion == 2;
                 break;
             case OP_TYPE_DELETE_REQUEST:
                 rawDn = reader.readOctetString(messageType);
-                protocolVersion = -1;
+                ldapVersion = -1;
                 break;
             case OP_TYPE_ADD_REQUEST:
             case OP_TYPE_COMPARE_REQUEST:
@@ -133,13 +126,13 @@ abstract class LdapCodec extends LDAPBaseFilter {
             case OP_TYPE_SEARCH_REQUEST:
                 reader.readStartSequence(messageType);
                 rawDn = reader.readOctetString();
-                protocolVersion = -1;
+                ldapVersion = -1;
                 break;
             default:
                 rawDn = null;
-                protocolVersion = -1;
+                ldapVersion = -1;
             }
-            return LdapMessages.newRawMessage(messageType, messageId, protocolVersion, rawDn, reader);
+            return newRequestEnvelope(messageType, messageId, ldapVersion, rawDn, reader);
         } finally {
             reader.reset();
         }
@@ -152,11 +145,10 @@ abstract class LdapCodec extends LDAPBaseFilter {
     @Override
     public NextAction handleWrite(final FilterChainContext ctx) throws IOException {
         final LdapResponseMessage response = ctx.<LdapResponseMessage>getMessage();
-        if (response.getMessageType() == OP_TYPE_BIND_RESPONSE) {
-            final Boolean isLdapV2 = IS_LDAP_V2_PENDING.remove(ctx.getConnection());
-            IS_LDAP_V2.set(ctx.getConnection(), isLdapV2);
+        if (response.getMessageType() == OP_TYPE_BIND_RESPONSE && ((BindResult) response.getContent()).isSuccess()) {
+            isLdapV2 = isLdapV2Pending;
         }
-        final int protocolVersion = IS_LDAP_V2.get(ctx.getConnection()) ? 2 : 3;
+        final int protocolVersion = isLdapV2 ? 2 : 3;
 
         final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter(ctx.getMemoryManager(), protocolVersion);
         try {
@@ -165,9 +157,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
             return ctx.getInvokeAction();
         } catch (Exception e) {
             onLdapCodecError(ctx, e);
-            // make the connection deaf to any following input
-            // onLdapDecodeError call will take care of error processing
-            // and closing the connection
+            ctx.getConnection().closeSilently();
             final NextAction suspendAction = ctx.getSuspendAction();
             ctx.completeAndRecycle();
             return suspendAction;

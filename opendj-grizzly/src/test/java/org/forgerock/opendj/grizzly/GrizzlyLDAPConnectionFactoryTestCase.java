@@ -17,7 +17,7 @@ package org.forgerock.opendj.grizzly;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.CommonLDAPOptions.*;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -70,6 +71,8 @@ import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
+
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /**
  * Tests the {@link LDAPConnectionFactory} class.
@@ -349,16 +352,19 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
 
     private LDAPListener createServer() {
         try {
-            return new LDAPListener(loopbackWithDynamicPort(),
-                    new ServerConnectionFactory<LDAPClientContext, Integer>() {
-                        @Override
-                        public ServerConnection<Integer> handleAccept(
-                                final LDAPClientContext clientContext) throws LdapException {
-                            context.set(clientContext);
-                            connectLatch.release();
-                            return serverConnection;
-                        }
-                    });
+            return new LDAPListener(
+                    Collections.singleton(loopbackWithDynamicPort()),
+                    new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
+                        new ServerConnectionFactory<LDAPClientContext, Integer>() {
+                            @Override
+                            public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
+                                    throws LdapException {
+                                context.set(clientContext);
+                                connectLatch.release();
+                                return serverConnection;
+                            }
+                        })
+            );
         } catch (IOException e) {
             fail("Unable to create LDAP listener", e);
             return null;

@@ -11,23 +11,23 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2015 ForgeRock AS.
+ * Copyright 2013-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.util.time.Duration.duration;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
+import static org.forgerock.opendj.ldap.LDAPListener.LDAP_DECODE_OPTIONS;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.REQUEST_TIMEOUT;
+import static org.forgerock.util.time.Duration.duration;
+import static org.mockito.Mockito.*;
+
 import java.net.InetSocketAddress;
+import java.util.Collections;
 
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPListener;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.RequestHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
@@ -42,6 +42,8 @@ import org.forgerock.util.Options;
 import org.forgerock.util.promise.ExceptionHandler;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.Test;
+
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /**
  * Tests LDAP connection implementation class.
@@ -74,9 +76,9 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
          * and leave the client waiting forever for a response.
          */
         @SuppressWarnings("unchecked")
-        LDAPListener listener =
-                new LDAPListener(address, Connections
-                        .newServerConnectionFactory(mock(RequestHandler.class)));
+        LDAPListener listener = new LDAPListener(Collections.singleton(address),
+                new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
+                        Connections.newServerConnectionFactory(mock(RequestHandler.class))));
 
         /*
          * Use a very long time out in order to prevent the timeout thread from

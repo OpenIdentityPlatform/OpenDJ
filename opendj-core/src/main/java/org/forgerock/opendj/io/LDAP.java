@@ -17,6 +17,7 @@
 package org.forgerock.opendj.io;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -153,6 +154,19 @@ public final class LDAP {
      * The protocol op type for unbind requests.
      */
     public static final byte OP_TYPE_UNBIND_REQUEST = 0x42;
+    /** Mapping between request protocol op and their respecetive response protocol op. */
+    public static final byte[] OP_TO_RESULT_TYPE = new byte[0xFF];
+    static {
+        Arrays.fill(OP_TO_RESULT_TYPE, (byte) 0x00);
+        OP_TO_RESULT_TYPE[OP_TYPE_ADD_REQUEST] = OP_TYPE_ADD_RESPONSE;
+        OP_TO_RESULT_TYPE[OP_TYPE_BIND_REQUEST] = OP_TYPE_BIND_RESPONSE;
+        OP_TO_RESULT_TYPE[OP_TYPE_COMPARE_REQUEST] = OP_TYPE_COMPARE_RESPONSE;
+        OP_TO_RESULT_TYPE[OP_TYPE_DELETE_REQUEST] = OP_TYPE_DELETE_RESPONSE;
+        OP_TO_RESULT_TYPE[OP_TYPE_EXTENDED_REQUEST] = OP_TYPE_EXTENDED_RESPONSE;
+        OP_TO_RESULT_TYPE[OP_TYPE_MODIFY_DN_REQUEST] = OP_TYPE_MODIFY_DN_RESPONSE;
+        OP_TO_RESULT_TYPE[OP_TYPE_MODIFY_REQUEST] = OP_TYPE_MODIFY_RESPONSE;
+        OP_TO_RESULT_TYPE[OP_TYPE_SEARCH_REQUEST] = OP_TYPE_SEARCH_RESULT_DONE;
+    };
     /**
      * The BER type to use for the AuthenticationChoice element in a bind
      * request when SASL authentication is to be used.

@@ -153,6 +153,12 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7012</differenceType>
+    <method>javax.security.sasl.SaslServer getSASLServer()</method>
+    <justification>Simplify management of security layer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
     <differenceType>7004</differenceType>
     <method>void enableTLS(javax.net.ssl.SSLContext, java.lang.String[], java.lang.String[], boolean, boolean)</method>
     <justification>Simplify management of security layer</justification>
@@ -167,27 +173,15 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
     <differenceType>7012</differenceType>
-    <method>void onDisconnect(org.forgerock.opendj.ldap.LDAPClientContext$DisconnectListener)</method>
+    <method>void addConnectionEventListener(org.forgerock.opendj.ldap.LDAPClientContext$ConnectionEventListener)</method>
     <justification>Allows to register connection state listener</justification>
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPListener</className>
     <differenceType>7005</differenceType>
-    <method>LDAPListener(java.net.InetSocketAddress, org.forgerock.opendj.ldap.ServerConnectionFactory, org.forgerock.util.Options)</method>
-    <to>%regex[LDAPListener\(java\.net\.SocketAddress,\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory,\s*org\.forgerock\.util\.Options\)]</to>
-    <justification>Accept multiple SocketAddress to bind to</justification>
-  </difference>
-  <difference>
-    <className>org/forgerock/opendj/ldap/spi/LDAPListenerImpl</className>
-    <differenceType>7002</differenceType>
-    <method>java.net.InetSocketAddress getSocketAddress()</method>
-    <justification>Accept multiple SocketAddress to bind to</justification>
-  </difference>
-  <difference>
-    <className>org/forgerock/opendj/ldap/spi/LDAPListenerImpl</className>
-    <differenceType>7012</differenceType>
-    <method>java.util.Set getSocketAddresses()</method>
-    <justification>Accept multiple SocketAddress to bind to</justification>
+     <method>%regex[LDAPListener\((((java\.lang\.String, +)?int,)|(java\.net\.InetSocketAddress,))\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(, +org\.forgerock\.util\.Options)?\)]</method>
+    <to>%regex[LDAPListener\((((java\.lang\.String, +)?int,)|(java\.util\.Set,)) +org\.forgerock\.util\.Function(, +org\.forgerock\.util\.Options)?\)]</to>
+    <justification>Allow multiple bind addressses. Use function rather than specific interface</justification>
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPListener</className>
@@ -195,13 +189,7 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>java.net.InetSocketAddress getSocketAddress()</method>
     <justification>Accept multiple SocketAddress to bind to</justification>
   </difference>
-   <difference>
-    <className>org/forgerock/opendj/ldap/LDAPListener</className>
-    <differenceType>7012</differenceType>
-    <method>java.util.Set getSocketAddresses()</method>
-    <justification>Accept multiple SocketAddress to bind to</justification>
-  </difference>
-    <difference>
+  <difference>
     <className>org/forgerock/opendj/ldap/LDAPListener</className>
     <differenceType>7002</differenceType>
     <method>java.net.InetAddress getAddress()</method>
@@ -220,11 +208,23 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <justification>Accept multiple SocketAddress to bind to</justification>
   </difference>
   <difference>
+    <className>org/forgerock/opendj/ldap/spi/LDAPListenerImpl</className>
+    <differenceType>7002</differenceType>
+    <method>java.net.InetSocketAddress getSocketAddress()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/LDAPListenerImpl</className>
+    <differenceType>7012</differenceType>
+    <method>java.util.Set getSocketAddresses()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
     <className>org/forgerock/opendj/ldap/spi/TransportProvider</className>
     <differenceType>7005</differenceType>
     <method>org.forgerock.opendj.ldap.spi.LDAPListenerImpl getLDAPListener(java.net.InetSocketAddress, org.forgerock.opendj.ldap.ServerConnectionFactory, org.forgerock.util.Options)</method>
-    <to>%regex[org\.forgerock\.opendj\.ldap\.spi\.LDAPListenerImpl\s*getLDAPListener\(java\.util\.Set,\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory,\s*org\.forgerock\.util\.Options\)]</to>
-    <justification>Accept multiple SocketAddress to bind to</justification>
+    <to>%regex[org\.forgerock\.opendj\.ldap\.spi\.LDAPListenerImpl +getLDAPListener\(java\.util\.Set, +org\.forgerock\.util\.Function, +org\.forgerock\.util\.Options\)]</to>
+    <justification>Accept multiple SocketAddress to bind to. Use Function rather than specific interface</justification>
   </difference>
   <difference>
     <className>org/forgerock/opendj/io/LDAP</className>

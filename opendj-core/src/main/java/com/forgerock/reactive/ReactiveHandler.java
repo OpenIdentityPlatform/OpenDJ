@@ -16,26 +16,26 @@
 package com.forgerock.reactive;
 
 /**
- * Handle the processing of a request in a given context and return the resulting response.
+ * Handle the processing of an input in a given context and return the resulting output.
  *
- * @param <CTX>
+ * @param <C>
  *            Type of the context
- * @param <REQ>
- *            Type of the request to process
- * @param <REP>
- *            Type of the response
+ * @param <I>
+ *            Type of the input to process
+ * @param <O>
+ *            Type of the output as a result of the process
  */
-public interface ReactiveHandler<CTX, REQ, REP> {
+public interface ReactiveHandler<C, I, O> {
     /**
-     * Process the request given the context.
+     * Process an input given the context.
      *
      * @param context
-     *            Context in which the request must be processed
-     * @param request
-     *            The response to process
-     * @return A {@link Single} response.
+     *            Context in which the input must be processed
+     * @param input
+     *            The input to process
+     * @return An output.
      * @throws Exception
      *             if the request cannot be processed
      */
-    REP handle(final CTX context, final REQ request) throws Exception;
+    O handle(final C context, final I input) throws Exception;
 }

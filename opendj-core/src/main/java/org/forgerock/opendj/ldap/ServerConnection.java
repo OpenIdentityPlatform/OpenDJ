@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions copyright 2012 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.requests.UnbindRequest;
  *            The type of request context.
  * @see ServerConnectionFactory
  */
+@Deprecated
 public interface ServerConnection<C> extends RequestHandler<C> {
 
     /**

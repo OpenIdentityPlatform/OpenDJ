@@ -12,13 +12,13 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.examples;
 
 import static org.forgerock.opendj.ldap.Connections.newCachedConnectionPool;
-import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 
 import java.io.IOException;
@@ -63,6 +63,8 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.util.Options;
+
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /**
  * This example is based on the {@link Proxy}. This example does no load
@@ -419,7 +421,8 @@ public final class RewriterProxy {
         final Options listenerOptions = Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096);
         LDAPListener listener = null;
         try {
-            listener = new LDAPListener(localAddress, localPort, connectionHandler, listenerOptions);
+            listener = new LDAPListener(localAddress, localPort, new ServerConnectionFactoryAdapter(
+                    listenerOptions.get(LDAP_DECODE_OPTIONS), connectionHandler), listenerOptions);
             System.out.println("Press any key to stop the server...");
             System.in.read();
         } catch (final IOException e) {

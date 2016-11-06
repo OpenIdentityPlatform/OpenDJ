@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2014 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -33,6 +33,7 @@ package org.forgerock.opendj.ldap;
  * @see Connections#newInternalConnectionFactory(ServerConnectionFactory,
  *      Object) newInternalConnectionFactory
  */
+@Deprecated
 public interface ServerConnectionFactory<C, R> {
     /**
      * Invoked when a new client connection is accepted by the associated

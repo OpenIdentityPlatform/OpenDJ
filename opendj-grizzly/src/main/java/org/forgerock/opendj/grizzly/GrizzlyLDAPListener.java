@@ -17,7 +17,6 @@
 package org.forgerock.opendj.grizzly;
 
 import static org.forgerock.opendj.grizzly.ServerTCPNIOTransport.SERVER_TRANSPORT;
-import static org.forgerock.opendj.ldap.CommonLDAPOptions.LDAP_DECODE_OPTIONS;
 import static org.forgerock.opendj.ldap.LDAPListener.*;
 
 import java.io.IOException;
@@ -34,11 +33,10 @@ import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.responses.Response;
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
-import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRawMessage;
+import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.util.Function;
 import org.forgerock.util.Options;
 import org.glassfish.grizzly.filterchain.FilterChain;
-import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
@@ -74,7 +72,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      */
     public GrizzlyLDAPListener(final Set<InetSocketAddress> addresses, final Options options,
             final Function<LDAPClientContext,
-                           ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                            LdapException> requestHandlerFactory) throws IOException {
         this(addresses, requestHandlerFactory, options, null);
     }
@@ -97,7 +95,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
      */
     public GrizzlyLDAPListener(final Set<InetSocketAddress> addresses,
             final Function<LDAPClientContext,
-                           ReactiveHandler<LDAPClientContext, LdapRawMessage, Stream<Response>>,
+                           ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                            LdapException> requestHandlerFactory,
             final Options options, TCPNIOTransport transport) throws IOException {
 
@@ -105,13 +103,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
         this.options = Options.copyOf(options);
         final LDAPServerFilter serverFilter = new LDAPServerFilter(requestHandlerFactory, options,
                 options.get(LDAP_DECODE_OPTIONS), options.get(MAX_CONCURRENT_REQUESTS));
-        final FilterChain ldapChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(),
-                new LdapCodec(options.get(REQUEST_MAX_SIZE_IN_BYTES), options.get(LDAP_DECODE_OPTIONS)) {
-                    @Override
-                    protected void onLdapCodecError(FilterChainContext ctx, Throwable error) {
-                        serverFilter.exceptionOccurred(ctx, error);
-                    }
-                }, serverFilter);
+        final FilterChain ldapChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), serverFilter);
         final TCPNIOBindingHandler bindingHandler = TCPNIOBindingHandler.builder(this.transport.get())
                 .processor(ldapChain).build();
         this.serverConnections = new ArrayList<>(addresses.size());
@@ -128,16 +120,14 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
         if (isClosed.compareAndSet(false, true)) {
             try {
                 for (TCPNIOConnection serverConnection : serverConnections) {
-                    serverConnection.close().get();
+                    serverConnection.closeSilently();
                 }
-            } catch (final InterruptedException e) {
-                // Cannot handle here.
-                Thread.currentThread().interrupt();
             } catch (final Exception e) {
                 // TODO: I18N
                 logger.warn(LocalizableMessage.raw("Exception occurred while closing listener", e));
+            } finally {
+                transport.release();
             }
-            transport.release();
         }
     }
 

@@ -17,12 +17,13 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.TestCaseUtils.loopbackWithDynamicPort;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -71,6 +72,7 @@ import org.forgerock.util.Options;
 
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /**
  * A simple ldap server that manages 1000 entries and used for running
@@ -517,8 +519,10 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             return;
         }
         sslContext = new SSLContextBuilder().getSSLContext();
-        listener = new LDAPListener(loopbackWithDynamicPort(), getInstance(),
-                        Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096));
+        listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
+                new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
+                        getInstance()),
+                Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096));
         isRunning = true;
     }
 

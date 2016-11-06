@@ -17,9 +17,8 @@
 
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.AUTHN_BIND_REQUEST;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.HEARTBEAT_ENABLED;
-import static org.forgerock.opendj.ldap.LDAPListener.CONNECT_MAX_BACKLOG;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.LDAPListener.*;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 
 import java.io.IOException;
@@ -38,6 +37,8 @@ import org.forgerock.opendj.ldap.RequestHandlerFactory;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.util.Options;
+
+import com.forgerock.reactive.ServerConnectionFactoryAdapter;
 
 /**
  * An LDAP load balancing proxy which forwards requests to one or more remote
@@ -142,7 +143,8 @@ public final class Proxy {
         final Options options = Options.defaultOptions().set(CONNECT_MAX_BACKLOG, 4096);
         LDAPListener listener = null;
         try {
-            listener = new LDAPListener(localAddress, localPort, connectionHandler, options);
+            listener = new LDAPListener(localAddress, localPort, new ServerConnectionFactoryAdapter(
+                    options.get(LDAP_DECODE_OPTIONS), connectionHandler), options);
             System.out.println("Press any key to stop the server...");
             System.in.read();
         } catch (final IOException e) {
