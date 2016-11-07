@@ -604,7 +604,12 @@ public final class Upgrade
             "cn=UUID,cn=Syntaxes,cn=config",
             "cn=Syntaxes,cn=config")
     );
-
+    register("4.0.0",
+        modifyConfigEntry(INFO_UPGRADE_TASK_ADD_LOCAL_BACKEND.get(),
+            "(objectClass=ds-cfg-backend)",
+            "add: objectClass",
+            "objectClass: ds-cfg-local-backend")
+    );
 
     /* All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(
