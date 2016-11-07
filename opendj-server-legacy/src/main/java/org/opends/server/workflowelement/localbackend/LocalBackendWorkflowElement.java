@@ -207,9 +207,6 @@ public class LocalBackendWorkflowElement
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** A lock to guarantee safe concurrent access to the registeredLocalBackends variable. */
-  private static final Object registeredLocalBackendsLock = new Object();
-
   /**
    * Check if an OID is for a proxy authorization control.
    *

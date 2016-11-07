@@ -92,11 +92,6 @@ public class BackendConfigManager implements
 
   private RootDSEBackend rootDSEBackend;
 
-  /** Lock to protect reads of the backend maps. */
-  private final ReadLock readLock;
-  /** Lock to protect updates of the backends maps. */
-  private final WriteLock writeLock;
-
   /**
    * Creates a new instance of this backend config manager.
    *
@@ -107,9 +102,6 @@ public class BackendConfigManager implements
   {
     this.serverContext = serverContext;
     this.localBackendsRegistry = new BaseDnRegistry();
-    ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    readLock = lock.readLock();
-    writeLock = lock.writeLock();
   }
 
   /**
@@ -269,7 +261,8 @@ public class BackendConfigManager implements
     backend.setBackendID(backendCfg.getBackendId());
     setLocalBackendWritabilityMode(backend, backendCfg);
 
-    if (acquireSharedLock(backend, backendCfg.getBackendId(), ccr) && configureAndOpenBackend(backend, backendCfg, ccr))
+    if (acquireSharedLock(backend, backendCfg.getBackendId(), ccr)
+        && configureAndOpenBackend(backend, backendCfg, ccr))
     {
       registerBackend(backend, backendCfg, ccr);
     }
@@ -569,24 +562,17 @@ public class BackendConfigManager implements
     ifNull(backend);
     String backendID = backend.getBackendID();
     ifNull(backendID);
-    writeLock.lock();
-    try
+    if (localBackends.containsKey(backendID))
     {
-      if (localBackends.containsKey(backendID))
-      {
-        LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-      localBackends.put(backendID, backend);
+      LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    }
+    localBackends.put(backendID, backend);
 
-      LocalBackendMonitor monitor = new LocalBackendMonitor(backend);
-      monitor.initializeMonitorProvider(null);
-      backend.setBackendMonitor(monitor);
-      registerMonitorProvider(monitor);
-    }
-    finally {
-      writeLock.unlock();
-    }
+    LocalBackendMonitor monitor = new LocalBackendMonitor(backend);
+    monitor.initializeMonitorProvider(null);
+    backend.setBackendMonitor(monitor);
+    registerMonitorProvider(monitor);
   }
 
   /**
@@ -635,20 +621,13 @@ public class BackendConfigManager implements
   public void deregisterLocalBackend(LocalBackend<?> backend)
   {
     ifNull(backend);
-    writeLock.lock();
-    try
+    localBackends.remove(backend.getBackendID());
+    LocalBackendMonitor monitor = backend.getBackendMonitor();
+    if (monitor != null)
     {
-      localBackends.remove(backend.getBackendID());
-      LocalBackendMonitor monitor = backend.getBackendMonitor();
-      if (monitor != null)
-      {
-        deregisterMonitorProvider(monitor);
-        monitor.finalizeMonitorProvider();
-        backend.setBackendMonitor(null);
-      }
-    }
-    finally {
-      writeLock.unlock();
+      deregisterMonitorProvider(monitor);
+      monitor.finalizeMonitorProvider();
+      backend.setBackendMonitor(null);
     }
   }
 
@@ -1241,6 +1220,10 @@ public class BackendConfigManager implements
     private final TreeMap<DN, LocalBackend<?>> publicNamingContexts = new TreeMap<>();
     /** The set of public naming contexts, including sub-suffixes, registered with the server. */
     private final TreeMap<DN, LocalBackend<?>> allPublicNamingContexts = new TreeMap<>();
+    /** Lock to protect reads of the maps. */
+    private final ReadLock readLock;
+    /** Lock to protect updates of the maps. */
+    private final WriteLock writeLock;
 
     /**
      * Indicates whether this base DN registry is in test mode.
@@ -1261,6 +1244,20 @@ public class BackendConfigManager implements
      * @throws DirectoryException if the base DN cannot be registered
      */
     List<LocalizableMessage> registerBaseDN(DN baseDN, LocalBackend<?> backend, boolean isPrivate)
+        throws DirectoryException
+    {
+      writeLock.lock();
+      try
+      {
+        return registerBaseDN0(baseDN, backend, isPrivate);
+      }
+      finally
+      {
+        writeLock.unlock();
+      }
+    }
+
+    private List<LocalizableMessage> registerBaseDN0(DN baseDN, LocalBackend<?> backend, boolean isPrivate)
         throws DirectoryException
     {
       // Check to see if the base DN is already registered with the server.
@@ -1404,76 +1401,100 @@ public class BackendConfigManager implements
 
     LocalBackend<?> getBackendWithBaseDN(DN entryDN)
     {
-      return baseDNs.get(entryDN);
+      readLock.lock();
+      try
+      {
+        return baseDNs.get(entryDN);
+      }
+      finally
+      {
+        readLock.unlock();
+      }
     }
 
 
     BackendAndName getBackendAndName(final DN entryDN)
     {
-      /*
-       * Try to minimize the number of lookups in the map to find the backend containing the entry.
-       * 1) If the DN contains many RDNs it is faster to iterate through the list of registered backends,
-       * 2) Otherwise iterating through the parents requires less lookups. It also avoids some attacks
-       * where we would spend time going through the list of all parents to finally decide the
-       * baseDN is absent.
-       */
-      if (entryDN.size() <= baseDNs.size())
+      readLock.lock();
+      try
       {
-        DN matchedDN = entryDN;
-        while (!matchedDN.isRootDN())
+        /*
+         * Try to minimize the number of lookups in the map to find the backend containing the entry.
+         * 1) If the DN contains many RDNs it is faster to iterate through the list of registered backends,
+         * 2) Otherwise iterating through the parents requires less lookups. It also avoids some attacks
+         * where we would spend time going through the list of all parents to finally decide the
+         * baseDN is absent.
+         */
+        if (entryDN.size() <= baseDNs.size())
         {
-          final LocalBackend<?> backend = baseDNs.get(matchedDN);
-          if (backend != null)
+          DN matchedDN = entryDN;
+          while (!matchedDN.isRootDN())
           {
-            return new BackendAndName(backend, matchedDN);
+            final LocalBackend<?> backend = baseDNs.get(matchedDN);
+            if (backend != null)
+            {
+              return new BackendAndName(backend, matchedDN);
+            }
+            matchedDN = matchedDN.parent();
           }
-          matchedDN = matchedDN.parent();
+          return null;
         }
-        return null;
+        else
+        {
+          LocalBackend<?> backend = null;
+          DN matchedDN = null;
+          int currentSize = 0;
+          for (DN backendDN : baseDNs.keySet())
+          {
+            if (entryDN.isSubordinateOrEqualTo(backendDN) && backendDN.size() > currentSize)
+            {
+              backend = baseDNs.get(backendDN);
+              matchedDN = backendDN;
+              currentSize = backendDN.size();
+            }
+          }
+          return new BackendAndName(backend, matchedDN);
+        }
       }
-      else
+      finally
       {
-        LocalBackend<?> backend = null;
-        DN matchedDN = null;
-        int currentSize = 0;
-        for (DN backendDN : baseDNs.keySet())
-        {
-          if (entryDN.isSubordinateOrEqualTo(backendDN) && backendDN.size() > currentSize)
-          {
-            backend = baseDNs.get(backendDN);
-            matchedDN = backendDN;
-            currentSize = backendDN.size();
-          }
-        }
-        return new BackendAndName(backend, matchedDN);
+        readLock.unlock();
       }
     }
 
     private LocalBackend<?> getSuperiorBackend(DN baseDN, LinkedList<DN> otherBaseDNs, String backendID)
         throws DirectoryException
     {
-      LocalBackend<?> superiorBackend = null;
-      DN parentDN = baseDN.parent();
-      while (parentDN != null)
+      readLock.lock();
+      try
       {
-        if (baseDNs.containsKey(parentDN))
+        LocalBackend<?> superiorBackend = null;
+        DN parentDN = baseDN.parent();
+        while (parentDN != null)
         {
-          superiorBackend = baseDNs.get(parentDN);
-
-          for (DN dn : otherBaseDNs)
+          if (baseDNs.containsKey(parentDN))
           {
-            if (!dn.isSubordinateOrEqualTo(parentDN))
-            {
-              LocalizableMessage msg = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.get(baseDN, backendID, dn);
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
-            }
-          }
-          break;
-        }
+            superiorBackend = baseDNs.get(parentDN);
 
-        parentDN = parentDN.parent();
+            for (DN dn : otherBaseDNs)
+            {
+              if (!dn.isSubordinateOrEqualTo(parentDN))
+              {
+                LocalizableMessage msg = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.get(baseDN, backendID, dn);
+                throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
+              }
+            }
+            break;
+          }
+
+          parentDN = parentDN.parent();
+        }
+        return superiorBackend;
       }
-      return superiorBackend;
+      finally
+      {
+        readLock.unlock();
+      }
     }
 
     /**
@@ -1485,8 +1506,20 @@ public class BackendConfigManager implements
      *         committed to the server
      * @throws DirectoryException if the base DN could not be deregistered
      */
-     List<LocalizableMessage> deregisterBaseDN(DN baseDN)
-           throws DirectoryException
+     List<LocalizableMessage> deregisterBaseDN(DN baseDN) throws DirectoryException
+     {
+       writeLock.lock();
+       try
+       {
+         return deregisterBaseDN0(baseDN);
+       }
+       finally
+       {
+         writeLock.unlock();
+       }
+     }
+
+    List<LocalizableMessage> deregisterBaseDN0(DN baseDN) throws DirectoryException
     {
       ifNull(baseDN);
 
@@ -1618,12 +1651,20 @@ public class BackendConfigManager implements
      */
     BaseDnRegistry copy()
     {
-      final BaseDnRegistry registry = new BaseDnRegistry(true);
-      registry.baseDNs.putAll(baseDNs);
-      registry.publicNamingContexts.putAll(publicNamingContexts);
-      registry.allPublicNamingContexts.putAll(allPublicNamingContexts);
-      registry.privateNamingContexts.putAll(privateNamingContexts);
-      return registry;
+      readLock.lock();
+      try
+      {
+        final BaseDnRegistry registry = new BaseDnRegistry(true);
+        registry.baseDNs.putAll(baseDNs);
+        registry.publicNamingContexts.putAll(publicNamingContexts);
+        registry.allPublicNamingContexts.putAll(allPublicNamingContexts);
+        registry.privateNamingContexts.putAll(privateNamingContexts);
+        return registry;
+      }
+      finally
+      {
+        readLock.unlock();
+      }
     }
 
     /**
@@ -1635,16 +1676,9 @@ public class BackendConfigManager implements
     private BaseDnRegistry(boolean testOnly)
     {
       this.testOnly = testOnly;
-    }
-
-    /**
-     * Gets the mapping of registered base DNs to their associated backend.
-     *
-     * @return mapping from base DN to backend
-     */
-    Map<DN, LocalBackend<?>> getBaseDnMap()
-    {
-      return this.baseDNs;
+      ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+      readLock = lock.readLock();
+      writeLock = lock.writeLock();
     }
 
     /**
@@ -1655,7 +1689,15 @@ public class BackendConfigManager implements
      */
     Map<DN, LocalBackend<?>> getPublicNamingContextsMap()
     {
-      return this.publicNamingContexts;
+      readLock.lock();
+      try
+      {
+        return this.publicNamingContexts;
+      }
+      finally
+      {
+        readLock.unlock();
+      }
     }
 
     /**
@@ -1666,7 +1708,15 @@ public class BackendConfigManager implements
      */
     Map<DN, LocalBackend<?>> getAllPublicNamingContextsMap()
     {
-      return this.allPublicNamingContexts;
+      readLock.lock();
+      try
+      {
+        return this.allPublicNamingContexts;
+      }
+      finally
+      {
+        readLock.unlock();
+      }
     }
 
     /**
@@ -1677,7 +1727,15 @@ public class BackendConfigManager implements
      */
     Map<DN, LocalBackend<?>> getPrivateNamingContextsMap()
     {
-      return this.privateNamingContexts;
+      readLock.lock();
+      try
+      {
+        return this.privateNamingContexts;
+      }
+      finally
+      {
+        readLock.unlock();
+      }
     }
 
     /**
@@ -1691,15 +1749,15 @@ public class BackendConfigManager implements
      */
     boolean containsNamingContext(DN dn)
     {
-      return privateNamingContexts.containsKey(dn) || publicNamingContexts.containsKey(dn);
-    }
-
-    /** Clear and nullify this registry's internal state. */
-    void clear() {
-      baseDNs.clear();
-      privateNamingContexts.clear();
-      publicNamingContexts.clear();
-      allPublicNamingContexts.clear();
+      readLock.lock();
+      try
+      {
+        return privateNamingContexts.containsKey(dn) || publicNamingContexts.containsKey(dn);
+      }
+      finally
+      {
+        readLock.unlock();
+      }
     }
   }
 
