@@ -165,9 +165,9 @@ final class GrizzlyUtils {
                 ? ThreadCache.takeFromCache(WRITER_INDEX)
                 : ThreadCache.takeFromCache(WRITER_INDEX_V2);
         if (writer == null) {
-            writer = LDAP.getWriter(new ASN1BufferWriter(memoryManager), protocolVersion);
+            writer = LDAP.getWriter(new ASN1BufferWriter(), protocolVersion);
         }
-        writer.getASN1Writer().reset();
+        writer.getASN1Writer().reset(memoryManager);
         return writer;
     }
 

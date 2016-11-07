@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapRequestEnvelope;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.attributes.AttributeStorage;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
@@ -57,14 +56,26 @@ abstract class LdapCodec extends LDAPBaseFilter {
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
         try {
             final Buffer buffer = ctx.getMessage();
-            final LdapRequestEnvelope message;
-
-            message = readMessage(buffer, ctx.getConnection());
-            if (message != null) {
-                ctx.setMessage(message);
-                return ctx.getInvokeAction(getRemainingBuffer(buffer));
+            try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
+                buffer.mark();
+                if (!reader.elementAvailable()) {
+                    buffer.reset();
+                    return ctx.getStopAction(buffer);
+                }
+                final int length = reader.peekLength();
+                if (length > maxASN1ElementSize) {
+                    buffer.reset();
+                    throw DecodeException.fatalError(
+                            ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(length, maxASN1ElementSize));
+                }
+                final Buffer remainder = (buffer.remaining() > length)
+                        ? buffer.split(buffer.position() + length)
+                        : null;
+                buffer.reset();
+                ctx.setMessage(decodePacket(new ASN1BufferReader(maxASN1ElementSize, buffer)));
+                buffer.tryDispose();
+                return ctx.getInvokeAction(remainder);
             }
-            return ctx.getStopAction(getRemainingBuffer(buffer));
         } catch (Exception e) {
             onLdapCodecError(ctx, e);
             ctx.getConnection().closeSilently();
@@ -76,29 +87,7 @@ abstract class LdapCodec extends LDAPBaseFilter {
 
     protected abstract void onLdapCodecError(FilterChainContext ctx, Throwable error);
 
-    private LdapRequestEnvelope readMessage(final Buffer buffer, final AttributeStorage attributeStorage)
-            throws IOException {
-        try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
-            final int packetStart = buffer.position();
-            if (!reader.elementAvailable()) {
-                buffer.position(packetStart);
-                return null;
-            }
-            final int length = reader.peekLength();
-            if (length > maxASN1ElementSize) {
-                buffer.position(packetStart);
-                throw DecodeException.fatalError(
-                        ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(length, maxASN1ElementSize));
-            }
-
-            final Buffer packet = buffer.slice(packetStart, buffer.position() + length);
-            buffer.position(buffer.position() + length);
-
-            return decodePacket(new ASN1BufferReader(maxASN1ElementSize, packet), attributeStorage);
-        }
-    }
-
-    private LdapRequestEnvelope decodePacket(final ASN1BufferReader reader, final AttributeStorage attributeStorage)
+    private LdapRequestEnvelope decodePacket(final ASN1BufferReader reader)
             throws IOException {
         reader.mark();
         try {
@@ -136,10 +125,6 @@ abstract class LdapCodec extends LDAPBaseFilter {
         } finally {
             reader.reset();
         }
-    }
-
-    private Buffer getRemainingBuffer(final Buffer buffer) {
-        return buffer.hasRemaining() ? buffer : null;
     }
 
     @Override

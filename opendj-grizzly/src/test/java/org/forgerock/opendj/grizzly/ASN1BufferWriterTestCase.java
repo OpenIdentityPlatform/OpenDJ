@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 @Test
 public class ASN1BufferWriterTestCase extends ASN1WriterTestCase {
 
-    private final ASN1BufferWriter writer = new ASN1BufferWriter(MemoryManager.DEFAULT_MEMORY_MANAGER);
+    private final ASN1BufferWriter writer = new ASN1BufferWriter();
 
     @Override
     protected byte[] getEncodedBytes() throws IOException, DecodeException {
@@ -53,7 +53,7 @@ public class ASN1BufferWriterTestCase extends ASN1WriterTestCase {
     @Override
     protected ASN1Writer getWriter() throws IOException {
         writer.flush();
-        writer.reset();
+        writer.reset(MemoryManager.DEFAULT_MEMORY_MANAGER);
         return writer;
     }
 }

@@ -422,16 +422,26 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         final Buffer buffer = (Buffer) ctx.getMessage();
 
         try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
-            final LDAPReader<? extends ASN1Reader> ldapReader = LDAP.getReader(reader, decodeOptions);
-            while (ldapReader.hasMessageAvailable()) {
-                ldapReader.readMessage(handler);
+            buffer.mark();
+            if (!reader.elementAvailable()) {
+                buffer.reset();
+                return ctx.getStopAction(buffer);
             }
-            buffer.shrink();
+            final int length = reader.peekLength();
+            final Buffer remainder = buffer.remaining() > length ? buffer.split(buffer.position() + length) : null;
+            buffer.reset();
+            try (final ASN1BufferReader packetReader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
+                final LDAPReader<? extends ASN1Reader> ldapReader = LDAP.getReader(packetReader, decodeOptions);
+                ctx.setMessage(null);
+                ldapReader.readMessage(handler);
+            } finally {
+                buffer.tryDispose();
+            }
+            return ctx.getInvokeAction(remainder);
         } catch (IOException e) {
             handleReadException(ctx, e);
             throw e;
         }
-        return ctx.getStopAction(buffer.hasRemaining() ? buffer : null);
     }
 
     private final void handleReadException(FilterChainContext ctx, IOException e) {

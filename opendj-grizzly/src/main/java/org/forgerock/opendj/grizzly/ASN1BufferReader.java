@@ -150,6 +150,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
     ASN1BufferReader(final int maxElementSize, final Buffer buffer) {
         this.readLimiter = new RootSequenceLimiter();
         this.buffer = buffer;
+        this.buffer.allowBufferDispose(false);
         this.maxElementSize = maxElementSize;
     }
 

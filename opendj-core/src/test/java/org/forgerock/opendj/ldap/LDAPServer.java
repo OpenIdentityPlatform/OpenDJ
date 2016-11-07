@@ -546,6 +546,6 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         if (!isRunning) {
             throw new IllegalStateException("Server is not running");
         }
-        return (InetSocketAddress) listener.getSocketAddresses().iterator().next();
+        return listener.firstSocketAddress();
     }
 }
