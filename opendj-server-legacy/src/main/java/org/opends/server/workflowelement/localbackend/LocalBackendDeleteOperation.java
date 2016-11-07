@@ -115,15 +115,15 @@ public class LocalBackendDeleteOperation
   /**
    * Process this delete operation in a local backend.
    *
-   * @param wfe
-   *          The local backend work-flow element.
+   * @param backend
+   *          The backend on which operation is performed.
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  public void processLocalDelete(final LocalBackendWorkflowElement wfe)
+  public void processLocalDelete(final LocalBackend<?> backend)
       throws CanceledOperationException
   {
-    this.backend = wfe.getBackend();
+    this.backend = backend;
 
     clientConnection = getClientConnection();
 

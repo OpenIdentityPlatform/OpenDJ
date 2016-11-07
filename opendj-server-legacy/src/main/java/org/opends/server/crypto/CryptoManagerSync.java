@@ -163,7 +163,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     attrAlias = getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
     attrCompromisedTime = getSchema().getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
 
-    if (DirectoryServer.getBackendWithBaseDN(adminSuffixDN) != null)
+    if (DirectoryServer.getLocalBackendWithBaseDN(adminSuffixDN) != null)
     {
       searchAdminSuffix();
     }

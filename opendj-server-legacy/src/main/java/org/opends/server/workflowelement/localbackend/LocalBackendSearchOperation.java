@@ -81,15 +81,15 @@ public class LocalBackendSearchOperation
   /**
    * Process this search operation against a local backend.
    *
-   * @param wfe
-   *          The local backend work-flow element.
+   * @param backend
+   *          The backend on which operation is performed.
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  public void processLocalSearch(LocalBackendWorkflowElement wfe)
+  public void processLocalSearch(LocalBackend<?> backend)
       throws CanceledOperationException
   {
-    this.backend = wfe.getBackend();
+    this.backend = backend;
     this.clientConnection = getClientConnection();
 
     // Check for a request to cancel this operation.

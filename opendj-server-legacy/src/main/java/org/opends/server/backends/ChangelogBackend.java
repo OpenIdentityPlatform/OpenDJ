@@ -241,7 +241,7 @@ public class ChangelogBackend extends LocalBackend<Configuration>
   @Deprecated
   public static ChangelogBackend getInstance()
   {
-    return (ChangelogBackend) DirectoryServer.getBackend(CHANGELOG_BASE_DN);
+    return (ChangelogBackend) DirectoryServer.getLocalBackend(CHANGELOG_BASE_DN);
   }
 
   @Override

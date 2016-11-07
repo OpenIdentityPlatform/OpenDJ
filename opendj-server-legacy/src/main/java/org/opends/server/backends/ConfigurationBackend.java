@@ -40,8 +40,9 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
+import org.forgerock.opendj.server.config.meta.LocalBackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.forgerock.opendj.server.config.server.LocalBackendCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
@@ -77,7 +78,7 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
    * needed for this specific backend, but this class is required to behave like other backends
    * during initialization.
    */
-  public final class ConfigurationBackendCfg implements BackendCfg
+  public final class ConfigurationBackendCfg implements LocalBackendCfg
   {
     private ConfigurationBackendCfg()
     {
@@ -91,7 +92,7 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
     }
 
     @Override
-    public Class<? extends BackendCfg> configurationClass()
+    public Class<? extends LocalBackendCfg> configurationClass()
     {
       return this.getClass();
     }
@@ -127,15 +128,31 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
     }
 
     @Override
-    public void addChangeListener(ConfigurationChangeListener<BackendCfg> listener)
+    public void addChangeListener(ConfigurationChangeListener<BackendCfg> arg0)
     {
       // no-op
+
     }
 
     @Override
-    public void removeChangeListener(ConfigurationChangeListener<BackendCfg> listener)
+    public void removeChangeListener(ConfigurationChangeListener<BackendCfg> arg0)
     {
       // no-op
+
+    }
+
+    @Override
+    public void addLocalChangeListener(ConfigurationChangeListener<LocalBackendCfg> arg0)
+    {
+      // no-op
+
+    }
+
+    @Override
+    public void removeLocalChangeListener(ConfigurationChangeListener<LocalBackendCfg> arg0)
+    {
+      // no-op
+
     }
   }
 

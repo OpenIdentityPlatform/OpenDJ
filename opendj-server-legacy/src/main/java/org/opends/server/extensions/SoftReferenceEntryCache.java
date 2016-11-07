@@ -327,7 +327,7 @@ public class SoftReferenceEntryCache
   public void clearSubtree(DN baseDN)
   {
     // Determine the backend used to hold the specified base DN and clear it.
-    LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
+    LocalBackend<?> backend = DirectoryServer.getLocalBackend(baseDN);
     if (backend == null)
     {
       // FIXME -- Should we clear everything just to be safe?

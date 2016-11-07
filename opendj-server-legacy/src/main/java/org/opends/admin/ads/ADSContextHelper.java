@@ -41,8 +41,8 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.server.config.client.LDIFBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
 import org.forgerock.opendj.server.config.meta.LDIFBackendCfgDefn;
+import org.forgerock.opendj.server.config.meta.LocalBackendCfgDefn.WritabilityMode;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ADSContextException.ErrorType;
 import org.opends.admin.ads.util.ConnectionWrapper;
@@ -100,7 +100,7 @@ class ADSContextHelper
         backend.setEnabled(true);
         backend.setLDIFFile(ADSContext.getAdminLDIFFile());
         backend.setBackendId(backendName);
-        backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
+        backend.setWritabilityMode(WritabilityMode.ENABLED);
         backend.setIsPrivateBackend(true);
       }
       SortedSet<DN> suffixes = backend.getBaseDN();

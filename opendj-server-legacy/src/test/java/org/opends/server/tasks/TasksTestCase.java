@@ -108,7 +108,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
   @Test(enabled=false) // This isn't a test method, but TestNG thinks it is.
   public static Task getTask(final DN taskEntryDN) throws Exception
   {
-    final TaskBackend taskBackend = (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
+    final TaskBackend taskBackend = (TaskBackend) DirectoryServer.getLocalBackend(DN.valueOf("cn=tasks"));
 
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(10, SECONDS)

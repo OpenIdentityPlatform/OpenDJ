@@ -600,7 +600,7 @@ public class FIFOEntryCache
   {
     // Determine which backend should be used for the provided base DN.  If
     // there is none, then we don't need to do anything.
-    LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
+    LocalBackend<?> backend = DirectoryServer.getLocalBackend(baseDN);
     if (backend == null)
     {
       return;

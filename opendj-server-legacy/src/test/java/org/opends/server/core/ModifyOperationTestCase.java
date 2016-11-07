@@ -96,7 +96,7 @@ public class ModifyOperationTestCase
     for (Object[] backendBaseDN2 : getBaseDNs())
     {
       final DN baseDN = DN.valueOf(backendBaseDN2[0].toString());
-      LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+      LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
       b.setWritabilityMode(WritabilityMode.ENABLED);
     }
   }
@@ -2429,7 +2429,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
@@ -2467,7 +2467,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
@@ -2505,7 +2505,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))

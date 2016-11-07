@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,8 +52,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.util.Reject;
-import org.forgerock.util.Utils;
 import org.opends.server.api.LocalBackend;
+import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -126,11 +127,8 @@ public class RootDSEBackend
   private DN rootDSEDN;
   /** The set of base DNs for this backend. */
   private Set<DN> baseDNs;
-  /**
-   * The set of subordinate base DNs and their associated backends that will be
-   * used for non-base searches.
-   */
-  private ConcurrentHashMap<DN, LocalBackend<?>> subordinateBaseDNs;
+
+  private ServerContext serverContext;
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -148,6 +146,7 @@ public class RootDSEBackend
   public void configureBackend(RootDSEBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     Reject.ifNull(config);
+    this.serverContext = serverContext;
     currentConfig = config;
     configEntryDN = config.dn();
   }
@@ -172,43 +171,6 @@ public class RootDSEBackend
     // the root DSE.
     rootDSEDN    = DN.rootDN();
     baseDNs = Collections.singleton(rootDSEDN);
-
-    // Create the set of subordinate base DNs.  If this is specified in the
-    // configuration, then use that set.  Otherwise, use the set of non-private
-    // backends defined in the server.
-    try
-    {
-      Set<DN> subDNs = currentConfig.getSubordinateBaseDN();
-      if (subDNs.isEmpty())
-      {
-        // This is fine -- we'll just use the set of user-defined suffixes.
-        subordinateBaseDNs = null;
-      }
-      else
-      {
-        subordinateBaseDNs = new ConcurrentHashMap<>();
-        for (DN baseDN : subDNs)
-        {
-          LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
-          if (backend != null)
-          {
-            subordinateBaseDNs.put(baseDN, backend);
-          }
-          else
-          {
-            logger.warn(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE, baseDN);
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
-          stackTraceToSingleLineString(e));
-      throw new InitializationException(message, e);
-    }
 
     // Determine whether all root DSE attributes should be treated as user
     // attributes.
@@ -314,21 +276,7 @@ public class RootDSEBackend
     {
       return -1;
     }
-
-    long count = 1;
-    for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
-    {
-      DN subBase = entry.getKey();
-      LocalBackend<?> b = entry.getValue();
-      Entry subBaseEntry = b.getEntry(subBase);
-      if (subBaseEntry != null)
-      {
-        count++;
-        count += b.getNumberOfEntriesInBaseDN(subBase);
-      }
-    }
-
-    return count;
+    return 1;
   }
 
   @Override
@@ -339,20 +287,7 @@ public class RootDSEBackend
     {
       return -1;
     }
-
-    long count = 0;
-
-    for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
-    {
-      DN subBase = entry.getKey();
-      Entry subBaseEntry = entry.getValue().getEntry(subBase);
-      if (subBaseEntry != null)
-      {
-        count ++;
-      }
-    }
-
-    return count;
+    return 0;
   }
 
   @Override
@@ -363,27 +298,6 @@ public class RootDSEBackend
     {
       return getRootDSE();
     }
-
-    // This method should never be used to get anything other than the root DSE.
-    // If we got here, then that appears to be the case, so log a message.
-    logger.warn(WARN_ROOTDSE_GET_ENTRY_NONROOT, entryDN);
-
-    // Go ahead and check the subordinate backends to see if we can find the
-    // entry there.  Note that in order to avoid potential loop conditions, this
-    // will only work if the set of subordinate bases has been explicitly
-    // specified.
-    if (subordinateBaseDNs != null)
-    {
-      for (LocalBackend<?> b : subordinateBaseDNs.values())
-      {
-        if (b.handlesEntry(entryDN))
-        {
-          return b.getEntry(entryDN);
-        }
-      }
-    }
-
-    // If we've gotten here, then we couldn't find the entry so return null.
     return null;
   }
 
@@ -410,30 +324,27 @@ public class RootDSEBackend
     Map<AttributeType, List<Attribute>> dseUserAttrs = new HashMap<>();
     Map<AttributeType, List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
-    Map<DN, LocalBackend<?>> publicNamingContexts = showSubordinatesNamingContexts ?
-        DirectoryServer.getAllPublicNamingContexts() :
-        DirectoryServer.getPublicNamingContexts();
-    Attribute publicNamingContextAttr = createAttribute(ATTR_NAMING_CONTEXTS, publicNamingContexts.keySet());
+    Set<DN> publicNamingContexts = showSubordinatesNamingContexts ?
+        getAllPublicNamingContexts() : getTopLevelPublicNamingContexts();
+    Attribute publicNamingContextAttr = createAttribute(ATTR_NAMING_CONTEXTS, publicNamingContexts);
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "ds-private-naming-contexts" attribute.
     Attribute privateNamingContextAttr = createAttribute(
-        ATTR_PRIVATE_NAMING_CONTEXTS, DirectoryServer.getPrivateNamingContexts().keySet());
+        ATTR_PRIVATE_NAMING_CONTEXTS, serverContext.getBackendManager().getPrivateNamingContexts().keySet());
     addAttribute(privateNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedControl" attribute.
-    Attribute supportedControlAttr = createAttribute(ATTR_SUPPORTED_CONTROL,
-        DirectoryServer.getSupportedControls());
+    Attribute supportedControlAttr = createAttribute(ATTR_SUPPORTED_CONTROL, getAllControls());
     addAttribute(supportedControlAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedExtension" attribute.
-    Attribute supportedExtensionAttr = createAttribute(
-        ATTR_SUPPORTED_EXTENSION, DirectoryServer.getSupportedExtensions());
+    Attribute supportedExtensionAttr = createAttribute(ATTR_SUPPORTED_EXTENSION,
+        DirectoryServer.getSupportedExtensions());
     addAttribute(supportedExtensionAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedFeature" attribute.
-    Attribute supportedFeatureAttr = createAttribute(ATTR_SUPPORTED_FEATURE,
-        DirectoryServer.getSupportedFeatures());
+    Attribute supportedFeatureAttr = createAttribute(ATTR_SUPPORTED_FEATURE, DirectoryServer.getSupportedFeatures());
     addAttribute(supportedFeatureAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedSASLMechanisms" attribute.
@@ -503,6 +414,35 @@ public class RootDSEBackend
     return e;
   }
 
+  private Set<String> getAllControls()
+  {
+    // TODO: this duplicates what is done in DirectoryServer (see DirectoryServer.getSupportedControls())
+    // How should this be handled ?
+    final Set<String> controls = new HashSet<>();
+    for (Backend<?> backend : serverContext.getBackendManager().getAllBackends())
+    {
+      controls.addAll(backend.getSupportedControls());
+    }
+    return controls;
+  }
+
+  private Set<DN> getAllPublicNamingContexts()
+  {
+    Set<DN> namingContexts = new HashSet<>();
+    for (Backend<?> backend : serverContext.getBackendManager().getAllBackends())
+    {
+      namingContexts.addAll(backend.getBaseDNs());
+    }
+    return namingContexts;
+  }
+
+  private Set<DN> getTopLevelPublicNamingContexts()
+  {
+    // TODO: this implementation is insufficient because it handles only the local backends
+    // The non-local backends must be added for completeness
+    return new HashSet<DN>(serverContext.getBackendManager().getPublicNamingContexts().keySet());
+  }
+
   private void addAll(Collection<Attribute> attributes,
       Map<AttributeType, List<Attribute>> userAttrs, Map<AttributeType, List<Attribute>> operationalAttrs)
   {
@@ -567,22 +507,6 @@ public class RootDSEBackend
     {
       return true;
     }
-
-    // If it was not the null DN, then iterate through the associated
-    // subordinate backends to make the determination.
-    for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
-    {
-      DN baseDN = entry.getKey();
-      if (entryDN.isSubordinateOrEqualTo(baseDN))
-      {
-        LocalBackend<?> b = entry.getValue();
-        if (b.entryExists(entryDN))
-        {
-          return true;
-        }
-      }
-    }
-
     return false;
   }
 
@@ -639,72 +563,13 @@ public class RootDSEBackend
         break;
 
       case SINGLE_LEVEL:
-        for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
-        {
-          searchOperation.checkIfCanceled(false);
-
-          DN subBase = entry.getKey();
-          LocalBackend<?> b = entry.getValue();
-          Entry subBaseEntry = b.getEntry(subBase);
-          if (subBaseEntry != null && filter.matchesEntry(subBaseEntry))
-          {
-            searchOperation.returnEntry(subBaseEntry, null);
-          }
-        }
-        break;
-
       case WHOLE_SUBTREE:
       case SUBORDINATES:
-        try
-        {
-          for (Map.Entry<DN, LocalBackend<?>> entry : getSubordinateBaseDNs().entrySet())
-          {
-            searchOperation.checkIfCanceled(false);
-
-            DN subBase = entry.getKey();
-            LocalBackend<?> b = entry.getValue();
-
-            searchOperation.setBaseDN(subBase);
-            try
-            {
-              b.search(searchOperation);
-            }
-            catch (DirectoryException de)
-            {
-              // If it's a "no such object" exception, then the base entry for
-              // the backend doesn't exist.  This isn't an error, so ignore it.
-              // We'll propogate all other errors, though.
-              if (de.getResultCode() != ResultCode.NO_SUCH_OBJECT)
-              {
-                throw de;
-              }
-            }
-          }
-        }
-        catch (DirectoryException de)
-        {
-          logger.traceException(de);
-
-          throw de;
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          LocalizableMessage message = ERR_ROOTDSE_UNEXPECTED_SEARCH_FAILURE.
-              get(searchOperation.getConnectionID(),
-                  searchOperation.getOperationID(),
-                  stackTraceToSingleLineString(e));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(), message,
-                         e);
-        }
-        finally
-        {
-          searchOperation.setBaseDN(rootDSEDN);
-        }
-        break;
-
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            ERR_ROOTDSE_NOT_SUPPORTED_SCOPE.get(
+                searchOperation.getConnectionID(),
+                searchOperation.getOperationID(),
+                searchOperation.getScope()));
       default:
         LocalizableMessage message = ERR_ROOTDSE_INVALID_SEARCH_SCOPE.
             get(searchOperation.getConnectionID(),
@@ -712,21 +577,6 @@ public class RootDSEBackend
                 searchOperation.getScope());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
-  }
-
-  /**
-   * Returns the subordinate base DNs of the root DSE.
-   *
-   * @return the subordinate base DNs of the root DSE
-   */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  public Map<DN, LocalBackend<?>> getSubordinateBaseDNs()
-  {
-    if (subordinateBaseDNs != null)
-    {
-      return subordinateBaseDNs;
-    }
-    return DirectoryServer.getPublicNamingContexts();
   }
 
   @Override
@@ -842,7 +692,7 @@ public class RootDSEBackend
       {
         for (DN baseDN : subDNs)
         {
-          LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
+          LocalBackend<?> backend = DirectoryServer.getLocalBackend(baseDN);
           if (backend == null)
           {
             unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
@@ -869,7 +719,7 @@ public class RootDSEBackend
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Check to see if we should apply a new set of base DNs.
-    ConcurrentHashMap<DN, LocalBackend<?>> subBases;
+    ConcurrentHashMap<DN, Backend<?>> subBases;
     try
     {
       Set<DN> subDNs = cfg.getSubordinateBaseDN();
@@ -883,7 +733,7 @@ public class RootDSEBackend
         subBases = new ConcurrentHashMap<>();
         for (DN baseDN : subDNs)
         {
-          LocalBackend<?> backend = DirectoryServer.getBackend(baseDN);
+          LocalBackend<?> backend = DirectoryServer.getLocalBackend(baseDN);
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.
@@ -928,18 +778,6 @@ public class RootDSEBackend
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
-      subordinateBaseDNs = subBases;
-
-      if (subordinateBaseDNs == null)
-      {
-        ccr.addMessage(INFO_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS.get());
-      }
-      else
-      {
-        String basesStr = "{ " + Utils.joinAsString(", ", subordinateBaseDNs.keySet()) + " }";
-        ccr.addMessage(INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(basesStr));
-      }
-
       if (showAllAttributes != newShowAll)
       {
         showAllAttributes = newShowAll;

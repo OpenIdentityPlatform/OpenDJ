@@ -155,15 +155,15 @@ public class LocalBackendModifyDNOperation
   /**
    * Process this modify DN operation in a local backend.
    *
-   * @param wfe
-   *          The local backend work-flow element.
+   * @param backend
+   *          The backend on which operation is performed.
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  public void processLocalModifyDN(final LocalBackendWorkflowElement wfe)
+  public void processLocalModifyDN(final LocalBackend<?> backend)
       throws CanceledOperationException
   {
-    this.backend = wfe.getBackend();
+    this.backend = backend;
 
     clientConnection = getClientConnection();
 
@@ -270,7 +270,7 @@ public class LocalBackendModifyDNOperation
       return;
     }
 
-    LocalBackend<?> newBackend = DirectoryServer.getBackend(newDN);
+    LocalBackend<?> newBackend = DirectoryServer.getLocalBackend(newDN);
     if (newBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);

@@ -119,7 +119,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       for (AttributeType t : attributeMap.values())
       {
-        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
@@ -296,7 +296,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       for (AttributeType t : newAttributeMap.values())
       {
-        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && !b.isIndexed(t, IndexType.EQUALITY))
         {
           LocalizableMessage message =

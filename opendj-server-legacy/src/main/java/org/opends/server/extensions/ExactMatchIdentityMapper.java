@@ -111,7 +111,7 @@ public class ExactMatchIdentityMapper
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend b = DirectoryServer.getBackend(baseDN);
+        LocalBackend b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_EXACTMAP_ATTR_UNINDEXED.get(
@@ -274,7 +274,7 @@ public class ExactMatchIdentityMapper
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend b = DirectoryServer.getBackend(baseDN);
+        LocalBackend b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_EXACTMAP_ATTR_UNINDEXED.get(

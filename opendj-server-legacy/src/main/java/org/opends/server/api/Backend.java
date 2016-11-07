@@ -121,25 +121,11 @@ public abstract class Backend<C extends Configuration>
   public abstract Set<DN> getBaseDNs();
 
   /**
-   * Retrieves the parent backend for this backend.
+   * Retrieves the password storage schemes defined for this backend.
    *
-   * @return  The parent backend for this backend, or {@code null} if
-   *          there is none.
+   * @return the set of supported password storage schemes
    */
-  public abstract LocalBackend<?> getParentBackend();
-
-  /**
-   * Retrieve the password storage schemes defined for this backend.
-   */
-  public abstract Set<PasswordStorageScheme<?>> getPasswordStorageSchemes();
-
-  /**
-   * Retrieves the set of subordinate backends for this backend.
-   *
-   * @return  The set of subordinate backends for this backend, or an
-   *          empty array if none exist.
-   */
-  public abstract Backend<?>[] getSubordinateBackends();
+  public abstract Set<PasswordStorageScheme<?>> getSupportedPasswordStorageSchemes();
 
   /**
    * Retrieves the OIDs of the controls that may be supported by this
@@ -219,26 +205,6 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Adds the provided backend to the set of subordinate backends for
-   * this backend.
-   *
-   * @param  subordinateBackend  The backend to add to the set of
-   *                             subordinate backends for this
-   *                             backend.
-   */
-  public abstract void addSubordinateBackend(Backend<?> subordinateBackend);
-
-  /**
-   * Removes the provided backend from the set of subordinate backends
-   * for this backend.
-   *
-   * @param  subordinateBackend  The backend to remove from the set of
-   *                             subordinate backends for this
-   *                             backend.
-   */
-  public abstract void removeSubordinateBackend(Backend<?> subordinateBackend);
-
-  /**
    * Specifies the unique identifier for this backend.
    *
    * @param  backendID  The unique identifier for this backend.
@@ -257,12 +223,5 @@ public abstract class Backend<C extends Configuration>
   {
     this.backendMonitor = backendMonitor;
   }
-
-  /**
-   * Specifies the parent backend for this backend.
-   *
-   * @param  parentBackend  The parent backend for this backend.
-   */
-  public abstract void setParentBackend(Backend<?> parentBackend);
 
 }

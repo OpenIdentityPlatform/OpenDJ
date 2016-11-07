@@ -163,8 +163,6 @@ import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
-import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
-
 import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -581,9 +579,6 @@ public final class DirectoryServer
 
   /** The synchronization provider configuration manager for the Directory Server. */
   private SynchronizationProviderConfigManager synchronizationProviderConfigManager;
-
-  /** Registry for base DN and naming context information. */
-  private BaseDnRegistry baseDnRegistry;
 
   /** The set of backends registered with the server. */
   private TreeMap<String, LocalBackend<?>> backends;
@@ -1064,6 +1059,12 @@ public final class DirectoryServer
     {
       return directoryServer.cronExecutorService;
     }
+
+    @Override
+    public BackendConfigManager getBackendManager()
+    {
+      return directoryServer.backendConfigManager;
+    }
   }
 
   /**
@@ -1216,7 +1217,6 @@ public final class DirectoryServer
       directoryServer.monitorProviders = new ConcurrentHashMap<>();
       directoryServer.backends = new TreeMap<>();
       directoryServer.backendInitializationListeners = new CopyOnWriteArraySet<>();
-      directoryServer.baseDnRegistry = new BaseDnRegistry();
       directoryServer.initializationCompletedListeners = new CopyOnWriteArrayList<>();
       directoryServer.shutdownListeners = new CopyOnWriteArrayList<>();
       directoryServer.synchronizationProviders = new CopyOnWriteArrayList<>();
@@ -1543,8 +1543,6 @@ public final class DirectoryServer
 
       initializeRemainingBackends();
 
-      createAndRegisterRemainingWorkflows();
-
       // Check for and initialize user configured entry cache if any.
       // If not then stick with default entry cache initialized earlier.
       entryCacheConfigManager.initializeEntryCache();
@@ -1815,67 +1813,6 @@ public final class DirectoryServer
       throw new InitializationException(ERR_MISSING_ADMIN_BACKENDS.get());
     }
     backendConfigManager.initializeBackends(Collections.<String>emptyList(), serverContext.getRootConfig());
-  }
-
-  /**
-   * Creates a set of workflows for a given backend and registers the
-   * workflows with the default network group, the internal network group
-   * and he admin network group. There are as many workflows
-   * as base DNs defined in the backend.
-   *
-   * @param backend  the backend handled by the workflow
-   *
-   * @throws  DirectoryException  If the workflow ID for the provided
-   *                              workflow conflicts with the workflow
-   *                              ID of an existing workflow.
-   */
-  private static void createAndRegisterWorkflows(LocalBackend<?> backend) throws DirectoryException
-  {
-    // Create a workflow for each backend base DN and register the workflow
-    // with the default/internal/admin network group.
-    for (DN curBaseDN: backend.getBaseDNs())
-    {
-      createWorkflow(curBaseDN, backend);
-    }
-  }
-
-  /**
-   * Creates one workflow for a given base DN in a backend.
-   *
-   * @param baseDN   the base DN of the workflow to create
-   * @param backend  the backend handled by the workflow
-   * @throws  DirectoryException  If the workflow ID for the provided
-   *                              workflow conflicts with the workflow
-   *                              ID of an existing workflow.
-   */
-  private static void createWorkflow(DN baseDN, LocalBackend<?> backend) throws DirectoryException
-  {
-    LocalBackendWorkflowElement.createAndRegister(baseDN, backend);
-  }
-
-  /**
-   * Creates the missing workflows, one for the config backend and one for
-   * the rootDSE backend.
-   *
-   * This method should be invoked whatever may be the workflow
-   * configuration mode because config backend and rootDSE backend
-   * will not have any configuration section, ever.
-   *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the workflows.
-   */
-  private void createAndRegisterRemainingWorkflows()
-      throws ConfigException
-  {
-    try
-    {
-      createAndRegisterWorkflows(getConfigurationBackend());
-      createAndRegisterWorkflows(rootDSEBackend);
-    }
-    catch (DirectoryException de)
-    {
-      throw new ConfigException(de.getMessageObject());
-    }
   }
 
   /**
@@ -3559,12 +3496,6 @@ public final class DirectoryServer
 
       directoryServer.backends = newBackends;
 
-      // Don't need anymore the local backend workflow element so we can remove it
-      for (DN baseDN : backend.getBaseDNs())
-      {
-        LocalBackendWorkflowElement.remove(baseDN);
-      }
-
       BackendMonitor monitor = backend.getBackendMonitor();
       if (monitor != null)
       {
@@ -3576,21 +3507,21 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the backend with the specified base DN.
+   * Retrieves the local backend with the specified base DN.
    *
    * @param  baseDN  The DN that is registered as one of the base DNs for the
    *                 backend to retrieve.
    *
-   * @return  The backend with the specified base DN, or {@code null} if there
-   *          is no backend registered with the specified base DN.
+   * @return  The local backend with the specified base DN, or {@code null} if there
+   *          is no local backend registered with the specified base DN.
    */
-  public static LocalBackend<?> getBackendWithBaseDN(DN baseDN)
+  public static LocalBackend<?> getLocalBackendWithBaseDN(DN baseDN)
   {
-    return directoryServer.baseDnRegistry.getBaseDnMap().get(baseDN);
+    return directoryServer.backendConfigManager.getLocalBackendWithBaseDN(baseDN);
   }
 
   /**
-   * Retrieves the backend that should be used to handle operations on the
+   * Retrieves the local backend that should be used to handle operations on the
    * specified entry.
    *
    * @param  entryDN  The DN of the entry for which to retrieve the
@@ -3600,41 +3531,13 @@ public final class DirectoryServer
    *          specified entry, or {@code null} if no appropriate backend is
    *          registered with the server.
    */
-  public static LocalBackend<?> getBackend(DN entryDN)
+  public static LocalBackend<?> getLocalBackend(DN entryDN)
   {
     if (entryDN.isRootDN())
     {
       return directoryServer.rootDSEBackend;
     }
-
-    Map<DN, LocalBackend<?>> baseDNs = directoryServer.baseDnRegistry.getBaseDnMap();
-    LocalBackend<?> b = baseDNs.get(entryDN);
-    while (b == null)
-    {
-      entryDN = entryDN.parent();
-      if (entryDN == null)
-      {
-        return null;
-      }
-
-      b = baseDNs.get(entryDN);
-    }
-
-    return b;
-  }
-
-  /**
-   * Obtains a copy of the server's base DN registry.  The copy can be used
-   * to test registration/deregistration of base DNs but cannot be used to
-   * modify the backends.  To modify the server's live base DN to backend
-   * mappings use {@link #registerBaseDN(DN, LocalBackend, boolean)} and
-   * {@link #deregisterBaseDN(DN)}.
-   *
-   * @return copy of the base DN registry
-   */
-  public static BaseDnRegistry copyBaseDnRegistry()
-  {
-    return directoryServer.baseDnRegistry.copy();
+    return directoryServer.backendConfigManager.getLocalBackend(entryDN).getBackend();
   }
 
   /**
@@ -3656,29 +3559,9 @@ public final class DirectoryServer
          throws DirectoryException
   {
     ifNull(baseDN, backend);
-
     synchronized (directoryServer)
     {
-      List<LocalizableMessage> warnings =
-              directoryServer.baseDnRegistry.registerBaseDN(
-                      baseDN, backend, isPrivate);
-
-      // Since we've committed the changes we need to log any issues
-      // that this registration has caused
-      for (LocalizableMessage warning : warnings) {
-        logger.error(warning);
-      }
-
-      // When a new baseDN is registered with the server we have to create
-      // a new workflow to handle the base DN.
-      if (!baseDN.equals(DN.valueOf("cn=config")))
-      {
-        // Now create a workflow for the registered baseDN and register
-        // the workflow with the default network group, but don't register
-        // the workflow if the backend happens to be the configuration
-        // backend because it's too soon for the config backend.
-        createWorkflow(baseDN, backend);
-      }
+      directoryServer.backendConfigManager.registerBaseDN(baseDN, backend, isPrivate);
     }
   }
 
@@ -3695,22 +3578,8 @@ public final class DirectoryServer
          throws DirectoryException
   {
     ifNull(baseDN);
-
     synchronized(directoryServer) {
-      List<LocalizableMessage> warnings =
-              directoryServer.baseDnRegistry.deregisterBaseDN(baseDN);
-
-      // Since we've committed the changes we need to log any issues
-      // that this registration has caused
-      for (LocalizableMessage error : warnings) {
-        logger.error(error);
-      }
-
-      // Now we need to deregister the workflow that was associated with the base DN
-      if (!baseDN.equals(DN.valueOf("cn=config")))
-      {
-        LocalBackendWorkflowElement.remove(baseDN);
-      }
+      directoryServer.backendConfigManager.deregisterBaseDN(baseDN);
     }
   }
 
@@ -3722,7 +3591,7 @@ public final class DirectoryServer
    */
   public static Map<DN, LocalBackend<?>> getPublicNamingContexts()
   {
-    return directoryServer.baseDnRegistry.getPublicNamingContextsMap();
+    return directoryServer.backendConfigManager.getPublicNamingContexts();
   }
 
   /**
@@ -3734,19 +3603,7 @@ public final class DirectoryServer
    */
   public static Map<DN, LocalBackend<?>> getAllPublicNamingContexts()
   {
-    return directoryServer.baseDnRegistry.getAllPublicNamingContextsMap();
-  }
-
-  /**
-   * Retrieves the set of private naming contexts defined in the Directory
-   * Server, mapped from the naming context DN to the corresponding backend.
-   *
-   * @return  The set of private naming contexts defined in the Directory
-   *          Server.
-   */
-  public static Map<DN, LocalBackend<?>> getPrivateNamingContexts()
-  {
-    return directoryServer.baseDnRegistry.getPrivateNamingContextsMap();
+    return directoryServer.backendConfigManager.getAllPublicNamingContexts();
   }
 
   /**
@@ -3760,7 +3617,7 @@ public final class DirectoryServer
    */
   public static boolean isNamingContext(DN dn)
   {
-    return directoryServer.baseDnRegistry.containsNamingContext(dn);
+    return directoryServer.backendConfigManager.containsNamingContext(dn);
   }
 
   /**
@@ -3843,7 +3700,7 @@ public final class DirectoryServer
     {
       return directoryServer.rootDSEBackend.getRootDSE();
     }
-    final LocalBackend<?> backend = getBackend(entryDN);
+    final LocalBackend<?> backend = getLocalBackend(entryDN);
     return backend != null ? backend.getEntry(entryDN) : null;
   }
 
@@ -3870,7 +3727,7 @@ public final class DirectoryServer
 
     // Ask the appropriate backend if the entry exists.
     // If it is not appropriate for any backend, then return false.
-    LocalBackend<?> backend = getBackend(entryDN);
+    LocalBackend<?> backend = getLocalBackend(entryDN);
     return backend != null && backend.entryExists(entryDN);
   }
 
@@ -5259,8 +5116,6 @@ public final class DirectoryServer
         logger.traceException(e);
       }
     }
-    // Deregister all the local backend workflow elements that have been registered with the server.
-    LocalBackendWorkflowElement.removeAll();
   }
 
   /**
@@ -5287,12 +5142,6 @@ public final class DirectoryServer
     schemaDN                 = null;
     shutdownHook             = null;
     workQueue                = null;
-
-    if (baseDnRegistry != null)
-    {
-      baseDnRegistry.clear();
-      baseDnRegistry = null;
-    }
 
     if (backends != null)
     {

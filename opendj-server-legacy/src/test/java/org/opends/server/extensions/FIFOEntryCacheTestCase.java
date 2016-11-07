@@ -252,7 +252,7 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
+    String b = DirectoryServer.getLocalBackend(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
@@ -322,7 +322,7 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
+    String b = DirectoryServer.getLocalBackend(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);

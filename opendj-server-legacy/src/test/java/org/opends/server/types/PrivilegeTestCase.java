@@ -2378,7 +2378,7 @@ public class PrivilegeTestCase extends TypesTestCase
   private Task getCompletedTask(DN taskEntryDN) throws Exception
   {
     TaskBackend taskBackend =
-         (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
+         (TaskBackend) DirectoryServer.getLocalBackend(DN.valueOf("cn=tasks"));
     Task task = taskBackend.getScheduledTask(taskEntryDN);
     if (task == null)
     {

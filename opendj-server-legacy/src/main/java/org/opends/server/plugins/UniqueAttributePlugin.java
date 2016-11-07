@@ -158,7 +158,7 @@ public class UniqueAttributePlugin
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
@@ -690,7 +690,7 @@ public class UniqueAttributePlugin
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(

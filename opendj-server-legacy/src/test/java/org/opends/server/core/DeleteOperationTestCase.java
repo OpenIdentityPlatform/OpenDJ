@@ -58,7 +58,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    LocalBackend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> b = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
@@ -569,7 +569,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LocalBackend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> backend = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -591,7 +591,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LocalBackend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> backend = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -613,7 +613,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LocalBackend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    LocalBackend<?> backend = DirectoryServer.getLocalBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     String[] args = getArgs("o=test");

@@ -54,11 +54,12 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.CryptoManagerCfgClient;
+import org.forgerock.opendj.server.config.client.LocalBackendCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationDomainCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationServerCfgClient;
 import org.forgerock.opendj.server.config.client.ReplicationSynchronizationProviderCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendCfgDefn;
+import org.forgerock.opendj.server.config.meta.LocalBackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReplicationServerCfgDefn;
 import org.forgerock.opendj.server.config.meta.ReplicationSynchronizationProviderCfgDefn;
@@ -341,11 +342,11 @@ public class InstallerHelper {
     try
     {
       RootCfgClient root = conn.getRootConfiguration();
-      BackendCfgClient backend = root.createBackend(backendType, backendName, null);
+      LocalBackendCfgClient backend = (LocalBackendCfgClient) root.createBackend(backendType, backendName, null);
       backend.setEnabled(true);
       backend.setBaseDN(baseDNs);
       backend.setBackendId(backendName);
-      backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
+      backend.setWritabilityMode(WritabilityMode.ENABLED);
       backend.commit();
     }
     catch (Throwable t)

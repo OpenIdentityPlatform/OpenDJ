@@ -40,7 +40,8 @@ public class TestDN extends TypesTestCase {
   public Object[][] getNamingContexts() {
     ArrayList<DN> contextList = new ArrayList<>();
     contextList.addAll(DirectoryServer.getPublicNamingContexts().keySet());
-    contextList.addAll(DirectoryServer.getPrivateNamingContexts().keySet());
+    contextList.addAll(DirectoryServer.getInstance().getServerContext().getBackendManager().
+        getPrivateNamingContexts().keySet());
 
     Object[][] contextArray = new Object[contextList.size()][1];
     for (int i = 0;i < contextArray.length;i++) {

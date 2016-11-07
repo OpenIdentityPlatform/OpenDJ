@@ -3694,7 +3694,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    */
   private LocalBackend<?> getBackend()
   {
-    return DirectoryServer.getBackend(getBaseDN());
+    return DirectoryServer.getLocalBackend(getBaseDN());
   }
 
   /*
@@ -3761,7 +3761,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     }
 
     // Check that the base DN is configured as a base-dn of the directory server
-    if (DirectoryServer.getBackend(dn) == null)
+    if (DirectoryServer.getLocalBackend(dn) == null)
     {
       unacceptableReasons.add(ERR_UNKNOWN_DN.get(dn));
       return false;

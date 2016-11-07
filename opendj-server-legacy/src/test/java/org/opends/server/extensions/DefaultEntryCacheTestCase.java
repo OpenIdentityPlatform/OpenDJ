@@ -361,7 +361,7 @@ public class DefaultEntryCacheTestCase
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b = DirectoryServer.getBackend(DN.valueOf("o=test")).getBackendID();
+    String b = DirectoryServer.getLocalBackend(DN.valueOf("o=test")).getBackendID();
 
     // Spread test entries among all cache levels via default cache.
     for (int i = 0; i < NUMTESTENTRIES; i++) {

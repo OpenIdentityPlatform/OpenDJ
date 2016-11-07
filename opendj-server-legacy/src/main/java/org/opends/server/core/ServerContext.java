@@ -135,4 +135,11 @@ public interface ServerContext
    * @return the UNIX's cron-like executor service
    */
   ScheduledExecutorService getCronExecutorService();
+
+  /**
+   * Returns the manager of backends.
+   *
+   * @return backend manager
+   */
+  BackendConfigManager getBackendManager();
 }

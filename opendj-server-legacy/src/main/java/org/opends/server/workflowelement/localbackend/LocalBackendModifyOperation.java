@@ -263,14 +263,14 @@ public class LocalBackendModifyOperation
   /**
    * Process this modify operation against a local backend.
    *
-   * @param wfe
-   *          The local backend work-flow element.
+   * @param backend
+   *          The backend on which operation is performed.
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  void processLocalModify(final LocalBackendWorkflowElement wfe) throws CanceledOperationException
+  void processLocalModify(final LocalBackend<?> backend) throws CanceledOperationException
   {
-    this.backend = wfe.getBackend();
+    this.backend = backend;
     this.clientConnection = getClientConnection();
 
     checkIfCanceled(false);

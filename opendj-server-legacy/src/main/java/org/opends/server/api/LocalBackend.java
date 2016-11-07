@@ -95,6 +95,15 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
   /** The set of persistent searches registered with this backend. */
   private final ConcurrentLinkedQueue<PersistentSearch> persistentSearches = new ConcurrentLinkedQueue<>();
 
+  /**
+   * Returns the provided backend instance as a LocalBackend.
+   *
+   * @param backend
+   *            A backend
+   * @return a local backend
+   * @throws IllegalArgumentException
+   *            If the provided backend is not a LocalBackend
+   */
   public static LocalBackend<?> asLocalBackend(Backend<?> backend)
   {
     if (backend instanceof LocalBackend)
@@ -712,7 +721,8 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
     return persistentSearches;
   }
 
-  public Set<PasswordStorageScheme<?>> getPasswordStorageSchemes() {
+  @Override
+  public Set<PasswordStorageScheme<?>> getSupportedPasswordStorageSchemes() {
     return new HashSet<PasswordStorageScheme<?>>(DirectoryServer.getPasswordStorageSchemes());
   }
 
@@ -725,25 +735,47 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
    */
   public abstract long getEntryCount();
 
-  @Override
+  /**
+   * Retrieves the parent backend for this backend.
+   *
+   * @return  The parent backend for this backend, or {@code null} if
+   *          there is none.
+   */
   public final LocalBackend<?> getParentBackend()
   {
     return parentBackend;
   }
 
-  @Override
+  /**
+   * Specifies the parent backend for this backend.
+   *
+   * @param  parentBackend  The parent backend for this backend.
+   */
   public final synchronized void setParentBackend(Backend<?> parentBackend)
   {
     this.parentBackend = (LocalBackend<?>) parentBackend;
   }
 
-  @Override
+  /**
+   * Retrieves the set of subordinate backends for this backend.
+   *
+   * @return  The set of subordinate backends for this backend, or an
+   *          empty array if none exist.
+   */
   public final LocalBackend<?>[] getSubordinateBackends()
   {
     return subordinateBackends;
   }
 
-  @Override
+
+  /**
+   * Adds the provided backend to the set of subordinate backends for
+   * this backend.
+   *
+   * @param  subordinateBackend  The backend to add to the set of
+   *                             subordinate backends for this
+   *                             backend.
+   */
   public final synchronized void addSubordinateBackend(Backend<?> subordinateBackend)
   {
     LinkedHashSet<LocalBackend<?>> backendSet = new LinkedHashSet<>();
@@ -755,7 +787,14 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
     }
   }
 
-  @Override
+  /**
+   * Removes the provided backend from the set of subordinate backends
+   * for this backend.
+   *
+   * @param  subordinateBackend  The backend to remove from the set of
+   *                             subordinate backends for this
+   *                             backend.
+   */
   public final synchronized void removeSubordinateBackend(Backend<?> subordinateBackend)
   {
     ArrayList<LocalBackend<?>> backendList = new ArrayList<>(subordinateBackends.length);

@@ -166,7 +166,7 @@ public class RebuildTask extends Task
     rebuildConfig.setTmpDirectory(tmpDirectory);
     rebuildConfig.setRebuildMode(rebuildMode);
 
-    final LocalBackend<?> backend = DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
+    final LocalBackend<?> backend = DirectoryServer.getLocalBackendWithBaseDN(rebuildConfig.getBaseDN());
     if (backend == null)
     {
       logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDN);

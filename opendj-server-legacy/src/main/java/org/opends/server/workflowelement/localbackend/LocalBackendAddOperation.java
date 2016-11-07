@@ -141,15 +141,15 @@ public class LocalBackendAddOperation
   /**
    * Process this add operation against a local backend.
    *
-   * @param wfe
-   *          The local backend work-flow element.
+   * @param backend
+   *          The backend on which operation is performed.
    * @throws CanceledOperationException
    *           if this operation should be cancelled
    */
-  public void processLocalAdd(final LocalBackendWorkflowElement wfe)
+  public void processLocalAdd(final LocalBackend<?> backend)
       throws CanceledOperationException
   {
-    this.backend = wfe.getBackend();
+    this.backend = backend;
     ClientConnection clientConnection = getClientConnection();
 
     // Check for a request to cancel this operation.

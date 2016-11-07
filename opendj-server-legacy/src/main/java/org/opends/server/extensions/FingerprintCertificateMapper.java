@@ -118,7 +118,7 @@ public class FingerprintCertificateMapper
     AttributeType t = configuration.getFingerprintAttribute();
     for (DN baseDN : cfgBaseDNs)
     {
-      LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+      LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
@@ -317,7 +317,7 @@ public class FingerprintCertificateMapper
     AttributeType t = configuration.getFingerprintAttribute();
     for (DN baseDN : cfgBaseDNs)
     {
-      LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+      LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(

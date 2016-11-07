@@ -297,7 +297,7 @@ public class ReferentialIntegrityPlugin
 
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = DirectoryServer.getBackend(baseDN);
+        LocalBackend<?> b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && !b.isIndexed(type, IndexType.EQUALITY))
         {
           isAcceptable = false;

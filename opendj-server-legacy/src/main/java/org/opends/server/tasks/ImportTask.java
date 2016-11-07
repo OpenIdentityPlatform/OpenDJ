@@ -299,7 +299,7 @@ public class ImportTask extends Task
       // Find the backend that includes all the branches.
       for(DN includeBranch : includeBranches)
       {
-        LocalBackend<?> locatedBackend = DirectoryServer.getBackend(includeBranch);
+        LocalBackend<?> locatedBackend = DirectoryServer.getLocalBackend(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)
@@ -457,7 +457,7 @@ public class ImportTask extends Task
       // Find the backend that includes all the branches.
       for(DN includeBranch : includeBranches)
       {
-        LocalBackend<?> locatedBackend = DirectoryServer.getBackend(includeBranch);
+        LocalBackend<?> locatedBackend = DirectoryServer.getLocalBackend(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)

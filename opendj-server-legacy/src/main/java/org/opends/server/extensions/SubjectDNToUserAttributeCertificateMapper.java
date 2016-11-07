@@ -105,7 +105,7 @@ public class SubjectDNToUserAttributeCertificateMapper
     AttributeType t = configuration.getSubjectAttribute();
     for (DN baseDN : cfgBaseDNs)
     {
-      LocalBackend b = DirectoryServer.getBackend(baseDN);
+      LocalBackend b = DirectoryServer.getLocalBackend(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),

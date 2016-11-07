@@ -26,11 +26,12 @@ import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.client.BackendIndexCfgClient;
+import org.forgerock.opendj.server.config.client.LocalBackendCfgClient;
 import org.forgerock.opendj.server.config.client.PluggableBackendCfgClient;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
-import org.forgerock.opendj.server.config.meta.BackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
+import org.forgerock.opendj.server.config.meta.LocalBackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.admin.ads.util.ConnectionWrapper;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -169,7 +170,8 @@ public class BackendCreationHelper
   private static void createBackend(RootCfgClient rootConfiguration, String backendName, Collection<DN> baseDNs,
       ManagedObjectDefinition<? extends BackendCfgClient, ? extends BackendCfg> backendType) throws Exception
   {
-    final BackendCfgClient backendCfgClient = rootConfiguration.createBackend(backendType, backendName, null);
+    final LocalBackendCfgClient backendCfgClient =
+        (LocalBackendCfgClient) rootConfiguration.createBackend(backendType, backendName, null);
     backendCfgClient.setEnabled(true);
     backendCfgClient.setBaseDN(baseDNs);
     backendCfgClient.setWritabilityMode(WritabilityMode.ENABLED);

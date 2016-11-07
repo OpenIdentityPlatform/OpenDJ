@@ -138,7 +138,7 @@ public class RegularExpressionIdentityMapper
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend b = DirectoryServer.getBackend(baseDN);
+        LocalBackend b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_REGEXMAP_ATTR_UNINDEXED.get(
@@ -291,7 +291,7 @@ public class RegularExpressionIdentityMapper
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend b = DirectoryServer.getBackend(baseDN);
+        LocalBackend b = DirectoryServer.getLocalBackend(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_REGEXMAP_ATTR_UNINDEXED.get(
