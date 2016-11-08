@@ -546,11 +546,8 @@ public class RootDSEBackend
       case SINGLE_LEVEL:
       case WHOLE_SUBTREE:
       case SUBORDINATES:
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            ERR_ROOTDSE_NOT_SUPPORTED_SCOPE.get(
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                searchOperation.getScope()));
+        // nothing to return
+        break;
       default:
         LocalizableMessage message = ERR_ROOTDSE_INVALID_SEARCH_SCOPE.
             get(searchOperation.getConnectionID(),

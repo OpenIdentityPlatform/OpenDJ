@@ -169,6 +169,7 @@ public class ShutdownTask
       // Since the process will not be killed, we can proceed exactly the same
       // way with or without windows service configured.
       RestartTaskThread restartThread = new RestartTaskThread(shutdownMessage);
+      restartThread.setDaemon(false);
       restartThread.start();
     }
     else

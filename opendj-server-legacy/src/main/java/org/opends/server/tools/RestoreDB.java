@@ -280,6 +280,7 @@ public class RestoreDB extends TaskTool {
       try
       {
         new DirectoryServer.InitializationBuilder(configFile.getValue())
+            .requireCryptoServices()
             .requireErrorAndDebugLogPublisher(out, err)
             .initialize();
       }

@@ -460,6 +460,16 @@ public class BackendConfigManager implements
   public Set<BackendAndName> getSubordinateBackends(DN baseDN)
   {
     final Set<BackendAndName> subs = new HashSet<>();
+    if (baseDN.isRootDN())
+    {
+      Map<DN, LocalBackend<?>> namingContexts = getAllPublicNamingContexts();
+      for (Map.Entry<DN, LocalBackend<?>> b : namingContexts.entrySet())
+      {
+        subs.add(new BackendAndName(b.getValue(), b.getKey()));
+      }
+      return subs;
+    }
+
     LocalBackend<?> backend = getLocalBackendWithBaseDN(baseDN);
     if (backend == null)
     {

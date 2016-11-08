@@ -19,7 +19,6 @@ package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.api.DirectoryThread;
 
 /**
  * This class defines a thread that will be spawned to invoke a Directory Server
@@ -35,8 +34,7 @@ import org.opends.server.api.DirectoryThread;
  * daemon thread.  These changes are needed to guarantee that the JVM does not
  * exit before we get a chance to restart it if all non-daemon threads go away.
  */
-public class RestartTaskThread
-       extends DirectoryThread
+public class RestartTaskThread extends Thread
 {
   /**
    * The fully-qualified name of this class.

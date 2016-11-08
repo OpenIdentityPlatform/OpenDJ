@@ -743,15 +743,11 @@ public class LocalBackendWorkflowElement
 
     executeOperation(operation, backendAndName.getBackend());
 
-    if (!entryDN.isRootDN())
+    // For subtree search operation we need to go through the subordinate nodes.
+    if (operation.getOperationType() == OperationType.SEARCH)
     {
-      // For subtree search operation we need to go through the subordinate nodes.
-      if (operation.getOperationType() == OperationType.SEARCH)
-      {
-        executeSearchOnSubordinates((SearchOperation) operation, backendAndName.getBaseDn());
-      }
+      executeSearchOnSubordinates((SearchOperation) operation, backendAndName.getBaseDn());
     }
-
     return true;
   }
 
