@@ -1500,6 +1500,7 @@ public class Installer extends GuiApplication
     }
     argList.add("-F");
     argList.add("-Q");
+    argList.add("--offline");
     argList.add("--noPropertiesFile");
 
     final String[] args = new String[argList.size()];
@@ -1587,6 +1588,7 @@ public class Installer extends GuiApplication
     }
 
     List<String> argList = new ArrayList<>();
+    argList.add("--offline");
     argList.add("-n");
     argList.add(ROOT_BACKEND_NAME);
     for (String ldifPath : ldifPaths)
@@ -1711,6 +1713,7 @@ public class Installer extends GuiApplication
       setNotifyListeners(false);
     }
     final List<String> argList = new ArrayList<>();
+    argList.add("--offline");
     argList.add("-n");
     argList.add(ROOT_BACKEND_NAME);
     argList.add("-A");

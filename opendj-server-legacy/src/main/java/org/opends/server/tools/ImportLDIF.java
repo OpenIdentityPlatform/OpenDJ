@@ -217,7 +217,7 @@ public class ImportLDIF extends TaskTool {
     // Count rejects option requires the ability to return result codes
     // which are potentially greater than 1. This is not supported by
     // the task framework.
-    if (countRejects.isPresent() && argParser.connectionArgumentsPresent())
+    if (countRejects.isPresent() && !runOffline())
     {
       argParser.displayMessageAndUsageReference(err, ERR_LDIFIMPORT_COUNT_REJECTS_REQUIRES_OFFLINE.get(
           countRejects.getLongIdentifier()));

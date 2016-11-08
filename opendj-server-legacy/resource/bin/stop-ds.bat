@@ -17,8 +17,6 @@ rem Portions Copyright 2011-2014 ForgeRock AS.
 
 setlocal
 
-set PATH=%SystemRoot%
-
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME=stop-ds
 set DIR_HOME=%~dp0..

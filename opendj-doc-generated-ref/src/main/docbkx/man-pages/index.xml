@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015 ForgeRock AS.
+  Copyright 2015-2016 ForgeRock AS.
 -->
 <book xml:id="reference"
       xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en"
@@ -66,9 +66,6 @@
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
   <xinclude:include href="man-dsconfig.xml">
-   <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
-  </xinclude:include>
-  <xinclude:include href="man-dsjavaproperties.xml">
    <xinclude:fallback><!-- Failed to include page --></xinclude:fallback>
   </xinclude:include>
   <xinclude:include href="man-dsreplication.xml">

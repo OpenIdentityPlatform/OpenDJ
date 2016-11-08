@@ -81,7 +81,8 @@ public class RebuildIndexTestCase
     final String[] args = {
         "-f",configFilePath,
         "-b", baseDN,
-        "-i", "description"
+        "-i", "description",
+        "--offline"
     };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 1);
   }
@@ -95,7 +96,8 @@ public class RebuildIndexTestCase
     final String[] args = {
         "-f", configFilePath,
         "-b", baseDN,
-        "-i", "ds-sync-hist"
+        "-i", "ds-sync-hist",
+        "--offline"
     };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 0);
   }
@@ -106,7 +108,8 @@ public class RebuildIndexTestCase
     final String[] args = {
             "-f", configFilePath,
             "-b", baseDN,
-            "--rebuildDegraded"
+            "--rebuildDegraded",
+            "--offline"
     };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 0);
   }

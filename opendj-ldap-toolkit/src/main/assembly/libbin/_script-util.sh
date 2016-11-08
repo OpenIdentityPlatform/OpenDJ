@@ -13,6 +13,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2008-2009 Sun Microsystems, Inc.
+# Portions Copyright 2016 ForgeRock AS.
 
 #
 # function that sets the java home
@@ -35,9 +36,7 @@ set_java_home_and_args() {
           then
             export OPENDJ_JAVA_BIN
           else
-            echo "Please set OPENDJ_JAVA_HOME to the root of a Java 5 (or later) installation"
-            echo "or edit the java.properties file and then run the dsjavaproperties script to"
-            echo "specify the Java version to be used"
+            echo "Please set OPENDJ_JAVA_HOME to the root of a Java 7 (or later) installation"
             exit 1
           fi
         else

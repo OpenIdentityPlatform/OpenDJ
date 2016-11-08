@@ -426,16 +426,6 @@
                                         </tool>
 
                                         <tool>
-                                            <name>dsjavaproperties</name>
-                                            <application>org.opends.server.tools.JavaPropertiesTool</application>
-                                            <trailingSectionPaths>
-                                                <trailingSectionPath>dsjavaproperties-files.xml</trailingSectionPath>
-                                                <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-                                                <trailingSectionPath>dsjavaproperties-examples.xml</trailingSectionPath>
-                                            </trailingSectionPaths>
-                                        </tool>
-
-                                        <tool>
                                             <name>dsreplication</name>
                                             <application>org.opends.server.tools.dsreplication.ReplicationCliMain
                                             </application>

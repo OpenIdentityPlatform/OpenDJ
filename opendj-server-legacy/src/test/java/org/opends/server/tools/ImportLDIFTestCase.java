@@ -118,7 +118,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-n",
         beID,
         "-i",
-        "+"
+        "+",
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     // Expecting a non-empty reject file.
@@ -149,7 +150,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-n",
         beID,
         "-i",
-        "*"
+        "*",
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     // Expecting an empty reject file.
@@ -185,7 +187,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-n",
         beID,
         "-R",
-        rejectFilePath
+        rejectFilePath,
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     // Reject file should be empty.
@@ -222,7 +225,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-b",
         baseDN,
         "-R",
-        rejectFilePath
+        rejectFilePath,
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     // Reject file should be empty.
@@ -262,7 +266,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-i",
         "*",
         "-e",
-        "description"
+        "description",
+        "--offline"
     };
 
     assertEquals(importLDIF(args), 0);
@@ -294,7 +299,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-R",
         rejectFilePath,
         "-e",
-        "*"
+        "*",
+        "--offline"
     };
 
     assertEquals(importLDIF(args), 0);
@@ -326,7 +332,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-R",
         rejectFilePath,
         "-e",
-        "+"
+        "+",
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
@@ -359,7 +366,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-i",
         "*",
         "-i",
-        "creatorsname"
+        "creatorsname",
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
@@ -398,7 +406,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-i",
         "sn",
         "-i",
-        "creatorsname"
+        "creatorsname",
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
@@ -435,7 +444,8 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-e",
         "givenName",
         "-e",
-        "creatorsname"
+        "creatorsname",
+        "--offline"
     };
     assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);

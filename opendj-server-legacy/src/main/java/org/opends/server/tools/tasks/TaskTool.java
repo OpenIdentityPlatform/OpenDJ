@@ -87,10 +87,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
   private TaskScheduleArgs taskScheduleArgs;
 
-  /**
-   * Argument used to know whether we must test if we must run in off-line mode.
-   */
-  private BooleanArgument testIfOfflineArg;
+  /** Argument used to know if the tool should be run in offline mode. */
+  private BooleanArgument runOfflineArg;
 
   /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
@@ -158,11 +156,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
         argParser.addArgument(arg, taskGroup);
       }
 
-      testIfOfflineArg =
-              BooleanArgument.builder("testIfOffline")
-                      .description(INFO_DESCRIPTION_TEST_IF_OFFLINE.get())
-                      .hidden()
-                      .buildAndAddToParser(argParser);
+      runOfflineArg = BooleanArgument.builder("offline")
+                                     .description(INFO_DESCRIPTION_RUN_OFFLINE.get())
+                                     .buildAndAddToParser(argParser);
     } catch (ArgumentException e) {
       // should never happen
     }
@@ -181,7 +177,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
    */
   protected void validateTaskArgs() throws ArgumentException, ClientException
   {
-    if (isRemoteTask())
+    if (!runOffline())
     {
       taskScheduleArgs.validateArgs();
     }
@@ -243,19 +239,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   protected int process(LDAPConnectionArgumentParser argParser,
                         boolean initializeServer,
                         PrintStream out, PrintStream err) {
-    if (testIfOffline())
-    {
-      if (!isRemoteTask())
-      {
-        return RUN_OFFLINE;
-      }
-      else
-      {
-        return RUN_ONLINE;
-      }
-    }
-
-    if (!isRemoteTask())
+    if (runOffline())
     {
       try
       {
@@ -372,10 +356,6 @@ public abstract class TaskTool implements TaskScheduleInformation {
     }
   }
 
-  private boolean isRemoteTask() {
-    return argParser.connectionArgumentsPresent();
-  }
-
   /**
    * Returns {@code true} if the provided exception was caused by trying to
    * connect to the wrong port and {@code false} otherwise.
@@ -410,14 +390,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @return <CODE>true</CODE> if we must return if the command must be run in
    * off-line mode and <CODE>false</CODE> otherwise.
    */
-  public boolean testIfOffline()
+  public boolean runOffline()
   {
-    boolean returnValue = false;
-    if (testIfOfflineArg != null)
-    {
-      returnValue = testIfOfflineArg.isPresent();
-    }
-    return returnValue;
+    return runOfflineArg.isPresent();
   }
 
   /**

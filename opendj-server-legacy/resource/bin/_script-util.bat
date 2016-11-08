@@ -12,7 +12,7 @@ rem Header, with the fields enclosed by brackets [] replaced by your own identif
 rem information: "Portions Copyright [year] [name of copyright owner]".
 rem
 rem Copyright 2008-2010 Sun Microsystems, Inc.
-rem Portions Copyright 2011-2015 ForgeRock AS.
+rem Portions Copyright 2011-2016 ForgeRock AS.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -96,34 +96,43 @@ if "%SET_ENVIRONMENT_VARS_DONE%" == "false" goto setEnvironmentVars
 
 :setJavaHomeAndArgs
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto end
-if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaHome
-call "%INSTANCE_ROOT%\lib\set-java-home.bat"
+if not "%OPENDJ_JAVA_ARGS%" == "" goto checkEnvJavaHome
+set SCRIPT_JAVA_ARGS_PROPERTY=%SCRIPT_NAME%.java-args
+call:readProperty %SCRIPT_JAVA_ARGS_PROPERTY%
+set OPENDJ_JAVA_ARGS=%PROPERTY_VALUE%
+if not "%OPENDJ_JAVA_ARGS%" == "" goto checkEnvJavaHome
+call:readProperty default.java-args
+set OPENDJ_JAVA_ARGS=%PROPERTY_VALUE%
 if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvJavaHome
+
 :endJavaHomeAndArgs
 set SET_JAVA_HOME_AND_ARGS_DONE=true
 goto scriptBegin
 
 :checkEnvJavaHome
-if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvLegacyJavaHome
-if not exist "%OPENDJ_JAVA_BIN%" goto checkEnvLegacyJavaHome
-goto endJavaHomeAndArgs
-
-:checkEnvLegacyJavaHome
-if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDJJavaHome
-if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDJJavaHome
-set OPENDJ_JAVA_BIN=%OPENDS_JAVA_BIN%
+if "%OPENDJ_JAVA_BIN%" == "" goto checkOpenDJJavaHome
+if not exist "%OPENDJ_JAVA_BIN%" goto checkOpenDJJavaHome
 goto endJavaHomeAndArgs
 
 :checkOpenDJJavaHome
-if "%OPENDJ_JAVA_HOME%" == "" goto checkLegacyOpenDSJavaHome
-if not exist "%OPENDJ_JAVA_HOME%\bin\java.exe" goto checkLegacyOpenDSJavaHome
+if "%OPENDJ_JAVA_HOME%" == "" goto checkScriptPropertyJavaHome
+if not exist "%OPENDJ_JAVA_HOME%\bin\java.exe" goto checkScriptPropertyJavaHome
 set OPENDJ_JAVA_BIN=%OPENDJ_JAVA_HOME%\bin\java.exe
 goto endJavaHomeAndArgs
 
-:checkLegacyOpenDSJavaHome
-if "%OPENDS_JAVA_HOME%" == "" goto checkJavaPath
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaPath
-set OPENDJ_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+:checkScriptPropertyJavaHome
+set SCRIPT_JAVA_HOME_PROPERTY=%SCRIPT_NAME%.java-home
+call:readProperty %SCRIPT_JAVA_HOME_PROPERTY%
+if "%PROPERTY_VALUE%" == "" goto checkDefaultPropertyJavaHome
+if not exist "%PROPERTY_VALUE%\bin\java.exe" goto checkDefaultPropertyJavaHome
+set OPENDJ_JAVA_BIN=%PROPERTY_VALUE%\bin\java.exe
+goto endJavaHomeAndArgs
+
+:checkDefaultPropertyJavaHome
+call:readProperty default.java-home
+if "%PROPERTY_VALUE%" == "" goto checkJavaPath
+if not exist "%PROPERTY_VALUE%\bin\java.exe" goto checkJavaPath
+set OPENDJ_JAVA_BIN=%PROPERTY_VALUE%\bin\java.exe
 goto endJavaHomeAndArgs
 
 :checkJavaPath
@@ -146,17 +155,13 @@ goto endJavaHomeAndArgs
 
 :noJavaFound
 echo ERROR:  Could not find a valid Java binary to be used.
-echo You must specify the path to a valid Java 7.0 or higher version.
-echo The procedure to follow is:
-echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
-echo Java 7.0 installation.
+echo You must specify the path to a valid Java 7 or higher version.
+echo The procedure to follow is to set the environment variable OPENDJ_JAVA_HOME
+echo to the root of a valid Java 7 installation.
 echo If you want to have specific Java settings for each command line you must
-echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the Java binary and the Java arguments
+echo edit the properties file specifying the Java binary and the Java arguments
 echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
 exit /B 1
 
@@ -186,17 +191,13 @@ if NOT "%OPENDJ_JAVA_ARGS%" == "" goto noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used.  The detected
 echo Java binary is:
 echo %OPENDJ_JAVA_BIN%
-echo You must specify the path to a valid Java 7.0 or higher version.
-echo The procedure to follow is:
-echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
-echo Java 7.0 installation.
+echo You must specify the path to a valid Java 7 or higher version.
+echo The procedure to follow is to set the environment variable OPENDJ_JAVA_HOME
+echo to the root of a valid Java 7 installation.
 echo If you want to have specific Java settings for each command line you must
-echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the Java binary and the Java arguments
+echo edit the properties file specifying the Java binary and the Java arguments
 echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
 exit /B 1
 
@@ -212,19 +213,24 @@ echo ERROR:  The detected Java version could not be used with the set of Java
 echo arguments %OPENDJ_JAVA_ARGS%.
 echo The detected Java binary is:
 echo %OPENDJ_JAVA_BIN%
-echo You must specify the path to a valid Java 7.0 or higher version.
-echo The procedure to follow is:
-echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
-echo Java 7.0 installation.
+echo You must specify the path to a valid Java 7 or higher version.
+echo The procedure to follow is to set the environment variable OPENDJ_JAVA_HOME
+echo  to the root of a valid Java 7 installation.
 echo If you want to have specific Java settings for each command line you must
-echo follow the steps 3 and 4.
-echo 3. Edit the properties file specifying the Java binary and the Java arguments
+echo edit the properties file specifying the Java binary and the Java arguments
 echo for each command line.  The Java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
-echo 4. Run the command-line %INSTALL_ROOT%\bat\dsjavaproperties.bat
 pause
 exit /B 1
 
 :end
 exit /B 0
+
+rem read the provided property from the configuration/java.properties and stores it in PROPERTY_VALUE variable
+:readProperty
+set PROPERTY_VALUE=
+set JAVA_PROPERTIES="%INSTALL_ROOT%\config\java.properties"
+if not exist %JAVA_PROPERTIES% goto:eof
+set CMD="findstr /b [^#]*%~1=.* %JAVA_PROPERTIES%"
+for /f "tokens=2 delims==" %%a in ( '%CMD%' ) do set PROPERTY_VALUE=%%a
+goto:eof

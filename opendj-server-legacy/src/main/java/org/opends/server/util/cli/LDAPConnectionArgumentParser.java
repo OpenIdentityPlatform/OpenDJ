@@ -84,18 +84,6 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
   }
 
   /**
-   * Indicates whether the user has indicated that they would like to
-   * perform a remote operation based on the arguments.
-   *
-   * @return true if the user wants to perform a remote operation; false
-   *         otherwise
-   */
-  public boolean connectionArgumentsPresent()
-  {
-    return args != null && args.argumentsPresent();
-  }
-
-  /**
    * Creates a new LDAPConnection and invokes a connect operation using
    * information provided in the parsed set of arguments that were provided by
    * the user.

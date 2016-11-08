@@ -13,142 +13,95 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2008-2010 Sun Microsystems, Inc.
-# Portions Copyright 2010-2015 ForgeRock AS.
+# Portions Copyright 2010-2016 ForgeRock AS.
 
 #
 # Display an error message
 #
 display_java_not_found_error() {
   echo "Please set OPENDJ_JAVA_HOME to the root of a Java 7 (or higher) installation"
-  echo "or edit the java.properties file and then run the dsjavaproperties script to"
-  echo "specify the Java version to be used"
+  echo "or edit the java.properties file to specify the Java version to be used"
 }
 
-#
-# function that tests the JAVA_HOME env variable.
-#
-test_java_home() {
-  if test -z "${JAVA_HOME}"
+get_property() {
+  # Read standard variables from config/java.properties file
+  if test -f "${INSTANCE_ROOT}/config/java.properties"
   then
-    display_java_not_found_error
-    exit 1
-  else
-    OPENDJ_JAVA_BIN="${JAVA_HOME}/bin/java"
-    if test -f "${OPENDJ_JAVA_BIN}"
-    then
-      export OPENDJ_JAVA_BIN
-    else
-      display_java_not_found_error
-      exit 1
-    fi
+    PROPERTY_VALUE=
+    PROPERTY_VALUE=`grep "^\s*${1}=" "${INSTANCE_ROOT}/config/java.properties" |cut -d'=' -f2 2> /dev/null`
   fi
 }
 
 #
-# function that tests the JAVA_BIN env variable.
-#
-test_java_bin() {
-  if test -z "${JAVA_BIN}"
-  then
-    test_java_home
-  else
-    OPENDJ_JAVA_BIN="${JAVA_BIN}"
-    if test -f "${OPENDJ_JAVA_BIN}"
-    then
-      export OPENDJ_JAVA_BIN
-    else
-      test_java_home
-    fi
-  fi
-}
-
-#
-# function that tests the java executable in the PATH env variable.
-#
-test_java_path() {
-  OPENDJ_JAVA_BIN=`which java 2> /dev/null`
-  if test -f "${OPENDJ_JAVA_BIN}"
+# Function that sets the OPENDJ_JAVA_BIN to the java path on the running machine according to the following order:
+# 1 - use OPENDJ_JAVA_BIN if defined and points to an existing regular file
+# 2 - use OPENDJ_JAVA_HOME if defined and OPENDJ_JAVA_HOME/bin/java points to an existing regular file
+# 3 - use the 'SCRIPT_NAME.java-home' property from the config/java.properties file
+#                                      is defined and 'SCRIPT_NAME.java-home'/bin/java points to a regular file
+# 4 - use the 'default.java-home' property from the config/java.properties file
+#                                      is defined and 'default.java-home'/bin/java points to a regular file
+# 5 - use `which java` command to find java path
+# 6 - use JAVA_BIN if defined and points to an existing regular file
+# 7 - use JAVA_HOME if defined and JAVA_HOME/bin/java points to a regural file
+# 8 - Displays an error message which says that java was not found on the running machine
+set_opendj_java_bin() {
+  if test ! -z "${OPENDJ_JAVA_BIN}" -a -f "${OPENDJ_JAVA_BIN}"
   then
     export OPENDJ_JAVA_BIN
-  else
-    test_java_bin
-  fi
-}
-
-#
-# function that tests legacy OPENDS_JAVA_HOME env variable.
-#
-test_opends_java_home() {
-  if test -z "${OPENDS_JAVA_HOME}"
+  elif test ! -z "${OPENDJ_JAVA_HOME}" -a -f "${OPENDJ_JAVA_HOME}/bin/java"
   then
-    test_java_path
+    OPENDJ_JAVA_BIN=${OPENDJ_JAVA_HOME}/bin/java
   else
-    OPENDJ_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
-    if test -f "${OPENDJ_JAVA_BIN}"
+    eval JAVA_HOME_PROPERTY=${SCRIPT_NAME}.java-home
+    get_property ${JAVA_HOME_PROPERTY}
+    if test ! -z "${PROPERTY_VALUE}" -a -f "${PROPERTY_VALUE}/bin/java"
     then
-      export OPENDJ_JAVA_BIN
+      OPENDJ_JAVA_BIN=${PROPERTY_VALUE}/bin/java
     else
-      test_java_path
-    fi
-  fi
-}
-
-#
-# function that tests the OPENDJ_JAVA_HOME env variable.
-#
-test_opendj_java_home() {
-  if test -z "${OPENDJ_JAVA_HOME}"
-  then
-    test_opends_java_home
-  else
-    OPENDJ_JAVA_BIN="${OPENDJ_JAVA_HOME}/bin/java"
-    if test -f "${OPENDJ_JAVA_BIN}"
-    then
-      export OPENDJ_JAVA_BIN
-    else
-      test_java_path
-    fi
-  fi
-}
-
-#
-# function that tests the OPENDJ_JAVA_BIN env variable.
-#
-test_opendj_java_bin() {
-  if test -z "${OPENDJ_JAVA_BIN}"
-  then
-    # Check for legacy OPENDS_JAVA_BIN
-    if test -z "${OPENDS_JAVA_BIN}"
-    then
-      test_opendj_java_home
-    else
-      if test -f "${OPENDS_JAVA_BIN}"
+      get_property default.java-home
+      if test ! -z "${PROPERTY_VALUE}" -a -f "${PROPERTY_VALUE}/bin/java"
       then
-        OPENDJ_JAVA_BIN="${OPENDS_JAVA_BIN}"
-        export OPENDJ_JAVA_BIN
+        OPENDJ_JAVA_BIN=${PROPERTY_VALUE}/bin/java
       else
-        test_opendj_java_home
+        TEST_JAVA_PATH=`which java 2> /dev/null`
+        if test ! -z ${TEST_JAVA_PATH} -a -f ${TEST_JAVA_PATH}
+        then
+          OPENDJ_JAVA_BIN=${TEST_JAVA_PATH}
+        elif test ! -z "${JAVA_BIN}" -a -f "${JAVA_BIN}"
+        then
+          OPENDJ_JAVA_BIN=${JAVA_BIN}
+        elif test ! -z "${JAVA_HOME}" -a -f "${JAVA_HOME}/bin/java"
+        then
+          OPENDJ_JAVA_BIN=${JAVA_HOME}/bin/java
+        else
+          display_java_not_found_error
+          exit 1
+        fi
       fi
     fi
-  else
-    if test -f "${OPENDJ_JAVA_BIN}"
-    then
-      export OPENDJ_JAVA_BIN
-    else
-      test_opends_java_home
-    fi
   fi
+  export OPENDJ_JAVA_BIN
 }
 
 #
 # function that sets the java home
 #
 set_java_home_and_args() {
-  if test -f "${INSTANCE_ROOT}/lib/set-java-home"
+  # See if the environment variables for arguments are set.
+  if test -z "${OPENDJ_JAVA_ARGS}"
   then
-    . "${INSTANCE_ROOT}/lib/set-java-home"
+    # Use java.properties file to set java args for the specific script
+    SCRIPT_NAME_ARGS_PROPERTY="${SCRIPT_NAME}".java-args
+    get_property ${SCRIPT_NAME_ARGS_PROPERTY}
+    if test ! -z "${PROPERTY_VALUE}"
+    then
+      OPENDJ_JAVA_ARGS="${PROPERTY_VALUE}"
+    else
+      get_property default.java-args
+      OPENDJ_JAVA_ARGS="${PROPERTY_VALUE}"
+    fi
   fi
-  test_opendj_java_bin
+  set_opendj_java_bin
 }
 
 # Function that sets OPENDJ_JAVA_ARGS if not yet set but OPENDS_JAVA_ARGS is.
@@ -161,6 +114,22 @@ test_java_args() {
       export OPENDJ_JAVA_ARGS
     fi
   fi
+}
+
+print_error_message() {
+  if test -z "${OPENDJ_JAVA_BIN}"
+  then
+    echo "No Java binary found on your machine."
+  else
+    echo "The detected Java binary is: ${OPENDJ_JAVA_BIN}"
+  fi
+  echo "You must specify the path to a valid Java 7 or higher version."
+  echo "The procedure to follow is to set the environment variable OPENDJ_JAVA_HOME"
+  echo "to the root of a valid Java 7 installation."
+  echo "If you want to have specific Java settings for each command line you must"
+  echo "edit the properties file specifying the Java binary and/or the Java arguments"
+  echo "for each command line.  The Java properties file is located in:"
+  echo "${INSTANCE_ROOT}/config/java.properties."
 }
 
 # Determine whether the detected Java environment is acceptable for use.
@@ -177,20 +146,8 @@ test_java() {
       exit 1
     elif test ${RESULT_CODE} -ne 0
     then
-      echo "ERROR:  The detected Java version could not be used.  The detected"
-      echo "Java binary is:"
-      echo "${OPENDJ_JAVA_BIN}"
-      echo "You must specify the path to a valid Java 7.0 or higher version."
-      echo "The procedure to follow is:"
-      echo "1. Delete the file ${INSTANCE_ROOT}/lib/set-java-home" if it exists.
-      echo "2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid "
-      echo "Java 7.0 installation."
-      echo "If you want to have specific Java settings for each command line you must"
-      echo "follow the steps 3 and 4."
-      echo "3. Edit the properties file specifying the Java binary and the Java arguments"
-      echo "for each command line.  The Java properties file is located in:"
-      echo "${INSTANCE_ROOT}/config/java.properties."
-      echo "4. Run the command-line ${INSTANCE_ROOT}/bin/dsjavaproperties"
+      echo "ERROR:  The detected Java version could not be used."
+      print_error_message
       exit 1
     fi
   else
@@ -206,19 +163,7 @@ test_java() {
     then
       echo "ERROR:  The detected Java version could not be used with the set of Java"
       echo "arguments ${OPENDJ_JAVA_ARGS}."
-      echo "The detected Java binary is:"
-      echo "${OPENDJ_JAVA_BIN}"
-      echo "You must specify the path to a valid Java 7.0 or higher version."
-      echo "The procedure to follow is:"
-      echo "1. Delete the file ${INSTANCE_ROOT}/lib/set-java-home" if it exists.
-      echo "2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid "
-      echo "Java 7.0 installation."
-      echo "If you want to have specific Java settings for each command line you must"
-      echo "follow the steps 3 and 4."
-      echo "3. Edit the properties file specifying the Java binary and the Java arguments"
-      echo "for each command line.  The Java properties file is located in:"
-      echo "${INSTANCE_ROOT}/config/java.properties."
-      echo "4. Run the command-line ${INSTANCE_ROOT}/bin/dsjavaproperties"
+      print_error_message
       exit 1
     fi
   fi

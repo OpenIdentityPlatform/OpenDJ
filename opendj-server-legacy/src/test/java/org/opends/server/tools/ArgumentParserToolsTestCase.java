@@ -100,12 +100,6 @@ public class ArgumentParserToolsTestCase extends ToolsTestCase
   }
 
   @Test(dataProvider = "invalidArgs")
-  public void testDSJavaProperties(final String[] args)
-  {
-    assertToolFailsWithUsage(JavaPropertiesTool.mainCLI(args, outStream, errStream, null));
-  }
-
-  @Test(dataProvider = "invalidArgs")
   public void testDSReplication(final String[] args)
   {
     assertToolFailsWithUsage(ReplicationCliMain.mainCLI(args, false, outStream, errStream), ERRORS_ON_STDOUT);

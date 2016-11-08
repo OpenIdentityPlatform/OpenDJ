@@ -13,7 +13,7 @@
 # information: "Portions Copyright [year] [name of copyright owner]".
 #
 # Copyright 2008-2010 Sun Microsystems, Inc.
-# Portions Copyright 2011-2013 ForgeRock AS.
+# Portions Copyright 2011-2016 ForgeRock AS.
 
 
 # This script is used to invoke processes that might be run on server or
@@ -40,15 +40,18 @@ export INSTALL_ROOT
 
 cd "${WORKING_DIR}"
 
-OLD_SCRIPT_NAME=${SCRIPT_NAME}
-SCRIPT_NAME=${OLD_SCRIPT_NAME}.online
+ORIGIN_SCRIPT_NAME=${SCRIPT_NAME}
+SCRIPT_NAME=${ORIGIN_SCRIPT_NAME}.online
+for opt in `echo $*`
+do
+  `echo ${opt}|grep -iq "\-\-offline"`
+  ret_code=$?
+  if test ${ret_code} -eq 0
+  then
+    SCRIPT_NAME=${ORIGIN_SCRIPT_NAME}.offline
+  fi
+done
 export SCRIPT_NAME
-
-# We keep this values to reset the environment before calling _script-util.sh
-# for the second time.
-ORIGINAL_JAVA_ARGS=${OPENDJ_JAVA_ARGS}
-ORIGINAL_JAVA_HOME=${OPENDJ_JAVA_HOME}
-ORIGINAL_JAVA_BIN=${OPENDJ_JAVA_BIN}
 
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
@@ -60,50 +63,8 @@ then
   exit ${RETURN_CODE}
 fi
 
-MUST_CALL_AGAIN="false"
-
-SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${OLD_SCRIPT_NAME}
+SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${ORIGIN_SCRIPT_NAME}
 export SCRIPT_NAME_ARG
 
-# Check whether is local or remote
-"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_ARGS}  ${SCRIPT_NAME_ARG} "${OPENDJ_INVOKE_CLASS}" \
-     --configFile "${INSTANCE_ROOT}/config/config.ldif" --testIfOffline "${@}"
-EC=${?}
-if test ${EC} -eq 51
-then
-  # Set the original values that the user had on the environment in order to be
-  # sure that the script works with the proper arguments (in particular
-  # if the user specified not to overwrite the environment).
-  OPENDJ_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
-  OPENDJ_JAVA_HOME=${ORIGINAL_JAVA_HOME}
-  OPENDJ_JAVA_BIN=${ORIGINAL_JAVA_BIN}
-
-  # Set the environment to use the offline properties
-  SCRIPT_NAME=${OLD_SCRIPT_NAME}.offline
-  export SCRIPT_NAME
-  .  "${INSTALL_ROOT}/lib/_script-util.sh"
-  RETURN_CODE=$?
-  if test ${RETURN_CODE} -ne 0
-  then
-    exit ${RETURN_CODE}
-  fi
-  MUST_CALL_AGAIN="true"
-else
-  if test ${EC} -eq 52
-  then
-    MUST_CALL_AGAIN="true"
-  else
-    # This is likely a problem with the provided arguments.
-    exit ${EC}
-  fi
-fi
-
-if test ${MUST_CALL_AGAIN} = "true"
-then
-  SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${OLD_SCRIPT_NAME}
-  export SCRIPT_NAME_ARG
-
-  # Launch the server utility.
-  "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} "${OPENDJ_INVOKE_CLASS}" \
-       --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"
-fi
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} "${OPENDJ_INVOKE_CLASS}" \
+   --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"

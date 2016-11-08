@@ -79,7 +79,6 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.OpenDsException;
@@ -987,15 +986,6 @@ public class InstallerHelper {
     }
     final String destinationFile = Utils.getPath(libDir, isWindows() ? SET_JAVA_PROPERTIES_FILE_WINDOWS
                                                                      : SET_JAVA_PROPERTIES_FILE_UNIX);
-    // Launch the script
-    int returnValue = JavaPropertiesTool.mainCLI(
-        "--propertiesFile", propertiesFile, "--destinationFile", destinationFile, "--quiet");
-    if (JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL.getReturnCode() != returnValue &&
-        JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode() != returnValue)
-    {
-      logger.warn(LocalizableMessage.raw("Error creating java home scripts, error code: " + returnValue));
-      throw new IOException(ERR_ERROR_CREATING_JAVA_HOME_SCRIPTS.get(returnValue).toString());
-    }
   }
 
   /**

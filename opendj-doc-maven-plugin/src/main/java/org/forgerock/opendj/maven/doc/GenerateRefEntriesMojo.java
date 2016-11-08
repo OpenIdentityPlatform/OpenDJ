@@ -125,7 +125,7 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         commands.add("-classpath");
         commands.add(getClasspath());
         commands.add(toolClass);
-        commands.add(getUsageArgument(toolScript));
+        commands.add("--help");
 
         getLog().info("Writing man page: " + manPage.getPath());
         try {
@@ -221,15 +221,6 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             result.append("<").append(nameSpace).append(":include href='").append(path).append("' />");
         }
         return result.toString();
-    }
-
-    /**
-     * Returns the usage argument.
-     * @param scriptName The name of the tool.
-     * @return The usage argument.
-     */
-    private String getUsageArgument(final String scriptName) {
-        return scriptName.equals("dsjavaproperties") ? "-H" : "-?";
     }
 
     /**

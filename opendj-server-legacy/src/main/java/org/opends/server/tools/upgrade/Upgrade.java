@@ -133,10 +133,6 @@ public final class Upgrade
             "ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme",
             "ds-cfg-enabled: true"));
 
-    /* See OPENDJ-1322 and OPENDJ-1067 */
-    register("2.8.0",
-        rerunJavaPropertiesTool(INFO_UPGRADE_TASK_9206_SUMMARY.get()));
-
     register("2.8.0",
         modifyConfigEntry(INFO_UPGRADE_TASK_10214_SUMMARY.get(),
           "(ds-cfg-java-class=org.opends.server.loggers.debug.TextDebugLogPublisher)",
@@ -611,9 +607,7 @@ public final class Upgrade
             "objectClass: ds-cfg-local-backend")
     );
     register("4.0.0", moveSubordinateBaseDnToGlobalConfiguration());
-    register("4.0.0",
-             removeTools("ldif-diff", "make-ldif")
-    );
+    register("4.0.0", removeTools("ldif-diff", "make-ldif", "dsjavaproperties"));
 
     /* All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(

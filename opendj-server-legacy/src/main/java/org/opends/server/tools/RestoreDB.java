@@ -219,7 +219,7 @@ public class RestoreDB extends TaskTool {
     }
 
 
-    if (listBackups.isPresent() && argParser.connectionArgumentsPresent()) {
+    if (listBackups.isPresent() && !runOffline()) {
       printWrappedText(err, ERR_LDAP_CONN_INCOMPATIBLE_ARGS.get(listBackups.getLongIdentifier()));
       return 1;
     }
