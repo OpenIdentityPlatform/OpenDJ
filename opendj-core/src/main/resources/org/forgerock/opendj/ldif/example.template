@@ -4,7 +4,7 @@ define numusers=10000
 
 branch: [suffix]
 objectClass: top
-objectClass: domainComponent
+objectClass: domain
 
 branch: ou=People,[suffix]
 objectClass: top
