@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.RequestLoadBalancer.RequestWithIndex;
+import org.forgerock.opendj.ldap.RequestLoadBalancer.PartitionedRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
@@ -562,15 +562,15 @@ public final class Connections {
                                        NOOP_END_OF_REQUEST_FUNCTION);
     }
 
-    static Function<Request, RequestWithIndex, NeverThrowsException> newAffinityRequestLoadBalancerNextFunction(
+    static Function<Request, PartitionedRequest, NeverThrowsException> newAffinityRequestLoadBalancerNextFunction(
             final Collection<? extends ConnectionFactory> factories) {
-        return new Function<Request, RequestWithIndex, NeverThrowsException>() {
-            private final int maxIndex = factories.size();
+        return new Function<Request, PartitionedRequest, NeverThrowsException>() {
+            private final int maxPartitionId = factories.size();
 
             @Override
-            public RequestWithIndex apply(final Request request) {
-                final int index = computePartitionIdFromDN(dnOfRequest(request), maxIndex);
-                return new RequestWithIndex(request, index);
+            public PartitionedRequest apply(final Request request) {
+                final int partitionId = computePartitionIdFromDN(dnOfRequest(request), maxPartitionId);
+                return new PartitionedRequest(request, partitionId);
             }
         };
     }
@@ -587,8 +587,8 @@ public final class Connections {
      * @return A partition ID in the range 0 <= partitionID < numberOfPartitions.
      */
     private static int computePartitionIdFromDN(final DN dn, final int numberOfPartitions) {
-        final int index = dn != null ? dn.hashCode() : ThreadLocalRandom.current().nextInt(0, numberOfPartitions);
-        return index == Integer.MIN_VALUE ? 0 : (Math.abs(index) % numberOfPartitions);
+        final int partitionId = dn != null ? dn.hashCode() : ThreadLocalRandom.current().nextInt(0, numberOfPartitions);
+        return partitionId == Integer.MIN_VALUE ? 0 : (Math.abs(partitionId) % numberOfPartitions);
     }
 
     /**
@@ -746,18 +746,18 @@ public final class Connections {
 
     private static final DecodeOptions CONTROL_DECODE_OPTIONS = new DecodeOptions();
 
-    static Function<Request, RequestWithIndex, NeverThrowsException> newLeastRequestsLoadBalancerNextFunction(
+    static Function<Request, PartitionedRequest, NeverThrowsException> newLeastRequestsLoadBalancerNextFunction(
             final LeastRequestsDispatcher dispatcher) {
-        return new Function<Request, RequestWithIndex, NeverThrowsException>() {
+        return new Function<Request, PartitionedRequest, NeverThrowsException>() {
             private final int maxIndex = dispatcher.size();
 
             @Override
-            public RequestWithIndex apply(final Request request) {
+            public PartitionedRequest apply(final Request request) {
                 int affinityBasedIndex = parseAffinityRequestControl(request);
                 int finalIndex = dispatcher.selectServer(affinityBasedIndex);
                 Request cleanedRequest = (affinityBasedIndex == -1)
                         ? request : Requests.shallowCopyOfRequest(request, AffinityControl.OID);
-                return new RequestWithIndex(cleanedRequest, finalIndex);
+                return new PartitionedRequest(cleanedRequest, finalIndex);
             }
 
             private int parseAffinityRequestControl(final Request request) {

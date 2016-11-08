@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import org.forgerock.opendj.ldap.Connections.LeastRequestsDispatcher;
-import org.forgerock.opendj.ldap.RequestLoadBalancer.RequestWithIndex;
+import org.forgerock.opendj.ldap.RequestLoadBalancer.PartitionedRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
@@ -75,7 +75,7 @@ public class ConnectionsTestCase extends SdkTestCase {
 
     @Test
     public void affinityRequestLoadBalancerUsesConsistentIndexing() {
-        final Function<Request, RequestWithIndex, NeverThrowsException> f =
+        final Function<Request, PartitionedRequest, NeverThrowsException> f =
                 newAffinityRequestLoadBalancerNextFunction(asList(mock(ConnectionFactory.class),
                                                                   mock(ConnectionFactory.class)));
 
@@ -146,7 +146,7 @@ public class ConnectionsTestCase extends SdkTestCase {
     @Test
     public void leastRequestsDispatcherMustChooseTheLessSaturatedServer() {
         LeastRequestsDispatcher dispatcher = new Connections.LeastRequestsDispatcher(3);
-        Function<Request, RequestWithIndex, NeverThrowsException> next =
+        Function<Request, PartitionedRequest, NeverThrowsException> next =
                 newLeastRequestsLoadBalancerNextFunction(dispatcher);
         Function<Integer, Void, NeverThrowsException> end =
                 newLeastRequestsLoadBalancerEndOfRequestFunction(dispatcher);
@@ -173,7 +173,7 @@ public class ConnectionsTestCase extends SdkTestCase {
     @Test
     public void leastRequestsDispatcherMustTakeConnectionAffinityControlIntoAccount() {
         LeastRequestsDispatcher dispatcher = new Connections.LeastRequestsDispatcher(3);
-        Function<Request, RequestWithIndex, NeverThrowsException> next =
+        Function<Request, PartitionedRequest, NeverThrowsException> next =
                 newLeastRequestsLoadBalancerNextFunction(dispatcher);
 
         final Request[] reqs = new Request[11];
@@ -187,17 +187,17 @@ public class ConnectionsTestCase extends SdkTestCase {
         for (int i = 1; i <= 3; i++) {
             reqs[i].addControl(AffinityControl.newControl(ByteString.valueOfUtf8("val"), false));
         }
-        RequestWithIndex req1 = next.apply(reqs[1]);
+        PartitionedRequest req1 = next.apply(reqs[1]);
         assertThat(req1.getServerIndex()).isEqualTo(0); // number of reqs = [2, 0, 0]
         assertThat(req1.getRequest().getControls()).isEmpty();
         assertThat(reqs[1].getControls()).hasSize(1);
 
-        RequestWithIndex req2 = next.apply(reqs[2]);
+        PartitionedRequest req2 = next.apply(reqs[2]);
         assertThat(req2.getServerIndex()).isEqualTo(0); // number of reqs = [3, 0, 0]
         assertThat(req2.getRequest().getControls()).isEmpty();
         assertThat(reqs[2].getControls()).hasSize(1);
 
-        RequestWithIndex req3 = next.apply(reqs[3]);
+        PartitionedRequest req3 = next.apply(reqs[3]);
         assertThat(req3.getServerIndex()).isEqualTo(0); // number of reqs = [4, 0, 0]
         assertThat(req3.getRequest().getControls()).isEmpty();
         assertThat(reqs[3].getControls()).hasSize(1);
@@ -211,15 +211,15 @@ public class ConnectionsTestCase extends SdkTestCase {
         assertThat(next.apply(reqs[9]).getServerIndex()).isEqualTo(2); // number of reqs = [4, 3, 3]
     }
 
-    private void assertRequestsAreRoutedConsistently(final Function<Request, RequestWithIndex, NeverThrowsException> f,
-                                                     final Request r,
-                                                     final int firstExpectedIndex,
-                                                     final int secondExpectedIndex) {
+    private void assertRequestsAreRoutedConsistently(
+            final Function<Request, PartitionedRequest, NeverThrowsException> f, final Request r,
+            final int firstExpectedIndex, final int secondExpectedIndex) {
         assertThat(index(f, r)).isEqualTo(firstExpectedIndex);
         assertThat(index(f, r)).isEqualTo(secondExpectedIndex);
     }
 
-    private int index(final Function<Request, RequestWithIndex, NeverThrowsException> function, final Request request) {
+    private int index(final Function<Request, PartitionedRequest, NeverThrowsException> function,
+                      final Request request) {
         return function.apply(request).getServerIndex();
     }
 }

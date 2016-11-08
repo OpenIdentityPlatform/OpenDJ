@@ -63,14 +63,14 @@ final class RequestLoadBalancer extends LoadBalancer {
      * a control for example) but the original request should not be modified. The new request must be used
      * for the actual LDAP operation.
      */
-    private final Function<Request, RequestWithIndex, NeverThrowsException> nextFactoryFunction;
+    private final Function<Request, PartitionedRequest, NeverThrowsException> nextFactoryFunction;
     /** A function which is called after a request is terminated. */
     private final Function<Integer, Void, NeverThrowsException> endOfRequestFunction;
 
     RequestLoadBalancer(final String loadBalancerName,
                         final Collection<? extends ConnectionFactory> factories,
                         final Options options,
-                        final Function<Request, RequestWithIndex, NeverThrowsException> nextFactoryFunction,
+                        final Function<Request, PartitionedRequest, NeverThrowsException> nextFactoryFunction,
                         final Function<Integer, Void, NeverThrowsException> endOfRequestFunction) {
         super(loadBalancerName, factories, options);
         this.nextFactoryFunction = nextFactoryFunction;
@@ -167,6 +167,7 @@ final class RequestLoadBalancer extends LoadBalancer {
                     });
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(
                 final ExtendedRequest<R> request, final IntermediateResponseHandler intermediateResponseHandler) {
@@ -246,8 +247,8 @@ final class RequestLoadBalancer extends LoadBalancer {
                 throw new IllegalStateException();
             }
             try {
-                final RequestWithIndex requestWithIndex = nextFactoryFunction.apply(request);
-                final ConnectionFactory factory = getMonitoredConnectionFactory(requestWithIndex.getServerIndex());
+                final PartitionedRequest partitionedRequest = nextFactoryFunction.apply(request);
+                final ConnectionFactory factory = getMonitoredConnectionFactory(partitionedRequest.getServerIndex());
                 return new ConnectionContext(
                         LdapPromises.asPromise(factory.getConnectionAsync()
                                 .thenOnException(new ExceptionHandler<LdapException>() {
@@ -255,12 +256,11 @@ final class RequestLoadBalancer extends LoadBalancer {
                                     public void handleException(final LdapException e) {
                                         state.notifyConnectionError(false, e);
                                     }
-                                })),
-                        requestWithIndex);
+                                })), partitionedRequest);
             } catch (final LdapException e) {
                 state.notifyConnectionError(false, e);
                 LdapPromise<Connection> failedLdapPromise = newFailedLdapPromise(e);
-                return new ConnectionContext(failedLdapPromise, new RequestWithIndex(request, -1));
+                return new ConnectionContext(failedLdapPromise, new PartitionedRequest(request, -1));
             }
         }
 
@@ -285,12 +285,12 @@ final class RequestLoadBalancer extends LoadBalancer {
     }
 
     /** Utility class for a request and a server index. */
-    static class RequestWithIndex {
+    static class PartitionedRequest {
         private final Request request;
         /** The index of server chosen for the connection. */
         private final int serverIndex;
 
-        RequestWithIndex(Request request, int serverIndex) {
+        PartitionedRequest(Request request, int serverIndex) {
             this.serverIndex = serverIndex;
             this.request = request;
         }
@@ -308,10 +308,10 @@ final class RequestLoadBalancer extends LoadBalancer {
     private static class ConnectionContext {
         private final AtomicReference<Connection> connectionHolder = new AtomicReference<>();
         private final LdapPromise<Connection> connectionPromise;
-        private final RequestWithIndex requestWithIndex;
+        private final PartitionedRequest partitionedRequest;
 
-        ConnectionContext(LdapPromise<Connection> connectionPromise, RequestWithIndex requestWithIndex) {
-            this.requestWithIndex = requestWithIndex;
+        ConnectionContext(LdapPromise<Connection> connectionPromise, PartitionedRequest partitionedRequest) {
+            this.partitionedRequest = partitionedRequest;
             this.connectionPromise = connectionPromise;
         }
 
@@ -328,11 +328,11 @@ final class RequestLoadBalancer extends LoadBalancer {
         }
 
         int getServerIndex() {
-            return requestWithIndex.getServerIndex();
+            return partitionedRequest.getServerIndex();
         }
 
         Request getRequest() {
-            return requestWithIndex.getRequest();
+            return partitionedRequest.getRequest();
         }
     }
 }
