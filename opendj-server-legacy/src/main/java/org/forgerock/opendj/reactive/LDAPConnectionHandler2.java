@@ -433,15 +433,6 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
         return (int) currentConfig.getMaxRequestSize();
     }
 
-    /**
-     * Retrieves the size in bytes of the LDAP response message write buffer defined for this connection handler.
-     *
-     * @return The size in bytes of the LDAP response message write buffer.
-     */
-    public int getBufferSize() {
-        return (int) currentConfig.getBufferSize();
-    }
-
     @Override
     public String getProtocol() {
         return protocol;

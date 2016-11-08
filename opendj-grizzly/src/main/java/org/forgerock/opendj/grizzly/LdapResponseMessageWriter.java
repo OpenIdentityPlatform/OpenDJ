@@ -20,7 +20,6 @@ import java.util.concurrent.CancellationException;
 import org.forgerock.opendj.ldap.spi.LdapMessages.LdapResponseMessage;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.WriteHandler;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -44,25 +43,14 @@ final class LdapResponseMessageWriter implements Subscriber<LdapResponseMessage>
             return;
         }
         upstream = s;
-        connection.notifyCanWrite(new WriteHandler() {
-            @Override
-            public void onWritePossible() throws Exception {
-                final Subscription sub = upstream;
-                if (sub != null) {
-                    sub.request(1);
-                }
-            }
-
-            @Override
-            public void onError(final Throwable error) {
-                LdapResponseMessageWriter.this.onError(error);
-            }
-        });
+        // We're requesting two response to allow overlap between async I/O and response computation.
+        // (allows to generate a response while we're waiting for the previous message to be written)
+        upstream.request(2);
     }
 
     @Override
     public void onNext(final LdapResponseMessage message) {
-        connection.write(message).addCompletionHandler(this);
+        connection.write(message, this);
     }
 
     @Override

@@ -145,24 +145,24 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      *            The maximum BER element size, or <code>0</code> to indicate
      *            that there is no limit.
      * @param buffer
-     *            The buffer where the content will be read from.
+     *            The buffer where the content will be read from. Note that
+     *            @{code {@link #close()} this reader will also dispose the buffer.
      */
     ASN1BufferReader(final int maxElementSize, final Buffer buffer) {
         this.readLimiter = new RootSequenceLimiter();
         this.buffer = buffer;
-        this.buffer.allowBufferDispose(false);
         this.maxElementSize = maxElementSize;
     }
 
     /**
-     * Closes this ASN.1 reader and the underlying stream.
+     * Closes this ASN.1 reader and the underlying {@link Buffer}.
      *
      * @throws IOException
      *             if an I/O error occurs
      */
     @Override
     public void close() throws IOException {
-        // Nothing to do
+        buffer.tryDispose();
     }
 
     /**

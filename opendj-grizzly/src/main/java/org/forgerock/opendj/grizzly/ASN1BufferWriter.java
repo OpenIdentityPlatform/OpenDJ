@@ -158,8 +158,8 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
 
     void ensureAdditionalCapacity(final int size) {
         final int newCount = outBuffer.position() + size;
-        if (newCount > outBuffer.capacity()) {
-            outBuffer = memoryManager.reallocate(outBuffer, Math.max(outBuffer.capacity() << 1, newCount));
+        if (newCount > outBuffer.limit()) {
+            outBuffer = memoryManager.reallocate(outBuffer, Math.max(outBuffer.limit() << 1, newCount));
         }
     }
 

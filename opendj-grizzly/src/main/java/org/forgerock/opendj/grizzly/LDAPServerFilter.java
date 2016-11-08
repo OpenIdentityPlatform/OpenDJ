@@ -264,8 +264,9 @@ final class LDAPServerFilter extends BaseFilter {
 
             @Override
             public void request(long n) {
-                if (BackpressureHelper.add(pendingRequests, n) == 0 && ctx != null) {
-                    ctx.resumeNext();
+                final FilterChainContext immutableRef = ctx;
+                if (BackpressureHelper.add(pendingRequests, n) == 0 && immutableRef != null) {
+                    immutableRef.resumeNext();
                     ctx = null;
                 }
             }

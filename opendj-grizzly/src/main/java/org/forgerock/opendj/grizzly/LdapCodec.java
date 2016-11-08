@@ -57,22 +57,24 @@ abstract class LdapCodec extends LDAPBaseFilter {
         try {
             final Buffer buffer = ctx.getMessage();
             try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
-                buffer.mark();
+                // Due to a bug in grizzly's ByteBufferWrapper.split(), we can't use byteBuffer.mark()
+                final int mark = buffer.position();
                 if (!reader.elementAvailable()) {
-                    buffer.reset();
-                    return ctx.getStopAction(buffer);
+                    buffer.position(mark);
+                    // We need to create a duplicate because buffer will be closed by the reader (try-with-resources)
+                    return ctx.getStopAction(buffer.duplicate());
                 }
                 final int length = reader.peekLength();
                 if (length > maxASN1ElementSize) {
-                    buffer.reset();
+                    buffer.position(mark);
                     throw DecodeException.fatalError(
                             ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED.get(length, maxASN1ElementSize));
                 }
                 final Buffer remainder = (buffer.remaining() > length)
                         ? buffer.split(buffer.position() + length)
                         : null;
-                buffer.reset();
-                ctx.setMessage(decodePacket(new ASN1BufferReader(maxASN1ElementSize, buffer)));
+                buffer.position(mark);
+                ctx.setMessage(decodePacket(new ASN1BufferReader(maxASN1ElementSize, buffer.asReadOnlyBuffer())));
                 buffer.tryDispose();
                 return ctx.getInvokeAction(remainder);
             }

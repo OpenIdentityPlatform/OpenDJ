@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.glassfish.grizzly.memory.PooledMemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -36,6 +37,7 @@ final class ServerTCPNIOTransport extends ReferenceCountedObject<TCPNIOTransport
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     static final ServerTCPNIOTransport SERVER_TRANSPORT = new ServerTCPNIOTransport();
+    private static final long MB = 1024 * 1024;
 
     private ServerTCPNIOTransport() {
         // Prevent instantiation.
@@ -96,6 +98,24 @@ final class ServerTCPNIOTransport extends ReferenceCountedObject<TCPNIOTransport
             // Enabled by default.
             builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
         }
+        float heapPercent;
+        if (Runtime.getRuntime().maxMemory() < 1024 * MB) {
+            // Low heap
+            heapPercent = 0.01f;
+        } else {
+            // Compute a percentage to try to reach roughly 64Mb (big enough (tm))
+            heapPercent = 64f * MB / Runtime.getRuntime().maxMemory();
+        }
+        // Force usage of PooledMemoryManager which allows to use grizzly's buffers across threads.
+        builder.setMemoryManager(new PooledMemoryManager(
+                1024,  // Initial buffer size
+                3,     // Number of pools (with growing factor below this give us pools of 1K, 4K, 16k buffers)
+                4,     // Growing factor to apply on the size of the buffer polled by the next pool
+                selectorThreadCount,    // Number of pool slices that every pool will stripe allocation requests across
+                heapPercent, // The percentage of the heap that this manager will use when populating the pools (5%)
+                1f,    // The percentage of buffers to be pre-allocated during MemoryManager initialization (100%)
+                true   // true to use direct buffers or false to use heap buffers
+        ));
 
         final TCPNIOTransport transport = builder.build();
 

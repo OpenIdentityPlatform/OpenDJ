@@ -534,9 +534,6 @@ public class BindOperationBasis
       setProcessingStopTime();
       logBindResponse(this);
 
-      // Send the bind response to the client.
-      clientConnection.sendResponse(this);
-
       // If the bind processing is finished, then unset the "bind in progress"
       // flag to allow other operations to be processed on the connection.
       if (getResultCode() != ResultCode.SASL_BIND_IN_PROGRESS)
@@ -544,6 +541,8 @@ public class BindOperationBasis
         clientConnection.finishSaslBind();
       }
       clientConnection.finishBind();
+
+      clientConnection.sendResponse(this);
 
       invokePostResponsePlugins(workflowExecuted);
     }
