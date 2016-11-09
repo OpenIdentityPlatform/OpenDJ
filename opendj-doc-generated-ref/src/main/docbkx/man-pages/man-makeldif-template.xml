@@ -508,6 +508,7 @@ xml: \&lt;id>{uid}\&lt;/id></programlisting>
  </refsect1>
 
  <refsect1>
+  <?test-required?>
   <title>Examples</title>
 
   <para>
