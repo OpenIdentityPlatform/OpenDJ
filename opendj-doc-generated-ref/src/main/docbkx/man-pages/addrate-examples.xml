@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2015 ForgeRock AS.
+  !      Copyright 2015-2016 ForgeRock AS.
   !
 -->
 <refsect1 xmlns="http://docbook.org/ns/docbook"
@@ -28,6 +28,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://docbook.org/ns/docbook
                               http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <?test-required?>
  <title>Examples</title>
 
  <para>

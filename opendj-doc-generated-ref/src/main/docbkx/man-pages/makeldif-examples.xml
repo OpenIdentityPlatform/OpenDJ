@@ -19,6 +19,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://docbook.org/ns/docbook
                               http://docbook.org/xml/5.0/xsd/docbook.xsd">
+ <?test-required?>
  <title>Examples</title>
 
  <para>
@@ -26,7 +27,7 @@
  </para>
 
  <screen>
-$ <userinput>makeldif -t ../config/MakeLDIF/example.template -o ../ldif/generated.ldif</userinput>
+$ <userinput>makeldif -o ../ldif/generated.ldif ../config/MakeLDIF/example.template</userinput>
 <computeroutput>Processed 1000 entries
 Processed 2000 entries
 ...
