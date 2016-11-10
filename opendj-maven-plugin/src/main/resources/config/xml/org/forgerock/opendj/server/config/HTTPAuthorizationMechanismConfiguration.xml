@@ -23,6 +23,8 @@
     is used to define HTTP authorization mechanism.
   </adm:synopsis>
 
+  <adm:tag name="security" />
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-http-authorization-mechanism</ldap:name>

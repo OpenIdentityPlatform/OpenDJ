@@ -23,6 +23,8 @@
     is used to define HTTP endpoint.
   </adm:synopsis>
 
+  <adm:tag name="core-server" />
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-http-endpoint</ldap:name>

@@ -87,7 +87,7 @@ public class ConfigGuideGeneration {
   private final String WELCOME_FILE = "welcome.html";
   private final String MAINTOP_FILE = "maintop.html";
   private final String INDEX_FILE = "index.html";
-  private final String FAVICON = "http://forgerock.org/favicon.ico";
+  private final String FAVICON = "https://forgerock.org/favicon.ico";
 
   private static final String CONFIG_GUIDE_DIR = "opendj_config_guide";
   private final String MAIN_FRAME = "mainFrame";
@@ -132,13 +132,13 @@ public class ConfigGuideGeneration {
     OpenDJWiki = properties.getProperty("OpenDJWiki");
     if (OpenDJWiki == null) {
       // Default is current wiki
-      OpenDJWiki = "http://wikis.forgerock.org/confluence/display/OPENDJ";
+      OpenDJWiki = "https://wikis.forgerock.org/confluence/display/OPENDJ";
     }
 
     OpenDJHome = properties.getProperty("OpenDJHome");
     if (OpenDJHome == null) {
       // Default is current OpenDJ project home
-      OpenDJHome = "http://opendj.forgerock.org";
+      OpenDJHome = "https://opendj.forgerock.org";
     }
 
     aciSyntaxPage = OpenDJHome + ACI_SYNTAX_REL_URL;
