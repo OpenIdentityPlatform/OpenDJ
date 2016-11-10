@@ -28,6 +28,8 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.ConsistentHashMap;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
@@ -57,7 +59,8 @@ import com.forgerock.reactive.ServerConnectionFactoryAdapter;
  *         <remoteAddress1> <remotePort1> [<remoteAddress2> <remotePort2> ...]}
  * </pre>
  *
- * Where {@code <mode>} is one of "round-robin", "fail-over", or "affinity". The default is round-robin.
+ * Where {@code <mode>} is one of "least-requests", "fail-over", "affinity", or "distribution". The default is
+ * least-requests.
  */
 public final class Proxy {
     /**
@@ -83,7 +86,7 @@ public final class Proxy {
             algorithm = getLoadBalancingAlgorithm(args[i + 1]);
             i += 2;
         } else {
-            algorithm = LoadBalancingAlgorithm.ROUND_ROBIN;
+            algorithm = LoadBalancingAlgorithm.LEAST_REQUESTS;
         }
 
         final String localAddress = args[i++];
@@ -160,26 +163,28 @@ public final class Proxy {
 
     private static LoadBalancingAlgorithm getLoadBalancingAlgorithm(final String algorithmName) {
         switch (algorithmName) {
-        case "round-robin":
-            return LoadBalancingAlgorithm.ROUND_ROBIN;
+        case "least-requests":
+            return LoadBalancingAlgorithm.LEAST_REQUESTS;
         case "fail-over":
             return LoadBalancingAlgorithm.FAIL_OVER;
         case "affinity":
             return LoadBalancingAlgorithm.AFFINITY;
+        case "distribution":
+            return LoadBalancingAlgorithm.DISTRIBUTION;
         default:
             System.err.println("Unrecognized load-balancing algorithm '" + algorithmName + "'. Should be one of "
-                                       + "'round-robin', 'fail-over', or 'affinity'.");
+                                       + "'least-requests', 'fail-over', 'affinity', or 'distribution'.");
             System.exit(1);
         }
-        return LoadBalancingAlgorithm.ROUND_ROBIN; // keep compiler happy.
+        return LoadBalancingAlgorithm.LEAST_REQUESTS; // keep compiler happy.
     }
 
     private enum LoadBalancingAlgorithm {
-        ROUND_ROBIN {
+        LEAST_REQUESTS {
             @Override
             ConnectionFactory newLoadBalancer(final Collection<ConnectionFactory> factories, final Options options) {
                 // --- JCite load balancer ---
-                return Connections.newRoundRobinLoadBalancer(factories, options);
+                return Connections.newLeastRequestsLoadBalancer(factories, options);
                 // --- JCite load balancer ---
             }
         },
@@ -193,6 +198,19 @@ public final class Proxy {
             @Override
             ConnectionFactory newLoadBalancer(final Collection<ConnectionFactory> factories, final Options options) {
                 return Connections.newAffinityRequestLoadBalancer(factories, options);
+            }
+        },
+        DISTRIBUTION {
+            @Override
+            ConnectionFactory newLoadBalancer(final Collection<ConnectionFactory> factories, final Options options) {
+                final ConsistentHashMap<ConnectionFactory> partitions = new ConsistentHashMap<>();
+                int i = 0;
+                for (final ConnectionFactory factory : factories) {
+                    partitions.put("partition-" + i++, factory);
+                }
+                return Connections.newFixedSizeDistributionLoadBalancer(DN.valueOf("ou=people,dc=example,dc=com"),
+                                                                        partitions,
+                                                                        options);
             }
         };
 
