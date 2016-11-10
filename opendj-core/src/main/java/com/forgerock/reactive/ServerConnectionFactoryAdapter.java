@@ -211,7 +211,6 @@ public final class ServerConnectionFactoryAdapter implements
                             // Unbind request are received through ConnectionEventListener only
                         }
                     });
-                    emitter.onComplete();
                 }
             }, BackpressureStrategy.ERROR));
         }
