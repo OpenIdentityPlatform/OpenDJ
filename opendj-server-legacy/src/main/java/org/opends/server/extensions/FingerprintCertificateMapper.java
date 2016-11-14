@@ -53,6 +53,8 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -113,7 +115,8 @@ public class FingerprintCertificateMapper
     Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
     if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      cfgBaseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     AttributeType t = configuration.getFingerprintAttribute();
@@ -121,7 +124,7 @@ public class FingerprintCertificateMapper
         DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (DN baseDN : cfgBaseDNs)
     {
-      LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+      LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
@@ -201,7 +204,8 @@ public class FingerprintCertificateMapper
     Collection<DN> baseDNs = config.getUserBaseDN();
     if (baseDNs == null || baseDNs.isEmpty())
     {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      baseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     // For each base DN, issue an internal search in an attempt to map the
@@ -312,17 +316,17 @@ public class FingerprintCertificateMapper
     // Make sure that the fingerprint attribute is configured for equality in
     // all appropriate backends.
     Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      cfgBaseDNs = backendConfigManager.getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     AttributeType t = configuration.getFingerprintAttribute();
-    BackendConfigManager backendConfigManager =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     for (DN baseDN : cfgBaseDNs)
     {
-      LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+      LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
       if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
       {
         LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(

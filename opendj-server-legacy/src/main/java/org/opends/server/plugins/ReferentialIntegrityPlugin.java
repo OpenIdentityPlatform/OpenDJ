@@ -18,6 +18,8 @@
 package org.opends.server.plugins;
 
 import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -276,9 +278,11 @@ public class ReferentialIntegrityPlugin
     }
 
     Set<DN> cfgBaseDNs = pluginCfg.getBaseDN();
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      cfgBaseDNs = backendConfigManager.getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     // Iterate through all of the defined attribute types and ensure that they
@@ -296,11 +300,9 @@ public class ReferentialIntegrityPlugin
                              type.getSyntax().getName()));
       }
 
-      BackendConfigManager backendConfigManager =
-          DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
         if (b != null && !b.isIndexed(type, IndexType.EQUALITY))
         {
           isAcceptable = false;
@@ -597,7 +599,8 @@ public class ReferentialIntegrityPlugin
   {
     if (baseDNs.isEmpty())
     {
-      return DirectoryServer.getPublicNamingContexts().keySet();
+      return DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
     return baseDNs;
   }
@@ -1149,7 +1152,8 @@ public class ReferentialIntegrityPlugin
 
     if (baseDNs.isEmpty())
     {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      baseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     for (DN baseDN : baseDNs)

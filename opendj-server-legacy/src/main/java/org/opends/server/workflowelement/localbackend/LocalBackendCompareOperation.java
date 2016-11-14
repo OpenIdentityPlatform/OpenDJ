@@ -153,7 +153,7 @@ public class LocalBackendCompareOperation
     // If the target entry is in the server configuration, then make sure the
     // requester has the CONFIG_READ privilege.
     if (DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
-          .getLocalBackend(ConfigurationBackend.CONFIG_BACKEND_ID).handlesEntry(entryDN)
+          .getLocalBackendById(ConfigurationBackend.CONFIG_BACKEND_ID).handlesEntry(entryDN)
         && !clientConnection.hasPrivilege(Privilege.CONFIG_READ, this))
     {
       appendErrorMessage(ERR_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES.get());

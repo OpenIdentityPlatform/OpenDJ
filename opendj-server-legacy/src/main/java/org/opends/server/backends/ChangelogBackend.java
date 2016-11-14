@@ -43,7 +43,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
@@ -56,6 +55,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.server.config.server.LocalBackendCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.controls.EntryChangelogNotificationControl;
 import org.opends.server.controls.ExternalChangelogRequestControl;
@@ -160,7 +160,7 @@ import org.opends.server.util.StaticUtils;
  *
  * @see ReplicationServer
  */
-public class ChangelogBackend extends LocalBackend<Configuration>
+public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -242,11 +242,11 @@ public class ChangelogBackend extends LocalBackend<Configuration>
   public static ChangelogBackend getInstance()
   {
     return (ChangelogBackend) DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
-        .getLocalBackend(CHANGELOG_BASE_DN);
+        .findLocalBackendForEntry(CHANGELOG_BASE_DN);
   }
 
   @Override
-  public void configureBackend(final Configuration config, ServerContext serverContext) throws ConfigException
+  public void configureBackend(final LocalBackendCfg config, ServerContext serverContext) throws ConfigException
   {
     throw new UnsupportedOperationException("The changelog backend is not configurable");
   }

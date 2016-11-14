@@ -580,11 +580,13 @@ public class AddOperationBasis
   public void updateOperationErrMsgAndResCode()
   {
     DN entryDN = getEntryDN();
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    DN parentDN = backendConfigManager.getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       // Either this entry is a suffix or doesn't belong in the directory.
-      if (DirectoryServer.isNamingContext(entryDN))
+      if (backendConfigManager.containsLocalNamingContext(entryDN))
       {
         // This is fine.  This entry is one of the configured suffixes.
         return;

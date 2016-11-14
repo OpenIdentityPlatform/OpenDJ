@@ -30,6 +30,7 @@ import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -67,7 +68,7 @@ public class DefaultEntryCache
   }
 
   @Override
-  public void initializeEntryCache(EntryCacheCfg configEntry)
+  public void initializeEntryCache(ServerContext serverContext, EntryCacheCfg configEntry)
          throws ConfigException, InitializationException
   {
     // No implementation required.
@@ -219,14 +220,6 @@ public class DefaultEntryCache
   {
     for (EntryCache<?> entryCache : cacheOrder) {
       entryCache.clearBackend(backendID);
-    }
-  }
-
-  @Override
-  public void clearSubtree(DN baseDN)
-  {
-    for (EntryCache<?> entryCache : cacheOrder) {
-      entryCache.clearSubtree(baseDN);
     }
   }
 

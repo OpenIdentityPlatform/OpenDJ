@@ -37,6 +37,7 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.core.AccessControlConfigManager;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationWrapper;
@@ -235,10 +236,12 @@ public class LocalBackendModifyDNOperation
     }
 
     // Construct the new DN to use for the entry.
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     DN parentDN;
     if (newSuperior == null)
     {
-      parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+      parentDN = backendConfigManager.getParentDNInSuffix(entryDN);
     }
     else
     {
@@ -270,8 +273,7 @@ public class LocalBackendModifyDNOperation
       return;
     }
 
-    LocalBackend<?> newBackend =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(newDN);
+    LocalBackend<?> newBackend = backendConfigManager.findLocalBackendForEntry(newDN);
     if (newBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);

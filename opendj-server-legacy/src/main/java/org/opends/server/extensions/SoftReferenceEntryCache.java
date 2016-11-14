@@ -36,11 +36,11 @@ import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.forgerock.opendj.server.config.server.SoftReferenceEntryCacheCfg;
-import org.opends.server.api.LocalBackend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.CacheEntry;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
@@ -95,7 +95,7 @@ public class SoftReferenceEntryCache
 
   @Override
   public void initializeEntryCache(
-      SoftReferenceEntryCacheCfg configuration
+      ServerContext serverContext, SoftReferenceEntryCacheCfg configuration
       )
       throws ConfigException, InitializationException
   {
@@ -320,22 +320,6 @@ public class SoftReferenceEntryCache
       }
 
       map.clear();
-    }
-  }
-
-  @Override
-  public void clearSubtree(DN baseDN)
-  {
-    // Determine the backend used to hold the specified base DN and clear it.
-    LocalBackend<?> backend =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(baseDN);
-    if (backend == null)
-    {
-      // FIXME -- Should we clear everything just to be safe?
-    }
-    else
-    {
-      clearBackend(backend.getBackendID());
     }
   }
 

@@ -39,6 +39,7 @@ import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
+import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -283,7 +284,7 @@ public class ImportTask extends Task
 
     if(backendID != null)
     {
-      backend = getServerContext().getBackendConfigManager().getLocalBackend(backendID);
+      backend = getServerContext().getBackendConfigManager().getLocalBackendById(backendID);
       if (backend == null)
       {
         LocalizableMessage message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
@@ -301,7 +302,7 @@ public class ImportTask extends Task
       BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
       for(DN includeBranch : includeBranches)
       {
-        LocalBackend<?> locatedBackend = backendConfigManager.getLocalBackend(includeBranch);
+        LocalBackend<?> locatedBackend = backendConfigManager.findLocalBackendForEntry(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)
@@ -441,7 +442,7 @@ public class ImportTask extends Task
 
     if(backendID != null)
     {
-      backend = getServerContext().getBackendConfigManager().getLocalBackend(backendID);
+      backend = getServerContext().getBackendConfigManager().getLocalBackendById(backendID);
 
       if (backend == null)
       {
@@ -460,7 +461,7 @@ public class ImportTask extends Task
       BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
       for(DN includeBranch : includeBranches)
       {
-        LocalBackend<?> locatedBackend = backendConfigManager.getLocalBackend(includeBranch);
+        LocalBackend<?> locatedBackend = backendConfigManager.findLocalBackendForEntry(includeBranch);
         if(locatedBackend != null)
         {
           if(backend == null)
@@ -479,23 +480,9 @@ public class ImportTask extends Task
 
     // Find backends with subordinate base DNs that should be excluded from the import.
     defaultIncludeBranches = new HashSet<>(backend.getBaseDNs());
-
-    if (backend.getSubordinateBackends() != null)
+    for (Backend<?> subBackend : getServerContext().getBackendConfigManager().getSubordinateBackends(backend))
     {
-      for (LocalBackend<?> subBackend : backend.getSubordinateBackends())
-      {
-        for (DN baseDN : subBackend.getBaseDNs())
-        {
-          for (DN importBase : defaultIncludeBranches)
-          {
-            if (!baseDN.equals(importBase) && baseDN.isSubordinateOrEqualTo(importBase))
-            {
-              excludeBranches.add(baseDN);
-              break;
-            }
-          }
-        }
-      }
+      excludeBranches.addAll(subBackend.getBaseDNs());
     }
 
     for (String s : excludeBranchStrings)
@@ -717,7 +704,7 @@ public class ImportTask extends Task
         // It is necessary to retrieve the backend structure again
         // because disabling and enabling it again may have resulted
         // in a new backend being registered to the server.
-        backend = getServerContext().getBackendConfigManager().getLocalBackend(backend.getBackendID());
+        backend = getServerContext().getBackendConfigManager().getLocalBackendById(backend.getBackendID());
       }
       catch (DirectoryException e)
       {

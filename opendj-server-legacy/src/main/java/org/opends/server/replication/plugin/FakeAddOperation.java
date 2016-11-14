@@ -51,7 +51,8 @@ public class FakeAddOperation extends FakeOperation
     return new AddMsg(getCSN(), entry.getName(),
                EntryHistorical.getEntryUUID(entry),
                LDAPReplicationDomain.findEntryUUID(
-                   DirectoryServer.getParentDNInSuffix(entry.getName())),
+                   DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+                   .getParentDNInSuffix(entry.getName())),
                entry.getObjectClasses(),
                entry.getUserAttributes(), entry.getOperationalAttributes());
   }

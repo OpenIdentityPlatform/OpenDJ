@@ -59,6 +59,7 @@ import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
@@ -902,7 +903,9 @@ public class PasswordModifyExtendedOperation
   {
     try
     {
-      DN matchedDN = DirectoryServer.getParentDNInSuffix(entryDN);
+      BackendConfigManager backendConfigManager =
+          DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+      DN matchedDN = backendConfigManager.getParentDNInSuffix(entryDN);
       while (matchedDN != null)
       {
         if (DirectoryServer.entryExists(matchedDN))
@@ -910,7 +913,7 @@ public class PasswordModifyExtendedOperation
           return matchedDN;
         }
 
-        matchedDN = DirectoryServer.getParentDNInSuffix(matchedDN);
+        matchedDN = backendConfigManager.getParentDNInSuffix(matchedDN);
       }
     }
     catch (Exception e)

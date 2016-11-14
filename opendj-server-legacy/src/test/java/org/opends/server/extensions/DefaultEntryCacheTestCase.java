@@ -91,7 +91,7 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-include-filter: uid=softref*",
       "ds-cfg-include-filter: uid=test1*",
       "ds-cfg-exclude-filter: uid=test0*");
-    softRefCache.initializeEntryCache(InitializationUtils.getConfiguration(
+    softRefCache.initializeEntryCache(TestCaseUtils.getServerContext(), InitializationUtils.getConfiguration(
       SoftReferenceEntryCacheCfgDefn.getInstance(), cacheSoftReferenceConfigEntry));
     cacheOrderMap.put(1, softRefCache);
 
@@ -108,7 +108,7 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-include-filter: uid=fifo*",
       "ds-cfg-include-filter: uid=test2*",
       "ds-cfg-include-filter: uid=test0*");
-    fifoCache.initializeEntryCache(InitializationUtils.getConfiguration(
+    fifoCache.initializeEntryCache(TestCaseUtils.getServerContext(), InitializationUtils.getConfiguration(
       FIFOEntryCacheCfgDefn.getInstance(), cacheFIFOConfigEntry));
     cacheOrderMap.put(2, fifoCache);
 
@@ -321,30 +321,6 @@ public class DefaultEntryCacheTestCase
     super.testClearBackend();
   }
 
-
-
-  /** {@inheritDoc} */
-  @Test
-  @Override
-  public void testClearSubtree()
-         throws Exception
-  {
-    super.testClearSubtree();
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Test
-  @Override
-  public void testHandleLowMemory()
-         throws Exception
-  {
-    super.testHandleLowMemory();
-  }
-
-
-
   /**
    * Tests the entry cache level functionality where each set
    * of entries land on a specific cache level by some form
@@ -361,8 +337,8 @@ public class DefaultEntryCacheTestCase
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     // Spread test entries among all cache levels via default cache.
     for (int i = 0; i < NUMTESTENTRIES; i++) {

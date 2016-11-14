@@ -25,6 +25,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
+import org.opends.server.core.ServerContext;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
@@ -104,7 +105,8 @@ public abstract class EntryCache<T extends EntryCacheCfg>
   /**
    * Initializes this entry cache implementation so that it will be
    * available for storing and retrieving entries.
-   *
+   * @param serverContext
+   *            The server context.
    * @param  configuration  The configuration to use to initialize
    *                        the entry cache.
    *
@@ -117,7 +119,7 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    *                                   not related to the
    *                                   configuration.
    */
-  public abstract void initializeEntryCache(T configuration)
+  public abstract void initializeEntryCache(ServerContext serverContext, T configuration)
          throws ConfigException, InitializationException;
 
   /**
@@ -297,15 +299,6 @@ public abstract class EntryCache<T extends EntryCacheCfg>
    *                    associated entries.
    */
   public abstract void clearBackend(String backendID);
-
-  /**
-   * Removes all entries from the cache that are below the provided
-   * DN.
-   *
-   * @param  baseDN  The base DN below which all entries should be
-   *                 flushed.
-   */
-  public abstract void clearSubtree(DN baseDN);
 
   /**
    * Attempts to react to a scenario in which it is determined that

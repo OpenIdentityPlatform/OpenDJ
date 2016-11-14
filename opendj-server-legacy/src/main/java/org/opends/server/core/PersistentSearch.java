@@ -245,7 +245,8 @@ public final class PersistentSearch
     case BASE_OBJECT:
       return baseDN.equals(dn);
     case SINGLE_LEVEL:
-      return baseDN.equals(DirectoryServer.getParentDNInSuffix(dn));
+      return baseDN.equals(DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getParentDNInSuffix(dn));
     case WHOLE_SUBTREE:
       return baseDN.isSuperiorOrEqualTo(dn);
     case SUBORDINATES:

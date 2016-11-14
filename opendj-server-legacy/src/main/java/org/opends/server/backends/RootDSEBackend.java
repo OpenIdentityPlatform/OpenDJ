@@ -21,6 +21,9 @@ import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PRIVATE;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -30,7 +33,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +58,7 @@ import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
@@ -324,14 +327,15 @@ public class RootDSEBackend
     Map<AttributeType, List<Attribute>> dseUserAttrs = new HashMap<>();
     Map<AttributeType, List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
-    Set<DN> publicNamingContexts = showSubordinatesNamingContexts ?
-        getAllPublicNamingContexts() : getTopLevelPublicNamingContexts();
+    BackendConfigManager manager = serverContext.getBackendConfigManager();
+    Set<DN> publicNamingContexts =
+        manager.getNamingContexts(showSubordinatesNamingContexts ?  PUBLIC : PUBLIC, TOP_LEVEL);
     Attribute publicNamingContextAttr = createAttribute(ATTR_NAMING_CONTEXTS, publicNamingContexts);
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "ds-private-naming-contexts" attribute.
     Attribute privateNamingContextAttr = createAttribute(
-        ATTR_PRIVATE_NAMING_CONTEXTS, serverContext.getBackendConfigManager().getPrivateNamingContexts().keySet());
+        ATTR_PRIVATE_NAMING_CONTEXTS, manager.getNamingContexts(PRIVATE));
     addAttribute(privateNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedControl" attribute.
@@ -412,21 +416,6 @@ public class RootDSEBackend
                         dseOperationalAttrs);
     e.processVirtualAttributes();
     return e;
-  }
-
-  private Set<DN> getAllPublicNamingContexts()
-  {
-    Set<DN> namingContexts = new HashSet<>();
-    for (Backend<?> backend : serverContext.getBackendConfigManager().getAllBackends())
-    {
-      namingContexts.addAll(backend.getBaseDNs());
-    }
-    return namingContexts;
-  }
-
-  private Set<DN> getTopLevelPublicNamingContexts()
-  {
-    return new HashSet<DN>(serverContext.getBackendConfigManager().getPublicNamingContexts().keySet());
   }
 
   private void addAll(Collection<Attribute> attributes,
@@ -670,7 +659,7 @@ public class RootDSEBackend
       {
         for (DN baseDN : subDNs)
         {
-          LocalBackend<?> backend = serverContext.getBackendConfigManager().getLocalBackend(baseDN);
+          LocalBackend<?> backend = serverContext.getBackendConfigManager().findLocalBackendForEntry(baseDN);
           if (backend == null)
           {
             unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
@@ -711,7 +700,7 @@ public class RootDSEBackend
         subBases = new ConcurrentHashMap<>();
         for (DN baseDN : subDNs)
         {
-          LocalBackend<?> backend = serverContext.getBackendConfigManager().getLocalBackend(baseDN);
+          LocalBackend<?> backend = serverContext.getBackendConfigManager().findLocalBackendForEntry(baseDN);
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.

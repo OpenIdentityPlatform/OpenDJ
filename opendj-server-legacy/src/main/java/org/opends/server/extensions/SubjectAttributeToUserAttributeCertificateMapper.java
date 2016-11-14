@@ -18,6 +18,8 @@
 package org.opends.server.extensions;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -122,7 +124,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       for (AttributeType t : attributeMap.values())
       {
-        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           logger.warn(WARN_SATUACM_ATTR_UNINDEXED, configuration.dn(),
@@ -301,7 +303,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       for (AttributeType t : newAttributeMap.values())
       {
-        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
         if (b != null && !b.isIndexed(t, IndexType.EQUALITY))
         {
           LocalizableMessage message =
@@ -330,7 +332,8 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     Set<DN> baseDNs = config.getUserBaseDN();
     if (baseDNs == null || baseDNs.isEmpty())
     {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      baseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
     return baseDNs;
   }

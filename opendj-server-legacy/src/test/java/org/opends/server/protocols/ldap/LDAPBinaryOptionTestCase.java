@@ -440,7 +440,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     }
     exportConfig = new LDIFExportConfig(ldif.getAbsolutePath(),
                               ExistingFileBehavior.OVERWRITE);
-    backend = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend("test");
+    backend = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById("test");
     backend.exportLDIF(exportConfig);
   }
 
@@ -454,7 +454,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   {
     importConfig = new LDIFImportConfig(ldif.getAbsolutePath());
     TestCaseUtils.initializeTestBackend(false);
-    backend = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend("test");
+    backend = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById("test");
     backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
   }
 }

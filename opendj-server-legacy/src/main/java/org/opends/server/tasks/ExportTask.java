@@ -261,7 +261,7 @@ public class ExportTask extends Task
 
     // Get the backend into which the LDIF should be imported.
 
-    LocalBackend<?> backend = getServerContext().getBackendConfigManager().getLocalBackend(backendID);
+    LocalBackend<?> backend = getServerContext().getBackendConfigManager().getLocalBackendById(backendID);
 
     if (backend == null)
     {

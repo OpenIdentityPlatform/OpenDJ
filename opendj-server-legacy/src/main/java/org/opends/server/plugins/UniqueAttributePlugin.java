@@ -71,6 +71,8 @@ import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 
 import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -150,18 +152,18 @@ public class UniqueAttributePlugin
     }
 
     Set<DN> cfgBaseDNs = configuration.getBaseDN();
-    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
     BackendConfigManager backendConfigManager =
         DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = backendConfigManager.getNamingContexts(PUBLIC, TOP_LEVEL);
+    }
+
     for (AttributeType t : configuration.getType())
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
@@ -550,7 +552,8 @@ public class UniqueAttributePlugin
     Set<DN> baseDNs = config.getBaseDN();
     if (baseDNs == null || baseDNs.isEmpty())
     {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      baseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     for (DN baseDN : baseDNs)
@@ -684,18 +687,18 @@ public class UniqueAttributePlugin
     }
 
     Set<DN> cfgBaseDNs = configuration.getBaseDN();
-    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
     BackendConfigManager backendConfigManager =
         DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = backendConfigManager.getNamingContexts(PUBLIC, TOP_LEVEL);
+    }
+
     for (AttributeType t : configuration.getType())
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(

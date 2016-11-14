@@ -1074,7 +1074,7 @@ public class TaskScheduler
         }
         else
         {
-          DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+          DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
           if (parentDN == null)
           {
             logger.error(ERR_TASKSCHED_ENTRY_HAS_NO_PARENT, entryDN, taskBackend.getTaskRootDN());

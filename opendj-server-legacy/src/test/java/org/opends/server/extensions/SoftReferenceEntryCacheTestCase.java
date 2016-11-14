@@ -68,7 +68,7 @@ public class SoftReferenceEntryCacheTestCase
 
     // Initialize the cache.
     super.cache = new SoftReferenceEntryCache();
-    super.cache.initializeEntryCache(configuration);
+    super.cache.initializeEntryCache(TestCaseUtils.getServerContext(), configuration);
 
     // Make some dummy test entries.
     super.testEntriesList = new ArrayList<>(super.NUMTESTENTRIES);
@@ -224,19 +224,6 @@ public class SoftReferenceEntryCacheTestCase
   {
     super.testClearBackend();
   }
-
-
-
-  /** {@inheritDoc} */
-  @Test
-  @Override
-  public void testClearSubtree()
-         throws Exception
-  {
-    super.testClearSubtree();
-  }
-
-
 
   /** {@inheritDoc} */
   @Test

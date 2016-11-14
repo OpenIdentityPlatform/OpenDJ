@@ -96,7 +96,7 @@ public class ModifyOperationTestCase
     for (Object[] backendBaseDN2 : getBaseDNs())
     {
       final DN baseDN = DN.valueOf(backendBaseDN2[0].toString());
-      LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(baseDN);
+      LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN);
       b.setWritabilityMode(WritabilityMode.ENABLED);
     }
   }
@@ -2429,7 +2429,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
@@ -2467,7 +2468,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
@@ -2505,7 +2507,8 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf(baseDN));
+    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
@@ -3231,7 +3234,7 @@ public class ModifyOperationTestCase
         "userPassword: password",
         "userPassword;deleted: oldpassword");
     LocalBackend<?> backend =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(TEST_BACKEND_ID);
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.
@@ -3273,7 +3276,7 @@ public class ModifyOperationTestCase
         "userPassword: password",
         "userPassword;deleted: oldpassword");
     LocalBackend<?> backend =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(TEST_BACKEND_ID);
+        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.

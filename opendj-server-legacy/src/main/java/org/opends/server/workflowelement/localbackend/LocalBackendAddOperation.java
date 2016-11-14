@@ -54,6 +54,7 @@ import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationWrapper;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PersistentSearch;
@@ -230,8 +231,10 @@ public class LocalBackendAddOperation
         return;
       }
 
-      DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
-      if (parentDN == null && !DirectoryServer.isNamingContext(entryDN))
+      BackendConfigManager backendConfigManager =
+          DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+      DN parentDN = backendConfigManager.getParentDNInSuffix(entryDN);
+      if (parentDN == null && !backendConfigManager.containsLocalNamingContext(entryDN))
       {
         if (entryDN.isRootDN())
         {

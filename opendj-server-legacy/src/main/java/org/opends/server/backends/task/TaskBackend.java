@@ -352,7 +352,7 @@ public class TaskBackend
       return taskScheduler.getRecurringTaskCount();
     }
 
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       return -1;
@@ -399,7 +399,7 @@ public class TaskBackend
         return taskScheduler.getRecurringTaskParentEntry();
       }
 
-      DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+      DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
       if (parentDN == null)
       {
         return null;
@@ -434,7 +434,7 @@ public class TaskBackend
 
     // Get the DN for the entry and then get its parent.
     DN entryDN = e.getName();
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
 
     if (parentDN == null)
     {
@@ -473,7 +473,7 @@ public class TaskBackend
   {
     // Get the parent for the provided entry DN.  It must be either the
     // scheduled or recurring task parent DN.
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       LocalizableMessage message = ERR_TASKBE_DELETE_INVALID_ENTRY.get(entryDN);
@@ -558,7 +558,7 @@ public class TaskBackend
     {
       // Get the parent for the provided entry DN.  It must be either the
       // scheduled or recurring task parent DN.
-      DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+      DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
       if (parentDN == null)
       {
         LocalizableMessage message = ERR_TASKBE_MODIFY_INVALID_ENTRY.get(entryDN);
@@ -803,7 +803,7 @@ public class TaskBackend
     }
     else
     {
-      DN parentDN = DirectoryServer.getParentDNInSuffix(baseDN);
+      DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(baseDN);
       if (parentDN == null)
       {
         LocalizableMessage message = ERR_TASKBE_SEARCH_INVALID_BASE.get(baseDN);

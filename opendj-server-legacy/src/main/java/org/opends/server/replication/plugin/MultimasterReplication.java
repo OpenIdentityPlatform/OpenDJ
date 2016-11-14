@@ -50,6 +50,7 @@ import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.replication.service.DSRSShutdownSync;
@@ -167,10 +168,12 @@ public class MultimasterReplication
 
     LDAPReplicationDomain domain = null;
     DN temp = dn;
+    BackendConfigManager backendConfigManager =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
     while (domain == null && temp != null)
     {
       domain = domains.get(temp);
-      temp = DirectoryServer.getParentDNInSuffix(temp);
+      temp = backendConfigManager.getParentDNInSuffix(temp);
     }
 
     return domain;

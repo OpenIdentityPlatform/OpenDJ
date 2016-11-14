@@ -94,8 +94,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     assertFalse(cache.containsEntry(testEntriesList.get(0).getName()),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -129,8 +129,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     assertNull(cache.getEntry(testEntriesList.get(0).getName()),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -164,8 +164,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     assertNull(cache.getEntry(testEntriesList.get(0).getName()),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -199,8 +199,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     assertNull(cache.getEntry(b, -1),
       "Not expected to find entry id " + -1 +
@@ -233,8 +233,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     assertEquals(cache.getEntryID(testEntriesList.get(0).getName()), -1,
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -267,8 +267,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     cache.putEntry(testEntriesList.get(0), b, 1);
 
@@ -301,8 +301,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     assertTrue(cache.putEntryIfAbsent(testEntriesList.get(0), b, 1),
       "Not expected to find " + testEntriesList.get(0).getName() +
@@ -343,8 +343,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     cache.removeEntry(testEntriesList.get(0).getName());
     cache.putEntry(testEntriesList.get(0), b, 1);
@@ -379,8 +379,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     cache.clear();
     cache.putEntry(testEntriesList.get(0), b, 1);
@@ -415,11 +415,10 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
       cache.toVerboseString());
 
     TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
-    String c =
-        TestCaseUtils.getServerContext().getBackendConfigManager()
-          .getLocalBackend(DN.valueOf("cn=config")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
+    String c = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("cn=config")).getBackendID();
 
     cache.clearBackend(b);
     cache.putEntry(testEntriesList.get(0), b, 1);
@@ -444,55 +443,6 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
     // Clear the cache so that other tests can start from scratch.
     cache.clear();
   }
-
-
-
-  /**
-   * Tests the <CODE>clearSubtree</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  public void testClearSubtree()
-         throws Exception
-  {
-    assertNull(cache.toVerboseString(),
-      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
-      cache.toVerboseString());
-
-    TestCaseUtils.initializeTestBackend(false);
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
-    String c = TestCaseUtils.getServerContext().getBackendConfigManager()
-        .getLocalBackend(DN.valueOf("cn=config")).getBackendID();
-
-    cache.putEntry(testEntriesList.get(0), b, 1);
-    Entry testEntry = testEntriesList.get(1);
-    testEntry.getName();
-    testEntry.setDN(DN.valueOf(
-      testEntry.getName().rdn() + ",cn=config"));
-    cache.putEntry(testEntry, c, 1);
-    cache.clearSubtree(DN.valueOf("o=test"));
-
-    assertNull(cache.getEntry(testEntriesList.get(0).getName()),
-      "Not expected to find " + testEntriesList.get(0).getName() +
-      " in the cache.  Cache contents:" + ServerConstants.EOL +
-      cache.toVerboseString());
-
-    assertNull(cache.getEntry(b, 1),
-      "Not expected to find entry id " + -1 +
-      " in the cache.  Cache contents:" + ServerConstants.EOL +
-      cache.toVerboseString());
-
-    assertNotNull(cache.getEntry(testEntry.getName()),
-      "Expected to find " + testEntry.getName() +
-      " in the cache.  Cache contents:" + ServerConstants.EOL +
-      cache.toVerboseString());
-
-    // Clear the cache so that other tests can start from scratch.
-    cache.clear();
-  }
-
-
 
   /**
    * Tests the <CODE>handleLowMemory</CODE> method.
@@ -523,8 +473,8 @@ public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
   public void testCacheConcurrency()
          throws Exception
   {
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     for(int loops = 0; loops < CONCURRENCYLOOPS; loops++) {
       for(int i = 0; i < NUMTESTENTRIES; i++) {

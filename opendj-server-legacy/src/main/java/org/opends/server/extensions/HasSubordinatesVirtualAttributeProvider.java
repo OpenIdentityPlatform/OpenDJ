@@ -60,8 +60,8 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    LocalBackend<?> backend =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(entry.getName());
+    LocalBackend<?> backend = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(entry.getName());
 
     try
     {
@@ -82,8 +82,8 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    LocalBackend<?> backend =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(entry.getName());
+    LocalBackend<?> backend = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(entry.getName());
 
     try
     {
@@ -101,8 +101,8 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
-    LocalBackend<?> backend =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(entry.getName());
+    LocalBackend<?> backend = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(entry.getName());
     MatchingRule matchingRule =
         rule.getAttributeType().getEqualityMatchingRule();
 

@@ -46,6 +46,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 
@@ -105,7 +107,8 @@ public class ExactMatchIdentityMapper
     Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
     if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
     {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      cfgBaseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     BackendConfigManager backendConfigManager =
@@ -114,7 +117,7 @@ public class ExactMatchIdentityMapper
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           throw new ConfigException(ERR_EXACTMAP_ATTR_UNINDEXED.get(
@@ -182,7 +185,8 @@ public class ExactMatchIdentityMapper
     Collection<DN> baseDNs = config.getMatchBaseDN();
     if (baseDNs == null || baseDNs.isEmpty())
     {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      baseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
 
     SearchResultEntry matchingEntry = null;
@@ -268,18 +272,18 @@ public class ExactMatchIdentityMapper
     // Make sure that all of the configured attributes are indexed for equality
     // in all appropriate backends.
     Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
-    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
     BackendConfigManager backendConfigManager =
         DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    if (cfgBaseDNs == null || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = backendConfigManager.getNamingContexts(PUBLIC, TOP_LEVEL);
+    }
+
     for (AttributeType t : configuration.getMatchAttribute())
     {
       for (DN baseDN : cfgBaseDNs)
       {
-        LocalBackend<?> b = backendConfigManager.getLocalBackend(baseDN);
+        LocalBackend<?> b = backendConfigManager.findLocalBackendForEntry(baseDN);
         if (b != null && ! b.isIndexed(t, IndexType.EQUALITY))
         {
           unacceptableReasons.add(ERR_EXACTMAP_ATTR_UNINDEXED.get(

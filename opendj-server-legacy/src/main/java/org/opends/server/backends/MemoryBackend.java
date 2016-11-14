@@ -313,7 +313,7 @@ public class MemoryBackend
     }
 
     // Get the parent DN and ensure that it exists in the backend.
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -384,7 +384,7 @@ public class MemoryBackend
     childDNs.remove(entryDN);
     entryMap.remove(entryDN);
 
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
     if (parentDN != null)
     {
       HashSet<DN> parentsChildren = childDNs.get(parentDN);
@@ -461,7 +461,7 @@ public class MemoryBackend
     }
 
     // Make sure that the parent of the new entry exists.
-    DN parentDN = DirectoryServer.getParentDNInSuffix(e.getName());
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(e.getName());
     if (parentDN == null || !entryMap.containsKey(parentDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -498,7 +498,7 @@ public class MemoryBackend
     Entry baseEntry = entryMap.get(baseDN);
     if (baseEntry == null && handlesEntry(baseDN))
     {
-      DN matchedDN = DirectoryServer.getParentDNInSuffix(baseDN);
+      DN matchedDN = serverContext.getBackendConfigManager().getParentDNInSuffix(baseDN);
       while (matchedDN != null)
       {
         if (entryMap.containsKey(matchedDN))
@@ -506,7 +506,7 @@ public class MemoryBackend
           break;
         }
 
-        matchedDN = DirectoryServer.getParentDNInSuffix(matchedDN);
+        matchedDN = serverContext.getBackendConfigManager().getParentDNInSuffix(matchedDN);
       }
 
       LocalizableMessage message =

@@ -471,8 +471,8 @@ public class TaskBackendTestCase
             + ",cn=Recurring Tasks,cn=tasks";
     String taskSchedule = "00 * * " + scheduledMonth + " *";
 
-    TaskBackend taskBackend =
-      (TaskBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("cn=tasks"));
+    TaskBackend taskBackend = (TaskBackend) TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("cn=tasks"));
     long tasksCountBefore = taskBackend.getNumberOfEntriesInBaseDN(DN.valueOf("cn=Scheduled Tasks,cn=tasks"));
 
     assertTrue(addRecurringTask(taskID, taskSchedule));

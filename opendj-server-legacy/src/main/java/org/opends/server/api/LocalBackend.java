@@ -18,10 +18,7 @@ package org.opends.server.api;
 
 import static org.opends.messages.BackendMessages.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -74,18 +71,6 @@ import org.opends.server.types.WritabilityMode;
 public abstract class LocalBackend<C extends Configuration> extends Backend<C>
 // should have been BackendCfg instead of Configuration
 {
-  /**
-   * The backend that holds a portion of the DIT that is hierarchically above
-   * the information in this backend.
-   */
-  private LocalBackend<?> parentBackend;
-
-  /**
-   * The set of backends that hold portions of the DIT that are hierarchically
-   * below the information in this backend.
-   */
-  private LocalBackend<?>[] subordinateBackends = new LocalBackend[0];
-
   /** Indicates whether this is a private backend or one that holds user data. */
   private boolean isPrivateBackend;
 
@@ -716,89 +701,6 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
   public abstract long getEntryCount();
 
   /**
-   * Retrieves the parent backend for this backend.
-   *
-   * @return  The parent backend for this backend, or {@code null} if
-   *          there is none.
-   */
-  public final LocalBackend<?> getParentBackend()
-  {
-    return parentBackend;
-  }
-
-  /**
-   * Specifies the parent backend for this backend.
-   *
-   * @param  parentBackend  The parent backend for this backend.
-   */
-  public final synchronized void setParentBackend(LocalBackend<?> parentBackend)
-  {
-    this.parentBackend = parentBackend;
-  }
-
-  /**
-   * Retrieves the set of subordinate backends for this backend.
-   *
-   * @return  The set of subordinate backends for this backend, or an
-   *          empty array if none exist.
-   */
-  public final LocalBackend<?>[] getSubordinateBackends()
-  {
-    return subordinateBackends;
-  }
-
-
-  /**
-   * Adds the provided backend to the set of subordinate backends for
-   * this backend.
-   *
-   * @param  subordinateBackend  The backend to add to the set of
-   *                             subordinate backends for this
-   *                             backend.
-   */
-  public final synchronized void addSubordinateBackend(LocalBackend<?> subordinateBackend)
-  {
-    LinkedHashSet<LocalBackend<?>> backendSet = new LinkedHashSet<>();
-    Collections.addAll(backendSet, subordinateBackends);
-
-    if (backendSet.add(subordinateBackend))
-    {
-      subordinateBackends = backendSet.toArray(new LocalBackend[backendSet.size()]);
-    }
-  }
-
-  /**
-   * Removes the provided backend from the set of subordinate backends
-   * for this backend.
-   *
-   * @param  subordinateBackend  The backend to remove from the set of
-   *                             subordinate backends for this
-   *                             backend.
-   */
-  public final synchronized void removeSubordinateBackend(Backend<?> subordinateBackend)
-  {
-    ArrayList<LocalBackend<?>> backendList = new ArrayList<>(subordinateBackends.length);
-
-    boolean found = false;
-    for (LocalBackend<?> b : subordinateBackends)
-    {
-      if (b.equals(subordinateBackend))
-      {
-        found = true;
-      }
-      else
-      {
-        backendList.add(b);
-      }
-    }
-
-    if (found)
-    {
-      subordinateBackends = backendList.toArray(new LocalBackend[backendList.size()]);
-    }
-  }
-
-  /**
    * Indicates whether this backend should be used to handle
    * operations for the provided entry.
    *
@@ -810,21 +712,9 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
    */
   public final boolean handlesEntry(DN entryDN)
   {
-    for (DN dn : getBaseDNs())
-    {
-      if (entryDN.isSubordinateOrEqualTo(dn))
-      {
-        for (LocalBackend<?> b : subordinateBackends)
-        {
-          if (b.handlesEntry(entryDN))
-          {
-            return false;
-          }
-        }
-        return true;
-      }
-    }
-    return false;
+    Backend<?> backend =
+        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().findBackendForEntry(entryDN);
+    return backend != null && backend == this;
   }
 
   /**

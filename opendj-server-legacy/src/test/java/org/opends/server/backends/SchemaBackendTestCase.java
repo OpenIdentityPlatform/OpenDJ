@@ -91,7 +91,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     TestCaseUtils.startServer();
 
     schemaBackend =
-        (SchemaBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend("schema");
+        (SchemaBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById("schema");
     assertNotNull(schemaBackend);
   }
 

@@ -518,7 +518,8 @@ public class ModifyDNOperationBasis
       {
         if (getEntryDN() != null)
         {
-          parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+          parentDN = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+              .getParentDNInSuffix(entryDN);
         }
       }
       else

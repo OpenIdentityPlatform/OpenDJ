@@ -110,7 +110,6 @@ import org.opends.server.api.WorkQueue;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.config.AdministrationConnector;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.config.JMXMBean;
@@ -3347,83 +3346,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the set of public naming contexts defined in the Directory
-   * Server, mapped from the naming context DN to the corresponding backend.
-   *
-   * @return  The set of public naming contexts defined in the Directory Server.
-   */
-  public static Map<DN, LocalBackend<?>> getPublicNamingContexts()
-  {
-    return directoryServer.backendConfigManager.getPublicNamingContexts();
-  }
-
-  /**
-   * Retrieves the set of public naming contexts, including sub-suffixes,
-   * defined in the Directory Server, mapped from the naming context DN
-   * to the corresponding backend.
-   *
-   * @return  The set of public naming contexts defined in the Directory Server.
-   */
-  public static Map<DN, LocalBackend<?>> getAllPublicNamingContexts()
-  {
-    return directoryServer.backendConfigManager.getAllPublicNamingContexts();
-  }
-
-  /**
-   * Indicates whether the specified DN is one of the Directory Server naming
-   * contexts.
-   *
-   * @param  dn  The DN for which to make the determination.
-   *
-   * @return  {@code true} if the specified DN is a naming context for the
-   *          Directory Server, or {@code false} if it is not.
-   */
-  public static boolean isNamingContext(DN dn)
-  {
-    return directoryServer.backendConfigManager.containsNamingContext(dn);
-  }
-
-  /**
-   * Retrieves the DN that is the immediate parent for this DN. This method does take the server's
-   * naming context configuration into account, so if the current DN is a naming context for the
-   * server, then it will not be considered to have a parent.
-   *
-   * @param dn
-   *          the
-   * @return The DN that is the immediate parent for this DN, or {@code null} if this DN does not
-   *         have a parent (either because there is only a single RDN component or because this DN
-   *         is a suffix defined in the server).
-   */
-  public static DN getParentDNInSuffix(DN dn)
-  {
-    if (dn.size() <= 1 || DirectoryServer.isNamingContext(dn))
-    {
-      return null;
-    }
-    return dn.parent();
-  }
-
-  /**
-   * Retrieves the root DSE entry for the Directory Server.
-   *
-   * @return  The root DSE entry for the Directory Server.
-   */
-  public static Entry getRootDSE()
-  {
-    return getRootDSEBackend().getRootDSE();
-  }
-
-  /**
-   * Retrieves the root DSE backend for the Directory Server.
-   *
-   * @return  The root DSE backend for the Directory Server.
-   */
-  public static RootDSEBackend getRootDSEBackend()
-  {
-    return directoryServer.backendConfigManager.getRootDSEBackend();
-  }
-
-  /**
    * Retrieves the DN of the entry containing the server schema definitions.
    *
    * @return  The DN of the entry containing the server schema definitions, or
@@ -3463,7 +3385,7 @@ public final class DirectoryServer
     {
       return directoryServer.backendConfigManager.getRootDSEBackend().getRootDSE();
     }
-    final LocalBackend<?> backend = directoryServer.backendConfigManager.getLocalBackend(entryDN);
+    final LocalBackend<?> backend = directoryServer.backendConfigManager.findLocalBackendForEntry(entryDN);
     return backend != null ? backend.getEntry(entryDN) : null;
   }
 
@@ -3490,7 +3412,7 @@ public final class DirectoryServer
 
     // Ask the appropriate backend if the entry exists.
     // If it is not appropriate for any backend, then return false.
-    LocalBackend<?> backend = directoryServer.backendConfigManager.getLocalBackend(entryDN);
+    LocalBackend<?> backend = directoryServer.backendConfigManager.findLocalBackendForEntry(entryDN);
     return backend != null && backend.entryExists(entryDN);
   }
 

@@ -1530,7 +1530,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     //  retrieve the memory backend reference each time before cleaning it.
     BackendConfigManager backendConfigManager = TestCaseUtils.getServerContext().getBackendConfigManager();
     MemoryBackend memoryBackend =
-        (MemoryBackend) backendConfigManager.getLocalBackend(backendId);
+        (MemoryBackend) backendConfigManager.getLocalBackendById(backendId);
 
     if (memoryBackend == null)
     {

@@ -71,7 +71,7 @@ public class FIFOEntryCacheTestCase
 
     // Initialize the cache.
     super.cache = new FIFOEntryCache();
-    super.cache.initializeEntryCache(configuration);
+    super.cache.initializeEntryCache(TestCaseUtils.getServerContext(), configuration);
 
     // Make some dummy test entries.
     super.testEntriesList = new ArrayList<>(super.NUMTESTENTRIES);
@@ -228,19 +228,6 @@ public class FIFOEntryCacheTestCase
     super.testClearBackend();
   }
 
-
-
-  /** {@inheritDoc} */
-  @Test
-  @Override
-  public void testClearSubtree()
-         throws Exception
-  {
-    super.testClearSubtree();
-  }
-
-
-
   /** {@inheritDoc} */
   @Test
   @Override
@@ -251,8 +238,8 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);
@@ -322,8 +309,8 @@ public class FIFOEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       cache.toVerboseString());
 
-    String b =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("o=test")).getBackendID();
+    String b = TestCaseUtils.getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(DN.valueOf("o=test")).getBackendID();
 
     for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
       super.cache.putEntry(super.testEntriesList.get(i), b, i);

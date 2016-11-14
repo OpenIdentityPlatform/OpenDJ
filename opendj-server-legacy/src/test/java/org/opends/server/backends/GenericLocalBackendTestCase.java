@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 
 /** A set of generic test cases that apply to all Directory Server backends. */
 @SuppressWarnings("javadoc")
-public class GenericBackendTestCase extends BackendTestCase
+public class GenericLocalBackendTestCase extends BackendTestCase
 {
   /** Ensures that the Directory Server is running. */
   @BeforeClass
@@ -49,7 +49,7 @@ public class GenericBackendTestCase extends BackendTestCase
    * @return  The backends defined in the server.
    */
   @DataProvider(name = "backends")
-  public Object[][] getBackends()
+  public Object[][] getLocalBackends()
   {
     List<LocalBackend<?>> backendList = new ArrayList<>(
         TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackends());
@@ -154,20 +154,6 @@ public class GenericBackendTestCase extends BackendTestCase
   public void testGetEntryCount(LocalBackend<?> b)
   {
     b.getEntryCount();
-  }
-
-  /** Tests the {@link LocalBackend#getParentBackend} method for the provided backend. */
-  @Test(dataProvider = "backends")
-  public void testGetParentBackend(LocalBackend<?> b)
-  {
-    b.getParentBackend();
-  }
-
-  /** Tests the {@link LocalBackend#getSubordinateBackends} method for the provided backend. */
-  @Test(dataProvider = "backends")
-  public void testGetSubordinateBackends(LocalBackend<?> b)
-  {
-    assertNotNull(b.getSubordinateBackends());
   }
 
   /**

@@ -2052,7 +2052,8 @@ public class Entry
       else
       {
         // Get the DN of the parent entry if possible.
-        DN parentDN = DirectoryServer.getParentDNInSuffix(dn);
+        DN parentDN = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+            .getParentDNInSuffix(dn);
         if (parentDN != null)
         {
           try
@@ -2123,7 +2124,8 @@ public class Entry
       }
       else if (! parentProvided)
       {
-        DN parentDN = DirectoryServer.getParentDNInSuffix(getName());
+        DN parentDN = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+            .getParentDNInSuffix(getName());
         if (parentDN != null)
         {
           try

@@ -44,7 +44,6 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.StorageStatus;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.DN;
@@ -377,7 +376,7 @@ public class RootContainer implements ConfigurationChangeListener<PluggableBacke
       ec = entryContainers.get(nodeDN);
       if (ec == null)
       {
-        nodeDN = DirectoryServer.getParentDNInSuffix(nodeDN);
+        nodeDN = serverContext.getBackendConfigManager().getParentDNInSuffix(nodeDN);
       }
     }
 

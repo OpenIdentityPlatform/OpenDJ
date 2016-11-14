@@ -306,7 +306,7 @@ final class ImportLDIFReader extends LDIFReader
       {
         return entryContainer;
       }
-      nodeDN = DirectoryServer.getParentDNInSuffix(nodeDN);
+      nodeDN = DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getParentDNInSuffix(nodeDN);
     }
     return null;
   }

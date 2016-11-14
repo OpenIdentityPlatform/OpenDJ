@@ -427,7 +427,7 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
   private TrustStoreBackend getTrustStoreBackend()
        throws ConfigException
   {
-    LocalBackend<?> b = serverContext.getBackendConfigManager().getLocalBackend(ID_ADS_TRUST_STORE_BACKEND);
+    LocalBackend<?> b = serverContext.getBackendConfigManager().getLocalBackendById(ID_ADS_TRUST_STORE_BACKEND);
     if (b == null)
     {
       throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(ID_ADS_TRUST_STORE_BACKEND));

@@ -373,7 +373,7 @@ public class BackupBackend
     // If so, then it must point to a backup directory.  Otherwise, it must be
     // two levels below the backup base entry and must point to a specific
     // backup.
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       return -1;
@@ -400,7 +400,7 @@ public class BackupBackend
       }
       return count;
     }
-    else if (backupBaseDN.equals(DirectoryServer.getParentDNInSuffix(parentDN)))
+    else if (backupBaseDN.equals(serverContext.getBackendConfigManager().getParentDNInSuffix(parentDN)))
     {
       return 0;
     }
@@ -431,7 +431,7 @@ public class BackupBackend
     // If so, then it must point to a backup directory.  Otherwise, it must be
     // two levels below the backup base entry and must point to a specific
     // backup.
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
     if (parentDN == null)
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -441,7 +441,7 @@ public class BackupBackend
     {
       return getBackupDirectoryEntry(entryDN);
     }
-    else if (backupBaseDN.equals(DirectoryServer.getParentDNInSuffix(parentDN)))
+    else if (backupBaseDN.equals(serverContext.getBackendConfigManager().getParentDNInSuffix(parentDN)))
     {
       return getBackupEntry(entryDN);
     }
@@ -546,7 +546,7 @@ public class BackupBackend
     String backupID = idValue.toString();
 
     // Next, get the backup directory from the parent DN.
-    DN parentDN = DirectoryServer.getParentDNInSuffix(entryDN);
+    DN parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(entryDN);
     if (parentDN == null) {
       throw newConstraintViolation(ERR_BACKUP_NO_BACKUP_PARENT_DN.get(entryDN));
     }
@@ -754,7 +754,7 @@ public class BackupBackend
         }
       }
     }
-    else if (backupBaseDN.equals(parentDN = DirectoryServer.getParentDNInSuffix(baseDN)))
+    else if (backupBaseDN.equals(parentDN = serverContext.getBackendConfigManager().getParentDNInSuffix(baseDN)))
     {
       Entry backupDirEntry = getBackupDirectoryEntry(baseDN);
 
@@ -774,7 +774,7 @@ public class BackupBackend
     else
     {
       if (parentDN == null
-          || !backupBaseDN.equals(DirectoryServer.getParentDNInSuffix(parentDN)))
+          || !backupBaseDN.equals(serverContext.getBackendConfigManager().getParentDNInSuffix(parentDN)))
       {
         LocalizableMessage message = ERR_BACKUP_NO_SUCH_ENTRY.get(backupBaseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);

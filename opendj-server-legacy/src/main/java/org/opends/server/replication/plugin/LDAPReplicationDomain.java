@@ -1668,7 +1668,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
 
         DN entryDN = addOperation.getEntryDN();
-        DN parentDnFromEntryDn = DirectoryServer.getParentDNInSuffix(entryDN);
+        DN parentDnFromEntryDn = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+            .getParentDNInSuffix(entryDN);
         if (parentDnFromEntryDn != null
             && !parentDnFromCtx.equals(parentDnFromEntryDn))
         {
@@ -1959,7 +1960,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final CSN csn = generateCSN(addOperation);
     final String entryUUID = getEntryUUID(addOperation);
     final AddContext ctx = new AddContext(csn, entryUUID,
-        findEntryUUID(DirectoryServer.getParentDNInSuffix(addOperation.getEntryDN())));
+        findEntryUUID(DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+            .getParentDNInSuffix(addOperation.getEntryDN())));
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
   }
 
@@ -3693,7 +3695,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    */
   private LocalBackend<?> getBackend()
   {
-    return DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(getBaseDN());
+    return DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        .findLocalBackendForEntry(getBaseDN());
   }
 
   /*
@@ -3760,7 +3763,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     }
 
     // Check that the base DN is configured as a base-dn of the directory server
-    if (DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(dn) == null)
+    if (DirectoryServer.getInstance().getServerContext().getBackendConfigManager().findLocalBackendForEntry(dn) == null)
     {
       unacceptableReasons.add(ERR_UNKNOWN_DN.get(dn));
       return false;

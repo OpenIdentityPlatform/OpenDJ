@@ -891,7 +891,7 @@ public final class TestCaseUtils {
     // to memory backend must be invalidated. So to prevent this problem, we
     // retrieve the memory backend reference each time before cleaning it.
     BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
-    MemoryBackend memoryBackend = (MemoryBackend) backendConfigManager.getLocalBackend(backendID);
+    MemoryBackend memoryBackend = (MemoryBackend) backendConfigManager.getLocalBackendById(backendID);
 
     if (memoryBackend == null)
     {
@@ -916,7 +916,7 @@ public final class TestCaseUtils {
   public static void clearMemoryBackend(String backendID) throws Exception
   {
     MemoryBackend memoryBackend =
-        (MemoryBackend) getServerContext().getBackendConfigManager().getLocalBackend(backendID);
+        (MemoryBackend) getServerContext().getBackendConfigManager().getLocalBackendById(backendID);
     // FIXME JNR I suspect we could call finalizeBackend() here (but also in other
     // places in this class), because finalizeBackend() calls clearMemoryBackend().
     if (memoryBackend != null)
@@ -944,7 +944,7 @@ public final class TestCaseUtils {
    */
   public static void clearBackend(String backendId, String baseDN) throws Exception
   {
-    LocalBackend<?> b = getServerContext().getBackendConfigManager().getLocalBackend(backendId);
+    LocalBackend<?> b = getServerContext().getBackendConfigManager().getLocalBackendById(backendId);
     if (clearBackend(b) && baseDN != null)
     {
       Entry e = createEntry(DN.valueOf(baseDN));

@@ -39,10 +39,10 @@ import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.EntryCacheCfg;
 import org.forgerock.opendj.server.config.server.FIFOEntryCacheCfg;
-import org.opends.server.api.LocalBackend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorData;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -109,6 +109,8 @@ public class FIFOEntryCache
   /** The maximum length of time to try to obtain a lock before giving up. */
   private long lockTimeout = 2000;
 
+  private ServerContext serverContext;
+
   /** Creates a new instance of this FIFO entry cache. */
   public FIFOEntryCache()
   {
@@ -117,9 +119,10 @@ public class FIFOEntryCache
   }
 
   @Override
-  public void initializeEntryCache(FIFOEntryCacheCfg configuration)
+  public void initializeEntryCache(ServerContext serverContext, FIFOEntryCacheCfg configuration)
       throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     registeredConfiguration = configuration;
     configuration.addFIFOChangeListener (this);
 
@@ -592,107 +595,6 @@ public class FIFOEntryCache
     finally
     {
       cacheWriteLock.unlock();
-    }
-  }
-
-  @Override
-  public void clearSubtree(DN baseDN)
-  {
-    // Determine which backend should be used for the provided base DN.  If
-    // there is none, then we don't need to do anything.
-    LocalBackend<?> backend =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager().getLocalBackend(baseDN);
-    if (backend == null)
-    {
-      return;
-    }
-
-    // Acquire a lock on the cache.  We should not return until the cache has
-    // been cleared, so we will block until we can obtain the lock.
-    cacheWriteLock.lock();
-
-    // At this point, it is absolutely critical that we always release the lock
-    // before leaving this method, so do so in a finally block.
-    try
-    {
-      clearSubtree(baseDN, backend);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      // This shouldn't happen, but there's not much that we can do if it does.
-    }
-    finally
-    {
-      cacheWriteLock.unlock();
-    }
-  }
-
-  /**
-   * Clears all entries at or below the specified base DN that are associated
-   * with the given backend.  The caller must already hold the cache lock.
-   *
-   * @param  baseDN   The base DN below which all entries should be flushed.
-   * @param  backend  The backend for which to remove the appropriate entries.
-   */
-  private void clearSubtree(DN baseDN, LocalBackend<?> backend)
-  {
-    // See if there are any entries for the provided backend in the cache.  If
-    // not, then return.
-    Map<Long,CacheEntry> map = idMap.get(backend.getBackendID());
-    if (map == null)
-    {
-      // No entries were in the cache for this backend, so we can return without
-      // doing anything.
-      return;
-    }
-
-    // Since the provided base DN could hold a subset of the information in the
-    // specified backend, we will have to do this by iterating through all the
-    // entries for that backend.  Since this could take a while, we'll
-    // periodically release and re-acquire the lock in case anyone else is
-    // waiting on it so this doesn't become a stop-the-world event as far as the
-    // cache is concerned.
-    int entriesExamined = 0;
-    Iterator<CacheEntry> iterator = map.values().iterator();
-    while (iterator.hasNext())
-    {
-      CacheEntry e = iterator.next();
-      DN entryDN = e.getEntry().getName();
-      if (entryDN.isSubordinateOrEqualTo(baseDN))
-      {
-        iterator.remove();
-        dnMap.remove(entryDN);
-      }
-
-      entriesExamined++;
-      if ((entriesExamined % 1000) == 0)
-      {
-        cacheWriteLock.unlock();
-        Thread.yield();
-        cacheWriteLock.lock();
-      }
-    }
-
-    // See if the backend has any subordinate backends.  If so, then process
-    // them recursively.
-    for (LocalBackend<?> subBackend : backend.getSubordinateBackends())
-    {
-      boolean isAppropriate = false;
-      for (DN subBase : subBackend.getBaseDNs())
-      {
-        if (subBase.isSubordinateOrEqualTo(baseDN))
-        {
-          isAppropriate = true;
-          break;
-        }
-      }
-
-      if (isAppropriate)
-      {
-        clearSubtree(baseDN, subBackend);
-      }
     }
   }
 

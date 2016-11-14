@@ -17,6 +17,8 @@
 package org.opends.server.plugins;
 
 import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 
 import java.util.List;
 import java.util.Set;
@@ -346,7 +348,8 @@ public final class SevenBitCleanPlugin
     Set<DN> baseDNs = config.getBaseDN();
     if (baseDNs == null || baseDNs.isEmpty())
     {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+      baseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+          .getNamingContexts(PUBLIC, TOP_LEVEL);
     }
     return isDescendantOfAny(dn, baseDNs);
   }

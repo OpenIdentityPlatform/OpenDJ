@@ -109,7 +109,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
   public static Task getTask(final DN taskEntryDN) throws Exception
   {
     final TaskBackend taskBackend = (TaskBackend)
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(DN.valueOf("cn=tasks"));
+        TestCaseUtils.getServerContext().getBackendConfigManager().findLocalBackendForEntry(DN.valueOf("cn=tasks"));
 
     TestTimer timer = new TestTimer.Builder()
       .maxSleep(10, SECONDS)

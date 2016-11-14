@@ -16,6 +16,9 @@
  */
 package org.opends.server.types;
 
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PRIVATE;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -39,9 +43,10 @@ public class TestDN extends TypesTestCase {
   @DataProvider(name = "namingContexts")
   public Object[][] getNamingContexts() {
     ArrayList<DN> contextList = new ArrayList<>();
-    contextList.addAll(DirectoryServer.getPublicNamingContexts().keySet());
-    contextList.addAll(DirectoryServer.getInstance().getServerContext().getBackendConfigManager().
-        getPrivateNamingContexts().keySet());
+    BackendConfigManager manager = DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    contextList.addAll(manager.getNamingContexts(PRIVATE));
+    contextList.addAll(manager.getNamingContexts(PUBLIC));
+    contextList.addAll(manager.getNamingContexts(PUBLIC, TOP_LEVEL));
 
     Object[][] contextArray = new Object[contextList.size()][1];
     for (int i = 0;i < contextArray.length;i++) {
@@ -53,11 +58,12 @@ public class TestDN extends TypesTestCase {
 
   @Test(dataProvider = "namingContexts")
   public void testGetParentDNInSuffix(DN namingContext) throws Exception {
-    assertNull(DirectoryServer.getParentDNInSuffix(namingContext));
+    BackendConfigManager backendConfigManager = TestCaseUtils.getServerContext().getBackendConfigManager();
+    assertNull(backendConfigManager.getParentDNInSuffix(namingContext));
 
     DN childDN = namingContext.child(RDN.valueOf("ou=People"));
-    assertNotNull(DirectoryServer.getParentDNInSuffix(childDN));
-    assertEquals(DirectoryServer.getParentDNInSuffix(childDN), namingContext);
+    assertNotNull(backendConfigManager.getParentDNInSuffix(childDN));
+    assertEquals(backendConfigManager.getParentDNInSuffix(childDN), namingContext);
   }
 }
 

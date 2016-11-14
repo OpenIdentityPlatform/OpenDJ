@@ -17,13 +17,16 @@
 package org.opends.server.core;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.forgerock.util.Reject.ifNull;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -31,12 +34,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
@@ -53,6 +53,7 @@ import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.LocalBackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
+import org.forgerock.util.Reject;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backend;
 import org.opends.server.api.LocalBackendInitializationListener;
@@ -65,11 +66,14 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.WritabilityMode;
 
+import com.forgerock.opendj.util.Iterables;
+import com.forgerock.opendj.util.Predicate;
+
 /**
- * Responsible for managing the configuration of backends defined in the Directory Server.
+ * Responsible for managing the lifecycle of backends in the Directory Server.
  * <p>
- * It will perform the necessary initialization of those backends when the server is first
- * started, and then will manage any changes to them while the server is running.
+ * It performs the necessary initialization of the backends when the server is first
+ * started, and then manages any changes to them while the server is running.
  */
 public class BackendConfigManager implements
      ConfigurationChangeListener<BackendCfg>,
@@ -78,19 +82,25 @@ public class BackendConfigManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The mapping beetwen backends IDs and local backend implementations. */
-  private final Map<String, LocalBackend<?>> localBackends = new ConcurrentHashMap<>();
+  /** The mapping between backends IDs and local backend implementations. */
+  private final Map<String, LocalBackend<?>> localBackendsById = new ConcurrentHashMap<>();
 
-  /** The mapping between configuration entry DNs and their corresponding backend implementations. */
-  private final Map<DN, Backend<? extends BackendCfg>> registeredBackends = new ConcurrentHashMap<>();
+  /** The mapping between backend configuration names and backend implementations. */
+  private final Map<DN, Backend<? extends BackendCfg>> configuredBackends = new ConcurrentHashMap<>();
 
   /** The set of local backend initialization listeners. */
   private final Set<LocalBackendInitializationListener> initializationListeners = new CopyOnWriteArraySet<>();
 
-  private final ServerContext serverContext;
-  private final BaseDnRegistry localBackendsRegistry;
+  /** Contains all relationships between the base DNs and the backends (at the exclusion of RootDSE backend). */
+  private volatile Registry registry = new Registry();
 
+  /** The Root DSE backend, which is managed separately from other backends. */
   private RootDSEBackend rootDSEBackend;
+
+  /** Lock for updates: add, change and delete operations on backends. */
+  private final ReentrantLock writeLock = new ReentrantLock();
+
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this backend config manager.
@@ -101,7 +111,6 @@ public class BackendConfigManager implements
   public BackendConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    this.localBackendsRegistry = new BaseDnRegistry();
   }
 
   /**
@@ -120,7 +129,9 @@ public class BackendConfigManager implements
   public void initializeBackendConfig(Collection<String> backendIDsToStart)
          throws ConfigException, InitializationException
   {
-    initializeConfigurationBackend();
+    final ConfigurationBackend configBackend =
+        new ConfigurationBackend(serverContext, DirectoryServer.getConfigurationHandler());
+    initializeBackend(configBackend, configBackend.getBackendCfg());
 
     // Register add and delete listeners.
     RootCfg root = serverContext.getRootConfig();
@@ -187,62 +198,63 @@ public class BackendConfigManager implements
    */
   public void initializeBackends(Collection<String> backendIDsToStart, RootCfg root) throws ConfigException
   {
-    // Initialize existing backends.
-    for (String name : root.listBackends())
+    writeLock.lock();
+    try
     {
-      // Get the handler's configuration.
-      // This will decode and validate its properties.
-      final BackendCfg backendCfg = root.getBackend(name);
-      final String backendID = backendCfg.getBackendId();
-      if (!backendIDsToStart.isEmpty() && !backendIDsToStart.contains(backendID))
+      // Initialize existing backends.
+      for (String name : root.listBackends())
       {
-        continue;
-      }
-      if (hasLocalBackend(backendID))
-      {
-        // Skip this backend if it is already initialized and registered as available.
-        continue;
-      }
+        // Get the handler's configuration.
+        // This will decode and validate its properties.
+        final BackendCfg backendCfg = root.getBackend(name);
+        final String backendID = backendCfg.getBackendId();
+        if (!backendIDsToStart.isEmpty() && !backendIDsToStart.contains(backendID))
+        {
+          continue;
+        }
+        if (hasLocalBackend(backendID))
+        {
+          // Skip this backend if it is already initialized and registered as available.
+          continue;
+        }
 
-      // Register as a change listener for this backend so that we can be
-      // notified when it is disabled or enabled.
-      backendCfg.addChangeListener(this);
+        // Register as a change listener for this backend so that we can be
+        // notified when it is disabled or enabled.
+        backendCfg.addChangeListener(this);
 
-      final DN backendDN = backendCfg.dn();
-      if (!backendCfg.isEnabled())
-      {
-        logger.debug(INFO_CONFIG_BACKEND_DISABLED, backendDN);
-        continue;
+        final DN backendDN = backendCfg.dn();
+        if (!backendCfg.isEnabled())
+        {
+          logger.debug(INFO_CONFIG_BACKEND_DISABLED, backendDN);
+          continue;
+        }
+
+        // See if the entry contains an attribute that specifies the class name
+        // for the backend implementation.  If it does, then load it and make
+        // sure that it's a valid backend implementation.  There is no such
+        // attribute, the specified class cannot be loaded, or it does not
+        // contain a valid backend implementation, then log an error and skip it.
+        String className = backendCfg.getJavaClass();
+
+        Backend<? extends BackendCfg> backend;
+        try
+        {
+          backend = loadBackendClass(className).newInstance();
+        }
+        catch (Exception e)
+        {
+          logger.traceException(e);
+          logger.error(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE, className, backendDN, stackTraceToSingleLineString(e));
+          continue;
+        }
+
+        initializeBackend(backend, backendCfg);
       }
-
-      // See if the entry contains an attribute that specifies the class name
-      // for the backend implementation.  If it does, then load it and make
-      // sure that it's a valid backend implementation.  There is no such
-      // attribute, the specified class cannot be loaded, or it does not
-      // contain a valid backend implementation, then log an error and skip it.
-      String className = backendCfg.getJavaClass();
-
-      Backend<? extends BackendCfg> backend;
-      try
-      {
-        backend = loadBackendClass(className).newInstance();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-        logger.error(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE, className, backendDN, stackTraceToSingleLineString(e));
-        continue;
-      }
-
-      initializeBackend(backend, backendCfg);
     }
-  }
-
-  private void initializeConfigurationBackend() throws InitializationException
-  {
-    final ConfigurationBackend configBackend =
-        new ConfigurationBackend(serverContext, DirectoryServer.getConfigurationHandler());
-    initializeBackend(configBackend, configBackend.getBackendCfg());
+    finally
+    {
+      writeLock.unlock();
+    }
   }
 
   private void initializeBackend(Backend<? extends BackendCfg> backend, BackendCfg backendCfg)
@@ -276,24 +288,6 @@ public class BackendConfigManager implements
       LocalBackendCfg localCfg = (LocalBackendCfg) backendCfg;
       localBackend.setWritabilityMode(toWritabilityMode(localCfg.getWritabilityMode()));
     }
-  }
-
-  /**
-   * Returns the provided backend instance as a LocalBackend.
-   *
-   * @param backend
-   *            A backend
-   * @return a local backend
-   * @throws IllegalArgumentException
-   *            If the provided backend is not a LocalBackend
-   */
-  public static LocalBackend<?> asLocalBackend(Backend<?> backend)
-  {
-    if (backend instanceof LocalBackend)
-    {
-      return (LocalBackend<?>) backend;
-    }
-    throw new IllegalArgumentException("Backend " + backend.getBackendID() + " is not a local backend");
   }
 
   /**
@@ -358,7 +352,7 @@ public class BackendConfigManager implements
    */
   public Set<Backend<?>> getAllBackends()
   {
-    return new HashSet<Backend<?>>(registeredBackends.values());
+    return new HashSet<Backend<?>>(registry.backendsByName.values());
   }
 
   /**
@@ -368,7 +362,7 @@ public class BackendConfigManager implements
    */
   public Set<LocalBackend<?>> getLocalBackends()
   {
-    return new HashSet<LocalBackend<?>>(localBackends.values());
+    return new HashSet<LocalBackend<?>>(registry.localBackendsByName.values());
   }
 
   /**
@@ -382,7 +376,11 @@ public class BackendConfigManager implements
    */
   public LocalBackend<?> getLocalBackendWithBaseDN(DN baseDN)
   {
-    return localBackendsRegistry.getBackendWithBaseDN(baseDN);
+    if (baseDN.isRootDN())
+    {
+      return rootDSEBackend;
+    }
+    return registry.localBackendsByName.get(baseDN);
   }
 
   /**
@@ -396,33 +394,72 @@ public class BackendConfigManager implements
   }
 
   /**
+   * Retrieves the DN that is the immediate parent for this DN. This method does take the server's
+   * naming context configuration into account, so if the current DN is a naming context for the
+   * server, then it will not be considered to have a parent.
+   *
+   * @param dn
+   *          the
+   * @return The DN that is the immediate parent for this DN, or {@code null} if this DN does not
+   *         have a parent (either because there is only a single RDN component or because this DN
+   *         is a suffix defined in the server).
+   */
+  public DN getParentDNInSuffix(DN dn)
+  {
+    if (dn.size() <= 1 || containsLocalNamingContext(dn))
+    {
+      return null;
+    }
+    return dn.parent();
+  }
+
+  /**
+   * Retrieves the backend that should be used to handle operations on the specified entry.
+   *
+   * @param entryDN
+   *          The DN of the entry for which to retrieve the corresponding backend.
+   * @return The backend or {@code null} if no appropriate backend
+   *         is registered with the server.
+   */
+  public Backend<?> findBackendForEntry(final DN entryDN)
+  {
+    if (entryDN.isRootDN())
+    {
+      return rootDSEBackend;
+    }
+    Registry reg = registry;
+    DN baseDN = reg.findNamingContextForEntry(entryDN);
+    return baseDN != null ? reg.backendsByName.get(baseDN) : null;
+  }
+
+  /**
+   * Retrieves the naming context that should be used to handle operations
+   * on the specified entry.
+   *
+   * @param entryDN
+   *          The DN of the entry for which to retrieve the corresponding naming context.
+   * @return The naming context or {@code null} if no appropriate naming context
+   *         is registered with the server.
+   */
+  public DN findNamingContextForEntry(final DN entryDN)
+  {
+    Registry reg = registry;
+    return reg.findNamingContextForEntry(entryDN);
+  }
+
+  /**
    * Retrieves the local backend and the corresponding baseDN that should be used to handle operations
    * on the specified entry.
    *
    * @param entryDN
    *          The DN of the entry for which to retrieve the corresponding backend.
-   * @return The local backend with its matching base DN or {@code null} if no appropriate backend
+   * @return The local backend with its matching base DN or {@code null} if no appropriate local backend
    *         is registered with the server.
    */
-  public BackendAndName getLocalBackendAndName(DN entryDN)
+  public LocalBackend<?> findLocalBackendForEntry(DN entryDN)
   {
-    return entryDN.isRootDN() ?
-        new BackendAndName(getRootDSEBackend(), entryDN) : localBackendsRegistry.getBackendAndName(entryDN);
-  }
-
-  /**
-   * Retrieves the local backend that should be used to handle operations
-   * on the specified entry.
-   *
-   * @param entryDN
-   *          The DN of the entry for which to retrieve the corresponding backend.
-   * @return The local backend or {@code null} if no appropriate backend
-   *         is registered with the server.
-   */
-  public LocalBackend<?> getLocalBackend(DN entryDN)
-  {
-    BackendAndName backend = getLocalBackendAndName(entryDN);
-    return backend != null ? backend.getBackend() : null;
+    Backend<?> backend = findBackendForEntry(entryDN);
+    return backend != null && backend instanceof LocalBackend ? (LocalBackend<?>)backend : null;
   }
 
   /**
@@ -433,9 +470,9 @@ public class BackendConfigManager implements
    * @return the local backend, or {@code null} if there is no local backend registered with the
    *            specified id.
    */
-  public LocalBackend<?> getLocalBackend(String backendId)
+  public LocalBackend<?> getLocalBackendById(String backendId)
   {
-    return localBackends.get(backendId);
+    return localBackendsById.get(backendId);
   }
 
   /**
@@ -447,92 +484,78 @@ public class BackendConfigManager implements
    */
   public boolean hasLocalBackend(String backendID)
   {
-    return localBackends.containsKey(backendID);
+    return localBackendsById.containsKey(backendID);
   }
 
   /**
-   * Retrieves the set of subordinate backends of the backend that corresponds to provided base DN.
+   * Retrieves the set of subordinate backends of the provided backend.
    *
-   * @param baseDN
-   *          The base DN for which to retrieve the subordinates backends.
-   * @return The set of subordinates backends (and associated base DN), which is never {@code null}
+   * @param backend
+   *          The backend for which to retrieve the subordinates backends.
+   * @return The set of subordinates backends, which is never {@code null}
    */
-  public Set<BackendAndName> getSubordinateBackends(DN baseDN)
+  public Set<Backend<?>> getSubordinateBackends(Backend<?> backend)
   {
-    final Set<BackendAndName> subs = new HashSet<>();
-    if (baseDN.isRootDN())
+    Registry reg = registry;
+    final Set<Backend<?>> subs = new HashSet<>();
+    for (DN baseDN : backend.getBaseDNs())
     {
-      Map<DN, LocalBackend<?>> namingContexts = getAllPublicNamingContexts();
-      for (Map.Entry<DN, LocalBackend<?>> b : namingContexts.entrySet())
+      for (Backend<?> b : reg.getSubordinateBackends(baseDN))
       {
-        subs.add(new BackendAndName(b.getValue(), b.getKey()));
-      }
-      return subs;
-    }
-
-    LocalBackend<?> backend = getLocalBackendWithBaseDN(baseDN);
-    if (backend == null)
-    {
-      return subs;
-    }
-    for (LocalBackend<?> subordinate : backend.getSubordinateBackends())
-    {
-      for (DN subordinateDN : subordinate.getBaseDNs())
-      {
-        if (subordinateDN.isSubordinateOrEqualTo(baseDN))
-        {
-          subs.add(new BackendAndName(subordinate, subordinateDN));
-        }
+        subs.add(b);
       }
     }
     return subs;
   }
 
   /**
-   * Gets the mapping of registered public naming contexts, not including
-   * sub-suffixes, to their associated backend.
+   * Retrieves the set of local naming contexts that are subordinates of the naming context
+   * that should be used to handle operations on the specified entry.
    *
-   * @return mapping from naming context to backend
+   * @param entryDN
+   *          The DN of the entry for which to retrieve the corresponding naming context.
+   * @return The naming context or {@code null} if no appropriate naming context
+   *         is registered with the server.
    */
-  public Map<DN, LocalBackend<?>> getPublicNamingContexts()
+  public Set<DN> findSubordinateLocalNamingContextsForEntry(DN entryDN)
   {
-    return localBackendsRegistry.getPublicNamingContextsMap();
+    Registry reg = registry;
+    DN baseDN = findNamingContextForEntry(entryDN);
+    if (baseDN == null)
+    {
+      return null;
+    }
+    return reg.getSubordinateLocalNamingContexts(baseDN);
   }
 
   /**
-   * Gets the mapping of registered public naming contexts, including sub-suffixes,
-   * to their associated backend.
+   * Retrieves naming contexts corresponding to backends, filtered with the combination of
+   * all provided filters.
    *
-   * @return mapping from naming context to backend
+   * @param filters
+   *            filter the naming contexts
+   * @see NamingContext
+   * @return the DNs of naming contexts for which all the filters apply.
    */
-  public Map<DN, LocalBackend<?>> getAllPublicNamingContexts()
+  public Set<DN> getNamingContexts(final NamingContextFilter... filters)
   {
-    return localBackendsRegistry.getAllPublicNamingContextsMap();
+    Registry reg = registry;
+    return reg.getNamingContexts(filters);
   }
 
   /**
-   * Gets the mapping of registered private naming contexts to their
-   * associated backend.
-   *
-   * @return mapping from naming context to backend
-   */
-  public Map<DN, LocalBackend<?>> getPrivateNamingContexts()
-  {
-    return localBackendsRegistry.getPrivateNamingContextsMap();
-  }
-
-  /**
-   * Indicates whether the specified DN is contained in the backends as
-   * a naming contexts.
+   * Indicates whether the specified DN is contained in the local backends as
+   * a naming context.
    *
    * @param  dn  The DN for which to make the determination.
    *
    * @return  {@code true} if the specified DN is a naming context in one
    *          backend, or {@code false} if it is not.
    */
-  public boolean containsNamingContext(DN dn)
+  public boolean containsLocalNamingContext(DN dn)
   {
-    return localBackendsRegistry.containsNamingContext(dn);
+    Registry reg = registry;
+    return reg.containsLocalNamingContext(dn);
   }
 
   /**
@@ -548,12 +571,19 @@ public class BackendConfigManager implements
    * @throws DirectoryException
    *           If a problem occurs while attempting to register the provided base DN.
    */
-  public void registerBaseDN(DN baseDN, LocalBackend<?> backend, boolean isPrivate) throws DirectoryException
+  public void registerBaseDN(DN baseDN, Backend<? extends BackendCfg> backend, boolean isPrivate)
+      throws DirectoryException
   {
-    List<LocalizableMessage> warnings = localBackendsRegistry.registerBaseDN(baseDN, backend, isPrivate);
-    for (LocalizableMessage warning : warnings)
+    writeLock.lock();
+    try
     {
-      logger.error(warning);
+      Registry newRegister = registry.copy();
+      newRegister.registerBaseDN(baseDN, backend, isPrivate);
+      registry = newRegister;
+    }
+    finally
+    {
+      writeLock.unlock();
     }
   }
 
@@ -569,20 +599,29 @@ public class BackendConfigManager implements
    */
   public void registerLocalBackend(LocalBackend<?> backend) throws DirectoryException
   {
-    ifNull(backend);
+    Reject.ifNull(backend);
     String backendID = backend.getBackendID();
-    ifNull(backendID);
-    if (localBackends.containsKey(backendID))
-    {
-      LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-    }
-    localBackends.put(backendID, backend);
+    Reject.ifNull(backendID);
 
-    LocalBackendMonitor monitor = new LocalBackendMonitor(backend);
-    monitor.initializeMonitorProvider(null);
-    backend.setBackendMonitor(monitor);
-    registerMonitorProvider(monitor);
+    writeLock.lock();
+    try
+    {
+      if (localBackendsById.containsKey(backendID))
+      {
+        LocalizableMessage message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      }
+      localBackendsById.put(backendID, backend);
+
+      LocalBackendMonitor monitor = new LocalBackendMonitor(backend);
+      monitor.initializeMonitorProvider(null);
+      backend.setBackendMonitor(monitor);
+      registerMonitorProvider(monitor);
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
   }
 
   /**
@@ -605,10 +644,16 @@ public class BackendConfigManager implements
    */
   public void deregisterBaseDN(DN baseDN) throws DirectoryException
   {
-    List<LocalizableMessage> warnings = localBackendsRegistry.deregisterBaseDN(baseDN);
-    for (LocalizableMessage error : warnings)
+    writeLock.lock();
+    try
     {
-      logger.error(error);
+      Registry newRegister = registry.copy();
+      newRegister.deregisterBaseDN(baseDN);
+      registry = newRegister;
+    }
+    finally
+    {
+      writeLock.unlock();
     }
   }
 
@@ -630,33 +675,36 @@ public class BackendConfigManager implements
    */
   public void deregisterLocalBackend(LocalBackend<?> backend)
   {
-    ifNull(backend);
-    localBackends.remove(backend.getBackendID());
-    LocalBackendMonitor monitor = backend.getBackendMonitor();
-    if (monitor != null)
+    Reject.ifNull(backend);
+    writeLock.lock();
+    try
     {
-      deregisterMonitorProvider(monitor);
-      monitor.finalizeMonitorProvider();
-      backend.setBackendMonitor(null);
+      localBackendsById.remove(backend.getBackendID());
+      LocalBackendMonitor monitor = backend.getBackendMonitor();
+      if (monitor != null)
+      {
+        deregisterMonitorProvider(monitor);
+        monitor.finalizeMonitorProvider();
+        backend.setBackendMonitor(null);
+      }
+    }
+    finally
+    {
+      writeLock.unlock();
     }
   }
 
   @Override
-  public boolean isConfigurationChangeAcceptable(
-       BackendCfg configEntry,
-       List<LocalizableMessage> unacceptableReason)
+  public boolean isConfigurationChangeAcceptable(BackendCfg configEntry, List<LocalizableMessage> unacceptableReason)
   {
     DN backendDN = configEntry.dn();
-
     Set<DN> baseDNs = configEntry.getBaseDN();
 
-    // See if the backend is registered with the server.  If it is, then
-    // see what's changed and whether those changes are acceptable.
-    Backend<?> backend = registeredBackends.get(backendDN);
+    Backend<? extends BackendCfg> backend = configuredBackends.get(backendDN);
     if (backend != null)
     {
-      LinkedHashSet<DN> removedDNs = new LinkedHashSet<>(backend.getBaseDNs());
-      LinkedHashSet<DN> addedDNs = new LinkedHashSet<>(baseDNs);
+      Set<DN> removedDNs = new LinkedHashSet<>(backend.getBaseDNs());
+      Set<DN> addedDNs = new LinkedHashSet<>(baseDNs);
       Iterator<DN> iterator = removedDNs.iterator();
       while (iterator.hasNext())
       {
@@ -667,48 +715,39 @@ public class BackendConfigManager implements
         }
       }
 
-      if (backend instanceof LocalBackend<?>)
+      // Copy the registry and perform the requested changes to see if it complains.
+      Registry registryCopy = registry.copyForCheckingChanges();
+      for (DN dn : removedDNs)
       {
-        // Copy the registry and make the requested changes to see if it complains.
-        LocalBackend<?> localBackend = (LocalBackend<?>) backend;
-        BaseDnRegistry registry = localBackendsRegistry.copy();
-        for (DN dn : removedDNs)
+        try
         {
-          try
-          {
-            registry.deregisterBaseDN(dn);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
-
-            unacceptableReason.add(de.getMessageObject());
-            return false;
-          }
+          registryCopy.deregisterBaseDN(dn);
         }
-
-        for (DN dn : addedDNs)
+        catch (DirectoryException de)
         {
-          try
-          {
-            registry.registerBaseDN(dn, localBackend, false);
-          }
-          catch (DirectoryException de)
-          {
-            logger.traceException(de);
+          logger.traceException(de);
+          unacceptableReason.add(de.getMessageObject());
+          return false;
+        }
+      }
 
-            unacceptableReason.add(de.getMessageObject());
-            return false;
-          }
+      for (DN dn : addedDNs)
+      {
+        try
+        {
+          registryCopy.registerBaseDN(dn, backend, false);
+        }
+        catch (DirectoryException de)
+        {
+          logger.traceException(de);
+          unacceptableReason.add(de.getMessageObject());
+          return false;
         }
       }
     }
     else if (configEntry.isEnabled())
     {
-      /*
-       * If the backend was not enabled, it has not been registered with directory server, so
-       * no listeners will be registered at the lower layers. Verify as it was an add.
-       */
+      // Backend is added
       String className = configEntry.getJavaClass();
       try
       {
@@ -733,10 +772,6 @@ public class BackendConfigManager implements
         return false;
       }
     }
-
-    // If we've gotten to this point, then it is acceptable as far as we are
-    // concerned.  If it is unacceptable according to the configuration for that
-    // backend, then the backend itself will need to make that determination.
     return true;
   }
 
@@ -744,116 +779,98 @@ public class BackendConfigManager implements
   public ConfigChangeResult applyConfigurationChange(BackendCfg cfg)
   {
     DN backendDN = cfg.dn();
-    Backend<? extends BackendCfg> backend = registeredBackends.get(backendDN);
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    // See if the entry contains an attribute that indicates whether the
-    // backend should be enabled.
-    boolean needToEnable = false;
+    writeLock.lock();
     try
     {
-      if (cfg.isEnabled())
-      {
-        // The backend is marked as enabled.  See if that is already true.
-        if (backend == null)
-        {
-          needToEnable = true;
-        } // else already enabled, no need to do anything.
-      }
-      else
-      {
-        // The backend is marked as disabled.  See if that is already true.
-        if (backend != null)
-        {
-          // It isn't disabled, so we will do so now and deregister it from the
-          // Directory Server.
-          deregisterBackend(backendDN, backend);
+      Backend<? extends BackendCfg> backend = configuredBackends.get(backendDN);
 
-          backend.finalizeBackend();
-
-          releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, backend.getBackendID());
-
-          return ccr;
-        } // else already disabled, no need to do anything.
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(backendDN,
-          stackTraceToSingleLineString(e)));
-      return ccr;
-    }
-
-    // See if the entry contains an attribute that specifies the class name
-    // for the backend implementation.  If it does, then load it and make sure
-    // that it's a valid backend implementation.  There is no such attribute,
-    // the specified class cannot be loaded, or it does not contain a valid
-    // backend implementation, then log an error and skip it.
-    String className = cfg.getJavaClass();
-
-    // See if this backend is currently active and if so if the name of the class is the same.
-    if (backend != null && !className.equals(backend.getClass().getName()))
-    {
-      // It is not the same. Try to load it and see if it is a valid backend implementation.
+      boolean needToEnable = false;
       try
       {
-        Class<?> backendClass = DirectoryServer.loadClass(className);
-        if (LocalBackend.class.isAssignableFrom(backendClass))
+        if (cfg.isEnabled())
         {
-          // It appears to be a valid backend class.  We'll return that the
-          // change is successful, but indicate that some administrative
-          // action is required.
-          ccr.addMessage(NOTE_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS.get(
-              backendDN, backend.getClass().getName(), className));
-          ccr.setAdminActionRequired(true);
+          if (backend == null)
+          {
+            needToEnable = true;
+          }
         }
         else
         {
-          // It is not a valid backend class.  This is an error.
-          ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-          ccr.addMessage(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
+          if (backend != null)
+          {
+            deregisterBackend(backendDN, backend);
+            backend.finalizeBackend();
+            releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, backend.getBackendID());
+            return ccr;
+          }
         }
-        return ccr;
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
         ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
-                className, backendDN, stackTraceToSingleLineString(e)));
-        return ccr;
-      }
-    }
-
-
-    // If we've gotten here, then that should mean that we need to enable the
-    // backend.  Try to do so.
-    if (needToEnable)
-    {
-      try
-      {
-        backend = loadBackendClass(className).newInstance();
-      }
-      catch (Exception e)
-      {
-        // It is not a valid backend class.  This is an error.
-        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-        ccr.addMessage(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
+        ccr.addMessage(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(backendDN,
+            stackTraceToSingleLineString(e)));
         return ccr;
       }
 
-      initializeBackend(backend, cfg, ccr);
-      return ccr;
-    }
-    else if (ccr.getResultCode() == ResultCode.SUCCESS && backend != null)
-    {
-      setLocalBackendWritabilityMode(backend, cfg);
-    }
+      String className = cfg.getJavaClass();
+      if (backend != null && !className.equals(backend.getClass().getName()))
+      {
+        // Need to check if it is a valid backend implementation.
+        try
+        {
+          Class<?> backendClass = DirectoryServer.loadClass(className);
+          if (LocalBackend.class.isAssignableFrom(backendClass))
+          {
+            ccr.addMessage(NOTE_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS.get(
+                backendDN, backend.getClass().getName(), className));
+            ccr.setAdminActionRequired(true);
+          }
+          else
+          {
+            ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            ccr.addMessage(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
+          }
+          return ccr;
+        }
+        catch (Exception e)
+        {
+          logger.traceException(e);
 
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+                  className, backendDN, stackTraceToSingleLineString(e)));
+          return ccr;
+        }
+      }
+
+      if (needToEnable)
+      {
+        try
+        {
+          backend = loadBackendClass(className).newInstance();
+        }
+        catch (Exception e)
+        {
+          ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          ccr.addMessage(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
+          return ccr;
+        }
+        initializeBackend(backend, cfg, ccr);
+        return ccr;
+      }
+      else if (ccr.getResultCode() == ResultCode.SUCCESS && backend != null)
+      {
+        setLocalBackendWritabilityMode(backend, cfg);
+      }
+    }
+    finally
+    {
+      writeLock.unlock();
+    }
     return ccr;
   }
 
@@ -874,7 +891,6 @@ public class BackendConfigManager implements
       catch (Exception e)
       {
         logger.traceException(e);
-
         LocalizableMessage message =
             WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(backendCfg.getBackendId(), getExceptionMessage(e));
         logger.error(message);
@@ -890,7 +906,7 @@ public class BackendConfigManager implements
         listener.performBackendPostInitializationProcessing(localBackend);
       }
 
-      registeredBackends.put(backendCfg.dn(), backend);
+      configuredBackends.put(backendCfg.dn(), backend);
       return true;
     }
     throw new RuntimeException("registerBackend() is not yet supported for proxy backend.");
@@ -902,10 +918,6 @@ public class BackendConfigManager implements
        List<LocalizableMessage> unacceptableReason)
   {
     DN backendDN = configEntry.dn();
-
-
-    // See if the entry contains an attribute that specifies the backend ID.  If
-    // it does not, then skip it.
     String backendID = configEntry.getBackendId();
     if (hasLocalBackend(backendID))
     {
@@ -913,21 +925,7 @@ public class BackendConfigManager implements
       return false;
     }
 
-
-    // See if the entry contains an attribute that specifies the set of base DNs
-    // for the backend.  If it does not, then skip it.
-    Set<DN> baseList = configEntry.getBaseDN();
-    DN[] baseDNs = new DN[baseList.size()];
-    baseList.toArray(baseDNs);
-
-
-    // See if the entry contains an attribute that specifies the class name
-    // for the backend implementation.  If it does, then load it and make sure
-    // that it's a valid backend implementation.  There is no such attribute,
-    // the specified class cannot be loaded, or it does not contain a valid
-    // backend implementation, then log an error and skip it.
     String className = configEntry.getJavaClass();
-
     Backend<BackendCfg> backend;
     try
     {
@@ -936,38 +934,28 @@ public class BackendConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-
-      unacceptableReason.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
-              className, backendDN, stackTraceToSingleLineString(e)));
+      unacceptableReason.add(
+          ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendDN, stackTraceToSingleLineString(e)));
       return false;
     }
 
-
-    // Make sure that all of the base DNs are acceptable for use in the server.
-    if (backend instanceof LocalBackend<?>)
+    // Copy the registry and perform the requested changes to see if it complains.
+    Registry registryCopy = registry.copyForCheckingChanges();
+    for (DN baseDN : configEntry.getBaseDN())
     {
-      BaseDnRegistry registry = localBackendsRegistry.copy();
-      for (DN baseDN : baseDNs)
+      if (baseDN.isRootDN())
       {
-        if (baseDN.isRootDN())
-        {
-          unacceptableReason.add(ERR_CONFIG_BACKEND_BASE_IS_EMPTY.get(backendDN));
-          return false;
-        }
-        try
-        {
-          registry.registerBaseDN(baseDN, (LocalBackend<?>) backend, false);
-        }
-        catch (DirectoryException de)
-        {
-          unacceptableReason.add(de.getMessageObject());
-          return false;
-        }
-        catch (Exception e)
-        {
-          unacceptableReason.add(getExceptionMessage(e));
-          return false;
-        }
+        unacceptableReason.add(ERR_CONFIG_BACKEND_BASE_IS_EMPTY.get(backendDN));
+        return false;
+      }
+      try
+      {
+        registryCopy.registerBaseDN(baseDN, backend, false);
+      }
+      catch (DirectoryException de)
+      {
+        unacceptableReason.add(de.getMessageObject());
+        return false;
       }
     }
 
@@ -977,66 +965,55 @@ public class BackendConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationAdd(BackendCfg cfg)
   {
-    DN                backendDN           = cfg.dn();
-    final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    // Register as a change listener for this backend entry so that we will
-    // be notified of any changes that may be made to it.
-    cfg.addChangeListener(this);
-
-    // See if the entry contains an attribute that indicates whether the backend should be enabled.
-    // If it does not, or if it is not set to "true", then skip it.
-    if (!cfg.isEnabled())
-    {
-      // The backend is explicitly disabled.  We will log a message to
-      // indicate that it won't be enabled and return.
-      LocalizableMessage message = INFO_CONFIG_BACKEND_DISABLED.get(backendDN);
-      logger.debug(message);
-      ccr.addMessage(message);
-      return ccr;
-    }
-
-
-
-    // See if the entry contains an attribute that specifies the backend ID.  If
-    // it does not, then skip it.
-    String backendID = cfg.getBackendId();
-    if (hasLocalBackend(backendID))
-    {
-      LocalizableMessage message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(backendDN, backendID);
-      logger.warn(message);
-      ccr.addMessage(message);
-      return ccr;
-    }
-
-
-    // See if the entry contains an attribute that specifies the class name
-    // for the backend implementation.  If it does, then load it and make sure
-    // that it's a valid backend implementation.  There is no such attribute,
-    // the specified class cannot be loaded, or it does not contain a valid
-    // backend implementation, then log an error and skip it.
-    String className = cfg.getJavaClass();
-
-    Backend<? extends BackendCfg> backend;
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
+    writeLock.lock();
     try
     {
-      backend = loadBackendClass(className).newInstance();
+      DN backendDN = cfg.dn();
+      cfg.addChangeListener(this);
+
+      if (!cfg.isEnabled())
+      {
+        LocalizableMessage message = INFO_CONFIG_BACKEND_DISABLED.get(backendDN);
+        logger.debug(message);
+        changeResult.addMessage(message);
+        return changeResult;
+      }
+
+      String backendID = cfg.getBackendId();
+      if (hasLocalBackend(backendID))
+      {
+        LocalizableMessage message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(backendDN, backendID);
+        logger.warn(message);
+        changeResult.addMessage(message);
+        return changeResult;
+      }
+
+      String className = cfg.getJavaClass();
+      Backend<? extends BackendCfg> backend;
+      try
+      {
+        backend = loadBackendClass(className).newInstance();
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+        changeResult.setResultCode(DirectoryServer.getServerErrorResultCode());
+        changeResult.addMessage(
+            ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendDN, stackTraceToSingleLineString(e)));
+        return changeResult;
+      }
+
+      initializeBackend(backend, cfg, changeResult);
     }
-    catch (Exception e)
+    finally
     {
-      logger.traceException(e);
-
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
-          className, backendDN, stackTraceToSingleLineString(e)));
-      return ccr;
+      writeLock.unlock();
     }
-
-    initializeBackend(backend, cfg, ccr);
-    return ccr;
+    return changeResult;
   }
 
-  private boolean configureAndOpenBackend(Backend<?> backend, BackendCfg cfg, ConfigChangeResult ccr)
+  private boolean configureAndOpenBackend(Backend<?> backend, BackendCfg cfg, ConfigChangeResult changeResult)
   {
     try
     {
@@ -1046,11 +1023,9 @@ public class BackendConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
-          cfg.getJavaClass(), cfg.dn(), stackTraceToSingleLineString(e)));
-
+      changeResult.setResultCode(DirectoryServer.getServerErrorResultCode());
+      changeResult.addMessage(
+          ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(cfg.getJavaClass(), cfg.dn(), stackTraceToSingleLineString(e)));
       releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, cfg.getBackendId());
       return false;
     }
@@ -1085,84 +1060,65 @@ public class BackendConfigManager implements
   }
 
   @Override
-  public boolean isConfigurationDeleteAcceptable(
-       BackendCfg configEntry,
-       List<LocalizableMessage> unacceptableReason)
+  public boolean isConfigurationDeleteAcceptable(BackendCfg configEntry, List<LocalizableMessage> unacceptableReason)
   {
     DN backendDN = configEntry.dn();
-
-    // See if this backend config manager has a backend registered with the
-    // provided DN.  If not, then we don't care if the entry is deleted.  If we
-    // do know about it, then that means that it is enabled and we will not
-    // allow removing a backend that is enabled.
-    Backend<?> backend = registeredBackends.get(backendDN);
+    Backend<?> backend = configuredBackends.get(backendDN);
     if (backend == null)
     {
       return true;
     }
-
-    if (backend instanceof LocalBackend)
+    for (DN baseDN : backend.getBaseDNs())
     {
-      // See if the backend has any subordinate backends.  If so, then it is not
-      // acceptable to remove it.  Otherwise, it should be fine.
-      LocalBackend<?>[] subBackends = ((LocalBackend<?>) backend).getSubordinateBackends();
-      if (subBackends != null && subBackends.length != 0)
+      if (registry.subordinates.containsKey(baseDN))
       {
         unacceptableReason.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
         return false;
       }
-      return true;
     }
-    throw new RuntimeException("isConfigurationDeleteAcceptable() is not yet supported for proxy backend.");
+    return true;
   }
 
   @Override
   public ConfigChangeResult applyConfigurationDelete(BackendCfg configEntry)
   {
-    DN                backendDN           = configEntry.dn();
-    final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    // See if this backend config manager has a backend registered with the
-    // provided DN.  If not, then we don't care if the entry is deleted.
-    Backend<?> backend = registeredBackends.get(backendDN);
-    if (backend == null)
-    {
-      return ccr;
-    }
-
-    if (backend instanceof LocalBackend)
-    {
-      // See if the backend has any subordinate backends.  If so, then it is not
-      // acceptable to remove it.  Otherwise, it should be fine.
-      LocalBackend<?>[] subBackends = ((LocalBackend<?>) backend).getSubordinateBackends();
-      if (subBackends != null && subBackends.length > 0)
-      {
-        ccr.setResultCode(UNWILLING_TO_PERFORM);
-        ccr.addMessage(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
-        return ccr;
-      }
-    }
-    else
-    {
-      throw new RuntimeException("applyConfigurationDelete() is not yet supported for proxy backend.");
-    }
-
-    deregisterBackend(backendDN, backend);
-
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
+    writeLock.lock();
     try
     {
-      backend.finalizeBackend();
+      DN backendDN = configEntry.dn();
+      Backend<?> backend = configuredBackends.get(backendDN);
+      if (backend == null)
+      {
+        return changeResult;
+      }
+      for (DN baseDN : backend.getBaseDNs())
+      {
+        if (registry.subordinates.containsKey(baseDN))
+        {
+          changeResult.setResultCode(UNWILLING_TO_PERFORM);
+          changeResult.addMessage(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
+          return changeResult;
+        }
+      }
+
+      deregisterBackend(backendDN, backend);
+      try
+      {
+        backend.finalizeBackend();
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+      }
+      configEntry.removeChangeListener(this);
+      releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, backend.getBackendID());
     }
-    catch (Exception e)
+    finally
     {
-      logger.traceException(e);
+      writeLock.unlock();
     }
-
-    configEntry.removeChangeListener(this);
-
-    releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, backend.getBackendID());
-
-    return ccr;
+    return changeResult;
   }
 
   private void deregisterBackend(DN backendDN, Backend<?> backend)
@@ -1175,7 +1131,7 @@ public class BackendConfigManager implements
         listener.performBackendPreFinalizationProcessing(localBackend);
       }
 
-      registeredBackends.remove(backendDN);
+      configuredBackends.remove(backendDN);
       deregisterLocalBackend(localBackend);
 
       for (LocalBackendInitializationListener listener : initializationListeners)
@@ -1191,627 +1147,656 @@ public class BackendConfigManager implements
   /** Shutdown all local backends. */
   public void shutdownLocalBackends()
   {
-    for (LocalBackend<?> backend : localBackends.values())
+    writeLock.lock();
+    try
     {
-      try
+      for (LocalBackend<?> backend : localBackendsById.values())
       {
-        for (LocalBackendInitializationListener listener : initializationListeners)
+        try
         {
-          listener.performBackendPreFinalizationProcessing(backend);
+          for (LocalBackendInitializationListener listener : initializationListeners)
+          {
+            listener.performBackendPreFinalizationProcessing(backend);
+          }
+
+          backend.finalizeBackend();
+
+          for (LocalBackendInitializationListener listener : initializationListeners)
+          {
+            listener.performBackendPostFinalizationProcessing(backend);
+          }
+
+          releaseSharedLock(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend, backend.getBackendID());
         }
-
-        backend.finalizeBackend();
-
-        for (LocalBackendInitializationListener listener : initializationListeners)
+        catch (Exception e)
         {
-          listener.performBackendPostFinalizationProcessing(backend);
+          logger.traceException(e);
         }
-
-        releaseSharedLock(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend, backend.getBackendID());
       }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
+    }
+    finally
+    {
+      writeLock.unlock();
     }
   }
 
   /**
-   * Registry for maintaining the set of registered base DN's, associated local backends
-   * and naming context information.
+   * The registry maintains the relationships between the base DNs and the backends.
+   * <p>
+   * Implementation note: a separate map is kept for local backends in order to avoid filtering the backends map
+   * each time local backends are requested.
+   * <p>
    */
-  static private class BaseDnRegistry {
-
-    /** The set of base DNs registered with the server. */
-    private final TreeMap<DN, LocalBackend<?>> baseDNs = new TreeMap<>();
-    /** The set of private naming contexts registered with the server. */
-    private final TreeMap<DN, LocalBackend<?>> privateNamingContexts = new TreeMap<>();
-    /** The set of public naming contexts registered with the server. */
-    private final TreeMap<DN, LocalBackend<?>> publicNamingContexts = new TreeMap<>();
-    /** The set of public naming contexts, including sub-suffixes, registered with the server. */
-    private final TreeMap<DN, LocalBackend<?>> allPublicNamingContexts = new TreeMap<>();
-    /** Lock to protect reads of the maps. */
-    private final ReadLock readLock;
-    /** Lock to protect updates of the maps. */
-    private final WriteLock writeLock;
-
+  private static class Registry
+  {
     /**
-     * Indicates whether this base DN registry is in test mode.
-     * A registry instance that is in test mode will not modify backend
-     * objects referred to in the above maps.
+     * The mapping between base DNs and their corresponding local backends.
+     * It is a subset of backendsByName field.
      */
-    private boolean testOnly;
-
+    final Map<DN, LocalBackend<? extends LocalBackendCfg>> localBackendsByName = new HashMap<>();
     /**
-     * Registers a base DN with this registry.
-     *
-     * @param  baseDN to register
-     * @param  backend with which the base DN is associated
-     * @param  isPrivate indicates whether this base DN is private
-     * @return list of error messages generated by registering the base DN
-     *         that should be logged if the changes to this registry are
-     *         committed to the server
-     * @throws DirectoryException if the base DN cannot be registered
+     * The mapping between base DNs and their corresponding backends.
+     * <p>
+     * Note that the pair (root DN, RootDSEBackend) is not included in this mapping.
      */
-    List<LocalizableMessage> registerBaseDN(DN baseDN, LocalBackend<?> backend, boolean isPrivate)
-        throws DirectoryException
+    final Map<DN, Backend<? extends BackendCfg>> backendsByName = new HashMap<>();
+    /**
+     * The map of subordinates relationships between base DNs, which provides for each base DN
+     * the set of its subordinates.
+     * <p>
+     * A base DN with no subordinates does not appear in this map.
+     * Note that the root DN ("") is not included in this mapping.
+     */
+    final Map<DN, Set<DN>> subordinates = new HashMap<>();
+
+    /** The naming contexts, including sub-suffixes. */
+    final Set<NamingContext> namingContexts = new HashSet<>();
+
+    Registry copy()
     {
-      writeLock.lock();
-      try
-      {
-        return registerBaseDN0(baseDN, backend, isPrivate);
-      }
-      finally
-      {
-        writeLock.unlock();
-      }
+      return copy(true);
     }
 
-    private List<LocalizableMessage> registerBaseDN0(DN baseDN, LocalBackend<?> backend, boolean isPrivate)
-        throws DirectoryException
+    Registry copyForCheckingChanges()
+    {
+      return copy(false);
+    }
+
+    Set<DN> getNamingContexts(final NamingContextFilter... filters)
+    {
+      Predicate<NamingContext, Void> predicate = new Predicate<NamingContext, Void>()
+      {
+        @Override
+        public boolean matches(NamingContext namingContext, Void p)
+        {
+          for (NamingContextFilter filter : filters)
+          {
+            if (!filter.matches(namingContext, p))
+            {
+              return false;
+            }
+          }
+          return true;
+        }
+      };
+      Set<DN> result = new HashSet<>();
+      for (NamingContext namingContext : Iterables.filteredIterable(namingContexts, predicate))
+      {
+        result.add(namingContext.getBaseDN());
+      }
+      return result;
+    }
+
+    boolean containsLocalNamingContext(DN dn)
+    {
+      if (localBackendsByName.containsKey(dn))
+      {
+        for (NamingContext name : namingContexts)
+        {
+          if (name.getBaseDN().equals(dn))
+          {
+            return name.isLocal && !name.isSubSuffix;
+          }
+        }
+      }
+      return false;
+    }
+
+    private Registry copy(boolean isUpdate)
+    {
+      Registry registry = isUpdate ? new Registry() : new CheckingRegistry();
+      registry.localBackendsByName.putAll(localBackendsByName);
+      registry.backendsByName.putAll(backendsByName);
+      for (Map.Entry<DN, Set<DN>> entry : subordinates.entrySet())
+      {
+        registry.subordinates.put(entry.getKey(), new HashSet<>(entry.getValue()));
+      }
+      registry.namingContexts.addAll(namingContexts);
+      return registry;
+    }
+
+    void registerBaseDN(DN baseDN, Backend<? extends BackendCfg> backend, boolean isPrivate) throws DirectoryException
     {
       // Check to see if the base DN is already registered with the server.
-      LocalBackend<?> existingBackend = baseDNs.get(baseDN);
+      Backend<?> existingBackend = backendsByName.get(baseDN);
       if (existingBackend != null)
       {
-        LocalizableMessage message = ERR_REGISTER_BASEDN_ALREADY_EXISTS.
-            get(baseDN, backend.getBackendID(), existingBackend.getBackendID());
+        LocalizableMessage message =
+            ERR_REGISTER_BASEDN_ALREADY_EXISTS.get(baseDN, backend.getBackendID(), existingBackend.getBackendID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
       // Check to see if the backend is already registered with the server for
-      // any other base DN(s).  The new base DN must not have any hierarchical
+      // any other base DN(s). The new base DN must not have any hierarchical
       // relationship with any other base Dns for the same backend.
-      LinkedList<DN> otherBaseDNs = new LinkedList<>();
-      for (DN dn : baseDNs.keySet())
+      List<DN> otherBackendBaseDNs = new ArrayList<>();
+      for (Map.Entry<DN, Backend<? extends BackendCfg>> entry : backendsByName.entrySet())
       {
-        LocalBackend<?> b = baseDNs.get(dn);
+        Backend<?> b = entry.getValue();
         if (b.equals(backend))
         {
-          otherBaseDNs.add(dn);
-
+          DN dn = entry.getKey();
+          otherBackendBaseDNs.add(dn);
           if (baseDN.isSuperiorOrEqualTo(dn) || baseDN.isSubordinateOrEqualTo(dn))
           {
-            LocalizableMessage message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
-                get(baseDN, backend.getBackendID(), dn);
+            LocalizableMessage message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.get(baseDN, backend.getBackendID(), dn);
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
       }
 
       // Check to see if the new base DN is subordinate to any other base DN
-      // already defined.  If it is, then any other base DN(s) for the same
+      // already defined. If it is, then any other base DN(s) for the same
       // backend must also be subordinate to the same base DN.
-      final LocalBackend<?> superiorBackend = getSuperiorBackend(baseDN, otherBaseDNs, backend.getBackendID());
-      if (superiorBackend == null && backend.getParentBackend() != null)
+      final DN parentBaseDN = retrieveParentBackend(backend.getBackendID(), baseDN, otherBackendBaseDNs);
+      Backend<?> parentBackend = null;
+      if (parentBaseDN == null)
       {
-        LocalizableMessage message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
-            get(baseDN, backend.getBackendID(), backend.getParentBackend().getBackendID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+        // check that other base DNs do no have a parent
+        for (DN dn : otherBackendBaseDNs)
+        {
+          DN parentDn = retrieveParentSuffix(dn);
+          if (parentDn != null)
+          {
+            String parentBackendId = backendsByName.get(parentDn).getBackendID();
+            LocalizableMessage message =
+                ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.get(baseDN, backend.getBackendID(), parentBackendId);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+          }
+        }
+      }
+      else
+      {
+        parentBackend = backendsByName.get(parentBaseDN);
       }
 
-      // Check to see if the new base DN should be the superior base DN for any
-      // other base DN(s) already defined.
-      LinkedList<LocalBackend<?>> subordinateBackends = new LinkedList<>();
-      LinkedList<DN>      subordinateBaseDNs  = new LinkedList<>();
-      for (DN dn : baseDNs.keySet())
+      List<DN> subordinateBaseDNs = new LinkedList<>();
+      for (Map.Entry<DN, Backend<? extends BackendCfg>> entry : backendsByName.entrySet())
       {
-        LocalBackend<?> b = baseDNs.get(dn);
+        DN dn = entry.getKey();
         DN parentDN = dn.parent();
         while (parentDN != null)
         {
           if (parentDN.equals(baseDN))
           {
             subordinateBaseDNs.add(dn);
-            subordinateBackends.add(b);
             break;
           }
-          else if (baseDNs.containsKey(parentDN))
+          else if (backendsByName.containsKey(parentDN))
           {
             break;
           }
-
           parentDN = parentDN.parent();
         }
       }
 
-      // If we've gotten here, then the new base DN is acceptable.  If we should
+      // If we've gotten here, then the new base DN is acceptable. If we should
       // actually apply the changes then do so now.
-      final List<LocalizableMessage> errors = new LinkedList<>();
+      checkEntryInMultipleBackends(baseDN, backend, parentBackend);
 
+      backendsByName.put(baseDN, backend);
+      if (backend instanceof LocalBackend<?>)
+      {
+        LocalBackend<? extends LocalBackendCfg> localBackend = (LocalBackend<? extends LocalBackendCfg>) backend;
+        localBackendsByName.put(baseDN, localBackend);
+        setPrivateBackend(isPrivate, parentBackend, localBackend);
+      }
+
+      namingContexts.add(new NamingContext(baseDN, isPrivate, (parentBackend!=null), backend instanceof LocalBackend));
+      if (parentBaseDN != null)
+      {
+        addSubordinateDn(parentBaseDN, baseDN);
+        for (DN subordinateDN : subordinateBaseDNs)
+        {
+          removeSubordinateDn(parentBaseDN, subordinateDN);
+        }
+      }
+      for (DN subDN : subordinateBaseDNs)
+      {
+        addSubordinateDn(baseDN, subDN);
+        switchNamingContextIsSubSuffix(subDN);
+      }
+    }
+
+    void setPrivateBackend(boolean isPrivate, final Backend<?> parentBackend,
+        LocalBackend<? extends LocalBackendCfg> localBackend)
+    {
+      if (parentBackend == null)
+      {
+        localBackend.setPrivateBackend(isPrivate);
+      }
+    }
+
+    void checkEntryInMultipleBackends(DN baseDN, Backend<? extends BackendCfg> backend,
+        final Backend<?> parentBackend) throws DirectoryException
+    {
       // Check to see if any of the registered backends already contain an
-      // entry with the DN specified as the base DN.  This could happen if
+      // entry with the DN specified as the base DN. This could happen if
       // we're creating a new subordinate backend in an existing directory
       // (e.g., moving the "ou=People,dc=example,dc=com" branch to its own
       // backend when that data already exists under the "dc=example,dc=com"
-      // backend).  This condition shouldn't prevent the new base DN from
+      // backend). This condition shouldn't prevent the new base DN from
       // being registered, but it's definitely important enough that we let
       // the administrator know about it and remind them that the existing
       // backend will need to be reinitialized.
-      if (superiorBackend != null)
+      if (parentBackend != null)
       {
-        if (superiorBackend.entryExists(baseDN))
+        if (entryExistsInBackend(baseDN, parentBackend))
         {
-          errors.add(WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
-              get(superiorBackend.getBackendID(), baseDN, backend.getBackendID()));
+          logger.error(WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.get(
+              parentBackend.getBackendID(), baseDN, backend.getBackendID()));
         }
-      }
-
-      baseDNs.put(baseDN, backend);
-
-      if (superiorBackend == null)
-      {
-        if (!testOnly)
-        {
-          backend.setPrivateBackend(isPrivate);
-        }
-
-        if (isPrivate)
-        {
-          privateNamingContexts.put(baseDN, backend);
-        }
-        else
-        {
-          publicNamingContexts.put(baseDN, backend);
-        }
-      }
-      else if (otherBaseDNs.isEmpty() && !testOnly)
-      {
-        backend.setParentBackend(superiorBackend);
-        superiorBackend.addSubordinateBackend(backend);
-      }
-
-      if (!testOnly)
-      {
-        for (LocalBackend<?> b : subordinateBackends)
-        {
-          LocalBackend<?> oldParentBackend = b.getParentBackend();
-          if (oldParentBackend != null)
-          {
-            oldParentBackend.removeSubordinateBackend(b);
-          }
-
-          b.setParentBackend(backend);
-          backend.addSubordinateBackend(b);
-        }
-      }
-
-      if (!isPrivate)
-      {
-        allPublicNamingContexts.put(baseDN, backend);
-      }
-      for (DN dn : subordinateBaseDNs)
-      {
-        publicNamingContexts.remove(dn);
-        privateNamingContexts.remove(dn);
-      }
-
-      return errors;
-    }
-
-    LocalBackend<?> getBackendWithBaseDN(DN entryDN)
-    {
-      readLock.lock();
-      try
-      {
-        return baseDNs.get(entryDN);
-      }
-      finally
-      {
-        readLock.unlock();
       }
     }
 
-
-    BackendAndName getBackendAndName(final DN entryDN)
+    DN findNamingContextForEntry(final DN entryDN)
     {
-      readLock.lock();
-      try
+      if (entryDN.isRootDN())
       {
-        /*
-         * Try to minimize the number of lookups in the map to find the backend containing the entry.
-         * 1) If the DN contains many RDNs it is faster to iterate through the list of registered backends,
-         * 2) Otherwise iterating through the parents requires less lookups. It also avoids some attacks
-         * where we would spend time going through the list of all parents to finally decide the
-         * baseDN is absent.
-         */
-        if (entryDN.size() <= baseDNs.size())
+        return entryDN;
+      }
+      /*
+       * Try to minimize the number of lookups in the map to find the backend containing the entry.
+       * 1) If the DN contains many RDNs it is faster to iterate through the list of registered backends,
+       * 2) Otherwise iterating through the parents requires less lookups. It also avoids some attacks
+       * where we would spend time going through the list of all parents to finally decide the baseDN
+       * is absent.
+       */
+      if (entryDN.size() <= backendsByName.size())
+      {
+        DN matchedDN = entryDN;
+        while (!matchedDN.isRootDN())
         {
-          DN matchedDN = entryDN;
-          while (!matchedDN.isRootDN())
+          if (backendsByName.containsKey(matchedDN))
           {
-            final LocalBackend<?> backend = baseDNs.get(matchedDN);
-            if (backend != null)
-            {
-              return new BackendAndName(backend, matchedDN);
-            }
-            matchedDN = matchedDN.parent();
+            return matchedDN;
           }
-          return null;
+          matchedDN = matchedDN.parent();
         }
-        else
-        {
-          LocalBackend<?> backend = null;
-          DN matchedDN = null;
-          int currentSize = 0;
-          for (DN backendDN : baseDNs.keySet())
-          {
-            if (entryDN.isSubordinateOrEqualTo(backendDN) && backendDN.size() > currentSize)
-            {
-              backend = baseDNs.get(backendDN);
-              matchedDN = backendDN;
-              currentSize = backendDN.size();
-            }
-          }
-          return new BackendAndName(backend, matchedDN);
-        }
-      }
-      finally
-      {
-        readLock.unlock();
-      }
-    }
-
-    private LocalBackend<?> getSuperiorBackend(DN baseDN, LinkedList<DN> otherBaseDNs, String backendID)
-        throws DirectoryException
-    {
-      readLock.lock();
-      try
-      {
-        LocalBackend<?> superiorBackend = null;
-        DN parentDN = baseDN.parent();
-        while (parentDN != null)
-        {
-          if (baseDNs.containsKey(parentDN))
-          {
-            superiorBackend = baseDNs.get(parentDN);
-
-            for (DN dn : otherBaseDNs)
-            {
-              if (!dn.isSubordinateOrEqualTo(parentDN))
-              {
-                LocalizableMessage msg = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.get(baseDN, backendID, dn);
-                throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
-              }
-            }
-            break;
-          }
-
-          parentDN = parentDN.parent();
-        }
-        return superiorBackend;
-      }
-      finally
-      {
-        readLock.unlock();
-      }
-    }
-
-    /**
-     * Deregisters a base DN with this registry.
-     *
-     * @param  baseDN to deregister
-     * @return list of error messages generated by deregistering the base DN
-     *         that should be logged if the changes to this registry are
-     *         committed to the server
-     * @throws DirectoryException if the base DN could not be deregistered
-     */
-     List<LocalizableMessage> deregisterBaseDN(DN baseDN) throws DirectoryException
-     {
-       writeLock.lock();
-       try
-       {
-         return deregisterBaseDN0(baseDN);
-       }
-       finally
-       {
-         writeLock.unlock();
-       }
-     }
-
-    List<LocalizableMessage> deregisterBaseDN0(DN baseDN) throws DirectoryException
-    {
-      ifNull(baseDN);
-
-      // Make sure that the Directory Server actually contains a backend with
-      // the specified base DN.
-      LocalBackend<?> backend = baseDNs.get(baseDN);
-      if (backend == null)
-      {
-        LocalizableMessage message =
-            ERR_DEREGISTER_BASEDN_NOT_REGISTERED.get(baseDN);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-
-      // Check to see if the backend has a parent backend, and whether it has
-      // any subordinates with base DNs that are below the base DN to remove.
-      LocalBackend<?> superiorBackend = backend.getParentBackend();
-      LinkedList<LocalBackend<?>> subordinateBackends = new LinkedList<>();
-      if (backend.getSubordinateBackends() != null)
-      {
-        for (LocalBackend<?> b : backend.getSubordinateBackends())
-        {
-          for (DN dn : b.getBaseDNs())
-          {
-            if (dn.isSubordinateOrEqualTo(baseDN))
-            {
-              subordinateBackends.add(b);
-              break;
-            }
-          }
-        }
-      }
-
-      // See if there are any other base DNs registered within the same backend.
-      LinkedList<DN> otherBaseDNs = new LinkedList<>();
-      for (DN dn : baseDNs.keySet())
-      {
-        if (dn.equals(baseDN))
-        {
-          continue;
-        }
-
-        LocalBackend<?> b = baseDNs.get(dn);
-        if (backend.equals(b))
-        {
-          otherBaseDNs.add(dn);
-        }
-      }
-
-      // If we've gotten here, then it's OK to make the changes.
-
-      // Get rid of the references to this base DN in the mapping tree
-      // information.
-      baseDNs.remove(baseDN);
-      publicNamingContexts.remove(baseDN);
-      allPublicNamingContexts.remove(baseDN);
-      privateNamingContexts.remove(baseDN);
-
-      final LinkedList<LocalizableMessage> errors = new LinkedList<>();
-      if (superiorBackend == null)
-      {
-        // If there were any subordinate backends, then all of their base DNs
-        // will now be promoted to naming contexts.
-        for (LocalBackend<?> b : subordinateBackends)
-        {
-          if (!testOnly)
-          {
-            b.setParentBackend(null);
-            backend.removeSubordinateBackend(b);
-          }
-
-          for (DN dn : b.getBaseDNs())
-          {
-            if (b.isPrivateBackend())
-            {
-              privateNamingContexts.put(dn, b);
-            }
-            else
-            {
-              publicNamingContexts.put(dn, b);
-            }
-          }
-        }
+        return null;
       }
       else
       {
-        // If there are no other base DNs for the associated backend, then
-        // remove this backend as a subordinate of the parent backend.
-        if (otherBaseDNs.isEmpty() && !testOnly)
+        DN matchedDN = null;
+        int currentSize = 0;
+        for (DN backendDN : backendsByName.keySet())
         {
-          superiorBackend.removeSubordinateBackend(backend);
+          if (entryDN.isSubordinateOrEqualTo(backendDN) && backendDN.size() > currentSize)
+          {
+            matchedDN = backendDN;
+            currentSize = backendDN.size();
+          }
         }
+        return matchedDN;
+      }
+    }
+
+    /** Returns the parent naming context for base DN, or {@code null} if there is no parent. */
+    private DN retrieveParentBackend(String backendID, DN baseDN, List<DN> otherBackendBaseDNs)
+        throws DirectoryException
+    {
+      DN parentDN = baseDN.parent();
+      while (parentDN != null)
+      {
+        if (backendsByName.containsKey(parentDN))
+        {
+          break;
+        }
+        parentDN = parentDN.parent();
+      }
+
+      if (parentDN == null) {
+        return null;
+      }
+      // check that other base DNs of the backend have the same subordinate
+      for (DN dn : otherBackendBaseDNs)
+      {
+        if (!dn.isSubordinateOrEqualTo(parentDN))
+        {
+          LocalizableMessage msg = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.get(baseDN, backendID, dn);
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
+        }
+      }
+      return parentDN;
+    }
+
+    /** Returns the DN that has the provided DN as a subordinate, or {@code null} if there is no parent. */
+    private DN retrieveParentSuffix(DN dn)
+    {
+      for (Map.Entry<DN, Set<DN>> entry : subordinates.entrySet())
+      {
+        Set<DN> subs = entry.getValue();
+        if (subs.contains(dn))
+        {
+          return entry.getKey();
+        }
+      }
+      return null;
+    }
+
+    private boolean entryExistsInBackend(DN dn, Backend<?> backend) throws DirectoryException
+    {
+      if (backend instanceof LocalBackend<?>)
+      {
+        return ((LocalBackend<?>) backend).entryExists(dn);
+      }
+      // TODO: assume entry exists in non-local backend, Is it correct ?
+      return true;
+    }
+
+    private void addSubordinateDn(DN dn, DN subordinateDn)
+    {
+      Set<DN> subs = subordinates.get(dn);
+      if (subs == null)
+      {
+        subs = new HashSet<>();
+        subordinates.put(dn, subs);
+      }
+      subs.add(subordinateDn);
+    }
+
+    void deregisterBaseDN(DN baseDN) throws DirectoryException
+    {
+      Reject.ifNull(baseDN);
+
+      Backend<?> backend = backendsByName.get(baseDN);
+      if (backend == null)
+      {
+        LocalizableMessage message = ERR_DEREGISTER_BASEDN_NOT_REGISTERED.get(baseDN);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      }
+
+      backendsByName.remove(baseDN);
+      if (backend instanceof LocalBackend<?>)
+      {
+        localBackendsByName.remove(baseDN);
+      }
+      removeNamingContext(baseDN);
+
+      Set<DN> subordinatesDNs = getSubordinateNamingContexts(baseDN);
+      subordinates.remove(baseDN);
+      DN parentDN = retrieveParentSuffix(baseDN);
+      if (parentDN == null)
+      {
+        // If there were any subordinate naming contexts,
+        // they are all promoted to top-level naming contexts.
+        for (DN dn : subordinatesDNs)
+          {
+            switchNamingContextIsSubSuffix(dn);
+          }
+      }
+      else
+      {
+        removeSubordinateDn(parentDN, baseDN);
 
         // If there are any subordinate backends, then they need to be made
-        // subordinate to the parent backend.  Also, we should log a warning
+        // subordinate to the parent backend. Also, we should log a warning
         // message indicating that there may be inconsistent search results
         // because some of the structural entries will be missing.
-        if (! subordinateBackends.isEmpty())
+        if (!subordinatesDNs.isEmpty())
         {
-          // Suppress this warning message on server shutdown.
-          if (!DirectoryServer.getInstance().isShuttingDown()) {
-            errors.add(WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
-                baseDN, backend.getBackendID()));
-          }
-
-          if (!testOnly)
+          checkMissingHierarchy(baseDN, backend);
+          for (DN subDN : subordinatesDNs)
           {
-            for (LocalBackend<?> b : subordinateBackends)
-            {
-              backend.removeSubordinateBackend(b);
-              superiorBackend.addSubordinateBackend(b);
-              b.setParentBackend(superiorBackend);
-            }
+            addSubordinateDn(parentDN, subDN);
           }
         }
       }
-      return errors;
     }
 
-    /** Creates a default instance. */
-    BaseDnRegistry()
+    void checkMissingHierarchy(DN baseDN, Backend<?> backend)
     {
-      this(false);
-    }
-
-    /**
-     * Returns a copy of this registry.
-     *
-     * @return copy of this registry
-     */
-    BaseDnRegistry copy()
-    {
-      readLock.lock();
-      try
+      if (!DirectoryServer.getInstance().isShuttingDown())
       {
-        final BaseDnRegistry registry = new BaseDnRegistry(true);
-        registry.baseDNs.putAll(baseDNs);
-        registry.publicNamingContexts.putAll(publicNamingContexts);
-        registry.allPublicNamingContexts.putAll(allPublicNamingContexts);
-        registry.privateNamingContexts.putAll(privateNamingContexts);
-        return registry;
-      }
-      finally
-      {
-        readLock.unlock();
+        logger.error(WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(baseDN, backend.getBackendID()));
       }
     }
 
-    /**
-     * Creates a parameterized instance.
-     *
-     * @param testOnly indicates whether this registry will be used for testing;
-     *        when <code>true</code> this registry will not modify backends
-     */
-    private BaseDnRegistry(boolean testOnly)
+    Set<Backend<?>> getSubordinateBackends(DN baseDN)
     {
-      this.testOnly = testOnly;
-      ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-      readLock = lock.readLock();
-      writeLock = lock.writeLock();
+      final Set<Backend<?>> backends = new HashSet<>();
+      if (baseDN.isRootDN())
+      {
+        for (DN dn : getNamingContexts(PUBLIC, TOP_LEVEL))
+        {
+          backends.add(backendsByName.get(dn));
+        }
+        return backends;
+      }
+      // general case
+      Set<DN> subDNs = subordinates.get(baseDN);
+      if (subDNs != null)
+      {
+        for (DN subDN : subDNs)
+        {
+          Backend<? extends BackendCfg> backend = backendsByName.get(subDN);
+          if (backend != null)
+          {
+            // it is safe to add same backend several times because it is a set
+            backends.add(backend);
+          }
+        }
+      }
+      return backends;
     }
 
-    /**
-     * Gets the mapping of registered public naming contexts, not including
-     * sub-suffixes, to their associated backend.
-     *
-     * @return mapping from naming context to backend
-     */
-    Map<DN, LocalBackend<?>> getPublicNamingContextsMap()
+    Set<DN> getSubordinateNamingContexts(DN baseDN)
     {
-      readLock.lock();
-      try
+      final Set<DN> dns = new HashSet<>();
+      if (baseDN.isRootDN())
       {
-        return this.publicNamingContexts;
+        for (DN dn : getNamingContexts(PUBLIC, TOP_LEVEL))
+        {
+          dns.add(dn);
+        }
+        return dns;
       }
-      finally
+      // general case
+      Set<DN> subDNs = subordinates.get(baseDN);
+      if (subDNs != null)
       {
-        readLock.unlock();
+        dns.addAll(subDNs);
+      }
+      return dns;
+    }
+
+    Set<DN> getSubordinateLocalNamingContexts(DN baseDN)
+    {
+      Set<DN> subs = new HashSet<>();
+      for (DN subDN : getSubordinateNamingContexts(baseDN))
+      {
+        if (localBackendsByName.containsKey(subDN))
+        {
+          subs.add(subDN);
+        }
+      }
+      return subs;
+    }
+
+    private void removeSubordinateDn(DN dn, DN subordinateDn)
+    {
+      if (subordinates.containsKey(dn))
+      {
+        Set<DN> subs = subordinates.get(dn);
+        subs.remove(subordinateDn);
+        if (subs.isEmpty())
+        {
+          subordinates.remove(dn);
+        }
       }
     }
 
-    /**
-     * Gets the mapping of registered public naming contexts, including sub-suffixes,
-     * to their associated backend.
-     *
-     * @return mapping from naming context to backend
-     */
-    Map<DN, LocalBackend<?>> getAllPublicNamingContextsMap()
+    private NamingContext removeNamingContext(DN baseDn)
     {
-      readLock.lock();
-      try
+      for (Iterator<NamingContext> it = namingContexts.iterator(); it.hasNext();)
       {
-        return this.allPublicNamingContexts;
+        NamingContext nc = it.next();
+        if (nc.getBaseDN().equals(baseDn))
+        {
+          it.remove();
+          return nc;
+        }
       }
-      finally
-      {
-        readLock.unlock();
-      }
+      return null;
     }
 
-    /**
-     * Gets the mapping of registered private naming contexts to their
-     * associated backend.
-     *
-     * @return mapping from naming context to backend
-     */
-    Map<DN, LocalBackend<?>> getPrivateNamingContextsMap()
+    private void switchNamingContextIsSubSuffix(DN baseDn)
     {
-      readLock.lock();
-      try
-      {
-        return this.privateNamingContexts;
-      }
-      finally
-      {
-        readLock.unlock();
-      }
+      NamingContext nc = removeNamingContext(baseDn);
+      namingContexts.add(new NamingContext(nc.getBaseDN(), nc.isPrivate(), !nc.isSubSuffix(), nc.isLocal()));
+    }
+  }
+
+  /**
+   * A registry to check that changes on baseDNs are acceptable.
+   * <p>
+   * This registry will only change its internal state. It will not log warning and will not change
+   * state of backends.
+   */
+  private static class CheckingRegistry extends Registry
+  {
+    @Override
+    void setPrivateBackend(boolean isPrivate, final Backend<?> parentBackend,
+        LocalBackend<? extends LocalBackendCfg> localBackend)
+    {
+      // no-op
     }
 
-    /**
-     * Indicates whether the specified DN is contained in this registry as
-     * a naming contexts.
-     *
-     * @param  dn  The DN for which to make the determination.
-     *
-     * @return  {@code true} if the specified DN is a naming context in this
-     *          registry, or {@code false} if it is not.
-     */
-    boolean containsNamingContext(DN dn)
+    @Override
+    void checkEntryInMultipleBackends(DN baseDN, Backend<? extends BackendCfg> backend,
+        final Backend<?> parentBackend) throws DirectoryException
     {
-      readLock.lock();
-      try
+      // no-op
+    }
+
+    @Override
+    void checkMissingHierarchy(DN baseDN, Backend<?> backend)
+    {
+      // no-op
+    }
+  }
+
+  /** Filter on naming context. */
+  public enum NamingContextFilter implements com.forgerock.opendj.util.Predicate<NamingContext, Void>
+  {
+    /** a naming context corresponding to a private backend. */
+    PRIVATE
+    {
+      @Override
+      public boolean matches(NamingContext context, Void p)
       {
-        return privateNamingContexts.containsKey(dn) || publicNamingContexts.containsKey(dn);
+        return context.isPrivate();
       }
-      finally
+    },
+    /** a public naming context (strict opposite of private). */
+    PUBLIC
+    {
+      @Override
+      public boolean matches(NamingContext context, Void p)
       {
-        readLock.unlock();
+        return !context.isPrivate();
+      }
+    },
+    /** a top-level naming context, which is not a subordinate of another naming context. */
+    TOP_LEVEL
+    {
+      @Override
+      public boolean matches(NamingContext context, Void p)
+      {
+        return !context.isSubSuffix();
+      }
+    },
+    /** a naming suffix corresponding to a local backend. */
+    LOCAL
+    {
+      @Override
+      public boolean matches(NamingContext context, Void p)
+      {
+        return context.isLocal();
       }
     }
   }
 
   /**
-   * Holder for a backend and a single base DN managed by the backend.
+   * Represents a naming context, determined by its base DN.
    * <p>
-   * A backend can manages multiple base DNs, this class allow to keep the association for a single DN.
+   * A naming context may be private or public, top-level or sub-suffix, local or non-local.
+   * <p>
+   * This class provides predicates to be able to filter on a provided set of naming contexts.
    */
-  public static class BackendAndName
+  public static class NamingContext
   {
-    private final LocalBackend<?> backend;
-    private final DN baseDn;
+    private final DN baseDN;
+    private final boolean isPrivate;
+    private final boolean isSubSuffix;
+    private final boolean isLocal;
 
-    /**
-     * Creates a new holder for base DN and the backend that manages it.
-     * @param backend
-     *          The backend that holds the base DN
-     * @param baseDn
-     *          A base DN of the backend
-     */
-    public BackendAndName(LocalBackend<?> backend, DN baseDn)
+    NamingContext(DN baseDN, boolean isPrivate, boolean isSubSuffix, boolean isLocal)
     {
-      this.backend = backend;
-      this.baseDn = baseDn;
+      this.baseDN = baseDN;
+      this.isPrivate = isPrivate;
+      this.isSubSuffix = isSubSuffix;
+      this.isLocal = isLocal;
     }
 
     /**
-     * Returns the base DN.
+     * Retrieves the base DN of the naming context.
      *
-     * @return the base DN
+     * @return the baseDN
      */
-    public DN getBaseDn()
+    public DN getBaseDN()
     {
-      return baseDn;
+      return baseDN;
     }
 
     /**
-     * Returns the backend.
+     * Indicates whether this naming context corresponds to a private backend.
      *
-     * @return the backend that holds the base DN
+     * @return {@code true} if naming context is private, {@code false} otherwise
      */
-    public LocalBackend<?> getBackend()
+    public boolean isPrivate()
     {
-      return backend;
+      return isPrivate;
+    }
+
+    /**
+     * Indicates whether this naming context corresponds to a sub-suffix (a non top-level naming context).
+     *
+     * @return {@code true} if naming context is a sub-suffix, {@code false} otherwise
+     */
+    public boolean isSubSuffix()
+    {
+      return isSubSuffix;
+    }
+
+    /**
+     * Indicates whether this naming context corresponds to a local backend.
+     *
+     * @return {@code true} if naming context is local, {@code false} otherwise
+     */
+    public boolean isLocal()
+    {
+      return isLocal;
     }
   }
 }

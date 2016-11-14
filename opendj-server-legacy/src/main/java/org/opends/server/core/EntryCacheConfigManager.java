@@ -96,7 +96,7 @@ public class EntryCacheConfigManager
     try
     {
       DefaultEntryCache defaultCache = new DefaultEntryCache();
-      defaultCache.initializeEntryCache(null);
+      defaultCache.initializeEntryCache(serverContext, null);
       DirectoryServer.setEntryCache(defaultCache);
       _defaultEntryCache = defaultCache;
     }
@@ -530,7 +530,7 @@ public class EntryCacheConfigManager
 
       if (initialize)
       {
-        cache.initializeEntryCache(configuration);
+        cache.initializeEntryCache(serverContext, configuration);
       }
       // This will check if configuration is acceptable on disabled
       // and uninitialized cache instance that has no "acceptable"

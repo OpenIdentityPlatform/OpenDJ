@@ -321,7 +321,7 @@ public class DependencyTest extends ReplicationTestCase
          "entryuuid: " + stringUID(1));
 
     MemoryBackend memoryBackend =
-        (MemoryBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackend(TEST_BACKEND_ID);
+        (MemoryBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
     memoryBackend.addEntry(topEntry, null);
   }
 

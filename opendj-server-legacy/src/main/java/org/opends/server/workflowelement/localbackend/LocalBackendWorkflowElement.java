@@ -37,7 +37,6 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BackendConfigManager;
-import org.opends.server.core.BackendConfigManager.BackendAndName;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
@@ -728,9 +727,9 @@ public class LocalBackendWorkflowElement
    */
   public static boolean execute(Operation operation, DN entryDN) throws CanceledOperationException
   {
-    BackendAndName backendAndName = getBackendManager().getLocalBackendAndName(entryDN);
+    LocalBackend<?> backend = getBackendManager().findLocalBackendForEntry(entryDN);
 
-    if (backendAndName == null)
+    if (backend == null)
     {
       // We have found no backend for the requested base DN,
       // just return a no such entry result code and stop the processing.
@@ -741,12 +740,12 @@ public class LocalBackendWorkflowElement
       return false;
     }
 
-    executeOperation(operation, backendAndName.getBackend());
+    executeOperation(operation, backend);
 
     // For subtree search operation we need to go through the subordinate nodes.
     if (operation.getOperationType() == OperationType.SEARCH)
     {
-      executeSearchOnSubordinates((SearchOperation) operation, backendAndName.getBaseDn());
+      executeSearchOnSubordinates((SearchOperation) operation);
     }
     return true;
   }
@@ -766,7 +765,7 @@ public class LocalBackendWorkflowElement
    * @throws CanceledOperationException
    *           if this operation should be canceled.
    */
-  private static void executeSearchOnSubordinates(SearchOperation searchOp, DN baseDN)
+  private static void executeSearchOnSubordinates(SearchOperation searchOp)
       throws CanceledOperationException {
     SearchScope originalScope = searchOp.getScope();
     if (originalScope == SearchScope.BASE_OBJECT)
@@ -779,13 +778,12 @@ public class LocalBackendWorkflowElement
 
     SearchResultCode searchResultCode = new SearchResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
     DN originalBaseDN = searchOp.getBaseDN();
-    for (BackendAndName subordinate : getBackendManager().getSubordinateBackends(baseDN))
+    for (DN subordinateDN : getBackendManager().findSubordinateLocalNamingContextsForEntry(originalBaseDN))
     {
       // We have to change the operation request base DN to match the
       // subordinate workflow base DN. Otherwise the workflow will
       // return a no such entry result code as the operation request
       // base DN is a superior of the subordinate workflow base DN.
-      DN subordinateDN = subordinate.getBaseDn();
 
       // If the new search scope is 'base' and the search base DN does not
       // map the subordinate workflow then skip the subordinate workflow.
@@ -853,7 +851,8 @@ public class LocalBackendWorkflowElement
   {
     try
     {
-      DN matchedDN = DirectoryServer.getParentDNInSuffix(entryDN);
+      BackendConfigManager backendManager = getBackendManager();
+      DN matchedDN = backendManager.getParentDNInSuffix(entryDN);
       while (matchedDN != null)
       {
         if (DirectoryServer.entryExists(matchedDN))
@@ -861,7 +860,7 @@ public class LocalBackendWorkflowElement
           return matchedDN;
         }
 
-        matchedDN = DirectoryServer.getParentDNInSuffix(matchedDN);
+        matchedDN = backendManager.getParentDNInSuffix(matchedDN);
       }
     }
     catch (Exception e)

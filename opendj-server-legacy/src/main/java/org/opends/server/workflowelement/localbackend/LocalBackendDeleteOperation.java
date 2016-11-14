@@ -28,6 +28,7 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.core.AccessControlConfigManager;
+import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationWrapper;
 import org.opends.server.core.DirectoryServer;
@@ -273,18 +274,13 @@ public class LocalBackendDeleteOperation
       // the entry actually exists and does not have any children (or possibly
       // handling a subtree delete). But we will need to check if there are
       // any subordinate backends that should stop us from attempting the delete
-      for (LocalBackend<?> b : backend.getSubordinateBackends())
+      BackendConfigManager backendConfigManager =
+          DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+      for (DN dn : backendConfigManager.findSubordinateLocalNamingContextsForEntry(entryDN))
       {
-        for (DN dn : b.getBaseDNs())
-        {
-          if (dn.isSubordinateOrEqualTo(entryDN))
-          {
-            setResultCodeAndMessageNoInfoDisclosure(entry,
-                ResultCode.NOT_ALLOWED_ON_NONLEAF,
-                ERR_DELETE_HAS_SUB_BACKEND.get(entryDN, dn));
-            return;
-          }
-        }
+        setResultCodeAndMessageNoInfoDisclosure(entry,
+            ResultCode.NOT_ALLOWED_ON_NONLEAF, ERR_DELETE_HAS_SUB_BACKEND.get(entryDN, dn));
+        return;
       }
 
       // Actually perform the delete.

@@ -261,7 +261,7 @@ public class RestoreTask extends Task
 
     String backendID = TaskUtils.getBackendID(configEntry);
 
-    LocalBackend<?> backend = getServerContext().getBackendConfigManager().getLocalBackend(backendID);
+    LocalBackend<?> backend = getServerContext().getBackendConfigManager().getLocalBackendById(backendID);
     if (!backend.supports(BackendOperation.RESTORE))
     {
       logger.error(ERR_RESTOREDB_CANNOT_RESTORE, backend.getBackendID());
@@ -341,7 +341,7 @@ public class RestoreTask extends Task
           // it is necessary to retrieve the backend structure again
           // because disabling and enabling it again may have resulted
           // in a new backend being registered to the server.
-          backend = getServerContext().getBackendConfigManager().getLocalBackend(backendID);
+          backend = getServerContext().getBackendConfigManager().getLocalBackendById(backendID);
         } catch (DirectoryException e)
         {
           logger.traceException(e);
