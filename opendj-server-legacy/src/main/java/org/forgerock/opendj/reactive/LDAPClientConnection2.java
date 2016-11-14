@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPClientContext.ConnectionEventListener;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.CompareResult;
@@ -540,7 +541,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
     }
 
     private FlowableEmitter<Response> getAttachedEmitter(final Operation operation) {
-        return ((FlowableEmitter<Response>) operation.getAttachment(REACTIVE_OUT));
+        return (FlowableEmitter<Response>) operation.getAttachment(REACTIVE_OUT);
     }
 
     private Response toResponse(final SearchResultEntry searchEntry) {
@@ -1161,12 +1162,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     private boolean processAddRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
             final List<Control> controls, final FlowableEmitter<Response> out) {
-        if (ldapVersion == 2 && !controls.isEmpty()) {
-            // LDAPv2 clients aren't allowed to send controls.
-            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR)
-                                .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-            out.onComplete();
-            disconnectControlsNotAllowed();
+        if (ldapV2HasControls(controls, out)) {
             return false;
         }
 
@@ -1182,30 +1178,12 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(de);
 
             final Result result = Responses.newResult(de.getResultCode());
-            if (de.getLocalizedMessage() != null) {
-                result.setDiagnosticMessage(de.getLocalizedMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && addOp.getResponseControls() != null) {
-                for (Control control : addOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
-
+            setDetails(result, de, addOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
 
         return connectionValid;
-    }
-
-    private void disconnectControlsNotAllowed() {
-        disconnect(DisconnectReason.PROTOCOL_ERROR, false, ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
     }
 
     /**
@@ -1292,20 +1270,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(de);
 
             final Result result = Responses.newBindResult(de.getResultCode());
-            if (de.getLocalizedMessage() != null) {
-                result.setDiagnosticMessage(de.getLocalizedMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && bindOp.getResponseControls() != null) {
-                for (Control control : bindOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
+            setDetails(result, de, bindOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
 
@@ -1356,20 +1321,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(de);
 
             final CompareResult result = Responses.newCompareResult(de.getResultCode());
-            if (de.getLocalizedMessage() != null) {
-                result.setDiagnosticMessage(de.getLocalizedMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && compareOp.getResponseControls() != null) {
-                for (Control control : compareOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
+            setDetails(result, de, compareOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
@@ -1391,12 +1343,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     private boolean processDeleteRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
             final List<Control> controls, final FlowableEmitter<Response> out) {
-        if (ldapVersion == 2 && !controls.isEmpty()) {
-            // LDAPv2 clients aren't allowed to send controls.
-            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR)
-                                .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-            out.onComplete();
-            disconnectControlsNotAllowed();
+        if (ldapV2HasControls(controls, out)) {
             return false;
         }
 
@@ -1412,21 +1359,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(de);
 
             final Result result = Responses.newResult(de.getResultCode());
-            if (de.getLocalizedMessage() != null) {
-                result.setDiagnosticMessage(de.getLocalizedMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && deleteOp.getResponseControls() != null) {
-                for (Control control : deleteOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
-
+            setDetails(result, de, deleteOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
@@ -1480,20 +1413,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         } catch (DirectoryException de) {
             logger.traceException(de);
             final Result result = Responses.newGenericExtendedResult(de.getResultCode());
-            if (de.getLocalizedMessage() != null) {
-                result.setDiagnosticMessage(de.getLocalizedMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && extendedOp.getResponseControls() != null) {
-                for (Control control : extendedOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
+            setDetails(result, de, extendedOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
@@ -1515,12 +1435,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     private boolean processModifyRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
             final List<Control> controls, final FlowableEmitter<Response> out) {
-        if (ldapVersion == 2 && !controls.isEmpty()) {
-            // LDAPv2 clients aren't allowed to send controls.
-            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR)
-                                .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-            out.onComplete();
-            disconnectControlsNotAllowed();
+        if (ldapV2HasControls(controls, out)) {
             return false;
         }
 
@@ -1535,20 +1450,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         } catch (DirectoryException de) {
             logger.traceException(de);
             final Result result = Responses.newResult(de.getResultCode());
-            if (de.getLocalizedMessage() != null) {
-                result.setDiagnosticMessage(de.getLocalizedMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && modifyOp.getResponseControls() != null) {
-                for (Control control : modifyOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
+            setDetails(result, de, modifyOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
@@ -1570,12 +1472,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     private boolean processModifyDNRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
             final List<Control> controls, final FlowableEmitter<Response> out) {
-        if (ldapVersion == 2 && !controls.isEmpty()) {
-            // LDAPv2 clients aren't allowed to send controls.
-            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR)
-                                .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-            out.onComplete();
-            disconnectControlsNotAllowed();
+        if (ldapV2HasControls(controls, out)) {
             return false;
         }
 
@@ -1592,20 +1489,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(de);
 
             final Result result = Responses.newResult(de.getResultCode());
-            if (de.getLocalizedMessage() != null) {
-                result.setDiagnosticMessage(de.getLocalizedMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && modifyDNOp.getResponseControls() != null) {
-                for (Control control : modifyDNOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
+            setDetails(result, de, modifyDNOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
@@ -1627,12 +1511,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      */
     private boolean processSearchRequest(final QueueingStrategy queueingStrategy, final LDAPMessage message,
             final List<Control> controls, final FlowableEmitter<Response> out) {
-        if (ldapVersion == 2 && !controls.isEmpty()) {
-            // LDAPv2 clients aren't allowed to send controls.
-            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR)
-                                .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
-            out.onComplete();
-            disconnectControlsNotAllowed();
+        if (ldapV2HasControls(controls, out)) {
             return false;
         }
 
@@ -1650,25 +1529,45 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(de);
 
             final Result result = Responses.newResult(de.getResultCode());
-            if (de.getMessage() != null) {
-                result.setDiagnosticMessage(de.getMessage());
-            }
-            if (de.getMatchedDN() != null) {
-                result.setMatchedDN(de.getMatchedDN().toString());
-            }
-            if (de.getReferralURLs() != null) {
-                result.getReferralURIs().addAll(de.getReferralURLs());
-            }
-            if (ldapVersion != 2 && searchOp.getResponseControls() != null) {
-                for (Control control : searchOp.getResponseControls()) {
-                    result.addControl(Converters.from(control));
-                }
-            }
+            setDetails(result, de, searchOp.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
 
         return connectionValid;
+    }
+
+    private void setDetails(Result result, DirectoryException de, List<Control> responseControls) {
+        if (de.getLocalizedMessage() != null) {
+            result.setDiagnosticMessage(de.getLocalizedMessage());
+        }
+        if (de.getMatchedDN() != null) {
+            result.setMatchedDN(de.getMatchedDN().toString());
+        }
+        if (de.getReferralURLs() != null) {
+            result.getReferralURIs().addAll(de.getReferralURLs());
+        }
+        if (ldapVersion != 2 && responseControls != null) {
+            for (Control control : responseControls) {
+                result.addControl(Converters.from(control));
+            }
+        }
+    }
+
+    /** LDAPv2 clients aren't allowed to send controls. */
+    private boolean ldapV2HasControls(final List<Control> controls, final FlowableEmitter<Response> out) {
+        if (ldapVersion == 2 && !controls.isEmpty()) {
+            out.onNext(Responses.newResult(ResultCode.PROTOCOL_ERROR)
+                                .setDiagnosticMessage(ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get().toString()));
+            out.onComplete();
+            disconnectControlsNotAllowed();
+            return true;
+        }
+        return false;
+    }
+
+    private void disconnectControlsNotAllowed() {
+        disconnect(DisconnectReason.PROTOCOL_ERROR, false, ERR_LDAPV2_CONTROLS_NOT_ALLOWED.get());
     }
 
     /**
@@ -1820,7 +1719,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         return clientContext.getSecurityStrengthFactor();
     }
 
-    /** Upstream -> BlockingBackpressureSubscription -> Downstream */
+    /** Upstream -> BlockingBackpressureSubscription -> Downstream. */
     private final class BlockingBackpressureSubscription
             implements Subscription, Publisher<Response>, Subscriber<Response> {
         private long pendingRequests;
