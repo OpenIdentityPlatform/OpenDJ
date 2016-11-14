@@ -132,9 +132,10 @@ class NodeSearcherQueue implements Runnable {
   /** Cancel all the object from this queue. */
   public synchronized void cancelAll() {
     waitingQueue.clear();
-    for (BasicNode node : workingList.keySet())
+    for (Map.Entry<BasicNode, AbstractNodeTask> entry : workingList.entrySet())
     {
-      AbstractNodeTask task = workingList.get(node);
+      BasicNode node = entry.getKey();
+      AbstractNodeTask task = entry.getValue();
       cancelList.put(node, node);
       task.cancel();
     }

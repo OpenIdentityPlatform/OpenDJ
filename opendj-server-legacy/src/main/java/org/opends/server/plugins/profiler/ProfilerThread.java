@@ -110,8 +110,9 @@ public class ProfilerThread
 
 
       // Iterate through the threads and process their associated stack traces.
-      for (Thread t : stacks.keySet())
+      for (Map.Entry<Thread, StackTraceElement[]> entry : stacks.entrySet())
       {
+        Thread t = entry.getKey();
         // We don't want to capture information about the profiler thread.
         if (t == currentThread())
         {
@@ -120,7 +121,7 @@ public class ProfilerThread
 
 
         // We'll skip over any stack that doesn't have any information.
-        StackTraceElement[] threadStack = stacks.get(t);
+        StackTraceElement[] threadStack = entry.getValue();
         if (threadStack == null || threadStack.length == 0)
         {
           continue;
@@ -234,10 +235,11 @@ public class ProfilerThread
 
       // For each unique stack captured, write it to the file followed by the
       // number of occurrences.
-      for (ProfileStack s : stackTraces.keySet())
+      for (Map.Entry<ProfileStack, Long> entry : stackTraces.entrySet())
       {
+        ProfileStack s = entry.getKey();
         s.write(writer);
-        writer.writeInteger(stackTraces.get(s));
+        writer.writeInteger(entry.getValue());
       }
     }
     finally

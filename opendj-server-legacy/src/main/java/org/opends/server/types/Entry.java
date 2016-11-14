@@ -1379,8 +1379,9 @@ public class Entry
     switch (mod.getModificationType().asEnum())
     {
     case ADD:
-      for (ObjectClass oc : ocs.keySet())
+      for (Map.Entry<ObjectClass, String> entry : ocs.entrySet())
       {
+        ObjectClass oc = entry.getKey();
         if (objectClasses.containsKey(oc))
         {
           if (!relaxConstraints)
@@ -1391,7 +1392,7 @@ public class Entry
         }
         else
         {
-          objectClasses.put(oc, ocs.get(oc));
+          objectClasses.put(oc, entry.getValue());
         }
       }
       objectClassAttribute = null;
@@ -1776,8 +1777,9 @@ public class Entry
     // Make sure all the user attributes are allowed, have at least
     // one value, and if they are single-valued that they have exactly
     // one value.
-    for (AttributeType t : userAttributes.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> entry : userAttributes.entrySet())
     {
+      AttributeType t = entry.getKey();
       boolean found = false;
       for (ObjectClass o : objectClasses.keySet())
       {
@@ -1802,7 +1804,7 @@ public class Entry
         return false;
       }
 
-      List<Attribute> attrList = userAttributes.get(t);
+      List<Attribute> attrList = entry.getValue();
       if (attrList != null)
       {
         for (Attribute a : attrList)
@@ -1824,11 +1826,12 @@ public class Entry
 
     // Iterate through all of the operational attributes and make sure
     // that all of the single-valued attributes only have one value.
-    for (AttributeType t : operationalAttributes.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> entry : operationalAttributes.entrySet())
     {
+      AttributeType t = entry.getKey();
       if (t.isSingleValue())
       {
-        List<Attribute> attrList = operationalAttributes.get(t);
+        List<Attribute> attrList = entry.getValue();
         if (attrList != null)
         {
           for (Attribute a : attrList)
@@ -2353,9 +2356,10 @@ public class Entry
     // Put back all the suppressed attributes where they belonged to.
     // Then hopefully processVirtualAttributes() will rebuild the suppressed
     // attribute list correctly.
-    for (AttributeType t : suppressedAttributes.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> entry : suppressedAttributes.entrySet())
     {
-      List<Attribute> attrList = suppressedAttributes.get(t);
+      AttributeType t = entry.getKey();
+      List<Attribute> attrList = entry.getValue();
       if (t.isOperational())
       {
         operationalAttrsCopy.put(t, attrList);
@@ -3765,11 +3769,12 @@ public class Entry
     // virtual attribute.
     if (! exportConfig.includeVirtualAttributes())
     {
-      for (AttributeType t : suppressedAttributes.keySet())
+      for (Map.Entry<AttributeType, List<Attribute>> entry : suppressedAttributes.entrySet())
       {
+        AttributeType t = entry.getKey();
         if (exportConfig.includeAttribute(t))
         {
-          for (Attribute a : suppressedAttributes.get(t))
+          for (Attribute a : entry.getValue())
           {
             writeLDIFLine(a, typesOnly, writer, wrapLines, wrapColumn);
           }
@@ -3813,11 +3818,12 @@ public class Entry
       LDIFExportConfig exportConfig, BufferedWriter writer, int wrapColumn,
       boolean wrapLines) throws IOException
   {
-    for (AttributeType attrType : attributes.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> entry : attributes.entrySet())
     {
+      AttributeType attrType = entry.getKey();
       if (exportConfig.includeAttribute(attrType))
       {
-        List<Attribute> attrList = attributes.get(attrType);
+        List<Attribute> attrList = entry.getValue();
         for (Attribute a : attrList)
         {
           if (a.isVirtual() && !exportConfig.includeVirtualAttributes())
@@ -3984,9 +3990,10 @@ public class Entry
   private boolean equals(Map<AttributeType, List<Attribute>> attributes1,
       Map<AttributeType, List<Attribute>> attributes2)
   {
-    for (AttributeType at : attributes1.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> entry : attributes1.entrySet())
     {
-      List<Attribute> list1 = attributes1.get(at);
+      AttributeType at = entry.getKey();
+      List<Attribute> list1 = entry.getValue();
       List<Attribute> list2 = attributes2.get(at);
       if (list2 == null || list1.size() != list2.size())
       {

@@ -1679,9 +1679,10 @@ public final class TestCaseUtils {
     System.setOut(originalSystemOut);
     System.setErr(originalSystemErr);
 
-    for (Logger l : disabledLogHandlers.keySet())
+    for (Map.Entry<Logger, Handler> entry : disabledLogHandlers.entrySet())
     {
-      Handler h = disabledLogHandlers.get(l);
+      Logger l = entry.getKey();
+      Handler h = entry.getValue();
       l.addHandler(h);
     }
     disabledLogHandlers.clear();

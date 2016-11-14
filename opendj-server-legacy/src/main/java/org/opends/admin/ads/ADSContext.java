@@ -330,9 +330,10 @@ public class ADSContext
     DN dn = makeDNFromServerProperties(serverProperties);
 
     AddRequest request = newAddRequest(dn);
-    for (ServerProperty prop : serverProperties.keySet())
+    for (Map.Entry<ServerProperty, Object> entry : serverProperties.entrySet())
     {
-      Attribute attribute = makeAttrFromServerProperty(prop, serverProperties.get(prop));
+      ServerProperty prop = entry.getKey();
+      Attribute attribute = makeAttrFromServerProperty(prop, entry.getValue());
       if (attribute != null)
       {
         request.addAttribute(attribute);
@@ -414,9 +415,10 @@ public class ADSContext
     try
     {
       ModifyRequest request = newModifyRequest(dn);
-      for (ServerProperty prop : serverProperties.keySet())
+      for (Map.Entry<ServerProperty, Object> entry : serverProperties.entrySet())
       {
-        Attribute attr = makeAttrFromServerProperty(prop, serverProperties.get(prop));
+        ServerProperty prop = entry.getKey();
+        Attribute attr = makeAttrFromServerProperty(prop, entry.getValue());
         if (attr != null)
         {
           request.addModification(new Modification(REPLACE, attr));
@@ -725,9 +727,10 @@ public class ADSContext
     String dn = makeDNFromServerGroupProperties(serverGroupProperties);
     AddRequest request = newAddRequest(dn)
         .addAttribute("objectclass", "top", "groupOfUniqueNames");
-    for (ServerGroupProperty prop : serverGroupProperties.keySet())
+    for (Map.Entry<ServerGroupProperty, Object> entry : serverGroupProperties.entrySet())
     {
-      request.addAttribute(makeAttrFromServerGroupProperty(prop, serverGroupProperties.get(prop)));
+      ServerGroupProperty prop = entry.getKey();
+      request.addAttribute(makeAttrFromServerGroupProperty(prop, entry.getValue()));
     }
 
     try
@@ -782,10 +785,11 @@ public class ADSContext
 
       // Transform 'properties' into 'attributes'
       ModifyRequest request = newModifyRequest(dn);
-      for (ServerGroupProperty prop : serverGroupProperties.keySet())
+      for (Map.Entry<ServerGroupProperty, Object> entry : serverGroupProperties.entrySet())
       {
+        ServerGroupProperty prop = entry.getKey();
         request.addModification(new Modification(
-            REPLACE, makeAttrFromServerGroupProperty(prop, serverGroupProperties.get(prop))));
+            REPLACE, makeAttrFromServerGroupProperty(prop, entry.getValue())));
       }
       throwIfNotSuccess(connectionWrapper.getConnection().modify(request));
     }

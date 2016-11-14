@@ -992,10 +992,11 @@ class SchemaFilesWriter
 
     File schemaInstanceDir = serverContext.getSchemaHandler().getSchemaDirectoryPath();
 
-    for (String name : tempSchemaFiles.keySet())
+    for (Map.Entry<String, File> entry : tempSchemaFiles.entrySet())
     {
+      String name = entry.getKey();
       installedFileList.add(new File(schemaInstanceDir, name));
-      tempFileList.add(tempSchemaFiles.get(name));
+      tempFileList.add(entry.getValue());
       origFileList.add(new File(schemaInstanceDir, name + ".orig"));
     }
 

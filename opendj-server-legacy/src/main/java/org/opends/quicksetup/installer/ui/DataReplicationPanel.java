@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -368,9 +369,10 @@ public class DataReplicationPanel extends QuickSetupStepPanel
         LabelFieldDescriptor.LabelType.SECONDARY,
         UIFactory.PORT_FIELD_SIZE));
 
-    for (FieldName fieldName : hm.keySet())
+    for (Map.Entry<FieldName, LabelFieldDescriptor> entry : hm.entrySet())
     {
-      LabelFieldDescriptor desc = hm.get(fieldName);
+      FieldName fieldName = entry.getKey();
+      LabelFieldDescriptor desc = entry.getValue();
 
       String defaultValue = getDefaultStringValue(fieldName);
       JTextComponent field = UIFactory.makeJTextComponent(desc, defaultValue);

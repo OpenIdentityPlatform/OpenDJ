@@ -1070,8 +1070,9 @@ public class ConfigFromConnection extends ConfigReader
     Set<SearchResultEntry> monitorEntries = new HashSet<>();
     if (ch.getState() == ConnectionHandlerDescriptor.State.ENABLED)
     {
-      for (String key : hmConnectionHandlersMonitor.keySet())
+      for (Map.Entry<String, SearchResultEntry> entry : hmConnectionHandlersMonitor.entrySet())
       {
+        String key = entry.getKey();
         // The name of the connection handler does not appear necessarily in the
         // key (which is based on the DN of the monitoring entry).  In general
         // the DN contains the String specified in
@@ -1082,7 +1083,7 @@ public class ConfigFromConnection extends ConfigReader
         if (key.contains(getKey("port " + ch.getPort()))
             && hasAllAddresses(ch, key))
         {
-          monitorEntries.add(hmConnectionHandlersMonitor.get(key));
+          monitorEntries.add(entry.getValue());
         }
       }
     }

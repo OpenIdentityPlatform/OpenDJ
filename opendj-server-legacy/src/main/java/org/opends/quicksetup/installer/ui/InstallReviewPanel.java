@@ -300,9 +300,10 @@ public class InstallReviewPanel extends ReviewPanel {
             LabelFieldDescriptor.FieldType.READ_ONLY,
             LabelFieldDescriptor.LabelType.PRIMARY, 0));
 
-    for (final FieldName fieldName : hm.keySet())
+    for (Map.Entry<FieldName, org.opends.quicksetup.ui.LabelFieldDescriptor> entry : hm.entrySet())
     {
-      final LabelFieldDescriptor desc = hm.get(fieldName);
+      FieldName fieldName = entry.getKey();
+      final LabelFieldDescriptor desc = entry.getValue();
       final JLabel label = UIFactory.makeJLabel(desc);
       final JTextComponent field = UIFactory.makeJTextComponent(desc, null);
       field.setOpaque(false);
@@ -354,8 +355,9 @@ public class InstallReviewPanel extends ReviewPanel {
       buf.append(s);
 
       final TreeSet<LocalizableMessage> remoteServerLines = new TreeSet<>();
-      for (final ServerDescriptor server : remotePorts.keySet())
+      for (Map.Entry<ServerDescriptor, AuthenticationData> entry : remotePorts.entrySet())
       {
+        ServerDescriptor server = entry.getKey();
         HostPort serverDisplay;
         if (server.getHostPort(false).equals(serverToConnectDisplay))
         {
@@ -366,7 +368,7 @@ public class InstallReviewPanel extends ReviewPanel {
           serverDisplay = server.getHostPort(true);
         }
 
-        final AuthenticationData repPort = remotePorts.get(server);
+        final AuthenticationData repPort = entry.getValue();
         if (repPort.useSecureConnection())
         {
           s = INFO_SECURE_REPLICATION_PORT_LABEL.get(repPort.getPort()).toString();

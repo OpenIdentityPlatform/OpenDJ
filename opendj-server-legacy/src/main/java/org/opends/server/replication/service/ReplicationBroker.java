@@ -1894,8 +1894,9 @@ public class ReplicationBroker
     boolean allRsWithZeroDistance = true;
     int highestWeightRsId = -1;
     int highestWeight = -1;
-    for (Integer rsId : bestServers.keySet())
+    for (Entry<Integer, ReplicationServerInfo> entry : bestServers.entrySet())
     {
+      Integer rsId = entry.getKey();
       float loadDistance = loadDistances.get(rsId).floatValue();
       if (loadDistance > highestDistance)
       {
@@ -1907,7 +1908,7 @@ public class ReplicationBroker
       {
         allRsWithZeroDistance = false;
       }
-      int weight = bestServers.get(rsId).getWeight();
+      int weight = entry.getValue().getWeight();
       if (weight > highestWeight)
       {
         // This server has a higher weight

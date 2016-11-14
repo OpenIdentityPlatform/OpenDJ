@@ -21,6 +21,7 @@ import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -241,10 +242,11 @@ public class ConfigGuideGeneration {
       "configuration components.");
     jumpSection();
 
-    for (String catName : list.keySet()) {
+    for (Map.Entry<String, TreeMap<String, AbstractManagedObjectDefinition>> entry : list.entrySet()) {
+      String catName = entry.getKey();
       heading3(getFriendlyName(catName));
       // Get the list of the category
-      TreeMap<String, AbstractManagedObjectDefinition> catList = list.get(catName);
+      TreeMap<String, AbstractManagedObjectDefinition> catList = entry.getValue();
       for (AbstractManagedObjectDefinition mo : catList.values()) {
         RelationDefinition relDefn = relList.get(mo.getName());
         if (relDefn != null && relDefn.hasOption(RelationOption.HIDDEN)) {
@@ -307,10 +309,11 @@ public class ConfigGuideGeneration {
       "container components.");
     jumpSection();
 
-    for (String catName : list.keySet()) {
+    for (Map.Entry<String, TreeMap<String, RelationDefinition>> entry : list.entrySet()) {
+      String catName = entry.getKey();
       heading3(getFriendlyName(catName));
       // Get the list of the category
-      TreeMap<String, RelationDefinition> catList = list.get(catName);
+      TreeMap<String, RelationDefinition> catList = entry.getValue();
       genMORelationTree(catList);
     }
 

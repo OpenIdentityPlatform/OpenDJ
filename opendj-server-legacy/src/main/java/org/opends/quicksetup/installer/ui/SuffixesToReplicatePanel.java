@@ -219,9 +219,10 @@ public class SuffixesToReplicatePanel extends QuickSetupStepPanel implements Com
     {
       serverToConnectDisplay = newServerDisplay;
       Map<String, Boolean> hmOldValues = new HashMap<>();
-      for (String id : hmCheckBoxes.keySet())
+      for (Entry<String, JCheckBox> entry : hmCheckBoxes.entrySet())
       {
-        hmOldValues.put(id, hmCheckBoxes.get(id).isSelected());
+        String id = entry.getKey();
+        hmOldValues.put(id, entry.getValue().isSelected());
       }
       orderedSuffixes.clear();
       for (SuffixDescriptor suffix : array)

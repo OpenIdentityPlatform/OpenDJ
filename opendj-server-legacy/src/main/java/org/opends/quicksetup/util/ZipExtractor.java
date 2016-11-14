@@ -217,8 +217,9 @@ public class ZipExtractor {
 
       if (isUnix()) {
         // Change the permissions for UNIX systems
-        for (String perm : permissions.keySet()) {
-          List<String> paths = permissions.get(perm);
+        for (Map.Entry<String, List<String>> mapEntry : permissions.entrySet()) {
+          String perm = mapEntry.getKey();
+          List<String> paths = mapEntry.getValue();
           try {
             int result = Utils.setPermissionsUnix(paths, perm);
             if (result != 0) {

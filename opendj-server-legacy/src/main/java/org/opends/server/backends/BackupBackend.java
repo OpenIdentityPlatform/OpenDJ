@@ -336,8 +336,9 @@ public class BackupBackend
     if (backupBaseDN.equals(entryDN))
     {
       long count = 0;
-      for (File dir : backupDirectories.keySet())
+      for (Map.Entry<File, CachedBackupDirectory> entry : backupDirectories.entrySet())
       {
+        File dir = entry.getKey();
         // Check to see if the descriptor file exists.  If not, then skip this
         // backup directory.
         File descriptorFile = new File(dir, BACKUP_DIRECTORY_DESCRIPTOR_FILE);
@@ -353,8 +354,8 @@ public class BackupBackend
           count++;
           try
           {
-            BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
-            count += backupDirectory.getBackups().keySet().size();
+            BackupDirectory backupDirectory = entry.getValue().getBackupDirectory();
+            count += backupDirectory.getBackups().size();
           }
           catch (Exception e)
           {
@@ -390,7 +391,7 @@ public class BackupBackend
         {
           File dir = new File(v.toString());
           BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
-          count += backupDirectory.getBackups().keySet().size();
+          count += backupDirectory.getBackups().size();
         }
         catch (Exception e)
         {

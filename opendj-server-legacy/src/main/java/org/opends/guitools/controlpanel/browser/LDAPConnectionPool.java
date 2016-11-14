@@ -20,6 +20,7 @@ import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.net.ssl.KeyManager;
 
@@ -85,9 +86,8 @@ public class LDAPConnectionPool {
    *         {@code false} otherwise.
    */
   public boolean isConnectionRegistered(ConnectionWrapper conn) {
-    for (String key : connectionTable.keySet())
+    for (ConnectionRecord cr : connectionTable.values())
     {
-      final ConnectionRecord cr = connectionTable.get(key);
       if (cr.conn != null)
       {
         final ConnectionWrapper c = cr.conn.getConnectionWrapper();
@@ -245,8 +245,9 @@ public class LDAPConnectionPool {
     String targetKey = null;
     ConnectionRecord targetRecord = null;
     synchronized(this) {
-      for (String key : connectionTable.keySet()) {
-        ConnectionRecord cr = connectionTable.get(key);
+      for (Map.Entry<String, ConnectionRecord> entry : connectionTable.entrySet()) {
+        String key = entry.getKey();
+        ConnectionRecord cr = entry.getValue();
         if (cr.conn == conn) {
           targetKey = key;
           targetRecord = cr;

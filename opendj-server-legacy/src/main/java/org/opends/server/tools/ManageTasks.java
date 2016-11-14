@@ -332,8 +332,9 @@ public class ManageTasks extends ConsoleApplication {
       table.appendHeading(INFO_TASKINFO_FIELD_ID.get());
       table.appendHeading(INFO_TASKINFO_FIELD_TYPE.get());
       table.appendHeading(INFO_TASKINFO_FIELD_STATUS.get());
-      for (String taskId : mapIdToEntry.keySet()) {
-        TaskEntry entryWrapper = mapIdToEntry.get(taskId);
+      for (Map.Entry<String, TaskEntry> mapEntry : mapIdToEntry.entrySet()) {
+        String taskId = mapEntry.getKey();
+        TaskEntry entryWrapper = mapEntry.getValue();
         table.startRow();
         table.appendCell(taskId);
         table.appendCell(entryWrapper.getType());
@@ -382,9 +383,10 @@ public class ManageTasks extends ConsoleApplication {
               INFO_TASKINFO_FIELD_STATUS.get());
       menuBuilder.setColumnWidths(null, null, 0);
       int index = 0;
-      for (final String taskId : mapIdToEntry.keySet()) {
+      for (Map.Entry<String, TaskEntry> mapEntry : mapIdToEntry.entrySet()) {
+        String taskId = mapEntry.getKey();
         taskIds.add(taskId);
-        final TaskEntry taskEntry = mapIdToEntry.get(taskId);
+        final TaskEntry taskEntry = mapEntry.getValue();
         menuBuilder.addNumberedOption(
                 LocalizableMessage.raw(taskEntry.getId()),
                 new TaskDrilldownMenu(taskId),
@@ -643,10 +645,11 @@ public class ManageTasks extends ConsoleApplication {
         table.appendHeading(INFO_TASKINFO_OPTIONS.get(taskEntry.getType()));
         Map<LocalizableMessage,List<String>> taskSpecificAttrs =
                 taskEntry.getTaskSpecificAttributeValuePairs();
-        for (LocalizableMessage attrName : taskSpecificAttrs.keySet()) {
+        for (Map.Entry<LocalizableMessage, List<String>> entry : taskSpecificAttrs.entrySet()) {
+          LocalizableMessage attrName = entry.getKey();
           table.startRow();
           table.appendCell(attrName);
-          List<String> values = taskSpecificAttrs.get(attrName);
+          List<String> values = entry.getValue();
           if (!values.isEmpty()) {
             table.appendCell(values.get(0));
           }

@@ -22,6 +22,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -159,9 +160,10 @@ public class CharacterSetPasswordValidator
     int usedOptionalCharacterSets = 0;
     int optionalCharacterSets = 0;
     int mandatoryCharacterSets = 0;
-    for (String characterSet : characterSets.keySet())
+    for (Map.Entry<String, Integer> entry : characterSets.entrySet())
     {
-      int minimumCount = characterSets.get(characterSet);
+      String characterSet = entry.getKey();
+      int minimumCount = entry.getValue();
       Integer passwordCount = setCounts.get(characterSet);
       if (minimumCount > 0)
       {
@@ -185,9 +187,10 @@ public class CharacterSetPasswordValidator
         }
       }
     }
-    for (String characterRange : characterRanges.keySet())
+    for (Map.Entry<String, Integer> entry : characterRanges.entrySet())
     {
-      int minimumCount = characterRanges.get(characterRange);
+      String characterRange = entry.getKey();
+      int minimumCount = entry.getValue();
       Integer passwordCount = rangeCounts.get(characterRange);
       if (minimumCount > 0)
       {
@@ -229,9 +232,10 @@ public class CharacterSetPasswordValidator
       if (usedOptionalCharacterSets < requiredOptionalCharacterSets)
       {
         StringBuilder builder = new StringBuilder();
-        for (String characterSet : characterSets.keySet())
+        for (Map.Entry<String, Integer> entry : characterSets.entrySet())
         {
-          if (characterSets.get(characterSet) == 0)
+          String characterSet = entry.getKey();
+          if (entry.getValue() == 0)
           {
             if (builder.length() > 0)
             {
@@ -242,9 +246,10 @@ public class CharacterSetPasswordValidator
             builder.append('\'');
           }
         }
-        for (String characterRange : characterRanges.keySet())
+        for (Map.Entry<String, Integer> entry : characterRanges.entrySet())
         {
-          if (characterRanges.get(characterRange) == 0)
+          String characterRange = entry.getKey();
+          if (entry.getValue() == 0)
           {
             if (builder.length() > 0)
             {

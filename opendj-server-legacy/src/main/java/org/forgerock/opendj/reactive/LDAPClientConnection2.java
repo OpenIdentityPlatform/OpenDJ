@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +57,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPClientContext.ConnectionEventListener;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.CompareResult;
@@ -199,9 +199,6 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
      *            The socket channel that may be used to communicate with the client.
      * @param protocol
      *            String representing the protocol (LDAP or LDAP+SSL).
-     * @throws LdapException
-     * @throws DirectoryException
-     *             If SSL initialisation fails.
      */
     LDAPClientConnection2(LDAPConnectionHandler2 connectionHandler, LDAPClientContext clientContext, String protocol,
             boolean keepStats) {
@@ -765,8 +762,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             }
 
             // Try to add the operation to the work queue,
-            // or run it synchronously (typically for the administration
-            // connector)
+            // or run it synchronously (typically for the administration connector)
             queueingStrategy.enqueueRequest(operation);
         } catch (DirectoryException de) {
             logger.traceException(de);
@@ -890,12 +886,13 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         // Make sure that no one can add any new operations.
         synchronized (opsInProgressLock) {
             try {
-                for (int msgID : operationsInProgress.keySet()) {
+                for (Map.Entry<Integer, Operation> entry : operationsInProgress.entrySet()) {
+                    int msgID = entry.getKey();
                     if (msgID == messageID) {
                         continue;
                     }
 
-                    Operation o = operationsInProgress.get(msgID);
+                    Operation o = entry.getValue();
                     if (o != null) {
                         try {
                             o.abort(cancelRequest);

@@ -352,9 +352,10 @@ public final class BackupInfo
 
     if (! backupProperties.isEmpty())
     {
-      for (String name : backupProperties.keySet())
+      for (Map.Entry<String, String> entry : backupProperties.entrySet())
       {
-        String value = backupProperties.get(name);
+        String name = entry.getKey();
+        String value = entry.getValue();
         if (value == null)
         {
           value = "";

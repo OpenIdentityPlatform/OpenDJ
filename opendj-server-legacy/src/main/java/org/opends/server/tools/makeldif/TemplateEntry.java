@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.ByteString;
@@ -240,9 +241,10 @@ public class TemplateEntry
     LinkedHashMap<AttributeType, List<Attribute>> urlAttributes = new LinkedHashMap<>();
     LinkedHashMap<AttributeType, List<Attribute>> base64Attributes = new LinkedHashMap<>();
 
-    for (AttributeType t : attributes.keySet())
+    for (Map.Entry<AttributeType, ArrayList<TemplateValue>> entry : attributes.entrySet())
     {
-      ArrayList<TemplateValue> valueList = attributes.get(t);
+      AttributeType t = entry.getKey();
+      ArrayList<TemplateValue> valueList = entry.getValue();
       if (t.isObjectClass())
       {
         for (TemplateValue v : valueList)
@@ -334,11 +336,12 @@ public class TemplateEntry
 
 
     // Now the set of user attributes.
-    for (AttributeType attrType : userAttributes.keySet())
+    for (Map.Entry<AttributeType, List<Attribute>> entry : userAttributes.entrySet())
     {
+      AttributeType attrType = entry.getKey();
       if (exportConfig.includeAttribute(attrType))
       {
-        for (Attribute a : userAttributes.get(attrType))
+        for (Attribute a : entry.getValue())
         {
           if (a.isVirtual() && !exportConfig.includeVirtualAttributes())
           {
@@ -378,11 +381,12 @@ public class TemplateEntry
     // Next, the set of operational attributes.
     if (exportConfig.includeOperationalAttributes())
     {
-      for (AttributeType attrType : operationalAttributes.keySet())
+      for (Map.Entry<AttributeType, List<Attribute>> entry : operationalAttributes.entrySet())
       {
+        AttributeType attrType = entry.getKey();
         if (exportConfig.includeAttribute(attrType))
         {
-          for (Attribute a : operationalAttributes.get(attrType))
+          for (Attribute a : entry.getValue())
           {
             if (a.isVirtual() && !exportConfig.includeVirtualAttributes())
             {

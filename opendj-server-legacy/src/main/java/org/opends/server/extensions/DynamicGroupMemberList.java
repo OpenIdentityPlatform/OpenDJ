@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -213,9 +214,10 @@ public class DynamicGroupMemberList
     // optimizations that we can do here, but in general the filter will look
     // like "(&(filter)(|(urlFilters)))".
     LinkedHashMap<DN,SearchFilter> searchMap = new LinkedHashMap<>();
-    for (DN urlBaseDN : baseDNs.keySet())
+    for (Map.Entry<DN, LinkedList<LDAPURL>> entry : baseDNs.entrySet())
     {
-      LinkedList<LDAPURL> urlList = baseDNs.get(urlBaseDN);
+      DN urlBaseDN = entry.getKey();
+      LinkedList<LDAPURL> urlList = entry.getValue();
       LinkedHashSet<SearchFilter> urlFilters = new LinkedHashSet<>();
       for (LDAPURL url : urlList)
       {

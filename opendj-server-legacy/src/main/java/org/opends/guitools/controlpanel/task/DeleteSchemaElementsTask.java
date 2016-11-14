@@ -626,9 +626,10 @@ public class DeleteSchemaElementsTask extends Task
   {
     Map<String, List<String>> extraProperties = new HashMap<>();
     Map<String, List<String>> props = element.getExtraProperties();
-    for (String name : props.keySet())
+    for (Map.Entry<String, List<String>> entry : props.entrySet())
     {
-      extraProperties.put(name, new ArrayList<>(props.get(name)));
+      String name = entry.getKey();
+      extraProperties.put(name, new ArrayList<>(entry.getValue()));
     }
     return extraProperties;
   }

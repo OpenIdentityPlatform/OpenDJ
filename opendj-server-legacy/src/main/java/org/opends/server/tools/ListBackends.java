@@ -228,9 +228,10 @@ public class ListBackends
     {
       // Create a map from the base DNs of the backends to the corresponding backend ID.
       Map<DN, String> baseToIDMap = new TreeMap<>();
-      for (String id : backends.keySet())
+      for (Map.Entry<String, Set<DN>> entry : backends.entrySet())
       {
-        for (DN dn : backends.get(id))
+        String id = entry.getKey();
+        for (DN dn : entry.getValue())
         {
           baseToIDMap.put(dn, id);
         }

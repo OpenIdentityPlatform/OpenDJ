@@ -1557,9 +1557,10 @@ public class Utils
   {
     final List<List<String>> cmdLines = new ArrayList<>();
     final Map<ServerDescriptor, Set<DN>> hmServerBaseDNs = getServerDescriptorBaseDNMap(userData);
-    for (ServerDescriptor server : hmServerBaseDNs.keySet())
+    for (Map.Entry<ServerDescriptor, Set<DN>> entry : hmServerBaseDNs.entrySet())
     {
-      cmdLines.add(getDsReplicationEquivalentCommandLine(subcommand, userData, hmServerBaseDNs.get(server), server));
+      ServerDescriptor server = entry.getKey();
+      cmdLines.add(getDsReplicationEquivalentCommandLine(subcommand, userData, entry.getValue(), server));
     }
     return cmdLines;
   }

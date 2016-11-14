@@ -1831,12 +1831,13 @@ public class Installer extends GuiApplication
       }
     }
     InstallerHelper helper = new InstallerHelper();
-    for (ServerDescriptor server : hmConfiguredRemoteReplication.keySet())
+    for (Map.Entry<ServerDescriptor, ConfiguredReplication> entry : hmConfiguredRemoteReplication.entrySet())
     {
+      ServerDescriptor server = entry.getKey();
       notifyListeners(getFormattedWithPoints(INFO_PROGRESS_UNCONFIGURING_REPLICATION_REMOTE.get(getHostPort(server))));
       try (ConnectionWrapper connectionWrapper = getRemoteConnection(server))
       {
-        helper.unconfigureReplication(connectionWrapper, hmConfiguredRemoteReplication.get(server));
+        helper.unconfigureReplication(connectionWrapper, entry.getValue());
       }
       catch (ApplicationException ae)
       {
@@ -1939,9 +1940,10 @@ public class Installer extends GuiApplication
     try (ConnectionWrapper connection = createLocalConnection())
     {
       final InstallerHelper helper = new InstallerHelper();
-      for (String backendId : hmBackendSuffix.keySet())
+      for (Map.Entry<String, Set<DN>> entry : hmBackendSuffix.entrySet())
       {
-        helper.createBackend(connection, backendId, hmBackendSuffix.get(backendId),
+        String backendId = entry.getKey();
+        helper.createBackend(connection, backendId, entry.getValue(),
             backendTypes.get(backendId).getBackend());
       }
     }
@@ -2087,8 +2089,9 @@ public class Installer extends GuiApplication
           replicas.add(replica);
         }
       }
-      for (ServerDescriptor server : hm.keySet())
+      for (Map.Entry<ServerDescriptor, Set<ReplicaDescriptor>> entry : hm.entrySet())
       {
+        ServerDescriptor server = entry.getKey();
         notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING_REPLICATION_REMOTE.get(getHostPort(server))));
         Integer v = (Integer) server.getServerProperties().get(REPLICATION_SERVER_PORT);
         int replicationPort;
@@ -2114,7 +2117,7 @@ public class Installer extends GuiApplication
           }
         }
         Set<DN> dns = new HashSet<>();
-        for (ReplicaDescriptor replica : hm.get(server))
+        for (ReplicaDescriptor replica : entry.getValue())
         {
           dns.add(replica.getSuffix().getDN());
         }
@@ -2127,11 +2130,12 @@ public class Installer extends GuiApplication
           if (repServer == null)
           {
             // Do the comparison manually
-            for (DN dn1 : replicationServers.keySet())
+            for (Map.Entry<DN, Set<HostPort>> rs1 : replicationServers.entrySet())
             {
+              DN dn1 = rs1.getKey();
               if (dn.equals(dn1))
               {
-                repServer = replicationServers.get(dn1);
+                repServer = rs1.getValue();
                 dn = dn1;
                 break;
               }

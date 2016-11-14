@@ -27,6 +27,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -92,9 +93,10 @@ public class DataOptionsPanel extends QuickSetupStepPanel
   {
     if (fieldName == FieldName.DATA_OPTIONS)
     {
-      for (NewSuffixOptions.Type type : hmRadioButtons.keySet())
+      for (Map.Entry<NewSuffixOptions.Type, JRadioButton> entry : hmRadioButtons.entrySet())
       {
-        if (hmRadioButtons.get(type).isSelected())
+        NewSuffixOptions.Type type = entry.getKey();
+        if (entry.getValue().isSelected())
         {
           return type;
         }
@@ -402,9 +404,10 @@ public class DataOptionsPanel extends QuickSetupStepPanel
         LabelFieldDescriptor.LabelType.SECONDARY, UIFactory.NUMBER_ENTRIES_FIELD_SIZE);
     hm.put(FieldName.NUMBER_ENTRIES, entryNumberLabelDescriptor);
 
-    for (final FieldName fieldName : hm.keySet())
+    for (Map.Entry<FieldName, LabelFieldDescriptor> entry : hm.entrySet())
     {
-      final LabelFieldDescriptor desc = hm.get(fieldName);
+      FieldName fieldName = entry.getKey();
+      final LabelFieldDescriptor desc = entry.getValue();
       final String defaultValue = fieldName == FieldName.NUMBER_ENTRIES ?
                                             Integer.toString(defaultUserData.getNewSuffixOptions().getNumberEntries())
                                           : getDefaultValue(fieldName);
@@ -461,9 +464,10 @@ public class DataOptionsPanel extends QuickSetupStepPanel
 
     final NewSuffixOptions.Type defaultType = defaultUserData.getNewSuffixOptions().getType();
     final ButtonGroup buttonGroup = new ButtonGroup();
-    for (NewSuffixOptions.Type type : hmRadioButtons.keySet())
+    for (Map.Entry<NewSuffixOptions.Type, JRadioButton> entry : hmRadioButtons.entrySet())
     {
-      final JRadioButton radioButton = hmRadioButtons.get(type);
+      NewSuffixOptions.Type type = entry.getKey();
+      final JRadioButton radioButton = entry.getValue();
       radioButton.setSelected(type == defaultType);
       buttonGroup.add(radioButton);
     }

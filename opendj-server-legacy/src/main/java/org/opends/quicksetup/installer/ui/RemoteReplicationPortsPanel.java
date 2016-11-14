@@ -84,18 +84,20 @@ implements Comparator<ServerDescriptor>
     if (fieldName == FieldName.REMOTE_REPLICATION_PORT)
     {
       Map<String, String> hm = new HashMap<>();
-      for (String id : hmFields.keySet())
+      for (Map.Entry<String, JTextComponent> entry : hmFields.entrySet())
       {
-        hm.put(id, hmFields.get(id).getText());
+        String id = entry.getKey();
+        hm.put(id, entry.getValue().getText());
       }
       value = hm;
     }
     else if (fieldName == FieldName.REMOTE_REPLICATION_SECURE)
     {
       Map<String, Boolean> hm = new HashMap<>();
-      for (String id : hmCbs.keySet())
+      for (Map.Entry<String, JCheckBox> entry : hmCbs.entrySet())
       {
-        hm.put(id, hmCbs.get(id).isSelected());
+        String id = entry.getKey();
+        hm.put(id, entry.getValue().isSelected());
       }
       value = hm;
     }
@@ -107,19 +109,21 @@ implements Comparator<ServerDescriptor>
   {
     if (fieldName == FieldName.REMOTE_REPLICATION_PORT)
     {
-      for (String id : hmLabels.keySet())
+      for (Map.Entry<String, JLabel> entry : hmLabels.entrySet())
       {
-        UIFactory.setTextStyle(hmLabels.get(id),
+        String id = entry.getKey();
+        UIFactory.setTextStyle(entry.getValue(),
             UIFactory.TextStyle.SECONDARY_FIELD_VALID);
       }
       if (invalid)
       {
-        for (String id : hmLabels.keySet())
+        for (Map.Entry<String, JLabel> entry : hmLabels.entrySet())
         {
+          String id = entry.getKey();
           String sPort = hmFields.get(id).getText();
           if (!isValid(sPort))
           {
-            UIFactory.setTextStyle(hmLabels.get(id),
+            UIFactory.setTextStyle(entry.getValue(),
               UIFactory.TextStyle.SECONDARY_FIELD_INVALID);
           }
         }
@@ -218,14 +222,16 @@ implements Comparator<ServerDescriptor>
       };
       lastFocusComponent = null;
       HashMap<String, String> hmOldValues = new HashMap<>();
-      for (String id : hmFields.keySet())
+      for (Map.Entry<String, JTextComponent> entry : hmFields.entrySet())
       {
-        hmOldValues.put(id, hmFields.get(id).getText());
+        String id = entry.getKey();
+        hmOldValues.put(id, entry.getValue().getText());
       }
       HashMap<String, Boolean> hmOldSecureValues = new HashMap<>();
-      for (String id : hmCbs.keySet())
+      for (Map.Entry<String, JCheckBox> entry : hmCbs.entrySet())
       {
-        hmOldSecureValues.put(id, hmCbs.get(id).isSelected());
+        String id = entry.getKey();
+        hmOldSecureValues.put(id, entry.getValue().isSelected());
       }
       orderedServers.clear();
       orderedServers.addAll(array);

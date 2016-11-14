@@ -73,9 +73,8 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
  * This sub-command implements the various set-xxx-prop sub-commands.
  */
 final class SetPropSubCommandHandler extends SubCommandHandler {
-
     /** Type of modification being performed. */
-    private static enum ModificationType {
+    private enum ModificationType {
         /** Append a single value to the property. */
         ADD,
         /** Remove a single value from the property. */
@@ -443,8 +442,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                             } else {
                                 app.println();
                                 if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT_TO_ENABLE.get(rufn, name, ufn), true)) {
-                                    MenuResult<Void> result = SetPropSubCommandHandler.modifyManagedObject(app,
-                                            context, ref, handler);
+                                    MenuResult<Void> result = modifyManagedObject(app, context, ref, handler);
                                     if (result.isQuit()) {
                                         return result;
                                     } else if (result.isSuccess()) {
@@ -641,7 +639,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
         // Reset properties.
         for (String m : propertyResetArgument.getValues()) {
-
             // Check one does not try to reset with a value
             if (m.contains(":")) {
                 throw ArgumentExceptionFactory.unableToResetPropertyWithValue(m, OPTION_DSCFG_LONG_RESET);
@@ -714,9 +711,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         }
 
         // Apply the command line changes.
-        for (PropertyDefinition<?> pd : changes.keySet()) {
+        for (Map.Entry<PropertyDefinition, Set> entry : changes.entrySet()) {
             try {
-                child.setPropertyValues(pd, changes.get(pd));
+                child.setPropertyValues(entry.getKey(), entry.getValue());
             } catch (PropertyException e) {
                 throw ArgumentExceptionFactory.adaptPropertyException(e, d);
             }

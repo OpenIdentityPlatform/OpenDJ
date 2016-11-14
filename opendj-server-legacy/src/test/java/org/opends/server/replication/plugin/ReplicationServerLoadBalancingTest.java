@@ -263,7 +263,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     Iterator<ReplicationServerDomain> rsdIt = rs[rsIndex].getDomainIterator();
     if (rsdIt.hasNext())
     {
-      return rsdIt.next().getConnectedDSs().keySet().size();
+      return rsdIt.next().getConnectedDSs().size();
     }
     return 0;
   }

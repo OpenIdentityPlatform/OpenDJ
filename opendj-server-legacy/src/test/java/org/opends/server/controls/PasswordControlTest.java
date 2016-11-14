@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -20,6 +20,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.io.ASN1;
@@ -32,17 +33,12 @@ import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test password control.
- */
+/** Test password control. */
 @SuppressWarnings("javadoc")
 public class PasswordControlTest
     extends ControlsTestCase
 {
-
-  /**
-   * Create values for PasswordPolicyErrorType.
-   */
+  /** Create values for PasswordPolicyErrorType. */
   @DataProvider(name = "passwordPolicyErrorTypeData")
   public Object[][] createPasswordPolicyErrorTypeData()
   {
@@ -59,25 +55,20 @@ public class PasswordControlTest
     return new Object[][] { { values } };
   }
 
-  /**
-   * Test if int value are ok.
-   */
+  /** Test if int value are ok. */
   @Test(dataProvider = "passwordPolicyErrorTypeData")
   public void checkIntValuePasswordPolicyErrorTypeTest(
-      HashMap<Integer, String> expectedValues) throws Exception
+      Map<Integer, String> expectedValues) throws Exception
   {
-    for (Integer i : expectedValues.keySet())
+    for (Map.Entry<Integer, String> entry : expectedValues.entrySet())
     {
-      PasswordPolicyErrorType val = PasswordPolicyErrorType.valueOf(i);
-      String expected = expectedValues.get(i);
+      PasswordPolicyErrorType val = PasswordPolicyErrorType.valueOf(entry.getKey());
+      String expected = entry.getValue();
       assertEquals(val.toString(), expected);
     }
   }
 
-
-  /**
-   * Test If we have only the required values.
-   */
+  /** Test If we have only the required values. */
   @Test(dataProvider = "passwordPolicyErrorTypeData")
   public void checkRequiredValuesPasswordPolicyErrorTypeTest(
       HashMap<Integer, String> exceptedValues) throws Exception
@@ -95,9 +86,7 @@ public class PasswordControlTest
     }
   }
 
-  /**
-   * Test invalid int values.
-   */
+  /** Test invalid int values. */
   @Test(dataProvider = "passwordPolicyErrorTypeData")
   public void checkInvalidIntPasswordPolicyErrorTypeTest(
       HashMap<Integer, String> exceptedValues) throws Exception
@@ -112,9 +101,7 @@ public class PasswordControlTest
     }
   }
 
-  /**
-   * Create correct values.
-   */
+  /** Create correct values. */
   @DataProvider(name = "passwordPolicyWarningTypeData")
   public Object[][] createPasswordPolicyWarningTypeData()
   {
@@ -124,27 +111,23 @@ public class PasswordControlTest
     return new Object[][] { { values } };
   }
 
-  /**
-   * Test if byte values are ok.
-   */
+  /** Test if byte values are ok. */
   @Test(dataProvider = "passwordPolicyWarningTypeData")
   public void checkIntValuePasswordPolicyWarningTypeTest(
       HashMap<Byte, String> expectedValues) throws Exception
   {
-    for (byte i : expectedValues.keySet())
+    for (Map.Entry<Byte, String> entry : expectedValues.entrySet())
     {
+      byte i = entry.getKey();
       PasswordPolicyWarningType val = PasswordPolicyWarningType.valueOf(i);
-      String expected = expectedValues.get(i);
+      String expected = entry.getValue();
 
       assertEquals(val.toString(), expected);
       assertEquals(i, val.getType());
     }
   }
 
-
-  /**
-   * Test If we have only the required values.
-   */
+  /** Test If we have only the required values. */
   @Test(dataProvider = "passwordPolicyWarningTypeData")
   public void checkRequiredValuesPasswordPolicyWarningTypeTest(
       HashMap<Byte, String> exceptedValues) throws Exception
@@ -162,9 +145,7 @@ public class PasswordControlTest
     }
   }
 
-  /**
-   * Test invalid int values.
-   */
+  /** Test invalid int values. */
   @Test(dataProvider = "passwordPolicyWarningTypeData")
   public void checkInvalidIntPasswordPolicyWarningTypeTest(
       HashMap<Integer, String> exceptedValues) throws Exception
@@ -172,7 +153,7 @@ public class PasswordControlTest
     Set<Integer> keys = exceptedValues.keySet();
     for (int i = 0x70; i < 0x90; i++)
     {
-      byte b = new Integer(i).byteValue();
+      byte b = Integer.valueOf(i).byteValue();
       if (!keys.contains(b))
       {
         assertNull(PasswordPolicyWarningType.valueOf(b));
@@ -182,9 +163,7 @@ public class PasswordControlTest
     }
   }
 
-  /**
-   * Create values for PasswordExpiredControl.
-   */
+  /** Create values for PasswordExpiredControl. */
   @DataProvider(name = "passwordExpiredControlData")
   public Object[][] createPasswordExpiredControlData()
   {
@@ -194,9 +173,7 @@ public class PasswordControlTest
     };
   }
 
-  /**
-   * Test OID.
-   */
+  /** Test OID. */
   @Test
   public void checkPasswordOID() throws Exception
   {
@@ -205,9 +182,7 @@ public class PasswordControlTest
     //assertEquals(OID_PASSWORD_POLICY_CONTROL, "");
   }
 
-  /**
-   * Test "Netscape password expired control" implementation.
-   */
+  /** Test "Netscape password expired control" implementation. */
   @Test(dataProvider = "passwordExpiredControlData")
   public void passwordExpiredControlTest(
       boolean isCritical) throws Exception
@@ -258,9 +233,7 @@ public class PasswordControlTest
     assertEquals(pec.getOID(),OID_NS_PASSWORD_EXPIRED);
   }
 
-  /**
-   * Create values for PasswordControl.
-   */
+  /** Create values for PasswordControl. */
   @DataProvider(name = "passwordExpiringControlData")
   public Object[][] createPasswordExpiringControlData()
   {
@@ -270,9 +243,7 @@ public class PasswordControlTest
     };
   }
 
-  /**
-   * Test "Netscape password expired control" implementation.
-   */
+  /** Test "Netscape password expired control" implementation. */
   @Test(dataProvider = "passwordExpiringControlData")
   public void passwordExpiringControlTest(
       boolean isCritical, int sec) throws Exception
@@ -327,9 +298,7 @@ public class PasswordControlTest
     assertEquals(pec.getSecondsUntilExpiration(), sec);
   }
 
-  /**
-   * Create values for PasswordControl.
-   */
+  /** Create values for PasswordControl. */
   @DataProvider(name = "passwordPolicyRequestControlData")
   public Object[][] createPasswordPolicyRequestControlData()
   {
@@ -339,9 +308,7 @@ public class PasswordControlTest
     };
   }
 
-  /**
-   * Test PasswordPolicyRequestControl.
-   */
+  /** Test PasswordPolicyRequestControl. */
   @Test(dataProvider = "passwordPolicyRequestControlData")
   public void passwordPolicyRequestControlTest(
       boolean isCritical) throws Exception
@@ -385,10 +352,7 @@ public class PasswordControlTest
     assertEquals("PasswordPolicyRequestControl()", pec.toString());
   }
 
-
-  /**
-   * Create values for PasswordControl.
-   */
+  /** Create values for PasswordControl. */
   @DataProvider(name = "passwordPolicyResponseControl")
   public Object[][] createPasswordPolicyResponseControlData()
   {
@@ -400,9 +364,7 @@ public class PasswordControlTest
     };
   }
 
-  /**
-   * Test PasswordPolicyResponseControl.
-   */
+  /** Test PasswordPolicyResponseControl. */
    @Test(dataProvider = "passwordPolicyResponseControl")
   public void passwordPolicyResponseControlTest(boolean isCritical, int warningValue)
       throws Exception
@@ -414,7 +376,6 @@ public class PasswordControlTest
     assertEquals(pprc.getOID(), OID_PASSWORD_POLICY_CONTROL);
     assertNull(pprc.getWarningType());
     assertNull(pprc.getErrorType());
-
 
     // check constructor PasswordPolicyResponseControl
     // (PasswordPolicyWarningType warningType,
@@ -452,7 +413,6 @@ public class PasswordControlTest
       }
     }
 
-
     // check encode/decode
     ByteStringBuilder bsb = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(bsb);
@@ -477,7 +437,6 @@ public class PasswordControlTest
             "PasswordPolicyResponseControl(" + warningType + "=" + warningValue + ", " + errorType + ")" ;
         assertEquals(pprc.toString(), toString);
 
-
         // check null value for the control
         try
         {
@@ -488,7 +447,6 @@ public class PasswordControlTest
         catch (DirectoryException expected)
         {
         }
-
 
         // check null warning type
         bsb.clear();

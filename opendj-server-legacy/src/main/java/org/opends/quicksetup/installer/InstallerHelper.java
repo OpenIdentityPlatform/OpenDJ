@@ -504,8 +504,9 @@ public class InstallerHelper {
       {
         domains[i] = sync.getReplicationDomain(domainNames[i]);
       }
-      for (DN dn : replicationServers.keySet())
+      for (Map.Entry<DN, Set<HostPort>> entry : replicationServers.entrySet())
       {
+        DN dn = entry.getKey();
         ReplicationDomainCfgClient domain = null;
         boolean isCreated;
         String domainName = null;
@@ -538,7 +539,7 @@ public class InstallerHelper {
         {
           oldServers = new TreeSet<>();
         }
-        servers = toLowerCaseStrings(replicationServers.get(dn));
+        servers = toLowerCaseStrings(entry.getValue());
         domain.setReplicationServer(servers);
         usedReplicaServerIds.add(domain.getServerId());
 
@@ -961,15 +962,16 @@ public class InstallerHelper {
         writer.newLine();
       }
 
-      for (String key : otherProperties.keySet())
+      for (Map.Entry<String, String> entry : otherProperties.entrySet())
       {
-        writer.write(key + "=" + otherProperties.get(key));
+        writer.write(entry.getKey() + "=" + entry.getValue());
         writer.newLine();
       }
 
-      for (String scriptName : arguments.keySet())
+      for (Map.Entry<String, JavaArguments> entry : arguments.entrySet())
       {
-        String argument = arguments.get(scriptName).getStringArguments();
+        String scriptName = entry.getKey();
+        String argument = entry.getValue().getStringArguments();
         writer.newLine();
         writer.write(getJavaArgPropertyForScript(scriptName) + "=" + argument);
       }

@@ -83,6 +83,7 @@ import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
@@ -97,7 +98,6 @@ import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.OpenDsException;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 /** The panel displaying a simplified view of an entry. */
 class SimplifiedViewEntryPanel extends ViewEntryPanel
@@ -1178,9 +1178,10 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
       errors.add(ERR_CTRL_PANEL_DN_NOT_VALID.get());
     }
 
-    for (String attrName : hmLabels.keySet())
+    for (Map.Entry<String, JComponent> mapEntry : hmLabels.entrySet())
     {
-      setPrimaryValid(hmLabels.get(attrName));
+      mapEntry.getKey();
+      setPrimaryValid(mapEntry.getValue());
     }
 
     // Check passwords
@@ -1416,13 +1417,14 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
           Schema schema = getInfo().getServerDescriptor().getSchema();
           if (schema != null)
           {
-            for (String attrName : hmEditors.keySet())
+            for (Map.Entry<String, List<EditorComponent>> entry : hmEditors.entrySet())
             {
+              String attrName = entry.getKey();
               if (isPassword(attrName) || isConfirmPassword(attrName))
               {
                 continue;
               }
-              List<EditorComponent> comps = hmEditors.get(attrName);
+              List<EditorComponent> comps = entry.getValue();
               if (!comps.isEmpty())
               {
                 Object o = comps.iterator().next().getValue();
@@ -1666,10 +1668,11 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private void updateAttributeVisibility(boolean showAll)
   {
-    for (String attrName : hmLabels.keySet())
+    for (Map.Entry<String, JComponent> entry : hmLabels.entrySet())
     {
+      String attrName = entry.getKey();
       final boolean visible = showAll || requiredAttrs.contains(attrName) || hasValue(hmEditors.get(attrName));
-      hmLabels    .get(attrName).setVisible(visible);
+      entry.getValue().setVisible(visible);
       hmComponents.get(attrName).setVisible(visible);
     }
     repaint();

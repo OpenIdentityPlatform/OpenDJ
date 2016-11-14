@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -528,11 +529,12 @@ public class ProfileViewer
       html.append("</B><BR><BR>Occurrences by Source Line Number:<BR>");
 
       HashMap<Integer,Long> lineNumbers = frame.getLineNumbers();
-      for (Integer lineNumber : lineNumbers.keySet())
+      for (Map.Entry<Integer, Long> entry : lineNumbers.entrySet())
       {
+        Integer lineNumber = entry.getKey();
         html.append("     ");
 
-        long count = lineNumbers.get(lineNumber);
+        long count = entry.getValue();
 
         if (lineNumber == ProfileStack.LINE_NUMBER_NATIVE)
         {
@@ -568,10 +570,11 @@ public class ProfileViewer
                               frame.getMethodName();
       HashMap<ProfileStack,Long> stacks = stacksByMethod.get(classAndMethod);
 
-      for (ProfileStack stack : stacks.keySet())
+      for (Map.Entry<ProfileStack, Long> entry : stacks.entrySet())
       {
+        ProfileStack stack = entry.getKey();
         html.append("<BR><BR>");
-        html.append(stacks.get(stack));
+        html.append(entry.getValue());
         html.append(" occurrence(s):");
 
         appendHTMLStack(stack, html, classAndMethod);

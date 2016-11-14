@@ -74,14 +74,15 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.forgerock.opendj.server.config.server.ExternalChangelogDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.LocalBackendInitializationListener;
-import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorData;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.SynchronizationProvider;
@@ -142,7 +143,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawModification;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
@@ -966,8 +966,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // Check consistency of specific classes attributes
     Schema schema = DirectoryServer.getSchema();
     int fractionalMode = newFractionalConfig.fractionalConfigToInt();
-    for (String className : newFractionalSpecificClassesAttributes.keySet())
+    for (Map.Entry<String, Set<String>> entry : newFractionalSpecificClassesAttributes.entrySet())
     {
+      String className = entry.getKey();
       // Does the class exist ?
       ObjectClass fractionalClass = schema.getObjectClass(className);
       if (fractionalClass.isPlaceHolder())
@@ -978,9 +979,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
       boolean isExtensibleObjectClass = fractionalClass.isExtensible();
 
-      Set<String> attributes =
-        newFractionalSpecificClassesAttributes.get(className);
-
+      Set<String> attributes = entry.getValue();
       for (String attrName : attributes)
       {
         // Not a prohibited attribute ?
@@ -4826,8 +4825,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
        * list is equivalent to specificClassesAttributes2 attribute list
        */
       Schema schema = DirectoryServer.getSchema();
-      for (String className1 : specificClassesAttrs1.keySet())
+      for (Map.Entry<String, Set<String>> entry : specificClassesAttrs1.entrySet())
       {
+        String className1 = entry.getKey();
         // Get class from specificClassesAttributes1
         ObjectClass objectClass1 = schema.getObjectClass(className1);
         if (objectClass1.isPlaceHolder())
@@ -4838,8 +4838,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
         // Look for matching one in specificClassesAttributes2
         boolean foundClass = false;
-        for (String className2 : specificClassesAttrs2.keySet())
+        for (Map.Entry<String, Set<String>> mapEntry : specificClassesAttrs2.entrySet())
         {
+          String className2 = mapEntry.getKey();
           ObjectClass objectClass2 = schema.getObjectClass(className2);
           if (objectClass2.isPlaceHolder())
           {
@@ -4850,8 +4851,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
           {
             foundClass = true;
             // Now compare the 2 attribute lists
-            Set<String> attributes1 = specificClassesAttrs1.get(className1);
-            Set<String> attributes2 = specificClassesAttrs2.get(className2);
+            Set<String> attributes1 = entry.getValue();
+            Set<String> attributes2 = mapEntry.getValue();
             if (!areAttributesEquivalent(attributes1, attributes2))
             {
               return false;

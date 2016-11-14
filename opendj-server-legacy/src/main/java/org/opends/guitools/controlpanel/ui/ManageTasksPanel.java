@@ -413,9 +413,10 @@ public class ManageTasksPanel extends StatusGenericPanel
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.insets.top = 10;
-        for (LocalizableMessage label : taskSpecificAttrs.keySet())
+        for (Map.Entry<LocalizableMessage, List<String>> entry : taskSpecificAttrs.entrySet())
         {
-          List<String> values = taskSpecificAttrs.get(label);
+          LocalizableMessage label = entry.getKey();
+          List<String> values = entry.getValue();
           gbc.gridx = 0;
           gbc.insets.left = 10;
           gbc.insets.right = 0;

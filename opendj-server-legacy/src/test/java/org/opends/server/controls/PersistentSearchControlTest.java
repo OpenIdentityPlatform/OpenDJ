@@ -88,10 +88,10 @@ public class PersistentSearchControlTest extends ControlsTestCase
   public void checkIntValueTest(Map<Integer, String> expectedValues)
       throws Exception
   {
-    for (Integer i : expectedValues.keySet())
+    for (Map.Entry<Integer, String> entry : expectedValues.entrySet())
     {
-      PersistentSearchChangeType val = PersistentSearchChangeType.valueOf(i);
-      String expected = expectedValues.get(i);
+      PersistentSearchChangeType val = PersistentSearchChangeType.valueOf(entry.getKey());
+      String expected = entry.getValue();
       assertEquals(val.toString(), expected);
     }
   }

@@ -29,9 +29,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Pair;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -63,7 +63,7 @@ public class MultiDomainServerState implements Iterable<DN>
   {
     list = new ConcurrentSkipListMap<>();
 
-    for (Map.Entry<DN, ServerState> mapEntry : cookie.list.entrySet())
+    for (Entry<DN, ServerState> mapEntry : cookie.list.entrySet())
     {
       DN dn = mapEntry.getKey();
       ServerState state = mapEntry.getValue();
@@ -346,10 +346,11 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public boolean cover(MultiDomainServerState covered)
   {
-    for (DN baseDN : covered.list.keySet())
+    for (Entry<DN, ServerState> entry : covered.list.entrySet())
     {
+      DN baseDN = entry.getKey();
       ServerState state = list.get(baseDN);
-      ServerState coveredState = covered.list.get(baseDN);
+      ServerState coveredState = entry.getValue();
       if (state == null || coveredState == null || !state.cover(coveredState))
       {
         return false;

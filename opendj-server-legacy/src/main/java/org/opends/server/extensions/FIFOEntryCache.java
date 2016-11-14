@@ -906,8 +906,9 @@ public class FIFOEntryCache
     }
 
     // Check dnMap first.
-    for (DN dn : dnMapCopy.keySet()) {
-      final CacheEntry cacheEntry = dnMapCopy.get(dn);
+    for (Map.Entry<DN, CacheEntry> mapEntry : dnMapCopy.entrySet()) {
+      DN dn = mapEntry.getKey();
+      final CacheEntry cacheEntry = mapEntry.getValue();
       sb.append(dn);
       sb.append(":");
       sb.append(cacheEntry != null ? Long.toString(cacheEntry.getEntryID()) : null);

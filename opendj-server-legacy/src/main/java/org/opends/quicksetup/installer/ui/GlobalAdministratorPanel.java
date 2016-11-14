@@ -25,6 +25,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
@@ -234,9 +235,10 @@ public class GlobalAdministratorPanel extends QuickSetupStepPanel
         LabelFieldDescriptor.LabelType.PRIMARY,
         UIFactory.PASSWORD_FIELD_SIZE));
 
-    for (FieldName fieldName : hm.keySet())
+    for (Map.Entry<FieldName, LabelFieldDescriptor> entry : hm.entrySet())
     {
-      LabelFieldDescriptor desc = hm.get(fieldName);
+      FieldName fieldName = entry.getKey();
+      LabelFieldDescriptor desc = entry.getValue();
       String defaultValue = getDefaultValue(fieldName);
       JTextComponent field = UIFactory.makeJTextComponent(desc, defaultValue);
       JLabel label = UIFactory.makeJLabel(desc);

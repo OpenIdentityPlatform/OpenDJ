@@ -1934,8 +1934,9 @@ final class TemplateFile {
         Entry toEntry() {
             final Entry entry = new LinkedHashMapEntry(getDN());
 
-            for (final AttributeType attributeType : attributes.keySet()) {
-                final List<TemplateValue> valueList = attributes.get(attributeType);
+            for (Map.Entry<AttributeType, List<TemplateValue>> mapEntry : attributes.entrySet()) {
+                AttributeType attributeType = mapEntry.getKey();
+                final List<TemplateValue> valueList = mapEntry.getValue();
                 final Attribute newAttribute =
                         new LinkedAttribute(AttributeDescription.create(attributeType));
                 for (final TemplateValue value : valueList) {

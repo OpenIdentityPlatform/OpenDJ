@@ -372,9 +372,10 @@ public class ServerState implements Iterable<CSN>
     }
 
     int diff = 0;
-    for (Integer serverId : ss1.serverIdToCSN.keySet())
+    for (Map.Entry<Integer, CSN> entry : ss1.serverIdToCSN.entrySet())
     {
-      CSN csn1 = ss1.serverIdToCSN.get(serverId);
+      Integer serverId = entry.getKey();
+      CSN csn1 = entry.getValue();
       if (csn1 != null)
       {
         CSN csn2 = ss2.serverIdToCSN.get(serverId);
