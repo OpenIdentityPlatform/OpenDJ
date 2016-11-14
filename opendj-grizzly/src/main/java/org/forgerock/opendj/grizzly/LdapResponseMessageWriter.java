@@ -55,10 +55,7 @@ final class LdapResponseMessageWriter implements Subscriber<LdapResponseMessage>
 
     @Override
     public void completed(final Object result) {
-        final Subscription sub = upstream;
-        if (sub != null) {
-            sub.request(1);
-        }
+        upstream.request(1);
     }
 
     @Override
@@ -79,14 +76,12 @@ final class LdapResponseMessageWriter implements Subscriber<LdapResponseMessage>
     @Override
     public void onError(final Throwable error) {
         upstream.cancel();
-        upstream = null;
         downstream.onError(error);
     }
 
     @Override
     public void onComplete() {
         upstream.cancel();
-        upstream = null;
         downstream.onComplete();
     }
 }

@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -105,6 +105,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
 
         private GrizzlyLDAPConnection adaptConnection(final Connection<?> connection) {
             configureConnection(connection, logger, options);
+            connection.configureBlocking(true);
 
             final GrizzlyLDAPConnection ldapConnection =
                     new GrizzlyLDAPConnection(connection, GrizzlyLDAPConnectionFactory.this);
