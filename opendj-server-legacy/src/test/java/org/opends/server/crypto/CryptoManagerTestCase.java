@@ -23,26 +23,30 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.util.Options;
 import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.util.BlindTrustManager;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
-import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.CryptoManagerException;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -54,11 +58,14 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.types.Attributes.create;
+import static org.opends.server.types.Attributes.*;
 import static org.testng.Assert.*;
 
 /**
@@ -114,26 +121,29 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
     // The certificate should now be accessible in the truststore backend via LDAP.
     ByteString ldapCert;
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerAdminPort(), true))
+    Options options = Options.defaultOptions()
+        .set(SSL_CONTEXT, new SSLContextBuilder()
+                          .setTrustManager(new BlindTrustManager())
+                          .getSSLContext());
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerAdminPort(), options);
+        Connection conn = factory.getConnection())
     {
-      conn.bind("cn=Directory Manager", "password");
+      conn.bind("cn=Directory Manager", "password".toCharArray());
 
       // TODO: should the below dn be in ConfigConstants?
       final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
-      conn.search(dnStr, SearchScope.BASE_OBJECT, "(objectclass=ds-cfg-instance-key)",
+      ConnectionEntryReader entryReader = conn.search(dnStr, BASE_OBJECT, "(objectclass=ds-cfg-instance-key)",
           "ds-cfg-public-key-certificate;binary");
-      List<SearchResultEntryProtocolOp> searchEntries = conn.readEntries();
-      assertThat(searchEntries).hasSize(1);
-      SearchResultEntryProtocolOp searchEntry = searchEntries.get(0);
-      List<LDAPAttribute> attributes = searchEntry.getAttributes();
-      assertThat(attributes).hasSize(1);
-      LDAPAttribute certAttr = attributes.get(0);
-      /* attribute ds-cfg-public-key-certificate is a MUST in the schema */
-      assertNotNull(certAttr);
-      List<ByteString> values = certAttr.getValues();
-      assertThat(values).hasSize(1);
-      ldapCert = values.get(0);
-      // Compare the certificate values.
+
+      assertThat(entryReader.hasNext()).isTrue();
+      SearchResultEntry searchEntry = entryReader.readEntry();
+      assertThat(entryReader.hasNext()).isFalse();
+      assertThat(searchEntry.getAttributeCount()).isEqualTo(1);
+
+      final Attribute certAttr = searchEntry.getAllAttributes().iterator().next();
+      // attribute ds-cfg-public-key-certificate is a MUST in the schema
+      assertThat(certAttr).hasSize(1);
+      ldapCert = certAttr.iterator().next();
       assertEquals(ldapCert.toByteArray(), cert);
     }
 

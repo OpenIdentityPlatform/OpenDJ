@@ -19,26 +19,24 @@ package org.opends.server.api;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConstraintViolationException;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.extensions.TestPasswordValidator;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
-import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
-import org.opends.server.tools.RemoteConnection;
+import org.opends.server.types.NullOutputStream;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-/**
- * A set of generic test cases for password validators.
- */
+import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
+
+/** A set of generic test cases for password validators. */
 public class PasswordValidatorTestCase
        extends APITestCase
 {
@@ -48,24 +46,17 @@ public class PasswordValidatorTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
-    TestCaseUtils.restartServer();
+    restartServer();
   }
 
-
-
-  /**
-   * Drops static references to allow garbage collection.
-   */
+  /** Drops static references to allow garbage collection. */
   @AfterClass
   public void shutdown()
   {
     TestPasswordValidator.clearInstanceAfterTests();
   }
-
-
 
   /**
    * Gets simple test coverage for the default
@@ -76,8 +67,6 @@ public class PasswordValidatorTestCase
   {
     TestPasswordValidator.getInstance().finalizePasswordValidator();
   }
-
-
 
   /**
    * Performs a test to ensure that the password validation will be successful
@@ -116,7 +105,7 @@ public class PasswordValidatorTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
+    assertEquals(runLDAPPasswordModify(args), 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
                  ByteString.valueOfUtf8("newPassword"));
@@ -165,8 +154,7 @@ public class PasswordValidatorTestCase
       "-n", "newPassword"
     };
 
-    int returnCode = LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args);
-    assertNotEquals(returnCode, 0);
+    assertNotEquals(runLDAPPasswordModify(args), 0);
 
     assertEquals(TestPasswordValidator.getLastNewPassword(),
                  ByteString.valueOfUtf8("newPassword"));
@@ -175,7 +163,10 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextReturnValue(true);
   }
 
-
+  private int runLDAPPasswordModify(String[] args)
+  {
+    return LDAPPasswordModify.run(NullOutputStream.nullPrintStream(), NullOutputStream.nullPrintStream(), args);
+  }
 
   /**
    * Performs a test to make sure that the clear-text password will not be
@@ -213,7 +204,7 @@ public class PasswordValidatorTestCase
       "-w", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
+    assertEquals(runLDAPPasswordModify(args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
@@ -260,7 +251,7 @@ public class PasswordValidatorTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
+    assertEquals(runLDAPPasswordModify(args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
@@ -269,8 +260,6 @@ public class PasswordValidatorTestCase
     assertEquals(currentPasswords.iterator().next(),
                  ByteString.valueOfUtf8("password"));
   }
-
-
 
   /**
    * Performs a test to make sure that the clear-text password will be provided
@@ -311,7 +300,7 @@ public class PasswordValidatorTestCase
       "-w", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
+    assertEquals(runLDAPPasswordModify(args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
@@ -363,7 +352,7 @@ public class PasswordValidatorTestCase
       "-c", "password",
       "-n", "newPassword"
     };
-    assertEquals(LDAPPasswordModify.run(nullPrintStream(), nullPrintStream(), args), 0);
+    assertEquals(runLDAPPasswordModify(args), 0);
 
     Set<ByteString> currentPasswords =
          TestPasswordValidator.getLastCurrentPasswords();
@@ -402,9 +391,10 @@ public class PasswordValidatorTestCase
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
+        Connection conn = factory.getConnection())
     {
-      conn.bind("uid=test.user,o=test", "password");
+      conn.bind("uid=test.user,o=test", "password".toCharArray());
       conn.modify(newModifyRequest("uid=test.user,o=test")
           .addModification(REPLACE, "userPassword", "newPassword"));
 
@@ -443,17 +433,24 @@ public class PasswordValidatorTestCase
          "userPassword: password");
 
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
+        Connection conn = factory.getConnection())
     {
-      conn.bind("uid=test.user,o=test", "password");
+      conn.bind("uid=test.user,o=test", "password".toCharArray());
 
       TestPasswordValidator.setNextReturnValue(false);
-      LDAPMessage message = conn.modify(
-          newModifyRequest("uid=test.user,o=test")
-          .addModification(REPLACE, "userPassword", "newPassword"),
-          false);
-      ModifyResponseProtocolOp modifyResponse = message.getModifyResponseProtocolOp();
-      assertNotEquals(modifyResponse.getResultCode(), ResultCode.SUCCESS.intValue());
+      try
+      {
+        conn.modify(
+            newModifyRequest("uid=test.user,o=test")
+                .addModification(REPLACE, "userPassword", "newPassword"));
+        fail("Expected ConstraintViolationException");
+      }
+      catch (ConstraintViolationException expected) {}
+    }
+    finally
+    {
+      TestPasswordValidator.setNextReturnValue(true);
     }
 
 
@@ -461,7 +458,6 @@ public class PasswordValidatorTestCase
                  ByteString.valueOfUtf8("newPassword"));
     assertTrue(TestPasswordValidator.getLastCurrentPasswords().isEmpty());
 
-    TestPasswordValidator.setNextReturnValue(true);
   }
 
 
@@ -494,9 +490,10 @@ public class PasswordValidatorTestCase
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
+        Connection conn = factory.getConnection())
     {
-      conn.bind("uid=test.user,o=test", "password");
+      conn.bind("uid=test.user,o=test", "password".toCharArray());
 
       conn.modify(
           newModifyRequest("uid=test.user,o=test")
@@ -544,9 +541,10 @@ public class PasswordValidatorTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
+        Connection conn = factory.getConnection())
     {
-      conn.bind("uid=test.user,o=test", "password");
+      conn.bind("uid=test.user,o=test", "password".toCharArray());
 
       conn.modify(
           newModifyRequest("uid=test.user,o=test")
@@ -594,9 +592,10 @@ public class PasswordValidatorTestCase
               "cn=Password Policies,cn=config");
 
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", getServerLdapPort());
+        Connection conn = factory.getConnection())
     {
-      conn.bind("uid=test.user,o=test", "password");
+      conn.bind("uid=test.user,o=test", "password".toCharArray());
 
       conn.modify(
           newModifyRequest("uid=test.user,o=test")

@@ -23,28 +23,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.Base64;
-import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.server.config.meta.ExternalSASLMechanismHandlerCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import com.forgerock.opendj.ldap.tools.LDAPSearch;
-import org.opends.server.tools.RemoteConnection;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.ldap.tools.LDAPSearch;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.runLdapSearchTrustCertificateForSession;
@@ -268,19 +269,16 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test
-  public void testFailEXTERNALInsecureConnection()
-         throws Exception
+  @Test(expectedExceptions = AuthenticationException.class)
+  public void testFailEXTERNALInsecureConnection() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", TestCaseUtils.getServerLdapPort());
+        Connection conn = factory.getConnection())
     {
-      conn.writeMessage(new BindRequestProtocolOp(ByteString.empty(), "EXTERNAL", null));
-
-      LDAPMessage message = conn.readMessage();
-      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
-      assertFalse(bindResponse.getResultCode() == 0);
+      BindResult result = conn.bind(Requests.newExternalSASLBindRequest());
+      TestCaseUtils.assertNotEquals(result.getResultCode(), ResultCode.SUCCESS);
     }
  }
 
