@@ -16,6 +16,7 @@
  */
 package org.forgerock.opendj.reactive;
 
+import static java.util.Collections.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -26,7 +27,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -209,8 +210,12 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     private List<Runnable> connectionFinalizerActiveJobQueue;
     private List<Runnable> connectionFinalizerPendingJobQueue;
 
-    private final List<ClientConnection> connectionList = Collections
-            .synchronizedList(new ArrayList<ClientConnection>());
+    /**
+     * Maintains the list of active client connections. Backed by a {@link ConcurrentHashMap} to have a thread-safe 0(1)
+     * on add (connection) and remove (disconnection).
+     */
+    private final Collection<ClientConnection> clientConnections =
+            newSetFromMap(new ConcurrentHashMap<ClientConnection, Boolean>());
 
     /**
      * Creates a new instance of this LDAP connection handler. It must be initialized before it may be used.
@@ -372,7 +377,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
      */
     @Override
     public Collection<ClientConnection> getClientConnections() {
-        return connectionList;
+        return unmodifiableCollection(clientConnections);
     }
 
     /**
@@ -635,23 +640,23 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                     public ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>> apply(
                             LDAPClientContext clientContext) throws LdapException {
                         final LDAPClientConnection2 conn = canAccept(clientContext);
-                        connectionList.add(conn);
+                        clientConnections.add(conn);
                         clientContext.addConnectionEventListener(new ConnectionEventListener() {
                             @Override
                             public void handleConnectionError(final LDAPClientContext context, final Throwable error) {
-                                connectionList.remove(conn);
+                                clientConnections.remove(conn);
                             }
 
                             @Override
                             public void handleConnectionDisconnected(final LDAPClientContext context,
                                     final ResultCode resultCode, String diagnosticMessage) {
-                                connectionList.remove(conn);
+                                clientConnections.remove(conn);
                             }
 
                             @Override
                             public void handleConnectionClosed(final LDAPClientContext context,
                                     final UnbindRequest unbindRequest) {
-                                connectionList.remove(conn);
+                                clientConnections.remove(conn);
                             }
                         });
                         return new ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>() {
