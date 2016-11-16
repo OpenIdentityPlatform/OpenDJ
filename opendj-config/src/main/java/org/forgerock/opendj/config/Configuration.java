@@ -25,10 +25,16 @@ public interface Configuration {
     /**
      * Gets the DN of the LDAP entry associated with this configuration.
      *
-     * @return Returns the DN of the LDAP entry associated with this
-     *         configuration.
+     * @return The DN of the LDAP entry associated with this configuration.
      */
     DN dn();
+
+    /**
+     * Gets the RDN value of the LDAP entry associated with this configuration.
+     *
+     * @return The RDN value of the LDAP entry associated with this configuration.
+     */
+    String name();
 
     /**
      * Gets the configuration class associated with this configuration.

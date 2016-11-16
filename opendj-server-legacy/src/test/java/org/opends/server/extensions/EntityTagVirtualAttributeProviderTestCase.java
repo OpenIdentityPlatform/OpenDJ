@@ -114,6 +114,13 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     }
 
     @Override
+    public String name()
+    {
+      // Not needed.
+      return null;
+    }
+
+    @Override
     public AttributeType getAttributeType()
     {
       // Not needed.

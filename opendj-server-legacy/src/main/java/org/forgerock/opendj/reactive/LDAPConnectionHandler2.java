@@ -470,7 +470,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     public void initializeConnectionHandler(ServerContext serverContext, LDAPConnectionHandlerCfg config)
             throws ConfigException, InitializationException {
         if (friendlyName == null) {
-            friendlyName = config.dn().rdn().getFirstAVA().getAttributeValue().toString();
+            friendlyName = config.name();
         }
 
         // Save this configuration for future reference.

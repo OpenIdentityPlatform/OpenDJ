@@ -193,6 +193,12 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     return null;
   }
 
+  @Override
+  public String name()
+  {
+    return null;
+  }
+
   public ServerManagedObject<? extends Configuration> managedObject() {
     return null;
   }

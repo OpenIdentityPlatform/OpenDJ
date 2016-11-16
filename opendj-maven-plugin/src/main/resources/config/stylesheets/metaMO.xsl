@@ -12,7 +12,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2010 Sun Microsystems, Inc.
-  Portions copyright 2011-2014 ForgeRock AS.
+  Portions copyright 2011-2016 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
@@ -609,6 +609,17 @@
       select="concat('    /** {@inheritDoc} */&#xa;',
                      '    public DN dn() {&#xa;',
                      '      return impl.getDN();&#xa;',
+                     '    }&#xa;')" />
+    <!--
+      Configuration name getter.
+    -->
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:text>&#xa;</xsl:text>
+    <xsl:value-of
+        select="concat('    /** {@inheritDoc} */&#xa;',
+                     '    public String name() {&#xa;',
+                     '      return impl.getName();&#xa;',
                      '    }&#xa;')" />
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
@@ -1635,7 +1646,7 @@
       <!--
         Check that all advanced properties conform to one of
         the following rules:
-        
+
         * is mandatory and has a defined default value(s)
         * is mandatory and is part of an advanced managed object
         * is mandatory and is part of an abstract managed object

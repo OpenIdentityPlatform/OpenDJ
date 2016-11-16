@@ -196,6 +196,12 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     return DN.valueOf("cn=domain, cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
   }
 
+  @Override
+  public String name()
+  {
+    return "domain";
+  }
+
   /** Set the heartbeat interval. */
   public void setHeartbeatInterval(long interval)
   {

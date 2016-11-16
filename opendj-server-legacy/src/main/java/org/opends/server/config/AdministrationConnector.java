@@ -195,14 +195,12 @@ public final class AdministrationConnector implements
       this.config = config;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Class<? extends LDAPConnectionHandlerCfg> configurationClass()
     {
       return LDAPConnectionHandlerCfg.class;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void addLDAPChangeListener(
         ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener)
@@ -210,7 +208,6 @@ public final class AdministrationConnector implements
       // do nothing. change listener already added.
     }
 
-    /** {@inheritDoc} */
     @Override
     public void removeLDAPChangeListener(
         ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener)
@@ -218,175 +215,150 @@ public final class AdministrationConnector implements
       // do nothing. change listener already added.
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getAcceptBacklog()
     {
       return ADMIN_ACCEPT_BACKLOG;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAllowLDAPV2()
     {
       return ADMIN_ALLOW_LDAP_V2;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAllowStartTLS()
     {
       return ADMIN_ALLOW_START_TLS;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isAllowTCPReuseAddress()
     {
       return ADMIN_ALLOW_TCP_REUSE_ADDRESS;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getJavaClass()
     {
       return ADMIN_CLASS_NAME;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isKeepStats()
     {
       return ADMIN_KEEP_STATS;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getKeyManagerProvider()
     {
       return config.getKeyManagerProvider();
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getKeyManagerProviderDN()
     {
       return config.getKeyManagerProviderDN();
     }
 
-    /** {@inheritDoc} */
     @Override
     public SortedSet<InetAddress> getListenAddress()
     {
       return config.getListenAddress();
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getListenPort()
     {
       return config.getListenPort();
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getMaxBlockedWriteTimeLimit()
     {
       return ADMIN_MAX_BLOCKED_WRITE_TIME_LIMIT;
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getMaxRequestSize()
     {
       return ADMIN_MAX_REQUEST_SIZE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getBufferSize()
     {
       return ADMIN_WRITE_BUFFER_SIZE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Integer getNumRequestHandlers()
     {
       return ADMIN_NUM_REQUEST_HANDLERS;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isSendRejectionNotice()
     {
       return ADMIN_SEND_REJECTION_NOTICE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SortedSet<String> getSSLCertNickname()
     {
       return config.getSSLCertNickname();
     }
 
-    /** {@inheritDoc} */
     @Override
     public SortedSet<String> getSSLCipherSuite()
     {
       return config.getSSLCipherSuite();
     }
 
-    /** {@inheritDoc} */
     @Override
     public SSLClientAuthPolicy getSSLClientAuthPolicy()
     {
       return ADMIN_SSL_CLIENT_AUTH_POLICY;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SortedSet<String> getSSLProtocol()
     {
       return config.getSSLProtocol();
     }
 
-    /** {@inheritDoc} */
     @Override
     public String getTrustManagerProvider()
     {
       return config.getTrustManagerProvider();
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN getTrustManagerProviderDN()
     {
       return config.getTrustManagerProviderDN();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isUseSSL()
     {
       return ADMIN_USE_SSL;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isUseTCPKeepAlive()
     {
       return ADMIN_USE_TCP_KEEP_ALIVE;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isUseTCPNoDelay()
     {
       return ADMIN_USE_TCP_NO_DELAY;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void addChangeListener(
         ConfigurationChangeListener<ConnectionHandlerCfg> listener)
@@ -394,7 +366,6 @@ public final class AdministrationConnector implements
       // do nothing. change listener already added.
     }
 
-    /** {@inheritDoc} */
     @Override
     public void removeChangeListener(
         ConfigurationChangeListener<ConnectionHandlerCfg> listener)
@@ -402,32 +373,34 @@ public final class AdministrationConnector implements
       // do nothing. change listener already added.
     }
 
-    /** {@inheritDoc} */
     @Override
     public SortedSet<AddressMask> getAllowedClient()
     {
       return ADMIN_ALLOWED_CLIENT;
     }
 
-    /** {@inheritDoc} */
     @Override
     public SortedSet<AddressMask> getDeniedClient()
     {
       return ADMIN_DENIED_CLIENT;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isEnabled()
     {
       return ADMIN_ENABLED;
     }
 
-    /** {@inheritDoc} */
     @Override
     public DN dn()
     {
       return config.dn();
+    }
+
+    @Override
+    public String name()
+    {
+      return config.name();
     }
   }
 

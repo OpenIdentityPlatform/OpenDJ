@@ -415,7 +415,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
 
     if (friendlyName == null)
     {
-      friendlyName = config.dn().rdn().getFirstAVA().getAttributeValue().toString();
+      friendlyName = config.name();
     }
 
     int listenPort = config.getListenPort();

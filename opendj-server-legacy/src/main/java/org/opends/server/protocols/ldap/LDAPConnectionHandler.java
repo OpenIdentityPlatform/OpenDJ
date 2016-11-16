@@ -565,7 +565,7 @@ public final class LDAPConnectionHandler extends
   {
     if (friendlyName == null)
     {
-      friendlyName = config.dn().rdn().getFirstAVA().getAttributeValue().toString();
+      friendlyName = config.name();
     }
 
     // Open the selector.

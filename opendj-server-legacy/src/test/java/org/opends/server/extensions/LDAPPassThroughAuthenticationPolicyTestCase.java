@@ -365,6 +365,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
 
     @Override
+    public String name()
+    {
+      return policyDN.rdn().getFirstAVA().getAttributeValue().toString();
+    }
+
+    @Override
     public long getConnectionTimeout()
     {
       return timeoutMS;

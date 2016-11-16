@@ -463,5 +463,9 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
             return impl.getDN();
         }
 
+        @Override
+        public String name() {
+            return impl.getName();
+        }
     }
 }

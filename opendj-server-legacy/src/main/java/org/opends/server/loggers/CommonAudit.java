@@ -781,7 +781,7 @@ public class CommonAudit
 
     String getName()
     {
-      return config.dn().rdn().getFirstAVA().getAttributeValue().toString();
+      return config.name();
     }
 
     String getCommonAuditTopic() throws ConfigException

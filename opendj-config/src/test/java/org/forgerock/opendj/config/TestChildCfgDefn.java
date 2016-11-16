@@ -400,5 +400,9 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
             return impl.getDN();
         }
 
+        @Override
+        public String name() {
+            return impl.getName();
+        }
     }
 }

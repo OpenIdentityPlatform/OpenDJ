@@ -42,6 +42,7 @@ import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -502,14 +503,25 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     /**
      * Get the DN of the LDAP entry associated with this server managed object.
      *
-     * @return Returns the DN of the LDAP entry associated with this server
-     *         managed object, or an null DN if this is the root managed object.
+     * @return The DN of the LDAP entry associated with this server
+     *         managed object, or the root DN if this is the root managed object.
      */
     public DN getDN() {
         if (configDN != null) {
             return configDN;
         }
         return DN.rootDN();
+    }
+
+    /**
+     * Returns the RDN value of the LDAP entry associated with this server managed object.
+     *
+     * @return The RDN value of the LDAP entry associated with this server managed object, or an empty string if this is
+     *         the root managed object.
+     */
+    public String getName() {
+        final RDN rdn = getDN().rdn();
+        return rdn != null ? rdn.getFirstAVA().getAttributeValue().toString() : "";
     }
 
     /**

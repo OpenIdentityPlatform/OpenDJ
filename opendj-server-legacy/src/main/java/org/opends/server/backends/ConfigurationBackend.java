@@ -91,6 +91,12 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
     }
 
     @Override
+    public String name()
+    {
+      return dn().rdn().getFirstAVA().getAttributeValue().toString();
+    }
+
+    @Override
     public Class<? extends LocalBackendCfg> configurationClass()
     {
       return this.getClass();

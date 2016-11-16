@@ -123,6 +123,12 @@ public class ExternalChangelogDomainFakeCfg
     return pDN;
   }
 
+  @Override
+  public String name()
+  {
+    return pDN.rdn().getFirstAVA().getAttributeValue().toString();
+  }
+
   public void setDN(DN dn)
   {
     this.pDN = dn;
