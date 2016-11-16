@@ -1167,19 +1167,8 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         AddRequestProtocolOp protocolOp = message.getAddRequestProtocolOp();
         AddOperationBasis addOp = new AddOperationBasis(this, nextOperationID.getAndIncrement(),
                 message.getMessageID(), controls, protocolOp.getDN(), protocolOp.getAttributes());
-        addOp.setAttachment(REACTIVE_OUT, out);
 
-        try {
-            addOperationInProgress(queueingStrategy, addOp);
-        } catch (DirectoryException de) {
-            logger.traceException(de);
-
-            final Result result = Responses.newResult(de.getResultCode());
-            setDetails(result, de, addOp.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
-        }
-
+        addOperationToWorkQueue(queueingStrategy, out, addOp);
         return connectionValid;
     }
 
@@ -1348,19 +1337,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         DeleteOperationBasis deleteOp = new DeleteOperationBasis(this, nextOperationID.getAndIncrement(),
                 message.getMessageID(), controls, protocolOp.getDN());
 
-        // Add the operation into the work queue.
-        deleteOp.setAttachment(REACTIVE_OUT, out);
-        try {
-            addOperationInProgress(queueingStrategy, deleteOp);
-        } catch (DirectoryException de) {
-            logger.traceException(de);
-
-            final Result result = Responses.newResult(de.getResultCode());
-            setDetails(result, de, deleteOp.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
-        }
-
+        addOperationToWorkQueue(queueingStrategy, out, deleteOp);
         return connectionValid;
     }
 
@@ -1440,18 +1417,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         ModifyOperationBasis modifyOp = new ModifyOperationBasis(this, nextOperationID.getAndIncrement(),
                 message.getMessageID(), controls, protocolOp.getDN(), protocolOp.getModifications());
 
-        // Add the operation into the work queue.
-        modifyOp.setAttachment(REACTIVE_OUT, out);
-        try {
-            addOperationInProgress(queueingStrategy, modifyOp);
-        } catch (DirectoryException de) {
-            logger.traceException(de);
-            final Result result = Responses.newResult(de.getResultCode());
-            setDetails(result, de, modifyOp.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
-        }
-
+        addOperationToWorkQueue(queueingStrategy, out, modifyOp);
         return connectionValid;
     }
 
@@ -1478,19 +1444,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
                 message.getMessageID(), controls, protocolOp.getEntryDN(), protocolOp.getNewRDN(),
                 protocolOp.deleteOldRDN(), protocolOp.getNewSuperior());
 
-        // Add the operation into the work queue.
-        modifyDNOp.setAttachment(REACTIVE_OUT, out);
-        try {
-            addOperationInProgress(queueingStrategy, modifyDNOp);
-        } catch (DirectoryException de) {
-            logger.traceException(de);
-
-            final Result result = Responses.newResult(de.getResultCode());
-            setDetails(result, de, modifyDNOp.getResponseControls());
-            out.onNext(result);
-            out.onComplete();
-        }
-
+        addOperationToWorkQueue(queueingStrategy, out, modifyDNOp);
         return connectionValid;
     }
 
@@ -1518,20 +1472,23 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
                 protocolOp.getDereferencePolicy(), protocolOp.getSizeLimit(), protocolOp.getTimeLimit(),
                 protocolOp.getTypesOnly(), protocolOp.getFilter(), protocolOp.getAttributes());
 
-        // Add the operation into the work queue.
-        searchOp.setAttachment(REACTIVE_OUT, out);
+        addOperationToWorkQueue(queueingStrategy, out, searchOp);
+        return connectionValid;
+    }
+
+    private void addOperationToWorkQueue(
+            QueueingStrategy queueingStrategy, FlowableEmitter<Response> out, Operation operation) {
+        operation.setAttachment(REACTIVE_OUT, out);
         try {
-            addOperationInProgress(queueingStrategy, searchOp);
+            addOperationInProgress(queueingStrategy, operation);
         } catch (DirectoryException de) {
             logger.traceException(de);
 
             final Result result = Responses.newResult(de.getResultCode());
-            setDetails(result, de, searchOp.getResponseControls());
+            setDetails(result, de, operation.getResponseControls());
             out.onNext(result);
             out.onComplete();
         }
-
-        return connectionValid;
     }
 
     private void setDetails(Result result, DirectoryException de, List<Control> responseControls) {
