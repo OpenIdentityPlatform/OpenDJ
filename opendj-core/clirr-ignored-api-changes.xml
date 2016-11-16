@@ -232,4 +232,11 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>org.forgerock.opendj.io.LDAPWriter getWriter(org.forgerock.opendj.io.ASN1Writer)</method>
     <justification>Add support for LdapV2 encoding</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7006</differenceType>
+    <method>void sendUnsolicitedNotification(org.forgerock.opendj.ldap.responses.ExtendedResult)</method>
+    <to>com.forgerock.reactive.Completable</to>
+    <justification>Return a completable so that operation can be chained (i.e: closing connection)</justification>
+  </difference>
 </differences>

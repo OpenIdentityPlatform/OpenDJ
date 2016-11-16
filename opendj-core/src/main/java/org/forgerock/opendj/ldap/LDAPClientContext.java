@@ -27,6 +27,8 @@ import javax.security.sasl.SaslServer;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
+import com.forgerock.reactive.Completable;
+
 /**
  * An LDAP client which has connected to a {@link ServerConnectionFactory}. An
  * LDAP client context can be used to query information about the client's
@@ -169,8 +171,9 @@ public interface LDAPClientContext {
      *
      * @param notification
      *            The notification to send.
+     * @return A {@link Completable} which will be completed once the notification has been sent.
      */
-    void sendUnsolicitedNotification(ExtendedResult notification);
+    Completable sendUnsolicitedNotification(ExtendedResult notification);
 
     /**
      * Installs the TLS/SSL security layer on the underlying connection. The TLS/SSL security layer will be installed

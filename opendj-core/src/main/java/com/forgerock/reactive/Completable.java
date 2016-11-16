@@ -63,6 +63,16 @@ public interface Completable extends Publisher<Void> {
     Completable onErrorResumeWith(Function<Throwable, Completable, Exception> function);
 
     /**
+     * Subscribe to the result of this {@link Completable}.
+     *
+     * @param completeAction
+     *            An {@link Action} which will be invoked on successful completion
+     * @param errorConsumer
+     *            A {@link Consumer} which will be invoked on error
+     */
+    void subscribe(Action completeAction, Consumer<Throwable> errorConsumer);
+
+    /**
      * Returns a {@link Single} which will complete with the provided value once this {@link Completable} completes.
      *
      * @param <V>

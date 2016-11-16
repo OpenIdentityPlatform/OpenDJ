@@ -364,5 +364,20 @@ public final class RxJavaStreams {
                         }
                     }));
         }
+
+        @Override
+        public void subscribe(final Action completeAction, final Consumer<Throwable> errorConsumer) {
+            impl.subscribe(new io.reactivex.functions.Action() {
+                @Override
+                public void run() throws Exception {
+                    completeAction.run();
+                }
+            }, new io.reactivex.functions.Consumer<Throwable>() {
+                @Override
+                public void accept(final Throwable error) throws Exception {
+                    errorConsumer.accept(error);
+                }
+            });
+        }
     }
 }
