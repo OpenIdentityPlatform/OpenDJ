@@ -18,12 +18,13 @@ package org.opends.server.tools.status;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
+import static java.util.concurrent.TimeUnit.*;
 
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 import static org.forgerock.util.Utils.*;
 import static org.forgerock.util.time.Duration.*;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.INFO_ERROR_READING_SERVER_CONFIGURATION;
+import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
 import static org.opends.messages.ToolMessages.*;
 
@@ -37,7 +38,6 @@ import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
@@ -1126,8 +1126,6 @@ public class StatusCli extends ConsoleApplication
 
     // This connection should always be secure. useSSL = true.
     Connection connection = null;
-    final Options options = Options.defaultOptions();
-    options.set(CONNECT_TIMEOUT, duration(ci.getConnectTimeout(), TimeUnit.MILLISECONDS));
     LDAPConnectionFactory factory = null;
     while (true)
     {
@@ -1136,9 +1134,11 @@ public class StatusCli extends ConsoleApplication
         final SSLContextBuilder sslBuilder = new SSLContextBuilder();
         sslBuilder.setTrustManager(trustManager == null ? TrustManagers.trustAll() : trustManager);
         sslBuilder.setKeyManager(keyManager);
-        options.set(SSL_USE_STARTTLS, ci.useStartTLS());
-        options.set(SSL_CONTEXT, sslBuilder.getSSLContext());
-        options.set(SSL_ENABLED_PROTOCOLS, ConnectionFactoryProvider.getDefaultProtocols());
+        final Options options = Options.defaultOptions()
+            .set(CONNECT_TIMEOUT, duration(ci.getConnectTimeout(), MILLISECONDS))
+            .set(SSL_USE_STARTTLS, ci.useStartTLS())
+            .set(SSL_CONTEXT, sslBuilder.getSSLContext())
+            .set(SSL_ENABLED_PROTOCOLS, ConnectionFactoryProvider.getDefaultProtocols());
 
         factory = new LDAPConnectionFactory(hostName, portNumber, options);
         connection = factory.getConnection();

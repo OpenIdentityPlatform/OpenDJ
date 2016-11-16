@@ -30,8 +30,10 @@ package org.forgerock.opendj.ldap;
  * @param <R>
  *            The type of request context.
  * @see LDAPListener
- * @see Connections#newInternalConnectionFactory(ServerConnectionFactory,
- *      Object) newInternalConnectionFactory
+ * @see Connections#newInternalConnectionFactory(ServerConnectionFactory, Object)
+ *      newInternalConnectionFactory
+ * @deprecated will be removed as part of OPENDJ-3467.
+ *             It has been replaced by {@code Function<LDAPClientContext, ReactiveHandler<>>}.
  */
 @Deprecated
 public interface ServerConnectionFactory<C, R> {

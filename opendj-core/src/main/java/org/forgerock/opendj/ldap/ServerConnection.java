@@ -34,6 +34,8 @@ import org.forgerock.opendj.ldap.requests.UnbindRequest;
  * @param <C>
  *            The type of request context.
  * @see ServerConnectionFactory
+ * @deprecated will be removed as part of OPENDJ-3467.
+ *             It has been replaced by {@code ReactiveHandler<>}
  */
 @Deprecated
 public interface ServerConnection<C> extends RequestHandler<C> {

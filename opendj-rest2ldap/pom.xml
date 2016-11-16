@@ -63,10 +63,10 @@
             <artifactId>i18n-core</artifactId>
         </dependency>
 
-		<dependency>
-			<groupId>org.forgerock.http</groupId>
-			<artifactId>chf-oauth2</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.forgerock.http</groupId>
+            <artifactId>chf-oauth2</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.forgerock.http</groupId>

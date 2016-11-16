@@ -55,7 +55,7 @@ import static org.forgerock.util.Utils.*;
  * proxy authorization. Simple bind requests are performed on a separate
  * connection factory dedicated for authentication.
  * <p>
- * This is implementation is very simple and is only intended as an example:
+ * This implementation is very simple and is only intended as an example:
  * <ul>
  * <li>It does not support SSL connections
  * <li>It does not support StartTLS

@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014-2015 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -22,7 +22,6 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 import static org.opends.server.replication.server.changelog.file.LogFileTest.*;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -533,31 +532,5 @@ public class LogTest extends DirectoryServerTestCase
   {
     assertThat(cursor.next()).isFalse();
     assertThat(cursor.getRecord()).isNull();
-  }
-
-  /** Returns a thread that write N records to the provided log. */
-  private Thread getWriteLogThread(final Log<String, String> writeLog, final String recordPrefix,
-      final AtomicReference<ChangelogException> exceptionRef)
-  {
-    return new Thread() {
-      @Override
-      public void run()
-      {
-        for (int i = 1; i <= 30; i++)
-        {
-          Record<String, String> record = Record.from(
-              String.format("nk%s%03d", recordPrefix, i), "v" + recordPrefix + i);
-          try
-          {
-            writeLog.append(record);
-          }
-          catch (ChangelogException e)
-          {
-            // keep the first exception only
-            exceptionRef.compareAndSet(null, e);
-          }
-        }
-      }
-    };
   }
 }

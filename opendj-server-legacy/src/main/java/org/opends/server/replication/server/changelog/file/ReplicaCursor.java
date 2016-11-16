@@ -79,8 +79,8 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
       ReplicaOfflineMsg prevOfflineMsg = this.replicaOfflineMsg.get();
       if (prevOfflineMsg == null || prevOfflineMsg.getCSN().isOlderThan(offlineCSN))
       {
-        // Do not spin if the the message for this replica has been changed. Either a newer
-        // message has arrived or the next cursor iteration will pick it up.
+        // Do not spin if the message for this replica has been changed.
+        // Either a newer message has arrived or the next cursor iteration will pick it up.
         this.replicaOfflineMsg.compareAndSet(prevOfflineMsg, new ReplicaOfflineMsg(offlineCSN));
       }
     }
@@ -90,7 +90,6 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   public UpdateMsg getRecord()
   {
@@ -107,7 +106,6 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
     return replicaId;
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean next() throws ChangelogException
   {
@@ -148,7 +146,6 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
         && offlineMsg.getCSN().isOlderThanOrEqualTo(updateMsg.getCSN());
   }
 
-  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -156,7 +153,6 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
     domainDB.unregisterCursor(this);
   }
 
-  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -166,5 +162,4 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
         + " offlineCSN=" + (msg != null ? msg.getCSN().toStringUI() : null)
         + " cursor=" + cursor.toString().split("", 2)[1];
   }
-
 }
