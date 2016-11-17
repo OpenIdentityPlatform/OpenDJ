@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
@@ -55,7 +53,6 @@ import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.util.Reject;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BackendConfigManager;
@@ -650,34 +647,7 @@ public class RootDSEBackend
   {
     boolean configIsAcceptable = true;
 
-    try
-    {
-      Set<DN> subDNs = cfg.getSubordinateBaseDN();
-      if (subDNs.isEmpty())
-      {
-        // This is fine -- we'll just use the set of user-defined suffixes.
-      }
-      else
-      {
-        for (DN baseDN : subDNs)
-        {
-          LocalBackend<?> backend = serverContext.getBackendConfigManager().findLocalBackendForEntry(baseDN);
-          if (backend == null)
-          {
-            unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
-            configIsAcceptable = false;
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
 
-      unacceptableReasons.add(WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
-          stackTraceToSingleLineString(e)));
-      configIsAcceptable = false;
-    }
 
     return configIsAcceptable;
   }
@@ -686,47 +656,6 @@ public class RootDSEBackend
   public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
-    // Check to see if we should apply a new set of base DNs.
-    ConcurrentHashMap<DN, Backend<?>> subBases;
-    try
-    {
-      Set<DN> subDNs = cfg.getSubordinateBaseDN();
-      if (subDNs.isEmpty())
-      {
-        // This is fine -- we'll just use the set of user-defined suffixes.
-        subBases = null;
-      }
-      else
-      {
-        subBases = new ConcurrentHashMap<>();
-        for (DN baseDN : subDNs)
-        {
-          LocalBackend<?> backend = serverContext.getBackendConfigManager().findLocalBackendForEntry(baseDN);
-          if (backend == null)
-          {
-            // This is not fine.  We can't use a suffix that doesn't exist.
-            ccr.addMessage(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
-            ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
-          }
-          else
-          {
-            subBases.put(baseDN, backend);
-          }
-        }
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
-              stackTraceToSingleLineString(e)));
-
-      subBases = null;
-    }
-
     boolean newShowAll = cfg.isShowAllAttributes();
 
     // Check to see if there is a new set of user-defined attributes.

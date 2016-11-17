@@ -142,4 +142,11 @@ public interface ServerContext
    * @return backend manager
    */
   BackendConfigManager getBackendConfigManager();
+
+  /**
+   * Returns the manager of core configuration.
+   *
+   * @return core configuration manager
+   */
+  CoreConfigManager getCoreConfigManager();
 }

@@ -34,6 +34,7 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -217,11 +218,6 @@ public final class DirectoryServer
   /** Temporary context object, to provide instance methods instead of static methods. */
   private final DirectoryServerContext serverContext;
 
-  /** The policy to use regarding single structural objectclass enforcement. */
-  private AcceptRejectWarn singleStructuralClassPolicy;
-  /** The policy to use regarding syntax enforcement. */
-  private AcceptRejectWarn syntaxEnforcementPolicy;
-
   /** The account status notification handler config manager for the server. */
   private AccountStatusNotificationHandlerConfigManager accountStatusNotificationHandlerConfigManager;
 
@@ -230,24 +226,6 @@ public final class DirectoryServer
   /** The configuration manager that will handle the server backends. */
   private BackendConfigManager backendConfigManager;
 
-  /**
-   * Indicates whether to automatically add missing RDN attributes to entries
-   * during an add request.
-   */
-  private boolean addMissingRDNAttributes;
-
-  /**
-   * Indicates whether to allow attribute name exceptions (i.e., attribute names
-   * can contain underscores and may start with a digit).
-   */
-  private boolean allowAttributeNameExceptions;
-
-  /** Indicates whether a simple bind request containing a DN must also provide a password. */
-  private boolean bindWithDNRequiresPassword;
-
-  /** Indicates whether the Directory Server should perform schema checking for update operations. */
-  private boolean checkSchema;
-
   /** Indicates whether the server has been bootstrapped. */
   private boolean isBootstrapped;
   /** Indicates whether the server is currently online. */
@@ -255,20 +233,8 @@ public final class DirectoryServer
   /** Indicates whether the server is currently in "lockdown mode". */
   private boolean lockdownMode;
 
-  /** Indicates whether the server should send a response to operations that have been abandoned. */
-  private boolean notifyAbandonedOperations;
-
-  /** Indicates whether to save a copy of the configuration on successful startup. */
-  private boolean saveConfigOnSuccessfulStartup;
-
   /** Indicates whether the server is currently in the process of shutting down. */
   private boolean shuttingDown;
-
-  /** Indicates whether the server should reject unauthenticated requests. */
-  private boolean rejectUnauthenticatedRequests;
-
-  /** Indicates whether bind responses should include failure reason messages. */
-  private boolean returnBindErrorMessages;
 
   /** The configuration manager that will handle the certificate mapper. */
   private CertificateMapperConfigManager certificateMapperConfigManager;
@@ -428,15 +394,6 @@ public final class DirectoryServer
   /** The shutdown hook that has been registered with the server. */
   private DirectoryServerShutdownHook shutdownHook;
 
-  /** The DN of the default password policy configuration entry. */
-  private DN defaultPasswordPolicyDN;
-
-  /**
-   * The DN of the identity mapper that will be used to resolve authorization
-   * IDs contained in the proxied authorization V2 control.
-   */
-  private DN proxiedAuthorizationIdentityMapperDN;
-
   /** The DN of the entry containing the server schema definitions. */
   private DN schemaDN;
 
@@ -464,37 +421,14 @@ public final class DirectoryServer
   /** The configuration manager for identity mappers. */
   private IdentityMapperConfigManager identityMapperConfigManager;
 
-  /**
-   * The maximum number of entries that should be returned for a search unless
-   * overridden on a per-user basis.
-   */
-  private int sizeLimit;
-
-  /**
-   * The maximum length of time in seconds that should be allowed for a search
-   * unless overridden on a per-user basis.
-   */
-  private int timeLimit;
-  /** The maximum number of candidates that should be check for matches during a search. */
-  private int lookthroughLimit;
-
   /** The current active persistent searches. */
   private final AtomicInteger activePSearches = new AtomicInteger(0);
-
-  /** The maximum number of concurrent persistent searches. */
-  private int maxPSearches;
-
-  /** Whether to use collect operation processing times in nanosecond resolution. */
-  private boolean useNanoTime;
 
   /** The key manager provider configuration manager for the Directory Server. */
   private KeyManagerProviderConfigManager keyManagerProviderConfigManager;
 
   /** The set of connections that are currently established. */
   private Set<ClientConnection> establishedConnections;
-
-  /** The sets of mail server properties. */
-  private List<Properties> mailServerPropertySets;
 
   /** The log rotation policy config manager for the Directory Server. */
   private LogRotationPolicyConfigManager rotationPolicyConfigManager;
@@ -510,8 +444,6 @@ public final class DirectoryServer
   /** The idle time limit for the server. */
   private long idleTimeLimit;
 
-  /** The maximum number of connections that will be allowed at any given time. */
-  private long maxAllowedConnections;
   /** The maximum number of connections established at one time. */
   private long maxConnections;
 
@@ -544,9 +476,6 @@ public final class DirectoryServer
   /** The plugin config manager for the Directory Server. */
   private PluginConfigManager pluginConfigManager;
 
-  /** The result code that should be used for internal "server" errors. */
-  private ResultCode serverErrorResultCode;
-
   /** The root DN config manager for the server. */
   private RootDNConfigManager rootDNConfigManager;
 
@@ -555,12 +484,6 @@ public final class DirectoryServer
 
   /** The schema handler provides management of the schema, including its memory and files representations. */
   private SchemaHandler schemaHandler;
-
-  /** The set of disabled privileges. */
-  private Set<Privilege> disabledPrivileges;
-
-  /** The set of allowed task classes. */
-  private Set<String> allowedTasks;
 
   /** The time that the server was started, formatted in UTC time. */
   private String startTimeUTC;
@@ -604,9 +527,6 @@ public final class DirectoryServer
   /** The work queue that will be used to service client requests. */
   private WorkQueue<?> workQueue;
 
-  /** The writability mode for the Directory Server. */
-  private WritabilityMode writabilityMode;
-
   /** The memory reservation system. */
   private final MemoryQuota memoryQuota;
 
@@ -615,9 +535,6 @@ public final class DirectoryServer
 
   /** The lock manager which will be used for coordinating access to LDAP entries. */
   private final LockManager lockManager = new LockManager();
-
-  /** The maximum size that internal buffers will be allowed to grow to until they are trimmed. */
-  private int maxInternalBufferSize = DEFAULT_MAX_INTERNAL_BUFFER_SIZE;
 
   /** The default timeout used to start the server in detach mode. */
   public static final int DEFAULT_TIMEOUT = 200;
@@ -1051,6 +968,13 @@ public final class DirectoryServer
     {
       return directoryServer.backendConfigManager;
     }
+
+    @Override
+    public CoreConfigManager getCoreConfigManager()
+    {
+      return directoryServer.coreConfigManager;
+    }
+
   }
 
   /**
@@ -1076,7 +1000,6 @@ public final class DirectoryServer
     isRunning                = false;
     shuttingDown             = false;
     lockdownMode             = false;
-    serverErrorResultCode    = ResultCode.OTHER;
 
     operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
     serverContext = new DirectoryServerContext();
@@ -1175,9 +1098,6 @@ public final class DirectoryServer
   {
     synchronized (directoryServer)
     {
-      // Set default values for variables that may be needed during schema processing.
-      directoryServer.syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
-
       // Schema handler contains a default schema to start with
       directoryServer.schemaHandler = new SchemaHandler();
 
@@ -1198,7 +1118,6 @@ public final class DirectoryServer
       directoryServer.retentionPolicies = new ConcurrentHashMap<>();
       directoryServer.certificateMappers = new ConcurrentHashMap<>();
       directoryServer.authenticationPolicies = new ConcurrentHashMap<>();
-      directoryServer.defaultPasswordPolicyDN = null;
       directoryServer.defaultPasswordPolicy = null;
       directoryServer.monitorProviders = new ConcurrentHashMap<>();
       directoryServer.initializationCompletedListeners = new CopyOnWriteArrayList<>();
@@ -1213,9 +1132,6 @@ public final class DirectoryServer
       directoryServer.restoreTaskListeners = new CopyOnWriteArrayList<>();
       directoryServer.exportTaskListeners = new CopyOnWriteArrayList<>();
       directoryServer.importTaskListeners = new CopyOnWriteArrayList<>();
-      directoryServer.allowedTasks = new LinkedHashSet<>(0);
-      directoryServer.disabledPrivileges = new LinkedHashSet<>(0);
-      directoryServer.returnBindErrorMessages = false;
       directoryServer.idleTimeLimit = 0L;
 
       // make sure the timer thread is started in case it was stopped before
@@ -1581,7 +1497,7 @@ public final class DirectoryServer
       }
 
       // Write a copy of the config if needed.
-      if (saveConfigOnSuccessfulStartup)
+      if (coreConfigManager.isSaveConfigOnSuccessfulStartup())
       {
         configurationHandler.writeSuccessfulStartupConfig();
       }
@@ -1671,22 +1587,7 @@ public final class DirectoryServer
    */
   public static boolean mailServerConfigured()
   {
-    return directoryServer.mailServerPropertySets != null
-        && !directoryServer.mailServerPropertySets.isEmpty();
-  }
-
-  /**
-   * Specifies the set of mail server properties that should be used for SMTP
-   * communication.
-   *
-   * @param  mailServerPropertySets  A list of {@code Properties} objects that
-   *                                 provide information that can be used to
-   *                                 communicate with SMTP servers.
-   */
-  public static void setMailServerPropertySets(List<Properties>
-                                                    mailServerPropertySets)
-  {
-    directoryServer.mailServerPropertySets = mailServerPropertySets;
+    return directoryServer.coreConfigManager != null && directoryServer.coreConfigManager.isMailServerConfigured();
   }
 
   /**
@@ -1698,7 +1599,8 @@ public final class DirectoryServer
    */
   public static List<Properties> getMailServerPropertySets()
   {
-    return directoryServer.mailServerPropertySets;
+    return directoryServer.coreConfigManager != null ?
+        directoryServer.coreConfigManager.getMailServerPropertySets() : new ArrayList<Properties>(0);
   }
 
   /**
@@ -2607,7 +2509,7 @@ public final class DirectoryServer
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
-      if (directoryServer.defaultPasswordPolicyDN.equals(configEntryDN))
+      if (directoryServer.coreConfigManager.getDefaultPasswordPolicyDN().equals(configEntryDN))
       {
         // The correct policy type is enforced by the core config manager.
         directoryServer.defaultPasswordPolicy = (PasswordPolicy) policy;
@@ -2638,7 +2540,7 @@ public final class DirectoryServer
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
-      if (directoryServer.defaultPasswordPolicyDN.equals(configEntryDN))
+      if (directoryServer.coreConfigManager.getDefaultPasswordPolicyDN().equals(configEntryDN))
       {
         directoryServer.defaultPasswordPolicy = null;
       }
@@ -2663,27 +2565,18 @@ public final class DirectoryServer
   {
     synchronized (directoryServer.authenticationPolicies)
     {
-      return directoryServer.defaultPasswordPolicyDN;
+      return directoryServer.coreConfigManager.getDefaultPasswordPolicyDN();
     }
   }
 
   /**
-   * Specifies the DN of the configuration entry for the default authentication
-   * policy for the Directory Server. This routine does not check the registered
-   * authentication policies for the specified DN, since in the case of server
-   * initialization, the authentication policy entries will not yet have been
-   * loaded from the configuration backend.
-   *
-   * @param defaultPasswordPolicyDN
-   *          The DN of the configuration entry for the default authentication
-   *          policy for the Directory Server.
+   * Resets the default password policy to null.
    */
-  public static void setDefaultPasswordPolicyDN(DN defaultPasswordPolicyDN)
+  public static void resetDefaultPasswordPolicy()
   {
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
-      directoryServer.defaultPasswordPolicyDN = defaultPasswordPolicyDN;
       directoryServer.defaultPasswordPolicy = null;
     }
   }
@@ -2701,21 +2594,21 @@ public final class DirectoryServer
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
+      DN defaultPasswordPolicyDN = directoryServer.coreConfigManager.getDefaultPasswordPolicyDN();
       assert null != directoryServer.authenticationPolicies
-          .get(directoryServer.defaultPasswordPolicyDN) :
+          .get(defaultPasswordPolicyDN) :
             "Internal Error: no default password policy defined.";
 
       if (directoryServer.defaultPasswordPolicy == null
-          && directoryServer.defaultPasswordPolicyDN != null)
+          && defaultPasswordPolicyDN != null)
       {
         // The correct policy type is enforced by the core config manager.
         directoryServer.defaultPasswordPolicy = (PasswordPolicy)
           directoryServer.authenticationPolicies
-            .get(directoryServer.defaultPasswordPolicyDN);
+            .get(defaultPasswordPolicyDN);
       }
-      assert directoryServer.authenticationPolicies
-          .get(directoryServer.defaultPasswordPolicyDN) ==
-            directoryServer.defaultPasswordPolicy :
+      assert directoryServer.authenticationPolicies.get(defaultPasswordPolicyDN) ==
+          directoryServer.defaultPasswordPolicy :
              "Internal Error: inconsistency between defaultPasswordPolicy"
           + " cache and value in authenticationPolicies map.";
       return directoryServer.defaultPasswordPolicy;
@@ -3162,20 +3055,8 @@ public final class DirectoryServer
    */
   public static ResultCode getServerErrorResultCode()
   {
-    return directoryServer.serverErrorResultCode;
-  }
-
-  /**
-   * Specifies the result code that should be used when the Directory Server
-   * encounters an internal server error.
-   *
-   * @param  serverErrorResultCode  The result code that should be used when the
-   *                                Directory Server encounters an internal
-   *                                server error.
-   */
-  public static void setServerErrorResultCode(ResultCode serverErrorResultCode)
-  {
-    directoryServer.serverErrorResultCode = serverErrorResultCode;
+    return directoryServer.coreConfigManager != null ?
+        directoryServer.coreConfigManager.getServerErrorResultCode() : ResultCode.OTHER;
   }
 
   /**
@@ -3188,21 +3069,7 @@ public final class DirectoryServer
    */
   public static boolean addMissingRDNAttributes()
   {
-    return directoryServer.addMissingRDNAttributes;
-  }
-
-  /**
-   * Specifies whether the Directory Server should automatically add missing RDN
-   * attributes to an entry whenever it is added.
-   *
-   * @param  addMissingRDNAttributes  Specifies whether the Directory Server
-   *                                  should automatically add missing RDN
-   *                                  attributes to an entry whenever it is
-   *                                  added.
-   */
-  public static void setAddMissingRDNAttributes(boolean addMissingRDNAttributes)
-  {
-    directoryServer.addMissingRDNAttributes = addMissingRDNAttributes;
+    return directoryServer.coreConfigManager.isAddMissingRDNAttributes();
   }
 
   /**
@@ -3220,21 +3087,8 @@ public final class DirectoryServer
   @Deprecated
   public static boolean allowAttributeNameExceptions()
   {
-    return directoryServer.allowAttributeNameExceptions;
-  }
-
-  /**
-   * Specifies whether to be more flexible in the set of characters allowed for
-   * attribute names.
-   *
-   * @param  allowAttributeNameExceptions  Specifies whether to be more flexible
-   *                                       in the set of characters allowed for
-   *                                       attribute names.
-   */
-  public static void setAllowAttributeNameExceptions(
-                          boolean allowAttributeNameExceptions)
-  {
-    directoryServer.allowAttributeNameExceptions = allowAttributeNameExceptions;
+    return directoryServer.coreConfigManager != null
+        && directoryServer.coreConfigManager.isAllowAttributeNameExceptions();
   }
 
   /**
@@ -3245,18 +3099,7 @@ public final class DirectoryServer
    */
   public static boolean checkSchema()
   {
-    return directoryServer.checkSchema;
-  }
-
-  /**
-   * Specifies whether the Directory Server should perform schema checking.
-   *
-   * @param  checkSchema  Specifies whether the Directory Server should perform
-   *                      schema checking.
-   */
-  public static void setCheckSchema(boolean checkSchema)
-  {
-    directoryServer.checkSchema = checkSchema;
+    return directoryServer.coreConfigManager.isCheckSchema();
   }
 
   /**
@@ -3268,21 +3111,7 @@ public final class DirectoryServer
    */
   public static AcceptRejectWarn getSingleStructuralObjectClassPolicy()
   {
-    return directoryServer.singleStructuralClassPolicy;
-  }
-
-  /**
-   * Specifies the policy that should be used regarding enforcement of a single
-   * structural objectclass per entry.
-   *
-   * @param  singleStructuralClassPolicy  The policy that should be used
-   *                                      regarding enforcement of a single
-   *                                      structural objectclass per entry.
-   */
-  public static void setSingleStructuralObjectClassPolicy(
-                          AcceptRejectWarn singleStructuralClassPolicy)
-  {
-    directoryServer.singleStructuralClassPolicy = singleStructuralClassPolicy;
+    return directoryServer.coreConfigManager.getSingleStructuralObjectClassPolicy();
   }
 
   /**
@@ -3294,22 +3123,8 @@ public final class DirectoryServer
    */
   public static AcceptRejectWarn getSyntaxEnforcementPolicy()
   {
-    return directoryServer.syntaxEnforcementPolicy;
-  }
-
-  /**
-   * Retrieves the policy that should be used when an attribute value is found
-   * that is not valid according to the associated attribute syntax.
-   *
-   * @param  syntaxEnforcementPolicy  The policy that should be used when an
-   *                                  attribute value is found that is not valid
-   *                                  according to the associated attribute
-   *                                  syntax.
-   */
-  public static void setSyntaxEnforcementPolicy(
-                          AcceptRejectWarn syntaxEnforcementPolicy)
-  {
-    directoryServer.syntaxEnforcementPolicy = syntaxEnforcementPolicy;
+    return directoryServer.coreConfigManager != null ?
+        directoryServer.coreConfigManager.getSyntaxEnforcementPolicy() : AcceptRejectWarn.REJECT;
   }
 
   /**
@@ -3325,24 +3140,7 @@ public final class DirectoryServer
    */
   public static boolean notifyAbandonedOperations()
   {
-    return directoryServer.notifyAbandonedOperations;
-  }
-
-  /**
-   * Specifies whether the Directory Server should send a response to an
-   * operation that has been abandoned.  Sending such a response is technically
-   * a violation of the LDAP protocol specification, but not doing so in that
-   * case can cause problems with clients that are expecting a response and may
-   * hang until they get one.
-   *
-   * @param  notifyAbandonedOperations  Indicates whether the Directory Server
-   *                                    should send a response to an operation
-   *                                    that has been abandoned.
-   */
-  public static void setNotifyAbandonedOperations(
-                          boolean notifyAbandonedOperations)
-  {
-    directoryServer.notifyAbandonedOperations = notifyAbandonedOperations;
+    return directoryServer.coreConfigManager.isNotifyAbandonedOperations();
   }
 
   /**
@@ -3745,36 +3543,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the DN of the configuration entry for the identity mapper that
-   * should be used in conjunction with proxied authorization V2 controls.
-   *
-   * @return  The DN of the configuration entry for the identity mapper that
-   *          should be used in conjunction with proxied authorization V2
-   *          controls, or {@code null} if none is defined.
-   */
-  public static DN getProxiedAuthorizationIdentityMapperDN()
-  {
-    return directoryServer.proxiedAuthorizationIdentityMapperDN;
-  }
-
-  /**
-   * Specifies the DN of the configuration entry for the identity mapper that
-   * should be used in conjunction with proxied authorization V2 controls.
-   *
-   * @param  proxiedAuthorizationIdentityMapperDN  The DN of the configuration
-   *                                               entry for the identity mapper
-   *                                               that should be used in
-   *                                               conjunction with proxied
-   *                                               authorization V2 controls.
-   */
-  public static void setProxiedAuthorizationIdentityMapperDN(
-                          DN proxiedAuthorizationIdentityMapperDN)
-  {
-    directoryServer.proxiedAuthorizationIdentityMapperDN =
-         proxiedAuthorizationIdentityMapperDN;
-  }
-
-  /**
    * Retrieves the identity mapper that should be used to resolve authorization
    * IDs contained in proxied authorization V2 controls.
    *
@@ -3784,7 +3552,7 @@ public final class DirectoryServer
    */
   public static IdentityMapper<?> getProxiedAuthorizationIdentityMapper()
   {
-    DN dnMapper = directoryServer.proxiedAuthorizationIdentityMapperDN;
+    DN dnMapper = directoryServer.coreConfigManager.getProxiedAuthorizationIdentityMapperDN();
     return dnMapper != null ? directoryServer.identityMappers.get(dnMapper) : null;
   }
 
@@ -3917,7 +3685,7 @@ public final class DirectoryServer
     ClientConnection clientConnection = operation.getClientConnection();
     //Reject or accept the unauthenticated requests based on the configuration settings.
     if (!clientConnection.getAuthenticationInfo().isAuthenticated() &&
-        (directoryServer.rejectUnauthenticatedRequests ||
+        (directoryServer.coreConfigManager.isRejectUnauthenticatedRequests() ||
         (directoryServer.lockdownMode && !isAllowedInLockDownMode)))
     {
       switch(operation.getOperationType())
@@ -4093,28 +3861,8 @@ public final class DirectoryServer
    */
   public static Set<String> getAllowedTasks()
   {
-    return directoryServer.allowedTasks;
-  }
-
-  /**
-   * Specifies the set of allowed tasks that may be invoked in the server.
-   *
-   * @param  allowedTasks  A set containing the names of the allowed tasks that
-   *                       may be invoked in the server.
-   */
-  public static void setAllowedTasks(Set<String> allowedTasks)
-  {
-    directoryServer.allowedTasks = allowedTasks;
-  }
-
-  /**
-   * Retrieves the set of privileges that have been disabled.
-   *
-   * @return  The set of privileges that have been disabled.
-   */
-  public static Set<Privilege> getDisabledPrivileges()
-  {
-    return directoryServer.disabledPrivileges;
+    return directoryServer.coreConfigManager != null ?
+        directoryServer.coreConfigManager.getAllowedTasks() : new HashSet<String>(0);
   }
 
   /**
@@ -4127,18 +3875,8 @@ public final class DirectoryServer
    */
   public static boolean isDisabled(Privilege privilege)
   {
-    return directoryServer.disabledPrivileges.contains(privilege);
-  }
-
-  /**
-   * Specifies the set of privileges that should be disabled in the server.
-   *
-   * @param  disabledPrivileges  The set of privileges that should be disabled
-   *                             in the server.
-   */
-  public static void setDisabledPrivileges(Set<Privilege> disabledPrivileges)
-  {
-    directoryServer.disabledPrivileges = disabledPrivileges;
+    return directoryServer.coreConfigManager != null ?
+        directoryServer.coreConfigManager.getDisabledPrivileges().contains(privilege) : false;
   }
 
   /**
@@ -4150,20 +3888,7 @@ public final class DirectoryServer
    */
   public static boolean returnBindErrorMessages()
   {
-    return directoryServer.returnBindErrorMessages;
-  }
-
-  /**
-   * Specifies whether responses to failed bind operations should include a
-   * message explaining the reason for the failure.
-   *
-   * @param  returnBindErrorMessages  Specifies whether responses to failed bind
-   *                                  operations should include a message
-   *                                  explaining the reason for the failure.
-   */
-  public static void setReturnBindErrorMessages(boolean returnBindErrorMessages)
-  {
-    directoryServer.returnBindErrorMessages = returnBindErrorMessages;
+    return directoryServer.coreConfigManager.isReturnBindErrorMessages();
   }
 
   /**
@@ -4189,21 +3914,6 @@ public final class DirectoryServer
   public static void setIdleTimeLimit(long idleTimeLimit)
   {
     directoryServer.idleTimeLimit = idleTimeLimit;
-  }
-
-  /**
-   * Specifies whether the Directory Server should save a copy of its
-   * configuration whenever it is started successfully.
-   *
-   * @param  saveConfigOnSuccessfulStartup  Specifies whether the server should
-   *                                        save a copy of its configuration
-   *                                        whenever it is started successfully.
-   */
-  public static void setSaveConfigOnSuccessfulStartup(
-                          boolean saveConfigOnSuccessfulStartup)
-  {
-    directoryServer.saveConfigOnSuccessfulStartup =
-         saveConfigOnSuccessfulStartup;
   }
 
   /**
@@ -4775,11 +4485,9 @@ public final class DirectoryServer
    */
   private void destroy()
   {
-    checkSchema                   = true;
     isBootstrapped                = false;
     isRunning                     = false;
     lockdownMode                  = true;
-    rejectUnauthenticatedRequests = true;
     shuttingDown                  = true;
 
     configFile               = null;
@@ -4872,26 +4580,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Specifies the maximum number of concurrent client connections that may be
-   * established.  A value that is less than or equal to zero will indicate that
-   * no limit should be enforced.
-   *
-   * @param  maxAllowedConnections  The maximum number of concurrent client
-   *                                connections that may be established.
-   */
-  public static void setMaxAllowedConnections(long maxAllowedConnections)
-  {
-    if (maxAllowedConnections > 0)
-    {
-      directoryServer.maxAllowedConnections = maxAllowedConnections;
-    }
-    else
-    {
-      directoryServer.maxAllowedConnections = -1;
-    }
-  }
-
-  /**
    * Indicates that a new connection has been accepted and increments the
    * associated counters.
    *
@@ -4915,7 +4603,7 @@ public final class DirectoryServer
         }
       }
 
-      final long maxAllowed = directoryServer.maxAllowedConnections;
+      final long maxAllowed = directoryServer.coreConfigManager.getMaxAllowedConnections();
       if (0 < maxAllowed && maxAllowed <= directoryServer.currentConnections)
       {
         return -1;
@@ -5022,19 +4710,7 @@ public final class DirectoryServer
    */
   public static int getSizeLimit()
   {
-    return directoryServer.sizeLimit;
-  }
-
-  /**
-   * Specifies the default maximum number of entries that should be returned for
-   * a search.
-   *
-   * @param  sizeLimit  The default maximum number of entries that should be
-   *                    returned for a search.
-   */
-  public static void setSizeLimit(int sizeLimit)
-  {
-    directoryServer.sizeLimit = sizeLimit;
+    return directoryServer.coreConfigManager.getSizeLimit();
   }
 
   /**
@@ -5046,31 +4722,7 @@ public final class DirectoryServer
    */
   public static int getLookthroughLimit()
   {
-    return directoryServer.lookthroughLimit;
-  }
-
-  /**
-   * Specifies the default maximum number of entries that should be checked for
-   * matches during a search.
-   *
-   * @param  lookthroughLimit  The default maximum number of entries that should
-   *                           be check for matches during a search.
-   */
-  public static void setLookthroughLimit(int lookthroughLimit)
-  {
-    directoryServer.lookthroughLimit = lookthroughLimit;
-  }
-
-  /**
-   * Specifies the maximum number of simultaneous persistent
-   * searches that are allowed.
-   *
-   * @param maxPSearches   The maximum number of simultaneous persistent
-  *                      searches that are allowed.
-   */
-  public static void setMaxPersistentSearchLimit(int maxPSearches)
-  {
-    directoryServer.maxPSearches = maxPSearches;
+    return directoryServer.coreConfigManager.getLookthroughLimit();
   }
 
   /**
@@ -5105,8 +4757,8 @@ public final class DirectoryServer
   public static boolean allowNewPersistentSearch()
   {
     //-1 indicates that there is no limit.
-    return directoryServer.maxPSearches == -1
-        || directoryServer.activePSearches.get() < directoryServer.maxPSearches;
+    int max = directoryServer.coreConfigManager.getMaxPSearches();
+    return max == -1 || directoryServer.activePSearches.get() < max;
   }
 
   /**
@@ -5118,32 +4770,7 @@ public final class DirectoryServer
    */
   public static int getTimeLimit()
   {
-    return directoryServer.timeLimit;
-  }
-
-  /**
-   * Specifies the default maximum length of time in seconds that should be
-   * allowed when processing a search.
-   *
-   * @param  timeLimit  The default maximum length of time in seconds that
-   *                    should be allowed when processing a search.
-   */
-  public static void setTimeLimit(int timeLimit)
-  {
-    directoryServer.timeLimit = timeLimit;
-  }
-
-  /**
-   * Specifies whether to collect nanosecond resolution processing times for
-   * operations.
-   *
-   * @param useNanoTime  <code>true</code> if nanosecond resolution times
-   *                     should be collected or <code>false</code> to
-   *                     only collect in millisecond resolution.
-   */
-  public static void setUseNanoTime(boolean useNanoTime)
-  {
-    directoryServer.useNanoTime = useNanoTime;
+    return directoryServer.coreConfigManager.getTimeLimit();
   }
 
   /**
@@ -5156,7 +4783,7 @@ public final class DirectoryServer
    */
   public static boolean getUseNanoTime()
   {
-    return directoryServer.useNanoTime;
+    return directoryServer.coreConfigManager.isUseNanoTime();
   }
 
   /**
@@ -5167,19 +4794,7 @@ public final class DirectoryServer
    */
   public static WritabilityMode getWritabilityMode()
   {
-    return directoryServer.writabilityMode;
-  }
-
-  /**
-   * Specifies the writability mode for the Directory Server.  This will only
-   * be applicable for user suffixes.
-   *
-   * @param writabilityMode  Specifies the writability mode for the Directory
-   *                         Server.
-   */
-  public static void setWritabilityMode(WritabilityMode writabilityMode)
-  {
-    directoryServer.writabilityMode = writabilityMode;
+    return directoryServer.coreConfigManager.getWritabilityMode();
   }
 
   /**
@@ -5192,35 +4807,7 @@ public final class DirectoryServer
    */
   public static boolean bindWithDNRequiresPassword()
   {
-    return directoryServer.bindWithDNRequiresPassword;
-  }
-
-  /**
-   * Specifies whether simple bind requests that contain a bind DN will also be
-   * required to have a password.
-   *
-   * @param  bindWithDNRequiresPassword  Indicates whether simple bind requests
-   *                                     that contain a bind DN will also be
-   *                                     required to have a password.
-   */
-  public static void setBindWithDNRequiresPassword(boolean
-                          bindWithDNRequiresPassword)
-  {
-    directoryServer.bindWithDNRequiresPassword = bindWithDNRequiresPassword;
-  }
-
-  /**
-   * Specifies whether an unauthenticated request should be rejected.
-   *
-   * @param  rejectUnauthenticatedRequests   Indicates whether an
-   *                                        unauthenticated request should
-   *                                        be rejected.
-   */
-  public static void setRejectUnauthenticatedRequests(boolean
-                          rejectUnauthenticatedRequests)
-  {
-        directoryServer.rejectUnauthenticatedRequests =
-                                  rejectUnauthenticatedRequests;
+    return directoryServer.coreConfigManager.isBindWithDNRequiresPassword();
   }
 
   /**
@@ -5930,21 +5517,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Sets the threshold capacity beyond which internal cached buffers used for
-   * encoding and decoding entries and protocol messages will be trimmed after
-   * use.
-   *
-   * @param maxInternalBufferSize
-   *          The threshold capacity beyond which internal cached buffers used
-   *          for encoding and decoding entries and protocol messages will be
-   *          trimmed after use.
-   */
-  public static void setMaxInternalBufferSize(int maxInternalBufferSize)
-  {
-    directoryServer.maxInternalBufferSize = maxInternalBufferSize;
-  }
-
-  /**
    * Returns the threshold capacity beyond which internal cached buffers used
    * for encoding and decoding entries and protocol messages will be trimmed
    * after use.
@@ -5955,7 +5527,7 @@ public final class DirectoryServer
    */
   public static int getMaxInternalBufferSize()
   {
-    return directoryServer.maxInternalBufferSize;
+    return directoryServer.coreConfigManager.getMaxInternalBufferSize();
   }
 
   /**

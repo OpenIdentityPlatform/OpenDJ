@@ -778,7 +778,7 @@ public class LocalBackendWorkflowElement
 
     SearchResultCode searchResultCode = new SearchResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
     DN originalBaseDN = searchOp.getBaseDN();
-    for (DN subordinateDN : getBackendManager().findSubordinateLocalNamingContextsForEntry(originalBaseDN))
+    for (DN subordinateDN : getBackendManager().findSubordinateLocalNamingContextsToSearchForEntry(originalBaseDN))
     {
       // We have to change the operation request base DN to match the
       // subordinate workflow base DN. Otherwise the workflow will

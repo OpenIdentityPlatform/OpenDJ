@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2010 Sun Microsystems, Inc.
-  Portions Copyright 2011-2015 ForgeRock AS.
+  Portions Copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.forgerock.opendj.server.config"
@@ -881,6 +881,28 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-trust-transaction-ids</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="subordinate-base-dn" multi-valued="true">
+    <adm:synopsis>
+      Specifies the set of naming contexts that are accessible using a 
+      subtree search from base DN "". 
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The set of all user-defined suffixes is used when searching
+          from base DN "".
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-subordinate-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

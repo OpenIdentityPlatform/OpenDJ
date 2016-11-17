@@ -24,6 +24,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -43,6 +44,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.AddOperationTestCase.setWritabilityMode;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.types.NullOutputStream.nullPrintStream;
@@ -507,12 +509,12 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertNotEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
   }
 
 
@@ -528,12 +530,12 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.INTERNAL_ONLY);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
   }
 
 
@@ -549,12 +551,12 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.INTERNAL_ONLY);
 
     String[] args = getArgs("o=test");
     assertFalse(LDAPDelete.run(nullPrintStream(), nullPrintStream(), args) == 0);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
   }
 
 

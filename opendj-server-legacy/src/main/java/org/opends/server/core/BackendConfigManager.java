@@ -529,6 +529,33 @@ public class BackendConfigManager implements
   }
 
   /**
+   * Retrieves the set of local naming contexts that are subordinates of the naming context
+   * that should be used to handle search operation on the specified entry.
+   * <p>
+   * The global option that restricts the subordinate DNs to search (when searching "") may
+   * apply if the provided set is not empty.
+   *
+   * @param entryDN
+   *          The DN of the entry for which to retrieve the corresponding naming context.
+   * @return The naming context or {@code null} if no appropriate naming context
+   *         is registered with the server.
+   */
+  public Set<DN> findSubordinateLocalNamingContextsToSearchForEntry(DN entryDN)
+  {
+    // trigger the special behavior when searching "" if needed
+    if (entryDN.isRootDN())
+    {
+      Set<DN> subordinateBaseDNs = serverContext.getCoreConfigManager().getSubordinateBaseDNs();
+      if (!subordinateBaseDNs.isEmpty())
+      {
+        return subordinateBaseDNs;
+      }
+    }
+    // usual case
+    return findSubordinateLocalNamingContextsForEntry(entryDN);
+  }
+
+  /**
    * Retrieves naming contexts corresponding to backends, filtered with the combination of
    * all provided filters.
    *

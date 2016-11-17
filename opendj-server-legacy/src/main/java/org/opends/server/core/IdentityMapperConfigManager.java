@@ -117,7 +117,7 @@ public class IdentityMapperConfigManager
     // Now that all of the identity mappers are defined, see if the Directory
     // Server's proxied auth mapper is valid.  If not, then log a warning
     // message.
-    DN mapperDN = DirectoryServer.getProxiedAuthorizationIdentityMapperDN();
+    DN mapperDN = serverContext.getCoreConfigManager().getProxiedAuthorizationIdentityMapperDN();
     if (mapperDN == null)
     {
       logger.error(ERR_CONFIG_IDMAPPER_NO_PROXY_MAPPER_DN);

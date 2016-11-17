@@ -16,18 +16,20 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.types.AcceptRejectWarn.*;
+import static org.opends.server.TestCaseUtils.getServer;
 import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.testng.Assert.*;
 
 import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.server.config.client.GlobalCfgClient;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import com.forgerock.opendj.ldap.tools.LDAPModify;
 import org.testng.annotations.Test;
 
@@ -45,26 +47,37 @@ public class EntrySchemaCheckingTestCase
    *
    * @param  e  The entry to be tested.
    */
-  private void failOnlyForStrictEvaluation(Entry e)
+  private void failOnlyForStrictEvaluation(Entry e) throws Exception
   {
     try
     {
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-      DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
+      setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.REJECT);
       assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
                   "Entry validation succeeded with REJECT policy");
 
-      DirectoryServer.setSingleStructuralObjectClassPolicy(WARN);
+      setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.WARN);
       assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                  "Entry validation failed with WARN policy:  " + invalidReason);
 
-      DirectoryServer.setSingleStructuralObjectClassPolicy(ACCEPT);
+      setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.ACCEPT);
       assertTrue(e.conformsToSchema(null, false, true, true, invalidReason),
                  "Entry validation failed with ACCEPT policy:  " + invalidReason);
     }
     finally
     {
-      DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
+      setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.REJECT);
+    }
+  }
+
+  private void setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior policy)
+      throws Exception
+  {
+    try (ManagementContext conf = getServer().getConfiguration())
+    {
+      GlobalCfgClient globalCfg = conf.getRootConfiguration().getGlobalConfiguration();
+      globalCfg.setSingleStructuralObjectclassBehavior(policy);
+      globalCfg.commit();
     }
   }
 
@@ -75,26 +88,26 @@ public class EntrySchemaCheckingTestCase
      *
      * @param  e  The entry to be tested.
      */
-    private void failAlwaysStrictEvaluation(Entry e)
+    private void failAlwaysStrictEvaluation(Entry e) throws Exception
     {
         try
         {
             LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-            DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
+            setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.REJECT);
             assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
                     "Entry validation succeeded with REJECT policy");
 
-            DirectoryServer.setSingleStructuralObjectClassPolicy(WARN);
+            setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.WARN);
             assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
                     "Entry validation failed with WARN policy:  " + invalidReason);
 
-            DirectoryServer.setSingleStructuralObjectClassPolicy(ACCEPT);
+            setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.ACCEPT);
             assertFalse(e.conformsToSchema(null, false, true, true, invalidReason),
                     "Entry validation failed with ACCEPT policy:  " + invalidReason);
         }
         finally
         {
-            DirectoryServer.setSingleStructuralObjectClassPolicy(REJECT);
+          setSingleStructuralObjectClassPolicy(GlobalCfgDefn.SingleStructuralObjectclassBehavior.REJECT);
         }
     }
 

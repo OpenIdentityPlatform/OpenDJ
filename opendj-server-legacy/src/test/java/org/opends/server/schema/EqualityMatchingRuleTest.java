@@ -12,20 +12,24 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.server.config.client.GlobalCfgClient;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AcceptRejectWarn;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.getServer;
 import static org.testng.Assert.*;
 
 /**
@@ -77,14 +81,38 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
       throws Exception
   {
     AcceptRejectWarn accept = DirectoryServer.getSyntaxEnforcementPolicy();
-    DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.WARN);
+    setSyntaxEnforcementPolicy(GlobalCfgDefn.InvalidAttributeSyntaxBehavior.WARN);
     try
     {
       testValuesMatch(value1, value2, result);
     }
     finally
     {
-      DirectoryServer.setSyntaxEnforcementPolicy(accept);
+      setSyntaxEnforcementPolicy(convertAccept(accept));
+    }
+  }
+
+  private static GlobalCfgDefn.InvalidAttributeSyntaxBehavior convertAccept(AcceptRejectWarn accept)
+  {
+    switch (accept)
+    {
+    case ACCEPT:
+      return GlobalCfgDefn.InvalidAttributeSyntaxBehavior.ACCEPT;
+    case WARN:
+      return GlobalCfgDefn.InvalidAttributeSyntaxBehavior.WARN;
+    case REJECT:
+    default:
+      return GlobalCfgDefn.InvalidAttributeSyntaxBehavior.REJECT;
+    }
+  }
+
+  private void setSyntaxEnforcementPolicy(GlobalCfgDefn.InvalidAttributeSyntaxBehavior value) throws Exception
+  {
+    try (ManagementContext conf = getServer().getConfiguration())
+    {
+      GlobalCfgClient globalCfg = conf.getRootConfiguration().getGlobalConfiguration();
+      globalCfg.setInvalidAttributeSyntaxBehavior(value);
+      globalCfg.commit();
     }
   }
 

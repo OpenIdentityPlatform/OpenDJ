@@ -32,12 +32,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.server.config.client.GlobalCfgClient;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -809,7 +812,7 @@ public class AddOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    DirectoryServer.setAddMissingRDNAttributes(false);
+    setAddMissingRDNAttribute(false);
 
     Entry entry = TestCaseUtils.makeEntry(
          "dn: ou=People,o=test",
@@ -819,7 +822,17 @@ public class AddOperationTestCase
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    DirectoryServer.setAddMissingRDNAttributes(true);
+    setAddMissingRDNAttribute(true);
+  }
+
+  private void setAddMissingRDNAttribute(boolean value) throws Exception
+  {
+    try (ManagementContext conf = getServer().getConfiguration())
+    {
+      GlobalCfgClient globalCfg = conf.getRootConfiguration().getGlobalConfiguration();
+      globalCfg.setAddMissingRDNAttributes(value);
+      globalCfg.commit();
+    }
   }
 
   /**
@@ -1108,12 +1121,22 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.DISABLED);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertNotEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
+  }
+
+  static void setWritabilityMode(GlobalCfgDefn.WritabilityMode mode) throws Exception
+  {
+    try (ManagementContext conf = getServer().getConfiguration())
+    {
+      GlobalCfgClient globalCfg = conf.getRootConfiguration().getGlobalConfiguration();
+      globalCfg.setWritabilityMode(mode);
+      globalCfg.commit();
+    }
   }
 
   /**
@@ -1139,13 +1162,13 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.INTERNAL_ONLY);
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
   }
 
   /**
@@ -1163,7 +1186,7 @@ public class AddOperationTestCase
     {
       conn.bind("cn=Directory Manager", "password");
 
-      DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+      setWritabilityMode(GlobalCfgDefn.WritabilityMode.INTERNAL_ONLY);
 
       long addRequests  = ldapStatistics.getAddRequests();
       long addResponses = ldapStatistics.getAddResponses();
@@ -1177,7 +1200,7 @@ public class AddOperationTestCase
       assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
       waitForAddResponsesStat(addResponses+1);
 
-      DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+      setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
     }
   }
 

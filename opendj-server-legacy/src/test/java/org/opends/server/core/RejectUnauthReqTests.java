@@ -19,9 +19,12 @@ package org.opends.server.core;
 import java.util.ArrayList;
 
 import com.forgerock.opendj.ldap.tools.LDAPCompare;
+
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.config.client.GlobalCfgClient;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPAuthenticationHandler;
@@ -245,10 +248,20 @@ public class RejectUnauthReqTests extends CoreTestCase
    * settings for "ds-cfg-reject-unauthenticated-requests".
    */
   @Test
-  public void testAuthSearchDefCfg()
+  public void testAuthSearchDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
     assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.SIMPLE)), 0);
+  }
+
+  private void setRejectUnauthenticatedRequests(boolean value) throws Exception
+  {
+    try (ManagementContext conf = getServer().getConfiguration())
+    {
+      GlobalCfgClient globalCfg = conf.getRootConfiguration().getGlobalConfiguration();
+      globalCfg.setRejectUnauthenticatedRequests(value);
+      globalCfg.commit();
+    }
   }
 
   /**
@@ -256,9 +269,9 @@ public class RejectUnauthReqTests extends CoreTestCase
    * settings for "ds-cfg-reject-unauthenticated-requests".
    */
   @Test
-  public void testUnauthSearchDefCfg()
+  public void testUnauthSearchDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
     assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.ANONYMOUS)), 0);
   }
 
@@ -268,9 +281,9 @@ public class RejectUnauthReqTests extends CoreTestCase
    * "ds-cfg-reject-unauthenticated-requests" .
    */
   @Test
-  public void testAuthBindDefCfg()
+  public void testAuthBindDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
 
     InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     ByteString user = ByteString.valueOfUtf8("cn=Directory Manager");
@@ -287,9 +300,9 @@ public class RejectUnauthReqTests extends CoreTestCase
    * "ds-cfg-reject-unauthenticated-requests".
    */
   @Test
-  public void testUnauthBindDefCfg()
+  public void testUnauthBindDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
 
     InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation = conn.processSimpleBind(DN.rootDN(), null);
@@ -309,7 +322,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   @Test
   public void testAuthWAIDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
 
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
@@ -336,7 +349,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   @Test
   public void testUnauthWAIDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
 
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
@@ -359,7 +372,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   @Test
   public void testStartTLSUnauthDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
     assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.START_TLS)), 0);
   }
 
@@ -373,7 +386,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   @Test
   public void testOtherOpsAuthDefCfg() throws Exception
   {
-    DirectoryServer.setRejectUnauthenticatedRequests(false);
+    setRejectUnauthenticatedRequests(false);
 
     assertEquals(performAddOperation(true), 0);
     assertEquals(performModifyOperation(true), 0);
@@ -412,18 +425,18 @@ public class RejectUnauthReqTests extends CoreTestCase
    * "ds-cfg-reject-unauthenticated-requests" .
    */
   @Test
-  public void testSearchNewCfg()
+  public void testSearchNewCfg() throws Exception
   {
     try
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(true);
+      setRejectUnauthenticatedRequests(true);
 
       assertFalse(LDAPSearch.run(nullPrintStream(), nullPrintStream(), searchArgs(Auth.ANONYMOUS)) == 0);
       assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.START_TLS)), 0);
     }
     finally
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(false);
+      setRejectUnauthenticatedRequests(false);
     }
   }
 
@@ -433,11 +446,11 @@ public class RejectUnauthReqTests extends CoreTestCase
    * "ds-cfg-reject-unauthenticated-requests" .
    */
   @Test
-  public void testBindNewCfg()
+  public void testBindNewCfg() throws Exception
   {
     try
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(true);
+      setRejectUnauthenticatedRequests(true);
 
       InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
       ByteString user = ByteString.valueOfUtf8("cn=Directory Manager");
@@ -451,7 +464,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     }
     finally
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(false);
+      setRejectUnauthenticatedRequests(false);
     }
   }
 
@@ -470,12 +483,12 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     try
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(true);
+      setRejectUnauthenticatedRequests(true);
       assertEquals(LDAPSearch.run(nullPrintStream(), System.err, searchArgs(Auth.START_TLS)), 0);
     }
     finally
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(false);
+      setRejectUnauthenticatedRequests(false);
     }
   }
 
@@ -494,7 +507,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     try
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(true);
+      setRejectUnauthenticatedRequests(true);
 
       ExtendedOperation extOp = getRootConnection().processExtendedOperation(OID_WHO_AM_I_REQUEST, null);
       assertEquals(extOp.getResultCode(), ResultCode.SUCCESS);
@@ -502,7 +515,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     }
     finally
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(false);
+      setRejectUnauthenticatedRequests(false);
     }
   }
 
@@ -518,7 +531,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(true);
+      setRejectUnauthenticatedRequests(true);
 
       LDAPAuthenticationHandler authHandler = conn.newLDAPAuthenticationHandler();
       try
@@ -536,7 +549,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     }
     finally
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(false);
+      setRejectUnauthenticatedRequests(false);
     }
   }
 
@@ -554,7 +567,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     try
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(true);
+      setRejectUnauthenticatedRequests(true);
 
       assertEquals(performAddOperation(true), 0);
       assertEquals(performModifyOperation(true), 0);
@@ -564,7 +577,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     }
     finally
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(false);
+      setRejectUnauthenticatedRequests(false);
     }
   }
 
@@ -582,7 +595,7 @@ public class RejectUnauthReqTests extends CoreTestCase
   {
     try
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(true);
+      setRejectUnauthenticatedRequests(true);
 
       assertNotEquals(performAddOperation(false), 0);
       assertNotEquals(performModifyOperation(false), 0);
@@ -592,7 +605,7 @@ public class RejectUnauthReqTests extends CoreTestCase
     }
     finally
     {
-      DirectoryServer.setRejectUnauthenticatedRequests(false);
+      setRejectUnauthenticatedRequests(false);
     }
   }
 }

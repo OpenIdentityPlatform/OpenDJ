@@ -22,6 +22,7 @@ import static org.forgerock.opendj.ldap.controls.GenericControl.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.core.AddOperationTestCase.setWritabilityMode;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.newSearchRequest;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -44,6 +45,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.meta.GlobalCfgDefn;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -2305,14 +2307,14 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.DISABLED);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertNotEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveFailedOperationElements(modifyOperation);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
   }
 
 
@@ -2342,14 +2344,14 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.INTERNAL_ONLY);
 
     RawModification mod = newRawModification(ADD, "objectClass", "extensibleObject");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, mod);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
   }
 
 
@@ -2379,7 +2381,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+    setWritabilityMode(GlobalCfgDefn.WritabilityMode.INTERNAL_ONLY);
 
     try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
     {
@@ -2398,7 +2400,7 @@ public class ModifyOperationTestCase
       assertEquals(ldapStatistics.getModifyRequests(), modifyRequests + 1);
       waitForModifyResponsesStat(modifyResponses + 1);
 
-      DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
+      setWritabilityMode(GlobalCfgDefn.WritabilityMode.ENABLED);
     }
   }
 

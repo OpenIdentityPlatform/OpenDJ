@@ -37,28 +37,6 @@
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="subordinate-base-dn" multi-valued="true">
-    <adm:synopsis>
-      Specifies the set of base DNs used for singleLevel,
-      wholeSubtree, and subordinateSubtree searches based at the root
-      DSE.
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The set of all user-defined suffixes is used.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:dn />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-subordinate-base-dn</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="show-all-attributes" mandatory="true">
     <adm:synopsis>
       Indicates whether all attributes in the root DSE are to be treated
