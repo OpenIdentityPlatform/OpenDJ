@@ -17,7 +17,6 @@ package com.forgerock.reactive;
 
 import org.forgerock.util.Function;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
 
 import io.reactivex.CompletableEmitter;
 import io.reactivex.CompletableOnSubscribe;
@@ -88,7 +87,7 @@ public final class RxJavaStreams {
 
     /**
      * Create a new {@link Single} from the given {@link Publisher}. If the {@link Publisher} produce more than one
-     * result, they'll be dropped and the inner {@link Subscription} cancelled.
+     * result, they'll be dropped and the inner {@link org.reactivestreams.Subscription Subscription} cancelled.
      *
      * @param <V>
      *            Type of the datum emitted

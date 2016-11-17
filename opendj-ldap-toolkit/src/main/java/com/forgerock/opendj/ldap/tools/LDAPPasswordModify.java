@@ -38,13 +38,13 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import org.forgerock.util.annotations.VisibleForTesting;
 
 /**
  * A tool that can be used to issue LDAP password modify extended requests to
@@ -196,43 +196,34 @@ public final class LDAPPasswordModify extends ToolConsoleApplication {
             throw newToolParamException(e, e.getMessageObject());
         }
 
-        Connection connection;
-        try {
-            connection = argParser.getConnectionFactory().getConnection();
-        } catch (final LdapException ere) {
-            return printErrorMessage(this, ere, ERR_LDAPPWMOD_FAILED);
-        }
+        try (Connection connection = argParser.getConnectionFactory().getConnection()) {
+            if (proxyAuthzID.isPresent()) {
+                request.setUserIdentity(proxyAuthzID.getValue());
+            }
 
-        if (proxyAuthzID.isPresent()) {
-            request.setUserIdentity(proxyAuthzID.getValue());
-        }
+            if (currentPW.isPresent()) {
+                request.setOldPassword(currentPW.getValue().toCharArray());
+            } else if (currentPWFile.isPresent()) {
+                request.setOldPassword(currentPWFile.getValue().toCharArray());
+            }
 
-        if (currentPW.isPresent()) {
-            request.setOldPassword(currentPW.getValue().toCharArray());
-        } else if (currentPWFile.isPresent()) {
-            request.setOldPassword(currentPWFile.getValue().toCharArray());
-        }
+            if (newPW.isPresent()) {
+                request.setNewPassword(newPW.getValue().toCharArray());
+            } else if (newPWFile.isPresent()) {
+                request.setNewPassword(newPWFile.getValue().toCharArray());
+            }
 
-        if (newPW.isPresent()) {
-            request.setNewPassword(newPW.getValue().toCharArray());
-        } else if (newPWFile.isPresent()) {
-            request.setNewPassword(newPWFile.getValue().toCharArray());
-        }
+            PasswordModifyExtendedResult result = connection.extendedRequest(request);
+            println(INFO_LDAPPWMOD_SUCCESSFUL.get());
+            Utils.printlnTextMsg(this, INFO_LDAPPWMOD_ADDITIONAL_INFO, result.getDiagnosticMessage());
+            if (result.getGeneratedPassword() != null) {
+                println(INFO_LDAPPWMOD_GENERATED_PASSWORD.get(
+                        ByteString.valueOfBytes(result.getGeneratedPassword()).toString()));
+            }
 
-        PasswordModifyExtendedResult result;
-        try {
-            result = connection.extendedRequest(request);
+            return ResultCode.SUCCESS.intValue();
         } catch (final LdapException e) {
             return printErrorMessage(this, e, ERR_LDAPPWMOD_FAILED);
         }
-
-        println(INFO_LDAPPWMOD_SUCCESSFUL.get());
-        Utils.printlnTextMsg(this, INFO_LDAPPWMOD_ADDITIONAL_INFO, result.getDiagnosticMessage());
-        if (result.getGeneratedPassword() != null) {
-            println(INFO_LDAPPWMOD_GENERATED_PASSWORD.get(
-                    ByteString.valueOfBytes(result.getGeneratedPassword()).toString()));
-        }
-
-        return ResultCode.SUCCESS.intValue();
     }
 }

@@ -24,9 +24,8 @@ import org.reactivestreams.Publisher;
  * decouple ourself from reactive framework (RxJava/Reactor).
  */
 public interface Completable extends Publisher<Void> {
-
     /** Subscriber is notified when the operation has been completed, successfully or not. */
-    public interface Subscriber {
+    interface Subscriber {
         /** Called once this {@link Completable} is completed. */
         void onComplete();
 
@@ -40,7 +39,7 @@ public interface Completable extends Publisher<Void> {
     }
 
     /** Adapts the streaming api to a callback one. */
-    public interface Emitter {
+    interface Emitter {
         /**
          * Called when the streaming api has been subscribed.
          *

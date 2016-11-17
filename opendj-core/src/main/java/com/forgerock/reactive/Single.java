@@ -29,7 +29,7 @@ import org.reactivestreams.Publisher;
 public interface Single<V> extends Publisher<V> {
 
     /** Subscriber is notified when the operation has been completed, successfully or not. */
-    public interface Subscriber<V> {
+    interface Subscriber<V> {
         /**
          * Called once this {@link Single} is completed.
          *
@@ -48,12 +48,13 @@ public interface Single<V> extends Publisher<V> {
     }
 
     /** Adapts the streaming api to a callback one. */
-    public interface Emitter<V> {
+    interface Emitter<V> {
         /**
          * Called for each SingleObserver that subscribes.
          *
          * @param s
-         *            The {@link Subscriber} to use to communicate the completeness of this {@link Single}
+         *            The {@link com.forgerock.reactive.Single.Subscriber Subscriber} to use to communicate
+         *            the completeness of this {@link Single}
          * @throws Exception
          *             on error
          */
