@@ -59,6 +59,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BackendConfigManager;
+import org.opends.server.core.BackendConfigManager.NamingContextFilter;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
@@ -328,8 +329,9 @@ public class RootDSEBackend
     Map<AttributeType, List<Attribute>> dseOperationalAttrs = new HashMap<>();
 
     BackendConfigManager manager = serverContext.getBackendConfigManager();
-    Set<DN> publicNamingContexts =
-        manager.getNamingContexts(showSubordinatesNamingContexts ?  PUBLIC : PUBLIC, TOP_LEVEL);
+    NamingContextFilter[] filters = showSubordinatesNamingContexts ?
+        new NamingContextFilter[] {PUBLIC} : new NamingContextFilter[] {PUBLIC, TOP_LEVEL};
+    Set<DN> publicNamingContexts = manager.getNamingContexts(filters);
     Attribute publicNamingContextAttr = createAttribute(ATTR_NAMING_CONTEXTS, publicNamingContexts);
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
