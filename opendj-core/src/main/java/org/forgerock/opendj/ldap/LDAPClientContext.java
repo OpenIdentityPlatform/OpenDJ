@@ -18,13 +18,11 @@
 package org.forgerock.opendj.ldap;
 
 import java.net.InetSocketAddress;
-import java.util.EventListener;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 import javax.security.sasl.SaslServer;
 
-import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
 import com.forgerock.reactive.Completable;
@@ -37,62 +35,25 @@ import com.forgerock.reactive.Completable;
  */
 public interface LDAPClientContext {
 
-    /** Listens for disconnection event. */
-    public interface ConnectionEventListener extends EventListener {
-        /**
-         * Invoked when the connection has been disconnected because of an error (e.g: message too big).
-         *
-         * @param context
-         *            The {@link LDAPClientContext} which has failed
-         * @param error
-         *            The error
-         */
-        void handleConnectionError(LDAPClientContext context, Throwable error);
-
-        /**
-         * Invoked when the client closed the connection, possibly using an unbind request.
-         *
-         * @param context
-         *            The {@link LDAPClientContext} which has been disconnected
-         * @param unbindRequest
-         *            The unbind request, which may be {@code null} if one was not sent before the connection was
-         *            closed.
-         */
-        void handleConnectionClosed(LDAPClientContext context, UnbindRequest unbindRequest);
-
-        /**
-         * Invoked when the connection has been disconnected by the server.
-         *
-         * @param context
-         *            The {@link LDAPClientContext} which has been disconnected
-         * @param resultCode
-         *            The result code which was included with the disconnect notification, or {@code null} if no
-         *            disconnect notification was sent.
-         * @param diagnosticMessage
-         *            The diagnostic message, which may be empty or {@code null} indicating that none was provided.
-         */
-        void handleConnectionDisconnected(LDAPClientContext context, ResultCode resultCode, String diagnosticMessage);
-    }
-
     /**
-     * Register a listener which will be notified when this {@link LDAPClientContext} is disconnected.
+     * Register a listener which will be notified when this {@link LDAPClientContext} changes state.
      *
-     * @param listener The {@link ConnectionEventListener} to register.
+     * @param listener The {@link LDAPClientContextEventListener} to register.
      */
-    void addConnectionEventListener(ConnectionEventListener listener);
+    void addListener(LDAPClientContextEventListener listener);
 
     /**
      * Disconnects the client without sending a disconnect notification. Invoking this method causes
-     * {@link ConnectionEventListener#handleConnectionDisconnected(LDAPClientContext, ResultCode, String)} to be called
-     * before this method returns.
+     * {@link LDAPClientContextEventListener#handleConnectionDisconnected(LDAPClientContext, ResultCode, String)} to be
+     * called before this method returns.
      */
     void disconnect();
 
     /**
      * Disconnects the client and sends a disconnect notification, containing the provided result code and diagnostic
      * message. Invoking this method causes
-     * {@link ConnectionEventListener#handleConnectionDisconnected(LDAPClientContext, ResultCode, String)} to be called
-     * before this method returns.
+     * {@link LDAPClientContextEventListener#handleConnectionDisconnected(LDAPClientContext, ResultCode, String)} to be
+     * called before this method returns.
      *
      * @param resultCode
      *            The result code to include with the disconnect notification

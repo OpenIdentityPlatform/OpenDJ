@@ -28,7 +28,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPClientContext.ConnectionEventListener;
+import org.forgerock.opendj.ldap.LDAPClientContextEventListener;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -121,7 +121,7 @@ public final class ServerConnectionFactoryAdapter implements
                 final ServerConnection<Integer> serverConnection) {
             this.decodeOptions = checkNotNull(decodeOptions, "decodeOptions must not be null");
             this.adaptee = checkNotNull(serverConnection, "serverConnection must not be null");
-            clientContext.addConnectionEventListener(new ConnectionEventListener() {
+            clientContext.addListener(new LDAPClientContextEventListener() {
                 @Override
                 public void handleConnectionError(final LDAPClientContext context, final Throwable error) {
                     adaptee.handleConnectionError(error);

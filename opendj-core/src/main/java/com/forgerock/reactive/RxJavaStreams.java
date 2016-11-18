@@ -379,5 +379,20 @@ public final class RxJavaStreams {
                 }
             });
         }
+
+        @Override
+        public Completable doAfterTerminate(final Action onTerminate) {
+            return new RxJavaCompletable(impl.doAfterTerminate(new io.reactivex.functions.Action() {
+                @Override
+                public void run() throws Exception {
+                    onTerminate.run();
+                }
+            }));
+        }
+
+        @Override
+        public void subscribe() {
+            impl.subscribe();
+        }
     }
 }

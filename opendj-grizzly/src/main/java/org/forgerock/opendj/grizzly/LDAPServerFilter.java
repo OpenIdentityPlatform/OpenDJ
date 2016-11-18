@@ -41,6 +41,7 @@ import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPClientContextEventListener;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -76,7 +77,6 @@ import org.reactivestreams.Subscription;
 
 import com.forgerock.reactive.Action;
 import com.forgerock.reactive.Completable;
-import com.forgerock.reactive.Consumer;
 import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Stream;
 
@@ -165,7 +165,7 @@ final class LDAPServerFilter extends BaseFilter {
             @Override
             public Publisher<Void> apply(final LdapRequestEnvelope rawRequest) throws Exception {
                 if (rawRequest.getMessageType() == OP_TYPE_UNBIND_REQUEST) {
-                    clientContext.notifyConnectionClosedSilently(rawRequest);
+                    clientContext.notifyConnectionClosedRawUnbind(rawRequest);
                     return emptyStream();
                 }
                 Stream<Response> response;
@@ -192,7 +192,7 @@ final class LDAPServerFilter extends BaseFilter {
         }, maxConcurrentRequests).onErrorResumeWith(new Function<Throwable, Publisher<Void>, Exception>() {
             @Override
             public Publisher<Void> apply(Throwable error) throws Exception {
-                clientContext.notifyErrorSilently(error);
+                clientContext.notifyConnectionError(error);
                 // Swallow the error to prevent the subscribe() below to report it on the console.
                 return emptyStream();
             }
@@ -306,7 +306,7 @@ final class LDAPServerFilter extends BaseFilter {
 
         private final Connection<?> connection;
         private volatile boolean isClosed;
-        private final List<ConnectionEventListener> connectionEventListeners = new LinkedList<>();
+        private final List<LDAPClientContextEventListener> connectionEventListeners = new LinkedList<>();
         private SaslServer saslServer;
         private GrizzlyBackpressureSubscription downstream;
 
@@ -341,7 +341,7 @@ final class LDAPServerFilter extends BaseFilter {
             if (immutableRef != null) {
                 immutableRef.onComplete();
             }
-            notifyConnectionClosedSilently(null);
+            notifyConnectionClosedRawUnbind(null);
             return ctx.getStopAction();
         }
 
@@ -487,7 +487,7 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void addConnectionEventListener(ConnectionEventListener listener) {
+        public void addListener(final LDAPClientContextEventListener listener) {
             Reject.ifNull(listener, "listener must not be null");
             synchronized (connectionEventListeners) {
                 connectionEventListeners.add(listener);
@@ -496,7 +496,7 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void disconnect() {
-            notifySilentlyConnectionDisconnected(null, null);
+            notifyConnectionDisconnected(null, null);
             connection.closeSilently();
         }
 
@@ -507,46 +507,41 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void disconnect(final ResultCode resultCode, final String diagnosticMessage) {
-            notifySilentlyConnectionDisconnected(resultCode, diagnosticMessage);
+            notifyConnectionDisconnected(resultCode, diagnosticMessage);
             sendUnsolicitedNotification(
                     newGenericExtendedResult(resultCode)
                         .setOID(OID_NOTICE_OF_DISCONNECTION)
                         .setDiagnosticMessage(diagnosticMessage)
-            ).subscribe(new Action() {
+            ).doAfterTerminate(new Action() {
                 @Override
                 public void run() throws Exception {
                     closeConnection();
                 }
-            }, new Consumer<Throwable>() {
-                @Override
-                public void accept(final Throwable error) throws Exception {
-                    closeConnection();
-                }
-            });
+            }).subscribe();
         }
 
-        private void notifyConnectionClosedSilently(final LdapRequestEnvelope unbindRequest) {
+        private void notifyConnectionClosedRawUnbind(final LdapRequestEnvelope rawUnbindRequest) {
             // Close this connection context.
-            if (unbindRequest == null) {
-                notifySilentlyConnectionClosed(null);
+            if (rawUnbindRequest == null) {
+                notifyConnectionClosed(null);
             } else {
                 try {
-                    LDAP.getReader(unbindRequest.getContent(), new DecodeOptions())
+                    LDAP.getReader(rawUnbindRequest.getContent(), new DecodeOptions())
                             .readMessage(new AbstractLDAPMessageHandler() {
                                 @Override
-                                public void unbindRequest(int messageID, UnbindRequest unbindRequest)
+                                public void unbindRequest(final int messageID, final UnbindRequest unbindRequest)
                                         throws DecodeException, IOException {
-                                    notifySilentlyConnectionClosed(unbindRequest);
+                                    notifyConnectionClosed(unbindRequest);
                                 }
                             });
                 } catch (Exception e) {
-                    notifySilentlyConnectionClosed(null);
+                    notifyConnectionClosed(null);
                 }
             }
         }
 
-        private void notifySilentlyConnectionDisconnected(final ResultCode resultCode, final String diagnosticMessage) {
-            for (final ConnectionEventListener listener : getAndClearListeners()) {
+        private void notifyConnectionDisconnected(final ResultCode resultCode, final String diagnosticMessage) {
+            for (final LDAPClientContextEventListener listener : getAndClearListeners()) {
                 try {
                     listener.handleConnectionDisconnected(this, resultCode, diagnosticMessage);
                 } catch (Exception e) {
@@ -555,8 +550,8 @@ final class LDAPServerFilter extends BaseFilter {
             }
         }
 
-        private void notifySilentlyConnectionClosed(final UnbindRequest unbindRequest) {
-            for (final ConnectionEventListener listener : getAndClearListeners()) {
+        private void notifyConnectionClosed(final UnbindRequest unbindRequest) {
+            for (final LDAPClientContextEventListener listener : getAndClearListeners()) {
                 try {
                     listener.handleConnectionClosed(this, unbindRequest);
                 } catch (Exception e) {
@@ -565,8 +560,8 @@ final class LDAPServerFilter extends BaseFilter {
             }
         }
 
-        private void notifyErrorSilently(final Throwable error) {
-            for (final ConnectionEventListener listener : getAndClearListeners()) {
+        private void notifyConnectionError(final Throwable error) {
+            for (final LDAPClientContextEventListener listener : getAndClearListeners()) {
                 try {
                     listener.handleConnectionError(this, error);
                 } catch (Exception e) {
@@ -575,9 +570,9 @@ final class LDAPServerFilter extends BaseFilter {
             }
         }
 
-        private ArrayList<ConnectionEventListener> getAndClearListeners() {
+        private List<LDAPClientContextEventListener> getAndClearListeners() {
             synchronized (connectionEventListeners) {
-                final ArrayList<ConnectionEventListener> listeners = new ArrayList<>(connectionEventListeners);
+                final ArrayList<LDAPClientContextEventListener> listeners = new ArrayList<>(connectionEventListeners);
                 connectionEventListeners.clear();
                 return listeners;
             }

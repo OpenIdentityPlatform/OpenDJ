@@ -173,7 +173,7 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
     <differenceType>7012</differenceType>
-    <method>void addConnectionEventListener(org.forgerock.opendj.ldap.LDAPClientContext$ConnectionEventListener)</method>
+    <method>void addConnectionEventListener(org.forgerock.opendj.ldap.LDAPClientContextEventListener)</method>
     <justification>Allows to register connection state listener</justification>
   </difference>
   <difference>
