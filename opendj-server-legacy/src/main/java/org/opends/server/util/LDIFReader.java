@@ -1503,20 +1503,23 @@ public class LDIFReader implements Closeable
   {
     if (writer != null)
     {
+      final StringBuilder builder = new StringBuilder();
+      final String eol = System.lineSeparator();
       try
       {
-        writer.write("# ");
-        writer.write(String.valueOf(message));
-        writer.newLine();
-        for (StringBuilder sb : lines)
+        builder.append("# ")
+                .append(String.valueOf(message))
+                .append(eol);
+        for (final StringBuilder sb : lines)
         {
-          writer.write(sb.toString());
-          writer.newLine();
+          builder.append(sb)
+                  .append(eol);
         }
 
-        writer.newLine();
+        builder.append(eol);
+        writer.write(builder.toString());
       }
-      catch (Exception e)
+      catch (final Exception e)
       {
         logger.traceException(e);
       }
