@@ -886,14 +886,14 @@
   </adm:property>
   <adm:property name="subordinate-base-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies the set of naming contexts that are accessible using a 
-      subtree search from base DN "". 
+      Specifies the set of base DNs used for singleLevel,
+      wholeSubtree, and subordinateSubtree searches based at the root
+      DSE.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The set of all user-defined suffixes is used when searching
-          from base DN "".
+          The set of all user-defined suffixes is used.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>

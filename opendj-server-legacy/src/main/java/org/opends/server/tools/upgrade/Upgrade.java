@@ -610,6 +610,7 @@ public final class Upgrade
             "add: objectClass",
             "objectClass: ds-cfg-local-backend")
     );
+    register("4.0.0", moveSubordinateBaseDnToGlobalConfiguration());
 
     /* All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(

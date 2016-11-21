@@ -49,6 +49,8 @@ import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
@@ -1469,6 +1471,53 @@ final class UpgradeTasks
       public String toString()
       {
         return getSummary().toString();
+      }
+    };
+  }
+
+  /** Move subordinate-base-dn attribute from Root DSE config to Global config. */
+  static UpgradeTask moveSubordinateBaseDnToGlobalConfiguration()
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(UpgradeContext context) throws ClientException
+      {
+        final SearchRequest sr = Requests.newSearchRequest("cn=Root DSE,cn=config", SearchScope.BASE_OBJECT,
+                "(objectclass=ds-cfg-root-dse-backend)");
+        final Set<String> subordinateDns = new HashSet<>();
+        try (final EntryReader entryReader = searchConfigFile(sr))
+        {
+          if (!entryReader.hasNext())
+          {
+            return;
+          }
+          Entry entry = entryReader.readEntry();
+          Attribute attribute = entry.getAttribute("ds-cfg-subordinate-base-dn");
+          if (attribute == null || attribute.isEmpty())
+          {
+            return;
+          }
+          for (ByteString value : attribute)
+          {
+              subordinateDns.add(value.toString());
+          }
+        }
+        catch (IOException e)
+        {
+          throw new ClientException(ReturnCode.APPLICATION_ERROR, INFO_UPGRADE_TASK_MIGRATE_CONFIG_READ_FAIL.get(), e);
+        }
+        modifyConfigEntry(INFO_UPGRADE_TASK_DELETE_SUBORDINATE_BASE_DN_FROM_ROOT_DSE.get(),
+              "(objectClass=ds-cfg-root-dse-backend)",
+              "delete: ds-cfg-subordinate-base-dn");
+        List<String> ldif = new ArrayList<>();
+        ldif.add("add: ds-cfg-subordinate-base-dn");
+        for (String sub : subordinateDns)
+        {
+          ldif.add("ds-cfg-subordinate-base-dn: " + sub);
+        }
+        modifyConfigEntry(INFO_UPGRADE_TASK_ADD_SUBORDINATE_BASE_DN_TO_GLOBAL_CONFIG.get(),
+            "(objectClass=ds-cfg-root-config)", ldif.toArray(new String[0]));
       }
     };
   }
