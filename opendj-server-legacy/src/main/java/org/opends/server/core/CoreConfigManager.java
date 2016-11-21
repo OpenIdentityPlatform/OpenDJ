@@ -54,7 +54,7 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
   private final ServerContext serverContext;
 
   /** The core attributes. */
-  private volatile CoreAttributes coreAttributes;
+  private volatile CoreAttributes coreAttributes = new CoreAttributes();
 
   /**
    * Creates a new instance of this core config manager.
@@ -87,11 +87,11 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
      */
     private boolean allowAttributeNameExceptions;
     /** The policy to use regarding syntax enforcement. */
-    private AcceptRejectWarn syntaxEnforcementPolicy;
+    private AcceptRejectWarn syntaxEnforcementPolicy = AcceptRejectWarn.REJECT;
     /** The result code that should be used for internal "server" errors. */
-    private ResultCode serverErrorResultCode;
+    private ResultCode serverErrorResultCode = ResultCode.OTHER;
     /** The policy to use regarding single structural objectclass enforcement. */
-    private AcceptRejectWarn singleStructuralClassPolicy;
+    private AcceptRejectWarn singleStructuralClassPolicy = AcceptRejectWarn.REJECT;
     /** Indicates whether the server should send a response to operations that have been abandoned. */
     private boolean notifyAbandonedOperations;
     /**
@@ -110,7 +110,7 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
      */
     private DN proxiedAuthorizationIdentityMapperDN;
     /** The writability mode for the Directory Server. */
-    private WritabilityMode writabilityMode;
+    private WritabilityMode writabilityMode = WritabilityMode.ENABLED;
     /** Indicates whether the server should reject unauthenticated requests. */
     private boolean rejectUnauthenticatedRequests;
     /** Indicates whether a simple bind request containing a DN must also provide a password. */
@@ -118,12 +118,12 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
     /** The maximum number of candidates that should be check for matches during a search. */
     private int lookthroughLimit;
     /** The sets of mail server properties. */
-    private List<Properties> mailServerPropertySets;
+    private List<Properties> mailServerPropertySets = Collections.emptyList();
 
     /** The set of allowed task classes. */
-    private Set<String> allowedTasks;
+    private Set<String> allowedTasks = Collections.emptySet();
     /** The set of disabled privileges. */
-    private Set<Privilege> disabledPrivileges;
+    private Set<Privilege> disabledPrivileges = Collections.emptySet();
     /** Indicates whether bind responses should include failure reason messages. */
     private boolean returnBindErrorMessages;
     /** The idle time limit for the server. */

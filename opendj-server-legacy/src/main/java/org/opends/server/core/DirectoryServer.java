@@ -34,7 +34,6 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -741,7 +740,6 @@ public final class DirectoryServer
       }
       try
       {
-        directoryServer.coreConfigManager = new CoreConfigManager(directoryServer.serverContext);
         directoryServer.coreConfigManager.initializeCoreConfig();
       }
       catch (Exception e)
@@ -1004,6 +1002,7 @@ public final class DirectoryServer
     operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
     serverContext = new DirectoryServerContext();
     virtualAttributeConfigManager = new VirtualAttributeConfigManager(serverContext);
+    coreConfigManager = new CoreConfigManager(serverContext);
     memoryQuota = new MemoryQuota();
     diskSpaceMonitor = new DiskSpaceMonitor();
   }
@@ -1379,7 +1378,6 @@ public final class DirectoryServer
       virtualAttributeConfigManager.initializeVirtualAttributes();
 
       // The core Directory Server configuration.
-      coreConfigManager = new CoreConfigManager(serverContext);
       coreConfigManager.initializeCoreConfig();
 
       initializeCryptoManager();
@@ -1587,7 +1585,7 @@ public final class DirectoryServer
    */
   public static boolean mailServerConfigured()
   {
-    return directoryServer.coreConfigManager != null && directoryServer.coreConfigManager.isMailServerConfigured();
+    return getCoreConfigManager().isMailServerConfigured();
   }
 
   /**
@@ -1599,8 +1597,7 @@ public final class DirectoryServer
    */
   public static List<Properties> getMailServerPropertySets()
   {
-    return directoryServer.coreConfigManager != null ?
-        directoryServer.coreConfigManager.getMailServerPropertySets() : new ArrayList<Properties>(0);
+    return getCoreConfigManager().getMailServerPropertySets();
   }
 
   /**
@@ -2509,7 +2506,7 @@ public final class DirectoryServer
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
-      if (directoryServer.coreConfigManager.getDefaultPasswordPolicyDN().equals(configEntryDN))
+      if (getCoreConfigManager().getDefaultPasswordPolicyDN().equals(configEntryDN))
       {
         // The correct policy type is enforced by the core config manager.
         directoryServer.defaultPasswordPolicy = (PasswordPolicy) policy;
@@ -2540,7 +2537,7 @@ public final class DirectoryServer
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
-      if (directoryServer.coreConfigManager.getDefaultPasswordPolicyDN().equals(configEntryDN))
+      if (getCoreConfigManager().getDefaultPasswordPolicyDN().equals(configEntryDN))
       {
         directoryServer.defaultPasswordPolicy = null;
       }
@@ -2563,10 +2560,7 @@ public final class DirectoryServer
    */
   public static DN getDefaultPasswordPolicyDN()
   {
-    synchronized (directoryServer.authenticationPolicies)
-    {
-      return directoryServer.coreConfigManager.getDefaultPasswordPolicyDN();
-    }
+    return getCoreConfigManager().getDefaultPasswordPolicyDN();
   }
 
   /**
@@ -2594,7 +2588,7 @@ public final class DirectoryServer
     // Ensure default policy is synchronized.
     synchronized (directoryServer.authenticationPolicies)
     {
-      DN defaultPasswordPolicyDN = directoryServer.coreConfigManager.getDefaultPasswordPolicyDN();
+      DN defaultPasswordPolicyDN = getCoreConfigManager().getDefaultPasswordPolicyDN();
       assert null != directoryServer.authenticationPolicies
           .get(defaultPasswordPolicyDN) :
             "Internal Error: no default password policy defined.";
@@ -3055,8 +3049,7 @@ public final class DirectoryServer
    */
   public static ResultCode getServerErrorResultCode()
   {
-    return directoryServer.coreConfigManager != null ?
-        directoryServer.coreConfigManager.getServerErrorResultCode() : ResultCode.OTHER;
+    return getCoreConfigManager().getServerErrorResultCode();
   }
 
   /**
@@ -3069,7 +3062,7 @@ public final class DirectoryServer
    */
   public static boolean addMissingRDNAttributes()
   {
-    return directoryServer.coreConfigManager.isAddMissingRDNAttributes();
+    return getCoreConfigManager().isAddMissingRDNAttributes();
   }
 
   /**
@@ -3087,8 +3080,7 @@ public final class DirectoryServer
   @Deprecated
   public static boolean allowAttributeNameExceptions()
   {
-    return directoryServer.coreConfigManager != null
-        && directoryServer.coreConfigManager.isAllowAttributeNameExceptions();
+    return getCoreConfigManager().isAllowAttributeNameExceptions();
   }
 
   /**
@@ -3099,7 +3091,7 @@ public final class DirectoryServer
    */
   public static boolean checkSchema()
   {
-    return directoryServer.coreConfigManager.isCheckSchema();
+    return getCoreConfigManager().isCheckSchema();
   }
 
   /**
@@ -3111,7 +3103,7 @@ public final class DirectoryServer
    */
   public static AcceptRejectWarn getSingleStructuralObjectClassPolicy()
   {
-    return directoryServer.coreConfigManager.getSingleStructuralObjectClassPolicy();
+    return getCoreConfigManager().getSingleStructuralObjectClassPolicy();
   }
 
   /**
@@ -3123,8 +3115,7 @@ public final class DirectoryServer
    */
   public static AcceptRejectWarn getSyntaxEnforcementPolicy()
   {
-    return directoryServer.coreConfigManager != null ?
-        directoryServer.coreConfigManager.getSyntaxEnforcementPolicy() : AcceptRejectWarn.REJECT;
+    return getCoreConfigManager().getSyntaxEnforcementPolicy();
   }
 
   /**
@@ -3140,7 +3131,7 @@ public final class DirectoryServer
    */
   public static boolean notifyAbandonedOperations()
   {
-    return directoryServer.coreConfigManager.isNotifyAbandonedOperations();
+    return getCoreConfigManager().isNotifyAbandonedOperations();
   }
 
   /**
@@ -3552,7 +3543,7 @@ public final class DirectoryServer
    */
   public static IdentityMapper<?> getProxiedAuthorizationIdentityMapper()
   {
-    DN dnMapper = directoryServer.coreConfigManager.getProxiedAuthorizationIdentityMapperDN();
+    DN dnMapper = getCoreConfigManager().getProxiedAuthorizationIdentityMapperDN();
     return dnMapper != null ? directoryServer.identityMappers.get(dnMapper) : null;
   }
 
@@ -3685,7 +3676,7 @@ public final class DirectoryServer
     ClientConnection clientConnection = operation.getClientConnection();
     //Reject or accept the unauthenticated requests based on the configuration settings.
     if (!clientConnection.getAuthenticationInfo().isAuthenticated() &&
-        (directoryServer.coreConfigManager.isRejectUnauthenticatedRequests() ||
+        (getCoreConfigManager().isRejectUnauthenticatedRequests() ||
         (directoryServer.lockdownMode && !isAllowedInLockDownMode)))
     {
       switch(operation.getOperationType())
@@ -3852,6 +3843,11 @@ public final class DirectoryServer
     directoryServer.synchronizationProviders.remove(provider);
   }
 
+  public static CoreConfigManager getCoreConfigManager()
+  {
+    return directoryServer.coreConfigManager;
+  }
+
   /**
    * Retrieves a set containing the names of the allowed tasks that may be
    * invoked in the server.
@@ -3861,8 +3857,7 @@ public final class DirectoryServer
    */
   public static Set<String> getAllowedTasks()
   {
-    return directoryServer.coreConfigManager != null ?
-        directoryServer.coreConfigManager.getAllowedTasks() : new HashSet<String>(0);
+    return getCoreConfigManager().getAllowedTasks();
   }
 
   /**
@@ -3875,8 +3870,7 @@ public final class DirectoryServer
    */
   public static boolean isDisabled(Privilege privilege)
   {
-    return directoryServer.coreConfigManager != null ?
-        directoryServer.coreConfigManager.getDisabledPrivileges().contains(privilege) : false;
+    return getCoreConfigManager().getDisabledPrivileges().contains(privilege);
   }
 
   /**
@@ -3888,7 +3882,7 @@ public final class DirectoryServer
    */
   public static boolean returnBindErrorMessages()
   {
-    return directoryServer.coreConfigManager.isReturnBindErrorMessages();
+    return getCoreConfigManager().isReturnBindErrorMessages();
   }
 
   /**
@@ -4603,7 +4597,7 @@ public final class DirectoryServer
         }
       }
 
-      final long maxAllowed = directoryServer.coreConfigManager.getMaxAllowedConnections();
+      final long maxAllowed = getCoreConfigManager().getMaxAllowedConnections();
       if (0 < maxAllowed && maxAllowed <= directoryServer.currentConnections)
       {
         return -1;
@@ -4710,7 +4704,7 @@ public final class DirectoryServer
    */
   public static int getSizeLimit()
   {
-    return directoryServer.coreConfigManager.getSizeLimit();
+    return getCoreConfigManager().getSizeLimit();
   }
 
   /**
@@ -4722,7 +4716,7 @@ public final class DirectoryServer
    */
   public static int getLookthroughLimit()
   {
-    return directoryServer.coreConfigManager.getLookthroughLimit();
+    return getCoreConfigManager().getLookthroughLimit();
   }
 
   /**
@@ -4757,7 +4751,7 @@ public final class DirectoryServer
   public static boolean allowNewPersistentSearch()
   {
     //-1 indicates that there is no limit.
-    int max = directoryServer.coreConfigManager.getMaxPSearches();
+    int max = getCoreConfigManager().getMaxPSearches();
     return max == -1 || directoryServer.activePSearches.get() < max;
   }
 
@@ -4770,7 +4764,7 @@ public final class DirectoryServer
    */
   public static int getTimeLimit()
   {
-    return directoryServer.coreConfigManager.getTimeLimit();
+    return getCoreConfigManager().getTimeLimit();
   }
 
   /**
@@ -4783,7 +4777,7 @@ public final class DirectoryServer
    */
   public static boolean getUseNanoTime()
   {
-    return directoryServer.coreConfigManager.isUseNanoTime();
+    return getCoreConfigManager().isUseNanoTime();
   }
 
   /**
@@ -4794,7 +4788,7 @@ public final class DirectoryServer
    */
   public static WritabilityMode getWritabilityMode()
   {
-    return directoryServer.coreConfigManager.getWritabilityMode();
+    return getCoreConfigManager().getWritabilityMode();
   }
 
   /**
@@ -4807,7 +4801,7 @@ public final class DirectoryServer
    */
   public static boolean bindWithDNRequiresPassword()
   {
-    return directoryServer.coreConfigManager.isBindWithDNRequiresPassword();
+    return getCoreConfigManager().isBindWithDNRequiresPassword();
   }
 
   /**
@@ -5527,7 +5521,7 @@ public final class DirectoryServer
    */
   public static int getMaxInternalBufferSize()
   {
-    return directoryServer.coreConfigManager.getMaxInternalBufferSize();
+    return getCoreConfigManager().getMaxInternalBufferSize();
   }
 
   /**
