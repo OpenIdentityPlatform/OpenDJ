@@ -213,7 +213,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         catch (LocalizedIllegalArgumentException e)
         {
           logger.traceException(e);
-          if (DirectoryServer.getSyntaxEnforcementPolicy() == AcceptRejectWarn.REJECT)
+          if (DirectoryServer.getCoreConfigManager().getSyntaxEnforcementPolicy() == AcceptRejectWarn.REJECT)
           {
             logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN,
               v, someMemberAttributeType.getNameOrOID(), groupEntry.getName(), e.getMessageObject());

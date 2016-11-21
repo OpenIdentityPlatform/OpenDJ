@@ -378,7 +378,7 @@ public class PasswordModifyExtendedOperation
       {
         logger.traceException(de);
 
-        operation.setResultCode(DirectoryServer.getServerErrorResultCode());
+        operation.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY.get(userDN, de.getMessageObject()));
         return;
       }
@@ -978,7 +978,7 @@ public class PasswordModifyExtendedOperation
     {
       logger.traceException(e);
 
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(config.dn(), getExceptionMessage(e)));
     }
 

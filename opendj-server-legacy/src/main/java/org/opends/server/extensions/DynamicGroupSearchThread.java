@@ -151,7 +151,7 @@ public class DynamicGroupSearchThread
         {
           LocalizableMessage message = ERR_DYNAMICGROUP_CANNOT_RETURN_ENTRY.
               get(searchEntry.getName(), memberList.getDynamicGroupDN());
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
 
         return;

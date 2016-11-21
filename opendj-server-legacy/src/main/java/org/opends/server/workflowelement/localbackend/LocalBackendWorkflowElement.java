@@ -693,7 +693,7 @@ public class LocalBackendWorkflowElement
   {
     if (!backend.isPrivateBackend())
     {
-      checkIfWritable(DirectoryServer.getWritabilityMode(), op, serverMsg, entryDN);
+      checkIfWritable(DirectoryServer.getCoreConfigManager().getWritabilityMode(), op, serverMsg, entryDN);
       checkIfWritable(backend.getWritabilityMode(), op, backendMsg, entryDN);
     }
   }

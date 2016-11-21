@@ -766,14 +766,14 @@ public class LDIFReader implements Closeable
         throw new LDIFException(message, lastEntryLineNumber,true);
       }
       if (checkSchema &&
-          DirectoryServer.getSyntaxEnforcementPolicy() != AcceptRejectWarn.ACCEPT)
+          DirectoryServer.getCoreConfigManager().getSyntaxEnforcementPolicy() != AcceptRejectWarn.ACCEPT)
       {
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
         if (! attrType.getSyntax().valueIsAcceptable(value, invalidReason))
         {
           LocalizableMessage message = WARN_LDIF_VALUE_VIOLATES_SYNTAX.get(
               entryDN, lastEntryLineNumber, value, attrDescStr, invalidReason);
-          if (DirectoryServer.getSyntaxEnforcementPolicy() == AcceptRejectWarn.WARN)
+          if (DirectoryServer.getCoreConfigManager().getSyntaxEnforcementPolicy() == AcceptRejectWarn.WARN)
           {
             logger.error(message);
           }

@@ -140,7 +140,7 @@ public class JsonSchemaProvider implements SchemaProvider<JsonSchemaCfg>, Config
     }
     catch (DirectoryException e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(e.getMessageObject());
     }
     finally

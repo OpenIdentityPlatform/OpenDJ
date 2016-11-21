@@ -1154,7 +1154,7 @@ public final class StaticUtils
         if (!isAlpha(c)
             && !isDigit(c)
             && c != '-'
-            && (c != '_' || !DirectoryServer.allowAttributeNameExceptions()))
+            && (c != '_' || !DirectoryServer.getCoreConfigManager().isAllowAttributeNameExceptions()))
         {
           // This is an illegal character for an attribute name.
           invalidReason.append(ERR_SCHEMANAME_ILLEGAL_CHAR.get(element, c, i));
@@ -1167,7 +1167,7 @@ public final class StaticUtils
       // This should indicate an OID, but it may also be a name if name
       // exceptions are enabled.  Since we don't know for sure, we'll just
       // hold off until we know for sure.
-      boolean isKnown    = !DirectoryServer.allowAttributeNameExceptions();
+      boolean isKnown    = !DirectoryServer.getCoreConfigManager().isAllowAttributeNameExceptions();
       boolean isNumeric  = true;
       boolean lastWasDot = false;
 

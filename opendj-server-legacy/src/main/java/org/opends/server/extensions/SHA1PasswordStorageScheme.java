@@ -117,7 +117,7 @@ public class SHA1PasswordStorageScheme
 
         LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                      message, e);
       }
       finally
@@ -158,7 +158,7 @@ public class SHA1PasswordStorageScheme
 
         LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
             CLASS_NAME, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                      message, e);
       }
       finally

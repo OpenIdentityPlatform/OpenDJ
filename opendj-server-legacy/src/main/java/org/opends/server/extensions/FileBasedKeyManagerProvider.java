@@ -140,7 +140,7 @@ public class FileBasedKeyManagerProvider
     catch (Exception e)
     {
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_LOAD.get(keyStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -167,7 +167,7 @@ public class FileBasedKeyManagerProvider
       logger.traceException(e);
 
       LocalizableMessage message = ERR_FILE_KEYMANAGER_CANNOT_CREATE_FACTORY.get(keyStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -246,7 +246,7 @@ public class FileBasedKeyManagerProvider
     File f = getFileForPath(keyStoreFile);
     if (!f.exists() || !f.isFile())
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(keyStoreFile, cfg.dn()));
     }
     return keyStoreFile;
@@ -265,7 +265,7 @@ public class FileBasedKeyManagerProvider
       catch (KeyStoreException e)
       {
         logger.traceException(e);
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(cfg.getKeyStoreType(), cfg.dn(), getExceptionMessage(e)));
       }
     }
@@ -289,7 +289,7 @@ public class FileBasedKeyManagerProvider
     }
     catch (InitializationException e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(e.getMessageObject());
       return null;
     }

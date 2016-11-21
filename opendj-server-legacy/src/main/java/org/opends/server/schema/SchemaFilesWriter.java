@@ -160,7 +160,7 @@ class SchemaFilesWriter
 
       LocalizableMessage message =
           ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_SCHEMA.get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
     finally
     {
@@ -1057,7 +1057,7 @@ class SchemaFilesWriter
         message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED.get(getExceptionMessage(e));
         DirectoryServer.sendAlertNotification(alertGenerator, ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES, message);
       }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
 
     // Try to copy all of the temporary files into place over the installed
@@ -1108,7 +1108,7 @@ class SchemaFilesWriter
         message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED.get(getExceptionMessage(e));
         DirectoryServer.sendAlertNotification(alertGenerator, ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES, message);
       }
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
 
     deleteFiles(origFileList);

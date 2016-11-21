@@ -316,7 +316,7 @@ public final class AccessControlConfigManager
     catch (InitializationException e)
     {
       ccr.addMessage(e.getMessageObject());
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     return ccr;

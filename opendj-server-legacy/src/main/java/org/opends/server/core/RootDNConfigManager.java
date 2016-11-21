@@ -174,7 +174,7 @@ public class RootDNConfigManager
       {
         // This shouldn't happen, since the set of DNs should have already been
         // validated.
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(de.getMessageObject());
 
         for (DN dn : altBindDNs)
@@ -281,7 +281,7 @@ public class RootDNConfigManager
       {
         // This shouldn't happen, since the set of DNs should have already been
         // validated.
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(de.getMessageObject());
 
         for (DN addedDN : addedDNs)

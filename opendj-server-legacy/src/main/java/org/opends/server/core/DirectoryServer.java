@@ -44,7 +44,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -133,7 +132,6 @@ import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.schema.SchemaHandler;
-import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
 import org.opends.server.types.CryptoManager;
@@ -149,7 +147,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.VirtualAttributeRule;
-import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.CronExecutorService;
 import org.opends.server.util.MultiOutputStream;
@@ -1577,30 +1574,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Indicates whether the Directory Server is configured with information about
-   * one or more mail servers and may therefore be used to send e-mail messages.
-   *
-   * @return  {@code true} if the Directory Server is configured to be able to
-   *          send e-mail messages, or {@code false} if not.
-   */
-  public static boolean mailServerConfigured()
-  {
-    return getCoreConfigManager().isMailServerConfigured();
-  }
-
-  /**
-   * Retrieves the sets of information about the mail servers configured for use
-   * by the Directory Server.
-   *
-   * @return  The sets of information about the mail servers configured for use
-   *          by the Directory Server.
-   */
-  public static List<Properties> getMailServerPropertySets()
-  {
-    return getCoreConfigManager().getMailServerPropertySets();
-  }
-
-  /**
    * Initializes the schema handler, which is responsible for building the complete schema for the
    * server.
    *
@@ -2552,18 +2525,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the DN of the configuration entry for the default password policy
-   * for the Directory Server.
-   *
-   * @return  The DN of the configuration entry for the default password policy
-   *          for the Directory Server.
-   */
-  public static DN getDefaultPasswordPolicyDN()
-  {
-    return getCoreConfigManager().getDefaultPasswordPolicyDN();
-  }
-
-  /**
    * Resets the default password policy to null.
    */
   public static void resetDefaultPasswordPolicy()
@@ -2590,20 +2551,17 @@ public final class DirectoryServer
     {
       DN defaultPasswordPolicyDN = getCoreConfigManager().getDefaultPasswordPolicyDN();
       assert null != directoryServer.authenticationPolicies
-          .get(defaultPasswordPolicyDN) :
-            "Internal Error: no default password policy defined.";
+          .get(defaultPasswordPolicyDN) : "Internal Error: no default password policy defined.";
 
       if (directoryServer.defaultPasswordPolicy == null
           && defaultPasswordPolicyDN != null)
       {
         // The correct policy type is enforced by the core config manager.
         directoryServer.defaultPasswordPolicy = (PasswordPolicy)
-          directoryServer.authenticationPolicies
-            .get(defaultPasswordPolicyDN);
+          directoryServer.authenticationPolicies.get(defaultPasswordPolicyDN);
       }
       assert directoryServer.authenticationPolicies.get(defaultPasswordPolicyDN) ==
-          directoryServer.defaultPasswordPolicy :
-             "Internal Error: inconsistency between defaultPasswordPolicy"
+          directoryServer.defaultPasswordPolicy : "Internal Error: inconsistency between defaultPasswordPolicy"
           + " cache and value in authenticationPolicies map.";
       return directoryServer.defaultPasswordPolicy;
     }
@@ -3038,100 +2996,6 @@ public final class DirectoryServer
   public static DN deregisterAlternateRootBindDN(DN alternateRootBindDN)
   {
     return directoryServer.alternateRootBindDNs.remove(alternateRootBindDN);
-  }
-
-  /**
-   * Retrieves the result code that should be used when the Directory Server
-   * encounters an internal server error.
-   *
-   * @return  The result code that should be used when the Directory Server
-   *          encounters an internal server error.
-   */
-  public static ResultCode getServerErrorResultCode()
-  {
-    return getCoreConfigManager().getServerErrorResultCode();
-  }
-
-  /**
-   * Indicates whether the Directory Server should automatically add missing RDN
-   * attributes to an entry whenever it is added.
-   *
-   * @return  <CODE>true</CODE> if the Directory Server should automatically add
-   *          missing RDN attributes to an entry, or <CODE>false</CODE> if it
-   *          should return an error to the client.
-   */
-  public static boolean addMissingRDNAttributes()
-  {
-    return getCoreConfigManager().isAddMissingRDNAttributes();
-  }
-
-  /**
-   * Indicates whether to be more flexible in the set of characters allowed for
-   * attribute names.  The standard requires that only ASCII alphabetic letters,
-   * numeric digits, and hyphens be allowed, and that the name start with a
-   * letter.  If attribute name exceptions are enabled, then underscores will
-   * also be allowed, and the name will be allowed to start with a digit.
-   *
-   * @return  <CODE>true</CODE> if the server should use a more flexible
-   *          syntax for attribute names, or <CODE>false</CODE> if not.
-   * @deprecated The schema option SchemaOptions.ALLOW_MALFORMED_NAMES_AND_OPTIONS from the
-   *  schema should be used instead
-   */
-  @Deprecated
-  public static boolean allowAttributeNameExceptions()
-  {
-    return getCoreConfigManager().isAllowAttributeNameExceptions();
-  }
-
-  /**
-   * Indicates whether the Directory Server should perform schema checking.
-   *
-   * @return  <CODE>true</CODE> if the Directory Server should perform schema
-   *          checking, or <CODE>false</CODE> if not.
-   */
-  public static boolean checkSchema()
-  {
-    return getCoreConfigManager().isCheckSchema();
-  }
-
-  /**
-   * Retrieves the policy that should be used regarding enforcement of a single
-   * structural objectclass per entry.
-   *
-   * @return  The policy that should be used regarding enforcement of a single
-   *          structural objectclass per entry.
-   */
-  public static AcceptRejectWarn getSingleStructuralObjectClassPolicy()
-  {
-    return getCoreConfigManager().getSingleStructuralObjectClassPolicy();
-  }
-
-  /**
-   * Retrieves the policy that should be used when an attribute value is found
-   * that is not valid according to the associated attribute syntax.
-   *
-   * @return  The policy that should be used when an attribute value is found
-   *          that is not valid according to the associated attribute syntax.
-   */
-  public static AcceptRejectWarn getSyntaxEnforcementPolicy()
-  {
-    return getCoreConfigManager().getSyntaxEnforcementPolicy();
-  }
-
-  /**
-   * Indicates whether the Directory Server should send a response to an
-   * operation that has been abandoned.  Sending such a response is technically
-   * a violation of the LDAP protocol specification, but not doing so in that
-   * case can cause problems with clients that are expecting a response and may
-   * hang until they get one.
-   *
-   * @return  <CODE>true</CODE> if the Directory Server should send a response
-   *          to an operation that has been abandoned, or <CODE>false</CODE> if
-   *          not.
-   */
-  public static boolean notifyAbandonedOperations()
-  {
-    return getCoreConfigManager().isNotifyAbandonedOperations();
   }
 
   /**
@@ -3843,21 +3707,14 @@ public final class DirectoryServer
     directoryServer.synchronizationProviders.remove(provider);
   }
 
+  /**
+   * Returns the core configuration manager.
+   *
+   * @return the core config manager
+   */
   public static CoreConfigManager getCoreConfigManager()
   {
     return directoryServer.coreConfigManager;
-  }
-
-  /**
-   * Retrieves a set containing the names of the allowed tasks that may be
-   * invoked in the server.
-   *
-   * @return  A set containing the names of the allowed tasks that may be
-   *          invoked in the server.
-   */
-  public static Set<String> getAllowedTasks()
-  {
-    return getCoreConfigManager().getAllowedTasks();
   }
 
   /**
@@ -3871,18 +3728,6 @@ public final class DirectoryServer
   public static boolean isDisabled(Privilege privilege)
   {
     return getCoreConfigManager().getDisabledPrivileges().contains(privilege);
-  }
-
-  /**
-   * Indicates whether responses to failed bind operations should include a
-   * message explaining the reason for the failure.
-   *
-   * @return  {@code true} if bind responses should include error messages, or
-   *          {@code false} if not.
-   */
-  public static boolean returnBindErrorMessages()
-  {
-    return getCoreConfigManager().isReturnBindErrorMessages();
   }
 
   /**
@@ -4696,30 +4541,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Retrieves the default maximum number of entries that should be returned for
-   * a search.
-   *
-   * @return  The default maximum number of entries that should be returned for
-   *          a search.
-   */
-  public static int getSizeLimit()
-  {
-    return getCoreConfigManager().getSizeLimit();
-  }
-
-  /**
-   * Retrieves the default maximum number of entries that should checked for
-   * matches during a search.
-   *
-   * @return  The default maximum number of entries that should checked for
-   *          matches during a search.
-   */
-  public static int getLookthroughLimit()
-  {
-    return getCoreConfigManager().getLookthroughLimit();
-  }
-
-  /**
    *  Registers a new persistent search by increasing the count
    *  of active persistent searches. After receiving a persistent
    *  search request, a Local or Remote WFE must call this method to
@@ -4753,55 +4574,6 @@ public final class DirectoryServer
     //-1 indicates that there is no limit.
     int max = getCoreConfigManager().getMaxPSearches();
     return max == -1 || directoryServer.activePSearches.get() < max;
-  }
-
-  /**
-   * Retrieves the default maximum length of time in seconds that should be
-   * allowed when processing a search.
-   *
-   * @return  The default maximum length of time in seconds that should be
-   *          allowed when processing a search.
-   */
-  public static int getTimeLimit()
-  {
-    return getCoreConfigManager().getTimeLimit();
-  }
-
-  /**
-   * Retrieves whether operation processing times should be collected with
-   * nanosecond resolution.
-   *
-   * @return  <code>true</code> if nanosecond resolution times are collected
-   *          or <code>false</code> if only millisecond resolution times are
-   *          being collected.
-   */
-  public static boolean getUseNanoTime()
-  {
-    return getCoreConfigManager().isUseNanoTime();
-  }
-
-  /**
-   * Retrieves the writability mode for the Directory Server.  This will only
-   * be applicable for user suffixes.
-   *
-   * @return  The writability mode for the Directory Server.
-   */
-  public static WritabilityMode getWritabilityMode()
-  {
-    return getCoreConfigManager().getWritabilityMode();
-  }
-
-  /**
-   * Indicates whether simple bind requests that contain a bind DN will also be
-   * required to have a password.
-   *
-   * @return  <CODE>true</CODE> if simple bind requests containing a bind DN
-   *          will be required to have a password, or <CODE>false</CODE> if not
-   *          (and therefore will be treated as anonymous binds).
-   */
-  public static boolean bindWithDNRequiresPassword()
-  {
-    return getCoreConfigManager().isBindWithDNRequiresPassword();
   }
 
   /**
@@ -5508,20 +5280,6 @@ public final class DirectoryServer
     if ( extensionInformation != null ) {
       System.out.print(extensionInformation);
     }
-  }
-
-  /**
-   * Returns the threshold capacity beyond which internal cached buffers used
-   * for encoding and decoding entries and protocol messages will be trimmed
-   * after use.
-   *
-   * @return The threshold capacity beyond which internal cached buffers used
-   *         for encoding and decoding entries and protocol messages will be
-   *         trimmed after use.
-   */
-  public static int getMaxInternalBufferSize()
-  {
-    return getCoreConfigManager().getMaxInternalBufferSize();
   }
 
   /**

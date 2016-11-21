@@ -208,7 +208,7 @@ public class BackupManager
       if (bytes != null && !Arrays.equals(bytes, hash))
       {
         LocalizableMessage message = getErrorMessageForCheck(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
       }
     }
 
@@ -228,7 +228,7 @@ public class BackupManager
         logger.traceException(e);
         StaticUtils.close(output);
         LocalizableMessage message = ERR_BACKUP_CANNOT_GET_CIPHER.get(stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
 
@@ -249,7 +249,7 @@ public class BackupManager
         logger.traceException(e);
         StaticUtils.close(inputStream);
         LocalizableMessage message = ERR_BACKUP_CANNOT_GET_CIPHER.get(stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
   }
@@ -308,7 +308,7 @@ public class BackupManager
       {
         LocalizableMessage message = ERR_BACKUP_CANNOT_GET_MAC_KEY_ID.get(backupParams.backupID,
             stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
       retrieveMacEngine(macKeyID);
     }
@@ -331,7 +331,7 @@ public class BackupManager
       catch (Exception e)
       {
         LocalizableMessage message = ERR_BACKUP_CANNOT_GET_MAC.get(macKeyID, stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
 
@@ -405,7 +405,7 @@ public class BackupManager
       {
         LocalizableMessage message =
             ERR_BACKUP_CANNOT_GET_DIGEST.get(digestAlgorithm, stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
 
@@ -563,7 +563,7 @@ public class BackupManager
       catch (Exception e)
       {
         logger.traceException(e);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
             ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
                 newBackupParams.backupDir.getDescriptorPath(), stackTraceToSingleLineString(e)),
             e);
@@ -663,14 +663,15 @@ public class BackupManager
       catch (ConfigException e)
       {
         logger.traceException(e);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), e.getMessageObject());
+        throw new DirectoryException(
+            DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), e.getMessageObject());
       }
       catch (Exception e)
       {
         logger.traceException(e);
         LocalizableMessage message = ERR_BACKUP_CANNOT_UPDATE_BACKUP_DESCRIPTOR.get(
             backupDir.getDescriptorPath(), stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
 
       return archiveFile.delete();
@@ -779,7 +780,7 @@ public class BackupManager
       catch (IOException e)
       {
         logger.traceException(e);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
             ERR_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(ZIPENTRY_EMPTY_PLACEHOLDER, archive.getBackupID(),
                 stackTraceToSingleLineString(e)),
             e);
@@ -829,7 +830,7 @@ public class BackupManager
       {
         logger.traceException(e);
         throw new DirectoryException(
-             DirectoryServer.getServerErrorResultCode(),
+             DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
              ERR_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(zipEntryName, archive.getBackupID(),
                  stackTraceToSingleLineString(e)), e);
       }
@@ -858,7 +859,7 @@ public class BackupManager
           catch (IOException e)
           {
             logger.traceException(e);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                  ERR_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(relativePath, archive.getBackupID(),
                      stackTraceToSingleLineString(e)), e);
           }
@@ -893,7 +894,7 @@ public class BackupManager
         StaticUtils.close(output);
         LocalizableMessage message = ERR_BACKUP_CANNOT_CREATE_ARCHIVE_FILE.
             get(archiveFilename, backupPath, archive.getBackupID(), stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
 
@@ -981,8 +982,9 @@ public class BackupManager
       catch (IOException e)
       {
         logger.traceException(e);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_BACKUP_CANNOT_RESTORE.get(
-            identifier, stackTraceToSingleLineString(e)), e);
+        throw new DirectoryException(
+            DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
+            ERR_BACKUP_CANNOT_RESTORE.get(identifier, stackTraceToSingleLineString(e)), e);
       }
     }
 
@@ -1009,7 +1011,7 @@ public class BackupManager
       catch (IOException e)
       {
         logger.traceException(e);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
             ERR_BACKUP_CANNOT_RESTORE.get(identifier, stackTraceToSingleLineString(e)), e);
       }
 
@@ -1118,7 +1120,7 @@ public class BackupManager
         }
         catch (IOException e)
         {
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
               ERR_BACKUP_CANNOT_CREATE_DIRECTORY_TO_RESTORE_FILE.get(fileToRestore, identifier));
         }
       }
@@ -1160,7 +1162,7 @@ public class BackupManager
       }
       catch (FileNotFoundException e)
       {
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
             ERR_BACKUP_CANNOT_RESTORE.get(identifier, stackTraceToSingleLineString(e)), e);
       }
     }
@@ -1226,7 +1228,8 @@ public class BackupManager
     catch (IOException e)
     {
       logger.traceException(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
+      throw new DirectoryException(
+          DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), ERR_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
           newArchive.getArchiveFilename(), backupParams.backupDir.getPath(), stackTraceToSingleLineString(e)), e);
     }
 
@@ -1323,7 +1326,7 @@ public class BackupManager
       catch (Exception e)
       {
         logger.traceException(e);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
             ERR_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(backupFile, backupPath, stackTraceToSingleLineString(e)), e);
       }
     }
@@ -1389,7 +1392,7 @@ public class BackupManager
     if (backupInfo == null)
     {
       LocalizableMessage message = ERR_BACKUP_MISSING_BACKUPID.get(backupID, backupDir.getPath());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     return backupInfo;
   }
@@ -1418,7 +1421,7 @@ public class BackupManager
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKUP_CANNOT_LIST_LOG_FILES.get(directory.getAbsolutePath(), identifier), e);
     }
     if (files == null)
@@ -1493,7 +1496,7 @@ public class BackupManager
     }
     catch (IOException e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKUP_CANNOT_SAVE_FILES_BEFORE_RESTORE.get(rootDirectory, targetDirectory, identifier,
               stackTraceToSingleLineString(e)), e);
     }
@@ -1516,7 +1519,7 @@ public class BackupManager
     }
     catch (IOException e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKUP_CANNOT_CREATE_SAVE_DIRECTORY.get(baseDirectoryPath, identifier,
           stackTraceToSingleLineString(e)), e);
     }

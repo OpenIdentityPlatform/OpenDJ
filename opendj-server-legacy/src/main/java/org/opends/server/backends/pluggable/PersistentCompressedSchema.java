@@ -222,7 +222,7 @@ final class PersistentCompressedSchema extends CompressedSchema
     }
     catch (final Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage()), e);
     }
   }

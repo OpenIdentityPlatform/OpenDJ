@@ -158,7 +158,7 @@ public class AlertHandlerConfigManager
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 
@@ -271,7 +271,7 @@ public class AlertHandlerConfigManager
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 

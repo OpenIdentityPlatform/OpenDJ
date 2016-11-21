@@ -114,13 +114,13 @@ public class LogRotationPolicyConfigManager implements
     catch (ConfigException e) {
       logger.traceException(e);
       ccr.addMessage(e.getMessageObject());
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     } catch (Exception e) {
       logger.traceException(e);
 
       ccr.addMessage(ERR_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY.get(config.dn(),
               stackTraceToSingleLineString(e)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     return ccr;
@@ -140,7 +140,7 @@ public class LogRotationPolicyConfigManager implements
     else
     {
       // TODO: Add message and check for usage
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     return ccr;

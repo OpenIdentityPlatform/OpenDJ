@@ -80,7 +80,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
       String value1, String value2, Boolean result)
       throws Exception
   {
-    AcceptRejectWarn accept = DirectoryServer.getSyntaxEnforcementPolicy();
+    AcceptRejectWarn accept = DirectoryServer.getCoreConfigManager().getSyntaxEnforcementPolicy();
     setSyntaxEnforcementPolicy(GlobalCfgDefn.InvalidAttributeSyntaxBehavior.WARN);
     try
     {

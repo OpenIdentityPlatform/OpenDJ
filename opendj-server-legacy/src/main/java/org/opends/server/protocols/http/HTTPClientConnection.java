@@ -250,7 +250,7 @@ final class HTTPClientConnection extends ClientConnection
     if (this.keepStats)
     {
       this.statTracker.updateConnect();
-      this.useNanoTime = DirectoryServer.getUseNanoTime();
+      this.useNanoTime = DirectoryServer.getCoreConfigManager().isUseNanoTime();
     }
     this.connectionID = DirectoryServer.newConnectionAccepted(this);
     context.asContext(HttpLogContext.class).setConnectionID(connectionID);

@@ -104,7 +104,7 @@ public class PKCS11KeyManagerProvider extends KeyManagerProvider<PKCS11KeyManage
             logger.traceException(e);
 
             LocalizableMessage message = ERR_PKCS11_KEYMANAGER_CANNOT_LOAD.get(getExceptionMessage(e));
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
         }
 
         try
@@ -119,7 +119,7 @@ public class PKCS11KeyManagerProvider extends KeyManagerProvider<PKCS11KeyManage
             logger.traceException(e);
 
             LocalizableMessage message = ERR_PKCS11_KEYMANAGER_CANNOT_CREATE_FACTORY.get(getExceptionMessage(e));
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
         }
     }
 
@@ -157,7 +157,7 @@ public class PKCS11KeyManagerProvider extends KeyManagerProvider<PKCS11KeyManage
         }
         catch (InitializationException e)
         {
-            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+            ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
             ccr.addMessage(e.getMessageObject());
         }
         return ccr;

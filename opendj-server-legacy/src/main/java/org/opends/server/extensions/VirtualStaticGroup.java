@@ -232,7 +232,7 @@ public class VirtualStaticGroup
     if (targetGroup == null)
     {
       LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
@@ -260,7 +260,7 @@ public class VirtualStaticGroup
     if (targetGroup == null)
     {
       LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
@@ -293,7 +293,7 @@ public class VirtualStaticGroup
     if (targetGroup == null)
     {
       LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {
@@ -316,7 +316,7 @@ public class VirtualStaticGroup
     if (targetGroup == null)
     {
       LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_NO_TARGET_GROUP.get(targetGroupDN, groupEntryDN);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     else if (targetGroup instanceof VirtualStaticGroup)
     {

@@ -335,7 +335,7 @@ public class UniqueAttributePlugin
       }
 
       return PluginResult.PreOperation.stopProcessing(
-          DirectoryServer.getServerErrorResultCode(), message);
+          DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     return null;
   }

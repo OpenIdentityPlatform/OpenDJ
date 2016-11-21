@@ -1560,7 +1560,7 @@ public class Entry
     // Get the structural objectclass for the entry.  If there isn't
     // one, or if there's more than one, then see if that's OK.
     AcceptRejectWarn structuralPolicy =
-         DirectoryServer.getSingleStructuralObjectClassPolicy();
+         DirectoryServer.getCoreConfigManager().getSingleStructuralObjectClassPolicy();
     ObjectClass structuralClass = null;
     boolean multipleOCErrorLogged = false;
     for (ObjectClass oc : objectClasses.keySet())
@@ -3347,7 +3347,7 @@ public class Entry
         LocalizableMessage message = ERR_ENTRY_DECODE_UNRECOGNIZED_VERSION.get(
             byteToHex(version));
         throw new DirectoryException(
-                       DirectoryServer.getServerErrorResultCode(),
+                       DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                        message);
       }
 
@@ -3413,7 +3413,7 @@ public class Entry
 
       LocalizableMessage message = ERR_ENTRY_DECODE_EXCEPTION.get(getExceptionMessage(e));
       throw new DirectoryException(
-                     DirectoryServer.getServerErrorResultCode(),
+                     DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                      message, e);
     }
   }

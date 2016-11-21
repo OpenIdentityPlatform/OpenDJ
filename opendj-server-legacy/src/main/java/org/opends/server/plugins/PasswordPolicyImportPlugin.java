@@ -645,7 +645,7 @@ policyLoop:
                   AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
         if (defaultAuthSchemes[0] == null)
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
                   AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1));
         }
@@ -661,12 +661,12 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthSchemes[i] == null)
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         else if (! defaultAuthSchemes[i].supportsAuthPasswordSyntax())
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         i++;
@@ -695,7 +695,7 @@ policyLoop:
                   toLowerCase(STORAGE_SCHEME_NAME_SALTED_SHA_1));
         if (defaultUserSchemes[0] == null)
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
                   STORAGE_SCHEME_NAME_SALTED_SHA_1));
         }
@@ -711,7 +711,7 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserSchemes[i] == null)
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeDN));
         }
         i++;

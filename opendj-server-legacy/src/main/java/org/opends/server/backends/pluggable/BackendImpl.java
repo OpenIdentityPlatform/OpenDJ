@@ -18,7 +18,6 @@ package org.opends.server.backends.pluggable;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -369,7 +368,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     catch (Exception e)
     {
-      throw new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+      throw new DirectoryException(
+          serverContext.getCoreConfigManager().getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
     }
     finally
     {
@@ -580,7 +580,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     if (rootContainer == null)
     {
       LocalizableMessage msg = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(getServerErrorResultCode(), msg);
+      throw new DirectoryException(serverContext.getCoreConfigManager().getServerErrorResultCode(), msg);
     }
   }
 
@@ -603,7 +603,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     catch (IOException ioe)
     {
-      throw new DirectoryException(getServerErrorResultCode(), ERR_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
+      throw new DirectoryException(serverContext.getCoreConfigManager()
+          .getServerErrorResultCode(), ERR_EXPORT_IO_ERROR.get(ioe.getMessage()), ioe);
     }
     catch (StorageRuntimeException de)
     {
@@ -611,7 +612,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     catch (ConfigException | InitializationException | LDIFException e)
     {
-      throw new DirectoryException(getServerErrorResultCode(), e.getMessageObject(), e);
+      throw new DirectoryException(
+          serverContext.getCoreConfigManager().getServerErrorResultCode(), e.getMessageObject(), e);
     }
     finally
     {
@@ -634,7 +636,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     // We can't do import while the backend is online.
     if (rootContainer != null)
     {
-      throw new DirectoryException(getServerErrorResultCode(), ERR_IMPORT_BACKEND_ONLINE.get());
+      throw new DirectoryException(
+          serverContext.getCoreConfigManager().getServerErrorResultCode(), ERR_IMPORT_BACKEND_ONLINE.get());
     }
 
     try
@@ -649,7 +652,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
       }
       catch (Exception e)
       {
-        throw new DirectoryException(getServerErrorResultCode(), ERR_REMOVE_FAIL.get(e.getMessage()), e);
+        throw new DirectoryException(
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), ERR_REMOVE_FAIL.get(e.getMessage()), e);
       }
       rootContainer = newRootContainer(AccessMode.READ_WRITE);
       rootContainer.getStorage().close();
@@ -746,7 +750,8 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
      */
     if (!openRootContainer && rebuildConfig.includesSystemIndex())
     {
-      throw new DirectoryException(getServerErrorResultCode(), ERR_REBUILD_BACKEND_ONLINE.get());
+      throw new DirectoryException(
+          serverContext.getCoreConfigManager().getServerErrorResultCode(), ERR_REBUILD_BACKEND_ONLINE.get());
     }
 
     try
@@ -849,7 +854,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     catch (Exception e)
     {
-      ccr.setResultCode(getServerErrorResultCode());
+      ccr.setResultCode(serverContext.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     return ccr;
@@ -887,7 +892,7 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
         {
           logger.traceException(e);
 
-          ccr.setResultCode(getServerErrorResultCode());
+          ccr.setResultCode(serverContext.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
           return false;
         }
@@ -944,9 +949,11 @@ public abstract class BackendImpl<C extends PluggableBackendCfg> extends LocalBa
     }
     if (e instanceof LocalizableException)
     {
-      return new DirectoryException(getServerErrorResultCode(), ((LocalizableException) e).getMessageObject());
+      return new DirectoryException(serverContext
+          .getCoreConfigManager().getServerErrorResultCode(), ((LocalizableException) e).getMessageObject());
     }
-    return new DirectoryException(getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
+    return new DirectoryException(serverContext
+        .getCoreConfigManager().getServerErrorResultCode(), LocalizableMessage.raw(e.getMessage()), e);
   }
 
   private RootContainer newRootContainer(AccessMode accessMode)

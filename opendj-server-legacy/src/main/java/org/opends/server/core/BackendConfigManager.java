@@ -837,7 +837,7 @@ public class BackendConfigManager implements
       {
         logger.traceException(e);
 
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(backendDN,
             stackTraceToSingleLineString(e)));
         return ccr;
@@ -867,7 +867,7 @@ public class BackendConfigManager implements
         {
           logger.traceException(e);
 
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
                   className, backendDN, stackTraceToSingleLineString(e)));
           return ccr;
@@ -923,7 +923,7 @@ public class BackendConfigManager implements
         logger.error(message);
 
         // FIXME -- Do we need to send an admin alert?
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(message);
         return false;
       }
@@ -1025,7 +1025,7 @@ public class BackendConfigManager implements
       catch (Exception e)
       {
         logger.traceException(e);
-        changeResult.setResultCode(DirectoryServer.getServerErrorResultCode());
+        changeResult.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         changeResult.addMessage(
             ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendDN, stackTraceToSingleLineString(e)));
         return changeResult;
@@ -1050,7 +1050,7 @@ public class BackendConfigManager implements
     catch (Exception e)
     {
       logger.traceException(e);
-      changeResult.setResultCode(DirectoryServer.getServerErrorResultCode());
+      changeResult.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       changeResult.addMessage(
           ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(cfg.getJavaClass(), cfg.dn(), stackTraceToSingleLineString(e)));
       releaseSharedLock(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend, cfg.getBackendId());

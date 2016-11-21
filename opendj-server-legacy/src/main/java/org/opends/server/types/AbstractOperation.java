@@ -158,7 +158,7 @@ public abstract class AbstractOperation
     this.clientConnection = clientConnection;
     this.operationID      = operationID;
     this.messageID        = messageID;
-    this.useNanoTime = DirectoryServer.getUseNanoTime();
+    this.useNanoTime = DirectoryServer.getCoreConfigManager().isUseNanoTime();
     this.requestControls = requestControls != null ? requestControls : new ArrayList<Control>(0);
     authorizationEntry = clientConnection.getAuthenticationInfo().getAuthorizationEntry();
   }

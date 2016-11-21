@@ -371,7 +371,7 @@ public class NullBackend extends LocalBackend<BackendCfg>
   private DirectoryException newDirectoryException(Exception e)
   {
     LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
-    return new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+    return new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
   }
 
   private LDIFReader getReader(LDIFImportConfig importConfig) throws DirectoryException

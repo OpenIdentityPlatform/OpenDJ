@@ -114,9 +114,6 @@ public class IdentityMapperConfigManager
       }
     }
 
-    // Now that all of the identity mappers are defined, see if the Directory
-    // Server's proxied auth mapper is valid.  If not, then log a warning
-    // message.
     DN mapperDN = serverContext.getCoreConfigManager().getProxiedAuthorizationIdentityMapperDN();
     if (mapperDN == null)
     {
@@ -177,7 +174,7 @@ public class IdentityMapperConfigManager
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 
@@ -293,7 +290,7 @@ public class IdentityMapperConfigManager
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 

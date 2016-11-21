@@ -190,7 +190,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     {
       boolean obsolete = true;
       AcceptRejectWarn structuralPolicy =
-        DirectoryServer.getSingleStructuralObjectClassPolicy();
+        DirectoryServer.getCoreConfigManager().getSingleStructuralObjectClassPolicy();
       for (NameForm nf : listForms)
       {
         if (!nf.isObsolete())

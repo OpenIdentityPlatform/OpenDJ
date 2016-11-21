@@ -417,7 +417,7 @@ public class BackupBackend
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 
@@ -501,7 +501,7 @@ public class BackupBackend
 
       LocalizableMessage message =
           ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY.get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message);
     }
 
@@ -569,7 +569,7 @@ public class BackupBackend
 
       LocalizableMessage message = ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY
           .get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           message);
     }
 

@@ -112,7 +112,7 @@ public class LDAPTrustManagerProvider extends TrustManagerProvider<LDAPTrustMana
     {
       LocalizableMessage message = ERR_LDAP_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(currentConfig.getBaseDN(),
                                                                                    getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -148,7 +148,7 @@ public class LDAPTrustManagerProvider extends TrustManagerProvider<LDAPTrustMana
     }
     catch (InitializationException e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(e.getMessageObject());
     }
     return ccr;

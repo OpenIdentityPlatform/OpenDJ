@@ -304,7 +304,7 @@ public class PKCS5S2PasswordStorageScheme
     logger.traceException(e);
 
     LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(CLASS_NAME, getExceptionMessage(e));
-    return new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+    return new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
   }
 
   private static byte[] concatenateSaltPlusHash(byte[] saltBytes, byte[] digestBytes) {

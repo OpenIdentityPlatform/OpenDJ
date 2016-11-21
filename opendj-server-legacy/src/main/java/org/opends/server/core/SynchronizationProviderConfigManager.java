@@ -160,7 +160,7 @@ public class SynchronizationProviderConfigManager
           {
             logger.traceException(e);
             ccr.addMessage(e.getMessageObject());
-            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+            ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           }
         }
         catch (Exception e)
@@ -169,7 +169,7 @@ public class SynchronizationProviderConfigManager
 
           ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(configuration.dn(),
               stackTraceToSingleLineString(e)));
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
     }
@@ -243,7 +243,7 @@ public class SynchronizationProviderConfigManager
         {
           logger.traceException(e);
           ccr.addMessage(e.getMessageObject());
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
       catch (Exception e)
@@ -252,7 +252,7 @@ public class SynchronizationProviderConfigManager
 
         ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(configuration.dn(),
             stackTraceToSingleLineString(e)));
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
     }
 

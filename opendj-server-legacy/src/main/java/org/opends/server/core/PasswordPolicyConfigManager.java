@@ -96,7 +96,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     }
 
     // Get the DN of the default password policy from the core configuration.
-    if (DirectoryServer.getDefaultPasswordPolicyDN() == null)
+    if (DirectoryServer.getCoreConfigManager().getDefaultPasswordPolicyDN() == null)
     {
       LocalizableMessage message = ERR_CONFIG_PWPOLICY_NO_DEFAULT_POLICY.get();
       throw new ConfigException(message);
@@ -115,7 +115,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // registered, then fail.
     if (null == DirectoryServer.getDefaultPasswordPolicy())
     {
-      DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
+      DN defaultPolicyDN = DirectoryServer.getCoreConfigManager().getDefaultPasswordPolicyDN();
       throw new ConfigException(ERR_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY.get(defaultPolicyDN));
     }
 
@@ -188,13 +188,13 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     catch (InitializationException ie)
     {
       ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ie.getMessage()));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
     catch (Exception e)
     {
       ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
           configuration.dn(), stackTraceToSingleLineString(e)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
     return ccr;
   }
@@ -207,7 +207,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // FIXME: something like a referential integrity check is needed to ensure
     // a policy is not removed when referenced by a user entry (either
     // directly or via a virtual attribute).
-    DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
+    DN defaultPolicyDN = DirectoryServer.getCoreConfigManager().getDefaultPasswordPolicyDN();
     if (defaultPolicyDN != null && defaultPolicyDN.equals(configuration.dn()))
     {
       unacceptableReason.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(defaultPolicyDN));
@@ -225,7 +225,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // directly or via a virtual attribute).
     final ConfigChangeResult ccr = new ConfigChangeResult();
     DN policyDN = configuration.dn();
-    DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
+    DN defaultPolicyDN = DirectoryServer.getCoreConfigManager().getDefaultPasswordPolicyDN();
     if (defaultPolicyDN != null && defaultPolicyDN.equals(policyDN))
     {
       ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
@@ -357,7 +357,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     // If this is going to be the default password policy then check the type is
     // correct.
-    if (policyConfiguration.dn().equals(DirectoryServer.getDefaultPasswordPolicyDN())
+    if (policyConfiguration.dn().equals(DirectoryServer.getCoreConfigManager().getDefaultPasswordPolicyDN())
         && !(policyConfiguration instanceof PasswordPolicyCfg))
     {
       throw new ConfigException(ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn()));
@@ -413,7 +413,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   {
     // If this is going to be the default password policy then check the type is
     // correct.
-    if (policyConfiguration.dn().equals(DirectoryServer.getDefaultPasswordPolicyDN())
+    if (policyConfiguration.dn().equals(DirectoryServer.getCoreConfigManager().getDefaultPasswordPolicyDN())
         && !(policyConfiguration instanceof PasswordPolicyCfg))
     {
       unacceptableReasons.add(ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE.get(policyConfiguration.dn()));

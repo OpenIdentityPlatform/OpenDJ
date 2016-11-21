@@ -82,7 +82,7 @@ public class SizeBasedRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_LOGGER_ERROR_LISTING_FILES.get(fileNamingPolicy.getInitialName()));
     }
 

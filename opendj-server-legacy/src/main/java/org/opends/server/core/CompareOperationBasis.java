@@ -371,7 +371,7 @@ public class CompareOperationBasis
       if(cancelRequest == null || cancelResult == null ||
           cancelResult.getResultCode() != ResultCode.CANCELLED ||
           cancelRequest.notifyOriginalRequestor() ||
-          DirectoryServer.notifyAbandonedOperations())
+          DirectoryServer.getCoreConfigManager().isNotifyAbandonedOperations())
       {
         clientConnection.sendResponse(this);
       }

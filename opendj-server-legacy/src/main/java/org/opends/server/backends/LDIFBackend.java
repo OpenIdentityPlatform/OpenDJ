@@ -221,7 +221,7 @@ public class LDIFBackend
                        stackTraceToSingleLineString(e));
       DirectoryServer.sendAlertNotification(this,
                            ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    m, e);
     }
 
@@ -243,7 +243,7 @@ public class LDIFBackend
                          stackTraceToSingleLineString(e));
         DirectoryServer.sendAlertNotification(this,
                              ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                      m, e);
       }
     }
@@ -264,7 +264,7 @@ public class LDIFBackend
                        stackTraceToSingleLineString(e));
       DirectoryServer.sendAlertNotification(this,
                            ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    m, e);
     }
 
@@ -276,7 +276,7 @@ public class LDIFBackend
                        currentConfig.dn());
       DirectoryServer.sendAlertNotification(this,
                            ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), m);
     }
 
     if (tempFile.exists())
@@ -320,7 +320,7 @@ public class LDIFBackend
                        stackTraceToSingleLineString(e));
       DirectoryServer.sendAlertNotification(this,
                            ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE, m);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    m, e);
     }
   }
@@ -982,7 +982,7 @@ public class LDIFBackend
         {
           LocalizableMessage m =
               ERR_LDIF_BACKEND_CANNOT_WRITE_ENTRY_TO_LDIF.get(entryDN, stackTraceToSingleLineString(e));
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), m, e);
         }
       }
     }
@@ -1006,7 +1006,7 @@ public class LDIFBackend
     {
       logger.traceException(e);
       LocalizableMessage m = ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_WRITER.get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), m, e);
     }
   }
 
@@ -1058,7 +1058,7 @@ public class LDIFBackend
               LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_READING_LDIF.get(
                                stackTraceToSingleLineString(le));
               throw new DirectoryException(
-                             DirectoryServer.getServerErrorResultCode(), m, le);
+                             DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), m, le);
             }
             continue;
           }
@@ -1132,7 +1132,7 @@ public class LDIFBackend
       catch (Exception e)
       {
         LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_READING_LDIF.get(stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), m, e);
       }
     }
     finally
@@ -1162,7 +1162,7 @@ public class LDIFBackend
     catch (Exception e)
     {
       LocalizableMessage m = ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_READER.get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), m, e);
     }
   }
 

@@ -583,7 +583,7 @@ public class MemoryBackend
     {
       logger.traceException(e);
 
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_WRITER.get(e), e);
     }
 
@@ -599,7 +599,7 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_MEMORYBACKEND_CANNOT_WRITE_ENTRY_TO_LDIF.get(entryDN, e), e);
     }
     finally
@@ -632,7 +632,7 @@ public class MemoryBackend
         {
           if (! le.canContinueReading())
           {
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                 ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(e), le);
           }
           continue;
@@ -658,7 +658,7 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(e), e);
     }
   }
@@ -671,7 +671,7 @@ public class MemoryBackend
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(e), e);
     }
   }

@@ -1850,7 +1850,7 @@ public class TaskScheduler
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_LOAD_CLASS.
           get(taskClassName, ATTR_TASK_CLASS, stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
 
     // Instantiate the class as a task.
@@ -1865,7 +1865,7 @@ public class TaskScheduler
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_INSTANTIATE_CLASS_AS_TASK.get(
           taskClassName, Task.class.getName());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
 
     // Perform the necessary internal and external initialization for the task.
@@ -1879,17 +1879,17 @@ public class TaskScheduler
 
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
           taskClassName, ie.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_TASKSCHED_CANNOT_INITIALIZE_INTERNAL.get(
           taskClassName, stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
 
     if (!TaskState.isDone(task.getTaskState()) &&
-        !DirectoryServer.getAllowedTasks().contains(taskClassName))
+        !DirectoryServer.getCoreConfigManager().getAllowedTasks().contains(taskClassName))
     {
       LocalizableMessage message = ERR_TASKSCHED_NOT_ALLOWED_TASK.get(taskClassName);
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);

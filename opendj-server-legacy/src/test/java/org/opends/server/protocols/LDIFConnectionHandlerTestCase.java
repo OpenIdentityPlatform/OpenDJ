@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2014-2015 ForgeRock AS.
+ * Portions Copyright 2014-2016 ForgeRock AS.
  */
 package org.opends.server.protocols;
 
@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
+import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 
 import static org.testng.Assert.*;
@@ -168,7 +169,8 @@ public class LDIFConnectionHandlerTestCase
   public void testValidConfigLDIF()
          throws Exception
   {
-    assertEquals(DirectoryServer.getSizeLimit(), 1000);
+    CoreConfigManager coreConfigManager = TestCaseUtils.getServerContext().getCoreConfigManager();
+    assertEquals(coreConfigManager.getSizeLimit(), 1000);
     TestCaseUtils.initializeTestBackend(false);
 
     File tempDir =
@@ -230,7 +232,7 @@ public class LDIFConnectionHandlerTestCase
       }
 
       assertTrue(found);
-      assertEquals(DirectoryServer.getSizeLimit(), 100);
+      assertEquals(coreConfigManager.getSizeLimit(), 100);
     }
     finally
     {
@@ -239,7 +241,7 @@ public class LDIFConnectionHandlerTestCase
       TestCaseUtils.dsconfig(
         "set-global-configuration-prop",
         "--set", "size-limit:1000");
-      assertEquals(DirectoryServer.getSizeLimit(), 1000);
+      assertEquals(coreConfigManager.getSizeLimit(), 1000);
     }
   }
 

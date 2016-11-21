@@ -112,7 +112,7 @@ public class FileBasedTrustManagerProvider
     {
       logger.traceException(e);
       LocalizableMessage message = ERR_FILE_TRUSTMANAGER_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
 
     try
@@ -134,7 +134,7 @@ public class FileBasedTrustManagerProvider
 
       LocalizableMessage message =
               ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -186,7 +186,7 @@ public class FileBasedTrustManagerProvider
     final File f = getFileForPath(keyStoreFile);
     if (!f.exists() || !f.isFile())
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(keyStoreFile, cfg.dn()));
     }
     return keyStoreFile;
@@ -206,7 +206,7 @@ public class FileBasedTrustManagerProvider
       catch (KeyStoreException e)
       {
         logger.traceException(e);
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(trustStoreType, cfg.dn(), getExceptionMessage(e)));
       }
     }
@@ -230,7 +230,7 @@ public class FileBasedTrustManagerProvider
     }
     catch (InitializationException e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(e.getMessageObject());
       return null;
     }

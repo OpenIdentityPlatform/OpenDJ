@@ -1039,7 +1039,7 @@ public class SearchOperationBasis
         }
       }
       else if(cancelRequest.notifyOriginalRequestor() ||
-          DirectoryServer.notifyAbandonedOperations())
+          DirectoryServer.getCoreConfigManager().isNotifyAbandonedOperations())
       {
         sendSearchResultDone();
       }

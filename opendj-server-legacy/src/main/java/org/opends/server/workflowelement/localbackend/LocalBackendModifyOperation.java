@@ -1175,7 +1175,7 @@ public class LocalBackendModifyOperation
 
   private boolean mustCheckSchema()
   {
-    return !isSynchronizationOperation() && DirectoryServer.checkSchema();
+    return !isSynchronizationOperation() && DirectoryServer.getCoreConfigManager().isCheckSchema();
   }
 
   /**
@@ -1189,7 +1189,7 @@ public class LocalBackendModifyOperation
       Arg4<Object, Object, Object, Object> invalidSyntaxErrorMsg,
       Arg3<Object, Object, Object> invalidSyntaxNoValueErrorMsg) throws DirectoryException
   {
-    AcceptRejectWarn syntaxPolicy = DirectoryServer.getSyntaxEnforcementPolicy();
+    AcceptRejectWarn syntaxPolicy = DirectoryServer.getCoreConfigManager().getSyntaxEnforcementPolicy();
     AttributeDescription attrDesc = attr.getAttributeDescription();
     Syntax syntax = attrDesc.getAttributeType().getSyntax();
 

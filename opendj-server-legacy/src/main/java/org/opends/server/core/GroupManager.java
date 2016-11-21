@@ -227,7 +227,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 
@@ -369,7 +369,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 

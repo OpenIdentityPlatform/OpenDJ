@@ -976,7 +976,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     }
     catch (Exception e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
     }
 

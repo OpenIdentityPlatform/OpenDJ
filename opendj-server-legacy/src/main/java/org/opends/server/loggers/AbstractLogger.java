@@ -254,13 +254,13 @@ public abstract class AbstractLogger
       {
         LocalizedLogger.getLoggerForThisClass().traceException(e);
         ccr.addMessage(e.getMessageObject());
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
       catch (Exception e)
       {
         LocalizedLogger.getLoggerForThisClass().traceException(e);
         ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(config.dn(), stackTraceToSingleLineString(e)));
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
     }
     return ccr;
@@ -317,7 +317,7 @@ public abstract class AbstractLogger
         {
           LocalizedLogger.getLoggerForThisClass().traceException(e);
           ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_UPDATE_LOGGER.get(config.dn(), stackTraceToSingleLineString(e)));
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
       else
@@ -356,7 +356,7 @@ public abstract class AbstractLogger
       {
         LocalizedLogger.getLoggerForThisClass().traceException(e);
         ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_DELETE_LOGGER.get(config.dn(), stackTraceToSingleLineString(e)));
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
     }
     else

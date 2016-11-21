@@ -664,7 +664,7 @@ public class LocalBackendModifyDNOperation
     // If the server is configured to check the schema and the operation is not
     // a synchronization operation, make sure that the resulting entry is valid
     // as per the server schema.
-    if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
+    if (DirectoryServer.getCoreConfigManager().isCheckSchema() && !isSynchronizationOperation())
     {
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       if (! newEntry.conformsToSchema(null, false, true, true,
@@ -736,7 +736,7 @@ public class LocalBackendModifyDNOperation
 
     // Make sure that the updated entry still conforms to the server
     // schema.
-    if (DirectoryServer.checkSchema() && checkSchema)
+    if (DirectoryServer.getCoreConfigManager().isCheckSchema() && checkSchema)
     {
       LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
       if (! newEntry.conformsToSchema(null, false, true, true,

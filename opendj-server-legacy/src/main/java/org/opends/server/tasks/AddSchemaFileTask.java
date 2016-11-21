@@ -151,7 +151,7 @@ public class AddSchemaFileTask
         logger.traceException(e);
 
         LocalizableMessage message = ERR_TASK_ADDSCHEMAFILE_ERROR_LOADING_SCHEMA_FILE.get(schemaFile, e.getMessage());
-        throw new DirectoryException(getServerErrorResultCode(), message, e);
+        throw new DirectoryException(getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
   }

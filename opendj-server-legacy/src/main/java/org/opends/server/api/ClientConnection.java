@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.AuthenticatedUsers;
+import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
@@ -138,10 +139,11 @@ public abstract class ClientConnection
     saslBindInProgress = new AtomicBoolean(false);
     bindInProgress     = new AtomicBoolean(false);
     startTLSInProgress = new AtomicBoolean(false);
-    sizeLimit          = DirectoryServer.getSizeLimit();
-    timeLimit          = DirectoryServer.getTimeLimit();
+    CoreConfigManager coreConfigManager = DirectoryServer.getCoreConfigManager();
+    sizeLimit          = coreConfigManager.getSizeLimit();
+    timeLimit          = coreConfigManager.getTimeLimit();
     idleTimeLimit      = DirectoryServer.getIdleTimeLimit();
-    lookthroughLimit   = DirectoryServer.getLookthroughLimit();
+    lookthroughLimit   = coreConfigManager.getLookthroughLimit();
     finalized          = false;
   }
 

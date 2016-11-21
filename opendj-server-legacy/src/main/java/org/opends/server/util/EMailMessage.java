@@ -343,7 +343,7 @@ public final class EMailMessage
   public void send()
          throws MessagingException
   {
-    send(DirectoryServer.getMailServerPropertySets());
+    send(DirectoryServer.getCoreConfigManager().getMailServerPropertySets());
   }
 
 

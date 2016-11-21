@@ -189,7 +189,7 @@ public class AccountStatusNotificationHandlerConfigManager
     catch (InitializationException ie)
     {
       changeResult.addMessage (ie.getMessageObject());
-      changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
+      changeResult.setResultCode (DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       return changeResult;
     }
 
@@ -256,7 +256,7 @@ public class AccountStatusNotificationHandlerConfigManager
       catch (InitializationException ie)
       {
         changeResult.addMessage (ie.getMessageObject());
-        changeResult.setResultCode (DirectoryServer.getServerErrorResultCode());
+        changeResult.setResultCode (DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         return changeResult;
       }
     }

@@ -982,7 +982,7 @@ public abstract class Task implements Comparable<Task>
   protected void sendNotificationEMailMessage()
           throws MessagingException
   {
-    if (DirectoryServer.mailServerConfigured())
+    if (DirectoryServer.getCoreConfigManager().isMailServerConfigured())
     {
       LinkedHashSet<String> recipients = new LinkedHashSet<>(notifyOnCompletion);
       if (! TaskState.isSuccessful(taskState))

@@ -116,7 +116,7 @@ public class SMTPAccountStatusNotificationHandler
 
     // Make sure that the Directory Server is configured with information about
     // one or more mail servers.
-    List<Properties> propList = DirectoryServer.getMailServerPropertySets();
+    List<Properties> propList = DirectoryServer.getCoreConfigManager().getMailServerPropertySets();
     if (propList == null || propList.isEmpty())
     {
       throw new ConfigException(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(configuration.dn()));
@@ -607,7 +607,7 @@ public class SMTPAccountStatusNotificationHandler
 
     // Make sure that the Directory Server is configured with information about
     // one or more mail servers.
-    List<Properties> propList = DirectoryServer.getMailServerPropertySets();
+    List<Properties> propList = DirectoryServer.getCoreConfigManager().getMailServerPropertySets();
     if (propList == null || propList.isEmpty())
     {
       unacceptableReasons.add(ERR_SMTP_ASNH_NO_MAIL_SERVERS_CONFIGURED.get(configuration.dn()));

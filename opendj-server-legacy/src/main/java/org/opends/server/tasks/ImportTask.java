@@ -655,7 +655,7 @@ public class ImportTask extends Task
         logger.traceException(de);
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        if (de.getResultCode().equals(DirectoryServer.getServerErrorResultCode()))
+        if (de.getResultCode().equals(DirectoryServer.getCoreConfigManager().getServerErrorResultCode()))
         {
           logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(de.getMessageObject()));
         }

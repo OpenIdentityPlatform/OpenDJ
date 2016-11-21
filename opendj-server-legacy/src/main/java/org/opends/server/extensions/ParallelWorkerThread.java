@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2009 Sun Microsystems, Inc.
- * Portions Copyright 2013-2015 ForgeRock AS.
+ * Portions Copyright 2013-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -168,7 +168,7 @@ public class ParallelWorkerThread
               ERR_UNCAUGHT_WORKER_THREAD_EXCEPTION.get(getName(), operation, stackTraceToSingleLineString(t));
           logger.error(message);
 
-          operation.setResultCode(DirectoryServer.getServerErrorResultCode());
+          operation.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           operation.appendErrorMessage(message);
           operation.getClientConnection().sendResponse(operation);
         }

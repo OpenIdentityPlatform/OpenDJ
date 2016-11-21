@@ -153,7 +153,7 @@ abandonProcessing:
       // operations that have been abandoned, it may be a good idea to do so
       // to ensure that the requestor isn't left hanging.  This will be a
       // configurable option in the server.
-      boolean notifyRequestor = DirectoryServer.notifyAbandonedOperations();
+      boolean notifyRequestor = DirectoryServer.getCoreConfigManager().isNotifyAbandonedOperations();
 
       LocalizableMessage cancelReason = INFO_CANCELED_BY_ABANDON_REQUEST.get(messageID);
 

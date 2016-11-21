@@ -154,7 +154,7 @@ public final class DirectoryConfig
    */
   public static ResultCode getServerErrorResultCode()
   {
-    return DirectoryServer.getServerErrorResultCode();
+    return DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
   }
 
   /**

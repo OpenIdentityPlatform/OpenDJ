@@ -114,7 +114,7 @@ public abstract class BindOperationWrapper extends
   @Override
   public void setAuthFailureReason(LocalizableMessage reason)
   {
-    if (DirectoryServer.returnBindErrorMessages())
+    if (DirectoryServer.getCoreConfigManager().isReturnBindErrorMessages())
     {
       getOperation().appendErrorMessage(reason);
     }

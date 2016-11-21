@@ -95,7 +95,7 @@ public class TripleDESPasswordStorageScheme
 
       LocalizableMessage m = ERR_PWSCHEME_CANNOT_ENCRYPT.get(STORAGE_SCHEME_NAME_3DES,
                                                   getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    m, e);
     }
     finally
@@ -132,7 +132,7 @@ public class TripleDESPasswordStorageScheme
 
       LocalizableMessage m = ERR_PWSCHEME_CANNOT_ENCRYPT.get(STORAGE_SCHEME_NAME_3DES,
                                                   getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    m, e);
     }
     finally
@@ -185,7 +185,7 @@ public class TripleDESPasswordStorageScheme
 
       LocalizableMessage m = ERR_PWSCHEME_CANNOT_DECRYPT.get(STORAGE_SCHEME_NAME_3DES,
                                                   getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    m, e);
     }
   }

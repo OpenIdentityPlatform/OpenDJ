@@ -205,7 +205,7 @@ public class CompressedSchema
     final AttributeDescription ad = mappings.adDecodeMap.get(adId);
     if (ad == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_COMPRESSEDSCHEMA_UNRECOGNIZED_AD_TOKEN.get(adId));
     }
 
@@ -258,7 +258,7 @@ public class CompressedSchema
     Map<ObjectClass, String> ocMap = mappings.ocDecodeMap.get(ocId);
     if (ocMap == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_COMPRESSEDSCHEMA_UNKNOWN_OC_TOKEN.get(ocId));
     }
     return ocMap;

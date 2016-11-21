@@ -164,13 +164,13 @@ public class ExtendedOperationConfigManager implements
           logger.traceException(e);
 
           ccr.addMessage(e.getMessageObject());
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         } catch (Exception e) {
           logger.traceException(e);
 
           ccr.addMessage(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
               configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
     } else {
@@ -232,7 +232,7 @@ public class ExtendedOperationConfigManager implements
         logger.traceException(e);
 
         ccr.addMessage(e.getMessageObject());
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
       catch (Exception e)
       {
@@ -240,7 +240,7 @@ public class ExtendedOperationConfigManager implements
 
         ccr.addMessage(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
             configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
     }
 

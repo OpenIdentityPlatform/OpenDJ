@@ -580,7 +580,7 @@ public class RootDSEBackend
 
       LocalizableMessage message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER.get(
           stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message);
     }
 
@@ -596,7 +596,7 @@ public class RootDSEBackend
 
       LocalizableMessage message =
           ERR_ROOTDSE_UNABLE_TO_EXPORT_DSE.get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message);
     }
     finally
@@ -671,7 +671,7 @@ public class RootDSEBackend
 
       ccr.addMessage(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
               configEntryDN, stackTraceToSingleLineString(e)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)

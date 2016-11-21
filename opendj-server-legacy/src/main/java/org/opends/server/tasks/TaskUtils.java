@@ -197,7 +197,8 @@ public class TaskUtils
     }
     catch (ConfigException e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), e.getMessageObject(), e);
+      throw new DirectoryException(
+          DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), e.getMessageObject(), e);
     }
 
     ModifyRequest modifyRequest = newModifyRequest(configEntryDN)

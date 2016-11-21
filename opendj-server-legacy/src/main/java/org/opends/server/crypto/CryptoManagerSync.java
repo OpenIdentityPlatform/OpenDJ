@@ -249,7 +249,7 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
       catch (CryptoManagerException e)
       {
         throw new DirectoryException(
-             DirectoryServer.getServerErrorResultCode(), e);
+             DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), e);
       }
     }
   }

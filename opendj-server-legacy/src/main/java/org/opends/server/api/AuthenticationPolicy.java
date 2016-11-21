@@ -120,7 +120,7 @@ public abstract class AuthenticationPolicy
         else
         {
           throw new DirectoryException(
-              DirectoryServer.getServerErrorResultCode(), message);
+              DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
       }
 

@@ -278,7 +278,7 @@ public final class EntryEncodeConfig
     {
       LocalizableMessage message = ERR_ENTRYENCODECFG_INVALID_LENGTH.get();
       throw new DirectoryException(
-                     DirectoryServer.getServerErrorResultCode(),
+                     DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                      message);
     }
 

@@ -169,7 +169,7 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
           return;
         }
@@ -196,7 +196,7 @@ public class TextErrorLogPublisher
               }
               catch (Exception e)
               {
-                ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+                ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
                 ccr.addMessage(WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName));
                 return;
               }
@@ -206,7 +206,7 @@ public class TextErrorLogPublisher
         }
         catch (Exception e)
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
           return;
         }
@@ -346,7 +346,7 @@ public class TextErrorLogPublisher
     }
     catch(Exception e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn(), stackTraceToSingleLineString(e)));
     }

@@ -298,7 +298,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   {
     if (entryDN == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
     throw new RuntimeException("Not implemented");

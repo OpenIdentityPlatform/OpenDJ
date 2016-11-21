@@ -2252,7 +2252,7 @@ public final class SearchFilter
       LocalizableMessage message =
           ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
             get(entry.getName(), completeFilter, filterType);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
     else if (filterComponents.isEmpty())
     {
@@ -2276,7 +2276,7 @@ public final class SearchFilter
       {
         LocalizableMessage message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
             get(entry.getName(), completeFilter);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
       }
 
       for (SearchFilter f : filterComponents)
@@ -2308,7 +2308,7 @@ public final class SearchFilter
             LocalizableMessage message =
                 ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
                   get(entry.getName(), completeFilter, result);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
       }
 
@@ -2357,7 +2357,7 @@ public final class SearchFilter
           ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
             get(entry.getName(), completeFilter, filterType);
       throw new DirectoryException(
-                     DirectoryServer.getServerErrorResultCode(),
+                     DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                      message);
     }
     else if (filterComponents.isEmpty())
@@ -2383,7 +2383,7 @@ public final class SearchFilter
         LocalizableMessage message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
             get(entry.getName(), completeFilter);
         throw new DirectoryException(
-                       DirectoryServer.getServerErrorResultCode(),
+                       DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                        message);
       }
 
@@ -2420,7 +2420,7 @@ public final class SearchFilter
                   get(entry.getName(), completeFilter, result);
             throw new
                  DirectoryException(
-                      DirectoryServer.getServerErrorResultCode(),
+                      DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                       message);
         }
       }
@@ -2469,7 +2469,7 @@ public final class SearchFilter
       LocalizableMessage message = ERR_SEARCH_FILTER_NOT_COMPONENT_NULL.
           get(entry.getName(), completeFilter);
       throw new DirectoryException(
-                     DirectoryServer.getServerErrorResultCode(),
+                     DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                      message);
     }
     else
@@ -2482,7 +2482,7 @@ public final class SearchFilter
         LocalizableMessage message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
             get(entry.getName(), completeFilter);
         throw new DirectoryException(
-                       DirectoryServer.getServerErrorResultCode(),
+                       DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                        message);
       }
 
@@ -2523,7 +2523,7 @@ public final class SearchFilter
               get(entry.getName(), completeFilter, result);
           throw new
                DirectoryException(
-                    DirectoryServer.getServerErrorResultCode(),
+                    DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                     message);
       }
     }

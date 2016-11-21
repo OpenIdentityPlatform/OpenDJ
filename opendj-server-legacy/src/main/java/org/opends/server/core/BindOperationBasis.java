@@ -377,7 +377,7 @@ public class BindOperationBasis
   @Override
   public final void setAuthFailureReason(LocalizableMessage message)
   {
-    if (DirectoryServer.returnBindErrorMessages())
+    if (DirectoryServer.getCoreConfigManager().isReturnBindErrorMessages())
     {
       appendErrorMessage(message);
     }

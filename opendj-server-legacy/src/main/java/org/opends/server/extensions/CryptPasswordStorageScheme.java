@@ -113,7 +113,7 @@ public class CryptPasswordStorageScheme
     {
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message, e);
     }
     finally
@@ -157,7 +157,7 @@ public class CryptPasswordStorageScheme
     {
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message, e);
     }
     return ByteString.valueOfUtf8(output);
@@ -178,7 +178,7 @@ public class CryptPasswordStorageScheme
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(
-          DirectoryServer.getServerErrorResultCode(), message, e);
+          DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
     finally
     {
@@ -205,7 +205,7 @@ public class CryptPasswordStorageScheme
       LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(
-          DirectoryServer.getServerErrorResultCode(), message, e);
+          DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
     finally
     {

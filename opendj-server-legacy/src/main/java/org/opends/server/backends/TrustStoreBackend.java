@@ -353,7 +353,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 
@@ -734,7 +734,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     File f = getFileForPath(newTrustStoreFile);
     if (!f.exists() || !f.isFile())
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
     }
 
@@ -755,7 +755,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
       logger.traceException(kse);
 
       ccr.addMessage(ERR_TRUSTSTORE_INVALID_TYPE.get(newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     char[] newPIN = null;
@@ -765,7 +765,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     }
     catch (InitializationException e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(e.getMessageObject());
     }
 
@@ -817,7 +817,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message, e);
     }
   }
@@ -833,7 +833,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     catch (Exception e)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -866,7 +866,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message, e);
     }
   }
@@ -897,7 +897,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
       LocalizableMessage message = ERR_TRUSTSTORE_ERROR_READING_KEY.get(
            alias, trustStoreFile, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message, e);
     }
   }
@@ -941,7 +941,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
               certAlias, trustStoreFile, getExceptionMessage(e));
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message, e);
+               DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
         }
       }
       else
@@ -952,7 +952,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_ATTR.get(entryDN, ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message);
+               DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
         Attribute certAttr = certAttrs.next();
         if (certAttrs.hasNext())
@@ -960,7 +960,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_ATTRS.get(entryDN, ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message);
+               DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
 
         Iterator<ByteString> i = certAttr.iterator();
@@ -970,7 +970,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_VALUE.get(entryDN, ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message);
+               DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
 
         ByteString certBytes = i.next();
@@ -980,7 +980,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           LocalizableMessage message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_VALUES.get(entryDN, ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message);
+               DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
 
         try
@@ -1007,7 +1007,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_WRITE_CERT.get(
               certAlias, getExceptionMessage(e));
           throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message, e);
+               DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
         }
       }
     }
@@ -1016,7 +1016,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
            certAlias, trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(
-           DirectoryServer.getServerErrorResultCode(), message, e);
+           DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -1048,7 +1048,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
       LocalizableMessage message = ERR_TRUSTSTORE_CANNOT_DELETE_CERT.get(
            certAlias, trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(
-           DirectoryServer.getServerErrorResultCode(), message, e);
+           DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 

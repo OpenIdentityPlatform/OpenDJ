@@ -837,7 +837,7 @@ public class HTTPConnectionHandler extends ConnectionHandler<HTTPConnectionHandl
     catch (Exception e)
     {
       logger.traceException(e);
-      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
+      ResultCode resCode = DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
       throw new DirectoryException(resCode, ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE.get(getExceptionMessage(e)), e);
     }
   }

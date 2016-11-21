@@ -145,7 +145,7 @@ public final class JmxConnectionHandler extends
       }
       catch (RuntimeException e)
       {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(e.getMessage()));
       }
     }

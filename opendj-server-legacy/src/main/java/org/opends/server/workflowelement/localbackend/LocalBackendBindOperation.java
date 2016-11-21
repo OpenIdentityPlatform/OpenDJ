@@ -139,9 +139,10 @@ public class LocalBackendBindOperation
     clientConnection         = getClientConnection();
     returnAuthzID            = false;
     executePostOpPlugins     = false;
-    sizeLimit                = DirectoryServer.getSizeLimit();
-    timeLimit                = DirectoryServer.getTimeLimit();
-    lookthroughLimit         = DirectoryServer.getLookthroughLimit();
+    CoreConfigManager coreConfigManager = DirectoryServer.getCoreConfigManager();
+    sizeLimit                = coreConfigManager.getSizeLimit();
+    timeLimit                = coreConfigManager.getTimeLimit();
+    lookthroughLimit         = coreConfigManager.getLookthroughLimit();
     idleTimeLimit            = DirectoryServer.getIdleTimeLimit();
     bindDN                   = getBindDN();
     saslMechanism            = getSASLMechanism();
@@ -536,7 +537,7 @@ public class LocalBackendBindOperation
     }
 
     // If there is a bind DN, then see whether that is acceptable.
-    if (DirectoryServer.bindWithDNRequiresPassword()
+    if (DirectoryServer.getCoreConfigManager().isBindWithDNRequiresPassword()
         && bindDN != null && !bindDN.isRootDN())
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -761,7 +762,7 @@ public class LocalBackendBindOperation
         ((policy.getLockoutFailureCount() > 0) ||
          ((policy.getLastLoginTimeAttribute() != null) &&
           (policy.getLastLoginTimeFormat() != null))) &&
-        ((DirectoryServer.getWritabilityMode() == WritabilityMode.DISABLED) ||
+        ((DirectoryServer.getCoreConfigManager().getWritabilityMode() == WritabilityMode.DISABLED) ||
          (backend.getWritabilityMode() == WritabilityMode.DISABLED)))
     {
       // This policy isn't applicable to root users, so if it's a root

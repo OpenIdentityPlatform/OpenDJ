@@ -1143,7 +1143,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     catch(IOException e)
     {
       LocalizableMessage msg = ERR_CANNOT_RENAME_RESTORE_DIRECTORY.get(restoreDirectory, targetDirectory.getPath());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), msg);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), msg);
     }
   }
 

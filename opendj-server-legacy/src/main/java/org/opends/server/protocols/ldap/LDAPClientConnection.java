@@ -319,7 +319,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     private ASN1WriterHolder()
     {
       this.buffer = new ByteStringBuilder();
-      this.maxBufferSize = getMaxInternalBufferSize();
+      this.maxBufferSize = getCoreConfigManager().getMaxInternalBufferSize();
       this.writer = ASN1.getWriter(buffer, maxBufferSize);
     }
 
@@ -345,7 +345,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   private ASN1WriterHolder getASN1Writer()
   {
     ASN1WriterHolder holder = ASN1_WRITER_CACHE.get();
-    if (holder.maxBufferSize != getMaxInternalBufferSize())
+    if (holder.maxBufferSize != getCoreConfigManager().getMaxInternalBufferSize())
     {
       // Setting has changed, so recreate the holder.
       holder = new ASN1WriterHolder();
@@ -467,7 +467,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     if (keepStats)
     {
       statTracker.updateConnect();
-      this.useNanoTime=DirectoryServer.getUseNanoTime();
+      this.useNanoTime=DirectoryServer.getCoreConfigManager().isUseNanoTime();
     }
     else
     {
@@ -707,7 +707,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       // case, log a message and set the response to "operations error".
       logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE, operation.getOperationType(),
           operation.getConnectionID(), operation.getOperationID());
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      resultCode = DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
     }
 
     LocalizableMessageBuilder errorMessage = operation.getErrorMessage();
@@ -1078,7 +1078,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     case SERVER_SHUTDOWN:
       return LDAPResultCode.UNAVAILABLE;
     case SERVER_ERROR:
-      return DirectoryServer.getServerErrorResultCode().intValue();
+      return DirectoryServer.getCoreConfigManager().getServerErrorResultCode().intValue();
     case ADMIN_LIMIT_EXCEEDED:
     case IDLE_TIME_LIMIT_EXCEEDED:
     case MAX_REQUEST_SIZE_EXCEEDED:
@@ -1189,8 +1189,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
       LocalizableMessage message =
         WARN_LDAP_CLIENT_CANNOT_ENQUEUE.get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer
-          .getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 

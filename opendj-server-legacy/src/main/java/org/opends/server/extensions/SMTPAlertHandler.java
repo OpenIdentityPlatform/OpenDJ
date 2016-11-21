@@ -63,8 +63,8 @@ public class SMTPAlertHandler
   {
     // Make sure that the Directory Server is configured with information about
     // at least one SMTP server.
-    if (DirectoryServer.getMailServerPropertySets() == null ||
-        DirectoryServer.getMailServerPropertySets().isEmpty())
+    if (DirectoryServer.getCoreConfigManager().getMailServerPropertySets() == null ||
+        DirectoryServer.getCoreConfigManager().getMailServerPropertySets().isEmpty())
     {
       throw new ConfigException(ERR_SMTPALERTHANDLER_NO_SMTP_SERVERS.get());
     }

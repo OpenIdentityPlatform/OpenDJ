@@ -1573,7 +1573,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
 
       LocalizableMessage message = ERR_SCHEMA_UNABLE_TO_CREATE_LDIF_WRITER.get(
           stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message);
     }
 
@@ -1589,7 +1589,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
 
       LocalizableMessage message =
           ERR_SCHEMA_UNABLE_TO_EXPORT_BASE.get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message);
     }
     finally
@@ -1638,7 +1638,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
           if (! le.canContinueReading())
           {
             throw new DirectoryException(
-                DirectoryServer.getServerErrorResultCode(),
+                DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                 ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(e), le);
           }
           continue;
@@ -1657,7 +1657,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(e), e);
     }
   }
@@ -1670,7 +1670,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(e), e);
     }
   }
@@ -1744,7 +1744,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
 
       ccr.addMessage(ERR_SCHEMA_CANNOT_DETERMINE_BASE_DN.get(
           configEntryDN, getExceptionMessage(e)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       newBaseDNs = null;
     }
 
@@ -1761,7 +1761,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
 
       ccr.addMessage(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
           configEntryDN, stackTraceToSingleLineString(e)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
@@ -1791,7 +1791,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
           logger.traceException(e);
 
           ccr.addMessage(ERR_SCHEMA_CANNOT_DEREGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
 
@@ -1808,7 +1808,7 @@ public class SchemaBackend extends LocalBackend<SchemaBackendCfg>
           logger.traceException(e);
 
           ccr.addMessage(ERR_SCHEMA_CANNOT_REGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
 

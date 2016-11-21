@@ -103,12 +103,12 @@ public class ConnectionHandlerConfigManager implements
         logger.traceException(e);
 
         ccr.addMessage(e.getMessageObject());
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       } catch (Exception e) {
         logger.traceException(e);
         ccr.addMessage(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
             configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
     }
 
@@ -144,14 +144,14 @@ public class ConnectionHandlerConfigManager implements
         } catch (ConfigException e) {
           logger.traceException(e);
 
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(e.getMessageObject());
         } catch (Exception e) {
           logger.traceException(e);
 
           ccr.addMessage(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
               configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
     } else {

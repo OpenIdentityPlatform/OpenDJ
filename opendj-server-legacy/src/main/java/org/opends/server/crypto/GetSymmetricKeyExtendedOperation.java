@@ -151,12 +151,12 @@ public class GetSymmetricKeyExtendedOperation
     }
     catch (CryptoManagerException e)
     {
-      operation.setResultCode(DirectoryServer.getServerErrorResultCode());
+      operation.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       operation.appendErrorMessage(e.getMessageObject());
     }
     catch (Exception e)
     {
-      operation.setResultCode(DirectoryServer.getServerErrorResultCode());
+      operation.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       operation.appendErrorMessage(StaticUtils.getExceptionMessage(e));
     }
   }

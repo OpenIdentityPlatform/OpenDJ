@@ -960,7 +960,8 @@ public class TaskBackend
           if (!le.canContinueReading())
           {
             LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, le);
+            throw new DirectoryException(
+                serverContext.getCoreConfigManager().getServerErrorResultCode(), message, le);
           }
           continue;
         }
@@ -982,7 +983,7 @@ public class TaskBackend
     catch (Exception e)
     {
       LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -996,7 +997,7 @@ public class TaskBackend
     {
       logger.traceException(e);
       LocalizableMessage message = ERR_TASKS_CANNOT_EXPORT_TO_FILE.get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
   }
 
@@ -1164,7 +1165,7 @@ public class TaskBackend
       logger.traceException(e);
 
       ccr.addMessage(ERR_TASKBE_ERROR_GETTING_BACKING_FILE.get(getExceptionMessage(e)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     long tmpRetentionTime = configEntry.getTaskRetentionTime();

@@ -1269,7 +1269,7 @@ public final class LDAPConnectionHandler extends
     catch (Exception e)
     {
       logger.traceException(e);
-      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
+      ResultCode resCode = DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
       LocalizableMessage message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
           .get(getExceptionMessage(e));
       throw new DirectoryException(resCode, message, e);
@@ -1347,7 +1347,7 @@ public final class LDAPConnectionHandler extends
     catch (Exception e)
     {
       logger.traceException(e);
-      ResultCode resCode = DirectoryServer.getServerErrorResultCode();
+      ResultCode resCode = DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
       LocalizableMessage message = ERR_CONNHANDLER_SSL_CANNOT_INITIALIZE
           .get(getExceptionMessage(e));
       throw new DirectoryException(resCode, message, e);

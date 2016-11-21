@@ -376,7 +376,7 @@ public class LocalBackendAddOperation
       // operation is not a synchronization operation,
       // check to see if the entry is valid according to the server schema,
       // and also whether its attributes are valid according to their syntax.
-      if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
+      if (DirectoryServer.getCoreConfigManager().isCheckSchema() && !isSynchronizationOperation())
       {
         checkSchema(parentEntry);
       }
@@ -573,7 +573,7 @@ public class LocalBackendAddOperation
     if (attrList == null)
     {
       if (!isSynchronizationOperation()
-          && !DirectoryServer.addMissingRDNAttributes())
+          && !DirectoryServer.getCoreConfigManager().isAddMissingRDNAttributes())
       {
         throw newDirectoryException(entryDN, ResultCode.CONSTRAINT_VIOLATION,
             ERR_ADD_MISSING_RDN_ATTRIBUTE.get(entryDN, n));
@@ -600,7 +600,7 @@ public class LocalBackendAddOperation
     }
 
     // not found
-    if (!isSynchronizationOperation() && !DirectoryServer.addMissingRDNAttributes())
+    if (!isSynchronizationOperation() && !DirectoryServer.getCoreConfigManager().isAddMissingRDNAttributes())
     {
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
           ERR_ADD_MISSING_RDN_ATTRIBUTE.get(entryDN, n));
@@ -859,7 +859,7 @@ public class LocalBackendAddOperation
                 message = WARN_ADD_OP_INVALID_SYNTAX.get(entryDN, v, a.getAttributeDescription(), invalidReason);
               }
 
-              switch (DirectoryServer.getSyntaxEnforcementPolicy())
+              switch (DirectoryServer.getCoreConfigManager().getSyntaxEnforcementPolicy())
               {
               case REJECT:
                 throw new DirectoryException(

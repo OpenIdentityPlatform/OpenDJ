@@ -176,7 +176,7 @@ public final class StorageUtils
    */
   public static void addErrorMessage(ConfigChangeResult ccr, LocalizableMessage message)
   {
-    ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+    ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     ccr.addMessage(message);
   }
 

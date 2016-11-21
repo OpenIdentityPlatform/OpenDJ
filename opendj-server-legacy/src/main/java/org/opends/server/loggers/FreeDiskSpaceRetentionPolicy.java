@@ -81,7 +81,7 @@ public class FreeDiskSpaceRetentionPolicy implements
     File[] files = fileNamingPolicy.listFiles();
     if(files == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_LOGGER_ERROR_LISTING_FILES.get(fileNamingPolicy.getInitialName()));
     }
 
@@ -101,7 +101,7 @@ public class FreeDiskSpaceRetentionPolicy implements
       LocalizableMessage message =
           ERR_LOGGER_ERROR_OBTAINING_FREE_SPACE.get(files[0],
               stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                    message, e);
     }
 

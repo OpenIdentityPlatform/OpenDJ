@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2011-2014 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -167,7 +167,7 @@ public class TraditionalWorkerThread
 
           // Ensure that the client receives some kind of result so that it does
           // not hang.
-          operation.setResultCode(DirectoryServer.getServerErrorResultCode());
+          operation.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           operation.appendErrorMessage(message);
           operation.getClientConnection().sendResponse(operation);
         }

@@ -380,7 +380,7 @@ public class RandomPasswordGenerator
       logger.traceException(e);
 
       ccr.addMessage(ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(getExceptionMessage(e)));
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     // Get the value that describes which character set(s) and how many
@@ -421,7 +421,7 @@ public class RandomPasswordGenerator
           logger.traceException(e);
 
           ccr.addMessage(ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(newFormatString));
-          ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         }
       }
     }
@@ -430,7 +430,7 @@ public class RandomPasswordGenerator
       logger.traceException(e);
 
       ccr.addMessage(ERR_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT.get(getExceptionMessage(e)));
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     // If everything looks OK, then apply the changes.

@@ -251,7 +251,7 @@ public class LocalBackendSearchOperation
     {
       logger.traceException(e);
 
-      setResultCode(DirectoryServer.getServerErrorResultCode());
+      setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION
           .get(getExceptionMessage(e)));
 

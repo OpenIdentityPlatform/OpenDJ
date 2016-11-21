@@ -212,7 +212,7 @@ public class RecurringTask
       logger.traceException(ie);
 
       LocalizableMessage message = ERR_RECURRINGTASK_CANNOT_INITIALIZE_INTERNAL.get( taskClassName, ie.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, ie);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, ie);
     }
 
     task.initializeTask();

@@ -244,7 +244,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
         final LocalizableMessage message = ERR_COMPRESSEDSCHEMA_CANNOT_WRITE_UPDATED_DATA
             .get(stackTraceToSingleLineString(e));
         throw new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(), message, e);
+            DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
   }

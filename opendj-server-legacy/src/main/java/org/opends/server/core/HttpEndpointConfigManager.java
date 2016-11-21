@@ -167,13 +167,13 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
     }
     catch (HttpApplicationException e)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ERR_CONFIG_HTTPENDPOINT_UNABLE_TO_START.get(configuration.dn(), stackTraceToSingleLineString(e)));
       router.addRoute(newRoute(configuration.getBasePath()), ErrorHandler.INTERNAL_SERVER_ERROR);
     }
     catch (InitializationException | ConfigException ie)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
       router.addRoute(newRoute(configuration.getBasePath()), ErrorHandler.INTERNAL_SERVER_ERROR);
     }
@@ -340,7 +340,7 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
         }
         catch (ConfigException e)
         {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
           ccr.addMessage(ERR_CONFIG_HTTPENDPOINT_UNABLE_TO_START.get(endpointName, stackTraceToSingleLineString(e)));
           continue;
         }
@@ -398,7 +398,7 @@ public class HttpEndpointConfigManager implements ConfigurationChangeListener<HT
       }
       catch (InitializationException ie)
       {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(ie.getMessageObject());
       }
       return ccr;

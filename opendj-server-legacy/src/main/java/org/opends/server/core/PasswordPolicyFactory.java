@@ -121,13 +121,13 @@ public final class PasswordPolicyFactory implements
       {
         ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
             configuration.dn(), ie.getMessage()));
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
       catch (Exception e)
       {
         ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
             configuration.dn(), stackTraceToSingleLineString(e)));
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
       return ccr;
     }

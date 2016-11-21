@@ -1116,7 +1116,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_LIST_FILES_TO_BACKUP.get(config.getBackendId(), stackTraceToSingleLineString(e)));
     }
   }
@@ -1169,7 +1169,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     catch(IOException e)
     {
       LocalizableMessage msg = ERR_CANNOT_RENAME_RESTORE_DIRECTORY.get(restoreDirectory, targetDirectory.getPath());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), msg);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), msg);
     }
   }
 
@@ -1187,7 +1187,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
     catch (RemoteException e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_SWITCH_TO_APPEND_MODE.get(config.getBackendId(), stackTraceToSingleLineString(e)));
     }
   }
@@ -1206,7 +1206,7 @@ public final class PDBStorage implements Storage, Backupable, ConfigurationChang
     }
     catch (RemoteException e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_END_APPEND_MODE.get(config.getBackendId(), stackTraceToSingleLineString(e)));
     }
   }

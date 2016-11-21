@@ -223,7 +223,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         statTracker = this.connectionHandler.getStatTracker();
         if (keepStats) {
             statTracker.updateConnect();
-            this.useNanoTime = DirectoryServer.getUseNanoTime();
+            this.useNanoTime = DirectoryServer.getCoreConfigManager().isUseNanoTime();
         } else {
             this.useNanoTime = false;
         }
@@ -427,7 +427,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             // case, log a message and set the response to "operations error".
             logger.error(ERR_LDAP_CLIENT_SEND_RESPONSE_NO_RESULT_CODE, operation.getOperationType(),
                     operation.getConnectionID(), operation.getOperationID());
-            resultCode = DirectoryServer.getServerErrorResultCode();
+            resultCode = DirectoryServer.getCoreConfigManager().getServerErrorResultCode();
         }
 
         LocalizableMessageBuilder errorMessage = operation.getErrorMessage();
@@ -685,7 +685,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
         case SERVER_SHUTDOWN:
             return LDAPResultCode.UNAVAILABLE;
         case SERVER_ERROR:
-            return DirectoryServer.getServerErrorResultCode().intValue();
+            return DirectoryServer.getCoreConfigManager().getServerErrorResultCode().intValue();
         case ADMIN_LIMIT_EXCEEDED:
         case IDLE_TIME_LIMIT_EXCEEDED:
         case MAX_REQUEST_SIZE_EXCEEDED:
@@ -775,7 +775,7 @@ public final class LDAPClientConnection2 extends ClientConnection implements TLS
             logger.traceException(e);
 
             LocalizableMessage message = WARN_LDAP_CLIENT_CANNOT_ENQUEUE.get(getExceptionMessage(e));
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
         }
     }
 

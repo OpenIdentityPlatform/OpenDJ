@@ -435,19 +435,19 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
       if (subDNs.isEmpty())
       {
         // This is fine -- we'll just use the set of user-defined suffixes.
+        return true;
       }
-      else
+      boolean hasError = false;
+      for (DN baseDN : subDNs)
       {
-        for (DN baseDN : subDNs)
+        LocalBackend<?> backend = serverContext.getBackendConfigManager().findLocalBackendForEntry(baseDN);
+        if (backend == null)
         {
-          LocalBackend<?> backend = serverContext.getBackendConfigManager().findLocalBackendForEntry(baseDN);
-          if (backend == null)
-          {
-            unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
-            return false;
-          }
+          unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
+          hasError = true;
         }
       }
+      return !hasError;
     }
     catch (Exception e)
     {
@@ -455,7 +455,6 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
       unacceptableReasons.add(WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(stackTraceToSingleLineString(e)));
       return false;
     }
-    return true;
   }
 
   private void applySubordinateDNsChange(GlobalCfg cfg, CoreAttributes coreAttrs)
@@ -511,7 +510,7 @@ public class CoreConfigManager implements ConfigurationChangeListener<GlobalCfg>
     }
     catch (ConfigException e)
     {
-      changeResult.setResultCode(DirectoryServer.getServerErrorResultCode());
+      changeResult.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       changeResult.addMessage(e.getMessageObject());
     }
 

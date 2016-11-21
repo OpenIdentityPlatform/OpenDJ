@@ -142,7 +142,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
 
       ccr.addMessage(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
           configEntryDN, stackTraceToSingleLineString(e)));
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
     }
 
     userDefinedAttributes = userAttrs;
@@ -252,7 +252,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
       {
         logger.traceException(e);
         final LocalizableMessage message = ERR_MONITOR_UNABLE_TO_EXPORT_BASE.get(stackTraceToSingleLineString(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
       }
 
       // Get all the monitor providers, convert them to entries, and write them to LDIF.
@@ -268,7 +268,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
           final LocalizableMessage message =
               ERR_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY.get(monitorProvider.getMonitorInstanceName(),
                   stackTraceToSingleLineString(e));
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
         }
       }
     }
@@ -289,7 +289,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
       logger.traceException(e);
 
       final LocalizableMessage message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER.get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message);
     }
   }
 
@@ -319,7 +319,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 

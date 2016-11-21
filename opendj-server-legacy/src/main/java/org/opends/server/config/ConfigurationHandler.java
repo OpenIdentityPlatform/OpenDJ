@@ -707,7 +707,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
         {
           logger.traceException(e);
           LocalizableMessage message = ERR_CONFIG_FILE_WRITE_ERROR.get(entry.getName(), e);
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+          throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
         }
       }
     }
@@ -715,7 +715,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     {
       logger.traceException(e);
       LocalizableMessage message = ERR_CONFIG_LDIF_WRITE_ERROR.get(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -1515,7 +1515,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     {
       LocalizableMessage message =
           ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(latestFile.getAbsolutePath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 
@@ -1535,7 +1535,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     catch (Exception e)
     {
       LocalizableMessage message = ERR_CONFIG_CANNOT_CALCULATE_DIGEST.get(configFile, stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
 

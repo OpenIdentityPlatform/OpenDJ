@@ -216,7 +216,7 @@ public class EntryContainer
       }
       catch(Exception e)
       {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(e.getLocalizedMessage()));
       }
       return ccr;
@@ -250,7 +250,7 @@ public class EntryContainer
       }
       catch (Exception de)
       {
-        ccr.setResultCode(getServerErrorResultCode());
+        ccr.setResultCode(getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
       }
       finally
@@ -300,7 +300,7 @@ public class EntryContainer
       }
       catch(Exception e)
       {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
       }
       return ccr;
@@ -331,7 +331,7 @@ public class EntryContainer
       }
       catch (Exception e)
       {
-        ccr.setResultCode(getServerErrorResultCode());
+        ccr.setResultCode(getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
       }
       finally
@@ -1506,7 +1506,7 @@ public class EntryContainer
               msg = stackTraceToSingleLineString(e);
             }
             throw new DirectoryException(
-                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
+                DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
       });
@@ -1660,7 +1660,7 @@ public class EntryContainer
                 final EntryID entryID = new EntryID(entryIDLong);
                 if (!cursor.positionToKey(entryID.toByteString()))
                 {
-                  throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                  throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                                ERR_MISSING_ID2ENTRY_RECORD.get(entryID));
                 }
                 final Entry entry = cursor.getValue();
@@ -1705,7 +1705,7 @@ public class EntryContainer
               msg = stackTraceToSingleLineString(e);
             }
             throw new DirectoryException(
-                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
+                DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
 
@@ -1717,7 +1717,7 @@ public class EntryContainer
                     getPluginConfigManager().invokeSubordinateDeletePlugins(deleteOperation, entry);
             if (!pluginResult.continueProcessing())
             {
-              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                            ERR_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(entry.getName()));
             }
           }
@@ -1916,7 +1916,7 @@ public class EntryContainer
               msg = stackTraceToSingleLineString(e);
             }
             throw new DirectoryException(
-                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
+                DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
       });
@@ -2049,7 +2049,7 @@ public class EntryContainer
               msg = stackTraceToSingleLineString(e);
             }
             throw new DirectoryException(
-                DirectoryServer.getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
+                DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), ERR_UNCHECKED_EXCEPTION.get(msg), e);
           }
         }
 
@@ -2066,7 +2066,7 @@ public class EntryContainer
           final EntryID newEntryID = new EntryID(renamedEntryID.getSecond());
           if (!cursor.positionToKey(oldEntryID.toByteString()))
           {
-            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+            throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                          ERR_MISSING_ID2ENTRY_RECORD.get(oldEntryID));
           }
 
@@ -2142,7 +2142,7 @@ public class EntryContainer
 
             if (!pluginResult.continueProcessing())
             {
-              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+              throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                            ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(oldEntry.getName(),
                                                                                           newEntry.getName()));
             }
@@ -2152,7 +2152,7 @@ public class EntryContainer
               LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
               if (!newEntry.conformsToSchema(null, false, false, false, invalidReason))
               {
-                throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
                                              ERR_MODIFYDN_ABORTED_BY_SUBORDINATE_SCHEMA_ERROR.get(oldEntry.getName(),
                                                                                                   newEntry.getName(),
                                                                                                   invalidReason));
@@ -2430,7 +2430,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     finally
@@ -2562,7 +2562,7 @@ public class EntryContainer
       catch (Exception e)
       {
         LocalizableMessage message = ERR_ENTRYIDSORTER_CANNOT_EXAMINE_ENTRY.get(id, getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+        throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
       }
     }
 

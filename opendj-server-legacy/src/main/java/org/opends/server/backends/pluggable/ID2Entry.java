@@ -95,7 +95,7 @@ class ID2Entry extends AbstractTree
   private static EntryCodec acquireEntryCodec()
   {
     EntryCodec codec = ENTRY_CODEC_CACHE.get();
-    if (codec.maxBufferSize != getMaxInternalBufferSize())
+    if (codec.maxBufferSize != getCoreConfigManager().getMaxInternalBufferSize())
     {
       // Setting has changed, so recreate the codec.
       codec = new EntryCodec();
@@ -130,7 +130,7 @@ class ID2Entry extends AbstractTree
 
     private EntryCodec()
     {
-      this.maxBufferSize = getMaxInternalBufferSize();
+      this.maxBufferSize = getCoreConfigManager().getMaxInternalBufferSize();
     }
 
     private void release()
@@ -464,7 +464,8 @@ class ID2Entry extends AbstractTree
     }
     catch (Exception e)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(entryID));
+      throw new DirectoryException(
+          DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), ERR_ENTRY_DATABASE_CORRUPT.get(entryID));
     }
   }
 

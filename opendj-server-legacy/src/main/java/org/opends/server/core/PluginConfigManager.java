@@ -1796,8 +1796,8 @@ public class PluginConfigManager
             stackTraceToSingleLineString(e));
     logger.error(message);
 
-    return PluginResult.PreParse.stopProcessing(DirectoryServer
-        .getServerErrorResultCode(), message);
+    return PluginResult.PreParse.stopProcessing(
+        serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
   }
 
   private PluginResult.PreParse handlePreParseResult(
@@ -1809,8 +1809,8 @@ public class PluginConfigManager
             .getPluginEntryDN(), operation.getConnectionID(), operation.getOperationID());
     logger.error(message);
 
-    return PluginResult.PreParse.stopProcessing(DirectoryServer
-        .getServerErrorResultCode(), message);
+    return PluginResult.PreParse.stopProcessing(
+        serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
   }
 
   /**
@@ -2558,8 +2558,8 @@ public class PluginConfigManager
 
     registerSkippedPreOperationPlugins(i, plugins, operation);
 
-    return PluginResult.PreOperation.stopProcessing(DirectoryServer
-        .getServerErrorResultCode(), message);
+    return PluginResult.PreOperation.stopProcessing(
+        serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
   }
 
   private PluginResult.PreOperation handlePreOperationResult(
@@ -2575,8 +2575,8 @@ public class PluginConfigManager
 
     registerSkippedPreOperationPlugins(i, plugins, operation);
 
-    return PluginResult.PreOperation.stopProcessing(DirectoryServer
-        .getServerErrorResultCode(), message);
+    return PluginResult.PreOperation.stopProcessing(
+        serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
   }
 
   /**
@@ -4034,7 +4034,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -4047,7 +4047,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -4106,7 +4106,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -4119,7 +4119,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing(false,
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -4184,7 +4184,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.SubordinateModifyDN.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -4197,7 +4197,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.SubordinateModifyDN.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -4254,7 +4254,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.SubordinateDelete.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -4267,7 +4267,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.SubordinateDelete.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+            serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -4318,7 +4318,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing
-            (false, DirectoryServer.getServerErrorResultCode(), message);
+            (false, serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -4329,7 +4329,7 @@ public class PluginConfigManager
         logger.error(message);
 
         return PluginResult.IntermediateResponse.stopProcessing
-            (false, DirectoryServer.getServerErrorResultCode(), message);
+            (false, serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -4398,7 +4398,7 @@ public class PluginConfigManager
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(serverContext.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 
@@ -4508,7 +4508,7 @@ public class PluginConfigManager
     }
     catch (InitializationException ie)
     {
-      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCodeIfSuccess(serverContext.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(ie.getMessageObject());
     }
 

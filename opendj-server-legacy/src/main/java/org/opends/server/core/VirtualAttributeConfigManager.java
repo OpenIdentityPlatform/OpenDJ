@@ -250,7 +250,7 @@ public class VirtualAttributeConfigManager
       }
       catch (InitializationException ie)
       {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(ie.getMessageObject());
       }
     }
@@ -372,7 +372,7 @@ public class VirtualAttributeConfigManager
       }
       catch (InitializationException ie)
       {
-        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
         ccr.addMessage(ie.getMessageObject());
       }
     }

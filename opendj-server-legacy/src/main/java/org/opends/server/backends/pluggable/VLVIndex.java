@@ -281,7 +281,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
       catch (final StorageRuntimeException de)
       {
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+        ccr.setResultCodeIfSuccess(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       }
     }
 

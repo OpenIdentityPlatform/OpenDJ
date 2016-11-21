@@ -152,7 +152,7 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
     }
     catch (DirectoryException e)
     {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
       ccr.addMessage(e.getMessageObject());
     }
     return ccr;
