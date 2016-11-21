@@ -40,9 +40,7 @@ import org.glassfish.grizzly.ssl.SSLFilter;
 
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
 
-/**
- * Common utility methods.
- */
+/** Common utility methods. */
 final class GrizzlyUtils {
     @SuppressWarnings("rawtypes")
     private static final ThreadCache.CachedTypeIndex<LDAPWriter> WRITER_INDEX = ThreadCache
@@ -53,7 +51,7 @@ final class GrizzlyUtils {
 
     /**
      * Build a filter chain from the provided processor if possible and the
-     * provided filter.
+     * provided filters.
      * <p>
      * If the provided processor can't be used for building the new filter
      * chain, then a chain with only a {@code TransportFilter} is used as a base
@@ -64,11 +62,11 @@ final class GrizzlyUtils {
      *            not a filter chain (for example, it can be a
      *            {@code StandaloneProcessor} then it is ignored to build the
      *            returned filter chain
-     * @param filter
-     *            filter to add at the end of the filter chain
+     * @param filters
+     *            filters to add at the end of the filter chain
      * @return a new filter chain, based on the provided processor if processor
-     *         is a {@code FilterChain}, and having the provided filter as the
-     *         last filter
+     *         is a {@code FilterChain}, and having the provided filters as the
+     *         last filters
      */
     static FilterChain buildFilterChain(Processor<?> processor, Filter... filters) {
         if (processor instanceof FilterChain) {
@@ -231,5 +229,4 @@ final class GrizzlyUtils {
     private GrizzlyUtils() {
         // No implementation required.
     }
-
 }

@@ -87,7 +87,6 @@ import io.reactivex.internal.util.BackpressureHelper;
  * over LDAP.
  */
 final class LDAPServerFilter extends BaseFilter {
-
     private final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                            LdapException> connectionHandlerFactory;
@@ -127,12 +126,8 @@ final class LDAPServerFilter extends BaseFilter {
     /**
      * Creates a server filter with provided listener, options and max size of ASN1 element.
      *
-     * @param listener
-     *            listen for incoming connections
      * @param options
      *            control how to decode requests and responses
-     * @param maxASN1ElementSize
-     *            The maximum BER element size, or <code>0</code> to indicate that there is no limit.
      */
     LDAPServerFilter(
             final Function<LDAPClientContext,
@@ -332,10 +327,10 @@ final class LDAPServerFilter extends BaseFilter {
         @Override
         public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
             final GrizzlyBackpressureSubscription immutableRef = downstream;
-            if (immutableRef == null) {
-                ctx.getConnection().closeSilently();
-            } else {
+            if (immutableRef != null) {
                 immutableRef.onError(error);
+            } else {
+                ctx.getConnection().closeSilently();
             }
         }
 
@@ -453,9 +448,7 @@ final class LDAPServerFilter extends BaseFilter {
                 } else if ("high".equalsIgnoreCase(negStrength)) {
                     return 128;
                 }
-                /*
-                 * Treat anything else as if not security is provided and keep the server running
-                 */
+                // Treat anything else as if no security was provided and keep the server running
             }
             return ssf;
         }

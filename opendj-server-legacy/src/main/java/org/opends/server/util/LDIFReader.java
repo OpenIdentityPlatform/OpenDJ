@@ -387,7 +387,6 @@ public class LDIFReader implements Closeable
         case "modify":
           return parseModifyChangeRecordEntry(entryDN, lines);
         case "modrdn":
-          return parseModifyDNChangeRecordEntry(entryDN, lines);
         case "moddn":
           return parseModifyDNChangeRecordEntry(entryDN, lines);
         default:
@@ -1508,7 +1507,7 @@ public class LDIFReader implements Closeable
       try
       {
         builder.append("# ")
-                .append(String.valueOf(message))
+                .append(message)
                 .append(eol);
         for (final StringBuilder sb : lines)
         {

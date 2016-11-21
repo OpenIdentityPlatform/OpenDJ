@@ -44,9 +44,8 @@ import org.glassfish.grizzly.filterchain.NextAction;
  * detection, a LdapCodec instance cannot be shared accross different connection
  */
 abstract class LdapCodec extends LDAPBaseFilter {
-
-    private boolean isLdapV2Pending = false;
-    private boolean isLdapV2 = false;
+    private boolean isLdapV2Pending;
+    private boolean isLdapV2;
 
     LdapCodec(final int maxElementSize, final DecodeOptions decodeOptions) {
         super(decodeOptions, maxElementSize);

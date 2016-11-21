@@ -13,7 +13,6 @@
  *
  * Copyright 2013-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.io;
 
 import java.io.IOException;
@@ -45,116 +44,70 @@ import org.forgerock.opendj.ldap.schema.Schema;
 public final class LDAP {
     // @Checkstyle:ignore AvoidNestedBlocks
 
-    /**
-     * The OID for the Kerberos V GSSAPI mechanism.
-     */
+    /** The OID for the Kerberos V GSSAPI mechanism. */
     public static final String OID_GSSAPI_KERBEROS_V = "1.2.840.113554.1.2.2";
 
-    /**
-     * The OID for the LDAP notice of disconnection extended operation.
-     */
+    /** The OID for the LDAP notice of disconnection extended operation. */
     public static final String OID_NOTICE_OF_DISCONNECTION = "1.3.6.1.4.1.1466.20036";
 
-    /**
-     * The protocol op type for abandon requests.
-     */
+    /** The protocol op type for abandon requests. */
     public static final byte OP_TYPE_ABANDON_REQUEST = 0x50;
 
-    /**
-     * The protocol op type for add requests.
-     */
+    /** The protocol op type for add requests. */
     public static final byte OP_TYPE_ADD_REQUEST = 0x68;
 
-    /**
-     * The protocol op type for add responses.
-     */
+    /** The protocol op type for add responses. */
     public static final byte OP_TYPE_ADD_RESPONSE = 0x69;
 
-    /**
-     * The protocol op type for bind requests.
-     */
+    /** The protocol op type for bind requests. */
     public static final byte OP_TYPE_BIND_REQUEST = 0x60;
 
-    /**
-     * The protocol op type for bind responses.
-     */
+    /** The protocol op type for bind responses. */
     public static final byte OP_TYPE_BIND_RESPONSE = 0x61;
 
-    /**
-     * The protocol op type for compare requests.
-     */
+    /** The protocol op type for compare requests. */
     public static final byte OP_TYPE_COMPARE_REQUEST = 0x6E;
 
-    /**
-     * The protocol op type for compare responses.
-     */
+    /** The protocol op type for compare responses. */
     public static final byte OP_TYPE_COMPARE_RESPONSE = 0x6F;
 
-    /**
-     * The protocol op type for delete requests.
-     */
+    /** The protocol op type for delete requests. */
     public static final byte OP_TYPE_DELETE_REQUEST = 0x4A;
 
-    /**
-     * The protocol op type for delete responses.
-     */
+    /** The protocol op type for delete responses. */
     public static final byte OP_TYPE_DELETE_RESPONSE = 0x6B;
 
-    /**
-     * The protocol op type for extended requests.
-     */
+    /** The protocol op type for extended requests. */
     public static final byte OP_TYPE_EXTENDED_REQUEST = 0x77;
 
-    /**
-     * The protocol op type for extended responses.
-     */
+    /** The protocol op type for extended responses. */
     public static final byte OP_TYPE_EXTENDED_RESPONSE = 0x78;
 
-    /**
-     * The protocol op type for intermediate responses.
-     */
+    /** The protocol op type for intermediate responses. */
     public static final byte OP_TYPE_INTERMEDIATE_RESPONSE = 0x79;
 
-    /**
-     * The protocol op type for modify DN requests.
-     */
+    /** The protocol op type for modify DN requests. */
     public static final byte OP_TYPE_MODIFY_DN_REQUEST = 0x6C;
 
-    /**
-     * The protocol op type for modify DN responses.
-     */
+    /** The protocol op type for modify DN responses. */
     public static final byte OP_TYPE_MODIFY_DN_RESPONSE = 0x6D;
 
-    /**
-     * The protocol op type for modify requests.
-     */
+    /** The protocol op type for modify requests. */
     public static final byte OP_TYPE_MODIFY_REQUEST = 0x66;
 
-    /**
-     * The protocol op type for modify responses.
-     */
+    /** The protocol op type for modify responses. */
     public static final byte OP_TYPE_MODIFY_RESPONSE = 0x67;
-    /**
-     * The protocol op type for search requests.
-     */
+    /** The protocol op type for search requests. */
     public static final byte OP_TYPE_SEARCH_REQUEST = 0x63;
-    /**
-     * The protocol op type for search result done elements.
-     */
+    /** The protocol op type for search result done elements. */
     public static final byte OP_TYPE_SEARCH_RESULT_DONE = 0x65;
-    /**
-     * The protocol op type for search result entries.
-     */
+    /** The protocol op type for search result entries. */
     public static final byte OP_TYPE_SEARCH_RESULT_ENTRY = 0x64;
-    /**
-     * The protocol op type for search result references.
-     */
+    /** The protocol op type for search result references. */
     public static final byte OP_TYPE_SEARCH_RESULT_REFERENCE = 0x73;
-    /**
-     * The protocol op type for unbind requests.
-     */
+    /** The protocol op type for unbind requests. */
     public static final byte OP_TYPE_UNBIND_REQUEST = 0x42;
-    /** Mapping between request protocol op and their respecetive response protocol op. */
+    /** Mapping between request protocol op and their respective response protocol op. */
     public static final byte[] OP_TO_RESULT_TYPE = new byte[0xFF];
     static {
         Arrays.fill(OP_TO_RESULT_TYPE, (byte) 0x00);
@@ -166,7 +119,7 @@ public final class LDAP {
         OP_TO_RESULT_TYPE[OP_TYPE_MODIFY_DN_REQUEST] = OP_TYPE_MODIFY_DN_RESPONSE;
         OP_TO_RESULT_TYPE[OP_TYPE_MODIFY_REQUEST] = OP_TYPE_MODIFY_RESPONSE;
         OP_TO_RESULT_TYPE[OP_TYPE_SEARCH_REQUEST] = OP_TYPE_SEARCH_RESULT_DONE;
-    };
+    }
     /**
      * The BER type to use for the AuthenticationChoice element in a bind
      * request when SASL authentication is to be used.
@@ -177,117 +130,59 @@ public final class LDAP {
      * request when simple authentication is to be used.
      */
     public static final byte TYPE_AUTHENTICATION_SIMPLE = (byte) 0x80;
-    /**
-     * The BER type to use for encoding the sequence of controls in an LDAP
-     * message.
-     */
+    /** The BER type to use for encoding the sequence of controls in an LDAP message. */
     public static final byte TYPE_CONTROL_SEQUENCE = (byte) 0xA0;
-    /**
-     * The BER type to use for the OID of an extended request.
-     */
+    /** The BER type to use for the OID of an extended request. */
     public static final byte TYPE_EXTENDED_REQUEST_OID = (byte) 0x80;
-    /**
-     * The BER type to use for the value of an extended request.
-     */
+    /** The BER type to use for the value of an extended request. */
     public static final byte TYPE_EXTENDED_REQUEST_VALUE = (byte) 0x81;
-    /**
-     * The BER type to use for the OID of an extended response.
-     */
+    /** The BER type to use for the OID of an extended response. */
     public static final byte TYPE_EXTENDED_RESPONSE_OID = (byte) 0x8A;
-    /**
-     * The BER type to use for the value of an extended response.
-     */
+    /** The BER type to use for the value of an extended response. */
     public static final byte TYPE_EXTENDED_RESPONSE_VALUE = (byte) 0x8B;
-    /**
-     * The BER type to use for AND filter components.
-     */
+    /** The BER type to use for AND filter components. */
     public static final byte TYPE_FILTER_AND = (byte) 0xA0;
-    /**
-     * The BER type to use for approximate filter components.
-     */
+    /** The BER type to use for approximate filter components. */
     public static final byte TYPE_FILTER_APPROXIMATE = (byte) 0xA8;
-    /**
-     * The BER type to use for equality filter components.
-     */
+    /** The BER type to use for equality filter components. */
     public static final byte TYPE_FILTER_EQUALITY = (byte) 0xA3;
-    /**
-     * The BER type to use for extensible matching filter components.
-     */
+    /** The BER type to use for extensible matching filter components. */
     public static final byte TYPE_FILTER_EXTENSIBLE_MATCH = (byte) 0xA9;
-    /**
-     * The BER type to use for greater than or equal to filter components.
-     */
+    /** The BER type to use for greater than or equal to filter components. */
     public static final byte TYPE_FILTER_GREATER_OR_EQUAL = (byte) 0xA5;
-    /**
-     * The BER type to use for less than or equal to filter components.
-     */
+    /** The BER type to use for less than or equal to filter components. */
     public static final byte TYPE_FILTER_LESS_OR_EQUAL = (byte) 0xA6;
-    /**
-     * The BER type to use for NOT filter components.
-     */
+    /** The BER type to use for NOT filter components. */
     public static final byte TYPE_FILTER_NOT = (byte) 0xA2;
-    /**
-     * The BER type to use for OR filter components.
-     */
+    /** The BER type to use for OR filter components. */
     public static final byte TYPE_FILTER_OR = (byte) 0xA1;
-    /**
-     * The BER type to use for presence filter components.
-     */
+    /** The BER type to use for presence filter components. */
     public static final byte TYPE_FILTER_PRESENCE = (byte) 0x87;
-    /**
-     * The BER type to use for substring filter components.
-     */
+    /** The BER type to use for substring filter components. */
     public static final byte TYPE_FILTER_SUBSTRING = (byte) 0xA4;
-    /**
-     * The BER type to use for the OID of an intermediate response message.
-     */
+    /** The BER type to use for the OID of an intermediate response message. */
     public static final byte TYPE_INTERMEDIATE_RESPONSE_OID = (byte) 0x80;
-    /**
-     * The BER type to use for the value of an intermediate response message.
-     */
+    /** The BER type to use for the value of an intermediate response message. */
     public static final byte TYPE_INTERMEDIATE_RESPONSE_VALUE = (byte) 0x81;
-    /**
-     * The BER type to use for the DN attributes flag in a matching rule
-     * assertion.
-     */
+    /** The BER type to use for the DN attributes flag in a matching rule assertion. */
     public static final byte TYPE_MATCHING_RULE_DN_ATTRIBUTES = (byte) 0x84;
-    /**
-     * The BER type to use for the matching rule OID in a matching rule
-     * assertion.
-     */
+    /** The BER type to use for the matching rule OID in a matching rule assertion. */
     public static final byte TYPE_MATCHING_RULE_ID = (byte) 0x81;
-    /**
-     * The BER type to use for the attribute type in a matching rule assertion.
-     */
+    /** The BER type to use for the attribute type in a matching rule assertion. */
     public static final byte TYPE_MATCHING_RULE_TYPE = (byte) 0x82;
-    /**
-     * The BER type to use for the assertion value in a matching rule assertion.
-     */
+    /** The BER type to use for the assertion value in a matching rule assertion. */
     public static final byte TYPE_MATCHING_RULE_VALUE = (byte) 0x83;
-    /**
-     * The BER type to use for the newSuperior component of a modify DN request.
-     */
+    /** The BER type to use for the newSuperior component of a modify DN request. */
     public static final byte TYPE_MODIFY_DN_NEW_SUPERIOR = (byte) 0x80;
-    /**
-     * The BER type to use for encoding the sequence of referral URLs in an
-     * LDAPResult element.
-     */
+    /** The BER type to use for encoding the sequence of referral URLs in an LDAPResult element. */
     public static final byte TYPE_REFERRAL_SEQUENCE = (byte) 0xA3;
-    /**
-     * The BER type to use for the server SASL credentials in a bind response.
-     */
+    /** The BER type to use for the server SASL credentials in a bind response. */
     public static final byte TYPE_SERVER_SASL_CREDENTIALS = (byte) 0x87;
-    /**
-     * The BER type to use for the subAny component(s) of a substring filter.
-     */
+    /** The BER type to use for the subAny component(s) of a substring filter. */
     public static final byte TYPE_SUBANY = (byte) 0x81;
-    /**
-     * The BER type to use for the subFinal components of a substring filter.
-     */
+    /** The BER type to use for the subFinal components of a substring filter. */
     public static final byte TYPE_SUBFINAL = (byte) 0x82;
-    /**
-     * The BER type to use for the subInitial component of a substring filter.
-     */
+    /** The BER type to use for the subInitial component of a substring filter. */
     public static final byte TYPE_SUBINITIAL = (byte) 0x80;
     private static final FilterVisitor<IOException, ASN1Writer> ASN1_ENCODER =
             new FilterVisitor<IOException, ASN1Writer>() {
@@ -313,29 +208,13 @@ public final class LDAP {
                 @Override
                 public IOException visitApproxMatchFilter(final ASN1Writer writer,
                         final String attributeDescription, final ByteString assertionValue) {
-                    try {
-                        writer.writeStartSequence(LDAP.TYPE_FILTER_APPROXIMATE);
-                        writer.writeOctetString(attributeDescription);
-                        writer.writeOctetString(assertionValue);
-                        writer.writeEndSequence();
-                        return null;
-                    } catch (final IOException e) {
-                        return e;
-                    }
+                    return writeFilter(writer, LDAP.TYPE_FILTER_APPROXIMATE, attributeDescription, assertionValue);
                 }
 
                 @Override
                 public IOException visitEqualityMatchFilter(final ASN1Writer writer,
                         final String attributeDescription, final ByteString assertionValue) {
-                    try {
-                        writer.writeStartSequence(LDAP.TYPE_FILTER_EQUALITY);
-                        writer.writeOctetString(attributeDescription);
-                        writer.writeOctetString(assertionValue);
-                        writer.writeEndSequence();
-                        return null;
-                    } catch (final IOException e) {
-                        return e;
-                    }
+                    return writeFilter(writer, LDAP.TYPE_FILTER_EQUALITY, attributeDescription, assertionValue);
                 }
 
                 @Override
@@ -350,8 +229,7 @@ public final class LDAP {
                         }
 
                         if (attributeDescription != null) {
-                            writer.writeOctetString(LDAP.TYPE_MATCHING_RULE_TYPE,
-                                    attributeDescription);
+                            writer.writeOctetString(LDAP.TYPE_MATCHING_RULE_TYPE, attributeDescription);
                         }
 
                         writer.writeOctetString(LDAP.TYPE_MATCHING_RULE_VALUE, assertionValue);
@@ -370,22 +248,19 @@ public final class LDAP {
                 @Override
                 public IOException visitGreaterOrEqualFilter(final ASN1Writer writer,
                         final String attributeDescription, final ByteString assertionValue) {
-                    try {
-                        writer.writeStartSequence(LDAP.TYPE_FILTER_GREATER_OR_EQUAL);
-                        writer.writeOctetString(attributeDescription);
-                        writer.writeOctetString(assertionValue);
-                        writer.writeEndSequence();
-                        return null;
-                    } catch (final IOException e) {
-                        return e;
-                    }
+                    return writeFilter(writer, LDAP.TYPE_FILTER_GREATER_OR_EQUAL, attributeDescription, assertionValue);
                 }
 
                 @Override
                 public IOException visitLessOrEqualFilter(final ASN1Writer writer,
                         final String attributeDescription, final ByteString assertionValue) {
+                    return writeFilter(writer, LDAP.TYPE_FILTER_LESS_OR_EQUAL, attributeDescription, assertionValue);
+                }
+
+                public IOException writeFilter(final ASN1Writer writer,
+                        byte filterType, final String attributeDescription, final ByteString assertionValue) {
                     try {
-                        writer.writeStartSequence(LDAP.TYPE_FILTER_LESS_OR_EQUAL);
+                        writer.writeStartSequence(filterType);
                         writer.writeOctetString(attributeDescription);
                         writer.writeOctetString(assertionValue);
                         writer.writeEndSequence();
@@ -720,7 +595,6 @@ public final class LDAP {
         } finally {
             reader.readEndSequence();
         }
-
     }
 
     private static Filter readEqualityMatchFilter(final ASN1Reader reader) throws IOException {
@@ -813,27 +687,25 @@ public final class LDAP {
             final String attributeDescription = reader.readOctetStringAsString();
             reader.readStartSequence();
             try {
-                // FIXME: There should be at least one element in this substring
-                // filter sequence.
+                // FIXME: There should be at least one element in this substring filter sequence.
                 ByteString initialSubstring = null;
                 if (reader.peekType() == LDAP.TYPE_SUBINITIAL) {
                     initialSubstring = reader.readOctetString(LDAP.TYPE_SUBINITIAL);
                 }
                 final List<ByteString> anySubstrings;
-                if (reader.hasNextElement() && (reader.peekType() == LDAP.TYPE_SUBANY)) {
+                if (reader.hasNextElement() && reader.peekType() == LDAP.TYPE_SUBANY) {
                     anySubstrings = new LinkedList<>();
                     do {
                         anySubstrings.add(reader.readOctetString(LDAP.TYPE_SUBANY));
-                    } while (reader.hasNextElement() && (reader.peekType() == LDAP.TYPE_SUBANY));
+                    } while (reader.hasNextElement() && reader.peekType() == LDAP.TYPE_SUBANY);
                 } else {
                     anySubstrings = Collections.emptyList();
                 }
                 ByteString finalSubstring = null;
-                if (reader.hasNextElement() && (reader.peekType() == LDAP.TYPE_SUBFINAL)) {
+                if (reader.hasNextElement() && reader.peekType() == LDAP.TYPE_SUBFINAL) {
                     finalSubstring = reader.readOctetString(LDAP.TYPE_SUBFINAL);
                 }
-                return Filter.substrings(attributeDescription, initialSubstring, anySubstrings,
-                        finalSubstring);
+                return Filter.substrings(attributeDescription, initialSubstring, anySubstrings, finalSubstring);
             } finally {
                 reader.readEndSequence();
             }
