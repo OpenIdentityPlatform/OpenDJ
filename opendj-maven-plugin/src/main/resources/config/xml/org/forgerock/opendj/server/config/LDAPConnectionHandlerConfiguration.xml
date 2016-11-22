@@ -13,7 +13,7 @@
   information: "Portions Copyright [year] [name of copyright owner]".
 
   Copyright 2007-2009 Sun Microsystems, Inc.
-  Portions copyright 2011-2013 ForgeRock AS.
+  Portions copyright 2011-2016 ForgeRock AS.
   ! -->
 <adm:managed-object name="ldap-connection-handler"
   plural-name="ldap-connection-handlers"
@@ -44,25 +44,6 @@
             <adm:contains property="allow-start-tls" value="true" />
           </adm:or>
           <adm:is-present property="key-manager-provider" />
-        </adm:implies>
-      </adm:implies>
-    </adm:condition>
-  </adm:constraint>
-  <adm:constraint>
-    <adm:synopsis>
-      A Trust Manager Provider must be specified when this
-      <adm:user-friendly-name />
-      is enabled and it is configured to use SSL or StartTLS.
-    </adm:synopsis>
-    <adm:condition>
-      <adm:implies>
-        <adm:contains property="enabled" value="true" />
-        <adm:implies>
-          <adm:or>
-            <adm:contains property="use-ssl" value="true" />
-            <adm:contains property="allow-start-tls" value="true" />
-          </adm:or>
-          <adm:is-present property="trust-manager-provider" />
         </adm:implies>
       </adm:implies>
     </adm:condition>
@@ -176,7 +157,11 @@
       </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>
+          Use the trust manager provided by the JVM.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:aggregation relation-name="trust-manager-provider"

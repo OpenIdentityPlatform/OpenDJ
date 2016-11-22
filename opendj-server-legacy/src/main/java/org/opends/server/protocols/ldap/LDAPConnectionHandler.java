@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -52,7 +53,6 @@ import org.opends.server.core.QueueingStrategy;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.extensions.NullKeyManagerProvider;
-import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.*;
@@ -1290,9 +1290,9 @@ public final class LDAPConnectionHandler extends
   {
     try
     {
-      DN keyMgrDN = config.getKeyManagerProviderDN();
-      KeyManagerProvider<?> keyManagerProvider = DirectoryServer
-          .getKeyManagerProvider(keyMgrDN);
+      final ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+      final DN keyMgrDN = config.getKeyManagerProviderDN();
+      KeyManagerProvider<?> keyManagerProvider = serverContext.getKeyManagerProvider(keyMgrDN);
       if (keyManagerProvider == null)
       {
         logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
@@ -1332,16 +1332,10 @@ public final class LDAPConnectionHandler extends
       }
 
       DN trustMgrDN = config.getTrustManagerProviderDN();
-      TrustManagerProvider<?> trustManagerProvider = DirectoryServer
-          .getTrustManagerProvider(trustMgrDN);
-      if (trustManagerProvider == null)
-      {
-        trustManagerProvider = new NullTrustManagerProvider();
-      }
-
-      SSLContext sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
-      sslContext.init(keyManagers, trustManagerProvider.getTrustManagers(),
-          null);
+      final TrustManager[] trustManagers =
+              trustMgrDN == null ? null : serverContext.getTrustManagerProvider(trustMgrDN).getTrustManagers();
+      final SSLContext sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
+      sslContext.init(keyManagers, trustManagers, null);
       return sslContext;
     }
     catch (Exception e)

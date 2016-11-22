@@ -97,7 +97,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="trust-manager-provider" mandatory="true">
+  <adm:property name="trust-manager-provider">
     <adm:synopsis>
       Specifies the name of the trust manager that is used with
       the
@@ -108,7 +108,11 @@
       <adm:server-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>
+          Use the trust manager provided by the JVM.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:aggregation relation-name="trust-manager-provider"

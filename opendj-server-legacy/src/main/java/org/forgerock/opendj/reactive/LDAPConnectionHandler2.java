@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -70,7 +71,6 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -78,7 +78,6 @@ import org.opends.server.core.QueueingStrategy;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.extensions.NullKeyManagerProvider;
-import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.types.DirectoryException;
@@ -897,7 +896,8 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
     private SSLContext createSSLContext(LDAPConnectionHandlerCfg config) throws DirectoryException {
         try {
             DN keyMgrDN = config.getKeyManagerProviderDN();
-            KeyManagerProvider<?> keyManagerProvider = DirectoryServer.getKeyManagerProvider(keyMgrDN);
+            final ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+            KeyManagerProvider<?> keyManagerProvider = serverContext.getKeyManagerProvider(keyMgrDN);
             if (keyManagerProvider == null) {
                 logger.error(ERR_NULL_KEY_PROVIDER_MANAGER, keyMgrDN, friendlyName);
                 disableAndWarnIfUseSSL(config);
@@ -928,14 +928,11 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                         friendlyName);
             }
 
-            DN trustMgrDN = config.getTrustManagerProviderDN();
-            TrustManagerProvider<?> trustManagerProvider = DirectoryServer.getTrustManagerProvider(trustMgrDN);
-            if (trustManagerProvider == null) {
-                trustManagerProvider = new NullTrustManagerProvider();
-            }
-
+            final DN trustMgrDN = config.getTrustManagerProviderDN();
+            final TrustManager[] trustManagers =
+                    trustMgrDN == null ? null : serverContext.getTrustManagerProvider(trustMgrDN).getTrustManagers();
             SSLContext sslContext = SSLContext.getInstance(SSL_CONTEXT_INSTANCE_NAME);
-            sslContext.init(keyManagers, trustManagerProvider.getTrustManagers(), null);
+            sslContext.init(keyManagers, trustManagers, null);
             return sslContext;
         } catch (Exception e) {
             logger.traceException(e);
