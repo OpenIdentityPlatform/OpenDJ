@@ -316,7 +316,7 @@ public class AciListenerManager implements
     }
 
     DirectoryServer.registerInternalPlugin(plugin);
-    DirectoryServer.registerBackendInitializationListener(this);
+    serverContext.getBackendConfigManager().registerLocalBackendInitializationListener(this);
     DirectoryServer.registerAlertGenerator(this);
   }
 
@@ -327,7 +327,8 @@ public class AciListenerManager implements
   public void finalizeListenerManager()
   {
     DirectoryServer.deregisterInternalPlugin(plugin);
-    DirectoryServer.deregisterBackendInitializationListener(this);
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      .deregisterLocalBackendInitializationListener(this);
     DirectoryServer.deregisterAlertGenerator(this);
   }
 

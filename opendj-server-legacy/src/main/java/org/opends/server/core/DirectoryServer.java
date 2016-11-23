@@ -82,7 +82,6 @@ import org.opends.server.api.AlertHandler;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
@@ -1623,32 +1622,6 @@ public final class DirectoryServer
   public static CompressedSchema getDefaultCompressedSchema()
   {
     return directoryServer.compressedSchema;
-  }
-
-  /**
-   * Registers the provided local backend initialization listener with the Directory
-   * Server.
-   *
-   * @param  listener  The local backend initialization listener to register with the
-   *                   Directory Server.
-   */
-  public static void registerBackendInitializationListener(
-                          LocalBackendInitializationListener listener)
-  {
-    directoryServer.backendConfigManager.registerBackendInitializationListener(listener);
-  }
-
-  /**
-   * Deregisters the provided local backend initialization listener with the Directory
-   * Server.
-   *
-   * @param  listener  The backend initialization listener to deregister with
-   *                   the Directory Server.
-   */
-  public static void deregisterBackendInitializationListener(
-                          LocalBackendInitializationListener listener)
-  {
-    directoryServer.backendConfigManager.deregisterBackendInitializationListener(listener);
   }
 
   private void initializeRootAndAdminDataBackends() throws ConfigException, InitializationException

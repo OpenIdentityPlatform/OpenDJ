@@ -88,8 +88,8 @@ public class BackendConfigManager implements
   /** The mapping between backend configuration names and backend implementations. */
   private final Map<DN, Backend<? extends BackendCfg>> configuredBackends = new ConcurrentHashMap<>();
 
-  /** The set of local backend initialization listeners. */
-  private final Set<LocalBackendInitializationListener> initializationListeners = new CopyOnWriteArraySet<>();
+  /** The set of initialization listeners restricted to local backends. */
+  private final Set<LocalBackendInitializationListener> localInitializationListeners = new CopyOnWriteArraySet<>();
 
   /** Contains all relationships between the base DNs and the backends (at the exclusion of RootDSE backend). */
   private volatile Registry registry = new Registry();
@@ -656,9 +656,9 @@ public class BackendConfigManager implements
    *
    * @param  listener  The listener to register.
    */
-  public void registerBackendInitializationListener(LocalBackendInitializationListener listener)
+  public void registerLocalBackendInitializationListener(LocalBackendInitializationListener listener)
   {
-    initializationListeners.add(listener);
+    localInitializationListeners.add(listener);
   }
 
   /**
@@ -689,9 +689,9 @@ public class BackendConfigManager implements
    *
    * @param  listener  The listener to deregister.
    */
-  public void deregisterBackendInitializationListener(LocalBackendInitializationListener listener)
+  public void deregisterLocalBackendInitializationListener(LocalBackendInitializationListener listener)
   {
-    initializationListeners.remove(listener);
+    localInitializationListeners.remove(listener);
   }
 
   /**
@@ -906,7 +906,7 @@ public class BackendConfigManager implements
     if (backend instanceof LocalBackend<?>)
     {
       LocalBackend<?> localBackend = (LocalBackend<?>) backend;
-      for (LocalBackendInitializationListener listener : initializationListeners)
+      for (LocalBackendInitializationListener listener : localInitializationListeners)
       {
         listener.performBackendPreInitializationProcessing(localBackend);
       }
@@ -928,7 +928,7 @@ public class BackendConfigManager implements
         return false;
       }
 
-      for (LocalBackendInitializationListener listener : initializationListeners)
+      for (LocalBackendInitializationListener listener : localInitializationListeners)
       {
         listener.performBackendPostInitializationProcessing(localBackend);
       }
@@ -1150,24 +1150,29 @@ public class BackendConfigManager implements
 
   private void deregisterBackend(DN backendDN, Backend<?> backend)
   {
-    if (backend instanceof LocalBackend<?>)
+    boolean isLocalBackend = backend instanceof LocalBackend<?>;
+    LocalBackend<?> localBackend = isLocalBackend ? (LocalBackend<?>) backend : null;
+    if (isLocalBackend)
     {
-      LocalBackend<?> localBackend = (LocalBackend<?>) backend;
-      for (LocalBackendInitializationListener listener : initializationListeners)
+      for (LocalBackendInitializationListener listener : localInitializationListeners)
       {
         listener.performBackendPreFinalizationProcessing(localBackend);
       }
+    }
 
-      configuredBackends.remove(backendDN);
+    configuredBackends.remove(backendDN);
+
+    if (isLocalBackend)
+    {
       deregisterLocalBackend(localBackend);
-
-      for (LocalBackendInitializationListener listener : initializationListeners)
+      for (LocalBackendInitializationListener listener : localInitializationListeners)
       {
         listener.performBackendPostFinalizationProcessing(localBackend);
       }
     }
-    else {
-      throw new RuntimeException("deregisterBackend() is not yet supported for proxy backend.");
+    else
+    {
+      throw new RuntimeException("Proxy backend deregistration not implemented yet");
     }
   }
 
@@ -1181,14 +1186,14 @@ public class BackendConfigManager implements
       {
         try
         {
-          for (LocalBackendInitializationListener listener : initializationListeners)
+          for (LocalBackendInitializationListener listener : localInitializationListeners)
           {
             listener.performBackendPreFinalizationProcessing(backend);
           }
 
           backend.finalizeBackend();
 
-          for (LocalBackendInitializationListener listener : initializationListeners)
+          for (LocalBackendInitializationListener listener : localInitializationListeners)
           {
             listener.performBackendPostFinalizationProcessing(backend);
           }

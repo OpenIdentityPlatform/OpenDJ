@@ -131,7 +131,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           true);
 
     DirectoryServer.registerInternalPlugin(this);
-    DirectoryServer.registerBackendInitializationListener(this);
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      .registerLocalBackendInitializationListener(this);
   }
 
   /**
@@ -143,7 +144,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     // Deregister as internal plugin and
     // backend initialization listener.
     DirectoryServer.deregisterInternalPlugin(this);
-    DirectoryServer.deregisterBackendInitializationListener(this);
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      .deregisterLocalBackendInitializationListener(this);
   }
 
   /**

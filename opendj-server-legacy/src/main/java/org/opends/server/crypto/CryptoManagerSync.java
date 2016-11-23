@@ -136,7 +136,8 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     catch (CryptoManagerException ex) {
       throw new InitializationException(ex.getMessageObject());
     }
-    DirectoryServer.registerBackendInitializationListener(this);
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      .registerLocalBackendInitializationListener(this);
 
     try
     {

@@ -142,7 +142,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock = new ReentrantReadWriteLock();
 
     DirectoryServer.registerInternalPlugin(this);
-    DirectoryServer.registerBackendInitializationListener(this);
+    serverContext.getBackendConfigManager().registerLocalBackendInitializationListener(this);
   }
 
   /**
@@ -443,7 +443,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public void finalizeGroupManager()
   {
     DirectoryServer.deregisterInternalPlugin(this);
-    DirectoryServer.deregisterBackendInitializationListener(this);
+    serverContext.getBackendConfigManager().deregisterLocalBackendInitializationListener(this);
 
     deregisterAllGroups();
 

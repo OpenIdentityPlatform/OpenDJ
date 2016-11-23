@@ -64,7 +64,8 @@ public class DefaultEntryCache
 
     // Register with backend initialization listener to clear cache
     // entries belonging to given backend that about to go offline.
-    DirectoryServer.registerBackendInitializationListener(this);
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      .registerLocalBackendInitializationListener(this);
   }
 
   @Override

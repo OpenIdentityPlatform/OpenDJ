@@ -594,7 +594,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // register as an AlertGenerator
     DirectoryServer.registerAlertGenerator(this);
 
-    DirectoryServer.registerBackendInitializationListener(this);
+    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      .registerLocalBackendInitializationListener(this);
     DirectoryServer.registerShutdownListener(this);
 
     startPublishService();
@@ -2238,7 +2239,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
 
       DirectoryServer.deregisterAlertGenerator(this);
-      DirectoryServer.deregisterBackendInitializationListener(this);
+      DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        .deregisterLocalBackendInitializationListener(this);
       DirectoryServer.deregisterShutdownListener(this);
 
       // stop the ReplicationDomain
