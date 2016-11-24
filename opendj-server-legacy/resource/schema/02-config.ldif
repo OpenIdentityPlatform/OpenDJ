@@ -3997,10 +3997,104 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.201
   EQUALITY booleanMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
+  X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.202
   NAME 'ds-cfg-indexed-field'
   EQUALITY caseExactMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.203
+  NAME 'ds-cfg-primary-server'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.204
+  NAME 'ds-cfg-secondary-server'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.206
+  NAME 'ds-cfg-service-discovery'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.207
+  NAME 'ds-cfg-discovery-interval'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.208
+  NAME 'ds-cfg-use-start-tls'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.209
+  NAME 'ds-cfg-proxy-password'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.210
+  NAME 'ds-cfg-load-balancing-algorithm'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.211
+  NAME 'ds-cfg-proxy-route-all'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.212
+  NAME 'ds-cfg-primary-group-id'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.213
+  NAME 'ds-cfg-monitoring-timeout'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.214
+  NAME 'ds-cfg-connection-pool-idle-timeout'
+  EQUALITY caseIgnoreMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.215
+  NAME 'ds-cfg-connection-pool-min-size'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.216
+  NAME 'ds-cfg-connection-pool-max-size'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.217
+  NAME 'ds-cfg-proxy-dn'
+  EQUALITY distinguishedNameMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.218
+  NAME 'ds-cfg-load-balancing-affinity-rdn-count'
+  EQUALITY integerMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.219
+  NAME 'ds-cfg-bind-dn'
+  EQUALITY distinguishedNameMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.220
+  NAME 'ds-cfg-bind-password'
+  EQUALITY caseIgnoreMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
@@ -6108,4 +6202,51 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.54
   SUP ds-cfg-backend
   STRUCTURAL
   MUST ( ds-cfg-writability-mode )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.55
+  NAME 'ds-cfg-proxy-backend'
+  SUP ds-cfg-backend
+  STRUCTURAL
+  MUST ( ds-cfg-base-dn $
+         ds-cfg-service-discovery-mechanism )
+  MAY ( ds-cfg-proxy-route-all $
+        ds-cfg-proxy-dn $
+        ds-cfg-proxy-password $
+        ds-cfg-load-balancing-algorithm $
+        ds-cfg-load-balancing-affinity-rdn-count $
+        ds-cfg-connection-timeout $
+        ds-cfg-monitoring-timeout $
+        ds-cfg-monitoring-period $
+        ds-cfg-connection-pool-idle-timeout $
+        ds-cfg-connection-pool-min-size $
+        ds-cfg-connection-pool-max-size )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.56
+  NAME 'ds-cfg-service-discovery-mechanism'
+  SUP top
+  STRUCTURAL
+  MUST ds-cfg-java-class
+  MAY ( ds-cfg-use-ssl $
+        ds-cfg-use-start-tls $
+        ds-cfg-ssl-cert-nickname $
+        ds-cfg-trust-manager-provider $
+        ds-cfg-key-manager-provider )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.57
+  NAME 'ds-cfg-static-service-discovery-mechanism'
+  SUP ds-cfg-service-discovery-mechanism
+  STRUCTURAL
+  MAY ( ds-cfg-primary-server $
+        ds-cfg-secondary-server $
+        ds-cfg-discovery-interval )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.58
+  NAME 'ds-cfg-replication-service-discovery-mechanism'
+  SUP ds-cfg-service-discovery-mechanism
+  STRUCTURAL
+  MAY ( ds-cfg-primary-group-id $
+        ds-cfg-replication-server $
+        ds-cfg-bind-dn $
+        ds-cfg-bind-password $
+        ds-cfg-discovery-interval )
   X-ORIGIN 'OpenDJ Directory Server' )

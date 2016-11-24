@@ -19,8 +19,12 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.forgerock.http.routing.Router;
 import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.RootCfg;
+import org.opends.server.api.KeyManagerProvider;
+import org.opends.server.api.TrustManagerProvider;
+import org.opends.server.discovery.ServiceDiscoveryMechanismConfigManager;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
 import org.opends.server.schema.SchemaHandler;
@@ -116,6 +120,13 @@ public interface ServerContext
   CommonAudit getCommonAudit();
 
   /**
+   * Returns the Service Discovery Mechanism Config Manager.
+   *
+   * @return the Service Discovery Mechanism Config Manager
+   */
+  ServiceDiscoveryMechanismConfigManager getServiceDiscoveryMechanismConfigManager();
+
+  /**
    * Returns the logger config manager.
    *
    * @return the logger config manager
@@ -149,4 +160,22 @@ public interface ServerContext
    * @return core configuration manager
    */
   CoreConfigManager getCoreConfigManager();
+
+  /**
+   * Returns the key manager provider matching the provided DN.
+   *
+   * @param keyManagerProviderDN
+   *          the DN of the key manager provider
+   * @return the key manager provider, or {@code null} if none match
+   */
+  KeyManagerProvider<?> getKeyManagerProvider(DN keyManagerProviderDN);
+
+  /**
+   * Returns the trust manager provider matching the provided DN.
+   *
+   * @param trustManagerProviderDN
+   *          the DN of the trust manager provider
+   * @return the trust manager provider, or {@code null} if none match
+   */
+  TrustManagerProvider<?> getTrustManagerProvider(DN trustManagerProviderDN);
 }

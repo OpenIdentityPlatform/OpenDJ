@@ -3034,6 +3034,13 @@ public final class ConfigConstants
 
 
   /**
+   * The DN of the entry that will serve as the base for all Directory Server
+   * service discovery mechanisms, used by proxy.
+   */
+  public static final String DN_SERVICE_DISCOVERY_BASE = "Service Discovery Mechanisms" + DN_CONFIG_ROOT;
+
+
+  /**
    * The DN of the entry that will serve as the base for the configuration for
    * all Directory Server synchronization providers.
    */

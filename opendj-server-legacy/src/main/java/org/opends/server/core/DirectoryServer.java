@@ -116,6 +116,7 @@ import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
+import org.opends.server.discovery.ServiceDiscoveryMechanismConfigManager;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.AccessLogger;
@@ -543,6 +544,7 @@ public final class DirectoryServer
 
   private Router httpRouter;
   private CronExecutorService cronExecutorService;
+  private ServiceDiscoveryMechanismConfigManager serviceDiscoveryMechanismConfigManager;
 
   /** Class that prints the version of OpenDJ server to System.out. */
   public static final class DirectoryServerVersionHandler implements com.forgerock.opendj.cli.VersionHandler
@@ -970,6 +972,23 @@ public final class DirectoryServer
       return directoryServer.coreConfigManager;
     }
 
+    @Override
+    public ServiceDiscoveryMechanismConfigManager getServiceDiscoveryMechanismConfigManager()
+    {
+      return directoryServer.serviceDiscoveryMechanismConfigManager;
+    }
+
+    @Override
+    public KeyManagerProvider<?> getKeyManagerProvider(DN keyManagerProviderDN)
+    {
+      return DirectoryServer.getKeyManagerProvider(keyManagerProviderDN);
+    }
+
+    @Override
+    public TrustManagerProvider<?> getTrustManagerProvider(DN trustManagerProviderDN)
+    {
+      return DirectoryServer.getTrustManagerProvider(trustManagerProviderDN);
+    }
   }
 
   /**
@@ -1437,6 +1456,10 @@ public final class DirectoryServer
       // Need access to ADS keys before confidential backends and synchronization start to be able to
       // decode encrypted data in the backend by reading them from the trust store.
       new CryptoManagerSync();
+
+      // Proxy needs discovery services to be already initialized.
+      serviceDiscoveryMechanismConfigManager = new ServiceDiscoveryMechanismConfigManager(serverContext);
+      serviceDiscoveryMechanismConfigManager.initializeServiceDiscoveryMechanismConfigManager();
 
       initializeRemainingBackends();
 
@@ -4276,6 +4299,8 @@ public final class DirectoryServer
     {
       ec.finalizeEntryCache();
     }
+
+    directoryServer.serviceDiscoveryMechanismConfigManager.finalize();
 
     // Release exclusive lock held on server.lock file
     try {

@@ -1492,6 +1492,11 @@ ds-cfg-java-class: org.opends.server.extensions.PlainSASLMechanismHandler
 ds-cfg-enabled: true
 ds-cfg-identity-mapper: cn=Exact Match,cn=Identity Mappers,cn=config
 
+dn: cn=Service Discovery Mechanisms,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Service Discovery Mechanisms
+
 dn: cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch

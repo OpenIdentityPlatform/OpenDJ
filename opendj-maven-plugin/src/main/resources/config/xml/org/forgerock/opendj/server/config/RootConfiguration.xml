@@ -266,6 +266,12 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
+  <adm:relation name="service-discovery-mechanism">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Service Discovery Mechanisms,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:relation name="root-dn">
     <adm:one-to-one />
     <adm:profile name="ldap">
@@ -441,5 +447,8 @@
   </adm:tag-definition>
   <adm:tag-definition name="core-server">
     <adm:synopsis>Core server</adm:synopsis>
+  </adm:tag-definition>
+  <adm:tag-definition name="service-discovery">
+    <adm:synopsis>Service Discovery Mechanism</adm:synopsis>
   </adm:tag-definition>
 </adm:root-managed-object>
