@@ -17,7 +17,6 @@
 package org.forgerock.opendj.config.server;
 
 import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.DefinitionDecodingException;
@@ -52,9 +51,8 @@ final class ConfigExceptionFactory {
      *            The definition decoding exception
      * @return Returns the configuration exception.
      */
-    public ConfigException createDecodingExceptionAdaptor(DN dn, DefinitionDecodingException e) {
-        LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
-                dn, stackTraceToSingleLineString(e, true));
+    ConfigException createDecodingExceptionAdaptor(DN dn, DefinitionDecodingException e) {
+        LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(dn, e.getMessageObject());
         return new ConfigException(message, e);
     }
 
@@ -67,10 +65,9 @@ final class ConfigExceptionFactory {
      * @return Returns the configuration exception.
      */
 
-    public ConfigException createDecodingExceptionAdaptor(ServerManagedObjectDecodingException e) {
+    ConfigException createDecodingExceptionAdaptor(ServerManagedObjectDecodingException e) {
         DN dn = e.getPartialManagedObject().getDN();
-        LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
-                dn, stackTraceToSingleLineString(e, true));
+        LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(dn, e.getMessageObject());
         return new ConfigException(message, e);
     }
 
@@ -82,30 +79,9 @@ final class ConfigExceptionFactory {
      *            The constraints violation decoding exception.
      * @return Returns the configuration exception.
      */
-    public ConfigException createDecodingExceptionAdaptor(ConstraintViolationException e) {
+    ConfigException createDecodingExceptionAdaptor(ConstraintViolationException e) {
         DN dn = e.getManagedObject().getDN();
-        LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
-                dn, stackTraceToSingleLineString(e, true));
-        return new ConfigException(message, e);
-    }
-
-    /**
-     * Create an exception that describes a problem that occurred when
-     * attempting to load and instantiate a class.
-     *
-     * @param dn
-     *            The dn of the configuration entry was being processed.
-     * @param className
-     *            The name of the class that could not be loaded or
-     *            instantiated.
-     * @param e
-     *            The exception that occurred.
-     * @return Returns the configuration exception.
-     */
-
-    public ConfigException createClassLoadingExceptionAdaptor(DN dn, String className, Exception e) {
-        LocalizableMessage message = ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.get(
-                className, dn, stackTraceToSingleLineString(e, true));
+        LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(dn, e.getMessageObject());
         return new ConfigException(message, e);
     }
 }
