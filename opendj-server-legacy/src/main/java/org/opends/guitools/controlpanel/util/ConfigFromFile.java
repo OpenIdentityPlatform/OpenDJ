@@ -116,8 +116,7 @@ public class ConfigFromFile extends ConfigReader
     {
       logger.warn(LocalizableMessage.raw("Error reading configuration: " + oe, oe));
     }
-    exceptions.addAll(errors);
-    exceptions = Collections.unmodifiableList(exceptions);
+    exceptions = Collections.unmodifiableList(new ArrayList<Exception>(errors));
     administrativeUsers = Collections.unmodifiableSet(alternateBindDNs);
     listeners = Collections.unmodifiableSet(connectionHandlers);
     backends = Collections.unmodifiableSet(backendDescriptors);
