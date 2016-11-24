@@ -85,7 +85,6 @@ import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.util.Utils;
-import org.forgerock.util.annotations.VisibleForTesting;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -207,8 +206,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    * @throws InitializationException
    *           If an error occurs.
    */
-  @VisibleForTesting
-  void initializeWithPartialSchema() throws InitializationException
+  private void initializeWithPartialSchema() throws InitializationException
   {
     File configFileToUse = preInitialization();
     Schema configEnabledSchema = loadSchemaWithConfigurationEnabled();
@@ -697,7 +695,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     try (LDIFEntryWriter writer = new LDIFEntryWriter(exportConfig.getWriter()))
     {
       writer.writeComment(INFO_CONFIG_FILE_HEADER.get().toString());
-      for (Entry entry : new ArrayList<Entry>(backend.getAll()))
+      for (Entry entry : new ArrayList<>(backend.getAll()))
       {
         try
         {
@@ -1189,7 +1187,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       fileToUse = standardConfigFile;
     }
 
-    boolean fileExists = false;
+    boolean fileExists;
     try
     {
       fileExists = fileToUse.exists();
@@ -1469,12 +1467,11 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
             latestFileName = name;
             latestTimestamp = timestamp;
             latestCounter = 0;
-            continue;
           }
         }
         catch (Exception e)
         {
-          continue;
+          // Ignore.
         }
       }
       else
@@ -1491,12 +1488,11 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
             latestFileName = name;
             latestTimestamp = timestamp;
             latestCounter = counter;
-            continue;
           }
         }
         catch (Exception e)
         {
-          continue;
+          // Ignore.
         }
       }
     }

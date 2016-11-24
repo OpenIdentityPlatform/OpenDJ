@@ -34,7 +34,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.AdministrationConnectorCfg;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
@@ -122,27 +121,6 @@ public class ConfigFromFile extends ConfigReader
     administrativeUsers = Collections.unmodifiableSet(alternateBindDNs);
     listeners = Collections.unmodifiableSet(connectionHandlers);
     backends = Collections.unmodifiableSet(backendDescriptors);
-  }
-
-  private void readSchemaIfNeeded(final List<OpenDsException> errors) throws ConfigException
-  {
-    if (mustReadSchema())
-    {
-      try
-      {
-        Schema schema = readSchema();
-        if (schema != null)
-        {
-          // Update the schema: so that when we call the server code the
-          // latest schema read on the server we are managing is used.
-          DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(schema);
-        }
-      }
-      catch (final OpenDsException oe)
-      {
-        errors.add(oe);
-      }
-    }
   }
 
   private void readConfig(final Set<ConnectionHandlerDescriptor> connectionHandlers,

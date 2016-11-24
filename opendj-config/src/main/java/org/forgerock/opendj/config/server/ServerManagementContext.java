@@ -20,6 +20,7 @@ package org.forgerock.opendj.config.server;
 import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 import static org.forgerock.opendj.config.PropertyException.defaultBehaviorException;
+import static org.forgerock.opendj.config.PropertyException.illegalPropertyValueException;
 import static org.forgerock.opendj.config.PropertyException.propertyIsSingleValuedException;
 
 import java.util.ArrayList;
@@ -60,13 +61,8 @@ import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
-import org.forgerock.opendj.ldap.Attribute;
-import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -201,7 +197,7 @@ public final class ServerManagementContext {
                     throw new PropertyNotFoundException(propertyName);
                 }
 
-                List<String> attributeValues = getAttributeValues(mod, propDef2, configEntry);
+                Set<String> attributeValues = getAttributeValues(mod, propDef2, configEntry);
                 if (attributeValues.size() > 0) {
                     Collection<T> pvalues = new ArrayList<>();
                     for (String value : attributeValues) {
@@ -288,7 +284,7 @@ public final class ServerManagementContext {
                 Reference<C, S> reference = Reference.parseDN(d.getParentPath(), d.getRelationDefinition(), p);
                 return reference.getName();
             } catch (IllegalArgumentException e) {
-                throw PropertyException.illegalPropertyValueException(d, p);
+                throw illegalPropertyValueException(d, p);
             }
         }
 
@@ -359,102 +355,6 @@ public final class ServerManagementContext {
         } catch (ConstraintViolationException e) {
             throw ConfigExceptionFactory.getInstance().createDecodingExceptionAdaptor(e);
         }
-    }
-
-    /**
-     * Gets the effective value of a property in the named managed object.
-     *
-     * @param <C>
-     *            The type of client managed object configuration that the path
-     *            definition refers to.
-     * @param <S>
-     *            The type of server managed object configuration that the path
-     *            definition refers to.
-     * @param <P>
-     *            The type of the property to be retrieved.
-     * @param path
-     *            The path of the managed object containing the property.
-     * @param pd
-     *            The property to be retrieved.
-     * @return Returns the property's effective value, or <code>null</code> if
-     *         there are no values defined.
-     * @throws IllegalArgumentException
-     *             If the property definition is not associated with the
-     *             referenced managed object's definition.
-     * @throws PropertyException
-     *             If the managed object was found but the requested property
-     *             could not be decoded.
-     * @throws ConfigException
-     *             If the named managed object could not be found or if it could
-     *             not be decoded.
-     */
-    public <C extends ConfigurationClient, S extends Configuration, P> P getPropertyValue(
-            ManagedObjectPath<C, S> path, PropertyDefinition<P> pd) throws ConfigException {
-        SortedSet<P> values = getPropertyValues(path, pd);
-        if (!values.isEmpty()) {
-            return values.first();
-        }
-        return null;
-    }
-
-    /**
-     * Gets the effective values of a property in the named managed object.
-     *
-     * @param <C>
-     *            The type of client managed object configuration that the path
-     *            definition refers to.
-     * @param <S>
-     *            The type of server managed object configuration that the path
-     *            definition refers to.
-     * @param <P>
-     *            The type of the property to be retrieved.
-     * @param path
-     *            The path of the managed object containing the property.
-     * @param propertyDef
-     *            The property to be retrieved.
-     * @return Returns the property's effective values, or an empty set if there
-     *         are no values defined.
-     * @throws IllegalArgumentException
-     *             If the property definition is not associated with the
-     *             referenced managed object's definition.
-     * @throws PropertyException
-     *             If the managed object was found but the requested property
-     *             could not be decoded.
-     * @throws ConfigException
-     *             If the named managed object could not be found or if it could
-     *             not be decoded.
-     */
-    @SuppressWarnings("unchecked")
-    public <C extends ConfigurationClient, S extends Configuration, P> SortedSet<P> getPropertyValues(
-            ManagedObjectPath<C, S> path, PropertyDefinition<P> propertyDef) throws ConfigException {
-        // Check that the requested property is from the definition
-        // associated with the path.
-        AbstractManagedObjectDefinition<C, S> definition = path.getManagedObjectDefinition();
-        PropertyDefinition<?> tmpPropertyDef = definition.getPropertyDefinition(propertyDef.getName());
-        if (tmpPropertyDef != propertyDef) {
-            throw new IllegalArgumentException("The property " + propertyDef.getName() + " is not associated with a "
-                    + definition.getName());
-        }
-
-        // Determine the exact type of managed object referenced by the path.
-        DN dn = DNBuilder.create(path);
-        Entry configEntry = getManagedObjectConfigEntry(dn);
-
-        DefinitionResolver resolver = new MyDefinitionResolver(configEntry);
-        ManagedObjectDefinition<? extends C, ? extends S> managedObjDef;
-
-        try {
-            managedObjDef = definition.resolveManagedObjectDefinition(resolver);
-        } catch (DefinitionDecodingException e) {
-            throw ConfigExceptionFactory.getInstance().createDecodingExceptionAdaptor(dn, e);
-        }
-
-        // Make sure we use the correct property definition, the
-        // provided one might have been overridden in the resolved definition.
-        propertyDef = (PropertyDefinition<P>) managedObjDef.getPropertyDefinition(propertyDef.getName());
-
-        List<String> attributeValues = getAttributeValues(managedObjDef, propertyDef, configEntry);
-        return decodeProperty(path.asSubType(managedObjDef), propertyDef, attributeValues, null);
     }
 
     /**
@@ -544,7 +444,7 @@ public final class ServerManagementContext {
         // Get the configuration entry.
         DN targetDN = DNBuilder.create(path);
         try {
-            return configRepository.getEntry(targetDN) != null;
+            return configRepository.hasEntry(targetDN);
         } catch (ConfigException e) {
             // Assume it doesn't exist.
             return false;
@@ -619,8 +519,8 @@ public final class ServerManagementContext {
         List<PropertyException> exceptions = new LinkedList<>();
         Map<PropertyDefinition<?>, SortedSet<?>> properties = new HashMap<>();
         for (PropertyDefinition<?> propertyDef : mod.getAllPropertyDefinitions()) {
-            List<String> attributeValues = getAttributeValues(mod, propertyDef, configEntry);
             try {
+                Set<String> attributeValues = getAttributeValues(mod, propertyDef, configEntry);
                 SortedSet<?> pvalues = decodeProperty(path, propertyDef, attributeValues, newConfigEntry);
                 properties.put(propertyDef, pvalues);
             } catch (PropertyException e) {
@@ -648,7 +548,7 @@ public final class ServerManagementContext {
 
     /** Decode a property using the provided attribute values. */
     private <T> SortedSet<T> decodeProperty(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef,
-            List<String> attributeValues, Entry newConfigEntry) {
+            Set<String> attributeValues, Entry newConfigEntry) {
         PropertyException exception = null;
         SortedSet<T> pvalues = new TreeSet<>(propertyDef);
 
@@ -689,21 +589,10 @@ public final class ServerManagementContext {
     }
 
     /** Gets the attribute values associated with a property from a ConfigEntry. */
-    private List<String> getAttributeValues(ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd,
+    private Set<String> getAttributeValues(ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd,
             Entry configEntry) {
-        // TODO: we create a default attribute type if it is undefined.
-        // We should log a warning here if this is the case
-        // since the attribute should have been defined.
-        String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
-        AttributeType type = Schema.getDefaultSchema().getAttributeType(attrID);
-        Iterable<Attribute> attributes = configEntry.getAllAttributes(AttributeDescription.create(type));
-        List<String> values = new ArrayList<>();
-        for (Attribute attribute : attributes) {
-            for (ByteString byteValue : attribute) {
-                values.add(byteValue.toString());
-            }
-        }
-        return values;
+        final String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
+        return configEntry.parseAttribute(attrID).asSetOfString();
     }
 
     /** Get the default values for the specified property. */
@@ -711,19 +600,6 @@ public final class ServerManagementContext {
             Entry newConfigEntry) {
         DefaultValueFinder<T> v = new DefaultValueFinder<>(newConfigEntry);
         return v.find(p, pd);
-    }
-
-    /**
-     * Retrieves a configuration entry corresponding to the provided DN.
-     *
-     * @param dn
-     *            DN of the configuration entry.
-     * @return the configuration entry
-     * @throws ConfigException
-     *             If a problem occurs.
-     */
-    public Entry getConfigEntry(DN dn) throws ConfigException {
-        return configRepository.getEntry(dn);
     }
 
     /**
