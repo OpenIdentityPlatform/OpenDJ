@@ -627,6 +627,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
         if (listener != null) {
             listener.close();
             listener = null;
+            logger.info(NOTE_CONNHANDLER_STOPPED_LISTENING, handlerName);
         }
     }
 
@@ -670,6 +671,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                 }, Options.defaultOptions()
                           .set(LDAPListener.CONNECT_MAX_BACKLOG, backlog)
                           .set(LDAPListener.REQUEST_MAX_SIZE_IN_BYTES, (int) currentConfig.getMaxRequestSize()));
+        logger.info(NOTE_CONNHANDLER_STARTED_LISTENING, handlerName);
     }
 
     /**
