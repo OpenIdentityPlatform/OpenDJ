@@ -6203,24 +6203,6 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.54
   STRUCTURAL
   MUST ( ds-cfg-writability-mode )
   X-ORIGIN 'OpenDJ Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.55
-  NAME 'ds-cfg-proxy-backend'
-  SUP ds-cfg-backend
-  STRUCTURAL
-  MUST ( ds-cfg-base-dn $
-         ds-cfg-service-discovery-mechanism )
-  MAY ( ds-cfg-proxy-route-all $
-        ds-cfg-proxy-dn $
-        ds-cfg-proxy-password $
-        ds-cfg-load-balancing-algorithm $
-        ds-cfg-load-balancing-affinity-rdn-count $
-        ds-cfg-connection-timeout $
-        ds-cfg-monitoring-timeout $
-        ds-cfg-monitoring-period $
-        ds-cfg-connection-pool-idle-timeout $
-        ds-cfg-connection-pool-min-size $
-        ds-cfg-connection-pool-max-size )
-  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.56
   NAME 'ds-cfg-service-discovery-mechanism'
   SUP top
