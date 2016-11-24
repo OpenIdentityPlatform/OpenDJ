@@ -15,6 +15,7 @@
  */
 package org.opends.server.config;
 
+import static org.forgerock.opendj.ldap.Entries.unmodifiableEntry;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -48,6 +49,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg4;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.ConfigurationFramework;
@@ -57,6 +59,7 @@ import org.forgerock.opendj.config.server.spi.ConfigAddListener;
 import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
+import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.CancelRequestListener;
 import org.forgerock.opendj.ldap.CancelledResultException;
@@ -66,6 +69,8 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapResultHandler;
+import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -341,12 +346,8 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
   @Override
   public Entry getEntry(final DN dn) throws ConfigException
   {
-    Entry entry = backend.get(dn);
-    if (entry != null)
-    {
-      entry = Entries.unmodifiableEntry(entry);
-    }
-    return entry;
+    final Entry entry = backend.get(dn);
+    return entry == null ? null : unmodifiableEntry(evaluateEntryIfPossible(entry));
   }
 
   /**
@@ -451,12 +452,15 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
 
     final DN parentDN = retrieveParentDNForAdd(entryDN);
 
+    // If the entry contains any expressions then these must be evaluated before passing to listeners.
+    final Entry evaluatedEntry = evaluateEntry(entry, ERR_CONFIG_FILE_ADD_REJECTED_DUE_TO_EVALUATION_FAILURE);
+
     // Iterate through add listeners to make sure the new entry is acceptable.
     final List<ConfigAddListener> addListeners = getAddListeners(parentDN);
     final LocalizableMessageBuilder unacceptableReason = new LocalizableMessageBuilder();
     for (final ConfigAddListener listener : addListeners)
     {
-      if (!listener.configAddIsAcceptable(entry, unacceptableReason))
+      if (!listener.configAddIsAcceptable(evaluatedEntry, unacceptableReason))
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_CONFIG_FILE_ADD_REJECTED_BY_LISTENER.get(
             entryDN, parentDN, unacceptableReason));
@@ -479,7 +483,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     final ConfigChangeResult ccr = new ConfigChangeResult();
     for (final ConfigAddListener listener : addListeners)
     {
-      final ConfigChangeResult result = listener.applyConfigurationAdd(entry);
+      final ConfigChangeResult result = listener.applyConfigurationAdd(evaluatedEntry);
       ccr.aggregate(result);
       handleConfigChangeResult(result, entry.getName(), listener.getClass().getName(), "applyConfigurationAdd");
     }
@@ -532,12 +536,16 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     final List<ConfigDeleteListener> deleteListeners = getDeleteListeners(parentDN);
     final LocalizableMessageBuilder unacceptableReason = new LocalizableMessageBuilder();
     final Entry entry = backend.get(dn);
+
+    // If the entry contains any expressions then these must be evaluated before passing to listeners.
+    final Entry evaluatedEntry = evaluateEntry(entry, ERR_CONFIG_FILE_DELETE_REJECTED_DUE_TO_EVALUATION_FAILURE);
+
     for (final ConfigDeleteListener listener : deleteListeners)
     {
-      if (!listener.configDeleteIsAcceptable(entry, unacceptableReason))
+      if (!listener.configDeleteIsAcceptable(evaluatedEntry, unacceptableReason))
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            ERR_CONFIG_FILE_DELETE_REJECTED_BY_LISTENER.get(entry, parentDN, unacceptableReason));
+            ERR_CONFIG_FILE_DELETE_REJECTED_BY_LISTENER.get(dn, parentDN, unacceptableReason));
       }
     }
 
@@ -558,7 +566,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     final ConfigChangeResult ccr = new ConfigChangeResult();
     for (final ConfigDeleteListener listener : deleteListeners)
     {
-      final ConfigChangeResult result = listener.applyConfigurationDelete(entry);
+      final ConfigChangeResult result = listener.applyConfigurationDelete(evaluatedEntry);
       ccr.aggregate(result);
       handleConfigChangeResult(result, dn, listener.getClass().getName(), "applyConfigurationDelete");
     }
@@ -600,12 +608,15 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
           ERR_CONFIG_FILE_MODIFY_STRUCTURAL_CHANGE_NOT_ALLOWED.get(oldEntry.getName()));
     }
 
+    // If the entry contains any expressions then these must be evaluated before passing to listeners.
+    final Entry evaluatedNewEntry = evaluateEntry(newEntry, ERR_CONFIG_FILE_MODIFY_REJECTED_DUE_TO_EVALUATION_FAILURE);
+
     // Iterate through change listeners to make sure the change is acceptable.
     final List<ConfigChangeListener> changeListeners = getChangeListeners(newEntryDN);
     final LocalizableMessageBuilder unacceptableReason = new LocalizableMessageBuilder();
     for (ConfigChangeListener listeners : changeListeners)
     {
-      if (!listeners.configChangeIsAcceptable(newEntry, unacceptableReason))
+      if (!listeners.configChangeIsAcceptable(evaluatedNewEntry, unacceptableReason))
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
             ERR_CONFIG_FILE_MODIFY_REJECTED_BY_CHANGE_LISTENER.get(newEntryDN, unacceptableReason));
@@ -634,7 +645,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
         // some listeners may have de-registered themselves due to previous changes, ignore them
         continue;
       }
-      final ConfigChangeResult result = listener.applyConfigurationChange(newEntry);
+      final ConfigChangeResult result = listener.applyConfigurationChange(evaluatedNewEntry);
       ccr.aggregate(result);
       handleConfigChangeResult(result, newEntryDN, listener.getClass().getName(), "applyConfigurationChange");
     }
@@ -1077,7 +1088,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     @Override
     public boolean handleEntry(SearchResultEntry entry)
     {
-      org.opends.server.types.Entry serverEntry = Converters.to(entry);
+      org.opends.server.types.Entry serverEntry = Converters.to(evaluateEntryIfPossible(entry));
       serverEntry.processVirtualAttributes();
       return !filterMatchesEntry(serverEntry) || searchOperation.returnEntry(serverEntry, null);
     }
@@ -1782,5 +1793,65 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
     {
       logger.debug(INFO_CONFIG_CHANGE_RESULT_MESSAGES, className, methodName, entryDN, messages);
     }
+  }
+
+  private static Entry evaluateEntryIfPossible(final Entry entry)
+  {
+    try
+    {
+      return evaluateEntry(entry, ERR_CONFIG_FILE_READ_FAILED_DUE_TO_EVALUATION_FAILURE);
+    }
+    catch (final DirectoryException e)
+    {
+      // The entry contained an invalid expression. Fall-back to returning the original entry.
+      logger.traceException(e);
+      return entry;
+    }
+  }
+
+  private static Entry evaluateEntry(final Entry entry, final Arg4<Object, Object, Object, Object> errMsg)
+          throws DirectoryException
+  {
+    final Entry evaluatedEntry = new LinkedHashMapEntry(entry.getName());
+    for (final Attribute attribute : entry.getAllAttributes())
+    {
+      evaluatedEntry.addAttribute(evaluateAttribute(entry.getName(), attribute, errMsg));
+    }
+    return evaluatedEntry;
+  }
+
+  private static Attribute evaluateAttribute(final DN dn, final Attribute attribute,
+                                             final Arg4<Object, Object, Object, Object> errMsg)
+          throws DirectoryException
+  {
+    // Skip any attributes which are not config related.
+    if (!attribute.getAttributeDescriptionAsString().startsWith("ds-cfg-"))
+    {
+      return attribute;
+    }
+    final Attribute evaluatedAttribute = new LinkedAttribute(attribute.getAttributeDescription());
+    for (final ByteString value : attribute)
+    {
+      ByteString evaluatedValue = value;
+      for (int i = 0; i < value.length(); i++)
+      {
+        if (value.byteAt(i) == '$')
+        {
+          // Potential expression.
+          try
+          {
+            evaluatedValue = ByteString.valueOfUtf8(Expression.eval(value.toString(), String.class));
+          }
+          catch (final Exception e)
+          {
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                         errMsg.get(dn, attribute.getAttributeDescription(), value, e.getMessage()));
+          }
+          break;
+        }
+      }
+      evaluatedAttribute.add(evaluatedValue);
+    }
+    return evaluatedAttribute;
   }
 }

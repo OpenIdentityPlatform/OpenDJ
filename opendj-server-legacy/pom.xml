@@ -67,6 +67,8 @@
     </opendj.osgi.import.additional>
 
     <product.archive.name>${product.name.lowercase}-${project.version}</product.archive.name>
+
+    <juel.version>2.2.7</juel.version>
   </properties>
 
   <dependencies>
@@ -236,6 +238,18 @@
       <groupId>com.github.stephenc.jcip</groupId>
       <artifactId>jcip-annotations</artifactId>
       <version>1.0-1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.odysseus.juel</groupId>
+      <artifactId>juel-impl</artifactId>
+      <version>${juel.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.odysseus.juel</groupId>
+      <artifactId>juel-api</artifactId>
+      <version>${juel.version}</version>
     </dependency>
   </dependencies>
 
