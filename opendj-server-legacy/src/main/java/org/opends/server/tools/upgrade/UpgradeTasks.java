@@ -1337,11 +1337,7 @@ final class UpgradeTasks
       {
         for (final String jarFileName : jarFileNames)
         {
-          final File f = new File(libDirectory, jarFileName + ".jar");
-          if (f.exists())
-          {
-            f.delete();
-          }
+          deleteFileIfExists(new File(libDirectory, jarFileName + ".jar"));
         }
       }
 
@@ -1512,6 +1508,20 @@ final class UpgradeTasks
         }
         modifyConfigEntry(INFO_UPGRADE_TASK_ADD_SUBORDINATE_BASE_DN_TO_GLOBAL_CONFIG.get(),
             "(objectClass=ds-cfg-root-config)", ldif.toArray(new String[0]));
+      }
+    };
+  }
+
+  static UpgradeTask removeTools(final String... toolNames)
+  {
+    return new AbstractUpgradeTask() {
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException {
+        for (final String toolName : toolNames)
+        {
+          deleteFileIfExists(new File(binDirectory, toolName));
+          deleteFileIfExists(new File(batDirectory, toolName +  ".bat"));
+        }
       }
     };
   }

@@ -611,6 +611,9 @@ public final class Upgrade
             "objectClass: ds-cfg-local-backend")
     );
     register("4.0.0", moveSubordinateBaseDnToGlobalConfiguration());
+    register("4.0.0",
+             removeTools("ldif-diff", "make-ldif")
+    );
 
     /* All upgrades will refresh the server configuration schema and generate a new upgrade folder. */
     registerLast(

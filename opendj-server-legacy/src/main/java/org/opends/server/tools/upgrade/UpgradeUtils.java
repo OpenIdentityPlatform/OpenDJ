@@ -53,6 +53,7 @@ import org.forgerock.opendj.ldif.EntryReader;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.SchemaUtils;
@@ -741,6 +742,15 @@ final class UpgradeUtils
     {
       logger.error(ERR_UPGRADE_READING_CONF_FILE.get(unlikely.getMessage()));
       return true;
+    }
+  }
+
+  static void deleteFileIfExists(final File f)
+  {
+    Reject.ifNull(f);
+    if (f.exists())
+    {
+      f.delete();
     }
   }
 
