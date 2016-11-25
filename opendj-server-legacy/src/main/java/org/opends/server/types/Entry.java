@@ -4178,6 +4178,10 @@ public class Entry
         }
       }
     }
+    else if (attributeDescription.getAttributeType().equals(CoreSchema.getObjectClassAttributeType()))
+    {
+      return getObjectClassAttribute();
+    }
     return null;
   }
 

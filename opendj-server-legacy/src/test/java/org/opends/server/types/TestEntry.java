@@ -235,6 +235,60 @@ public final class TestEntry extends TypesTestCase {
   }
 
 
+  /**
+   * Tests the {@code hasValue} methods to ensure that they work for objectClasses.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testHasValue()
+         throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: cn=Test User,ou=People,dc=example,dc=com",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "cn: Test User",
+         "cn;lang-en-US: Test User",
+         "givenName: Test",
+         "givenName;lang-en-US: Test",
+         "sn: User",
+         "sn;lang-en-US: User",
+         "creatorsName: cn=Directory Manager",
+         "createTimestamp: 20070101000000Z",
+         "modifiersName: cn=Directory Manager",
+         "modifyTimestamp: 20070101000001Z");
+
+    ByteString ocPresent = ByteString.valueOfUtf8("inetOrgPerson");
+    ByteString ocNotPresent = ByteString.valueOfUtf8("domain");
+    ByteString cnPresent = ByteString.valueOfUtf8("Test User");
+    ByteString cnNotPresent = ByteString.valueOfUtf8("Bad User");
+    ByteString mnPresent = ByteString.valueOfUtf8("cn=Directory Manager");
+    ByteString mnNotPresent = ByteString.valueOfUtf8("cn=Test User,ou=People,dc=example,dc=com");
+
+    AttributeType ocType = getObjectClassAttributeType();
+    AttributeType cnType = getCNAttributeType();
+    AttributeType mnType = getModifiersNameAttributeType();
+
+    assertTrue(e.hasValue(ocType, ocPresent));
+    assertTrue(e.hasValue(AttributeDescription.create(ocType), ocPresent));
+    assertFalse(e.hasValue(ocType, ocNotPresent));
+    assertFalse(e.hasValue(AttributeDescription.create(ocType), ocNotPresent));
+
+    assertTrue(e.hasValue(cnType, cnPresent));
+    assertTrue(e.hasValue(AttributeDescription.create(cnType), cnPresent));
+    assertFalse(e.hasValue(cnType, cnNotPresent));
+    assertFalse(e.hasValue(AttributeDescription.create(cnType), cnNotPresent));
+
+    assertTrue(e.hasValue(mnType, mnPresent));
+    assertTrue(e.hasValue(AttributeDescription.create(mnType), mnPresent));
+    assertFalse(e.hasValue(mnType, mnNotPresent));
+    assertFalse(e.hasValue(AttributeDescription.create(mnType), mnNotPresent));
+  }
+
+
 
   /**
    * Tests the {@code hasAttribute} method variants to ensure that they work
@@ -472,6 +526,13 @@ public final class TestEntry extends TypesTestCase {
 
     assertThat(e.getAllAttributes(AttributeDescription.create(uidType, options))).isEmpty();
     assertThat(e.getAllAttributes(AttributeDescription.create(mnType, options))).hasSize(1);
+
+    assertThat(e.getAttribute(AttributeDescription.create(ocType))).hasSize(4);
+    assertThat(e.getAttribute(AttributeDescription.create(cnType))).hasSize(1);
+    assertNull(e.getAttribute(AttributeDescription.create(nameType)));
+
+    assertNull(e.getAttribute(AttributeDescription.create(uidType)));
+    assertThat(e.getAttribute(AttributeDescription.create(mnType))).hasSize(1);
 
     options = new LinkedHashSet<>();
     assertThat(e.getAllAttributes(AttributeDescription.create(ocType, options))).hasSize(1);
