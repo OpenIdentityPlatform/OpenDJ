@@ -59,6 +59,7 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.OpenDsException;
 
@@ -426,7 +427,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private void updateConfigEntryWithAttribute(DN entryDn, String attrName, List<DN> newBaseDNs)
       throws DirectoryException, ConfigException
   {
-    ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
+    ConfigurationHandler configHandler = getServerContext().getConfigurationHandler();
     final Entry configEntry = configHandler.getEntry(entryDn);
     final Entry newEntry = LinkedHashMapEntry.deepCopyOfEntry(configEntry);
     AttributeType attrType = Schema.getDefaultSchema().getAttributeType(
@@ -470,7 +471,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private void deleteBackend(BackendDescriptor backend) throws OpenDsException, ConfigException
   {
     DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backend.getBackendID() + ",cn=Backends,cn=config");
-    Utilities.deleteConfigSubtree(DirectoryServer.getInstance().getServerContext().getConfigurationHandler(), dn);
+    Utilities.deleteConfigSubtree(getServerContext().getConfigurationHandler(), dn);
   }
 
   /**
@@ -625,7 +626,7 @@ public class DeleteBaseDNAndBackendTask extends Task
         }
         else
         {
-          RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
+          RootCfg root = getServerContext().getRootConfig();
           ReplicationSynchronizationProviderCfg sync = null;
           try
           {
@@ -649,7 +650,7 @@ public class DeleteBaseDNAndBackendTask extends Task
                 {
                   domainName.set(dName);
                   DN entryDN = domain.dn();
-                  Utilities.deleteConfigSubtree(DirectoryServer.getInstance().getServerContext().getConfigurationHandler(), entryDN);
+                  Utilities.deleteConfigSubtree(getServerContext().getConfigurationHandler(), entryDN);
                   break;
                 }
               }
@@ -700,6 +701,11 @@ public class DeleteBaseDNAndBackendTask extends Task
         }
       });
     }
+  }
+
+  private ServerContext getServerContext()
+  {
+    return DirectoryServer.getInstance().getServerContext();
   }
 
   /**

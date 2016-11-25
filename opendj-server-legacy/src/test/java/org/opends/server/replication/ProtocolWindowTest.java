@@ -16,6 +16,11 @@
  */
 package org.opends.server.replication;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
+
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -44,11 +49,6 @@ import org.opends.server.types.OperationType;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.forgerock.opendj.ldap.SearchScope.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.testng.Assert.*;
 
 /**
  * Test the constructors, encoders and decoders of the Replication AckMsg,
@@ -104,7 +104,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     // @formatter:on
 
     // Configure replication domain
-    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(repDomainEntry));
+    getServerContext().getConfigurationHandler().addEntry(Converters.from(repDomainEntry));
     assertNotNull(DirectoryServer.getEntry(repDomainEntry.getName()),
           "Unable to add the synchronized server");
     configEntriesToCleanup.add(repDomainEntry.getName());

@@ -21,6 +21,7 @@ import static java.util.concurrent.TimeUnit.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -457,7 +458,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     if (configEntry != null)
     {
-      DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(configEntry));
+      getServerContext().getConfigurationHandler().addEntry(Converters.from(configEntry));
       assertNotNull(DirectoryServer.getEntry(configEntry.getName()), errorMessage);
       configEntriesToCleanup.add(configEntry.getName());
     }

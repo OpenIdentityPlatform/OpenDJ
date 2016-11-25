@@ -29,6 +29,7 @@ import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 
@@ -66,8 +67,9 @@ public class BackendToolUtils
     try
     {
       // Iterate through the immediate children, attempting to parse them as backends.
-      final RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
-      ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
+      ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+      final RootCfg root = serverContext.getRootConfig();
+      ConfigurationHandler configHandler = serverContext.getConfigurationHandler();
       final DN backendBaseDN = getBackendBaseDN();
       for (final DN childrenDn : configHandler.getChildren(backendBaseDN))
       {
@@ -87,7 +89,7 @@ public class BackendToolUtils
           backend = (LocalBackend) backendClass.newInstance();
           backend.setBackendID(backendID);
           cfg = root.getBackend(backendID);
-          backend.configureBackend(cfg, DirectoryServer.getInstance().getServerContext());
+          backend.configureBackend(cfg, serverContext);
         }
         catch (final Exception e)
         {

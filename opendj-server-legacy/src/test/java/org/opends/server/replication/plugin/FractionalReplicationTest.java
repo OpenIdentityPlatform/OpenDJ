@@ -137,7 +137,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   {
     super.setUp();
 
-    replServerPort = TestCaseUtils.findFreePort();
+    replServerPort = findFreePort();
   }
 
   /** Returns a bunch of single values for fractional-exclude configuration attribute. */
@@ -251,7 +251,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional-include configuration
    * attribute
    */
-  @SuppressWarnings("unused")
   @DataProvider(name = "testIncludePrecommitProvider")
   private Object[][] testIncludePrecommitProvider()
   {
@@ -265,7 +264,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional-include configuration
    * attribute
    */
-  @SuppressWarnings("unused")
   @DataProvider(name = "testIncludeNightlyProvider")
   private Object[][] testIncludeNightlyProvider()
   {
@@ -378,7 +376,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     fractionalDomainCfgEntry = null;
     replicationServer = null;
 
-    TestCaseUtils.initializeTestBackend(false);
+    initializeTestBackend(false);
 
     gen = new CSNGenerator(DS2_ID, 0L);
   }
@@ -471,7 +469,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "objectClass: domain\n" +
         "dc: example\n";
       }
-      addEntry(TestCaseUtils.entryFromLdifString(topEntryLdif));
+      addEntry(entryFromLdifString(topEntryLdif));
 
       /**
        * Create the domain with the passed fractional configuration
@@ -502,10 +500,10 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         }
           i++;
       }
-      fractionalDomainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
+      fractionalDomainCfgEntry = entryFromLdifString(configEntryLdif);
 
       // Add the config entry to create the replicated domain
-      DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(fractionalDomainCfgEntry));
+      getServerContext().getConfigurationHandler().addEntry(Converters.from(fractionalDomainCfgEntry));
       assertNotNull(DirectoryServer.getEntry(fractionalDomainCfgEntry.getName()),
         "Unable to add the domain config entry: " + configEntryLdif);
     }
@@ -587,7 +585,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       }
 
       // Create an update message to add an entry.
-      replicationDomain.publish(newAddMsg(TestCaseUtils.entryFromLdifString(entryLdif), ENTRY_UUID));
+      replicationDomain.publish(newAddMsg(entryFromLdifString(entryLdif), ENTRY_UUID));
   }
 
   /**
@@ -767,7 +765,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
-  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateExcludePrecommitProvider")
   private Object[][] testInitWithFullUpdateExcludePrecommitProvider()
   {
@@ -781,7 +778,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
-  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateExcludeNightlyProvider")
   private Object[][] testInitWithFullUpdateExcludeNightlyProvider()
   {
@@ -1005,7 +1001,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
-  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateIncludePrecommitProvider")
   private Object[][] testInitWithFullUpdateIncludePrecommitProvider()
   {
@@ -1019,7 +1014,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Returns a bunch of single values for fractional configuration
    * attributes
    */
-  @SuppressWarnings("unused")
   @DataProvider(name = "testInitWithFullUpdateIncludeNightlyProvider")
   private Object[][] testInitWithFullUpdateIncludeNightlyProvider()
   {
@@ -1207,7 +1201,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Perform add operation with forbidden attribute in RDN
       // @formatter:off
-      Entry entry = TestCaseUtils.makeEntry(
+      Entry entry = makeEntry(
           "dn: displayName=ValueToBeKept," + TEST_ROOT_DN_STRING,
           "objectClass: top",
           "objectClass: person",
@@ -1239,7 +1233,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Perform add operation with forbidden attribute in RDN
       // @formatter:off
-      entry = TestCaseUtils.makeEntry(
+      entry = makeEntry(
           "dn: displayName=ValueToBeKept+givenName=ValueToBeKeptToo," + TEST_ROOT_DN_STRING,
           "objectClass: top",
           "objectClass: person",
@@ -1295,7 +1289,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
       // @formatter:off
-      Entry entry = TestCaseUtils.makeEntry(
+      Entry entry = makeEntry(
           "dn: displayName=ValueToBeKept," + TEST_ROOT_DN_STRING,
           "objectClass: top",
           "objectClass: person",
@@ -1329,7 +1323,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Perform add operation with forbidden attribute in RDN
       // @formatter:off
-      entry = TestCaseUtils.makeEntry(
+      entry = makeEntry(
           "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," + TEST_ROOT_DN_STRING,
           "objectClass: top",
           "objectClass: person",
@@ -1389,7 +1383,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       // Perform add operation with forbidden attribute in RDN
       String entryName = "displayName=ValueToBeKept+givenName=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
       // @formatter:off
-      Entry entry = TestCaseUtils.makeEntry(
+      Entry entry = makeEntry(
           "dn: " + entryName,
           "objectClass: top",
           "objectClass: person",
@@ -1470,7 +1464,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       // Perform add operation with forbidden attribute in RDN
       String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
       // @formatter:off
-      Entry entry = TestCaseUtils.makeEntry(
+      Entry entry = makeEntry(
           "dn: " + entryName,
           "objectClass: top",
           "objectClass: person",

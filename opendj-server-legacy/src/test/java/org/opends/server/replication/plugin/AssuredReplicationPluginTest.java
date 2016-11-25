@@ -46,7 +46,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -172,7 +171,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   {
     super.setUp();
 
-    replServerPort = TestCaseUtils.findFreePort();
+    replServerPort = findFreePort();
 
     // Create base dns for each tested modes
     addEntry("dn: " + SAFE_DATA_DN,
@@ -189,7 +188,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   /** Add an entry in the database. */
   private void addEntry(String... ldifLines) throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(ldifLines);
+    Entry entry = makeEntry(ldifLines);
     debugInfo("AddEntry " + entry.getName());
     AddOperation addOp = connection.processAdd(entry);
     waitOpResult(addOp, ResultCode.SUCCESS);
@@ -244,10 +243,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       default:
         fail("Unexpected assured level.");
     }
-    Entry domainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
+    Entry domainCfgEntry = entryFromLdifString(configEntryLdif);
 
     // Add the config entry to create the replicated domain
-    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
+    getServerContext().getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
     assertNotNull(DirectoryServer.getEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 
@@ -262,7 +261,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   {
     // Create a not assured config entry ldif
     // @formatter:off
-    Entry domainCfgEntry = TestCaseUtils.makeEntry(
+    Entry domainCfgEntry = makeEntry(
         "dn: cn=" + testName + ", cn=domains, " + SYNCHRO_PLUGIN_DN,
         "objectClass: top",
         "objectClass: ds-cfg-replication-domain",
@@ -278,7 +277,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     // @formatter:on
 
     // Add the config entry to create the replicated domain
-    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
+    getServerContext().getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
     assertNotNull(DirectoryServer.getEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + domainCfgEntry);
 
@@ -1117,7 +1116,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       /* Send an update from the RS and get the ack */
 
       // Make the RS send an assured add message
-      Entry entry = TestCaseUtils.makeEntry(
+      Entry entry = makeEntry(
           "dn: ou=assured-sr-reply-entry," + SAFE_READ_DN,
           "objectClass: top",
           "objectClass: organizationalUnit");
@@ -1203,7 +1202,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       // Make the RS send an assured add message: we expect a read timeout as
       // safe data should be ignored by DS
-      Entry entry = TestCaseUtils.makeEntry(
+      Entry entry = makeEntry(
           "dn: ou=assured-sd-reply-entry," + SAFE_DATA_DN,
           "objectClass: top",
           "objectClass: organizationalUnit");

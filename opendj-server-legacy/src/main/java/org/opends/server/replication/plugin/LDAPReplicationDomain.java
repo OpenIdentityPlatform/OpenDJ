@@ -3876,9 +3876,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     try
     {
       DN eclConfigEntryDN = DN.valueOf("cn=external changeLog," + config.dn());
-      if (DirectoryServer.getInstance().getServerContext().getConfigurationHandler().hasEntry(eclConfigEntryDN))
+      if (getServerContext().getConfigurationHandler().hasEntry(eclConfigEntryDN))
       {
-        DirectoryServer.getInstance().getServerContext().getConfigurationHandler().deleteEntry(eclConfigEntryDN);
+        getServerContext().getConfigurationHandler().deleteEntry(eclConfigEntryDN);
       }
     }
     catch(Exception e)
@@ -3903,7 +3903,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     try
     {
       DN configDn = config.dn();
-      ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
+      ConfigurationHandler configHandler = getServerContext().getConfigurationHandler();
       if (configHandler.hasEntry(config.dn()))
       {
         try
@@ -4834,7 +4834,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
        * For each class in specificClassesAttributes1, check that the attribute
        * list is equivalent to specificClassesAttributes2 attribute list
        */
-      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+      Schema schema = getServerContext().getSchema();
       for (Map.Entry<String, Set<String>> entry : specificClassesAttrs1.entrySet())
       {
         String className1 = entry.getKey();

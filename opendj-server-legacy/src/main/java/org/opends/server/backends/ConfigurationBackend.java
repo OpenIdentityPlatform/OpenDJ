@@ -43,9 +43,9 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.meta.LocalBackendCfgDefn.WritabilityMode;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.LocalBackendCfg;
-import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backupable;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.backends.ConfigurationBackend.ConfigurationBackendCfg;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.AddOperation;
@@ -205,16 +205,14 @@ public class ConfigurationBackend extends LocalBackend<ConfigurationBackendCfg> 
    *
    * @param serverContext
    *            The server context.
-   * @param configurationHandler
-   *            Contains the configuration entries.
    * @throws InitializationException
    *            If an errors occurs.
    */
-  public ConfigurationBackend(ServerContext serverContext, ConfigurationHandler configurationHandler)
+  public ConfigurationBackend(ServerContext serverContext)
       throws InitializationException
   {
     this.serverContext = serverContext;
-    this.configurationHandler = configurationHandler;
+    this.configurationHandler = serverContext.getConfigurationHandler();
     this.configRootEntry = Converters.to(configurationHandler.getRootEntry());
     baseDNs = Collections.singleton(configRootEntry.getName());
 

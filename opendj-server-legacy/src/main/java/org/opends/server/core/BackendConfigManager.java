@@ -19,8 +19,7 @@ package org.opends.server.core;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
-import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -54,8 +53,8 @@ import org.forgerock.opendj.server.config.server.LocalBackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.util.Reject;
-import org.opends.server.api.LocalBackend;
 import org.opends.server.api.Backend;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackendInitializationListener;
 import org.opends.server.backends.ConfigurationBackend;
 import org.opends.server.backends.RootDSEBackend;
@@ -129,8 +128,7 @@ public class BackendConfigManager implements
   public void initializeBackendConfig(Collection<String> backendIDsToStart)
          throws ConfigException, InitializationException
   {
-    final ConfigurationBackend configBackend =
-        new ConfigurationBackend(serverContext, DirectoryServer.getInstance().getServerContext().getConfigurationHandler());
+    final ConfigurationBackend configBackend = new ConfigurationBackend(serverContext);
     initializeBackend(configBackend, configBackend.getBackendCfg());
 
     // Register add and delete listeners.
