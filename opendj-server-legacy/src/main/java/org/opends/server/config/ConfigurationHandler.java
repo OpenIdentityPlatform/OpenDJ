@@ -1456,9 +1456,10 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
         continue;
       }
       int dashPos = name.indexOf('-', 7);
-      if (dashPos < 0)
+
+      try
       {
-        try
+        if (dashPos < 0)
         {
           ByteString ts = ByteString.valueOfUtf8(name.substring(7, dotPos));
           long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
@@ -1469,14 +1470,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
             latestCounter = 0;
           }
         }
-        catch (Exception e)
-        {
-          // Ignore.
-        }
-      }
-      else
-      {
-        try
+        else
         {
           ByteString ts = ByteString.valueOfUtf8(name.substring(7, dashPos));
           long timestamp = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ts);
@@ -1490,10 +1484,10 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
             latestCounter = counter;
           }
         }
-        catch (Exception e)
-        {
-          // Ignore.
-        }
+      }
+      catch (Exception ignored)
+      {
+        // Ignore.
       }
     }
 
