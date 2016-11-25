@@ -21,9 +21,7 @@ import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PRIVATE;
-import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
-import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -37,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
@@ -52,8 +51,8 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.server.config.server.RootDSEBackendCfg;
 import org.forgerock.util.Reject;
-import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.BackendConfigManager.NamingContextFilter;
@@ -190,7 +189,7 @@ public class RootDSEBackend
     // Construct the set of objectclasses to include in the root DSE entry.
     dseObjectClasses = new HashMap<>(2);
     dseObjectClasses.put(getTopObjectClass(), OC_TOP);
-    dseObjectClasses.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_ROOT_DSE), OC_ROOT_DSE);
+    dseObjectClasses.put(serverContext.getSchema().getObjectClass(OC_ROOT_DSE), OC_ROOT_DSE);
 
     // Set the backend ID for this backend. The identifier needs to be
     // specific enough to avoid conflict with user backend identifiers.

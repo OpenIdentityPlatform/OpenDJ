@@ -319,7 +319,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   private void hasValues(DN dn, String attrName, String... values) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType attrType = getServerContext().getSchema().getAttributeType(attrName);
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
@@ -330,7 +330,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   private void doesNotHaveValues(DN dn, String attrName, String... values) throws DirectoryException
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType attrType = getServerContext().getSchema().getAttributeType(attrName);
     assertTrue(entry.hasAttribute(attrType));
     for (String value : values)
     {
@@ -341,7 +341,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   private void hasNoAttribute(DN dn, String attrName) throws Exception
   {
     Entry entry = DirectoryServer.getEntry(dn);
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType attrType = getServerContext().getSchema().getAttributeType(attrName);
     assertFalse(entry.hasAttribute(attrType));
   }
 
@@ -354,7 +354,7 @@ public class SubentryManagerTestCase extends CoreTestCase
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("collectiveattributesubentries");
+    AttributeType attrType = getServerContext().getSchema().getAttributeType("collectiveattributesubentries");
     Entry e = searchOperation.getSearchEntries().getFirst();
     assertTrue(e.hasValue(attrType, ByteString.valueOfObject(collectiveSubentry.getName())));
   }

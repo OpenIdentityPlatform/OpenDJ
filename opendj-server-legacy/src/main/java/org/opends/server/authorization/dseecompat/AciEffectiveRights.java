@@ -25,6 +25,7 @@ import java.util.Set;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -202,17 +203,18 @@ public class AciEffectiveRights {
       AciLDAPOperationContainer container, final Entry e,
       boolean skipCheck)
   {
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     if (aclRights == null)
     {
-      aclRights = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(aclRightsAttrStr);
+      aclRights = schema.getAttributeType(aclRightsAttrStr);
     }
     if (aclRightsInfo == null)
     {
-      aclRightsInfo = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(aclRightsInfoAttrStr);
+      aclRightsInfo = schema.getAttributeType(aclRightsInfoAttrStr);
     }
     if (dnAttributeType == null)
     {
-      dnAttributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(dnAttrStr);
+      dnAttributeType = schema.getAttributeType(dnAttrStr);
     }
 
     // Check if the attributes aclRights and aclRightsInfo were requested and
@@ -244,7 +246,7 @@ public class AciEffectiveRights {
         }
         else
         {
-          nonRightsAttrs.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(a));
+          nonRightsAttrs.add(schema.getAttributeType(a));
         }
       }
     }
@@ -374,12 +376,11 @@ public class AciEffectiveRights {
       // Only add the aclRights information if the aclRights attribute type was seen.
       if(hasAttrMask(mask, ACL_RIGHTS))  {
         String typeStr = aclRightsAttributeLevelStr + ";" + a.getNameOrOID();
-        AttributeType attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(typeStr);
-        Attribute attr = Attributes.create(attributeType, evalInfo.toString());
+        Attribute attr = Attributes.create(typeStr, evalInfo.toString());
         //It is possible that the user might have specified the same attributes
         //in both the search and the specific attribute part of the control.
         //Only try to add the attribute type if it already hasn't been added.
-        if(!retEntry.hasAttribute(attributeType))
+        if (!retEntry.hasAttribute(attr.getAttributeDescription().getAttributeType()))
         {
           retEntry.addAttribute(attr,null);
         }
@@ -604,11 +605,10 @@ public class AciEffectiveRights {
     if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
       //Build the attribute type.
       String typeStr = aclRightsInfoAttrLogsStr + ";" + rightStr + ";" + aType.getNameOrOID();
-      AttributeType attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(typeStr);
-      Attribute attr = Attributes.create(attributeType, container.getEvalSummary());
+      Attribute attr = Attributes.create(typeStr, container.getEvalSummary());
       // The attribute type might have already been added, probably
       // not but it is possible.
-      if(!retEntry.hasAttribute(attributeType))
+      if (!retEntry.hasAttribute(attr.getAttributeDescription().getAttributeType()))
       {
         retEntry.addAttribute(attr,null);
       }

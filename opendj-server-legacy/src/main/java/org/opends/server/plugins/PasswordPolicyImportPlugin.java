@@ -37,6 +37,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.PluginCfgDefn;
 import org.forgerock.opendj.server.config.server.PasswordPolicyImportPluginCfg;
 import org.forgerock.opendj.server.config.server.PluginCfg;
@@ -106,7 +107,8 @@ public final class PasswordPolicyImportPlugin
   {
     configuration.addPasswordPolicyImportChangeListener(this);
 
-    customPolicyAttribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    customPolicyAttribute = schema.getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
 
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)

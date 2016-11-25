@@ -30,7 +30,6 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
@@ -93,8 +92,7 @@ public class DisconnectClientTask extends Task
 
   private long getConnectionID(Entry taskEntry) throws DirectoryException
   {
-    final AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_DISCONNECT_CONN_ID);
-    for (Attribute a : taskEntry.getAllAttributes(attrType))
+    for (Attribute a : taskEntry.getAllAttributes(ATTR_TASK_DISCONNECT_CONN_ID))
     {
       for (ByteString v : a)
       {
@@ -114,8 +112,7 @@ public class DisconnectClientTask extends Task
 
   private boolean mustNotifyClient(Entry taskEntry) throws DirectoryException
   {
-    final AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_DISCONNECT_NOTIFY_CLIENT);
-    for (Attribute a : taskEntry.getAllAttributes(attrType))
+    for (Attribute a : taskEntry.getAllAttributes(ATTR_TASK_DISCONNECT_NOTIFY_CLIENT))
     {
       for (ByteString v : a)
       {
@@ -140,8 +137,7 @@ public class DisconnectClientTask extends Task
 
   private LocalizableMessage getDisconnectMessage(Entry taskEntry)
   {
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_DISCONNECT_MESSAGE);
-    for (Attribute a : taskEntry.getAllAttributes(attrType))
+    for (Attribute a : taskEntry.getAllAttributes(ATTR_TASK_DISCONNECT_MESSAGE))
     {
       for (ByteString v : a)
       {

@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.VirtualStaticGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
@@ -109,8 +109,7 @@ public class VirtualStaticGroup
 
     // Get the target group DN attribute from the entry, if there is one.
     DN targetDN = null;
-    AttributeType targetType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_TARGET_GROUP_DN);
-    for (Attribute a : groupEntry.getAllAttributes(targetType))
+    for (Attribute a : groupEntry.getAllAttributes(ATTR_TARGET_GROUP_DN))
     {
       for (ByteString v : a)
       {
@@ -160,7 +159,8 @@ public class VirtualStaticGroup
     ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
-    return entry.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_VIRTUAL_STATIC_GROUP));
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    return entry.hasObjectClass(schema.getObjectClass(OC_VIRTUAL_STATIC_GROUP));
   }
 
   @Override
@@ -227,7 +227,7 @@ public class VirtualStaticGroup
       return false;
     }
 
-    Group targetGroup =
+    Group<?> targetGroup =
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
@@ -255,7 +255,7 @@ public class VirtualStaticGroup
       return false;
     }
 
-    Group targetGroup =
+    Group<?> targetGroup =
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
@@ -288,7 +288,7 @@ public class VirtualStaticGroup
   public MemberList getMembers()
          throws DirectoryException
   {
-    Group targetGroup =
+    Group<?> targetGroup =
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {
@@ -311,7 +311,7 @@ public class VirtualStaticGroup
                                SearchFilter filter)
          throws DirectoryException
   {
-    Group targetGroup =
+    Group<?> targetGroup =
          DirectoryServer.getGroupManager().getGroupInstance(targetGroupDN);
     if (targetGroup == null)
     {

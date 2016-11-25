@@ -35,19 +35,19 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
-import org.opends.server.api.LocalBackend;
-import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.LocalBackend;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.tools.makeldif.TemplateFile;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
@@ -97,13 +97,13 @@ public class ImportTask extends Task
   private String backendID;
   private String rejectFile;
   private String skipFile;
-  private ArrayList<String> excludeAttributeStrings;
-  private ArrayList<String> excludeBranchStrings;
-  private ArrayList<String> excludeFilterStrings;
-  private ArrayList<String> includeAttributeStrings;
-  private ArrayList<String> includeBranchStrings;
-  private ArrayList<String> includeFilterStrings;
-  private ArrayList<String> ldifFiles;
+  private List<String> excludeAttributeStrings;
+  private List<String> excludeBranchStrings;
+  private List<String> excludeFilterStrings;
+  private List<String> includeAttributeStrings;
+  private List<String> includeBranchStrings;
+  private List<String> includeFilterStrings;
+  private List<String> ldifFiles;
   private String templateFile;
   private int randomSeed;
   private LDIFImportConfig importConfig;
@@ -135,27 +135,28 @@ public class ImportTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeLdifFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_LDIF_FILE);
-    AttributeType typeTemplateFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_TEMPLATE_FILE);
-    AttributeType typeBackendID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_BACKEND_ID);
-    AttributeType typeIncludeBranch = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_BRANCH);
-    AttributeType typeExcludeBranch = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_BRANCH);
-    AttributeType typeIncludeAttribute = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_ATTRIBUTE);
-    AttributeType typeExcludeAttribute = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_ATTRIBUTE);
-    AttributeType typeIncludeFilter = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_FILTER);
-    AttributeType typeExcludeFilter = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_FILTER);
-    AttributeType typeRejectFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_REJECT_FILE);
-    AttributeType typeSkipFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_SKIP_FILE);
-    AttributeType typeOverwrite = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_OVERWRITE);
-    AttributeType typeSkipSchemaValidation = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION);
-    AttributeType typeIsCompressed = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_IS_COMPRESSED);
-    AttributeType typeIsEncrypted = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_IS_ENCRYPTED);
-    AttributeType typeClearBackend = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_CLEAR_BACKEND);
-    AttributeType typeRandomSeed = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_RANDOM_SEED);
-    AttributeType typeThreadCount = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_THREAD_COUNT);
-    AttributeType typeTmpDirectory = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_TMP_DIRECTORY);
+    Schema schema = getInstance().getServerContext().getSchema();
+    AttributeType typeLdifFile = schema.getAttributeType(ATTR_IMPORT_LDIF_FILE);
+    AttributeType typeTemplateFile = schema.getAttributeType(ATTR_IMPORT_TEMPLATE_FILE);
+    AttributeType typeBackendID = schema.getAttributeType(ATTR_IMPORT_BACKEND_ID);
+    AttributeType typeIncludeBranch = schema.getAttributeType(ATTR_IMPORT_INCLUDE_BRANCH);
+    AttributeType typeExcludeBranch = schema.getAttributeType(ATTR_IMPORT_EXCLUDE_BRANCH);
+    AttributeType typeIncludeAttribute = schema.getAttributeType(ATTR_IMPORT_INCLUDE_ATTRIBUTE);
+    AttributeType typeExcludeAttribute = schema.getAttributeType(ATTR_IMPORT_EXCLUDE_ATTRIBUTE);
+    AttributeType typeIncludeFilter = schema.getAttributeType(ATTR_IMPORT_INCLUDE_FILTER);
+    AttributeType typeExcludeFilter = schema.getAttributeType(ATTR_IMPORT_EXCLUDE_FILTER);
+    AttributeType typeRejectFile = schema.getAttributeType(ATTR_IMPORT_REJECT_FILE);
+    AttributeType typeSkipFile = schema.getAttributeType(ATTR_IMPORT_SKIP_FILE);
+    AttributeType typeOverwrite = schema.getAttributeType(ATTR_IMPORT_OVERWRITE);
+    AttributeType typeSkipSchemaValidation = schema.getAttributeType(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION);
+    AttributeType typeIsCompressed = schema.getAttributeType(ATTR_IMPORT_IS_COMPRESSED);
+    AttributeType typeIsEncrypted = schema.getAttributeType(ATTR_IMPORT_IS_ENCRYPTED);
+    AttributeType typeClearBackend = schema.getAttributeType(ATTR_IMPORT_CLEAR_BACKEND);
+    AttributeType typeRandomSeed = schema.getAttributeType(ATTR_IMPORT_RANDOM_SEED);
+    AttributeType typeThreadCount = schema.getAttributeType(ATTR_IMPORT_THREAD_COUNT);
+    AttributeType typeTmpDirectory = schema.getAttributeType(ATTR_IMPORT_TMP_DIRECTORY);
 
-    ArrayList<String> ldifFilestmp = asListOfStrings(taskEntry, typeLdifFile);
+    List<String> ldifFilestmp = asListOfStrings(taskEntry, typeLdifFile);
     ldifFiles = new ArrayList<>(ldifFilestmp.size());
     for (String s : ldifFilestmp)
     {
@@ -342,26 +343,22 @@ public class ImportTask extends Task
 
   private int asInt(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
-    return TaskUtils.getSingleValueInteger(attrList, 0);
+    return TaskUtils.getSingleValueInteger(taskEntry.getAllAttributes(attributeType), 0);
   }
 
   private boolean asBoolean(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
-    return TaskUtils.getBoolean(attrList, false);
+    return TaskUtils.getBoolean(taskEntry.getAllAttributes(attributeType), false);
   }
 
   private String asString(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
-    return TaskUtils.getSingleValueString(attrList);
+    return TaskUtils.getSingleValueString(taskEntry.getAllAttributes(attributeType));
   }
 
-  private ArrayList<String> asListOfStrings(Entry taskEntry, AttributeType attributeType)
+  private List<String> asListOfStrings(Entry taskEntry, AttributeType attributeType)
   {
-    final List<Attribute> attrList = taskEntry.getAllAttributes(attributeType);
-    return TaskUtils.getMultiValueString(attrList);
+    return TaskUtils.getMultiValueString(taskEntry.getAllAttributes(attributeType));
   }
 
   @Override
@@ -721,7 +718,7 @@ public class ImportTask extends Task
     return getFinalTaskState();
   }
 
-  private HashSet<AttributeType> toAttributeTypes(ArrayList<String> attrNames)
+  private HashSet<AttributeType> toAttributeTypes(List<String> attrNames)
   {
     final HashSet<AttributeType> attrTypes = new HashSet<>(attrNames.size());
     for (String attrName : attrNames)

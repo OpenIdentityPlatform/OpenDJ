@@ -35,7 +35,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
@@ -466,8 +465,7 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       debugInfo("Entry found <" + baseDN + ">");
 
-      AttributeType synchronizationGenIDType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(REPLICATION_GENERATION_ID);
-      Attribute attr = resultEntry.getAttribute(AttributeDescription.create(synchronizationGenIDType));
+      Attribute attr = resultEntry.getAttribute(AttributeDescription.valueOf(REPLICATION_GENERATION_ID));
       return Long.valueOf(attr.iterator().next().toString());
     }
     return -1;
@@ -491,8 +489,8 @@ public class GenerationIdTest extends ReplicationTestCase
     LDIFImportConfig importConfig = new LDIFImportConfig(ldifFile.getAbsolutePath());
 
     MemoryBackend memoryBackend =
-        (MemoryBackend) TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
-    memoryBackend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
+        (MemoryBackend) getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
+    memoryBackend.importLDIF(importConfig, getServerContext());
   }
 
   private String createEntry(UUID uid)

@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.forgerock.opendj.server.config.server.ReplicationServerCfg;
 import org.forgerock.opendj.server.config.server.UserDefinedVirtualAttributeCfg;
@@ -54,6 +55,7 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
@@ -174,7 +176,8 @@ public class ReplicationServer
     this.domainPredicate = predicate;
 
     enableExternalChangeLog();
-    cryptoSuite = DirectoryServer.getInstance().getServerContext().getCryptoManager().
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+    cryptoSuite = serverContext.getCryptoManager().
         newCryptoSuite(cfg.getCipherTransformation(), cfg.getCipherKeyLength(), cfg.isConfidentialityEnabled());
 
     this.changelogDB = new FileChangelogDB(this, config.getReplicationDBDirectory(), cryptoSuite);
@@ -560,7 +563,8 @@ public class ReplicationServer
       // create a rule and register it into the DirectoryServer
       provider.initializeVirtualAttributeProvider(null);
 
-      AttributeType attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+      AttributeType attributeType = schema.getAttributeType(attrName);
       return new VirtualAttributeRule(attributeType, provider,
             baseDNs, SearchScope.BASE_OBJECT,
             groupDNs, filters, conflictBehavior);

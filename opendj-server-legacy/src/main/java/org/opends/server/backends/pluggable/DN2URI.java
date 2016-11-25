@@ -38,14 +38,12 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableTransaction;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
@@ -72,12 +70,6 @@ class DN2URI extends AbstractTree
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final int prefixRDNComponents;
-
-  /**
-   * The standard attribute type that is used to specify the set of referral
-   * URLs in a referral entry.
-   */
-  private final AttributeType referralType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_REFERRAL_URL);
 
   /**
    * A flag that indicates whether there are any referrals contained in this
@@ -306,8 +298,7 @@ class DN2URI extends AbstractTree
     for (Modification mod : mods)
     {
       Attribute modAttr = mod.getAttribute();
-      AttributeType modAttrType = modAttr.getAttributeDescription().getAttributeType();
-      if (modAttrType.equals(referralType))
+      if (modAttr.getAttributeDescription().getAttributeType().hasName(ATTR_REFERRAL_URL))
       {
         Attribute a = mod.getAttribute();
         switch (mod.getModificationType().asEnum())

@@ -27,6 +27,7 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.reactive.LDAPClientConnection2;
 import org.forgerock.opendj.server.config.server.ExternalSASLMechanismHandlerCfg;
 import org.forgerock.opendj.server.config.server.SASLMechanismHandlerCfg;
@@ -107,7 +108,8 @@ public class ExternalSASLMechanismHandler
     certificateAttributeType = configuration.getCertificateAttribute();
     if (certificateAttributeType == null)
     {
-      certificateAttributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+      certificateAttributeType = schema.getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
     }
 
 
@@ -346,7 +348,8 @@ public class ExternalSASLMechanismHandler
     AttributeType newCertificateType = configuration.getCertificateAttribute();
     if (newCertificateType == null)
     {
-      newCertificateType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+      newCertificateType = schema.getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
     }
 
 

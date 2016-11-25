@@ -24,6 +24,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -187,13 +188,14 @@ public class SubEntry {
     // Process inherited collective attributes.
     if (this.isInheritedCollective)
     {
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
       if (this.isInheritedFromDNCollective)
       {
         for (Attribute attr : entry.getAllAttributes(ATTR_INHERIT_COLLECTIVE_FROM_DN_LC))
         {
           for (ByteString value : attr)
           {
-            this.inheritFromDNType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value.toString());
+            this.inheritFromDNType = schema.getAttributeType(value.toString());
             this.inheritFromDNAttrValue = value;
             break;
           }
@@ -206,7 +208,7 @@ public class SubEntry {
         {
           for (ByteString value : attr)
           {
-            this.inheritFromRDNAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value.toString());
+            this.inheritFromRDNAttrType = schema.getAttributeType(value.toString());
             this.inheritFromRDNAttrValue = value;
             break;
           }
@@ -215,7 +217,7 @@ public class SubEntry {
         {
           for (ByteString value : attr)
           {
-            this.inheritFromRDNType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value.toString());
+            this.inheritFromRDNType = schema.getAttributeType(value.toString());
             break;
           }
         }
@@ -265,8 +267,7 @@ public class SubEntry {
   {
     String specString = null;
     boolean isValidSpec = true;
-    AttributeType specAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_SUBTREE_SPEC_LC);
-    for (Attribute attr : entry.getAllAttributes(specAttrType))
+    for (Attribute attr : entry.getAllAttributes(ATTR_SUBTREE_SPEC_LC))
     {
       for (ByteString value : attr)
       {

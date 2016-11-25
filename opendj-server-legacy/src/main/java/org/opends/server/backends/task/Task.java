@@ -806,7 +806,7 @@ public abstract class Task implements Comparable<Task>
     // We cannot do task logging if the schema is either destroyed or
     // not initialized eg during in-core restart from Restart task.
     // Bailing out if there is no schema available saves us from NPE.
-    if (getServerContext().getSchemaHandler() == null)
+    if (serverContext.getSchemaHandler() == null)
     {
       return;
     }
@@ -823,7 +823,7 @@ public abstract class Task implements Comparable<Task>
       String messageString = buildLogMessage(severity, message, exception);
       logMessages.add(messageString);
 
-      final AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_LOG_MESSAGES);
+      final AttributeType type = serverContext.getSchema().getAttributeType(ATTR_TASK_LOG_MESSAGES);
       final Attribute attr = taskEntry.getAttribute(AttributeDescription.create(type));
       final AttributeBuilder builder = attr != null ? new AttributeBuilder(attr) : new AttributeBuilder(type);
       builder.add(messageString);

@@ -59,6 +59,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Reject;
 import org.opends.messages.ToolMessages;
 import org.opends.server.core.DirectoryServer;
@@ -1997,7 +1998,8 @@ public final class StaticUtils
     RDN rdn = dn.rdn();
 
     // If there is only one RDN attribute, then see which objectclass we should use.
-    ObjectClass structuralClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(getObjectClassName(rdn));
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    ObjectClass structuralClass = schema.getObjectClass(getObjectClassName(rdn));
 
     // Get the top and untypedObject classes to include in the entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(3);

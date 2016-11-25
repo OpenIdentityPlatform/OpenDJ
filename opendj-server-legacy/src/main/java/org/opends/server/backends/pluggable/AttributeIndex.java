@@ -411,7 +411,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
     {
       try
       {
-        final MatchingRule rule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(ruleName);
+        final MatchingRule rule = getSchema().getMatchingRule(ruleName);
         for (Indexer indexer : rule.createIndexers(options))
         {
           indexers.put(indexer, false);
@@ -1098,7 +1098,7 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       return evaluateFilter(indexQueryFactory, IndexFilterType.EQUALITY, filter, debugBuffer, monitor);
     }
 
-    MatchingRule rule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchRuleOID);
+    MatchingRule rule = getSchema().getMatchingRule(matchRuleOID);
     if (!ruleHasAtLeastOneIndex(rule))
     {
       if (monitor.isFilterUseEnabled())
@@ -1131,6 +1131,11 @@ class AttributeIndex implements ConfigurationChangeListener<BackendIndexCfg>, Cl
       logger.traceException(e);
       return IndexQueryFactoryImpl.createNullIndexQuery().evaluate(null, null);
     }
+  }
+
+  private static Schema getSchema()
+  {
+    return DirectoryServer.getInstance().getServerContext().getSchema();
   }
 
   private boolean ruleHasAtLeastOneIndex(MatchingRule rule)

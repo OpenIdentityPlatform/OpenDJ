@@ -98,6 +98,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -594,7 +595,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // register as an AlertGenerator
     DirectoryServer.registerAlertGenerator(this);
 
-    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+    getServerContext().getBackendConfigManager()
       .registerLocalBackendInitializationListener(this);
     DirectoryServer.registerShutdownListener(this);
 
@@ -764,11 +765,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final SearchResultEntry resultEntry = getFirstResult(searchOperation);
     if (resultEntry != null)
     {
-      AttributeType synchronizationGenIDType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(REPLICATION_GENERATION_ID);
-      List<Attribute> attrs = resultEntry.getAllAttributes(synchronizationGenIDType);
-      if (!attrs.isEmpty())
+      Iterator<Attribute> attrs = resultEntry.getAllAttributes(REPLICATION_GENERATION_ID).iterator();
+      if (attrs.hasNext())
       {
-        Attribute attr = attrs.get(0);
+        Attribute attr = attrs.next();
         if (attr.size() == 1)
         {
           return resultEntry;
@@ -783,9 +783,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return null;
   }
 
+  private static ServerContext getServerContext()
+  {
+    return DirectoryServer.getInstance().getServerContext();
+  }
+
   private Iterator<ByteString> getAttributeValueIterator(SearchResultEntry resultEntry, String attrName)
   {
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType attrType = getServerContext().getSchema().getAttributeType(attrName);
     List<Attribute> exclAttrs = resultEntry.getAllAttributes(attrType);
     if (!exclAttrs.isEmpty())
     {
@@ -887,7 +892,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Check consistency of all classes attributes
-    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    Schema schema = getServerContext().getSchema();
     /*
      * For each attribute in attributes1, check there is the matching
      * one in attributes2.
@@ -965,7 +970,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
 
     // Check consistency of specific classes attributes
-    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    Schema schema = getServerContext().getSchema();
     int fractionalMode = newFractionalConfig.fractionalConfigToInt();
     for (Map.Entry<String, Set<String>> entry : newFractionalSpecificClassesAttributes.entrySet())
     {
@@ -1363,7 +1368,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     Set<AttributeType> results = new HashSet<>();
     for (String attrName : fractionalConcernedAttributes)
     {
-      results.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
+      results.add(getServerContext().getSchema().getAttributeType(attrName));
     }
     return results;
   }
@@ -1669,7 +1674,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
 
         DN entryDN = addOperation.getEntryDN();
-        DN parentDnFromEntryDn = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        DN parentDnFromEntryDn = getServerContext().getBackendConfigManager()
             .getParentDNInSuffix(entryDN);
         if (parentDnFromEntryDn != null
             && !parentDnFromCtx.equals(parentDnFromEntryDn))
@@ -1961,7 +1966,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final CSN csn = generateCSN(addOperation);
     final String entryUUID = getEntryUUID(addOperation);
     final AddContext ctx = new AddContext(csn, entryUUID,
-        findEntryUUID(DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+        findEntryUUID(getServerContext().getBackendConfigManager()
             .getParentDNInSuffix(addOperation.getEntryDN())));
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
   }
@@ -2239,7 +2244,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
 
       DirectoryServer.deregisterAlertGenerator(this);
-      DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+      getServerContext().getBackendConfigManager()
         .deregisterLocalBackendInitializationListener(this);
       DirectoryServer.deregisterShutdownListener(this);
 
@@ -3442,7 +3447,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       Set<AttributeType> includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings)
       {
-        includeAttributes.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
+        includeAttributes.add(getServerContext().getSchema().getAttributeType(attrName));
       }
       exportConfig.setIncludeAttributes(includeAttributes);
     }
@@ -3570,7 +3575,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       // Process import
       preBackendImport(backend);
-      backend.importLDIF(importConfig, DirectoryServer.getInstance().getServerContext());
+      backend.importLDIF(importConfig, getServerContext());
     }
     catch(Exception e)
     {
@@ -3697,7 +3702,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    */
   private LocalBackend<?> getBackend()
   {
-    return DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
+    return getServerContext().getBackendConfigManager()
         .findLocalBackendForEntry(getBaseDN());
   }
 
@@ -3765,7 +3770,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     }
 
     // Check that the base DN is configured as a base-dn of the directory server
-    if (DirectoryServer.getInstance().getServerContext().getBackendConfigManager().findLocalBackendForEntry(dn) == null)
+    if (getServerContext().getBackendConfigManager().findLocalBackendForEntry(dn) == null)
     {
       unacceptableReasons.add(ERR_UNKNOWN_DN.get(dn));
       return false;
@@ -4432,7 +4437,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       if (name.startsWith("@"))
       {
         String ocName = name.substring(1);
-        ObjectClass objectClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
+        ObjectClass objectClass = getServerContext().getSchema().getObjectClass(ocName);
         if (!objectClass.isPlaceHolder())
         {
           for (AttributeType at : objectClass.getRequiredAttributes())

@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 
@@ -830,10 +831,11 @@ public class TemplateFile
         // be separated by plus signs.
         ArrayList<AttributeType> attrList = new ArrayList<>();
         String rdnAttrNames = lowerLine.substring(9).trim();
+        Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
         StringTokenizer tokenizer = new StringTokenizer(rdnAttrNames, "+");
         while (tokenizer.hasMoreTokens())
         {
-          attrList.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(tokenizer.nextToken()));
+          attrList.add(schema.getAttributeType(tokenizer.nextToken()));
         }
 
         rdnAttributes = new AttributeType[attrList.size()];
@@ -995,7 +997,8 @@ public class TemplateFile
       }
     }
 
-    AttributeType attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(lowerLine.substring(0, colonPos));
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    AttributeType attributeType = schema.getAttributeType(lowerLine.substring(0, colonPos));
 
     // First, check whether the value is an URL value: <attrName>:< <url>
     int length = line.length();

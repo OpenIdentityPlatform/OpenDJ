@@ -15,27 +15,25 @@
  */
 package org.opends.server.tasks;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+
+import java.util.List;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-
-import java.util.List;
-
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_RESET_CHANGE_NUMBER_BASE_DN;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_RESET_CHANGE_NUMBER_CSN;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_RESET_CHANGE_NUMBER_TO;
-import static org.opends.server.core.DirectoryServer.getSchema;
-import static org.opends.messages.TaskMessages.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -96,8 +94,8 @@ public class ResetChangeNumberTask extends Task
 
   private List<Attribute> getTaskParameter(Entry taskEntry, String attrTaskResetChangeNumberTo)
   {
-    AttributeType taskAttr = getInstance().getServerContext().getSchema().getAttributeType(attrTaskResetChangeNumberTo);
-    return taskEntry.getAllAttributes(taskAttr);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    return taskEntry.getAllAttributes(schema.getAttributeType(attrTaskResetChangeNumberTo));
   }
 
   @Override

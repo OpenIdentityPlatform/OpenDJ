@@ -19,7 +19,6 @@ package org.opends.server.tasks;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -36,13 +35,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
-import org.forgerock.opendj.server.config.server.BackendCfg;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
@@ -137,34 +135,23 @@ public class BackupTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeBackupAll = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_ALL);
-    AttributeType typeCompress = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_COMPRESS);
-    AttributeType typeEncrypt = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_ENCRYPT);
-    AttributeType typeHash = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_HASH);
-    AttributeType typeIncremental = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL);
-    AttributeType typeSignHash = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_SIGN_HASH);
-    AttributeType typeBackendID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_BACKEND_ID);
-    AttributeType typeBackupID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_ID);
-    AttributeType typeBackupDirectory = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
-    AttributeType typeIncrementalBaseID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID);
+    backUpAll = TaskUtils.getBoolean(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_ALL), false);
+    compress = TaskUtils.getBoolean(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_COMPRESS), false);
+    encrypt = TaskUtils.getBoolean(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_ENCRYPT), false);
+    hash = TaskUtils.getBoolean(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_HASH), false);
+    incremental = TaskUtils.getBoolean(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_INCREMENTAL), false);
+    signHash = TaskUtils.getBoolean(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_SIGN_HASH), false);
+    backendIDList = TaskUtils.getMultiValueString(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_BACKEND_ID));
+    backupID = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(ATTR_BACKUP_ID));
 
-    backUpAll = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeBackupAll), false);
-    compress = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeCompress), false);
-    encrypt = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeEncrypt), false);
-    hash = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeHash), false);
-    incremental = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeIncremental), false);
-    signHash = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeSignHash), false);
-    backendIDList = TaskUtils.getMultiValueString(taskEntry.getAllAttributes(typeBackendID));
-    backupID = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(typeBackupID));
-
-    String backupDirectoryPath = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(typeBackupDirectory));
+    String backupDirectoryPath = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(ATTR_BACKUP_DIRECTORY_PATH));
     backupDirectory = new File(backupDirectoryPath);
     if (! backupDirectory.isAbsolute())
     {
       backupDirectory = new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
     }
 
-    incrementalBase = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(typeIncrementalBaseID));
+    incrementalBase = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID));
 
     configEntries = TaskUtils.getBackendConfigEntries();
   }

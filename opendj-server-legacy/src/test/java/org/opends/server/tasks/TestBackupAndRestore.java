@@ -23,7 +23,6 @@ import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.testng.annotations.AfterClass;
@@ -188,7 +187,7 @@ public class TestBackupAndRestore extends TasksTestCase
     final int restoreBeginCountStart = restoreBeginCount.get();
     final int restoreEndCountStart = restoreEndCount.get();
 
-    ObjectClass backupClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("ds-task-backup");
+    ObjectClass backupClass = TestCaseUtils.getServerContext().getSchema().getObjectClass("ds-task-backup");
 
     testTask(taskEntry, expectedState, 30);
     if (expectedState == TaskState.COMPLETED_SUCCESSFULLY ||

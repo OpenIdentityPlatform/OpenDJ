@@ -44,6 +44,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.MatchingRuleUse;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.server.core.DirectoryServer;
 
@@ -1984,7 +1985,7 @@ public final class SearchFilter
 
       try
       {
-        DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
+        getSchema().getMatchingRule(matchingRuleID);
       }
       catch (UnknownSchemaElementException e)
       {
@@ -3115,7 +3116,7 @@ public final class SearchFilter
     {
       try
       {
-        matchingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
+        matchingRule = getSchema().getMatchingRule(matchingRuleID);
       }
       catch (UnknownSchemaElementException e)
       {
@@ -3159,7 +3160,7 @@ public final class SearchFilter
     {
       try
       {
-        MatchingRuleUse mru = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRuleUse(matchingRule);
+        MatchingRuleUse mru = getSchema().getMatchingRuleUse(matchingRule);
         if (!mru.hasAttribute(getAttributeType()))
         {
           logger.trace("Attribute type %s is not allowed for use with "
@@ -3295,6 +3296,11 @@ public final class SearchFilter
     // If we've gotten here, then there is no definitive match, so
     // we'll either return FALSE or UNDEFINED.
     return result;
+  }
+
+  private static Schema getSchema()
+  {
+    return DirectoryServer.getInstance().getServerContext().getSchema();
   }
 
   private ConditionResult assertionMatchesAnyAttribute(MatchingRule matchingRule, Assertion assertion,
@@ -3508,7 +3514,7 @@ public final class SearchFilter
       {
         try
         {
-          MatchingRule mrule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
+          MatchingRule mrule = getSchema().getMatchingRule(matchingRuleID);
           Assertion assertion = mrule.getAssertion(f.assertionValue);
           return assertion.matches(mrule.normalizeAttributeValue(assertionValue)).toBoolean();
         }

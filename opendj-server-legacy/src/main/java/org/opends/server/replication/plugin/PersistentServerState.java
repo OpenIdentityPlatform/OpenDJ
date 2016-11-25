@@ -16,17 +16,21 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.replication.plugin.EntryHistorical.*;
+
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -35,15 +39,9 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.SearchResultEntry;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.replication.plugin.EntryHistorical.*;
 
 /**
  * This class implements a ServerState that is stored in the backend
@@ -211,11 +209,10 @@ class PersistentServerState
    */
   private void updateStateFromEntry(SearchResultEntry resultEntry)
   {
-    AttributeType synchronizationStateType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(REPLICATION_STATE);
-    List<Attribute> attrs = resultEntry.getAllAttributes(synchronizationStateType);
-    if (!attrs.isEmpty())
+    Iterator<Attribute> attrs = resultEntry.getAllAttributes(REPLICATION_STATE).iterator();
+    if (attrs.hasNext())
     {
-      for (ByteString value : attrs.get(0))
+      for (ByteString value : attrs.next())
       {
         update(new CSN(value.toString()));
       }
@@ -310,8 +307,6 @@ class PersistentServerState
    */
   private final void checkAndUpdateServerState()
   {
-    final AttributeType histType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
-
     // Retrieves the entries that have changed since the
     // maxCsn stored in the serverState
     synchronized (this)
@@ -344,7 +339,7 @@ class PersistentServerState
       CSN dbMaxCSN = serverStateMaxCSN;
       for (SearchResultEntry resEntry : op.getSearchEntries())
       {
-        for (ByteString attrValue : resEntry.getAllAttributes(histType).get(0))
+        for (ByteString attrValue : resEntry.getAllAttributes(HISTORICAL_ATTRIBUTE_NAME).iterator().next())
         {
           HistoricalAttributeValue histVal =
               new HistoricalAttributeValue(attrValue.toString());

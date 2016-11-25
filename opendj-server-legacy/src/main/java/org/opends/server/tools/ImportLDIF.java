@@ -36,6 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
@@ -474,6 +475,7 @@ public class ImportLDIF extends TaskTool {
     HashSet<AttributeType> excludeAttributes;
     boolean excludeAllUserAttributes = false;
     boolean excludeAllOperationalAttributes = false;
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     if (excludeAttributeStrings == null)
     {
       excludeAttributes = null;
@@ -494,7 +496,7 @@ public class ImportLDIF extends TaskTool {
         }
         else
         {
-          excludeAttributes.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
+          excludeAttributes.add(schema.getAttributeType(attrName));
         }
       }
     }
@@ -522,7 +524,7 @@ public class ImportLDIF extends TaskTool {
         }
         else
         {
-          includeAttributes.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
+          includeAttributes.add(schema.getAttributeType(attrName));
         }
       }
     }

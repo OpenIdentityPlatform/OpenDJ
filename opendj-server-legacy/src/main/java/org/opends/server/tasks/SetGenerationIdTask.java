@@ -17,22 +17,18 @@
 package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-
-import java.util.List;
+import static org.opends.server.tasks.TaskUtils.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
@@ -67,13 +63,12 @@ public class SetGenerationIdTask extends Task
     Entry taskEntry = getTaskEntry();
 
     // Retrieves the eventual generation-ID
-    AttributeType typeNewValue = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE);
-    List<Attribute> attrList = taskEntry.getAllAttributes(typeNewValue);
-    if (!attrList.isEmpty())
+    String singleValue = getSingleValueString(taskEntry.getAllAttributes(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE));
+    if (singleValue != null)
     {
       try
       {
-        generationId = Long.parseLong(TaskUtils.getSingleValueString(attrList));
+        generationId = Long.parseLong(singleValue);
       }
       catch(Exception e)
       {
@@ -85,9 +80,7 @@ public class SetGenerationIdTask extends Task
     }
 
     // Retrieves the replication domain
-    AttributeType typeDomainBase = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN);
-    attrList = taskEntry.getAllAttributes(typeDomainBase);
-    domainString = TaskUtils.getSingleValueString(attrList);
+    domainString = getSingleValueString(taskEntry.getAllAttributes(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN));
 
     try
     {
@@ -103,7 +96,6 @@ public class SetGenerationIdTask extends Task
     }
   }
 
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {

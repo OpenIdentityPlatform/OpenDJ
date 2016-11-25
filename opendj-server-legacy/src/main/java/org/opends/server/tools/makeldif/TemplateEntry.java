@@ -31,6 +31,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
@@ -247,10 +248,11 @@ public class TemplateEntry
       ArrayList<TemplateValue> valueList = entry.getValue();
       if (t.isObjectClass())
       {
+        Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
         for (TemplateValue v : valueList)
         {
           String ocName = v.getValue().toString();
-          objectClasses.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName), ocName);
+          objectClasses.put(schema.getObjectClass(ocName), ocName);
         }
       }
       else if (t.isOperational())

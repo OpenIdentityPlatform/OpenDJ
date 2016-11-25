@@ -19,7 +19,6 @@ package org.opends.server.tasks;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
@@ -36,14 +35,13 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
@@ -86,12 +84,12 @@ public class ExportTask extends Task
   private boolean encryptLDIF;
   private boolean signHash;
   private boolean includeOperationalAttributes;
-  private ArrayList<String> includeAttributeStrings;
-  private ArrayList<String> excludeAttributeStrings;
-  private ArrayList<String> includeFilterStrings;
-  private ArrayList<String> excludeFilterStrings;
-  private ArrayList<String> includeBranchStrings;
-  private ArrayList<String> excludeBranchStrings;
+  private List<String> includeAttributeStrings;
+  private List<String> excludeAttributeStrings;
+  private List<String> includeFilterStrings;
+  private List<String> excludeFilterStrings;
+  private List<String> includeBranchStrings;
+  private List<String> excludeBranchStrings;
 
   private LDIFExportConfig exportConfig;
 
@@ -123,7 +121,6 @@ public class ExportTask extends Task
     }
 
     Entry taskEntry = getTaskEntry();
-    AttributeType typeWrapColumn = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN);
 
     ldifFile = toString(taskEntry, ATTR_TASK_EXPORT_LDIF_FILE);
     File f = new File (ldifFile);
@@ -152,31 +149,24 @@ public class ExportTask extends Task
     includeBranchStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_INCLUDE_BRANCH);
     excludeBranchStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_EXCLUDE_BRANCH);
 
-    List<Attribute> attrList = taskEntry.getAllAttributes(typeWrapColumn);
-    wrapColumn = TaskUtils.getSingleValueInteger(attrList, 0);
+    wrapColumn = TaskUtils.getSingleValueInteger(taskEntry.getAllAttributes(ATTR_TASK_EXPORT_WRAP_COLUMN), 0);
 
     includeOperationalAttributes = toBoolean(taskEntry, true, ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES);
   }
 
   private boolean toBoolean(Entry entry, boolean defaultValue, String attrName)
   {
-    final AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName);
-    final List<Attribute> attrs = entry.getAllAttributes(attrType);
-    return TaskUtils.getBoolean(attrs, defaultValue);
+    return TaskUtils.getBoolean(entry.getAllAttributes(attrName), defaultValue);
   }
 
-  private ArrayList<String> toListOfString(Entry entry, String attrName)
+  private List<String> toListOfString(Entry entry, String attrName)
   {
-    final AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName);
-    final List<Attribute> attrs = entry.getAllAttributes(attrType);
-    return TaskUtils.getMultiValueString(attrs);
+    return TaskUtils.getMultiValueString(entry.getAllAttributes(attrName));
   }
 
   private String toString(Entry entry, String attrName)
   {
-    final AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName);
-    final List<Attribute> attrs = entry.getAllAttributes(attrType);
-    return TaskUtils.getSingleValueString(attrs);
+    return TaskUtils.getSingleValueString(entry.getAllAttributes(attrName));
   }
 
   @Override
@@ -447,7 +437,7 @@ public class ExportTask extends Task
     return getFinalTaskState();
   }
 
-  private HashSet<AttributeType> toAttributeTypes(ArrayList<String> attributeStrings)
+  private HashSet<AttributeType> toAttributeTypes(List<String> attributeStrings)
   {
     if (attributeStrings == null)
     {

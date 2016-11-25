@@ -19,31 +19,28 @@ package org.opends.server.tasks;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.tasks.TaskUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
@@ -108,27 +105,15 @@ public class RestoreTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeBackupDirectory = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
-    AttributeType typebackupID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_ID);
-    AttributeType typeVerifyOnly = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_RESTORE_VERIFY_ONLY);
-
-    List<Attribute> attrList;
-
-    attrList = taskEntry.getAllAttributes(typeBackupDirectory);
-    String backupDirectoryPath = TaskUtils.getSingleValueString(attrList);
+    String backupDirectoryPath = getSingleValueString(taskEntry.getAllAttributes(ATTR_BACKUP_DIRECTORY_PATH));
     backupDirectory = new File(backupDirectoryPath);
     if (! backupDirectory.isAbsolute())
     {
-      backupDirectory =
-           new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
+      backupDirectory = new File(DirectoryServer.getInstanceRoot(), backupDirectoryPath);
     }
 
-    attrList = taskEntry.getAllAttributes(typebackupID);
-    backupID = TaskUtils.getSingleValueString(attrList);
-
-    attrList = taskEntry.getAllAttributes(typeVerifyOnly);
-    verifyOnly = TaskUtils.getBoolean(attrList, false);
-
+    backupID = getSingleValueString(taskEntry.getAllAttributes(ATTR_BACKUP_ID));
+    verifyOnly = getBoolean(taskEntry.getAllAttributes(ATTR_TASK_RESTORE_VERIFY_ONLY), false);
   }
 
   /**

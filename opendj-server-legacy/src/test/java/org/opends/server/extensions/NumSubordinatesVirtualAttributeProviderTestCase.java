@@ -57,7 +57,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     TestCaseUtils.restartServer();
 
-    numSubordinatesType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("numsubordinates");
+    numSubordinatesType = TestCaseUtils.getServerContext().getSchema().getAttributeType("numsubordinates");
 
     entries = TestCaseUtils.makeEntries(
         "dn: dc=example,dc=com",

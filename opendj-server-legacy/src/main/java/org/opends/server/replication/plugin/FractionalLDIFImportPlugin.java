@@ -16,6 +16,9 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -26,6 +29,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.FractionalLDIFImportPluginCfg;
@@ -34,20 +38,15 @@ import org.forgerock.opendj.server.config.server.ReplicationDomainCfg;
 import org.forgerock.opendj.server.config.server.ReplicationSynchronizationProviderCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.forgerock.util.Utils;
-import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.replication.plugin.LDAPReplicationDomain.FractionalConfig;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
 
 /**
  * This class implements a Directory Server plugin that is used in fractional
@@ -401,8 +400,8 @@ public final class FractionalLDIFImportPlugin
 
   private Attribute getAttribute(String attributeName, Entry entry)
   {
-    List<Attribute> attrs = entry.getAllAttributes(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeName));
-    return !attrs.isEmpty() ? attrs.get(0) : null;
+    Iterator<Attribute> attrs = entry.getAllAttributes(attributeName).iterator();
+    return attrs.hasNext() ? attrs.next() : null;
   }
 
   /**

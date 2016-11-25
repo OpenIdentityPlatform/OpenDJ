@@ -48,7 +48,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -1165,7 +1164,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    */
   private void assertEntryHistoricalEncodingDecoding(Entry entry, EntryHistorical hist)
   {
-    entry.removeAttribute(getInstance().getServerContext().getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
+    entry.removeAttribute(getServerContext().getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
@@ -1197,7 +1196,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getAttribute(AttributeDescription.create(getInstance().getServerContext().getSchema().getAttributeType(attrName)));
+    Attribute attr = entry.getAttribute(AttributeDescription.valueOf(attrName));
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {

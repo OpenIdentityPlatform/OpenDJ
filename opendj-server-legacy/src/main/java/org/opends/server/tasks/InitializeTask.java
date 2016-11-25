@@ -17,21 +17,16 @@
 package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-
-import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
@@ -72,12 +67,7 @@ public class InitializeTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_INITIALIZE_DOMAIN_DN);
-    AttributeType typeSourceScope = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_INITIALIZE_SOURCE);
-
-    List<Attribute> attrList;
-    attrList = taskEntry.getAllAttributes(typeDomainBase);
-    domainString = TaskUtils.getSingleValueString(attrList);
+    domainString = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(ATTR_TASK_INITIALIZE_DOMAIN_DN));
 
     try
     {
@@ -93,15 +83,13 @@ public class InitializeTask extends Task
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);
     }
 
-    attrList = taskEntry.getAllAttributes(typeSourceScope);
-    String sourceString = TaskUtils.getSingleValueString(attrList);
-    source = domain.decodeSource(sourceString);
+    source = domain.decodeSource(
+        TaskUtils.getSingleValueString(taskEntry.getAllAttributes(ATTR_TASK_INITIALIZE_SOURCE)));
 
     replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(0));
     replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(0));
   }
 
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {

@@ -16,6 +16,13 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +36,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -46,13 +54,6 @@ import org.opends.server.types.RawAttribute;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation that may be used to add a new entry to the
@@ -277,6 +278,7 @@ public class AddOperationBasis
       userAttributes        = new HashMap<>();
       operationalAttributes = new HashMap<>();
 
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
       for (RawAttribute a : rawAttributes)
       {
         try
@@ -319,7 +321,7 @@ public class AddOperationBasis
             for (ByteString os : a.getValues())
             {
               String ocName = os.toString();
-              objectClasses.put(getInstance().getServerContext().getSchema().getObjectClass(ocName), ocName);
+              objectClasses.put(schema.getObjectClass(ocName), ocName);
             }
           }
           else if (attrType.isOperational())

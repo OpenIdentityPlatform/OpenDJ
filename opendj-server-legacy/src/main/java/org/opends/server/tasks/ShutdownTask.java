@@ -18,18 +18,13 @@ package org.opends.server.tasks;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
-import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
@@ -74,30 +69,13 @@ public class ShutdownTask
     restart         = false;
     shutdownMessage = INFO_TASK_SHUTDOWN_DEFAULT_MESSAGE.get(taskEntry.getName());
 
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_SHUTDOWN_MESSAGE);
-    List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
-    if (!attrList.isEmpty())
+    String valueString = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(ATTR_SHUTDOWN_MESSAGE));
+    if (valueString != null)
     {
-      Attribute attr = attrList.get(0);
-      if (!attr.isEmpty())
-      {
-        String valueString = attr.iterator().next().toString();
-        shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(taskEntry.getName(), valueString);
-      }
+      shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(taskEntry.getName(), valueString);
     }
 
-    attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_RESTART_SERVER);
-    attrList = taskEntry.getAllAttributes(attrType);
-    if (!attrList.isEmpty())
-    {
-      Attribute attr = attrList.get(0);
-      if (!attr.isEmpty())
-      {
-        String valueString = toLowerCase(attr.iterator().next().toString());
-        restart = valueString.equals("true") || valueString.equals("yes")
-            || valueString.equals("on") || valueString.equals("1");
-      }
-    }
+    restart = TaskUtils.getBoolean(taskEntry.getAllAttributes(ATTR_RESTART_SERVER), false);
 
 
     // If the client connection is available, then make sure the associated

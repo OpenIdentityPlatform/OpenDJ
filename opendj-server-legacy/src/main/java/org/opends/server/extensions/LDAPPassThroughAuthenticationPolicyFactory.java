@@ -15,6 +15,12 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -28,14 +34,14 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.IllegalFormatConversionException;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.MissingFormatArgumentException;
 import java.util.Queue;
 import java.util.Set;
-import java.util.IllegalFormatConversionException;
-import java.util.MissingFormatArgumentException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -64,12 +70,13 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
 import org.forgerock.opendj.server.config.server.LDAPPassThroughAuthenticationPolicyCfg;
 import org.opends.server.api.AuthenticationPolicy;
@@ -105,13 +112,6 @@ import org.opends.server.types.RawModification;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /** LDAP pass through authentication policy implementation. */
 public final class LDAPPassThroughAuthenticationPolicyFactory implements
@@ -1367,8 +1367,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         super(userEntry);
 
-        this.cachedPasswordAttribute = getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD);
-        this.cachedPasswordTimeAttribute = getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME);
+        Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+        this.cachedPasswordAttribute = schema.getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD);
+        this.cachedPasswordTimeAttribute = schema.getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME);
       }
 
       @Override

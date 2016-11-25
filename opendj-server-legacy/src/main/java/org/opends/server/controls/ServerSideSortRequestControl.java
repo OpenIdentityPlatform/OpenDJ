@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SortKey;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -98,7 +99,8 @@ public class ServerSideSortRequestControl
         {
           reader.readStartSequence();
           String attrName = reader.readOctetStringAsString();
-          AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+          Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+          AttributeType attrType = schema.getAttributeType(attrName);
           if (attrType.isPlaceHolder())
           {
             //This attribute is not defined in the schema. There is no point
@@ -114,7 +116,7 @@ public class ServerSideSortRequestControl
             String orderingRuleID = reader.readOctetStringAsString();
             try
             {
-              orderingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(orderingRuleID);
+              orderingRule = schema.getMatchingRule(orderingRuleID);
             }
             catch (UnknownSchemaElementException e)
             {
@@ -421,7 +423,8 @@ public class ServerSideSortRequestControl
     List<SortKey> sortKeys = new ArrayList<>();
     for(String[] decodedKey : decodedKeyList)
     {
-      AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(decodedKey[0]);
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+      AttributeType attrType = schema.getAttributeType(decodedKey[0]);
       if (attrType.isPlaceHolder())
       {
         //This attribute is not defined in the schema. There is no point
@@ -434,7 +437,7 @@ public class ServerSideSortRequestControl
       {
         try
         {
-          orderingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(decodedKey[1]);
+          orderingRule = schema.getMatchingRule(decodedKey[1]);
         }
         catch (UnknownSchemaElementException e)
         {

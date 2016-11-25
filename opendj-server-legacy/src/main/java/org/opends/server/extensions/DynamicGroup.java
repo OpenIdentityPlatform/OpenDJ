@@ -31,7 +31,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.DynamicGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
@@ -113,8 +113,7 @@ public class DynamicGroup
     // Get the memberURL attribute from the entry, if there is one, and parse
     // out the LDAP URLs that it contains.
     LinkedHashSet<LDAPURL> memberURLs = new LinkedHashSet<>();
-    AttributeType memberURLType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_MEMBER_URL_LC);
-    for (Attribute a : groupEntry.getAllAttributes(memberURLType))
+    for (Attribute a : groupEntry.getAllAttributes(ATTR_MEMBER_URL_LC))
     {
       for (ByteString v : a)
       {
@@ -149,7 +148,8 @@ public class DynamicGroup
     ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
-    return entry.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_GROUP_OF_URLS_LC));
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    return entry.hasObjectClass(schema.getObjectClass(OC_GROUP_OF_URLS_LC));
   }
 
   @Override

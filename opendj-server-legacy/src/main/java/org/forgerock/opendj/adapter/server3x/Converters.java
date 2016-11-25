@@ -51,6 +51,7 @@ import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn;
 import org.forgerock.util.Function;
 import org.forgerock.util.promise.NeverThrowsException;
@@ -92,12 +93,13 @@ public final class Converters {
         if (sdkEntry != null) {
             org.opends.server.types.Entry entry =
                 new org.opends.server.types.Entry(sdkEntry.getName(), null, null, null);
+            Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
             List<ByteString> duplicateValues = new ArrayList<>();
             for (org.opends.server.types.Attribute attribute : toAttributes(sdkEntry.getAllAttributes())) {
                 if (attribute.getAttributeDescription().getAttributeType().isObjectClass()) {
                     for (ByteString attrName : attribute) {
                         try {
-                            entry.addObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(attrName.toString()));
+                            entry.addObjectClass(schema.getObjectClass(attrName.toString()));
                         } catch (DirectoryException e) {
                             throw new IllegalStateException(e.getMessage(), e);
                         }

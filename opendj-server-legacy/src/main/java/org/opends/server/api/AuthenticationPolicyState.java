@@ -15,21 +15,21 @@
  */
 package org.opends.server.api;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * The authentication policy context associated with a user's entry, which is
@@ -79,23 +79,24 @@ public abstract class AuthenticationPolicyState
 
 
   /**
-   * A utility method which may be used by implementations in order to obtain
-   * the value of the specified attribute from the provided entry as a boolean.
+   * A utility method which may be used by implementations in order to obtain the value of the
+   * specified attribute from the provided entry as a boolean.
    *
    * @param entry
    *          The entry whose attribute is to be parsed as a boolean.
-   * @param attributeType
-   *          The attribute type whose value should be parsed as a boolean.
+   * @param attributeName
+   *          The attribute name whose value should be parsed as a boolean.
    * @return The attribute's value represented as a ConditionResult value, or
-   *         ConditionResult.UNDEFINED if the specified attribute does not exist
-   *         in the entry.
+   *         ConditionResult.UNDEFINED if the specified attribute does not exist in the entry.
    * @throws DirectoryException
    *           If the value cannot be decoded as a boolean.
    */
   protected static ConditionResult getBoolean(final Entry entry,
-      final AttributeType attributeType) throws DirectoryException
+      final String attributeName) throws DirectoryException
   {
-    for (final Attribute a : entry.getAllAttributes(attributeType))
+    AttributeDescription attrDesc = AttributeDescription.valueOf(attributeName);
+    AttributeType attributeType = attrDesc.getAttributeType();
+    for (final Attribute a : entry.getAllAttributes(attrDesc))
     {
       if (a.isEmpty())
       {
@@ -267,10 +268,9 @@ public abstract class AuthenticationPolicyState
    */
   public boolean isDisabled()
   {
-    final AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_ACCOUNT_DISABLED);
     try
     {
-      isDisabled = getBoolean(userEntry, type);
+      isDisabled = getBoolean(userEntry, OP_ATTR_ACCOUNT_DISABLED);
     }
     catch (final Exception e)
     {
@@ -301,8 +301,6 @@ public abstract class AuthenticationPolicyState
     }
     return result;
   }
-
-
 
   /**
    * Returns {@code true} if this authentication policy state is associated with

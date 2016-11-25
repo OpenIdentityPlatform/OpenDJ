@@ -16,6 +16,14 @@
  */
 package org.opends.server.extensions;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.NullOutputStream.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -23,20 +31,19 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
 import org.opends.server.types.AuthenticationInfo;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -44,12 +51,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.types.NullOutputStream.nullPrintStream;
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
+import com.forgerock.opendj.ldap.tools.LDAPPasswordModify;
 
 /**
  * A set of test cases for the password modify extended operation.
@@ -1669,7 +1671,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     try
     {
-      AttributeType lastLoginTimeAttr = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("ds-pwp-last-login-time");
+      AttributeType lastLoginTimeAttr = getServerContext().getSchema().getAttributeType("ds-pwp-last-login-time");
       assertNotNull(lastLoginTimeAttr);
 
       DN userDN = DN.valueOf("uid=test.user,o=test");
@@ -1725,7 +1727,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     try
     {
-      AttributeType authFailureTimesAttr = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("pwdfailuretime");
+      AttributeType authFailureTimesAttr = getServerContext().getSchema().getAttributeType("pwdfailuretime");
       assertNotNull(authFailureTimesAttr);
 
       DN userDN = DN.valueOf("uid=test.user,o=test");
@@ -1774,7 +1776,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     try
     {
-      AttributeType pwdHistoryAttr = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("pwdhistory");
+      AttributeType pwdHistoryAttr = getServerContext().getSchema().getAttributeType("pwdhistory");
       assertNotNull(pwdHistoryAttr);
 
       DN userDN = DN.valueOf("uid=test.user,o=test");

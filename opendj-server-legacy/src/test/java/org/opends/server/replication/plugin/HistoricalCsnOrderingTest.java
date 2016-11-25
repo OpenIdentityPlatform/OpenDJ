@@ -141,7 +141,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       long startTime = TimeThread.getTime();
       final DN dn1 = DN.valueOf("cn=test1," + baseDN);
     final AttributeType histType =
-      DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+      getServerContext().getSchema().getAttributeType(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
     logger.error(LocalizableMessage.raw("Starting replication test : changesCmpTest"));
 

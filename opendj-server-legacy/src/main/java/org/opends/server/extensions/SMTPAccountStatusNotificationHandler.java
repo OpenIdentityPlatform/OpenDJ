@@ -37,6 +37,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Utils;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.AccountStatusNotificationHandlerCfg;
@@ -366,7 +367,8 @@ public class SMTPAccountStatusNotificationHandler
               else if (lowerTokenStr.startsWith("notification-user-attr:"))
               {
                 String attrName = lowerTokenStr.substring(23);
-                AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+                Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+                AttributeType attrType = schema.getAttributeType(attrName);
                 if (attrType.isPlaceHolder())
                 {
                   throw new ConfigException(

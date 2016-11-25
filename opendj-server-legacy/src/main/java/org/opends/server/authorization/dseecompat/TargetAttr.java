@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
@@ -122,7 +123,8 @@ class TargetAttr {
                     throw new AciException(message);
                 }
             } else {
-                AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attribute);
+                ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+                AttributeType attrType = serverContext.getSchema().getAttributeType(attribute);
                 if(attrType.isOperational())
                 {
                   opAttributes.add(attrType);

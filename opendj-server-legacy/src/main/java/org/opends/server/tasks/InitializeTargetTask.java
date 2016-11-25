@@ -18,22 +18,17 @@ package org.opends.server.tasks;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
-
-import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
@@ -51,7 +46,6 @@ public class InitializeTargetTask extends Task
   private int target;
   private long total;
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_INITIALIZE_TARGET_NAME.get();
@@ -69,11 +63,7 @@ public class InitializeTargetTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_INITIALIZE_TARGET_DOMAIN_DN);
-    AttributeType typeScope = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_INITIALIZE_TARGET_SCOPE);
-
-    List<Attribute> attrList = taskEntry.getAllAttributes(typeDomainBase);
-    domainString = TaskUtils.getSingleValueString(attrList);
+    domainString = TaskUtils.getSingleValueString(taskEntry.getAllAttributes(ATTR_TASK_INITIALIZE_TARGET_DOMAIN_DN));
 
     try
     {
@@ -90,14 +80,12 @@ public class InitializeTargetTask extends Task
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);
     }
 
-    attrList = taskEntry.getAllAttributes(typeScope);
-    String targetString = TaskUtils.getSingleValueString(attrList);
-    target = domain.decodeTarget(targetString);
+    target = domain.decodeTarget(TaskUtils.getSingleValueString(
+        taskEntry.getAllAttributes(ATTR_TASK_INITIALIZE_TARGET_SCOPE)));
 
     setTotal(0);
   }
 
-  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {

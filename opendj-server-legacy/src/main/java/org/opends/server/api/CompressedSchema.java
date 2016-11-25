@@ -513,7 +513,8 @@ public class CompressedSchema
   private AttributeDescription loadAttributeToMaps(final int id, final String attributeName,
       final Iterable<String> attributeOptions, final Mappings mappings)
   {
-    final AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeName);
+    Schema schema2 = DirectoryServer.getInstance().getServerContext().getSchema();
+    final AttributeType type = schema2.getAttributeType(attributeName);
     final Set<String> options = getOptions(attributeOptions);
     final AttributeDescription ad = AttributeDescription.create(type, options);
     exclusiveLock.lock();

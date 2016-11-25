@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.ClientConnection;
@@ -69,7 +70,6 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /** The AciHandler class performs the main processing for the dseecompat package. */
 public final class AciHandler extends
@@ -123,10 +123,11 @@ public final class AciHandler extends
    */
   private static void initStatics()
   {
-    aciType = getInstance().getServerContext().getSchema().getAttributeType("aci");
-    globalAciType = getInstance().getServerContext().getSchema().getAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
-    debugSearchIndex = getInstance().getServerContext().getSchema().getAttributeType(SuffixContainer.ATTR_DEBUG_SEARCH_INDEX);
-    refAttrType = getInstance().getServerContext().getSchema().getAttributeType(ATTR_REFERRAL_URL);
+    Schema schema = getInstance().getServerContext().getSchema();
+    aciType = schema.getAttributeType("aci");
+    globalAciType = schema.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
+    debugSearchIndex = schema.getAttributeType(SuffixContainer.ATTR_DEBUG_SEARCH_INDEX);
+    refAttrType = schema.getAttributeType(ATTR_REFERRAL_URL);
 
     try
     {
@@ -283,23 +284,9 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(LocalBackendCompareOperation operation)
   {
-    AciContainer container =
-        new AciLDAPOperationContainer(operation, ACI_COMPARE);
-
-    String baseName;
-    String rawAttributeType = operation.getRawAttributeType();
-    int semicolonPosition = rawAttributeType.indexOf(';');
-    if (semicolonPosition > 0)
-    {
-      baseName =
-          toLowerCase(rawAttributeType.substring(0, semicolonPosition));
-    }
-    else
-    {
-      baseName = toLowerCase(rawAttributeType);
-    }
-
-    container.setCurrentAttributeType(getInstance().getServerContext().getSchema().getAttributeType(baseName));
+    AciContainer container = new AciLDAPOperationContainer(operation, ACI_COMPARE);
+    AttributeDescription attrDesc = AttributeDescription.valueOf(operation.getRawAttributeType());
+    container.setCurrentAttributeType(attrDesc.getAttributeType());
     container.setCurrentAttributeValue(operation.getAssertionValue());
     return isAllowed(container, operation);
   }

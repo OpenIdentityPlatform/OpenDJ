@@ -16,10 +16,9 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.config.ConfigConstants.ATTR_BACKEND_ID;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -28,18 +27,18 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.server.config.server.BackendCfg;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.LocalBackend;
-import org.opends.server.types.Entry;
 import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -219,16 +218,15 @@ public class TaskUtils
    * schema as a single valued boolean attribute, and that is not expected to
    * have attribute options.
    *
-   * @param attrList The attribute value of the entry attribute.
+   * @param attrs The attribute values of the entry attribute.
    * @param defaultValue The default value to be returned if there is no
    * recognizable boolean attribute value.
    * @return The boolean value of the attribute, or the provided default value
    * if there is no value.
    */
-  public static boolean getBoolean(List<Attribute> attrList,
-                                   boolean defaultValue)
+  public static boolean getBoolean(Iterable<Attribute> attrs, boolean defaultValue)
   {
-    for (Attribute a : attrList)
+    for (Attribute a : attrs)
     {
       for (ByteString v  : a)
       {
@@ -256,15 +254,16 @@ public class TaskUtils
    * schema as a multi-valued string attribute, and that is not expected to
    * have attribute options.
    *
-   * @param attrList The attribute values of the entry attribute.
+   * @param attrs The attribute values of the entry attribute.
    * @return The string values of the attribute, empty if there are none.
    */
-  public static ArrayList<String> getMultiValueString(List<Attribute> attrList)
+  public static List<String> getMultiValueString(Iterable<Attribute> attrs)
   {
     ArrayList<String> valueStrings = new ArrayList<>();
-    if (!attrList.isEmpty())
+    Iterator<Attribute> it = attrs.iterator();
+    if (it.hasNext())
     {
-      Attribute attr = attrList.get(0);
+      Attribute attr = it.next();
       if (!attr.isEmpty())
       {
         for (ByteString value : attr)
@@ -283,14 +282,15 @@ public class TaskUtils
    * schema as a single valued string attribute, and that is not expected to
    * have attribute options.
    *
-   * @param attrList The attribute value of the entry attribute.
+   * @param attrs The attribute values of the entry attribute.
    * @return The string value of the attribute, or null if there is none.
    */
-  public static String getSingleValueString(List<Attribute> attrList)
+  public static String getSingleValueString(Iterable<Attribute> attrs)
   {
-    if (!attrList.isEmpty())
+    Iterator<Attribute> it = attrs.iterator();
+    if (it.hasNext())
     {
-      Attribute attr = attrList.get(0);
+      Attribute attr = it.next();
       if (!attr.isEmpty())
       {
         return attr.iterator().next().toString();
@@ -305,17 +305,18 @@ public class TaskUtils
    * schema as a single valued integer attribute, and that is not expected to
    * have attribute options.
    *
-   * @param attrList The attribute value of the entry attribute.
+   * @param attrs The attribute values of the entry attribute.
    * @param defaultValue The default value to be returned if there is no
    * recognizable integer attribute value.
    * @return The integer value of the attribute, or the provided default value
    * if there is no value.
    */
-  public static int getSingleValueInteger(List<Attribute> attrList, int defaultValue)
+  public static int getSingleValueInteger(Iterable<Attribute> attrs, int defaultValue)
   {
-    if (!attrList.isEmpty())
+    Iterator<Attribute> it = attrs.iterator();
+    if (it.hasNext())
     {
-      Attribute attr = attrList.get(0);
+      Attribute attr = it.next();
       if (!attr.isEmpty())
       {
         try

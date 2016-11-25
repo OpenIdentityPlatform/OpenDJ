@@ -16,6 +16,13 @@
  */
 package org.opends.server.backends.task;
 
+import static java.util.Calendar.*;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -29,24 +36,17 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.RDN;
-
-import static java.util.Calendar.*;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a information about a recurring task, which will be used
@@ -233,7 +233,7 @@ public class RecurringTask
   private Attribute getSingleAttribute(Entry taskEntry, String attrName, Arg1<Object> noEntryErrorMsg,
       Arg1<Object> multipleEntriesErrorMsg, Arg1<Object> noAttrValueErrorMsg) throws DirectoryException
   {
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType attrType = serverContext.getSchema().getAttributeType(attrName);
     List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
     if (attrList.isEmpty())
     {
@@ -253,8 +253,6 @@ public class RecurringTask
     }
     return attr;
   }
-
-
 
   /**
    * Retrieves the unique ID assigned to this recurring task.
@@ -341,7 +339,7 @@ public class RecurringTask
       String nextTaskIDName = NAME_PREFIX_TASK + "id";
       nextTaskEntry.replaceAttribute(Attributes.create(nextTaskIDName, nextTaskID));
 
-      RDN nextTaskRDN = new RDN(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(nextTaskIDName), nextTaskID);
+      RDN nextTaskRDN = new RDN(serverContext.getSchema().getAttributeType(nextTaskIDName), nextTaskID);
       DN nextTaskDN = taskScheduler.getTaskBackend().getScheduledTasksParentDN().child(nextTaskRDN);
       nextTaskEntry.setDN(nextTaskDN);
 

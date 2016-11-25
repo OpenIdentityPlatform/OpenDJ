@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -144,6 +145,7 @@ public class PatternRDN
    */
   public boolean matchesRDN(RDN rdn)
   {
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
     if (getNumValues() == 1)
     {
       // Check for ",*," matching any RDN.
@@ -160,7 +162,7 @@ public class PatternRDN
       AVA ava = rdn.getFirstAVA();
       if (!typePatterns[0].equals("*"))
       {
-        AttributeType thisType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(typePatterns[0]);
+        AttributeType thisType = serverContext.getSchema().getAttributeType(typePatterns[0]);
         if (thisType.isPlaceHolder() || !thisType.equals(ava.getAttributeType()))
         {
           return false;
@@ -179,7 +181,7 @@ public class PatternRDN
     TreeMap<String, List<ByteString>> patternMap = new TreeMap<>();
     for (int i = 0; i < typePatterns.length; i++)
     {
-      AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(typePatterns[i]);
+      AttributeType type = serverContext.getSchema().getAttributeType(typePatterns[i]);
       if (type.isPlaceHolder())
       {
         return false;

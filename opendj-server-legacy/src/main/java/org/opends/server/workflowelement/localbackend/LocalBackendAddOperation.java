@@ -58,6 +58,7 @@ import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PersistentSearch;
+import org.opends.server.core.ServerContext;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.Attribute;
@@ -231,8 +232,9 @@ public class LocalBackendAddOperation
         return;
       }
 
+      ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
       BackendConfigManager backendConfigManager =
-          DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+          serverContext.getBackendConfigManager();
       DN parentDN = backendConfigManager.getParentDNInSuffix(entryDN);
       if (parentDN == null && !backendConfigManager.containsLocalNamingContext(entryDN))
       {
@@ -353,7 +355,7 @@ public class LocalBackendAddOperation
 
       // Check to see if the entry includes a privilege specification. If so,
       // then the requester must have the PRIVILEGE_CHANGE privilege.
-      AttributeType privType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
+      AttributeType privType = serverContext.getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
       if (entry.hasAttribute(privType)
           && !clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
       {

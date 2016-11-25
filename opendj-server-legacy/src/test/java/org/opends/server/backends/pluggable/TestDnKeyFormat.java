@@ -17,6 +17,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -341,7 +342,7 @@ public class TestDnKeyFormat extends DirectoryServerTestCase {
 
         // check the object classes were not changed
         for (String ocBefore : entryBefore.getObjectClasses().values()) {
-          ObjectClass objectClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocBefore);
+          ObjectClass objectClass = getServerContext().getSchema().getObjectClass(ocBefore);
           String ocAfter = entryAfter.getObjectClasses().get(objectClass);
           assertEquals(ocBefore, ocAfter);
         }

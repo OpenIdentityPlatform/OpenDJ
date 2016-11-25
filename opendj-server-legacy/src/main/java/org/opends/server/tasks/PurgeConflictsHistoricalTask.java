@@ -16,24 +16,21 @@
  */
 package org.opends.server.tasks;
 
-import java.util.List;
+import static org.opends.server.config.ConfigConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -86,9 +83,8 @@ public class PurgeConflictsHistoricalTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN);
-    List<Attribute> attrList = taskEntry.getAllAttributes(typeDomainBase);
-    domainString = TaskUtils.getSingleValueString(attrList);
+    domainString = TaskUtils.getSingleValueString(
+        taskEntry.getAllAttributes(ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN));
 
     try
     {
@@ -104,9 +100,8 @@ public class PurgeConflictsHistoricalTask extends Task
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, mb.toMessage());
     }
 
-    AttributeType typeMaxDuration = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION);
-    attrList = taskEntry.getAllAttributes(typeMaxDuration);
-    String maxDurationStringInSec = TaskUtils.getSingleValueString(attrList);
+    String maxDurationStringInSec = TaskUtils.getSingleValueString(
+        taskEntry.getAllAttributes(ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION));
 
     if (maxDurationStringInSec != null)
     {

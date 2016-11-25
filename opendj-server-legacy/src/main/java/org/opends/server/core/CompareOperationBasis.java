@@ -27,6 +27,7 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelResult;
@@ -232,7 +233,8 @@ public class CompareOperationBasis
       baseName = toLowerCase(rawAttributeType);
       attributeOptions  = null;
     }
-    return AttributeDescription.create(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(baseName), attributeOptions);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    return AttributeDescription.create(schema.getAttributeType(baseName), attributeOptions);
   }
 
   @Override

@@ -231,7 +231,7 @@ public class HistoricalTest extends ReplicationTestCase
     final DN dn1 = DN.valueOf("cn=test1," + TEST_ROOT_DN_STRING);
     final DN dn2 = DN.valueOf("cn=test2," + TEST_ROOT_DN_STRING);
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);
-    final AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("displayname");
+    final AttributeType attrType = getServerContext().getSchema().getAttributeType("displayname");
     final AttributeDescription attrDesc = AttributeDescription.create(attrType);
     final AttributeDescription entryuuidDesc = AttributeDescription.create(getEntryUUIDAttributeType());
 

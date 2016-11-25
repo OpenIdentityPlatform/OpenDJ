@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.types.Attribute.RemoveOnceSwitchingAttributes;
 
 /**
@@ -176,7 +177,7 @@ public final class Attributes
    */
   public static Attribute create(String attributeName, String valueString)
   {
-    return create(getInstance().getServerContext().getSchema().getAttributeType(attributeName), attributeName, valueString);
+    return create(getSchema().getAttributeType(attributeName), attributeName, valueString);
   }
 
   /**
@@ -278,7 +279,12 @@ public final class Attributes
    */
   public static Attribute empty(String attributeName)
   {
-    return empty(getInstance().getServerContext().getSchema().getAttributeType(attributeName), attributeName);
+    return empty(getSchema().getAttributeType(attributeName), attributeName);
+  }
+
+  private static Schema getSchema()
+  {
+    return getInstance().getServerContext().getSchema();
   }
 
 

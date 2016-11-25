@@ -38,6 +38,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -62,7 +63,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     TestCaseUtils.startServer();
 
-    hasSubordinatesType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("hassubordinates");
+    hasSubordinatesType = getServerContext().getSchema().getAttributeType("hassubordinates");
 
     entries = TestCaseUtils.makeEntries(
         "dn: dc=example,dc=com",

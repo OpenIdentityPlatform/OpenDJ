@@ -19,7 +19,6 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.replication.plugin.MultimasterReplication.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
@@ -178,7 +177,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   static
   {
     CHANGELOG_ROOT_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("container"), "container");
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(getServerContext().getSchema().getObjectClass("container"), "container");
   }
 
   /** The set of objectclasses that will be used in ECL entries. */
@@ -187,7 +186,8 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   static
   {
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    CHANGELOG_ENTRY_OBJECT_CLASSES.put(getInstance().getServerContext().getSchema().getObjectClass(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(getServerContext().getSchema().getObjectClass(
+        OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
   }
 
   /** The base DN for the external change log. */
@@ -241,8 +241,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   @Deprecated
   public static ChangelogBackend getInstance()
   {
-    return (ChangelogBackend) DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
-        .findLocalBackendForEntry(CHANGELOG_BASE_DN);
+    return (ChangelogBackend) getServerContext().getBackendConfigManager().findLocalBackendForEntry(CHANGELOG_BASE_DN);
   }
 
   @Override
@@ -258,8 +257,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
 
     try
     {
-      DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
-        .registerBaseDN(CHANGELOG_BASE_DN, this, true);
+      getServerContext().getBackendConfigManager().registerBaseDN(CHANGELOG_BASE_DN, this, true);
     }
     catch (final DirectoryException e)
     {
@@ -268,12 +266,17 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
     }
   }
 
+  private static ServerContext getServerContext()
+  {
+    return DirectoryServer.getInstance().getServerContext();
+  }
+
   @Override
   public void closeBackend()
   {
     try
     {
-      DirectoryServer.getInstance().getServerContext().getBackendConfigManager().deregisterBaseDN(CHANGELOG_BASE_DN);
+      getServerContext().getBackendConfigManager().deregisterBaseDN(CHANGELOG_BASE_DN);
     }
     catch (final DirectoryException e)
     {
@@ -695,7 +698,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   private SearchFilter buildSearchFilterFrom(final DN baseDN, final String attrName)
   {
     final RDN rdn = baseDN.rdn();
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType attrType = getServerContext().getSchema().getAttributeType(attrName);
     final ByteString attrValue = rdn.getAttributeValue(attrType);
     if (attrValue != null)
     {
@@ -1472,7 +1475,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       final Map<AttributeType, List<Attribute>> operationalAttrs, final boolean addByType)
   {
     final Attribute a = addByType
-        ? Attributes.create(getInstance().getServerContext().getSchema().getAttributeType(attrName), attrValue)
+        ? Attributes.create(getServerContext().getSchema().getAttributeType(attrName), attrValue)
         : Attributes.create(attrName, attrValue);
     final AttributeType attrType = a.getAttributeDescription().getAttributeType();
     final List<Attribute> attrList = Collections.singletonList(a);

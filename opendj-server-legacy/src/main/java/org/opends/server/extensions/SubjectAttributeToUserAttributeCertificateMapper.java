@@ -18,8 +18,7 @@
 package org.opends.server.extensions;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.core.BackendConfigManager.NamingContextFilter.PUBLIC;
-import static org.opends.server.core.BackendConfigManager.NamingContextFilter.TOP_LEVEL;
+import static org.opends.server.core.BackendConfigManager.NamingContextFilter.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -50,10 +49,11 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.server.CertificateMapperCfg;
 import org.forgerock.opendj.server.config.server.SubjectAttributeToUserAttributeCertificateMapperCfg;
-import org.opends.server.api.LocalBackend;
 import org.opends.server.api.CertificateMapper;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.core.BackendConfigManager;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -118,8 +118,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     // Make sure that all the user attributes are configured with equality
     // indexes in all appropriate backends.
     Set<DN> cfgBaseDNs = getUserBaseDNs(configuration);
-    BackendConfigManager backendConfigManager =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
     for (DN baseDN : cfgBaseDNs)
     {
       for (AttributeType t : attributeMap.values())
@@ -136,6 +135,11 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     // Create the attribute list to include in search requests. We want to
     // include all user and operational attributes.
     requestedAttributes = newLinkedHashSet("*", "+");
+  }
+
+  private static ServerContext getServerContext()
+  {
+    return DirectoryServer.getInstance().getServerContext();
   }
 
   @Override
@@ -297,8 +301,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     // Make sure that all the user attributes are configured with equality
     // indexes in all appropriate backends.
     Set<DN> cfgBaseDNs = getUserBaseDNs(configuration);
-    BackendConfigManager backendConfigManager =
-        DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
+    BackendConfigManager backendConfigManager = getServerContext().getBackendConfigManager();
     for (DN baseDN : cfgBaseDNs)
     {
       for (AttributeType t : newAttributeMap.values())
@@ -332,8 +335,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     Set<DN> baseDNs = config.getUserBaseDN();
     if (baseDNs == null || baseDNs.isEmpty())
     {
-      baseDNs = DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
-          .getNamingContexts(PUBLIC, TOP_LEVEL);
+      baseDNs = getServerContext().getBackendConfigManager().getNamingContexts(PUBLIC, TOP_LEVEL);
     }
     return baseDNs;
   }
@@ -372,7 +374,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         return null;
       }
 
-      AttributeType userAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(userAttrName);
+      AttributeType userAttrType = getServerContext().getSchema().getAttributeType(userAttrName);
       if (userAttrType.isPlaceHolder())
       {
         ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
@@ -393,6 +395,6 @@ public class SubjectAttributeToUserAttributeCertificateMapper
 
   private static String normalizeAttributeName(String attrName)
   {
-    return toLowerCase(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName).getNameOrOID());
+    return toLowerCase(getServerContext().getSchema().getAttributeType(attrName).getNameOrOID());
   }
 }

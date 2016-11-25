@@ -15,17 +15,19 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static java.util.Arrays.*;
+
 import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
+import static org.forgerock.opendj.config.ConfigurationMock.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType.*;
-import static java.util.Arrays.asList;
-import static org.forgerock.util.Pair.of;
-import static org.mockito.Matchers.any;
+import static org.forgerock.util.Pair.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.backends.pluggable.DnKeyFormat.dnToDNKey;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.backends.pluggable.DnKeyFormat.*;
 import static org.opends.server.backends.pluggable.EntryIDSet.*;
-import static org.opends.server.util.CollectionUtils.newTreeSet;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -82,7 +84,6 @@ import org.opends.server.backends.pluggable.spi.SequentialCursor;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.types.DirectoryException;
@@ -118,7 +119,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     // Need the schema to be available, so make sure the server is started.
     TestCaseUtils.startServer();
 
-    serverContext = DirectoryServer.getInstance().getServerContext();
+    serverContext = getServerContext();
 
     backendCfg = mockCfg(JEBackendCfg.class);
     when(backendCfg.getBackendId()).thenReturn("OnDiskMergeImporterTest");
@@ -136,7 +137,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
     {
       final String attributeName = index.getKey();
-      final AttributeType attribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeName);
+      final AttributeType attribute = getServerContext().getSchema().getAttributeType(attributeName);
       Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
 
       BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
@@ -161,7 +162,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
 
     backend = new JEBackend();
     backend.setBackendID(backendCfg.getBackendId());
-    backend.configureBackend(backendCfg, DirectoryServer.getInstance().getServerContext());
+    backend.configureBackend(backendCfg, getServerContext());
     backend.openBackend();
 
     entryContainer = backend.getRootContainer().getEntryContainer(testBaseDN);

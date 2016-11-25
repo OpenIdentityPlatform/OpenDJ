@@ -19,7 +19,6 @@ package org.opends.server.crypto;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.api.plugin.PluginType.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -41,6 +40,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackendInitializationListener;
@@ -52,6 +52,7 @@ import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -78,24 +79,22 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
   /** The debug log tracer for this object. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** Dummy configuration DN. */
+  private static final String CONFIG_DN = "cn=Crypto Manager Sync,cn=config";
+
   /** The DN of the administration suffix. */
   private DN adminSuffixDN;
-
   /** The DN of the instance keys container within the admin suffix. */
   private DN instanceKeysDN;
-
   /** The DN of the secret keys container within the admin suffix. */
   private DN secretKeysDN;
-
   /** The DN of the trust store root. */
   private DN trustStoreRootDN;
 
   /** The attribute type that is used to specify a server instance certificate. */
   private final AttributeType attrCert;
-
   /** The attribute type that holds a server certificate identifier. */
   private final AttributeType attrAlias;
-
   /** The attribute type that holds the time a key was compromised. */
   private final AttributeType attrCompromisedTime;
 
@@ -104,15 +103,10 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
   /** The instance key objectclass. */
   private final ObjectClass ocInstanceKey;
-
   /** The cipher key objectclass. */
   private final ObjectClass ocCipherKey;
-
   /** The mac key objectclass. */
   private final ObjectClass ocMacKey;
-
-  /** Dummy configuration DN. */
-  private static final String CONFIG_DN = "cn=Crypto Manager Sync,cn=config";
 
   /**
    * Creates a new instance of this trust store synchronization thread.
@@ -136,8 +130,8 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     catch (CryptoManagerException ex) {
       throw new InitializationException(ex.getMessageObject());
     }
-    DirectoryServer.getInstance().getServerContext().getBackendConfigManager()
-      .registerLocalBackendInitializationListener(this);
+    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+    serverContext.getBackendConfigManager().registerLocalBackendInitializationListener(this);
 
     try
     {
@@ -156,16 +150,15 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
     {
     }
 
-    ocInstanceKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY);
-    ocCipherKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_CIPHER_KEY);
-    ocMacKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_MAC_KEY);
+    Schema schema = serverContext.getSchema();
+    ocInstanceKey = schema.getObjectClass(OC_CRYPTO_INSTANCE_KEY);
+    ocCipherKey = schema.getObjectClass(OC_CRYPTO_CIPHER_KEY);
+    ocMacKey = schema.getObjectClass(OC_CRYPTO_MAC_KEY);
+    attrCert = schema.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+    attrAlias = schema.getAttributeType(ATTR_CRYPTO_KEY_ID);
+    attrCompromisedTime = schema.getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
 
-    attrCert = getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-    attrAlias = getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
-    attrCompromisedTime = getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
-
-    if (DirectoryServer.getInstance().getServerContext()
-          .getBackendConfigManager().getLocalBackendWithBaseDN(adminSuffixDN) != null)
+    if (serverContext.getBackendConfigManager().getLocalBackendWithBaseDN(adminSuffixDN) != null)
     {
       searchAdminSuffix();
     }

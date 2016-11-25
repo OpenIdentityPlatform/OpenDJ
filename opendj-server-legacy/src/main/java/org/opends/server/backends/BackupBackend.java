@@ -19,7 +19,6 @@ package org.opends.server.backends;
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -218,7 +217,7 @@ public class BackupBackend
     // Construct the backup base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
     objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    objectClasses.put(getInstance().getServerContext().getSchema().getObjectClass(OC_UNTYPED_OBJECT_LC), OC_UNTYPED_OBJECT);
+    objectClasses.put(serverContext.getSchema().getObjectClass(OC_UNTYPED_OBJECT_LC), OC_UNTYPED_OBJECT);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
@@ -274,7 +273,7 @@ public class BackupBackend
   {
     int numEntries = 1;
 
-    AttributeType backupPathType = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+    AttributeType backupPathType = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
 
     for (File dir : backupDirectories.keySet())
     {
@@ -383,7 +382,7 @@ public class BackupBackend
       long count = 0;
       Entry backupDirEntry = getBackupDirectoryEntry(entryDN);
 
-      AttributeType t = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+      AttributeType t = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
       List<Attribute> attrList = backupDirEntry.getAllAttributes(t);
       for (ByteString v : attrList.get(0))
       {
@@ -470,7 +469,7 @@ public class BackupBackend
          throws DirectoryException
   {
     // Make sure that the DN specifies a backup directory.
-    AttributeType t = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+    AttributeType t = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
@@ -508,13 +507,13 @@ public class BackupBackend
     // Construct the backup directory entry to return.
     LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    ocMap.put(getInstance().getServerContext().getSchema().getObjectClass(OC_BACKUP_DIRECTORY), OC_BACKUP_DIRECTORY);
+    ocMap.put(serverContext.getSchema().getObjectClass(OC_BACKUP_DIRECTORY), OC_BACKUP_DIRECTORY);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
     userAttrs.put(t, asList(t, v));
 
-    t = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_BACKEND_DN);
+    t = serverContext.getSchema().getAttributeType(ATTR_BACKUP_BACKEND_DN);
     userAttrs.put(t, asList(t, ByteString.valueOfUtf8(backupDirectory.getConfigEntryDN().toString())));
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
@@ -538,7 +537,7 @@ public class BackupBackend
           throws DirectoryException
   {
     // First, get the backup ID from the entry DN.
-    AttributeType idType = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_ID);
+    AttributeType idType = serverContext.getSchema().getAttributeType(ATTR_BACKUP_ID);
     ByteString idValue = entryDN.rdn().getAttributeValue(idType);
     if (idValue == null) {
       throw newConstraintViolation(ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(entryDN));
@@ -551,7 +550,7 @@ public class BackupBackend
       throw newConstraintViolation(ERR_BACKUP_NO_BACKUP_PARENT_DN.get(entryDN));
     }
 
-    AttributeType t = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+    AttributeType t = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
     ByteString v = parentDN.rdn().getAttributeValue(t);
     if (v == null) {
       throw newConstraintViolation(ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(entryDN));
@@ -569,22 +568,19 @@ public class BackupBackend
 
       LocalizableMessage message = ERR_BACKUP_ERROR_GETTING_BACKUP_DIRECTORY
           .get(getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(),
-          message);
+      throw new DirectoryException(serverContext.getCoreConfigManager().getServerErrorResultCode(), message);
     }
 
     BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null) {
-      LocalizableMessage message = ERR_BACKUP_NO_SUCH_BACKUP.get(backupID, backupDirectory
-          .getPath());
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-          parentDN, null);
+      LocalizableMessage message = ERR_BACKUP_NO_SUCH_BACKUP.get(backupID, backupDirectory.getPath());
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, parentDN, null);
     }
 
     // Construct the backup entry to return.
     LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(3);
     ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    ocMap.put(getInstance().getServerContext().getSchema().getObjectClass(OC_BACKUP_INFO), OC_BACKUP_INFO);
+    ocMap.put(serverContext.getSchema().getObjectClass(OC_BACKUP_INFO), OC_BACKUP_INFO);
     ocMap.put(CoreSchema.getExtensibleObjectObjectClass(), OC_EXTENSIBLE_OBJECT);
 
     LinkedHashMap<AttributeType, List<Attribute>> opAttrs = new LinkedHashMap<>(0);
@@ -596,7 +592,7 @@ public class BackupBackend
 
     Date backupDate = backupInfo.getBackupDate();
     if (backupDate != null) {
-      t = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DATE);
+      t = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DATE);
       userAttrs.put(t,
           asList(t, ByteString.valueOfUtf8(GeneralizedTimeSyntax.format(backupDate))));
     }
@@ -607,7 +603,7 @@ public class BackupBackend
 
     Set<String> dependencies = backupInfo.getDependencies();
     if (dependencies != null && !dependencies.isEmpty()) {
-      t = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DEPENDENCY);
+      t = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DEPENDENCY);
       AttributeBuilder builder = new AttributeBuilder(t);
       builder.addAllStrings(dependencies);
       userAttrs.put(t, builder.toAttributeList());
@@ -626,7 +622,7 @@ public class BackupBackend
     Map<String, String> properties = backupInfo.getBackupProperties();
     if (properties != null && !properties.isEmpty()) {
       for (Map.Entry<String, String> e : properties.entrySet()) {
-        t = getInstance().getServerContext().getSchema().getAttributeType(toLowerCase(e.getKey()));
+        t = serverContext.getSchema().getAttributeType(toLowerCase(e.getKey()));
         userAttrs.put(t, asList(t, ByteString.valueOfUtf8(e.getValue())));
       }
     }
@@ -638,13 +634,13 @@ public class BackupBackend
 
   private void putByteString(LinkedHashMap<AttributeType, List<Attribute>> userAttrs, String attrName, byte[] value)
   {
-    AttributeType t = getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType t = serverContext.getSchema().getAttributeType(attrName);
     userAttrs.put(t, asList(t, ByteString.wrap(value)));
   }
 
   private void putBoolean(LinkedHashMap<AttributeType, List<Attribute>> attrsMap, String attrName, boolean value)
   {
-    AttributeType t = getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    AttributeType t = serverContext.getSchema().getAttributeType(attrName);
     attrsMap.put(t, asList(t, SchemaUtils.createBooleanValue(value)));
   }
 
@@ -715,7 +711,7 @@ public class BackupBackend
 
       if (scope != SearchScope.BASE_OBJECT && !backupDirectories.isEmpty())
       {
-        AttributeType backupPathType = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+        AttributeType backupPathType = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
         for (File dir : backupDirectories.keySet())
         {
           // Check to see if the descriptor file exists.  If not, then skip this
@@ -766,7 +762,7 @@ public class BackupBackend
 
       if (scope != SearchScope.BASE_OBJECT)
       {
-        AttributeType t = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+        AttributeType t = serverContext.getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
         List<Attribute> attrList = backupDirEntry.getAllAttributes(t);
         returnEntries(searchOperation, baseDN, filter, attrList);
       }
@@ -806,7 +802,7 @@ public class BackupBackend
       {
         File dir = new File(v.toString());
         BackupDirectory backupDirectory = backupDirectories.get(dir).getBackupDirectory();
-        AttributeType idType = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_ID);
+        AttributeType idType = serverContext.getSchema().getAttributeType(ATTR_BACKUP_ID);
 
         for (String backupID : backupDirectory.getBackups().keySet())
         {

@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.GroupImplementationCfg;
 import org.forgerock.opendj.server.config.server.StaticGroupImplementationCfg;
 import org.forgerock.util.Reject;
@@ -268,7 +269,8 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
   private boolean hasObjectClass(Entry entry, String ocName)
   {
-    return entry.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName));
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    return entry.hasObjectClass(schema.getObjectClass(ocName));
   }
 
   @Override

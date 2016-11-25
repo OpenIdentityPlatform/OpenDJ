@@ -26,7 +26,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
@@ -69,8 +68,7 @@ public abstract class AuthenticationPolicy
   {
     // First check to see if the ds-pwp-password-policy-dn is present.
     String userDNString = userEntry.getName().toString();
-    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
-    for (Attribute a : userEntry.getAllAttributes(type))
+    for (Attribute a : userEntry.getAllAttributes(OP_ATTR_PWPOLICY_POLICY_DN))
     {
       if (a.isEmpty())
       {

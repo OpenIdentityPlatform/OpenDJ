@@ -16,7 +16,9 @@
  */
 package org.opends.server.admin;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.CollectionUtils.*;
 
 import java.net.InetAddress;
 import java.util.LinkedList;
@@ -24,10 +26,10 @@ import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -98,14 +100,14 @@ public final class AdministrationDataSync
       return;
     }
 
-    AttributeType attrType1 = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("adminport");
-    AttributeType attrType2 = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("adminEnabled");
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    AttributeType attrType1 = schema.getAttributeType("adminport");
+    AttributeType attrType2 = schema.getAttributeType("adminEnabled");
 
-    LinkedList<Modification> mods = new LinkedList<>();
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrType1, adminPort)));
-    mods.add(new Modification(ModificationType.REPLACE, Attributes.create(attrType2, "true")));
+    LinkedList<Modification> mods = newLinkedList(
+        new Modification(REPLACE, Attributes.create(attrType1, adminPort)),
+        new Modification(REPLACE, Attributes.create(attrType2, "true")));
 
-    // Process modification
     internalConnection.processModify(serverEntryDN, mods);
   }
 

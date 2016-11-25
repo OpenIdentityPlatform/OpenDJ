@@ -36,6 +36,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn.StateUpdateFailurePolicy;
 import org.forgerock.opendj.server.config.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
@@ -140,7 +141,8 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   public SubentryPasswordPolicy(SubEntry subentry) throws DirectoryException
   {
     // Determine if this is a password policy subentry.
-    ObjectClass pwdPolicyOC = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(PWD_OC_POLICY);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    ObjectClass pwdPolicyOC = schema.getObjectClass(PWD_OC_POLICY);
     Entry entry = subentry.getEntry();
     Map<ObjectClass, String> objectClasses = entry.getObjectClasses();
     if (pwdPolicyOC.isPlaceHolder())
@@ -177,7 +179,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     String value = getAttrValue(entry, PWD_ATTR_ATTRIBUTE);
     if (value != null && value.length() > 0)
     {
-      this.pPasswordAttribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value);
+      this.pPasswordAttribute = schema.getAttributeType(value);
       if (this.pPasswordAttribute.isPlaceHolder())
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -245,12 +247,12 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
 
     // Now check for the pwdValidatorPolicy OC and its attribute.
     // Determine if this is a password validator policy object class.
-    ObjectClass pwdValidatorPolicyOC = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(PWD_OC_VALIDATORPOLICY);
+    ObjectClass pwdValidatorPolicyOC = schema.getObjectClass(PWD_OC_VALIDATORPOLICY);
     if (!pwdValidatorPolicyOC.isPlaceHolder() &&
         objectClasses.containsKey(pwdValidatorPolicyOC))
     {
       AttributeType pwdAttrType =
-          DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(PWD_ATTR_VALIDATOR);
+          schema.getAttributeType(PWD_ATTR_VALIDATOR);
       for (Attribute attr : entry.getAllAttributes(pwdAttrType))
       {
         for (ByteString val : attr)
@@ -369,8 +371,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
    */
   private String getAttrValue(Entry entry, String pwdAttrName)
   {
-    AttributeType pwdAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(pwdAttrName);
-    for (Attribute attr : entry.getAllAttributes(pwdAttrType))
+    for (Attribute attr : entry.getAllAttributes(pwdAttrName))
     {
       for (ByteString value : attr)
       {

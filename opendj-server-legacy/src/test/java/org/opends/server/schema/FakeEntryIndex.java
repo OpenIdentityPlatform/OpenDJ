@@ -16,6 +16,7 @@
 package org.opends.server.schema;
 
 import static org.mockito.Mockito.*;
+import static org.opends.server.TestCaseUtils.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,7 +38,6 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -52,7 +52,7 @@ class FakeEntryIndex
 
   FakeEntryIndex(String attrName) throws DecodeException
   {
-    attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
+    attrType = getServerContext().getSchema().getAttributeType(attrName);
     if (attrType == null)
     {
       throw new IllegalArgumentException("Cannot find attribute with name \"" + attrName + "\"");
@@ -125,7 +125,7 @@ class FakeEntryIndex
       return matchingRule.getGreaterOrEqualAssertion(filter.getAssertionValue());
 
     case EXTENSIBLE_MATCH:
-      MatchingRule rule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(filter.getMatchingRuleID());
+      MatchingRule rule = getServerContext().getSchema().getMatchingRule(filter.getMatchingRuleID());
       return rule.getAssertion(filter.getAssertionValue());
 
     default:

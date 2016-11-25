@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.AddOperation;
@@ -152,17 +153,19 @@ public final class InternalClientConnection
     String fullDNString  = shortDNString + ",cn=Root DNs,cn=config";
     try
     {
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+
       LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
       put(objectClasses, getTopObjectClass());
       put(objectClasses, getPersonObjectClass());
-      put(objectClasses, DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_ROOT_DN));
+      put(objectClasses, schema.getObjectClass(OC_ROOT_DN));
 
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
       put(userAttrs, ATTR_COMMON_NAME, commonName);
       put(userAttrs, ATTR_SN, commonName);
       put(userAttrs, ATTR_ROOTDN_ALTERNATE_BIND_DN, shortDNString);
 
-      AttributeType privType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
+      AttributeType privType = schema.getAttributeType(OP_ATTR_PRIVILEGE_NAME);
       AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {
@@ -198,10 +201,10 @@ public final class InternalClientConnection
     objectClasses.put(oc, oc.getNameOrOID());
   }
 
-  private void put(Map<AttributeType, List<Attribute>> Attrs, String attrName, String value)
+  private void put(Map<AttributeType, List<Attribute>> attrsMap, String attrName, String value)
   {
-    List<Attribute> attrs = newLinkedList(Attributes.create(attrName, value));
-    Attrs.put(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName), attrs);
+    Attribute attr = Attributes.create(attrName, value);
+    attrsMap.put(attr.getAttributeDescription().getAttributeType(), newLinkedList(attr));
   }
 
   /**
@@ -802,6 +805,7 @@ public final class InternalClientConnection
   public AddOperation processAdd(AddChangeRecordEntry addRecord)
   {
     Entry e = newEntry(addRecord.getDN());
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
 
     ArrayList<ByteString> duplicateValues = new ArrayList<>();
     for (Attribute a : addRecord.getAttributes())
@@ -811,7 +815,7 @@ public final class InternalClientConnection
         for (ByteString v : a)
         {
           String ocName = v.toString();
-          e.getObjectClasses().put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName), ocName);
+          e.getObjectClasses().put(schema.getObjectClass(ocName), ocName);
         }
       }
       else

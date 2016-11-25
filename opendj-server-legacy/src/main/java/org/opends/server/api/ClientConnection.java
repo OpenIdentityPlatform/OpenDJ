@@ -32,6 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.AuthenticatedUsers;
 import org.opends.server.core.CoreConfigManager;
@@ -1058,7 +1059,8 @@ public abstract class ClientConnection
       newPrivileges.addAll(DirectoryServer.getRootPrivileges());
     }
 
-    AttributeType privType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    AttributeType privType = schema.getAttributeType(OP_ATTR_PRIVILEGE_NAME);
     for (Attribute a : entry.getAllAttributes(privType))
     {
       for (ByteString v : a)

@@ -28,7 +28,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -37,6 +36,7 @@ import org.testng.annotations.Test;
 
 import static java.util.Arrays.*;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -567,7 +567,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     FilterDescription description = new FilterDescription();
 
     description.filterType = filterType;
-    description.attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeType);
+    description.attributeType = getServerContext().getSchema().getAttributeType(attributeType);
     description.assertionValue = ByteString.valueOfUtf8(attributeValue);
 
     if (filterType == FilterType.EQUALITY) {
@@ -629,7 +629,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     FilterDescription description = new FilterDescription();
 
     description.filterType = FilterType.SUBSTRING;
-    description.attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeType);
+    description.attributeType = getServerContext().getSchema().getAttributeType(attributeType);
 
     description.subInitialElement = ByteString.valueOfUtf8(subInitial);
     description.subAnyElements = new ArrayList<>();

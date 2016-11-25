@@ -98,7 +98,7 @@ public class ModifyOperationTestCase
     for (Object[] backendBaseDN2 : getBaseDNs())
     {
       final DN baseDN = DN.valueOf(backendBaseDN2[0].toString());
-      LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN);
+      LocalBackend<?> b = getServerContext().getBackendConfigManager().findLocalBackendForEntry(baseDN);
       b.setWritabilityMode(WritabilityMode.ENABLED);
     }
   }
@@ -1887,7 +1887,7 @@ public class ModifyOperationTestCase
 
   private AttributeType getEmployeeNumberAttributeType()
   {
-    return DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("employeenumber");
+    return getServerContext().getSchema().getAttributeType("employeenumber");
   }
 
   private void assertIntegerValueExists(List<Attribute> attrList, int expectedValue)
@@ -2166,7 +2166,7 @@ public class ModifyOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     assertTrue(e.hasObjectClass(getExtensibleObjectObjectClass()));
-    assertTrue(e.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("inetOrgPerson")));
+    assertTrue(e.hasObjectClass(getServerContext().getSchema().getObjectClass("inetOrgPerson")));
     assertTrue(e.hasObjectClass(getOrganizationalPersonObjectClass()));
     assertTrue(e.hasObjectClass(getPersonObjectClass()));
     assertTrue(e.hasObjectClass(getTopObjectClass()));
@@ -2431,7 +2431,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager()
+    LocalBackend<?> b = getServerContext().getBackendConfigManager()
         .findLocalBackendForEntry(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
@@ -2470,7 +2470,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager()
+    LocalBackend<?> b = getServerContext().getBackendConfigManager()
         .findLocalBackendForEntry(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
@@ -2509,7 +2509,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    LocalBackend<?> b = TestCaseUtils.getServerContext().getBackendConfigManager()
+    LocalBackend<?> b = getServerContext().getBackendConfigManager()
         .findLocalBackendForEntry(DN.valueOf(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
@@ -2849,7 +2849,7 @@ public class ModifyOperationTestCase
               "X-ORGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testmodifyobsoleteattribute";
-    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
+    assertFalse(getServerContext().getSchema().hasAttributeType(attrName));
 
     String[] args =
     {
@@ -2861,7 +2861,7 @@ public class ModifyOperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
+    assertTrue(getServerContext().getSchema().hasAttributeType(attrName));
 
     path = TestCaseUtils.createTempFile(
          "dn: " + baseDN,
@@ -2907,7 +2907,7 @@ public class ModifyOperationTestCase
               "AUXILIARY MAY description X-ORGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testmodifyaddobsoleteobjectclass";
-    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
+    assertFalse(getServerContext().getSchema().hasObjectClass(ocName));
 
     String[] args =
     {
@@ -2919,7 +2919,7 @@ public class ModifyOperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
+    assertTrue(getServerContext().getSchema().hasObjectClass(ocName));
 
     path = TestCaseUtils.createTempFile(
          "dn: " + baseDN,
@@ -3235,8 +3235,7 @@ public class ModifyOperationTestCase
         "cn: Test User",
         "userPassword: password",
         "userPassword;deleted: oldpassword");
-    LocalBackend<?> backend =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
+    LocalBackend<?> backend = getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.
@@ -3277,8 +3276,7 @@ public class ModifyOperationTestCase
         "cn: Test User",
         "userPassword: password",
         "userPassword;deleted: oldpassword");
-    LocalBackend<?> backend =
-        TestCaseUtils.getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
+    LocalBackend<?> backend = getServerContext().getBackendConfigManager().getLocalBackendById(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.

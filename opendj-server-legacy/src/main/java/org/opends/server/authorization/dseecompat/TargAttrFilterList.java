@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchFilter;
 
@@ -108,7 +109,8 @@ class TargAttrFilterList
               attributeName=attributeName.substring(0, semicolon);
             }
             String filterString=matcher.group(filterPos);
-            AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeName);
+            ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+            AttributeType attrType = serverContext.getSchema().getAttributeType(attributeName);
             SearchFilter filter;
             //Check if it is a valid filter and add it to the list map if ok.
             try {

@@ -43,6 +43,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.pluggable.AttributeIndex.MatchingRuleIndex;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -210,7 +211,8 @@ class VerifyJob
           }
           else
           {
-            AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(lowerName);
+            Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+            AttributeType attrType = schema.getAttributeType(lowerName);
             if (attrType.isPlaceHolder())
             {
               throw new StorageRuntimeException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index).toString());

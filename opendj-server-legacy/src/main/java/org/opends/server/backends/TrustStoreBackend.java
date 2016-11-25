@@ -190,7 +190,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     // Construct the trust store base entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(2);
     objectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    objectClasses.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("ds-cfg-branch"), "ds-cfg-branch");
+    objectClasses.put(serverContext.getSchema().getObjectClass("ds-cfg-branch"), "ds-cfg-branch");
 
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(1);
     for (AVA ava : getBaseDN().rdn())
@@ -396,7 +396,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
          throws DirectoryException
   {
     // Make sure that the DN specifies a certificate alias.
-    AttributeType t = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
+    AttributeType t = serverContext.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
@@ -428,14 +428,14 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     // Construct the certificate entry to return.
     LinkedHashMap<ObjectClass,String> ocMap = new LinkedHashMap<>(2);
     ocMap.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    ocMap.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY), OC_CRYPTO_INSTANCE_KEY);
+    ocMap.put(serverContext.getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY), OC_CRYPTO_INSTANCE_KEY);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs = new LinkedHashMap<>(0);
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>(3);
 
     userAttrs.put(t, Attributes.createAsList(t, v));
 
-    t = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+    t = serverContext.getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
     AttributeBuilder builder = new AttributeBuilder(t);
     builder.setOption("binary");
     builder.add(certValue);
@@ -551,7 +551,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
 
       if (scope != SearchScope.BASE_OBJECT && aliases.length != 0)
       {
-        AttributeType certAliasType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
+        AttributeType certAliasType = serverContext.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
         for (String alias : aliases)
         {
           DN certDN = makeChildDN(getBaseDN(), certAliasType, alias);
@@ -908,7 +908,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
     DN entryDN = entry.getName();
 
     // Make sure that the DN specifies a certificate alias.
-    AttributeType t = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
+    AttributeType t = serverContext.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
@@ -925,7 +925,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, message);
       }
 
-      if (entry.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_SELF_SIGNED_CERT_REQUEST)))
+      if (entry.hasObjectClass(serverContext.getSchema().getObjectClass(OC_SELF_SIGNED_CERT_REQUEST)))
       {
         try
         {
@@ -1024,7 +1024,7 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
        throws DirectoryException
   {
     // Make sure that the DN specifies a certificate alias.
-    AttributeType t = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
+    AttributeType t = serverContext.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
     ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {

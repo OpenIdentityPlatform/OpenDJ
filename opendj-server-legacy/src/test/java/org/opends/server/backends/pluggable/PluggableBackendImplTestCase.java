@@ -38,22 +38,23 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
-import org.forgerock.util.Reject;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.server.config.meta.BackendIndexCfgDefn.IndexType;
 import org.forgerock.opendj.server.config.meta.BackendVLVIndexCfgDefn.Scope;
 import org.forgerock.opendj.server.config.server.BackendIndexCfg;
 import org.forgerock.opendj.server.config.server.BackendVLVIndexCfg;
 import org.forgerock.opendj.server.config.server.PluggableBackendCfg;
-import org.opends.server.api.LocalBackend.BackendOperation;
+import org.forgerock.util.Reject;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.LocalBackend.BackendOperation;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.VerifyConfig;
@@ -67,7 +68,6 @@ import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
@@ -77,7 +77,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;
@@ -159,7 +158,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
     {
       final String attributeName = index.getKey();
-      final AttributeType attribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeName);
+      final AttributeType attribute = TestCaseUtils.getServerContext().getSchema().getAttributeType(attributeName);
       Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
 
       BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);
@@ -184,7 +183,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
 
     backend = createBackend();
     backend.setBackendID(backendCfg.getBackendId());
-    backend.configureBackend(backendCfg, DirectoryServer.getInstance().getServerContext());
+    backend.configureBackend(backendCfg, TestCaseUtils.getServerContext());
     backend.openBackend();
 
     topEntries = TestCaseUtils.makeEntries(
@@ -621,7 +620,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     {
       for (IndexType type : index.getValue())
       {
-        final AttributeType attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(index.getKey());
+        final AttributeType attributeType =
+            TestCaseUtils.getServerContext().getSchema().getAttributeType(index.getKey());
         assertTrue(backend.isIndexed(attributeType,
             org.opends.server.types.IndexType.valueOf(type.toString().toUpperCase())));
       }
@@ -672,7 +672,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     Entry oldEntry = workEntries.get(0);
     Entry newEntry = oldEntry.duplicate(false);
 
-    modifyAttribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("jpegphoto");
+    modifyAttribute = TestCaseUtils.getServerContext().getSchema().getAttributeType("jpegphoto");
     List<Modification> mods = Arrays.asList(
         // unindexed
         new Modification(ADD, create(modifyAttribute, modifyValue)),
@@ -954,7 +954,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
       importConf.writeRejectedEntries(rejectedEntries);
       importConf.setIncludeBranches(Collections.singleton(testBaseDN));
       importConf.setThreadCount(0);
-      backend.importLDIF(importConf, DirectoryServer.getInstance().getServerContext());
+      backend.importLDIF(importConf, TestCaseUtils.getServerContext());
     }
     assertEquals(rejectedEntries.size(), 0,
                  "No entries should be rejected. Content was:\n" + rejectedEntries.toString());
@@ -1025,7 +1025,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     rebuildConf.setRebuildMode(RebuildMode.ALL);
 
     backend.closeBackend();
-    backend.rebuildBackend(rebuildConf, DirectoryServer.getInstance().getServerContext());
+    backend.rebuildBackend(rebuildConf, TestCaseUtils.getServerContext());
     backend.openBackend();
 
     VerifyConfig config = new VerifyConfig();
@@ -1078,7 +1078,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     rebuildConf.setRebuildMode(RebuildMode.DEGRADED);
 
     backend.closeBackend();
-    backend.rebuildBackend(rebuildConf, DirectoryServer.getInstance().getServerContext());
+    backend.rebuildBackend(rebuildConf, TestCaseUtils.getServerContext());
     backend.openBackend();
 
     VerifyConfig config = new VerifyConfig();
@@ -1162,7 +1162,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     when(backendCfg.listBackendIndexes()).thenReturn(new String[0]);
     when(backendCfg.listBackendVLVIndexes()).thenReturn(new String[0]);
 
-    ServerContext serverContext = DirectoryServer.getInstance().getServerContext();
+    ServerContext serverContext = TestCaseUtils.getServerContext();
     final Storage storage = backend.configureStorage(backendCfg, serverContext);
     final RootContainer readOnlyContainer =
         new RootContainer(backend.getBackendID(), serverContext, storage, backendCfg);

@@ -77,6 +77,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.CryptoManagerCfg;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
@@ -242,20 +243,21 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
          throws ConfigException, InitializationException {
     this.serverContext = serverContext;
     if (!schemaInitDone) {
+      final Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
       // Initialize various schema references.
-      attrKeyID = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
-      attrPublicKeyCertificate = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-      attrTransformation = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
-      attrMacAlgorithm = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_MAC_ALGORITHM_NAME);
-      attrSymmetricKey = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_SYMMETRIC_KEY);
-      attrInitVectorLength = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
-      attrKeyLength = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_LENGTH_BITS);
-      attrCompromisedTime = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+      attrKeyID = schema.getAttributeType(ATTR_CRYPTO_KEY_ID);
+      attrPublicKeyCertificate = schema.getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+      attrTransformation = schema.getAttributeType(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
+      attrMacAlgorithm = schema.getAttributeType(ATTR_CRYPTO_MAC_ALGORITHM_NAME);
+      attrSymmetricKey = schema.getAttributeType(ATTR_CRYPTO_SYMMETRIC_KEY);
+      attrInitVectorLength = schema.getAttributeType(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
+      attrKeyLength = schema.getAttributeType(ATTR_CRYPTO_KEY_LENGTH_BITS);
+      attrCompromisedTime = schema.getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
       // TODO: ConfigConstants
-      ocCertRequest = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("ds-cfg-self-signed-cert-request");
-      ocInstanceKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY);
-      ocCipherKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_CIPHER_KEY);
-      ocMacKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_MAC_KEY);
+      ocCertRequest = schema.getObjectClass("ds-cfg-self-signed-cert-request");
+      ocInstanceKey = schema.getObjectClass(OC_CRYPTO_INSTANCE_KEY);
+      ocCipherKey = schema.getObjectClass(OC_CRYPTO_CIPHER_KEY);
+      ocMacKey = schema.getObjectClass(OC_CRYPTO_MAC_KEY);
 
       localTruststoreDN = DN.valueOf(DN_TRUST_STORE_ROOT);
       DN adminSuffixDN = ADSContext.getAdministrationSuffixDN();

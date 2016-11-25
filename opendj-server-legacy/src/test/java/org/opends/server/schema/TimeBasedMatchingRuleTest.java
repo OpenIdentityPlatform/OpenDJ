@@ -17,6 +17,7 @@
 package org.opends.server.schema;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.format;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.testng.Assert.*;
@@ -39,7 +40,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.FilterType;
@@ -152,7 +152,7 @@ public final class TimeBasedMatchingRuleTest
   private Collection<DN> getMatchingEntryDNs(SearchFilter filter) throws Exception
   {
     AttributeType attrType = filter.getAttributeType();
-    MatchingRule rule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(filter.getMatchingRuleID());
+    MatchingRule rule = getServerContext().getSchema().getMatchingRule(filter.getMatchingRuleID());
     Assertion assertion = rule.getAssertion(filter.getAssertionValue());
 
     Collection<DN> results = new ArrayList<>();
@@ -199,7 +199,7 @@ public final class TimeBasedMatchingRuleTest
   public void testPartialDateNTimeMatch(long timeInMillis, String generalizedTime, String assertionValue)
       throws Exception
   {
-    MatchingRule partialTimeRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_NAME);
+    MatchingRule partialTimeRule = getServerContext().getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_NAME);
     Assertion assertion = partialTimeRule.getAssertion(ByteString.valueOfUtf8(assertionValue));
     assertEquals(assertion.matches(ByteString.valueOfLong(timeInMillis)), ConditionResult.TRUE);
   }
@@ -223,7 +223,7 @@ public final class TimeBasedMatchingRuleTest
   @Test(dataProvider= "relativeTimeValues")
   public void testRelativeTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
-    MatchingRule relativeTimeLTRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(EXT_OMR_RELATIVE_TIME_LT_ALT_NAME);
+    MatchingRule relativeTimeLTRule = getServerContext().getSchema().getMatchingRule(EXT_OMR_RELATIVE_TIME_LT_ALT_NAME);
     try
     {
       relativeTimeLTRule.getAssertion(ByteString.valueOfUtf8(assertion));
@@ -243,7 +243,7 @@ public final class TimeBasedMatchingRuleTest
   @Test(dataProvider= "partialDateTimeSyntaxes")
   public void testPartialDateTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
-    MatchingRule partialDTRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_OID);
+    MatchingRule partialDTRule = getServerContext().getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_OID);
     try
     {
       partialDTRule.getAssertion(ByteString.valueOfUtf8(assertion));

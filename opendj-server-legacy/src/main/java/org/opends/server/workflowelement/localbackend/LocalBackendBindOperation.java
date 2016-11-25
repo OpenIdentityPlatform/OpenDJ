@@ -26,6 +26,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.LocalBackend;
@@ -1010,7 +1011,8 @@ public class LocalBackendBindOperation
       Arg1<Object> nonUniqueAttributeMessage,
       Arg2<Object, Object> cannotProcessAttributeMessage)
   {
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeTypeName);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    AttributeType attrType = schema.getAttributeType(attributeTypeName);
     List<Attribute> attrList = userEntry.getAllAttributes(attrType);
     if (attrList.size() == 1)
     {

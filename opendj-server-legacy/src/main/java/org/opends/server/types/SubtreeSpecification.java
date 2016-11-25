@@ -34,6 +34,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
 
@@ -271,7 +272,8 @@ public final class SubtreeSpecification
     @Override
     public boolean matches(final Entry entry)
     {
-      final ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(normalizedObjectClass);
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+      final ObjectClass oc = schema.getObjectClass(normalizedObjectClass);
       return !oc.isPlaceHolder() && entry.hasObjectClass(oc);
     }
 

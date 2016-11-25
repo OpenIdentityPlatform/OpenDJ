@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
@@ -259,7 +260,8 @@ public class EntryHistorical
    */
   public static void setHistoricalAttrToOperation(PreOperationAddOperation addOperation)
   {
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    AttributeType attrType = schema.getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
     String attrValue = encodeHistorical(OperationContext.getCSN(addOperation), "add");
     List<Attribute> attrs = Attributes.createAsList(attrType, attrValue);
     addOperation.setAttribute(attrType, attrs);

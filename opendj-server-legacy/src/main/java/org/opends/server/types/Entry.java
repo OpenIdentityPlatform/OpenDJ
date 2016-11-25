@@ -63,6 +63,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.NameForm;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.api.CompressedSchema;
@@ -1372,7 +1373,7 @@ public class Entry
     for (ByteString v : a)
     {
       String ocName = v.toString();
-      ocs.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName), ocName);
+      ocs.put(getSchema().getObjectClass(ocName), ocName);
     }
 
     AttributeDescription attrDesc = a.getAttributeDescription();
@@ -1423,6 +1424,11 @@ public class Entry
       message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(mod.getModificationType());
       throw new DirectoryException(UNWILLING_TO_PERFORM, message);
     }
+  }
+
+  private static Schema getSchema()
+  {
+    return DirectoryServer.getInstance().getServerContext().getSchema();
   }
 
   private void applyModificationToNonObjectclass(Modification mod, boolean relaxConstraints) throws DirectoryException
@@ -1619,7 +1625,7 @@ public class Entry
     }
     else
     {
-      ditContentRule = DirectoryServer.getInstance().getServerContext().getSchema().getDITContentRule(structuralClass);
+      ditContentRule = getSchema().getDITContentRule(structuralClass);
       if (ditContentRule != null && ditContentRule.isObsolete())
       {
         ditContentRule = null;
@@ -1642,7 +1648,7 @@ public class Entry
          * DITStructureRules corresponding to other non-acceptable
          * nameforms are not applied.
          */
-        Collection<NameForm> forms = DirectoryServer.getInstance().getServerContext().getSchema().getNameForms(structuralClass);
+        Collection<NameForm> forms = getSchema().getNameForms(structuralClass);
         if (forms != null)
         {
           List<NameForm> listForms = new ArrayList<>(forms);
@@ -1678,7 +1684,7 @@ public class Entry
 
         if (validateStructureRules && nameForm != null)
         {
-          for (DITStructureRule ditRule : DirectoryServer.getInstance().getServerContext().getSchema().getDITStructureRules(nameForm))
+          for (DITStructureRule ditRule : getSchema().getDITStructureRules(nameForm))
           {
             if (!ditRule.isObsolete())
             {
@@ -1731,7 +1737,7 @@ public class Entry
     // all attributes required by the object classes are present.
     for (ObjectClass o : objectClasses.keySet())
     {
-      if (DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(o.getOID()).isPlaceHolder())
+      if (getSchema().getObjectClass(o.getOID()).isPlaceHolder())
       {
         invalidReason.append(ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(dn, o.getNameOrOID()));
         return false;
@@ -2191,14 +2197,14 @@ public class Entry
         }
         else
         {
-          Collection<NameForm> allNFs = DirectoryServer.getInstance().getServerContext().getSchema().getNameForms(parentStructuralClass);
+          Collection<NameForm> allNFs = getSchema().getNameForms(parentStructuralClass);
           if(allNFs != null)
           {
             for(NameForm parentNF : allNFs)
             {
               if (!parentNF.isObsolete())
               {
-                for (DITStructureRule parentDSR : DirectoryServer.getInstance().getServerContext().getSchema().getDITStructureRules(parentNF))
+                for (DITStructureRule parentDSR : getSchema().getDITStructureRules(parentNF))
                 {
                   if (!parentDSR.isObsolete())
                   {
@@ -2494,7 +2500,7 @@ public class Entry
    */
   private boolean hasObjectClassOrAttribute(String objectClassName, String attrTypeName)
   {
-    ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(objectClassName);
+    ObjectClass oc = getSchema().getObjectClass(objectClassName);
     if (oc.isPlaceHolder())
     {
       // This should not happen
@@ -2507,7 +2513,7 @@ public class Entry
       return false;
     }
 
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrTypeName);
+    AttributeType attrType = getSchema().getAttributeType(attrTypeName);
     if (attrType.isPlaceHolder())
     {
       // This should not happen
@@ -2549,7 +2555,7 @@ public class Entry
    */
   public Set<String> getReferralURLs()
   {
-    AttributeType referralType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType referralType = getSchema().getAttributeType(ATTR_REFERRAL_URL);
     if (referralType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have a ref attribute type defined.
@@ -2610,7 +2616,7 @@ public class Entry
    */
   public DN getAliasedDN() throws DirectoryException
   {
-    AttributeType aliasType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_REFERRAL_URL);
+    AttributeType aliasType = getSchema().getAttributeType(ATTR_REFERRAL_URL);
     if (aliasType.isPlaceHolder())
     {
       // This should not happen -- The server doesn't have an aliasedObjectName attribute type defined.
@@ -2668,7 +2674,7 @@ public class Entry
    */
   private boolean hasObjectClass(String objectClassLowerCase)
   {
-    ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(objectClassLowerCase);
+    ObjectClass oc = getSchema().getObjectClass(objectClassLowerCase);
     if (oc.isPlaceHolder())
     {
       // This should not happen
@@ -2829,7 +2835,7 @@ public class Entry
     }
 
     // Get collective attribute exclusions.
-    AttributeType exclusionsType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_COLLECTIVE_EXCLUSIONS_LC);
+    AttributeType exclusionsType = getSchema().getAttributeType(ATTR_COLLECTIVE_EXCLUSIONS_LC);
     List<Attribute> exclusionsAttrList = operationalAttributes.get(exclusionsType);
     List<String> excludedAttrNames = new ArrayList<>();
     if (exclusionsAttrList != null && !exclusionsAttrList.isEmpty())
@@ -3506,7 +3512,7 @@ public class Entry
   {
     entryBuffer.position(startPos);
     final String ocName = entryBuffer.readStringUtf8(endPos - startPos);
-    objectClasses.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName), ocName);
+    objectClasses.put(getSchema().getObjectClass(ocName), ocName);
   }
 
   /**
@@ -4224,7 +4230,7 @@ public class Entry
       String lowerName = toLowerName(rule, v);
 
       // Create a default object class if necessary.
-      ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(lowerName);
+      ObjectClass oc = getSchema().getObjectClass(lowerName);
 
       if (replace)
       {

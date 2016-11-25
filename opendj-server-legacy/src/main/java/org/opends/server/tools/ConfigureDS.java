@@ -57,6 +57,7 @@ import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.config.meta.CryptoManagerCfgDefn;
@@ -1137,7 +1138,8 @@ public class ConfigureDS
       org.forgerock.opendj.ldap.Entry configEntry, String attrName, Syntax syntax, Object...values)
   {
     org.forgerock.opendj.ldap.Entry newEntry = LinkedHashMapEntry.deepCopyOfEntry(configEntry);
-    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName, syntax);
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
+    AttributeType attrType = schema.getAttributeType(attrName, syntax);
     newEntry.replaceAttribute(new LinkedAttribute(AttributeDescription.create(attrType), values));
     return newEntry;
   }

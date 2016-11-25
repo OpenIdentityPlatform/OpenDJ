@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AuthenticationPolicyState;
@@ -321,7 +322,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   private long getGeneralizedTime0(Entry userEntry, String attrName) throws DirectoryException
   {
-    return getGeneralizedTime(userEntry, DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
+    return getGeneralizedTime(userEntry, getSchema().getAttributeType(attrName));
   }
 
   /**
@@ -551,7 +552,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return authFailureTimes;
     }
 
-    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME);
+    AttributeType type = getSchema().getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME);
     try
     {
       authFailureTimes = getGeneralizedTimes(type);
@@ -620,6 +621,11 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return authFailureTimes;
   }
 
+  private static Schema getSchema()
+  {
+    return DirectoryServer.getInstance().getServerContext().getSchema();
+  }
+
   /**
    * Updates the set of authentication failure times to include the current time.
    * If the number of failures reaches the policy configuration limit, lock the account.
@@ -642,7 +648,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     failureTimes.add(highestFailureTime);
 
     // And the attribute in the user entry
-    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME);
+    AttributeType type = getSchema().getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME);
     Attribute addAttr = Attributes.create(type, GeneralizedTimeSyntax.format(highestFailureTime));
     modifications.add(new Modification(ModificationType.ADD, addAttr, true));
 
@@ -723,7 +729,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return failureLockedTime;
     }
 
-    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_LOCKED_TIME);
+    AttributeType type = getSchema().getAttributeType(OP_ATTR_PWPOLICY_LOCKED_TIME);
     try
     {
       failureLockedTime = getGeneralizedTime(userEntry, type);
@@ -1174,10 +1180,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return false;
     }
 
-    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_RESET_REQUIRED);
     try
     {
-      mustChangePassword = getBoolean(userEntry, type);
+      mustChangePassword = getBoolean(userEntry, OP_ATTR_PWPOLICY_RESET_REQUIRED);
     }
     catch (Exception e)
     {
@@ -1234,7 +1239,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   private void clearAttribute(String attrName)
   {
-    clearAttribute(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
+    clearAttribute(getSchema().getAttributeType(attrName));
   }
 
   private void clearAttribute(AttributeType type)
@@ -1734,7 +1739,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     this.warnedTime = warnedTime;
-    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME);
+    AttributeType type = getSchema().getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME);
     replaceAttribute(Attributes.create(type, GeneralizedTimeSyntax.createGeneralizedTimeValue(currentTime)));
 
     if (logger.isTraceEnabled())
@@ -1766,7 +1771,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     if (graceLoginTimes == null)
     {
-      AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
+      AttributeType type = getSchema().getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
       try
       {
         graceLoginTimes = getGeneralizedTimes(type);
@@ -1813,7 +1818,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     long highestGraceTime = computeHighestTime(graceTimes);
     graceTimes.add(highestGraceTime); // graceTimes == this.graceLoginTimes
 
-    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
+    AttributeType type = getSchema().getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     Attribute addAttr = Attributes.create(type, GeneralizedTimeSyntax.format(highestGraceTime));
     modifications.add(new Modification(ModificationType.ADD, addAttr, true));
   }
@@ -2347,7 +2352,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   private TreeMap<Long,ByteString> getSortedHistoryValues(List<Attribute> removeAttrs)
   {
     TreeMap<Long, ByteString> historyMap = new TreeMap<>();
-    AttributeType historyType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
+    AttributeType historyType = getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
     for (Attribute a : userEntry.getAllAttributes(historyType))
     {
       for (ByteString v : a)
@@ -2561,7 +2566,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     // If there is a maximum number of values to retain and we would be over the limit with the new value,
     // then get rid of enough values (oldest first) to satisfy the count.
-    AttributeType historyType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
+    AttributeType historyType = getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
     int historyCount = passwordPolicy.getPasswordHistoryCount();
     if  (historyCount > 0 && historyMap.size() >= historyCount)
     {
@@ -2659,7 +2664,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   public String[] getPasswordHistoryValues()
   {
     ArrayList<String> historyValues = new ArrayList<>();
-    AttributeType historyType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
+    AttributeType historyType = getSchema().getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC);
     for (Attribute a : userEntry.getAllAttributes(historyType))
     {
       for (ByteString v : a)

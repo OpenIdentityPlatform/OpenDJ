@@ -19,29 +19,25 @@ package org.opends.server.tasks;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.LocalBackend.BackendOperation;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -57,19 +53,17 @@ public class RebuildTask extends Task
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private String baseDN;
-  private ArrayList<String> indexes;
+  private List<String> indexes;
   private String tmpDirectory;
   private RebuildMode rebuildMode = RebuildMode.USER_DEFINED;
   private boolean isClearDegradedState;
 
-  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName()
   {
     return TaskMessages.INFO_TASK_REBUILD_NAME.get();
   }
 
-  /** {@inheritDoc} */
   @Override
   public void initializeTask() throws DirectoryException
   {
@@ -94,10 +88,7 @@ public class RebuildTask extends Task
     tmpDirectory = asString(taskEntry, ATTR_REBUILD_TMP_DIRECTORY);
     final String val = asString(taskEntry, ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE);
     isClearDegradedState = Boolean.parseBoolean(val);
-
-    AttributeType typeIndex = getInstance().getServerContext().getSchema().getAttributeType(ATTR_REBUILD_INDEX);
-    List<Attribute> attrList = taskEntry.getAllAttributes(typeIndex);
-    indexes = TaskUtils.getMultiValueString(attrList);
+    indexes = TaskUtils.getMultiValueString(taskEntry.getAllAttributes(ATTR_REBUILD_INDEX));
 
     rebuildMode = getRebuildMode(indexes);
     if (rebuildMode != RebuildMode.USER_DEFINED)
@@ -113,9 +104,7 @@ public class RebuildTask extends Task
 
   private String asString(Entry taskEntry, String attrName)
   {
-    final AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName);
-    final List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
-    return TaskUtils.getSingleValueString(attrList);
+    return TaskUtils.getSingleValueString(taskEntry.getAllAttributes(attrName));
   }
 
   private RebuildMode getRebuildMode(List<String> indexList)

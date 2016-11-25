@@ -4299,9 +4299,7 @@ public class PasswordPolicyTestCase
   {
     Entry entry = DirectoryServer.getEntry(DN.valueOf(dn));
     assertNotNull(entry);
-    AttributeType pwdHistory = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("pwdhistory");
-    assertNotNull(pwdHistory);
-    Attribute historyAttr = entry.getAttribute(AttributeDescription.create(pwdHistory));
+    Attribute historyAttr = entry.getAttribute(AttributeDescription.valueOf("pwdhistory"));
     assertNotNull(historyAttr);
     assertThat(historyAttr).hasSize(3);
 
