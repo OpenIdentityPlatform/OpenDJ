@@ -152,7 +152,7 @@ public final class TimeBasedMatchingRuleTest
   private Collection<DN> getMatchingEntryDNs(SearchFilter filter) throws Exception
   {
     AttributeType attrType = filter.getAttributeType();
-    MatchingRule rule = DirectoryServer.getSchema().getMatchingRule(filter.getMatchingRuleID());
+    MatchingRule rule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(filter.getMatchingRuleID());
     Assertion assertion = rule.getAssertion(filter.getAssertionValue());
 
     Collection<DN> results = new ArrayList<>();
@@ -199,7 +199,7 @@ public final class TimeBasedMatchingRuleTest
   public void testPartialDateNTimeMatch(long timeInMillis, String generalizedTime, String assertionValue)
       throws Exception
   {
-    MatchingRule partialTimeRule = DirectoryServer.getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_NAME);
+    MatchingRule partialTimeRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_NAME);
     Assertion assertion = partialTimeRule.getAssertion(ByteString.valueOfUtf8(assertionValue));
     assertEquals(assertion.matches(ByteString.valueOfLong(timeInMillis)), ConditionResult.TRUE);
   }
@@ -223,7 +223,7 @@ public final class TimeBasedMatchingRuleTest
   @Test(dataProvider= "relativeTimeValues")
   public void testRelativeTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
-    MatchingRule relativeTimeLTRule = DirectoryServer.getSchema().getMatchingRule(EXT_OMR_RELATIVE_TIME_LT_ALT_NAME);
+    MatchingRule relativeTimeLTRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(EXT_OMR_RELATIVE_TIME_LT_ALT_NAME);
     try
     {
       relativeTimeLTRule.getAssertion(ByteString.valueOfUtf8(assertion));
@@ -243,7 +243,7 @@ public final class TimeBasedMatchingRuleTest
   @Test(dataProvider= "partialDateTimeSyntaxes")
   public void testPartialDateTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
-    MatchingRule partialDTRule = DirectoryServer.getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_OID);
+    MatchingRule partialDTRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(EXT_PARTIAL_DATE_TIME_OID);
     try
     {
       partialDTRule.getAssertion(ByteString.valueOfUtf8(assertion));

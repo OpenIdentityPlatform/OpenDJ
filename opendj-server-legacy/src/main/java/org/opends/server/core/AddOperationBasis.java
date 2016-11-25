@@ -319,7 +319,7 @@ public class AddOperationBasis
             for (ByteString os : a.getValues())
             {
               String ocName = os.toString();
-              objectClasses.put(getSchema().getObjectClass(ocName), ocName);
+              objectClasses.put(getInstance().getServerContext().getSchema().getObjectClass(ocName), ocName);
             }
           }
           else if (attrType.isOperational())

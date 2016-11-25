@@ -250,7 +250,7 @@ public final class TestCaseUtils {
    */
   public static void startFakeServer() throws Exception
   {
-    schemaBeforeStartingFakeServer = DirectoryServer.getSchema();
+    schemaBeforeStartingFakeServer = DirectoryServer.getInstance().getServerContext().getSchema();
     DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(Schema.getDefaultSchema());
   }
 

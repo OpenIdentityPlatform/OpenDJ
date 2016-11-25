@@ -63,7 +63,7 @@ public class GenericSchemaTestCase
   {
     TreeSet<String> invalidOIDs = new TreeSet<>();
 
-    Schema schema = DirectoryServer.getSchema();
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     for (Syntax as : schema.getSyntaxes())
     {
       if (! isNumericOID(as.getOID()))
@@ -81,7 +81,7 @@ public class GenericSchemaTestCase
   {
     TreeSet<String> invalidOIDs = new TreeSet<>();
 
-    Schema schema = DirectoryServer.getSchema();
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     for (MatchingRule mr : schema.getMatchingRules())
     {
       if (! isNumericOID(mr.getOID()))

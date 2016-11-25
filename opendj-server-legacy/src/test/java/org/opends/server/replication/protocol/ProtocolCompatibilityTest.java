@@ -604,7 +604,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createModifyDnData")
   public Object[][] createModifyDnData() {
 
-    AttributeType type = DirectoryServer.getSchema().getAttributeType("description");
+    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("description");
 
     Modification mod1 = new Modification(REPLACE, Attributes.create("description", "new value"));
     List<Modification> mods1 = newArrayList(mod1);

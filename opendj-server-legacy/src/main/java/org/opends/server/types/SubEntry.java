@@ -193,7 +193,7 @@ public class SubEntry {
         {
           for (ByteString value : attr)
           {
-            this.inheritFromDNType = DirectoryServer.getSchema().getAttributeType(value.toString());
+            this.inheritFromDNType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value.toString());
             this.inheritFromDNAttrValue = value;
             break;
           }
@@ -206,7 +206,7 @@ public class SubEntry {
         {
           for (ByteString value : attr)
           {
-            this.inheritFromRDNAttrType = DirectoryServer.getSchema().getAttributeType(value.toString());
+            this.inheritFromRDNAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value.toString());
             this.inheritFromRDNAttrValue = value;
             break;
           }
@@ -215,7 +215,7 @@ public class SubEntry {
         {
           for (ByteString value : attr)
           {
-            this.inheritFromRDNType = DirectoryServer.getSchema().getAttributeType(value.toString());
+            this.inheritFromRDNType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value.toString());
             break;
           }
         }
@@ -265,7 +265,7 @@ public class SubEntry {
   {
     String specString = null;
     boolean isValidSpec = true;
-    AttributeType specAttrType = DirectoryServer.getSchema().getAttributeType(ATTR_SUBTREE_SPEC_LC);
+    AttributeType specAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_SUBTREE_SPEC_LC);
     for (Attribute attr : entry.getAllAttributes(specAttrType))
     {
       for (ByteString value : attr)

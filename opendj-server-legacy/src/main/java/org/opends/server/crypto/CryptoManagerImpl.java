@@ -243,19 +243,19 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
     this.serverContext = serverContext;
     if (!schemaInitDone) {
       // Initialize various schema references.
-      attrKeyID = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
-      attrPublicKeyCertificate = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-      attrTransformation = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
-      attrMacAlgorithm = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_MAC_ALGORITHM_NAME);
-      attrSymmetricKey = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_SYMMETRIC_KEY);
-      attrInitVectorLength = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
-      attrKeyLength = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_LENGTH_BITS);
-      attrCompromisedTime = DirectoryServer.getSchema().getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+      attrKeyID = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_ID);
+      attrPublicKeyCertificate = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+      attrTransformation = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
+      attrMacAlgorithm = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_MAC_ALGORITHM_NAME);
+      attrSymmetricKey = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_SYMMETRIC_KEY);
+      attrInitVectorLength = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
+      attrKeyLength = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_LENGTH_BITS);
+      attrCompromisedTime = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_CRYPTO_KEY_COMPROMISED_TIME);
       // TODO: ConfigConstants
-      ocCertRequest = DirectoryServer.getSchema().getObjectClass("ds-cfg-self-signed-cert-request");
-      ocInstanceKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY);
-      ocCipherKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_CIPHER_KEY);
-      ocMacKey = DirectoryServer.getSchema().getObjectClass(OC_CRYPTO_MAC_KEY);
+      ocCertRequest = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("ds-cfg-self-signed-cert-request");
+      ocInstanceKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_INSTANCE_KEY);
+      ocCipherKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_CIPHER_KEY);
+      ocMacKey = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_CRYPTO_MAC_KEY);
 
       localTruststoreDN = DN.valueOf(DN_TRUST_STORE_ROOT);
       DN adminSuffixDN = ADSContext.getAdministrationSuffixDN();

@@ -176,7 +176,7 @@ public final class Attributes
    */
   public static Attribute create(String attributeName, String valueString)
   {
-    return create(getSchema().getAttributeType(attributeName), attributeName, valueString);
+    return create(getInstance().getServerContext().getSchema().getAttributeType(attributeName), attributeName, valueString);
   }
 
   /**
@@ -278,7 +278,7 @@ public final class Attributes
    */
   public static Attribute empty(String attributeName)
   {
-    return empty(getSchema().getAttributeType(attributeName), attributeName);
+    return empty(getInstance().getServerContext().getSchema().getAttributeType(attributeName), attributeName);
   }
 
 

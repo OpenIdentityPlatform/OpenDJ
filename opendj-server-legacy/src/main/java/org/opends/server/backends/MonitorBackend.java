@@ -192,7 +192,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
 
     // Construct the set of objectclasses to include in the base monitor entry.
     monitorObjectClasses.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    monitorObjectClasses.put(DirectoryServer.getSchema().getObjectClass(OC_MONITOR_ENTRY), OC_MONITOR_ENTRY);
+    monitorObjectClasses.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_MONITOR_ENTRY), OC_MONITOR_ENTRY);
 
     // Create the set of base DNs that we will handle. In this case, it's just
     // the DN of the base monitor entry.
@@ -624,7 +624,7 @@ public class MonitorBackend extends LocalBackend<MonitorBackendCfg> implements
    */
   private Entry getBranchMonitorEntry(final DN dn)
   {
-    final ObjectClass monitorOC = DirectoryServer.getSchema().getObjectClass(OC_MONITOR_BRANCH);
+    final ObjectClass monitorOC = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_MONITOR_BRANCH);
     final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, OC_MONITOR_BRANCH);
 
     final HashMap<AttributeType, List<Attribute>> monitorUserAttrs = new LinkedHashMap<>();

@@ -86,7 +86,7 @@ public class PurgeConflictsHistoricalTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase = getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN);
+    AttributeType typeDomainBase = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN);
     List<Attribute> attrList = taskEntry.getAllAttributes(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
 
@@ -104,7 +104,7 @@ public class PurgeConflictsHistoricalTask extends Task
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, mb.toMessage());
     }
 
-    AttributeType typeMaxDuration = getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION);
+    AttributeType typeMaxDuration = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION);
     attrList = taskEntry.getAllAttributes(typeMaxDuration);
     String maxDurationStringInSec = TaskUtils.getSingleValueString(attrList);
 

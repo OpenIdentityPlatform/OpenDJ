@@ -233,7 +233,7 @@ public class RecurringTask
   private Attribute getSingleAttribute(Entry taskEntry, String attrName, Arg1<Object> noEntryErrorMsg,
       Arg1<Object> multipleEntriesErrorMsg, Arg1<Object> noAttrValueErrorMsg) throws DirectoryException
   {
-    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
     List<Attribute> attrList = taskEntry.getAllAttributes(attrType);
     if (attrList.isEmpty())
     {
@@ -341,7 +341,7 @@ public class RecurringTask
       String nextTaskIDName = NAME_PREFIX_TASK + "id";
       nextTaskEntry.replaceAttribute(Attributes.create(nextTaskIDName, nextTaskID));
 
-      RDN nextTaskRDN = new RDN(DirectoryServer.getSchema().getAttributeType(nextTaskIDName), nextTaskID);
+      RDN nextTaskRDN = new RDN(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(nextTaskIDName), nextTaskID);
       DN nextTaskDN = taskScheduler.getTaskBackend().getScheduledTasksParentDN().child(nextTaskRDN);
       nextTaskEntry.setDN(nextTaskDN);
 

@@ -80,7 +80,7 @@ public class LocalBackendMonitor
   @Override
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryServer.getSchema().getObjectClass(OC_MONITOR_BACKEND);
+    return DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_MONITOR_BACKEND);
   }
 
   @Override

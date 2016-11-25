@@ -830,7 +830,7 @@ public class MatchedValuesFilter
   {
     if (attributeType == null && rawAttributeType != null)
     {
-      attributeType = DirectoryServer.getSchema().getAttributeType(rawAttributeType);
+      attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(rawAttributeType);
     }
     return attributeType;
   }
@@ -947,7 +947,7 @@ public class MatchedValuesFilter
     {
       try
       {
-        matchingRule = DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+        matchingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
       }
       catch (UnknownSchemaElementException e)
       {

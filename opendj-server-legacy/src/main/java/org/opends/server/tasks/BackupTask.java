@@ -137,16 +137,16 @@ public class BackupTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeBackupAll = getSchema().getAttributeType(ATTR_TASK_BACKUP_ALL);
-    AttributeType typeCompress = getSchema().getAttributeType(ATTR_TASK_BACKUP_COMPRESS);
-    AttributeType typeEncrypt = getSchema().getAttributeType(ATTR_TASK_BACKUP_ENCRYPT);
-    AttributeType typeHash = getSchema().getAttributeType(ATTR_TASK_BACKUP_HASH);
-    AttributeType typeIncremental = getSchema().getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL);
-    AttributeType typeSignHash = getSchema().getAttributeType(ATTR_TASK_BACKUP_SIGN_HASH);
-    AttributeType typeBackendID = getSchema().getAttributeType(ATTR_TASK_BACKUP_BACKEND_ID);
-    AttributeType typeBackupID = getSchema().getAttributeType(ATTR_BACKUP_ID);
-    AttributeType typeBackupDirectory = getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
-    AttributeType typeIncrementalBaseID = getSchema().getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID);
+    AttributeType typeBackupAll = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_ALL);
+    AttributeType typeCompress = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_COMPRESS);
+    AttributeType typeEncrypt = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_ENCRYPT);
+    AttributeType typeHash = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_HASH);
+    AttributeType typeIncremental = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL);
+    AttributeType typeSignHash = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_SIGN_HASH);
+    AttributeType typeBackendID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_BACKEND_ID);
+    AttributeType typeBackupID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_ID);
+    AttributeType typeBackupDirectory = getInstance().getServerContext().getSchema().getAttributeType(ATTR_BACKUP_DIRECTORY_PATH);
+    AttributeType typeIncrementalBaseID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID);
 
     backUpAll = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeBackupAll), false);
     compress = TaskUtils.getBoolean(taskEntry.getAllAttributes(typeCompress), false);

@@ -259,7 +259,7 @@ public class EntryHistorical
    */
   public static void setHistoricalAttrToOperation(PreOperationAddOperation addOperation)
   {
-    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
+    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
     String attrValue = encodeHistorical(OperationContext.getCSN(addOperation), "add");
     List<Attribute> attrs = Attributes.createAsList(attrType, attrValue);
     addOperation.setAttribute(attrType, attrs);

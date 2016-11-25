@@ -155,14 +155,14 @@ public final class InternalClientConnection
       LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>();
       put(objectClasses, getTopObjectClass());
       put(objectClasses, getPersonObjectClass());
-      put(objectClasses, DirectoryServer.getSchema().getObjectClass(OC_ROOT_DN));
+      put(objectClasses, DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_ROOT_DN));
 
       LinkedHashMap<AttributeType,List<Attribute>> userAttrs = new LinkedHashMap<>();
       put(userAttrs, ATTR_COMMON_NAME, commonName);
       put(userAttrs, ATTR_SN, commonName);
       put(userAttrs, ATTR_ROOTDN_ALTERNATE_BIND_DN, shortDNString);
 
-      AttributeType privType = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
+      AttributeType privType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PRIVILEGE_NAME);
       AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {
@@ -201,7 +201,7 @@ public final class InternalClientConnection
   private void put(Map<AttributeType, List<Attribute>> Attrs, String attrName, String value)
   {
     List<Attribute> attrs = newLinkedList(Attributes.create(attrName, value));
-    Attrs.put(DirectoryServer.getSchema().getAttributeType(attrName), attrs);
+    Attrs.put(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName), attrs);
   }
 
   /**
@@ -811,7 +811,7 @@ public final class InternalClientConnection
         for (ByteString v : a)
         {
           String ocName = v.toString();
-          e.getObjectClasses().put(DirectoryServer.getSchema().getObjectClass(ocName), ocName);
+          e.getObjectClasses().put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName), ocName);
         }
       }
       else

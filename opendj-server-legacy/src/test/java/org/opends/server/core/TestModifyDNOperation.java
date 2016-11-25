@@ -417,7 +417,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
   private void assertAttrValue(Entry newEntry, String attrName, String expectedAttrValue)
   {
-    AttributeType at = DirectoryServer.getSchema().getAttributeType(attrName);
+    AttributeType at = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
     List<Attribute> attrList = newEntry.getAllAttributes(at);
     assertThat(attrList).hasSize(1);
 
@@ -834,7 +834,7 @@ public class TestModifyDNOperation extends OperationTestCase
               "X-ORGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testmodifydnwithobsoleteattribute";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     String[] args =
     {
@@ -846,7 +846,7 @@ public class TestModifyDNOperation extends OperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     path = TestCaseUtils.createTempFile(
          "dn: cn=oldrdn,o=test",

@@ -91,7 +91,7 @@ public class ConnectionHandlerMonitor
   @Override
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryServer.getSchema().getObjectClass(OC_MONITOR_CONNHANDLER);
+    return DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_MONITOR_CONNHANDLER);
   }
 
 

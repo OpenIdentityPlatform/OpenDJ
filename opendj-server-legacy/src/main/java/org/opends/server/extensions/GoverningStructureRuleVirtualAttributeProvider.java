@@ -178,7 +178,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     if (oc == null) {
       return null;
     }
-    Schema schema = DirectoryServer.getSchema();
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     Collection<NameForm> listForms = schema.getNameForms(oc);
     NameForm nameForm = null;
     DITStructureRule ditRule = null;

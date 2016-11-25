@@ -67,7 +67,7 @@ public class SetGenerationIdTask extends Task
     Entry taskEntry = getTaskEntry();
 
     // Retrieves the eventual generation-ID
-    AttributeType typeNewValue = getSchema().getAttributeType(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE);
+    AttributeType typeNewValue = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE);
     List<Attribute> attrList = taskEntry.getAllAttributes(typeNewValue);
     if (!attrList.isEmpty())
     {
@@ -85,7 +85,7 @@ public class SetGenerationIdTask extends Task
     }
 
     // Retrieves the replication domain
-    AttributeType typeDomainBase = getSchema().getAttributeType(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN);
+    AttributeType typeDomainBase = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN);
     attrList = taskEntry.getAllAttributes(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
 

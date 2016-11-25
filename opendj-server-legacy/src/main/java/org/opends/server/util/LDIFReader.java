@@ -737,7 +737,7 @@ public class LDIFReader implements Closeable
       }
 
       String ocName      = value.toString().trim();
-      ObjectClass objectClass = DirectoryServer.getSchema().getObjectClass(ocName);
+      ObjectClass objectClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
       if (objectClasses.containsKey(objectClass))
       {
         logger.warn(WARN_LDIF_DUPLICATE_OBJECTCLASS, entryDN, lastEntryLineNumber, ocName);

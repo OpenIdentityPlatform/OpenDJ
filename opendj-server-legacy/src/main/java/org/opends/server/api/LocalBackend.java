@@ -262,7 +262,7 @@ public abstract class LocalBackend<C extends Configuration> extends Backend<C>
 
     try
     {
-      return DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+      return DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
     }
     catch (UnknownSchemaElementException e)
     {

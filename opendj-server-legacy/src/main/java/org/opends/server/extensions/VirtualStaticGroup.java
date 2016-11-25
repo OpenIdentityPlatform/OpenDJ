@@ -109,7 +109,7 @@ public class VirtualStaticGroup
 
     // Get the target group DN attribute from the entry, if there is one.
     DN targetDN = null;
-    AttributeType targetType = DirectoryServer.getSchema().getAttributeType(ATTR_TARGET_GROUP_DN);
+    AttributeType targetType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_TARGET_GROUP_DN);
     for (Attribute a : groupEntry.getAllAttributes(targetType))
     {
       for (ByteString v : a)
@@ -160,7 +160,7 @@ public class VirtualStaticGroup
     ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
-    return entry.hasObjectClass(DirectoryServer.getSchema().getObjectClass(OC_VIRTUAL_STATIC_GROUP));
+    return entry.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_VIRTUAL_STATIC_GROUP));
   }
 
   @Override

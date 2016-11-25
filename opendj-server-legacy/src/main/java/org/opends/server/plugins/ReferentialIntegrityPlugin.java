@@ -209,7 +209,7 @@ public class ReferentialIntegrityPlugin
       String attr = attrFilt.substring(0, sepInd);
       String filtStr = attrFilt.substring(sepInd + 1);
 
-      AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attr);
+      AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attr);
       try
       {
         newAttrFiltMap.put(attrType, SearchFilter.createFilterFromString(filtStr));
@@ -329,7 +329,7 @@ public class ReferentialIntegrityPlugin
        * type has to be present in the attributeType list.
        */
 
-      AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attr);
+      AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attr);
       if (attrType.isPlaceHolder() || !theAttributeTypes.contains(attrType))
       {
         isAcceptable = false;

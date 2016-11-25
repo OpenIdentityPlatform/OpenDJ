@@ -539,7 +539,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       debugInfo("Entry found <" + rootDn + ">");
 
       AttributeType synchronizationGenIDType =
-          DirectoryServer.getSchema().getAttributeType(REPLICATION_GENERATION_ID);
+          DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(REPLICATION_GENERATION_ID);
       List<Attribute> attrs = resultEntry.getAllAttributes(synchronizationGenIDType);
       if (!attrs.isEmpty())
       {
@@ -647,7 +647,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       String objectClassStr = fractionalConf[0];
       if (!objectClassStr.equals("*"))
       {
-        ObjectClass objectClass = DirectoryServer.getSchema().getObjectClass(objectClassStr);
+        ObjectClass objectClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(objectClassStr);
         assertTrue(newEntry.hasObjectClass(objectClass));
       }
 
@@ -662,7 +662,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           {
             if (!first)
             {
-              assertFalse(newEntry.hasAttribute(DirectoryServer.getSchema().getAttributeType(fracAttr)));
+              assertFalse(newEntry.hasAttribute(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(fracAttr)));
             }
             first = false;
           }
@@ -679,7 +679,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             }
             first = false;
           }
-          assertFalse(newEntry.hasAttribute(DirectoryServer.getSchema().getAttributeType(OPTIONAL_ATTR)));
+          assertFalse(newEntry.hasAttribute(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OPTIONAL_ATTR)));
           break;
         default:
           fail("Unexpected fractional mode.");
@@ -700,7 +700,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       String objectClassStr = fractionalConf[0];
       if (!objectClassStr.equals("*"))
       {
-        ObjectClass objectClass = DirectoryServer.getSchema().getObjectClass(objectClassStr);
+        ObjectClass objectClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(objectClassStr);
         assertTrue(entry.hasObjectClass(objectClass));
       }
 
@@ -716,7 +716,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           {
             if (!first)
             {
-              assertFalse(entry.hasAttribute(DirectoryServer.getSchema().getAttributeType(fracAttr)));
+              assertFalse(entry.hasAttribute(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(fracAttr)));
             }
             first = false;
           }
@@ -733,7 +733,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             }
             first = false;
           }
-          assertFalse(entry.hasAttribute(DirectoryServer.getSchema().getAttributeType(OPTIONAL_ATTR)));
+          assertFalse(entry.hasAttribute(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OPTIONAL_ATTR)));
           break;
         default:
           fail("Unexpected fractional mode.");
@@ -954,7 +954,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private Entry waitTillEntryHasSynchroAttribute(String entryDN)
       throws Exception
   {
-    AttributeType synchroAttrType = DirectoryServer.getSchema().getAttributeType(SYNCHRO_OPTIONAL_ATTR);
+    AttributeType synchroAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(SYNCHRO_OPTIONAL_ATTR);
     DN dn = DN.valueOf(entryDN);
 
     Entry entry = null;
@@ -1523,6 +1523,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
   private ObjectClass getInetOrgPersonObjectClass()
   {
-    return DirectoryServer.getSchema().getObjectClass("inetOrgPerson");
+    return DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("inetOrgPerson");
   }
 }

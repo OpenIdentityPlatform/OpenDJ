@@ -123,7 +123,7 @@ public class ExportTask extends Task
     }
 
     Entry taskEntry = getTaskEntry();
-    AttributeType typeWrapColumn = getSchema().getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN);
+    AttributeType typeWrapColumn = getInstance().getServerContext().getSchema().getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN);
 
     ldifFile = toString(taskEntry, ATTR_TASK_EXPORT_LDIF_FILE);
     File f = new File (ldifFile);
@@ -160,21 +160,21 @@ public class ExportTask extends Task
 
   private boolean toBoolean(Entry entry, boolean defaultValue, String attrName)
   {
-    final AttributeType attrType = getSchema().getAttributeType(attrName);
+    final AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName);
     final List<Attribute> attrs = entry.getAllAttributes(attrType);
     return TaskUtils.getBoolean(attrs, defaultValue);
   }
 
   private ArrayList<String> toListOfString(Entry entry, String attrName)
   {
-    final AttributeType attrType = getSchema().getAttributeType(attrName);
+    final AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName);
     final List<Attribute> attrs = entry.getAllAttributes(attrType);
     return TaskUtils.getMultiValueString(attrs);
   }
 
   private String toString(Entry entry, String attrName)
   {
-    final AttributeType attrType = getSchema().getAttributeType(attrName);
+    final AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName);
     final List<Attribute> attrs = entry.getAllAttributes(attrType);
     return TaskUtils.getSingleValueString(attrs);
   }
@@ -456,7 +456,7 @@ public class ExportTask extends Task
     HashSet<AttributeType> attributes = new HashSet<>();
     for (String attrName : attributeStrings)
     {
-      attributes.add(DirectoryServer.getSchema().getAttributeType(attrName));
+      attributes.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
     }
     return attributes;
   }

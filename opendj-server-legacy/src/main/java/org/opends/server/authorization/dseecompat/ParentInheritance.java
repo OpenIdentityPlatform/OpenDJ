@@ -209,7 +209,7 @@ public class ParentInheritance {
      * @return The attribute type.
      */
     public AttributeType getAttributeType() {
-      return DirectoryServer.getSchema().getAttributeType(attrTypeStr);
+      return DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrTypeStr);
     }
 
     /**

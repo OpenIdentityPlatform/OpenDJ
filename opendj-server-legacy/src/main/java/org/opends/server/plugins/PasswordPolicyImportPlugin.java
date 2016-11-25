@@ -106,7 +106,7 @@ public final class PasswordPolicyImportPlugin
   {
     configuration.addPasswordPolicyImportChangeListener(this);
 
-    customPolicyAttribute = DirectoryServer.getSchema().getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
+    customPolicyAttribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PWPOLICY_POLICY_DN);
 
     // Make sure that the plugin has been enabled for the appropriate types.
     for (PluginType t : pluginTypes)
@@ -227,7 +227,7 @@ public final class PasswordPolicyImportPlugin
     // syntax defined in the schema.
     HashSet<AttributeType> authPWTypes = new HashSet<>();
     HashSet<AttributeType> userPWTypes = new HashSet<>();
-    for (AttributeType t : DirectoryServer.getSchema().getAttributeTypes())
+    for (AttributeType t : DirectoryServer.getInstance().getServerContext().getSchema().getAttributeTypes())
     {
       switch (SchemaUtils.checkPasswordType(t))
       {

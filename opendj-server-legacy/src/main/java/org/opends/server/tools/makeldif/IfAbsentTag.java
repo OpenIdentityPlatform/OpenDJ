@@ -72,7 +72,7 @@ public class IfAbsentTag
       throw new InitializationException(message);
     }
 
-    AttributeType t = DirectoryServer.getSchema().getAttributeType(arguments[0]);
+    AttributeType t = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(arguments[0]);
     if (! branch.hasAttribute(t))
     {
       LocalizableMessage message =
@@ -103,7 +103,7 @@ public class IfAbsentTag
       throw new InitializationException(message);
     }
 
-    attributeType = DirectoryServer.getSchema().getAttributeType(arguments[0]);
+    attributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(arguments[0]);
     if (! template.hasAttribute(attributeType))
     {
       LocalizableMessage message =

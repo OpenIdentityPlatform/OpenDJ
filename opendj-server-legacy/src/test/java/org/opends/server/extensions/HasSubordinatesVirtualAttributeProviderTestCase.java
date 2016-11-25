@@ -62,7 +62,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   {
     TestCaseUtils.startServer();
 
-    hasSubordinatesType = DirectoryServer.getSchema().getAttributeType("hassubordinates");
+    hasSubordinatesType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("hassubordinates");
 
     entries = TestCaseUtils.makeEntries(
         "dn: dc=example,dc=com",

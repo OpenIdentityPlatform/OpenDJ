@@ -46,7 +46,7 @@ class FakeByteStringIndex
 
   FakeByteStringIndex(String mrName) throws DecodeException
   {
-    matchingRule = DirectoryServer.getSchema().getMatchingRule(mrName);
+    matchingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(mrName);
     IndexingOptions options = mock(IndexingOptions.class);
     indexer = matchingRule.createIndexers(options).iterator().next();
   }

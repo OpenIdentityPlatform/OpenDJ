@@ -1984,7 +1984,7 @@ public final class SearchFilter
 
       try
       {
-        DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+        DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
       }
       catch (UnknownSchemaElementException e)
       {
@@ -3115,7 +3115,7 @@ public final class SearchFilter
     {
       try
       {
-        matchingRule = DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+        matchingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
       }
       catch (UnknownSchemaElementException e)
       {
@@ -3159,7 +3159,7 @@ public final class SearchFilter
     {
       try
       {
-        MatchingRuleUse mru = DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
+        MatchingRuleUse mru = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRuleUse(matchingRule);
         if (!mru.hasAttribute(getAttributeType()))
         {
           logger.trace("Attribute type %s is not allowed for use with "
@@ -3508,7 +3508,7 @@ public final class SearchFilter
       {
         try
         {
-          MatchingRule mrule = DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+          MatchingRule mrule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
           Assertion assertion = mrule.getAssertion(f.assertionValue);
           return assertion.matches(mrule.normalizeAttributeValue(assertionValue)).toBoolean();
         }

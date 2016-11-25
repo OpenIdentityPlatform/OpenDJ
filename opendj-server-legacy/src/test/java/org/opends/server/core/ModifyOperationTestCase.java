@@ -1887,7 +1887,7 @@ public class ModifyOperationTestCase
 
   private AttributeType getEmployeeNumberAttributeType()
   {
-    return DirectoryServer.getSchema().getAttributeType("employeenumber");
+    return DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("employeenumber");
   }
 
   private void assertIntegerValueExists(List<Attribute> attrList, int expectedValue)
@@ -2166,7 +2166,7 @@ public class ModifyOperationTestCase
 
     Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user," + baseDN));
     assertTrue(e.hasObjectClass(getExtensibleObjectObjectClass()));
-    assertTrue(e.hasObjectClass(DirectoryServer.getSchema().getObjectClass("inetOrgPerson")));
+    assertTrue(e.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("inetOrgPerson")));
     assertTrue(e.hasObjectClass(getOrganizationalPersonObjectClass()));
     assertTrue(e.hasObjectClass(getPersonObjectClass()));
     assertTrue(e.hasObjectClass(getTopObjectClass()));
@@ -2849,7 +2849,7 @@ public class ModifyOperationTestCase
               "X-ORGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testmodifyobsoleteattribute";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     String[] args =
     {
@@ -2861,7 +2861,7 @@ public class ModifyOperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     path = TestCaseUtils.createTempFile(
          "dn: " + baseDN,
@@ -2907,7 +2907,7 @@ public class ModifyOperationTestCase
               "AUXILIARY MAY description X-ORGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testmodifyaddobsoleteobjectclass";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     String[] args =
     {
@@ -2919,7 +2919,7 @@ public class ModifyOperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     path = TestCaseUtils.createTempFile(
          "dn: " + baseDN,

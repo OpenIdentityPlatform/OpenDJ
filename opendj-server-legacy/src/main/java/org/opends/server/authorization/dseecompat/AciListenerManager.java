@@ -344,7 +344,7 @@ public class AciListenerManager implements
     // Check to make sure that the backend has a presence index defined
     // for the ACI attribute. If it does not, then log a warning message
     // because this processing could be very expensive.
-    AttributeType aciType = DirectoryServer.getSchema().getAttributeType("aci");
+    AttributeType aciType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("aci");
     if (backend.getEntryCount() > 0
         && !backend.isIndexed(aciType, IndexType.PRESENCE))
     {

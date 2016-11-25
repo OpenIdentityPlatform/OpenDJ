@@ -232,7 +232,7 @@ public class CompareOperationBasis
       baseName = toLowerCase(rawAttributeType);
       attributeOptions  = null;
     }
-    return AttributeDescription.create(DirectoryServer.getSchema().getAttributeType(baseName), attributeOptions);
+    return AttributeDescription.create(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(baseName), attributeOptions);
   }
 
   @Override

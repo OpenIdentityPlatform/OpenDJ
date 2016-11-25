@@ -156,7 +156,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   @Override
   public ObjectClass getMonitorObjectClass()
   {
-    return DirectoryServer.getSchema().getObjectClass(OC_MONITOR_CONNHANDLERSTATS);
+    return DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_MONITOR_CONNHANDLERSTATS);
   }
 
   @Override

@@ -1912,7 +1912,7 @@ public class LDAPFilter
 
       try
       {
-        DirectoryServer.getSchema().getMatchingRule(matchingRuleID);
+        DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(matchingRuleID);
       }
       catch (UnknownSchemaElementException e)
       {

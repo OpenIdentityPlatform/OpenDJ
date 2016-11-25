@@ -98,7 +98,7 @@ public class ServerSideSortRequestControl
         {
           reader.readStartSequence();
           String attrName = reader.readOctetStringAsString();
-          AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
+          AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
           if (attrType.isPlaceHolder())
           {
             //This attribute is not defined in the schema. There is no point
@@ -114,7 +114,7 @@ public class ServerSideSortRequestControl
             String orderingRuleID = reader.readOctetStringAsString();
             try
             {
-              orderingRule = DirectoryServer.getSchema().getMatchingRule(orderingRuleID);
+              orderingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(orderingRuleID);
             }
             catch (UnknownSchemaElementException e)
             {
@@ -421,7 +421,7 @@ public class ServerSideSortRequestControl
     List<SortKey> sortKeys = new ArrayList<>();
     for(String[] decodedKey : decodedKeyList)
     {
-      AttributeType attrType = DirectoryServer.getSchema().getAttributeType(decodedKey[0]);
+      AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(decodedKey[0]);
       if (attrType.isPlaceHolder())
       {
         //This attribute is not defined in the schema. There is no point
@@ -434,7 +434,7 @@ public class ServerSideSortRequestControl
       {
         try
         {
-          orderingRule = DirectoryServer.getSchema().getMatchingRule(decodedKey[1]);
+          orderingRule = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRule(decodedKey[1]);
         }
         catch (UnknownSchemaElementException e)
         {

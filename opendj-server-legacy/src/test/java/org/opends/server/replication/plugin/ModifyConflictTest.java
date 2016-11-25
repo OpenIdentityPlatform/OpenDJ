@@ -1165,7 +1165,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    */
   private void assertEntryHistoricalEncodingDecoding(Entry entry, EntryHistorical hist)
   {
-    entry.removeAttribute(getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
+    entry.removeAttribute(getInstance().getServerContext().getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME));
     entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encodeAndPurge(), hist.encodeAndPurge());
@@ -1197,7 +1197,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
   private void assertContainsOnlyValues(Entry entry, String attrName, String... expectedValues)
   {
-    Attribute attr = entry.getAttribute(AttributeDescription.create(getSchema().getAttributeType(attrName)));
+    Attribute attr = entry.getAttribute(AttributeDescription.create(getInstance().getServerContext().getSchema().getAttributeType(attrName)));
     assertThat(attr).hasSize(expectedValues.length);
     for (String value : expectedValues)
     {

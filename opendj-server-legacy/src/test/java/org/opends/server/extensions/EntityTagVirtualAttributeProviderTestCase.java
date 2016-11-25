@@ -447,7 +447,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
     final SearchOperation searchOp = mock(SearchOperation.class);
 
     VirtualAttributeRule rule = new VirtualAttributeRule(
-        DirectoryServer.getSchema().getAttributeType(ETAG), provider,
+        DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ETAG), provider,
         Collections.<DN> emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN> emptySet(), Collections.<SearchFilter> emptySet(),
         VirtualAttributeCfgDefn.ConflictBehavior.REAL_OVERRIDES_VIRTUAL);
@@ -734,7 +734,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCas
 
   private VirtualAttributeRule getRule()
   {
-    AttributeType type = DirectoryServer.getSchema().getAttributeType(ETAG);
+    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ETAG);
     return new VirtualAttributeRule(type, provider,
         Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN>emptySet(),

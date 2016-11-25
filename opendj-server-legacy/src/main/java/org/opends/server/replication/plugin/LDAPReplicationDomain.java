@@ -764,7 +764,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     final SearchResultEntry resultEntry = getFirstResult(searchOperation);
     if (resultEntry != null)
     {
-      AttributeType synchronizationGenIDType = DirectoryServer.getSchema().getAttributeType(REPLICATION_GENERATION_ID);
+      AttributeType synchronizationGenIDType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(REPLICATION_GENERATION_ID);
       List<Attribute> attrs = resultEntry.getAllAttributes(synchronizationGenIDType);
       if (!attrs.isEmpty())
       {
@@ -785,7 +785,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   private Iterator<ByteString> getAttributeValueIterator(SearchResultEntry resultEntry, String attrName)
   {
-    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
     List<Attribute> exclAttrs = resultEntry.getAllAttributes(attrType);
     if (!exclAttrs.isEmpty())
     {
@@ -887,7 +887,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Check consistency of all classes attributes
-    Schema schema = DirectoryServer.getSchema();
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     /*
      * For each attribute in attributes1, check there is the matching
      * one in attributes2.
@@ -965,7 +965,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
 
     // Check consistency of specific classes attributes
-    Schema schema = DirectoryServer.getSchema();
+    Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
     int fractionalMode = newFractionalConfig.fractionalConfigToInt();
     for (Map.Entry<String, Set<String>> entry : newFractionalSpecificClassesAttributes.entrySet())
     {
@@ -1363,7 +1363,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     Set<AttributeType> results = new HashSet<>();
     for (String attrName : fractionalConcernedAttributes)
     {
-      results.add(DirectoryServer.getSchema().getAttributeType(attrName));
+      results.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
     }
     return results;
   }
@@ -3442,7 +3442,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       Set<AttributeType> includeAttributes = new HashSet<>();
       for (String attrName : includeAttributeStrings)
       {
-        includeAttributes.add(DirectoryServer.getSchema().getAttributeType(attrName));
+        includeAttributes.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
       }
       exportConfig.setIncludeAttributes(includeAttributes);
     }
@@ -4432,7 +4432,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       if (name.startsWith("@"))
       {
         String ocName = name.substring(1);
-        ObjectClass objectClass = DirectoryServer.getSchema().getObjectClass(ocName);
+        ObjectClass objectClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
         if (!objectClass.isPlaceHolder())
         {
           for (AttributeType at : objectClass.getRequiredAttributes())
@@ -4829,7 +4829,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
        * For each class in specificClassesAttributes1, check that the attribute
        * list is equivalent to specificClassesAttributes2 attribute list
        */
-      Schema schema = DirectoryServer.getSchema();
+      Schema schema = DirectoryServer.getInstance().getServerContext().getSchema();
       for (Map.Entry<String, Set<String>> entry : specificClassesAttrs1.entrySet())
       {
         String className1 = entry.getKey();

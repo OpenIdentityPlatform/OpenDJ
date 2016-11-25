@@ -1594,7 +1594,7 @@ public class AddOperationTestCase
               "X-ORGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testaddobsoleteuserattribute";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     String[] args =
     {
@@ -1606,7 +1606,7 @@ public class AddOperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     path = TestCaseUtils.createTempFile(
          "dn: o=test",
@@ -1650,7 +1650,7 @@ public class AddOperationTestCase
               "USAGE directoryOperation X-ORGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testaddobsoleteoperationalattribute";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     String[] args =
     {
@@ -1662,7 +1662,7 @@ public class AddOperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     path = TestCaseUtils.createTempFile(
          "dn: o=test",
@@ -1705,7 +1705,7 @@ public class AddOperationTestCase
               "MAY description X-ORGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testaddobsoleteobjectclass";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     String[] args =
     {
@@ -1717,7 +1717,7 @@ public class AddOperationTestCase
     };
 
     assertEquals(LDAPModify.run(nullPrintStream(), System.err, args), 0);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     path = TestCaseUtils.createTempFile(
          "dn: o=test",

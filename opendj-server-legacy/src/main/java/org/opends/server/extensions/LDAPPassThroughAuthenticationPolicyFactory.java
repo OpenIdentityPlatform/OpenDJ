@@ -1367,8 +1367,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         super(userEntry);
 
-        this.cachedPasswordAttribute = getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD);
-        this.cachedPasswordTimeAttribute = getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME);
+        this.cachedPasswordAttribute = getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD);
+        this.cachedPasswordTimeAttribute = getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME);
       }
 
       @Override

@@ -513,7 +513,7 @@ public class CompressedSchema
   private AttributeDescription loadAttributeToMaps(final int id, final String attributeName,
       final Iterable<String> attributeOptions, final Mappings mappings)
   {
-    final AttributeType type = DirectoryServer.getSchema().getAttributeType(attributeName);
+    final AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeName);
     final Set<String> options = getOptions(attributeOptions);
     final AttributeDescription ad = AttributeDescription.create(type, options);
     exclusiveLock.lock();
@@ -603,7 +603,7 @@ public class CompressedSchema
     final LinkedHashMap<ObjectClass, String> ocMap = new LinkedHashMap<>(objectClassNames.size());
     for (final String name : objectClassNames)
     {
-      ocMap.put(DirectoryServer.getSchema().getObjectClass(name), name);
+      ocMap.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(name), name);
     }
     if (sync)
     {

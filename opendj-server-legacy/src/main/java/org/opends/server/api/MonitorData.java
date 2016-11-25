@@ -132,7 +132,7 @@ public final class MonitorData implements Iterable<Attribute>
 
   private void add(String attrName, Syntax syntax, Object attrValue)
   {
-    AttributeType attrType = getSchema().getAttributeType(attrName, syntax);
+    AttributeType attrType = getInstance().getServerContext().getSchema().getAttributeType(attrName, syntax);
     attrs.add(Attributes.create(attrType, String.valueOf(attrValue)));
   }
 

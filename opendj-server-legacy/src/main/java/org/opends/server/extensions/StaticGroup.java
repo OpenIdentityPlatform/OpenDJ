@@ -268,7 +268,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
   private boolean hasObjectClass(Entry entry, String ocName)
   {
-    return entry.hasObjectClass(DirectoryServer.getSchema().getObjectClass(ocName));
+    return entry.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName));
   }
 
   @Override

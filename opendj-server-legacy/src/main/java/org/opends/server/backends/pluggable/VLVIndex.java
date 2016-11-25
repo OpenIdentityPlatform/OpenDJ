@@ -837,7 +837,7 @@ class VLVIndex extends AbstractTree implements ConfigurationChangeListener<Backe
     {
       try
       {
-        return getSchema().getMatchingRule(mrOid);
+        return getInstance().getServerContext().getSchema().getMatchingRule(mrOid);
       }
       catch (UnknownSchemaElementException e)
       {

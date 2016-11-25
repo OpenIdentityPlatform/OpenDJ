@@ -466,7 +466,7 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       debugInfo("Entry found <" + baseDN + ">");
 
-      AttributeType synchronizationGenIDType = DirectoryServer.getSchema().getAttributeType(REPLICATION_GENERATION_ID);
+      AttributeType synchronizationGenIDType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(REPLICATION_GENERATION_ID);
       Attribute attr = resultEntry.getAttribute(AttributeDescription.create(synchronizationGenIDType));
       return Long.valueOf(attr.iterator().next().toString());
     }

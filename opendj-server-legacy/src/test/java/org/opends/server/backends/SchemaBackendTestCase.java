@@ -506,10 +506,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testaddattributetypesuccessful";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -533,10 +533,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testaddattributetypesuccessfulnooid";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -560,10 +560,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "SINGLE-VALUE)");
 
     String attrName = "testaddattributetypenospacebeforeparenthesis";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -587,12 +587,12 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-SCHEMA-FILE '98-schema-test-attrtype.ldif' )");
 
     String attrName = "testaddattributetypetoaltschemafile";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
     assertSchemaFileExists("98-schema-test-attrtype.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
     assertSchemaFileExists("98-schema-test-attrtype.ldif", true);
   }
 
@@ -699,11 +699,11 @@ public class SchemaBackendTestCase extends BackendTestCase
              "NAME '" + initialName + "' " +
               "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE " +
               "X-ORIGIN 'SchemaBackendTestCase' )");
-      assertFalse(DirectoryServer.getSchema().hasAttributeType(initialOid));
-      assertFalse(DirectoryServer.getSchema().hasAttributeType(initialName));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(initialOid));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(initialName));
       runModify(argsNotPermissive(), ldifAdd1, System.err, SUCCESS);
-      assertTrue(DirectoryServer.getSchema().hasAttributeType(initialOid));
-      assertTrue(DirectoryServer.getSchema().hasAttributeType(initialName));
+      assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(initialOid));
+      assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(initialName));
 
       // try to add the attribute again, with its new definition
       String ldifAdd2 = toLdif(
@@ -717,7 +717,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     finally
     {
       // clean the attribute to put back the schema in its initial state before the test
-      if (DirectoryServer.getSchema().hasAttributeType(initialOid))
+      if (DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(initialOid))
       {
         String removalLdif = toLdif(
           "dn: cn=schema",
@@ -759,12 +759,12 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testreplaceattributetypeinaltschemafile";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
     assertSchemaFileExists("98-schema-test-replaceattrtype.ldif", false);
 
     runModify(argsPermissive(), ldif, System.err, SUCCESS);
 
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
     assertSchemaFileExists("98-schema-test-replaceattrtype.ldif", true);
   }
 
@@ -1053,10 +1053,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "'SchemaBackendTestCase' )");
 
     String attrName = "testremoveattributetypesuccessful";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -1093,10 +1093,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testremoveattributetypesuccessful";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -1119,7 +1119,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testremoveattributetypeundefined";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, NO_SUCH_ATTRIBUTE);
   }
@@ -1145,10 +1145,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'RFC 2256' )");
 
     String attrName = "name";
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -1171,10 +1171,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'RFC 1274' )");
 
     String attrName = "uid";
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -1232,16 +1232,16 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     try
     {
-      assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
       runModify(argsNotPermissive(), ldif, SUCCESS);
 
       runModify(argsNotPermissive(), ldif1, CONSTRAINT_VIOLATION);
-      assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+      assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
     }
     finally
     {
       runModify(argsNotPermissive(), ldif2, SUCCESS);
-      assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
     }
   }
 
@@ -1284,10 +1284,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testremoveattributetypereferencedbydcr";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
   }
 
   /**
@@ -1327,17 +1327,17 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
       String attrName = "testremoveatrefbymruat";
-      assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
       runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
 
       assertMatchingRuleUseExistsWithName(matchingRule, "testremoveatrefbymrumru");
 
-      assertTrue(DirectoryServer.getSchema().hasAttributeType(attrName));
+      assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
     }
     finally
     {
-      DirectoryServer.getSchema();
+      DirectoryServer.getInstance().getServerContext().getSchema();
       deregisterMatchingRuleUse(matchingRule);
       deregisterAttributeType("testremoveatrefbymruat-oid");
       deregisterMatchingRule(matchingRule);
@@ -1406,10 +1406,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testaddobjectclasssuccessful";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
   }
 
   /**
@@ -1433,10 +1433,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MUST cn X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testaddobjectclasssuccessfulnooid";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
   }
 
   /**
@@ -1459,12 +1459,12 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-SCHEMA-FILE '98-schema-test-oc.ldif' )");
 
     String ocName = "testaddobjectclasstoaltschemafile";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
     assertSchemaFileExists("98-schema-test-oc.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
     assertSchemaFileExists("98-schema-test-oc.ldif", true);
   }
 
@@ -1538,11 +1538,11 @@ public class SchemaBackendTestCase extends BackendTestCase
                 "NAME '" + initialName + "' " +
                 "SUP top STRUCTURAL " +
                 "MUST cn X-ORIGIN 'SchemaBackendTestCase' )");
-      assertFalse(DirectoryServer.getSchema().hasObjectClass(initialOid));
-      assertFalse(DirectoryServer.getSchema().hasObjectClass(initialName));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(initialOid));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(initialName));
       runModify(argsNotPermissive(), ldifAdd1, System.err, SUCCESS);
-      assertTrue(DirectoryServer.getSchema().hasObjectClass(initialOid));
-      assertTrue(DirectoryServer.getSchema().hasObjectClass(initialName));
+      assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(initialOid));
+      assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(initialName));
 
       // try to add the attribute again, with its new definition
       String ldifAdd2 = toLdif(
@@ -1556,7 +1556,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     finally
     {
       // clean the object class to put back the schema in its initial state before the test
-      if (DirectoryServer.getSchema().hasObjectClass(initialOid))
+      if (DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(initialOid))
       {
         String removalLdif = toLdif(
           "dn: cn=schema",
@@ -1588,10 +1588,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testaddobjectclassmultipleconflicts";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
   }
 
   /**
@@ -1627,10 +1627,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testremovethenaddobjectclasssuccessful";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
   }
 
   /**
@@ -1932,10 +1932,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testremoveobjectclasssuccessful";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
   }
 
   /**
@@ -1957,10 +1957,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "seeAlso $ description ) X-ORIGIN 'RFC 2256' )");
 
     String ocName = "person";
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
   }
 
   /**
@@ -2005,16 +2005,16 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     try
     {
-      assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
       runModify(argsPermissive(), addOCThenNF, SUCCESS);
 
       runModify(argsPermissive(), deleteOC, CONSTRAINT_VIOLATION);
-      assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+      assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
     }
     finally
     {
       runModify(argsPermissive(), deleteNFThenOC, SUCCESS);
-      assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+      assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
     }
   }
 
@@ -2049,10 +2049,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "STRUCTURAL MUST cn X-ORIGIN 'SchemaBackendTestCase')");
 
     String ocName = "testremoveobjectclassreferencedbydcr";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertTrue(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
   }
 
   private static String[] argsNotPermissive()
@@ -2104,10 +2104,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformsuccessful";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2136,12 +2136,12 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-SCHEMA-FILE '98-schema-test-nameform.ldif' )");
 
     String nameFormName = "testaddnameformtoaltschemafile";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
     assertSchemaFileExists("98-schema-test-nameform.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
     assertSchemaFileExists("98-schema-test-nameform.ldif", true);
   }
 
@@ -2171,10 +2171,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithundefinedreqat";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2204,10 +2204,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithmultipleundefinedreqat";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2236,10 +2236,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "MAY xxxundefinedxxx X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithundefinedoptat";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2269,10 +2269,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithmultipleundefinedoptat";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2294,10 +2294,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "OC xxxundefinedxxx MUST cn X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithundefinedoc";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2325,10 +2325,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithauxiliaryoc";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2356,10 +2356,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformwithobsoleteoc";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2462,10 +2462,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testaddnameformocconflict2";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2501,10 +2501,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testremovenameformsuccessful";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2546,10 +2546,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testremovethenaddnameformsuccessful";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
-    assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2591,10 +2591,10 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testremovenameformreferencedbydsrnf";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, CONSTRAINT_VIOLATION);
-    assertTrue(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
   }
 
   /**
@@ -2621,14 +2621,14 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testaddditcontentrulesuccessfuloc";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
+    ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
     assertFalse(oc.isPlaceHolder());
 
-    DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
+    DITContentRule dcr = DirectoryServer.getInstance().getServerContext().getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testaddditcontentrulesuccessful"));
   }
@@ -2664,14 +2664,14 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NOT description X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testreplaceditcontentrulesuccessfuloc";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsPermissive(), ldif, System.err, SUCCESS);
 
-    ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
+    ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
     assertFalse(oc.isPlaceHolder());
 
-    DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
+    DITContentRule dcr = DirectoryServer.getInstance().getServerContext().getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testreplaceditcontentrulesuccessful"));
   }
@@ -2702,15 +2702,15 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testadddcrtoaltschemafileoc";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
     assertSchemaFileExists("98-schema-test-dcr.ldif", false);
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
+    ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
     assertFalse(oc.isPlaceHolder());
 
-    DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
+    DITContentRule dcr = DirectoryServer.getInstance().getServerContext().getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testadddcrtoaltschemafile"));
 
@@ -2753,14 +2753,14 @@ public class SchemaBackendTestCase extends BackendTestCase
               "NOT description X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testremovethenaddditcontentruleoc";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
+    ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
     assertFalse(oc.isPlaceHolder());
 
-    DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
+    DITContentRule dcr = DirectoryServer.getInstance().getServerContext().getSchema().getDITContentRule(oc);
     assertNotNull(dcr);
     assertTrue(dcr.hasName("testremovethenaddditcontentrule"));
   }
@@ -3353,14 +3353,14 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String ocName = "testremoveditcontentrulesuccessfuloc";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(ocName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(ocName));
 
     runModify(argsNotPermissive(), ldif, System.err, SUCCESS);
 
-    ObjectClass oc = DirectoryServer.getSchema().getObjectClass(ocName);
+    ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(ocName);
     assertFalse(oc.isPlaceHolder());
 
-    DITContentRule dcr = DirectoryServer.getSchema().getDITContentRule(oc);
+    DITContentRule dcr = DirectoryServer.getInstance().getServerContext().getSchema().getDITContentRule(oc);
     assertNull(dcr);
   }
 
@@ -3430,7 +3430,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private void assertSchemaHasDITStructureRule(int ruleID, boolean expected)
   {
-    boolean hasDITStructureRule = DirectoryServer.getSchema().hasDITStructureRule(ruleID);
+    boolean hasDITStructureRule = DirectoryServer.getInstance().getServerContext().getSchema().hasDITStructureRule(ruleID);
     assertEquals(hasDITStructureRule, expected, "Expected to find a DITStructureRule with ruleID " + ruleID);
   }
 
@@ -4089,7 +4089,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private void assertMatchingRuleUseExistsWithName(MatchingRule matchingRule, String mruName)
   {
-    MatchingRuleUse mru = DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
+    MatchingRuleUse mru = DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRuleUse(matchingRule);
     assertNotNull(mru);
     assertTrue(mru.hasName(mruName));
   }
@@ -4183,7 +4183,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
   private void assertSchemaDoesNotHaveMatchingRuleUse(MatchingRule matchingRule)
   {
-    for (MatchingRuleUse matchingRuleUse : DirectoryServer.getSchema().getMatchingRuleUses())
+    for (MatchingRuleUse matchingRuleUse : DirectoryServer.getInstance().getServerContext().getSchema().getMatchingRuleUses())
     {
       assertFalse(matchingRuleUse.getMatchingRule().equals(matchingRule));
     }
@@ -4381,7 +4381,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String attrName = "testattributetypesmatchingrule";
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4415,7 +4415,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String objectClassName = "testobjectclassesmatchingrule";
-    assertFalse(DirectoryServer.getSchema().hasObjectClass(objectClassName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasObjectClass(objectClassName));
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4457,7 +4457,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String nameFormName = "testnameformsmatchingrule";
-    assertFalse(DirectoryServer.getSchema().hasNameForm(nameFormName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasNameForm(nameFormName));
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4499,7 +4499,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String objectClassName = "testditcontentrulesmatchingruleoc";
-    assertTrue(DirectoryServer.getSchema().getObjectClass(objectClassName).isPlaceHolder());
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(objectClassName).isPlaceHolder());
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4565,7 +4565,7 @@ public class SchemaBackendTestCase extends BackendTestCase
               "X-ORIGIN 'SchemaBackendTestCase' )");
 
     String objectClassName = "testditcontentrulesmatchingruleoc1";
-    assertTrue(DirectoryServer.getSchema().getObjectClass(objectClassName).isPlaceHolder());
+    assertTrue(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(objectClassName).isPlaceHolder());
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4616,7 +4616,7 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     String attrName = "testmatchingruleusematchingruleat1";
 
-    assertFalse(DirectoryServer.getSchema().hasAttributeType(attrName));
+    assertFalse(DirectoryServer.getInstance().getServerContext().getSchema().hasAttributeType(attrName));
 
     runModify(argsNotPermissive(), ldif, System.err, ATTRIBUTE_OR_VALUE_EXISTS);
   }
@@ -4742,8 +4742,8 @@ public class SchemaBackendTestCase extends BackendTestCase
       "  MAY ( street $ c) X-ORIGIN 'user defined' )");
     assertEquals(resultCode, 0);
 
-    assertFalse(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
-    assertFalse(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
+    assertFalse(getInstance().getServerContext().getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
+    assertFalse(getInstance().getServerContext().getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
 
     resultCode = TestCaseUtils.applyModifications(false,
       "dn: cn=schema",
@@ -4754,8 +4754,8 @@ public class SchemaBackendTestCase extends BackendTestCase
       "  MAY ( street $ c) X-ORIGIN 'user defined' )");
     assertEquals(resultCode, 0);
 
-    assertTrue(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
-    assertTrue(getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
+    assertTrue(getInstance().getServerContext().getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces").isPlaceHolder());
+    assertTrue(getInstance().getServerContext().getSchema().getObjectClass("testaddanddeletedefinitionwithextraspaces-oid").isPlaceHolder());
   }
 
   /**

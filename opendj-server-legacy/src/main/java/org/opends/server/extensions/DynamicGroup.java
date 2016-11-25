@@ -113,7 +113,7 @@ public class DynamicGroup
     // Get the memberURL attribute from the entry, if there is one, and parse
     // out the LDAP URLs that it contains.
     LinkedHashSet<LDAPURL> memberURLs = new LinkedHashSet<>();
-    AttributeType memberURLType = DirectoryServer.getSchema().getAttributeType(ATTR_MEMBER_URL_LC);
+    AttributeType memberURLType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(ATTR_MEMBER_URL_LC);
     for (Attribute a : groupEntry.getAllAttributes(memberURLType))
     {
       for (ByteString v : a)
@@ -149,7 +149,7 @@ public class DynamicGroup
     ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
-    return entry.hasObjectClass(DirectoryServer.getSchema().getObjectClass(OC_GROUP_OF_URLS_LC));
+    return entry.hasObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(OC_GROUP_OF_URLS_LC));
   }
 
   @Override

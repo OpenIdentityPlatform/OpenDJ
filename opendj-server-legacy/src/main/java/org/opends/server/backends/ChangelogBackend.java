@@ -178,7 +178,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   static
   {
     CHANGELOG_ROOT_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getSchema().getObjectClass("container"), "container");
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass("container"), "container");
   }
 
   /** The set of objectclasses that will be used in ECL entries. */
@@ -187,7 +187,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   static
   {
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(CoreSchema.getTopObjectClass(), OC_TOP);
-    CHANGELOG_ENTRY_OBJECT_CLASSES.put(getSchema().getObjectClass(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(getInstance().getServerContext().getSchema().getObjectClass(OC_CHANGELOG_ENTRY), OC_CHANGELOG_ENTRY);
   }
 
   /** The base DN for the external change log. */
@@ -695,7 +695,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
   private SearchFilter buildSearchFilterFrom(final DN baseDN, final String attrName)
   {
     final RDN rdn = baseDN.rdn();
-    AttributeType attrType = DirectoryServer.getSchema().getAttributeType(attrName);
+    AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName);
     final ByteString attrValue = rdn.getAttributeValue(attrType);
     if (attrValue != null)
     {
@@ -1472,7 +1472,7 @@ public class ChangelogBackend extends LocalBackend<LocalBackendCfg>
       final Map<AttributeType, List<Attribute>> operationalAttrs, final boolean addByType)
   {
     final Attribute a = addByType
-        ? Attributes.create(getSchema().getAttributeType(attrName), attrValue)
+        ? Attributes.create(getInstance().getServerContext().getSchema().getAttributeType(attrName), attrValue)
         : Attributes.create(attrName, attrValue);
     final AttributeType attrType = a.getAttributeDescription().getAttributeType();
     final List<Attribute> attrList = Collections.singletonList(a);

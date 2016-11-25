@@ -136,7 +136,7 @@ public class OnDiskMergeImporterTest extends DirectoryServerTestCase
     for (Map.Entry<String, IndexType[]> index : backendIndexes.entrySet())
     {
       final String attributeName = index.getKey();
-      final AttributeType attribute = DirectoryServer.getSchema().getAttributeType(attributeName);
+      final AttributeType attribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attributeName);
       Reject.ifNull(attribute, "Attribute type '" + attributeName + "' doesn't exists.");
 
       BackendIndexCfg indexCfg = mock(BackendIndexCfg.class);

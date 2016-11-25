@@ -210,7 +210,7 @@ class VerifyJob
           }
           else
           {
-            AttributeType attrType = DirectoryServer.getSchema().getAttributeType(lowerName);
+            AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(lowerName);
             if (attrType.isPlaceHolder())
             {
               throw new StorageRuntimeException(ERR_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index).toString());

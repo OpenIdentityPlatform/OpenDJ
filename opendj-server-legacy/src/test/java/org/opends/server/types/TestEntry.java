@@ -114,7 +114,7 @@ public final class TestEntry extends TypesTestCase {
   @Test
   public void testParseAttributeNotFound() throws Exception {
     AttributeType type1 = getDescriptionAttributeType();
-    AttributeType type2 = DirectoryServer.getSchema().getAttributeType("inheritable");
+    AttributeType type2 = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type1, "hello world");
 
@@ -126,7 +126,7 @@ public final class TestEntry extends TypesTestCase {
    */
   @Test
   public void testParseAttributeBooleanTrue() throws Exception {
-    AttributeType type = DirectoryServer.getSchema().getAttributeType("inheritable");
+    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "true");
 
@@ -139,7 +139,7 @@ public final class TestEntry extends TypesTestCase {
   @Test
   public void testParseAttributeBooleanFalse() throws Exception
   {
-    AttributeType type = DirectoryServer.getSchema().getAttributeType("inheritable");
+    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "false");
 
@@ -152,7 +152,7 @@ public final class TestEntry extends TypesTestCase {
   @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testParseAttributeBooleanBad() throws Exception
   {
-    AttributeType type = DirectoryServer.getSchema().getAttributeType("inheritable");
+    AttributeType type = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "bad-value");
     entry.parseAttribute(type.getNameOrOID()).asBoolean();

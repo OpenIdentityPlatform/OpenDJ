@@ -96,7 +96,7 @@ public class ResetChangeNumberTask extends Task
 
   private List<Attribute> getTaskParameter(Entry taskEntry, String attrTaskResetChangeNumberTo)
   {
-    AttributeType taskAttr = getSchema().getAttributeType(attrTaskResetChangeNumberTo);
+    AttributeType taskAttr = getInstance().getServerContext().getSchema().getAttributeType(attrTaskResetChangeNumberTo);
     return taskEntry.getAllAttributes(taskAttr);
   }
 

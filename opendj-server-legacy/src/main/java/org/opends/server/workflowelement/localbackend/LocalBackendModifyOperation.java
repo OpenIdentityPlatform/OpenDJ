@@ -800,7 +800,7 @@ public class LocalBackendModifyOperation
         processModification(m);
       }
       else if (!isInternalOrSynchro(m)
-          && t.equals(getSchema().getAttributeType(OP_ATTR_ACCOUNT_DISABLED)))
+          && t.equals(getInstance().getServerContext().getSchema().getAttributeType(OP_ATTR_ACCOUNT_DISABLED)))
       {
         enabledStateChanged = true;
         isEnabled = !pwPolicyState.isDisabled();
@@ -1242,7 +1242,7 @@ public class LocalBackendModifyOperation
     for (ByteString v : attr)
     {
       String name = v.toString();
-      ObjectClass oc = DirectoryServer.getSchema().getObjectClass(name);
+      ObjectClass oc = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(name);
       if (oc.isPlaceHolder())
       {
         throw newDirectoryException(currentEntry,

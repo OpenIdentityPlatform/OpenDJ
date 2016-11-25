@@ -140,7 +140,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   public SubentryPasswordPolicy(SubEntry subentry) throws DirectoryException
   {
     // Determine if this is a password policy subentry.
-    ObjectClass pwdPolicyOC = DirectoryServer.getSchema().getObjectClass(PWD_OC_POLICY);
+    ObjectClass pwdPolicyOC = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(PWD_OC_POLICY);
     Entry entry = subentry.getEntry();
     Map<ObjectClass, String> objectClasses = entry.getObjectClasses();
     if (pwdPolicyOC.isPlaceHolder())
@@ -177,7 +177,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     String value = getAttrValue(entry, PWD_ATTR_ATTRIBUTE);
     if (value != null && value.length() > 0)
     {
-      this.pPasswordAttribute = DirectoryServer.getSchema().getAttributeType(value);
+      this.pPasswordAttribute = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(value);
       if (this.pPasswordAttribute.isPlaceHolder())
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -245,12 +245,12 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
 
     // Now check for the pwdValidatorPolicy OC and its attribute.
     // Determine if this is a password validator policy object class.
-    ObjectClass pwdValidatorPolicyOC = DirectoryServer.getSchema().getObjectClass(PWD_OC_VALIDATORPOLICY);
+    ObjectClass pwdValidatorPolicyOC = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(PWD_OC_VALIDATORPOLICY);
     if (!pwdValidatorPolicyOC.isPlaceHolder() &&
         objectClasses.containsKey(pwdValidatorPolicyOC))
     {
       AttributeType pwdAttrType =
-          DirectoryServer.getSchema().getAttributeType(PWD_ATTR_VALIDATOR);
+          DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(PWD_ATTR_VALIDATOR);
       for (Attribute attr : entry.getAllAttributes(pwdAttrType))
       {
         for (ByteString val : attr)
@@ -369,7 +369,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
    */
   private String getAttrValue(Entry entry, String pwdAttrName)
   {
-    AttributeType pwdAttrType = DirectoryServer.getSchema().getAttributeType(pwdAttrName);
+    AttributeType pwdAttrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(pwdAttrName);
     for (Attribute attr : entry.getAllAttributes(pwdAttrType))
     {
       for (ByteString value : attr)

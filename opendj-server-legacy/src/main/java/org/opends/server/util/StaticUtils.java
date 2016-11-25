@@ -1997,7 +1997,7 @@ public final class StaticUtils
     RDN rdn = dn.rdn();
 
     // If there is only one RDN attribute, then see which objectclass we should use.
-    ObjectClass structuralClass = DirectoryServer.getSchema().getObjectClass(getObjectClassName(rdn));
+    ObjectClass structuralClass = DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(getObjectClassName(rdn));
 
     // Get the top and untypedObject classes to include in the entry.
     LinkedHashMap<ObjectClass,String> objectClasses = new LinkedHashMap<>(3);

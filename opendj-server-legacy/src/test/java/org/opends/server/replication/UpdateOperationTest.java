@@ -433,7 +433,7 @@ public class UpdateOperationTest extends ReplicationTestCase
   {
     testSetUp("modifyConflicts");
     final DN dn1 = DN.valueOf("cn=test1," + baseDN);
-    final AttributeType attrType = DirectoryServer.getSchema().getAttributeType("displayname");
+    final AttributeType attrType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType("displayname");
     final AttributeType entryuuidType = getEntryUUIDAttributeType();
     String monitorAttr = "resolved-modify-conflicts";
 

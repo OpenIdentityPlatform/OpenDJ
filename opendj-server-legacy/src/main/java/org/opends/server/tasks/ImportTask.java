@@ -135,25 +135,25 @@ public class ImportTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeLdifFile = getSchema().getAttributeType(ATTR_IMPORT_LDIF_FILE);
-    AttributeType typeTemplateFile = getSchema().getAttributeType(ATTR_IMPORT_TEMPLATE_FILE);
-    AttributeType typeBackendID = getSchema().getAttributeType(ATTR_IMPORT_BACKEND_ID);
-    AttributeType typeIncludeBranch = getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_BRANCH);
-    AttributeType typeExcludeBranch = getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_BRANCH);
-    AttributeType typeIncludeAttribute = getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_ATTRIBUTE);
-    AttributeType typeExcludeAttribute = getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_ATTRIBUTE);
-    AttributeType typeIncludeFilter = getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_FILTER);
-    AttributeType typeExcludeFilter = getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_FILTER);
-    AttributeType typeRejectFile = getSchema().getAttributeType(ATTR_IMPORT_REJECT_FILE);
-    AttributeType typeSkipFile = getSchema().getAttributeType(ATTR_IMPORT_SKIP_FILE);
-    AttributeType typeOverwrite = getSchema().getAttributeType(ATTR_IMPORT_OVERWRITE);
-    AttributeType typeSkipSchemaValidation = getSchema().getAttributeType(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION);
-    AttributeType typeIsCompressed = getSchema().getAttributeType(ATTR_IMPORT_IS_COMPRESSED);
-    AttributeType typeIsEncrypted = getSchema().getAttributeType(ATTR_IMPORT_IS_ENCRYPTED);
-    AttributeType typeClearBackend = getSchema().getAttributeType(ATTR_IMPORT_CLEAR_BACKEND);
-    AttributeType typeRandomSeed = getSchema().getAttributeType(ATTR_IMPORT_RANDOM_SEED);
-    AttributeType typeThreadCount = getSchema().getAttributeType(ATTR_IMPORT_THREAD_COUNT);
-    AttributeType typeTmpDirectory = getSchema().getAttributeType(ATTR_IMPORT_TMP_DIRECTORY);
+    AttributeType typeLdifFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_LDIF_FILE);
+    AttributeType typeTemplateFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_TEMPLATE_FILE);
+    AttributeType typeBackendID = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_BACKEND_ID);
+    AttributeType typeIncludeBranch = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_BRANCH);
+    AttributeType typeExcludeBranch = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_BRANCH);
+    AttributeType typeIncludeAttribute = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_ATTRIBUTE);
+    AttributeType typeExcludeAttribute = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_ATTRIBUTE);
+    AttributeType typeIncludeFilter = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_INCLUDE_FILTER);
+    AttributeType typeExcludeFilter = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_EXCLUDE_FILTER);
+    AttributeType typeRejectFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_REJECT_FILE);
+    AttributeType typeSkipFile = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_SKIP_FILE);
+    AttributeType typeOverwrite = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_OVERWRITE);
+    AttributeType typeSkipSchemaValidation = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION);
+    AttributeType typeIsCompressed = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_IS_COMPRESSED);
+    AttributeType typeIsEncrypted = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_IS_ENCRYPTED);
+    AttributeType typeClearBackend = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_CLEAR_BACKEND);
+    AttributeType typeRandomSeed = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_RANDOM_SEED);
+    AttributeType typeThreadCount = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_THREAD_COUNT);
+    AttributeType typeTmpDirectory = getInstance().getServerContext().getSchema().getAttributeType(ATTR_IMPORT_TMP_DIRECTORY);
 
     ArrayList<String> ldifFilestmp = asListOfStrings(taskEntry, typeLdifFile);
     ldifFiles = new ArrayList<>(ldifFilestmp.size());
@@ -726,7 +726,7 @@ public class ImportTask extends Task
     final HashSet<AttributeType> attrTypes = new HashSet<>(attrNames.size());
     for (String attrName : attrNames)
     {
-      attrTypes.add(DirectoryServer.getSchema().getAttributeType(attrName));
+      attrTypes.add(DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(attrName));
     }
     return attrTypes;
   }

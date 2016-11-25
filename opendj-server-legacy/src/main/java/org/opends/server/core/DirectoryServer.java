@@ -17,6 +17,7 @@
 package org.opends.server.core;
 
 import static com.forgerock.opendj.cli.CommonArguments.*;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -81,7 +82,6 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
-import org.opends.server.api.LocalBackend;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.api.ClientConnection;
@@ -95,6 +95,7 @@ import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
 import org.opends.server.api.KeyManagerProvider;
+import org.opends.server.api.LocalBackend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
@@ -153,6 +154,7 @@ import org.opends.server.util.MultiOutputStream;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
+
 import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -1945,16 +1947,6 @@ public final class DirectoryServer
   public static String getStartTimeUTC()
   {
     return directoryServer.startTimeUTC;
-  }
-
-  /**
-   * Retrieves a reference to the Directory Server schema.
-   *
-   * @return  A reference to the Directory Server schema.
-   */
-  public static Schema getSchema()
-  {
-    return directoryServer.schemaHandler.getSchema();
   }
 
   /**

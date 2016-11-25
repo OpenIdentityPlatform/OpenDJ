@@ -97,7 +97,7 @@ public final class Converters {
                 if (attribute.getAttributeDescription().getAttributeType().isObjectClass()) {
                     for (ByteString attrName : attribute) {
                         try {
-                            entry.addObjectClass(DirectoryServer.getSchema().getObjectClass(attrName.toString()));
+                            entry.addObjectClass(DirectoryServer.getInstance().getServerContext().getSchema().getObjectClass(attrName.toString()));
                         } catch (DirectoryException e) {
                             throw new IllegalStateException(e.getMessage(), e);
                         }

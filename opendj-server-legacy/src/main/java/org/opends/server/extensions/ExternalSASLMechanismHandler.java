@@ -107,7 +107,7 @@ public class ExternalSASLMechanismHandler
     certificateAttributeType = configuration.getCertificateAttribute();
     if (certificateAttributeType == null)
     {
-      certificateAttributeType = DirectoryServer.getSchema().getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
+      certificateAttributeType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
     }
 
 
@@ -346,7 +346,7 @@ public class ExternalSASLMechanismHandler
     AttributeType newCertificateType = configuration.getCertificateAttribute();
     if (newCertificateType == null)
     {
-      newCertificateType = DirectoryServer.getSchema().getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
+      newCertificateType = DirectoryServer.getInstance().getServerContext().getSchema().getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE);
     }
 
 
