@@ -347,6 +347,19 @@ final class LDAPServerFilter extends BaseFilter {
                 @Override
                 public void subscribe(final Subscriber<? super LdapRequestEnvelope> subscriber) {
                     if (downstream != null) {
+                        // https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0/README.md#specification
+                        // #1.9: ... the only legal way to signal failure (or reject the Subscriber) is by calling
+                        // onError (after calling onSubscribe).
+                        subscriber.onSubscribe(new Subscription() {
+                            @Override
+                            public void request(long n) {
+                            }
+
+                            @Override
+                            public void cancel() {
+                            }
+                        });
+                        subscriber.onError(new IllegalStateException("read() cannot be subscribed multiple times"));
                         return;
                     }
                     downstream = new GrizzlyBackpressureSubscription(subscriber);
