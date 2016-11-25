@@ -307,7 +307,6 @@ final class LDAPServerFilter extends BaseFilter {
         private final Connection<?> connection;
         private volatile boolean isClosed;
         private final List<LDAPClientContextEventListener> connectionEventListeners = new LinkedList<>();
-        private SaslServer saslServer;
         private GrizzlyBackpressureSubscription downstream;
 
         private ClientConnectionImpl(final Connection<?> connection) {
@@ -386,21 +385,22 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void enableSASL(final SaslServer saslServer) {
+        public boolean enableSASL(final SaslServer saslServer) {
             Reject.ifNull(saslServer, "saslServer must not be null");
             synchronized (this) {
                 if (filterExists(SaslFilter.class)) {
                     // FIXME: The current saslServer must be replaced with the new one
-                    return;
+                    return false;
                 }
-                this.saslServer = saslServer;
-                installFilter(new SaslFilter(saslServer));
+                SaslFilter.setSaslServer(connection, saslServer);
+                installFilter(new SaslFilter());
+                return true;
             }
         }
 
         @Override
         public SaslServer getSASLServer() {
-            return saslServer;
+            return SaslFilter.getSaslServer(connection);
         }
 
         @Override
@@ -432,6 +432,7 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         private int getSaslSecurityStrengthFactor() {
+            final SaslServer saslServer = getSASLServer();
             if (saslServer == null) {
                 return 0;
             }

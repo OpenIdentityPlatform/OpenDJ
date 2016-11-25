@@ -156,7 +156,10 @@ public interface LDAPClientContext {
      * Installs the SASL security layer on the underlying connection.
      *
      * @param saslServer
-     *            The {@code SaslServer} which should be used to secure the conneciton.
+     *            The {@code SaslServer} which should be used to secure the connection.
+     * @return {@code true} if the SASL filter has been enabled, {@code false} if it was already enabled.
+     * @throws NullPointerException
+     *             if saslServer is null
      */
-    void enableSASL(SaslServer saslServer);
+    boolean enableSASL(SaslServer saslServer);
 }

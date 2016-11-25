@@ -148,7 +148,7 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
     <differenceType>7012</differenceType>
-    <method>void enableSASL(javax.security.sasl.SaslServer)</method>
+    <method>boolean enableSASL(javax.security.sasl.SaslServer)</method>
     <justification>Simplify management of security layer</justification>
   </difference>
   <difference>
