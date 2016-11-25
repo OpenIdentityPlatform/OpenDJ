@@ -315,16 +315,13 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public NextAction handleRead(final FilterChainContext ctx)  {
-            final GrizzlyBackpressureSubscription immutableRef = downstream;
-            if (immutableRef != null) {
-                return immutableRef.handleRead(ctx);
-            }
-            ctx.suspend();
-            return ctx.getSuspendAction();
+            // handleRead() is invoked only after handleAccept() completion, downstream cannot be null.
+            return downstream.handleRead(ctx);
         }
 
         @Override
         public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
+            // downstream can be null if an error happen before handleAccept() completion.
             final GrizzlyBackpressureSubscription immutableRef = downstream;
             if (immutableRef != null) {
                 immutableRef.onError(error);
@@ -336,6 +333,7 @@ final class LDAPServerFilter extends BaseFilter {
         @Override
         public NextAction handleClose(final FilterChainContext ctx) {
             isClosed = true;
+            // downstream can be null if the connection is closed before handleAccept() completion.
             final GrizzlyBackpressureSubscription immutableRef = downstream;
             if (immutableRef != null) {
                 immutableRef.onComplete();
@@ -501,11 +499,6 @@ final class LDAPServerFilter extends BaseFilter {
             connection.closeSilently();
         }
 
-        private void closeConnection() {
-            downstream.cancel();
-            connection.closeSilently();
-        }
-
         @Override
         public void disconnect(final ResultCode resultCode, final String diagnosticMessage) {
             notifyConnectionDisconnected(resultCode, diagnosticMessage);
@@ -516,7 +509,8 @@ final class LDAPServerFilter extends BaseFilter {
             ).doAfterTerminate(new Action() {
                 @Override
                 public void run() throws Exception {
-                    closeConnection();
+                    // handleClose() will be invoked once this connection has been closed.
+                    connection.closeSilently();
                 }
             }).subscribe();
         }
