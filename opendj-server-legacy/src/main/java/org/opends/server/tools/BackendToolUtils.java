@@ -67,7 +67,7 @@ public class BackendToolUtils
     {
       // Iterate through the immediate children, attempting to parse them as backends.
       final RootCfg root = DirectoryServer.getInstance().getServerContext().getRootConfig();
-      ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+      ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
       final DN backendBaseDN = getBackendBaseDN();
       for (final DN childrenDn : configHandler.getChildren(backendBaseDN))
       {

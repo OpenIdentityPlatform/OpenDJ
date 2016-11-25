@@ -393,7 +393,7 @@ public class ListBackends
 
     // Iterate through the immediate children, attempting to parse them as backends.
     Map<String, Set<DN>> backendMap = new TreeMap<>();
-    ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+    ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
     for (DN childrenDn : configHandler.getChildren(backendBaseDN))
     {
       Entry configEntry = Converters.to(configHandler.getEntry(childrenDn));

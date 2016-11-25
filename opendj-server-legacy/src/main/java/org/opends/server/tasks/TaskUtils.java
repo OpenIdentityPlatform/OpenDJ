@@ -103,7 +103,7 @@ public class TaskUtils
     // backends.
     try
     {
-      ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+      ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
       for (DN childrenDn : configHandler.getChildren(backendBaseDN))
       {
         // Get the backend ID attribute from the entry.  If there isn't one, then

@@ -505,7 +505,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       fractionalDomainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
 
       // Add the config entry to create the replicated domain
-      DirectoryServer.getConfigurationHandler().addEntry(Converters.from(fractionalDomainCfgEntry));
+      DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(fractionalDomainCfgEntry));
       assertNotNull(DirectoryServer.getEntry(fractionalDomainCfgEntry.getName()),
         "Unable to add the domain config entry: " + configEntryLdif);
     }

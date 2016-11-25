@@ -247,7 +247,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     Entry domainCfgEntry = TestCaseUtils.entryFromLdifString(configEntryLdif);
 
     // Add the config entry to create the replicated domain
-    DirectoryServer.getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
+    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
     assertNotNull(DirectoryServer.getEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + configEntryLdif);
 
@@ -278,7 +278,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     // @formatter:on
 
     // Add the config entry to create the replicated domain
-    DirectoryServer.getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
+    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(domainCfgEntry));
     assertNotNull(DirectoryServer.getEntry(domainCfgEntry.getName()),
       "Unable to add the domain config entry: " + domainCfgEntry);
 

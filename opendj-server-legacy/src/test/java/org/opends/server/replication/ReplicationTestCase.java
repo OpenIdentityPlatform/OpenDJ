@@ -457,7 +457,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     if (configEntry != null)
     {
-      DirectoryServer.getConfigurationHandler().addEntry(Converters.from(configEntry));
+      DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(configEntry));
       assertNotNull(DirectoryServer.getEntry(configEntry.getName()), errorMessage);
       configEntriesToCleanup.add(configEntry.getName());
     }

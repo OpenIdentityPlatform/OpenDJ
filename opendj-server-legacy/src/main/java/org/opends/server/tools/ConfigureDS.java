@@ -300,7 +300,7 @@ public class ConfigureDS
       final DN rootDN = parseRootDN();
       final String rootPW = parseRootDNPassword();
 
-      configHandler = DirectoryServer.getConfigurationHandler();
+      configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
 
       checkManagerProvider(keyManagerProviderDN, JCKES_KEY_MANAGER_DN, JCKES_KEY_MANAGER_LDIF_ENTRY, true);
       checkManagerProvider(trustManagerProviderDN, JCKES_TRUST_MANAGER_DN, JCKES_TRUST_MANAGER_LDIF_ENTRY, false);

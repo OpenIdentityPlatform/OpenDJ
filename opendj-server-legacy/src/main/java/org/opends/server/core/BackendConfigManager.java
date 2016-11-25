@@ -130,7 +130,7 @@ public class BackendConfigManager implements
          throws ConfigException, InitializationException
   {
     final ConfigurationBackend configBackend =
-        new ConfigurationBackend(serverContext, DirectoryServer.getConfigurationHandler());
+        new ConfigurationBackend(serverContext, DirectoryServer.getInstance().getServerContext().getConfigurationHandler());
     initializeBackend(configBackend, configBackend.getBackendCfg());
 
     // Register add and delete listeners.

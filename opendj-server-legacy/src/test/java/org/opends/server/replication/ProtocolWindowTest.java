@@ -104,7 +104,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     // @formatter:on
 
     // Configure replication domain
-    DirectoryServer.getConfigurationHandler().addEntry(Converters.from(repDomainEntry));
+    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().addEntry(Converters.from(repDomainEntry));
     assertNotNull(DirectoryServer.getEntry(repDomainEntry.getName()),
           "Unable to add the synchronized server");
     configEntriesToCleanup.add(repDomainEntry.getName());

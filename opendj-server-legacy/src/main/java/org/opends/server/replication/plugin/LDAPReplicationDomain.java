@@ -3876,9 +3876,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     try
     {
       DN eclConfigEntryDN = DN.valueOf("cn=external changeLog," + config.dn());
-      if (DirectoryServer.getConfigurationHandler().hasEntry(eclConfigEntryDN))
+      if (DirectoryServer.getInstance().getServerContext().getConfigurationHandler().hasEntry(eclConfigEntryDN))
       {
-        DirectoryServer.getConfigurationHandler().deleteEntry(eclConfigEntryDN);
+        DirectoryServer.getInstance().getServerContext().getConfigurationHandler().deleteEntry(eclConfigEntryDN);
       }
     }
     catch(Exception e)
@@ -3903,7 +3903,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     try
     {
       DN configDn = config.dn();
-      ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+      ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
       if (configHandler.hasEntry(config.dn()))
       {
         try

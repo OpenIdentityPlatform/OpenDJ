@@ -24,6 +24,7 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.server.config.server.RootCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.TrustManagerProvider;
+import org.opends.server.config.ConfigurationHandler;
 import org.opends.server.discovery.ServiceDiscoveryMechanismConfigManager;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.loggers.CommonAudit;
@@ -64,6 +65,13 @@ public interface ServerContext
    * @return the schema handler
    */
   SchemaHandler getSchemaHandler();
+
+  /**
+   * Returns the configuration handler, which provides operations to the configuration.
+   *
+   * @return the configuration handler
+   */
+  ConfigurationHandler getConfigurationHandler();
 
   /**
    * Returns the environment of the server.

@@ -249,7 +249,7 @@ public class DeleteIndexTask extends Task
     {
       dn = "ds-cfg-attribute" + "=" + index.getName() + ",cn=Index," + backendId + ",cn=Backends,cn=config";
     }
-    DirectoryServer.getConfigurationHandler().deleteEntry(DN.valueOf(dn));
+    DirectoryServer.getInstance().getServerContext().getConfigurationHandler().deleteEntry(DN.valueOf(dn));
   }
 
   /**

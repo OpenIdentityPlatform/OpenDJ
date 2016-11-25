@@ -426,7 +426,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private void updateConfigEntryWithAttribute(DN entryDn, String attrName, List<DN> newBaseDNs)
       throws DirectoryException, ConfigException
   {
-    ConfigurationHandler configHandler = DirectoryServer.getConfigurationHandler();
+    ConfigurationHandler configHandler = DirectoryServer.getInstance().getServerContext().getConfigurationHandler();
     final Entry configEntry = configHandler.getEntry(entryDn);
     final Entry newEntry = LinkedHashMapEntry.deepCopyOfEntry(configEntry);
     AttributeType attrType = Schema.getDefaultSchema().getAttributeType(
@@ -470,7 +470,7 @@ public class DeleteBaseDNAndBackendTask extends Task
   private void deleteBackend(BackendDescriptor backend) throws OpenDsException, ConfigException
   {
     DN dn = DN.valueOf("ds-cfg-backend-id" + "=" + backend.getBackendID() + ",cn=Backends,cn=config");
-    Utilities.deleteConfigSubtree(DirectoryServer.getConfigurationHandler(), dn);
+    Utilities.deleteConfigSubtree(DirectoryServer.getInstance().getServerContext().getConfigurationHandler(), dn);
   }
 
   /**
@@ -649,7 +649,7 @@ public class DeleteBaseDNAndBackendTask extends Task
                 {
                   domainName.set(dName);
                   DN entryDN = domain.dn();
-                  Utilities.deleteConfigSubtree(DirectoryServer.getConfigurationHandler(), entryDN);
+                  Utilities.deleteConfigSubtree(DirectoryServer.getInstance().getServerContext().getConfigurationHandler(), entryDN);
                   break;
                 }
               }

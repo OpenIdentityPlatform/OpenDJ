@@ -881,13 +881,13 @@ public final class DirectoryServer
     @Override
     public String getInstanceRoot()
     {
-      return DirectoryServer.getInstanceRoot();
+      return directoryServer.environmentConfig.getInstanceRootAsString();
     }
 
     @Override
     public String getServerRoot()
     {
-      return DirectoryServer.getServerRoot();
+      return directoryServer.environmentConfig.getServerRootAsString();
     }
 
     @Override
@@ -900,6 +900,12 @@ public final class DirectoryServer
     public SchemaHandler getSchemaHandler()
     {
       return directoryServer.schemaHandler;
+    }
+
+    @Override
+    public ConfigurationHandler getConfigurationHandler()
+    {
+      return directoryServer.configurationHandler;
     }
 
     @Override
@@ -1817,16 +1823,6 @@ public final class DirectoryServer
     return directoryServer.operatingSystem;
   }
 
-  /**
-   * Retrieves a reference to the Directory Server configuration handler.
-   *
-   * @return  A reference to the Directory Server configuration handler.
-   */
-  public static ConfigurationHandler getConfigurationHandler()
-  {
-    return directoryServer.configurationHandler;
-  }
-
   private void initializePlugins(Set<PluginType> pluginTypes)
          throws ConfigException, InitializationException
   {
@@ -1912,7 +1908,7 @@ public final class DirectoryServer
   */
   public static String getServerRoot()
   {
-    return directoryServer.environmentConfig.getServerRootAsString();
+    return getInstance().getServerContext().getServerRoot();
   }
 
   /**
@@ -1924,7 +1920,7 @@ public final class DirectoryServer
    */
   public static String getInstanceRoot()
   {
-    return directoryServer.environmentConfig.getInstanceRootAsString();
+    return getInstance().getServerContext().getInstanceRoot();
   }
 
   /**
