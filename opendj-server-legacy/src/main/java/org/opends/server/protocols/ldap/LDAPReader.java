@@ -62,7 +62,7 @@ public class LDAPReader
     catch(Exception e)
     {
       LocalizableMessage message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
     int messageID;
@@ -114,7 +114,7 @@ public class LDAPReader
     catch(Exception e)
     {
       LocalizableMessage message = ERR_LDAP_MESSAGE_DECODE_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
     return new LDAPMessage(messageID, protocolOp, controls);
@@ -142,7 +142,7 @@ public class LDAPReader
     catch(Exception e)
     {
       LocalizableMessage message = ERR_LDAP_PROTOCOL_OP_DECODE_NULL.get();
-      throw new LDAPException(PROTOCOL_ERROR, message);
+      throw new LDAPException(PROTOCOL_ERROR, message, e);
     }
 
     switch(type)
