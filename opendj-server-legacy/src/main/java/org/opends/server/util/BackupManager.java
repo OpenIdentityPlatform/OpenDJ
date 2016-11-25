@@ -175,7 +175,7 @@ public class BackupManager
 
     CryptoEngine(boolean shouldEncrypt)
     {
-      cryptoManager = DirectoryServer.getCryptoManager();
+      cryptoManager = DirectoryServer.getInstance().getServerContext().getCryptoManager();
       this.shouldEncrypt = shouldEncrypt;
     }
 

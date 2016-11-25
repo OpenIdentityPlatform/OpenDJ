@@ -12,12 +12,14 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions Copyright 2011-2015 ForgeRock AS.
+ * Portions Copyright 2011-2016 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.IOException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.net.Socket;
 import java.util.SortedSet;
 
@@ -26,12 +28,10 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CryptoManager;
-import org.opends.server.types.DirectoryConfig;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class represents the security configuration for replication protocol
@@ -80,10 +80,10 @@ public final class ReplSessionSecurity
   public ReplSessionSecurity() throws ConfigException
   {
     // Currently use global settings from the crypto manager.
-    this(DirectoryConfig.getCryptoManager().getSslCertNicknames(),
-        DirectoryConfig.getCryptoManager().getSslProtocols(),
-        DirectoryConfig.getCryptoManager().getSslCipherSuites(),
-        DirectoryConfig.getCryptoManager().isSslEncryption());
+    this(getCryptoManager().getSslCertNicknames(),
+        getCryptoManager().getSslProtocols(),
+        getCryptoManager().getSslCipherSuites(),
+        getCryptoManager().isSslEncryption());
   }
 
 
@@ -162,8 +162,7 @@ public final class ReplSessionSecurity
     {
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
-      final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      final SSLContext sslContext = cryptoManager.getSslContext(REPLICATION_CLIENT_NAME, sslCertNicknames);
+      final SSLContext sslContext = getCryptoManager().getSslContext(REPLICATION_CLIENT_NAME, sslCertNicknames);
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(
@@ -197,7 +196,10 @@ public final class ReplSessionSecurity
     }
   }
 
-
+  private static CryptoManager getCryptoManager()
+  {
+    return DirectoryServer.getInstance().getServerContext().getCryptoManager();
+  }
 
   /**
    * Create a new protocol session in the server role on the provided socket.
@@ -224,8 +226,7 @@ public final class ReplSessionSecurity
     {
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
-      final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      final SSLContext sslContext = cryptoManager.getSslContext(REPLICATION_SERVER_NAME, sslCertNicknames);
+      final SSLContext sslContext = getCryptoManager().getSslContext(REPLICATION_SERVER_NAME, sslCertNicknames);
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(

@@ -16,28 +16,29 @@
  */
 package org.opends.server.crypto;
 
+import static org.opends.messages.ExtensionMessages.*;
+
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.server.config.server.
 GetSymmetricKeyExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.types.CryptoManagerException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class implements the get symmetric key extended operation, an OpenDS

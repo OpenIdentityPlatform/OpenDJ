@@ -47,16 +47,6 @@ import com.forgerock.opendj.util.OperatingSystem;
 public final class DirectoryConfig
 {
   /**
-   * Retrieves a reference to the Directory Server crypto manager.
-   *
-   * @return  A reference to the Directory Server crypto manager.
-   */
-  public static CryptoManager getCryptoManager()
-  {
-    return DirectoryServer.getCryptoManager();
-  }
-
-  /**
    * Retrieves the operating system on which the Directory Server is
    * running.
    *

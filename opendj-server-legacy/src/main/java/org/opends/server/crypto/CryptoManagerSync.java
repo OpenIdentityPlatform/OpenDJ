@@ -233,11 +233,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
       {
         if (searchEntry.hasObjectClass(ocCipherKey))
         {
-          DirectoryServer.getCryptoManager().importCipherKeyEntry(searchEntry);
+          getCryptoManager().importCipherKeyEntry(searchEntry);
         }
         else if (searchEntry.hasObjectClass(ocMacKey))
         {
-          DirectoryServer.getCryptoManager().importMacKeyEntry(searchEntry);
+          getCryptoManager().importMacKeyEntry(searchEntry);
         }
       }
       catch (CryptoManagerException e)
@@ -246,6 +246,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
              DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), e);
       }
     }
+  }
+
+  private CryptoManagerImpl getCryptoManager()
+  {
+    return DirectoryServer.getCryptoManager();
   }
 
 
@@ -414,11 +419,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
       {
         if (entry.hasObjectClass(ocCipherKey))
         {
-          DirectoryServer.getCryptoManager().importCipherKeyEntry(entry);
+          getCryptoManager().importCipherKeyEntry(entry);
         }
         else if (entry.hasObjectClass(ocMacKey))
         {
-          DirectoryServer.getCryptoManager().importMacKeyEntry(entry);
+          getCryptoManager().importMacKeyEntry(entry);
         }
       }
       catch (CryptoManagerException e)
@@ -487,11 +492,11 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
       {
         if (newEntry.hasObjectClass(ocCipherKey))
         {
-          DirectoryServer.getCryptoManager().importCipherKeyEntry(newEntry);
+          getCryptoManager().importCipherKeyEntry(newEntry);
         }
         else if (newEntry.hasObjectClass(ocMacKey))
         {
-          DirectoryServer.getCryptoManager().importMacKeyEntry(newEntry);
+          getCryptoManager().importMacKeyEntry(newEntry);
         }
       }
       catch (CryptoManagerException e)

@@ -16,6 +16,13 @@
  */
 package org.opends.server.replication.server;
 
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -60,7 +67,6 @@ import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.protocol.WindowProbeMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.HostPort;
@@ -70,13 +76,6 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperat
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 /** Tests for the replicationServer code. */
 @SuppressWarnings("javadoc")
@@ -858,7 +857,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     ReplSessionSecurity replSessionSecurity = getReplSessionSecurity();
     Session session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
-    boolean sslEncryption = DirectoryConfig.getCryptoManager().isSslEncryption();
+    boolean sslEncryption = getServerContext().getCryptoManager().isSslEncryption();
 
     try
     {

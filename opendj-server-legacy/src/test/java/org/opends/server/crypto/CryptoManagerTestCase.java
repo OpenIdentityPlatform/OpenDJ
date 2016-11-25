@@ -16,6 +16,17 @@
  */
 package org.opends.server.crypto;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.Attributes.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -56,17 +67,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.ldap.LDAPConnectionFactory.*;
-import static org.forgerock.opendj.ldap.ModificationType.*;
-import static org.forgerock.opendj.ldap.SearchScope.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.types.Attributes.*;
-import static org.testng.Assert.*;
 
 /**
  This class tests the CryptoManager.
@@ -242,7 +242,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 @Test(dataProvider="cipherParametersData")
   public void testEncryptDecryptSuccess(CipherParameters cp)
           throws Exception {
-    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final CryptoManager cm = getServerContext().getCryptoManager();
     final String secretMessage = "1234";
 
     final byte[] cipherText = (null == cp.getTransformation())
@@ -305,7 +305,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   public void testKeyEntryReuse()
           throws Exception {
 
-    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final CryptoManager cm = TestCaseUtils.getServerContext().getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
 
     final byte[] cipherText = cm.encrypt(secretMessage.getBytes());
@@ -335,7 +335,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   @Test
   public void testKeyPersistence()
         throws Exception {
-    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final CryptoManager cm = getServerContext().getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
 
     final byte[] cipherText = cm.encrypt("Blowfish/CFB/NoPadding", 128,
@@ -363,7 +363,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
    */
   @Test
   public void testCompromisedKey() throws Exception {
-    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final CryptoManager cm = getServerContext().getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
     final String cipherTransformationName = "AES/CBC/PKCS5Padding";
     final int cipherKeyLength = 128;

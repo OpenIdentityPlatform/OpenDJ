@@ -23,9 +23,9 @@ import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.util.time.TimeService;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.crypto.CryptoSuite;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -37,7 +37,6 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
-import org.forgerock.opendj.ldap.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -114,7 +113,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
 
   private CryptoSuite createCryptoSuite(boolean confidential)
   {
-    return DirectoryServer.getCryptoManager().newCryptoSuite(cipherTransformation, keyLength, confidential);
+    return getServerContext().getCryptoManager().newCryptoSuite(cipherTransformation, keyLength, confidential);
   }
   @Test
   public void testDomainDNWithForwardSlashes() throws Exception

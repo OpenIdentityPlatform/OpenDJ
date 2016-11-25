@@ -23,7 +23,6 @@ import static org.forgerock.http.handler.HttpClientHandler.OPTION_TRUST_MANAGERS
 import static org.forgerock.opendj.rest2ldap.authz.Authorization.newConditionalOAuth2ResourceServerFilter;
 import static org.forgerock.opendj.rest2ldap.authz.ConditionalFilters.newConditionalFilter;
 import static org.opends.messages.ConfigMessages.ERR_CONFIG_OAUTH2_INVALID_JSON_POINTER;
-import static org.opends.server.core.DirectoryServer.getCryptoManager;
 import static org.opends.server.core.DirectoryServer.getIdentityMapper;
 import static org.opends.server.core.DirectoryServer.getKeyManagerProvider;
 import static org.opends.server.core.DirectoryServer.getTrustManagerProvider;
@@ -48,7 +47,9 @@ import org.forgerock.util.PerItemEvictionStrategyCache;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.time.Duration;
 import org.forgerock.util.time.TimeService;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
+import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -120,8 +121,9 @@ abstract class HttpOAuth2AuthorizationMechanism<T extends HTTPOauth2Authorizatio
           ? getTrustManagerProvider(trustManagerDN).getTrustManagers() : null);
       options.set(OPTION_KEY_MANAGERS, keyManagerDN != null
           ? getKeyManagerProvider(keyManagerDN).getKeyManagers() : null);
-      options.set(OPTION_SSL_CIPHER_SUITES, new ArrayList<>(getCryptoManager().getSslCipherSuites()));
-      options.set(OPTION_SSL_ENABLED_PROTOCOLS, new ArrayList<>(getCryptoManager().getSslProtocols()));
+      CryptoManager cryptoManager = DirectoryServer.getInstance().getServerContext().getCryptoManager();
+      options.set(OPTION_SSL_CIPHER_SUITES, new ArrayList<>(cryptoManager.getSslCipherSuites()));
+      options.set(OPTION_SSL_ENABLED_PROTOCOLS, new ArrayList<>(cryptoManager.getSslProtocols()));
       return options;
     }
     catch (DirectoryException e)

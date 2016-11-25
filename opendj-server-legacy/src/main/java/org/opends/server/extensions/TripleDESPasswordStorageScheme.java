@@ -16,23 +16,25 @@
  */
 package org.opends.server.extensions;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.Base64;
-import org.forgerock.opendj.server.config.server.TripleDESPasswordStorageSchemeCfg;
-import org.opends.server.api.PasswordStorageScheme;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
-
-import java.util.Arrays;
-
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import java.util.Arrays;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.Base64;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.server.config.server.TripleDESPasswordStorageSchemeCfg;
+import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class defines a Directory Server password storage scheme that will
@@ -66,7 +68,7 @@ public class TripleDESPasswordStorageScheme
                    TripleDESPasswordStorageSchemeCfg configuration)
          throws ConfigException, InitializationException
   {
-    cryptoManager = DirectoryServer.getCryptoManager();
+    cryptoManager = DirectoryServer.getInstance().getServerContext().getCryptoManager();
   }
 
   @Override
