@@ -11,12 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2014 ForgeRock AS.
+ * Copyright 2014-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.server.core;
-
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -54,14 +51,11 @@ public final class ProductInformation {
         }
 
         properties = new Properties();
-        final InputStream is = new BufferedInputStream(stream);
-        try {
+        try (InputStream is = new BufferedInputStream(stream)) {
             properties.load(is);
         } catch (final IOException e) {
             throw new MissingResourceException("Can't load product information " + resourceName
                     + " due to IO exception: " + e.getMessage(), productName, "");
-        } finally {
-            closeSilently(is);
         }
 
         versionFull =

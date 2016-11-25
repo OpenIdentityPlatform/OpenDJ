@@ -16,6 +16,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.BackendMessages.*;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -39,8 +41,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class provides a compressed schema implementation whose definitions are
@@ -146,8 +146,7 @@ final class PersistentCompressedSchema extends CompressedSchema
     // Cursor through the object class database and load the object class set
     // definitions. At the same time, figure out the highest token value and
     // initialize the object class counter to one greater than that.
-    final Cursor<ByteString, ByteString> ocCursor = txn.openCursor(ocTreeName);
-    try
+    try (Cursor<ByteString, ByteString> ocCursor = txn.openCursor(ocTreeName))
     {
       while (ocCursor.next())
       {
@@ -168,15 +167,9 @@ final class PersistentCompressedSchema extends CompressedSchema
       logger.traceException(e);
       throw new InitializationException(ERR_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(e.getMessage()), e);
     }
-    finally
-    {
-      ocCursor.close();
-    }
 
-    // Cursor through the attribute description database and load the attribute
-    // set definitions.
-    final Cursor<ByteString, ByteString> adCursor = txn.openCursor(adTreeName);
-    try
+    // Cursor through the attribute description database and load the attribute set definitions.
+    try (Cursor<ByteString, ByteString> adCursor = txn.openCursor(adTreeName))
     {
       while (adCursor.next())
       {
@@ -197,10 +190,6 @@ final class PersistentCompressedSchema extends CompressedSchema
     {
       logger.traceException(e);
       throw new InitializationException(ERR_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(e.getMessage()), e);
-    }
-    finally
-    {
-      adCursor.close();
     }
   }
 

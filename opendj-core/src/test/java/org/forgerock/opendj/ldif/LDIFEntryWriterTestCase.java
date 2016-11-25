@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2009-2010 Sun Microsystems, Inc.
- * Portions copyright 2012-2015 ForgeRock AS.
+ * Portions copyright 2012-2016 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -777,12 +777,9 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         doThrow(new IOException()).when(mockOutput).write(any(byte[].class));
         doThrow(new IOException()).when(mockOutput).write(any(byte[].class), anyInt(), anyInt());
 
-        LDIFEntryWriter writer = new LDIFEntryWriter(mockOutput);
-        try {
+        try (LDIFEntryWriter writer = new LDIFEntryWriter(mockOutput)) {
             CharSequence comment = "This is a new comment";
             writer.writeComment(comment);
-        } finally {
-            writer.close();
         }
     }
 
@@ -795,13 +792,11 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public void testWriteEntryUsingMockOutputForFlushAndClose() throws Exception {
         OutputStream mockOutput = mock(OutputStream.class);
-        LDIFEntryWriter writer = new LDIFEntryWriter(mockOutput);
-        try {
+        try (LDIFEntryWriter writer = new LDIFEntryWriter(mockOutput)) {
             writer.flush();
             writer.flush();
             verify(mockOutput, times(2)).flush();
         } finally {
-            writer.close();
             verify(mockOutput, times(1)).close();
         }
     }

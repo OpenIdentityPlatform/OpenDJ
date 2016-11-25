@@ -14,7 +14,6 @@
  * Copyright 2009-2010 Sun Microsystems, Inc.
  * Portions copyright 2012-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldif;
 
 import static org.testng.Assert.assertNotNull;
@@ -49,9 +48,7 @@ import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * This class tests the LDIFEntryReader functionality.
- */
+/** This class tests the LDIFEntryReader functionality. */
 @SuppressWarnings("javadoc")
 public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     /**
@@ -93,9 +90,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         // @formatter:on
     }
 
-    /**
-     * Number of attributes of the standard entry.
-     */
+    /** Number of attributes of the standard entry. */
     public final int nbStandardEntryAttributes = new LinkedHashMapEntry(getStandardEntry())
             .getAttributeCount();
 
@@ -930,12 +925,9 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         } finally {
             reader.close();
         }
-
     }
 
-    /**
-     * Test to read an entry containing spaces before the attribute.
-     */
+    /** Test to read an entry containing spaces before the attribute. */
     @Test
     public void testReadEntryWithAttributesSpacesAtStart() throws Exception {
         // @formatter:off
@@ -1019,8 +1011,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     public void testReadEntry() throws Exception {
         final String path = TestCaseUtils.createTempFile(getStandardEntry());
         final FileInputStream in = new FileInputStream(path);
-        final LDIFEntryReader reader = new LDIFEntryReader(in);
-        try {
+        try (LDIFEntryReader reader = new LDIFEntryReader(in)) {
             Assert.assertTrue(reader.hasNext());
             final Entry entry = reader.readEntry();
             assertNotNull(entry);
@@ -1028,8 +1019,6 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
                     .valueOf("uid=user.0,ou=People,dc=example,dc=com"));
             Assert.assertFalse(reader.hasNext());
             reader.readEntry();
-        } finally {
-            reader.close();
         }
     }
 
@@ -1149,8 +1138,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         // @formatter:on
         final String path = TestCaseUtils.createTempFile(strEntry);
         final FileInputStream in = new FileInputStream(path);
-        final LDIFEntryReader reader = new LDIFEntryReader(in);
-        try {
+        try (LDIFEntryReader reader = new LDIFEntryReader(in)) {
             assertThat(reader.hasNext());
             final Entry entry = reader.readEntry();
             assertThat(entry.getName().toString()).isEqualTo(
@@ -1161,8 +1149,6 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
             assertThat(entry.getAttribute("ds-cfg-character-set")).isNotEmpty();
             assertThat(entry.getAttribute("ds-cfg-character-set").toArray().length).isEqualTo(4);
             assertThat(reader.hasNext()).isFalse();
-        } finally {
-            reader.close();
         }
     }
 
@@ -1258,13 +1244,9 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         };
         // @formatter:on
 
-        final LDIFEntryReader reader = new LDIFEntryReader(strEntry);
-        try {
+        try (LDIFEntryReader reader = new LDIFEntryReader(strEntry)) {
             reader.readEntry();
-        } finally {
-            reader.close();
         }
-
     }
 
     /**
@@ -1316,9 +1298,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testValueOfLDIFEntryReadEntryContainingMalformedURL() throws Exception {
-
-        // @formatter:off
-        final LDIFEntryReader reader = new LDIFEntryReader(
+        try (LDIFEntryReader reader = new LDIFEntryReader(
+                // @formatter:off
                 "version: 1",
                 "dn:: b3U95Za25qWt6YOoLG89QWlyaXVz",
                 "# dn:: ou=<JapaneseOU>,o=Airius",
@@ -1332,13 +1313,10 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
                 "telephonenumber: +1 408 555 1212",
                 "jpegphoto:< invalidProtocol",
                 " ",
-                " ");
-        // @formatter:on
-
-        try {
+                " "
+                // @formatter:on
+        )) {
             reader.readEntry();
-        } finally {
-            reader.close();
         }
     }
 
@@ -1361,11 +1339,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         // @formatter:on
 
         final FileInputStream in = new FileInputStream(path);
-        final LDIFEntryReader reader = new LDIFEntryReader(in);
-        try {
+        try (LDIFEntryReader reader = new LDIFEntryReader(in)) {
             reader.readEntry();
-        } finally {
-            reader.close();
         }
     }
 
@@ -1376,9 +1351,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testReadEntryBase64EncodedMalformedBase64Attribute() throws Exception {
-
-        // @formatter:off
-        final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+        try (LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+            // @formatter:off
             "version: 1",
             "dn: cn=Gern Jensen, ou=Product Testing, dc=airius, dc=com",
             "objectclass: top",
@@ -1393,12 +1367,9 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
             + "IGlzIGJhc2UtNjQtZW5aaaaaaaaaaajb2RlZCBiZWNhdXNlIGl0IGhhcyBhIGNvbnRyb2wgY2hhcmFjdG"
             + "VyIGluIGl0IChhIENSKS4NICBCeSB0aGUgd2F5LCB5b3Ugc2hvdWxkIHJlYWxseSBnZXQg"
             + "b3V0IG1vcmUu"
-        ));
-        // @formatter:on
-        try {
+            // @formatter:off
+        ))) {
             reader.readEntry();
-        } finally {
-            reader.close();
         }
     }
 

@@ -114,7 +114,7 @@ public final class Converters {
     }
 
     /**
-     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.responses.SearchResultEntry} to OpenDJ
+     * Converts from OpenDJ LDAP SDK {@link SearchResultEntry} to OpenDJ
      * server {@link org.opends.server.types.SearchResultEntry}.
      *
      * @param value
@@ -122,7 +122,7 @@ public final class Converters {
      * @return the converted value
      */
     public static org.opends.server.types.SearchResultEntry to(
-            final org.forgerock.opendj.ldap.responses.SearchResultEntry value) {
+            final SearchResultEntry value) {
         if (value != null) {
             org.opends.server.types.Entry entry =
                 new org.opends.server.types.Entry(value.getName(), null, null, null);
@@ -186,19 +186,19 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ LDAP SDK {@link Control} to OpenDJ server
-     * {@link org.opends.server.protocols.ldap.LDAPControl}.
+     * {@link LDAPControl}.
      *
      * @param control
      *          value to convert
      * @return the converted value
      */
-    public static org.opends.server.protocols.ldap.LDAPControl to(final Control control) {
+    public static LDAPControl to(final Control control) {
         return new LDAPControl(control.getOID(), control.isCritical(), control.getValue());
     }
 
     /**
      * Converts from a <code>List</code> of OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.controls.Control} to a <code>List</code>
+     * {@link Control} to a <code>List</code>
      * of OpenDJ server {@link org.opends.server.types.Control}.
      *
      * @param listOfControl
@@ -206,16 +206,16 @@ public final class Converters {
      * @return the converted value
      */
     public static List<org.opends.server.types.Control> to(
-            final List<org.forgerock.opendj.ldap.controls.Control> listOfControl) {
+            final List<Control> listOfControl) {
         List<org.opends.server.types.Control> toListOfControl = new ArrayList<>(listOfControl.size());
-        for (org.forgerock.opendj.ldap.controls.Control c : listOfControl) {
+        for (Control c : listOfControl) {
             toListOfControl.add(to(c));
         }
         return toListOfControl;
     }
 
     /**
-     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.Attribute}
+     * Converts from OpenDJ LDAP SDK {@link Attribute}
      * to OpenDJ server {@link org.opends.server.types.RawAttribute}.
      *
      * @param attribute
@@ -223,14 +223,14 @@ public final class Converters {
      * @return the converted value
      */
     public static org.opends.server.types.RawAttribute to(
-            final org.forgerock.opendj.ldap.Attribute attribute) {
+            final Attribute attribute) {
         ArrayList<ByteString> listAttributeValues = newArrayList(attribute.toArray());
         return new LDAPAttribute(attribute.getAttributeDescriptionAsString(), listAttributeValues);
     }
 
     /**
      * Converts from an <code>Iterable</code> of OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.Attribute} to a <code>List</code> of
+     * {@link Attribute} to a <code>List</code> of
      * OpenDJ server {@link org.opends.server.types.RawAttribute}.
      *
      * @param listOfAttributes
@@ -238,10 +238,10 @@ public final class Converters {
      * @return the converted value
      */
     public static List<org.opends.server.types.RawAttribute> to(
-            final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
+            final Iterable<Attribute> listOfAttributes) {
         List<org.opends.server.types.RawAttribute> toListOfAttributes =
                 new ArrayList<>(((Collection<?>) listOfAttributes).size());
-        for (org.forgerock.opendj.ldap.Attribute a : listOfAttributes) {
+        for (Attribute a : listOfAttributes) {
             toListOfAttributes.add(to(a));
         }
         return toListOfAttributes;
@@ -282,7 +282,7 @@ public final class Converters {
     }
 
     /**
-     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.Attribute}
+     * Converts from OpenDJ LDAP SDK {@link Attribute}
      * to OpenDJ server {@link org.opends.server.types.Attribute}.
      *
      * @param attribute
@@ -290,7 +290,7 @@ public final class Converters {
      * @return the converted value
      */
     public static org.opends.server.types.Attribute toAttribute(
-            final org.forgerock.opendj.ldap.Attribute attribute) {
+            final Attribute attribute) {
         final AttributeBuilder attrBuilder =
             new AttributeBuilder(attribute.getAttributeDescriptionAsString());
         for (ByteString b : attribute.toArray()) {
@@ -301,7 +301,7 @@ public final class Converters {
 
     /**
      * Converts from an <code>Iterable</code> of OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.Attribute} to a <code>List</code> of
+     * {@link Attribute} to a <code>List</code> of
      * OpenDJ server {@link org.opends.server.types.RawAttribute}.
      *
      * @param listOfAttributes
@@ -309,7 +309,7 @@ public final class Converters {
      * @return the converted value
      */
     public static List<org.opends.server.types.Attribute> toAttributes(
-            final Iterable<org.forgerock.opendj.ldap.Attribute> listOfAttributes) {
+            final Iterable<Attribute> listOfAttributes) {
         List<org.opends.server.types.Attribute> toListOfAttributes = new ArrayList<>();
         Iterator<Attribute> it = listOfAttributes.iterator();
         while (it.hasNext())
@@ -354,14 +354,14 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ server
-     * {@link org.opends.server.protocols.ldap.LDAPControl} to OpenDJ LDAP SDK
+     * {@link LDAPControl} to OpenDJ LDAP SDK
      * {@link Control}.
      *
      * @param ldapControl
      *          value to convert
      * @return the converted value
      */
-    public static Control from(final org.opends.server.protocols.ldap.LDAPControl ldapControl) {
+    public static Control from(final LDAPControl ldapControl) {
         return GenericControl.newControl(ldapControl.getOID(), ldapControl.isCritical(),
                 ldapControl.getValue());
     }
@@ -388,8 +388,8 @@ public final class Converters {
         }
 
         final ByteString sdkByteString = builder.toByteString();
-        final org.forgerock.opendj.io.ASN1Reader sdkReaderASN1 =
-                org.forgerock.opendj.io.ASN1.getReader(sdkByteString.toByteArray());
+        final ASN1Reader sdkReaderASN1 =
+                ASN1.getReader(sdkByteString.toByteArray());
 
         // Reads the ASN1 SDK byte string.
         try {
@@ -414,15 +414,15 @@ public final class Converters {
     /**
      * Converts from a <code>List</code> of OpenDJ server
      * {@link org.opends.server.types.Control} to a <code>List</code> of OpenDJ
-     * LDAP SDK {@link org.forgerock.opendj.ldap.controls.Control}.
+     * LDAP SDK {@link Control}.
      *
      * @param listOfControl
      *          value to convert
      * @return the converted value
      */
-    public static List<org.forgerock.opendj.ldap.controls.Control> from(
+    public static List<Control> from(
             final List<org.opends.server.types.Control> listOfControl) {
-        List<org.forgerock.opendj.ldap.controls.Control> fromListofControl = new ArrayList<>(listOfControl.size());
+        List<Control> fromListofControl = new ArrayList<>(listOfControl.size());
         for (org.opends.server.types.Control c : listOfControl) {
             fromListofControl.add(from(c));
         }
@@ -445,13 +445,13 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ server {@link org.opends.server.types.Attribute} to
-     * OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.Attribute}.
+     * OpenDJ LDAP SDK {@link Attribute}.
      *
      * @param attribute
      *          value to convert
      * @return the converted value
      */
-    public static org.forgerock.opendj.ldap.Attribute from(
+    public static Attribute from(
             final org.opends.server.types.Attribute attribute) {
         Attribute sdkAttribute = new LinkedAttribute(attribute.getAttributeDescription());
         for (ByteString value : attribute) {
@@ -462,7 +462,7 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ server {@link org.opends.server.types.Attribute} to OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.Attribute}. This method is an optimization of the equivalent from() method. It's
+     * {@link Attribute}. This method is an optimization of the equivalent from() method. It's
      * only used in encoding/decoding and as such only wrap the required methods: the returned object partially wrap the
      * incoming one.
      *
@@ -470,7 +470,7 @@ public final class Converters {
      *            value to convert
      * @return the converted value
      */
-    public static org.forgerock.opendj.ldap.Attribute partiallyWrap(final org.opends.server.types.Attribute attribute) {
+    public static Attribute partiallyWrap(final org.opends.server.types.Attribute attribute) {
         return new Attribute() {
 
             @Override
@@ -589,15 +589,15 @@ public final class Converters {
     /**
      * Converts from an <code>Iterable</code> of OpenDJ server
      * {@link org.opends.server.types.Attribute} to a <code>List</code> of OpenDJ
-     * LDAP SDK {@link org.forgerock.opendj.ldap.Attribute}.
+     * LDAP SDK {@link Attribute}.
      *
      * @param listOfAttributes
      *          value to convert
      * @return the converted value
      */
-    public static List<org.forgerock.opendj.ldap.Attribute> from(
+    public static List<Attribute> from(
             final Iterable<org.opends.server.types.Attribute> listOfAttributes) {
-        List<org.forgerock.opendj.ldap.Attribute> fromListofAttributes =
+        List<Attribute> fromListofAttributes =
                 new ArrayList<>(((Collection<?>) listOfAttributes).size());
         for (org.opends.server.types.Attribute a : listOfAttributes) {
             fromListofAttributes.add(from(a));
@@ -608,13 +608,13 @@ public final class Converters {
     /**
      * Converts from OpenDJ server
      * {@link org.opends.server.types.SearchResultEntry} to OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.responses.SearchResultEntry}.
+     * {@link SearchResultEntry}.
      *
      * @param srvResultEntry
      *          value to convert
      * @return the converted value
      */
-    public static org.forgerock.opendj.ldap.responses.SearchResultEntry from(
+    public static SearchResultEntry from(
             final org.opends.server.types.SearchResultEntry srvResultEntry) {
 
         final SearchResultEntry searchResultEntry =
@@ -630,7 +630,7 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ server {@link org.opends.server.types.SearchResultEntry} to OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.responses.SearchResultEntry}. This method is an optimization of the equivalent
+     * {@link SearchResultEntry}. This method is an optimization of the equivalent
      * from() method. It's only used in encoding/decoding and as such only wrap the required methods: the returned
      * object partially wrap the incoming one.
      *
@@ -640,12 +640,12 @@ public final class Converters {
      *            Version of the ldap protocol
      * @return the converted value
      */
-    public static org.forgerock.opendj.ldap.responses.SearchResultEntry partiallyWrap(
+    public static SearchResultEntry partiallyWrap(
             final org.opends.server.types.SearchResultEntry srvResultEntry, final int ldapVersion) {
 
         final ArrayList<Control> controls = new ArrayList<>(srvResultEntry.getControls().size());
         for (org.opends.server.types.Control control : srvResultEntry.getControls()) {
-            controls.add(Converters.from(control));
+            controls.add(from(control));
         }
 
         return new SearchResultEntry() {
@@ -810,8 +810,8 @@ public final class Converters {
 
     /**
      * Converts from OpenDJ server
-     * {@link org.forgerock.opendj.server.config.meta.VirtualAttributeCfgDefn.Scope}
-     *  to OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.SearchScope}.
+     * {@link VirtualAttributeCfgDefn.Scope}
+     *  to OpenDJ LDAP SDK {@link SearchScope}.
      *
      * @param srvScope
      *          The server scope value.
@@ -922,7 +922,7 @@ public final class Converters {
                 reader.readStartSequence();
                 return reader.readOctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD);
             } catch (IOException e) {
-                throw LdapException.newLdapException(ResultCode.PROTOCOL_ERROR,
+                throw newLdapException(ResultCode.PROTOCOL_ERROR,
                         ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST.get(getExceptionMessage(e)), e);
             }
         }

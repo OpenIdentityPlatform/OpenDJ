@@ -12,12 +12,9 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2008 Sun Microsystems, Inc.
- * Portions copyright 2014-2015 ForgeRock AS.
+ * Portions copyright 2014-2016 ForgeRock AS.
  */
-
 package org.forgerock.opendj.config;
-
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -107,15 +104,12 @@ public final class ManagedObjectDefinitionResource {
                 throw new MissingResourceException("Can't find resource " + path, baseName, "");
             }
 
-            final InputStream is = new BufferedInputStream(stream);
             p = new Properties();
-            try {
+            try (InputStream is = new BufferedInputStream(stream)) {
                 p.load(is);
             } catch (IOException e) {
                 throw new MissingResourceException("Can't load resource " + path
                         + " due to IO exception: " + e.getMessage(), baseName, "");
-            } finally {
-                closeSilently(is);
             }
 
             // Cache the resource.

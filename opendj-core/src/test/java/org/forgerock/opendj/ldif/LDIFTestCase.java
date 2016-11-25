@@ -162,11 +162,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public final void testLdifSearchDoesntAllowNullSearchRequest() throws Exception {
 
-        final EntryReader reader = new LDIFEntryReader(getStandardEntry());
-        try {
+        try (EntryReader reader = new LDIFEntryReader(getStandardEntry())) {
             LDIF.search(reader, null);
-        } finally {
-            reader.close();
         }
     }
 
@@ -743,7 +740,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "changetype: delete"
         );
         // @formatter:on
-        final java.util.List<String> actual = new ArrayList<>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         try {
@@ -795,7 +792,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testLdifCopyToChangeRecordDoesntAllowNullReader() throws Exception {
-        final java.util.List<String> actual = new ArrayList<>();
+        final List<String> actual = new ArrayList<>();
         final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
 
         LDIF.copyTo(null, writer);
@@ -2431,12 +2428,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                 "manager: uid=joneill,ou=People,dc=example,dc=com"
         );
         // @formatter:on
-        EntryReader reader = new LDIFEntryReader();
-        try {
-            reader = LDIF.patch(input, patch);
+        try (EntryReader reader = LDIF.patch(input, patch)) {
             reader.readEntry();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2468,11 +2461,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "work-phone: 650/506-7000"
         );
         // @formatter:on
-        EntryReader reader = new LDIFEntryReader();
-        try {
-            reader = LDIF.patch(input, patch, listener);
-        } finally {
-            reader.close();
+        try (EntryReader reader = LDIF.patch(input, patch, listener)) {
+            // should throw
         }
     }
 
@@ -2504,22 +2494,17 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "work-phone: 650/506-7000"
         );
         // @formatter:on
-        EntryReader reader = new LDIFEntryReader();
-        try {
-            reader = LDIF.patch(input, patch, listener);
+        try (EntryReader reader = LDIF.patch(input, patch, listener)) {
             Entry entry = reader.readEntry();
             assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
             assertThat(entry.getAttributeCount()).isEqualTo(3);
-            assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo(
-                    "person");
+            assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo("person");
             assertThat(entry.getAttribute("sn").firstValueAsString()).isEqualTo(
                     "new user");
             assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo(
                     "mail@mailme.org");
             assertThat(reader.hasNext()).isFalse();
             assertThat(entry.getAttribute("work-phone")).isNull();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2550,11 +2535,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "deleteoldrdn: 1"
         );
         // @formatter:on
-        EntryReader reader = new LDIFEntryReader();
-        try {
-            reader = LDIF.patch(input, patch, listener);
-        } finally {
-            reader.close();
+        try (EntryReader reader = LDIF.patch(input, patch, listener)) {
+            // should throw
         }
     }
 
@@ -2586,9 +2568,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "deleteoldrdn: 1"
         );
         // @formatter:on
-        EntryReader reader = new LDIFEntryReader();
-        try {
-            reader = LDIF.patch(input, patch, listener);
+        try (EntryReader reader = LDIF.patch(input, patch, listener)) {
             Entry entry = reader.readEntry();
             assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
             assertThat(entry.getName().toString()).isNotEqualTo("uid=scarter,ou=Human Resources,dc=example,dc=com");
@@ -2600,8 +2580,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo(
                     "mail@mailme.org");
             assertThat(reader.hasNext()).isFalse();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2642,11 +2620,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "deleteoldrdn: 0"
         );
         // @formatter:on
-        EntryReader reader = new LDIFEntryReader();
-        try {
-            reader = LDIF.patch(input, patch, listener);
-        } finally {
-            reader.close();
+        try (EntryReader reader = LDIF.patch(input, patch, listener)) {
+            // should throw
         }
     }
 
@@ -2688,21 +2663,14 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             "deleteoldrdn: 0"
         );
         // @formatter:on
-        EntryReader reader = new LDIFEntryReader();
-        try {
-            reader = LDIF.patch(input, patch, listener);
+        try (EntryReader reader = LDIF.patch(input, patch, listener)) {
             Entry entry = reader.readEntry();
             assertThat(entry.getName().toString()).isEqualTo("uid=user.2,ou=People,dc=example,dc=com");
             assertThat(entry.getAttributeCount()).isEqualTo(4);
-            assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo(
-                    "person");
-            assertThat(entry.getAttribute("sn").firstValueAsString()).isEqualTo(
-                    "new user");
-            assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo(
-                    "mail@mailme.org");
+            assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo("person");
+            assertThat(entry.getAttribute("sn").firstValueAsString()).isEqualTo("new user");
+            assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo("mail@mailme.org");
             assertThat(reader.hasNext()).isFalse();
-        } finally {
-            reader.close();
         }
     }
 

@@ -36,7 +36,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
 
-import com.forgerock.opendj.cli.IntegerArgument;
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -51,12 +50,13 @@ import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.opendj.ldif.RejectedChangeRecordListener;
+import org.forgerock.util.annotations.VisibleForTesting;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import org.forgerock.util.annotations.VisibleForTesting;
 
 /**
  * A tool that can be used to issue update (Add/Delete/Modify/ModifyDN) requests
@@ -142,17 +142,12 @@ public final class LDIFModify extends ToolConsoleApplication {
             return ResultCode.SUCCESS.intValue();
         }
 
-        InputStream sourceInputStream = null;
-        OutputStream outputStream = null;
+        final List<String> trailingArguments = argParser.getTrailingArguments();
         LDIFEntryReader sourceReader = null;
         LDIFChangeRecordReader changesReader = null;
         LDIFEntryWriter outputWriter = null;
-
-        try {
-            final List<String> trailingArguments = argParser.getTrailingArguments();
-            sourceInputStream = getLDIFToolInputStream(this, trailingArguments.get(0));
-            outputStream = getLDIFToolOutputStream(this, outputFilename);
-
+        try (InputStream sourceInputStream = getLDIFToolInputStream(this, trailingArguments.get(0));
+                OutputStream outputStream = getLDIFToolOutputStream(this, outputFilename)) {
             final int nbTrailingArgs = trailingArguments.size();
             final boolean readChangesFromStdin = nbTrailingArgs == 1
                     || (nbTrailingArgs == 2 && USE_SYSTEM_STREAM_TOKEN.equals(trailingArguments.get(1)));
@@ -253,8 +248,7 @@ public final class LDIFModify extends ToolConsoleApplication {
         } catch (final ArgumentException ae) {
             throw newToolParamException(ae, ae.getMessageObject());
         } finally {
-            closeSilently(sourceReader, changesReader, outputWriter,
-                          sourceInputStream, outputStream);
+            closeSilently(sourceReader, changesReader, outputWriter);
         }
 
         return ResultCode.SUCCESS.intValue();

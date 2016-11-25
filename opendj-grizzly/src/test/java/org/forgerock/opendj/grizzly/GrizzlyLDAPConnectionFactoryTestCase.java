@@ -120,10 +120,9 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
 
     @Test(description = "OPENDJ-1197")
     public void testClientSideConnectTimeout() throws Exception {
-        // Use an non-local unreachable network address.
-        final ConnectionFactory factory = new LDAPConnectionFactory("10.20.30.40", 1389,
-            Options.defaultOptions().set(CONNECT_TIMEOUT, duration("1 ms")));
-        try {
+        // Use a non-local unreachable network address.
+        try (ConnectionFactory factory = new LDAPConnectionFactory("10.20.30.40", 1389,
+            Options.defaultOptions().set(CONNECT_TIMEOUT, duration("1 ms")))) {
             for (int i = 0; i < ITERATIONS; i++) {
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
                 final Promise<? extends Connection, LdapException> connectionPromise = factory.getConnectionAsync();
@@ -139,8 +138,6 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                     assertThat(ce.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
                 }
             }
-        } finally {
-            factory.close();
         }
     }
 
@@ -157,8 +154,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         registerBindEvent();
         registerCloseEvent();
 
-        final Connection connection = factory.getConnection();
-        try {
+        try (Connection connection = factory.getConnection()) {
             waitForConnect();
             final MockConnectionEventListener listener = new MockConnectionEventListener();
             connection.addConnectionEventListener(listener);
@@ -188,8 +184,6 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
             connection.close();
             waitForClose();
             verifyNoAbandonSent();
-        } finally {
-            connection.close();
         }
     }
 
@@ -205,8 +199,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         registerCloseEvent();
 
         for (int i = 0; i < ITERATIONS; i++) {
-            final Connection connection = pool.getConnection();
-            try {
+            try (Connection connection = pool.getConnection()) {
                 waitForConnect();
                 final MockConnectionEventListener listener = new MockConnectionEventListener();
                 connection.addConnectionEventListener(listener);
@@ -240,8 +233,6 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                 connection.close();
                 waitForClose();
                 verifyNoAbandonSent();
-            } finally {
-                connection.close();
             }
         }
     }
@@ -260,8 +251,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         registerAbandonEvent();
 
         for (int i = 0; i < ITERATIONS; i++) {
-            final Connection connection = factory.getConnection();
-            try {
+            try (Connection connection = factory.getConnection()) {
                 waitForConnect();
                 final ConnectionEventListener listener = mock(ConnectionEventListener.class);
                 connection.addConnectionEventListener(listener);
@@ -289,8 +279,6 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                  * LDAPConnection for explanation).
                  */
                 // waitForAbandon();
-            } finally {
-                connection.close();
             }
         }
     }
@@ -333,8 +321,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         resetState();
 
         for (int i = 0; i < ITERATIONS; i++) {
-            final Connection connection = factory.getConnection();
-            try {
+            try (Connection connection = factory.getConnection()) {
                 waitForConnect();
                 final MockConnectionEventListener listener = new MockConnectionEventListener();
                 connection.addConnectionEventListener(listener);
@@ -344,8 +331,6 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
 
                 // Wait for the error notification to reach the client.
                 listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
-            } finally {
-                connection.close();
             }
         }
     }

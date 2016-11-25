@@ -340,9 +340,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     final TimeService time = mock(TimeService.class);
     when(time.now()).thenReturn(100L, 200L);
     ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null, time);
-    Log<Long,ChangeNumberIndexRecord> cnIndexDB = environment.getOrCreateCNIndexDB();
-
-    try {
+    try (Log<Long,ChangeNumberIndexRecord> cnIndexDB = environment.getOrCreateCNIndexDB()) {
       environment.notifyLogFileRotation(cnIndexDB);
 
       // check runtime change of last rotation time is effective
@@ -351,7 +349,6 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     }
     finally
     {
-      cnIndexDB.close();
       environment.shutdown();
     }
 

@@ -50,15 +50,13 @@ public class DefaultTCPNIOTransportTestCase extends SdkTestCase {
         SocketAddress socketAddress = transport.get().bind(loopbackWithDynamicPort()).getLocalAddress();
 
         // Establish a socket connection to see if the transport factory works.
-        final Socket socket = new Socket();
-        try {
+        try (Socket socket = new Socket()) {
             socket.connect(socketAddress);
 
             // Successfully connected if there is no exception.
             assertTrue(socket.isConnected());
             // Don't stop the transport because it is shared with the ldap server.
         } finally {
-            socket.close();
             transport.release();
         }
     }

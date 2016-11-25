@@ -179,12 +179,8 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeAttributeDoesntAllowNull() throws Exception {
         final List<String> actual = new ArrayList<>();
-        final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
-
-        try {
+        try (LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual)) {
             writer.setExcludeAttribute(null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -267,12 +263,8 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetExcludeBranchDoesntAllowNull() throws Exception {
         final List<String> actual = new ArrayList<>();
-        final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
-
-        try {
+        try (LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual)) {
             writer.setExcludeBranch(null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -387,11 +379,8 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeAttributeDoesntAllowNull() throws Exception {
         final List<String> actual = new ArrayList<>();
-        final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
-        try {
+        try (LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual)) {
             writer.setIncludeAttribute(null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -452,11 +441,8 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public void testSetIncludeBranchDoesntAllowNull() throws Exception {
         final List<String> actual = new ArrayList<>();
-        final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual);
-        try {
+        try (LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(actual)) {
             writer.setIncludeBranch(null);
-        } finally {
-            writer.close();
         }
     }
 
@@ -1356,14 +1342,12 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
     @Test
     public void testWriteChangeRecordFlushClose() throws Exception {
         final OutputStream mockOutput = mock(OutputStream.class);
-        final LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(mockOutput);
-        try {
+        try (LDIFChangeRecordWriter writer = new LDIFChangeRecordWriter(mockOutput)) {
             writer.writeComment("TLDIFChangeRecordWriter, this is a comment.");
             writer.flush();
             writer.flush();
             verify(mockOutput, times(2)).flush();
         } finally {
-            writer.close();
             verify(mockOutput, times(1)).close();
         }
     }

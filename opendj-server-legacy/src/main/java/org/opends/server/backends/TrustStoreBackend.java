@@ -988,13 +988,9 @@ public class TrustStoreBackend extends LocalBackend<TrustStoreBackendCfg>
           File tempDir = getFileForPath("config");
           File tempFile = File.createTempFile(configuration.getBackendId(),
                                               certAlias, tempDir);
-          try
+          try (FileOutputStream outputStream = new FileOutputStream(tempFile.getPath(), false))
           {
-            try (FileOutputStream outputStream = new FileOutputStream(tempFile.getPath(), false))
-            {
-              certBytes.copyTo(outputStream);
-            }
-
+            certBytes.copyTo(outputStream);
             certificateManager.addCertificate(certAlias, tempFile);
           }
           finally

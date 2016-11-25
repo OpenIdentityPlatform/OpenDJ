@@ -59,60 +59,47 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
 
     @Test
     public final void testHasNextWhenError() throws Exception {
-        final ConnectionEntryReader reader = newReader(ERROR);
-        try {
+        try (ConnectionEntryReader reader = newReader(ERROR)) {
             reader.hasNext();
             fail();
         } catch (final LdapException e) {
             assertThat(e.getResult()).isSameAs(ERROR);
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadEntry() throws Exception {
-        final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS)) {
             assertThat(reader.hasNext()).isTrue();
             assertThat(reader.isEntry()).isTrue();
             assertThat(reader.isReference()).isFalse();
             assertThat(reader.readEntry()).isSameAs(ENTRY1);
             assertThat(reader.hasNext()).isFalse();
             assertThat(reader.readResult()).isSameAs(SUCCESS);
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadEntryWhenError() throws Exception {
-        final ConnectionEntryReader reader = newReader(ERROR);
-        try {
+        try (ConnectionEntryReader reader = newReader(ERROR)) {
             reader.readEntry();
             fail();
         } catch (final LdapException e) {
             assertThat(e.getResult()).isSameAs(ERROR);
-        } finally {
-            reader.close();
         }
     }
 
     @Test(expectedExceptions = NoSuchElementException.class)
     public final void testReadEntryWhenNoMore() throws Exception {
-        final ConnectionEntryReader reader = newReader(SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(SUCCESS)) {
             assertThat(reader.hasNext()).isFalse();
             reader.readEntry();
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadEntryWhenReference() throws Exception {
-        final ConnectionEntryReader reader = newReader(REF, SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(REF, SUCCESS)) {
             assertThat(reader.hasNext()).isTrue();
             try {
                 reader.readEntry();
@@ -122,15 +109,12 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
             }
             assertThat(reader.hasNext()).isFalse();
             assertThat(reader.readResult()).isSameAs(SUCCESS);
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadMultipleResults() throws Exception {
-        final ConnectionEntryReader reader = newReader(ENTRY1, ENTRY2, REF, ENTRY3, SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(ENTRY1, ENTRY2, REF, ENTRY3, SUCCESS)) {
             assertThat(reader.hasNext()).isTrue();
             assertThat(reader.readEntry()).isSameAs(ENTRY1);
             assertThat(reader.hasNext()).isTrue();
@@ -141,94 +125,71 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
             assertThat(reader.readEntry()).isSameAs(ENTRY3);
             assertThat(reader.hasNext()).isFalse();
             assertThat(reader.readResult()).isSameAs(SUCCESS);
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadReference() throws Exception {
-        final ConnectionEntryReader reader = newReader(REF, SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(REF, SUCCESS)) {
             assertThat(reader.hasNext()).isTrue();
             assertThat(reader.isEntry()).isFalse();
             assertThat(reader.isReference()).isTrue();
             assertThat(reader.readReference()).isSameAs(REF);
             assertThat(reader.hasNext()).isFalse();
             assertThat(reader.readResult()).isSameAs(SUCCESS);
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadReferenceWhenEntry() throws Exception {
-        final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS)) {
             assertThat(reader.hasNext()).isTrue();
             assertThat(reader.readReference()).isNull();
             assertThat(reader.readEntry()).isSameAs(ENTRY1);
             assertThat(reader.hasNext()).isFalse();
             assertThat(reader.readResult()).isSameAs(SUCCESS);
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadReferenceWhenError() throws Exception {
-        final ConnectionEntryReader reader = newReader(ERROR);
-        try {
+        try (ConnectionEntryReader reader = newReader(ERROR)) {
             reader.readReference();
             fail();
         } catch (final LdapException e) {
             assertThat(e.getResult()).isSameAs(ERROR);
-        } finally {
-            reader.close();
         }
     }
 
     @Test(expectedExceptions = NoSuchElementException.class)
     public final void testReadReferenceWhenNoMore() throws Exception {
-        final ConnectionEntryReader reader = newReader(SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(SUCCESS)) {
             assertThat(reader.hasNext()).isFalse();
             reader.readReference();
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadResult() throws Exception {
-        final ConnectionEntryReader reader = newReader(SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(SUCCESS)) {
             assertThat(reader.readResult()).isSameAs(SUCCESS);
-        } finally {
-            reader.close();
         }
     }
 
     @Test
     public final void testReadResultWhenError() throws Exception {
-        final ConnectionEntryReader reader = newReader(ERROR);
-        try {
+        try (ConnectionEntryReader reader = newReader(ERROR)) {
             reader.readResult();
             fail();
         } catch (final LdapException e) {
             assertThat(e.getResult()).isSameAs(ERROR);
-        } finally {
-            reader.close();
         }
     }
 
     @Test(expectedExceptions = IllegalStateException.class)
     public final void testReadResultWhenEntry() throws Exception {
-        final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
-        try {
+        try (ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS)) {
             reader.readResult();
-        } finally {
-            reader.close();
         }
     }
 

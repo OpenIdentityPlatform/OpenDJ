@@ -244,75 +244,67 @@ final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
           return newUndefinedSet();
         }
 
-        try
+        try (Cursor<ByteString, EntryIDSet> cursor = index.openCursor(txn))
         {
           // Total number of IDs found so far.
           int totalIDCount = 0;
+          boolean success;
+          // Set the lower bound if necessary.
+          if (lower.length() > 0)
+          {
+            // Initialize the cursor to the lower bound.
+            success = cursor.positionToKeyOrNext(lower);
+
+            // Advance past the lower bound if necessary.
+            if (success && !lowerIncluded && cursor.getKey().equals(lower))
+            {
+              // Do not include the lower value.
+              success = cursor.next();
+            }
+          }
+          else
+          {
+            success = cursor.next();
+          }
+
+          if (!success)
+          {
+            // There are no values.
+            return EntryIDSet.newDefinedSet();
+          }
+
           ArrayList<EntryIDSet> sets = new ArrayList<>();
-          Cursor<ByteString, EntryIDSet> cursor = index.openCursor(txn);
-          try
+          // Step through the keys until we hit the upper bound or the last key.
+          while (success)
           {
-            boolean success;
-            // Set the lower bound if necessary.
-            if (lower.length() > 0)
+            // Check against the upper bound if necessary
+            if (upper.length() > 0)
             {
-              // Initialize the cursor to the lower bound.
-              success = cursor.positionToKeyOrNext(lower);
-
-              // Advance past the lower bound if necessary.
-              if (success && !lowerIncluded && cursor.getKey().equals(lower))
+              int cmp = cursor.getKey().compareTo(upper);
+              if (cmp > 0 || (cmp == 0 && !upperIncluded))
               {
-                // Do not include the lower value.
-                success = cursor.next();
+                break;
               }
             }
-            else
+
+            EntryIDSet set = cursor.getValue();
+            if (!set.isDefined())
             {
-              success = cursor.next();
+              // There is no point continuing.
+              return set;
             }
-
-            if (!success)
+            totalIDCount += set.size();
+            if (totalIDCount > IndexFilter.CURSOR_ENTRY_LIMIT)
             {
-              // There are no values.
-              return EntryIDSet.newDefinedSet();
+              // There are too many. Give up and return an undefined list.
+              // Use any key to have debugsearchindex return LIMIT-EXCEEDED instead of NOT-INDEXED.
+              return newUndefinedSetWithKey(cursor.getKey());
             }
-
-            // Step through the keys until we hit the upper bound or the last key.
-            while (success)
-            {
-              // Check against the upper bound if necessary
-              if (upper.length() > 0)
-              {
-                int cmp = cursor.getKey().compareTo(upper);
-                if (cmp > 0 || (cmp == 0 && !upperIncluded))
-                {
-                  break;
-                }
-              }
-
-              EntryIDSet set = cursor.getValue();
-              if (!set.isDefined())
-              {
-                // There is no point continuing.
-                return set;
-              }
-              totalIDCount += set.size();
-              if (totalIDCount > IndexFilter.CURSOR_ENTRY_LIMIT)
-              {
-                // There are too many. Give up and return an undefined list.
-                // Use any key to have debugsearchindex return LIMIT-EXCEEDED instead of NOT-INDEXED.
-                return newUndefinedSetWithKey(cursor.getKey());
-              }
-              sets.add(set);
-              success = cursor.next();
-            }
-
-            return EntryIDSet.newSetFromUnion(sets);
+            sets.add(set);
+            success = cursor.next();
           }
-          finally
-          {
-            cursor.close();
-          }
+
+          return EntryIDSet.newSetFromUnion(sets);
         }
         catch (StorageRuntimeException e)
         {

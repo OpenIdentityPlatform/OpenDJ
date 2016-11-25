@@ -18,7 +18,6 @@ package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.ldap.config.ConfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -109,9 +108,7 @@ class BuildVersion implements Comparable<BuildVersion> {
     public static BuildVersion instanceVersion() throws ConfigException {
         final String buildInfo = ConfigurationFramework.getInstance().getInstancePath() + File.separator + "config"
                 + File.separator + "buildinfo";
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(buildInfo));
+        try (BufferedReader reader = new BufferedReader(new FileReader(buildInfo))) {
             final String s = reader.readLine();
             if (s != null) {
                 return valueOf(s);
@@ -122,8 +119,6 @@ class BuildVersion implements Comparable<BuildVersion> {
             throw new ConfigException(ERR_BUILDVERSION_NOT_FOUND.get(buildInfo));
         } catch (final IllegalArgumentException e) {
             throw new ConfigException(ERR_BUILDVERSION_MALFORMED.get(buildInfo));
-        } finally {
-            closeSilently(reader);
         }
     }
 

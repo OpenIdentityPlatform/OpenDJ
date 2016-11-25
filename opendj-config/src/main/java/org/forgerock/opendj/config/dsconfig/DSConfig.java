@@ -27,11 +27,11 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 
 import static org.forgerock.opendj.config.PropertyOption.*;
 import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
-import static org.forgerock.util.Utils.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -1345,10 +1345,7 @@ public final class DSConfig extends ConsoleApplication {
         }
         if (equivalentCommandFileArgument.isPresent()) {
             String file = equivalentCommandFileArgument.getValue();
-            BufferedWriter writer = null;
-            try {
-                writer = new BufferedWriter(new FileWriter(file, true));
-
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
                 if (!sessionStartTimePrinted) {
                     writer.write(SHELL_COMMENT_SEPARATOR + getSessionStartTimeMessage());
                     writer.newLine();
@@ -1372,8 +1369,6 @@ public final class DSConfig extends ConsoleApplication {
                 writer.flush();
             } catch (IOException ioe) {
                 errPrintln(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
-            } finally {
-                closeSilently(writer);
             }
         }
     }
@@ -1391,18 +1386,7 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     private void handleBatch(String[] args) {
-        BufferedReader bReader = null;
-        try {
-            if (batchArgument.isPresent()) {
-                bReader = new BufferedReader(new InputStreamReader(System.in));
-            } else if (batchFileArgument.isPresent()) {
-                final String batchFilePath = batchFileArgument.getValue().trim();
-                bReader = new BufferedReader(new FileReader(batchFilePath));
-            } else {
-                throw new IllegalArgumentException("Either --" + OPTION_LONG_BATCH
-                    + " or --" + OPTION_LONG_BATCH_FILE_PATH + " argument should have been set");
-            }
-
+        try (BufferedReader bReader = batchCommandsReader()) {
             List<String> initialArgs = removeBatchArgs(args);
 
             // Split the CLI string into arguments array
@@ -1436,8 +1420,18 @@ public final class DSConfig extends ConsoleApplication {
             }
         } catch (IOException ex) {
             errPrintln(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
-        } finally {
-            closeSilently(bReader);
+        }
+    }
+
+    private BufferedReader batchCommandsReader() throws FileNotFoundException {
+        if (batchArgument.isPresent()) {
+            return new BufferedReader(new InputStreamReader(System.in));
+        } else if (batchFileArgument.isPresent()) {
+            final String batchFilePath = batchFileArgument.getValue().trim();
+            return new BufferedReader(new FileReader(batchFilePath));
+        } else {
+            throw new IllegalArgumentException("Either --" + OPTION_LONG_BATCH
+                + " or --" + OPTION_LONG_BATCH_FILE_PATH + " argument should have been set");
         }
     }
 

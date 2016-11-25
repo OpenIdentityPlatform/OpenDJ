@@ -542,17 +542,13 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testReadAddRecordWithEmptyPairKeyChangeType() throws Exception {
-        // @formatter:off
-        LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            // @formatter:off
             "dn: dc=example,dc=com",
             ":add" // if empty spaces, ko.
-        );
-        // @formatter:on
-
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -564,19 +560,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testReadAddRecordWithWrongChangeType() throws Exception {
-        // @formatter:off
-        LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            // @formatter:off
             "dn: dc=example,dc=com",
             "changetype: oops", // wrong
             "objectClass: top",
             "objectClass: domainComponent",
             "dc: example"
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -987,8 +980,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         final String url = file.toURI().toURL().toString();
         file.delete();
 
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
         // @formatter:off
-        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "version: 1",
             "# Add a new entry",
             "dn: cn=Fiona Jensen, ou=Marketing, dc=airius, dc=com",
@@ -1001,13 +994,9 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
             "uid: fiona",
             "telephonenumber: +1 408 555 1212",
             "jpegphoto:< " + url
-        );
-        // @formatter:on
-
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -1521,21 +1510,17 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = DecodeException.class)
     public void testParseChangeRecordEntryRejectedWhenControlIsEmpty() throws Exception {
 
-        // @formatter:off
-        final  LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+                // @formatter:off
                 "dn: ou=Product Development, dc=airius, dc=com",
                 "control:",
                 "changetype: add",
                 "objectClass: top",
                 "objectClass: organization",
                 "o: testing"
-        );
-        // @formatter:on
-
-        try {
+                // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2014,18 +1999,12 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyDNChangeRecordEntryMalformedMissedNewRDN() throws Exception {
-        // @formatter:off
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "version: 1",
             "dn: cn=scarter,dc=example,dc=com",
             "changetype: modrdn"
-        );
-        // @formatter:on
-
-        try {
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2037,20 +2016,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyDNChangeRecordEntryKeyMalformedEmptyNewRDN() throws Exception {
-
-        // @formatter:off
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            // @formatter:off
             "version: 1",
             "dn: cn=scarter,dc=example,dc=com",
             "changetype: modrdn",
             "newrdn:",
             "deleteoldrdn: 1"
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2062,19 +2037,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyDNChangeRecordEntryKeyValueMalformedRDN() throws Exception {
-        // @formatter:off
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            // @formatter:off
             "version: 1",
             "dn: cn=scarter,dc=example,dc=com",
             "changetype: modrdn",
             "newrdn:oops", // wrong
             "deleteoldrdn: 1"
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2086,20 +2058,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN() throws Exception {
-
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
         // @formatter:off
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
             "version: 1",
             "dn: cn=scarter,dc=example,dc=com",
             "changetype: modrdn",
             "newrdn:cn=Susan Jacobs",
             "deleteoldrdn: cn=scarter,dc=example,dc=com" // wrong
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2111,19 +2079,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN2() throws Exception {
-        // @formatter:off
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+              // @formatter:off
             "version: 1",
             "dn: cn=scarter,dc=example,dc=com",
             "changetype: modrdn",
             "newrdn:cn=Susan Jacobs",
             "deleteold: 1" // wrong
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2134,20 +2099,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyDNChangeRecordEntryKeyValueMalformedDeleteOldRDN3() throws Exception {
-
-        // @formatter:off
-        final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            // @formatter:off
             "version: 1",
             "dn: cn=scarter,dc=example,dc=com",
             "changetype: modrdn",
             "newrdn:cn=Susan Jacobs"
             // missing deleteoldrn: 1/0||true/false||yes/no
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2220,19 +2181,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyRecordEntryNewSuperiorMalformed() throws Exception {
-        // @formatter:off
-        LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            // @formatter:off
             "dn: cn=scarter,ou=People,dc=example,dc=com",
             "changeType: modrdn",
             "newrdn: cn=Susan Jacobs",
             "deleteOldRdn: 1",
             "newSuperior:" // wrong
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2244,20 +2202,16 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testParseModifyRecordEntryNewSuperiorMalformed2() throws Exception {
-
-        // @formatter:off
-        LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+            // @formatter:off
             "dn: cn=scarter,ou=People,dc=example,dc=com",
             "changeType: modrdn",
             "newrdn: cn=Susan Jacobs",
             "deleteOldRdn: 1",
             "newSuperior: Susan Jacobs" // wrong
-        );
-        // @formatter:on
-        try {
+            // @formatter:on
+        )) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2331,11 +2285,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NoSuchElementException.class)
     public void testChangeRecordReaderDoesntAllowNull() throws Exception {
         List<String> cr = Collections.emptyList();
-        LDIFChangeRecordReader reader = new LDIFChangeRecordReader(cr);
-        try {
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(cr)) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 
@@ -2347,11 +2298,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NoSuchElementException.class)
     public void testChangeRecordReaderLDIFLineDoesntAllowNull() throws Exception {
-        LDIFChangeRecordReader reader = new LDIFChangeRecordReader(new String());
-        try {
+        try (LDIFChangeRecordReader reader = new LDIFChangeRecordReader(new String())) {
             reader.readChangeRecord();
-        } finally {
-            reader.close();
         }
     }
 

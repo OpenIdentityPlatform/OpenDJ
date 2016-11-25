@@ -88,8 +88,7 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
                                                                   address.getPort(),
                                                                   Options.defaultOptions()
                                                                          .set(REQUEST_TIMEOUT, duration("100 ms")));
-        GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnectionAsync().getOrThrow();
-        try {
+        try (GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnectionAsync().getOrThrow()) {
             SearchRequest request =
                     Requests.newSearchRequest("dc=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
             if (isPersistentSearch) {
@@ -112,7 +111,6 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
                         ResultCode.CLIENT_SIDE_TIMEOUT);
             }
         } finally {
-            connection.close();
             listener.close();
             factory.close();
         }
