@@ -16,10 +16,13 @@
 package org.opends.server.discovery;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.server.config.server.ServiceDiscoveryMechanismCfg;
 import org.opends.server.core.ServerContext;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Maintains a set of {@code Partition}s keeping it up to date according to a specific
@@ -76,4 +79,15 @@ public interface ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCf
    * @param listener the listener to de-register
    */
   void deregisterChangeListener(ServiceDiscoveryChangeListener listener);
+
+  /**
+   * Returns the list of partitions.
+   * Each @see Partition will only contain servers that are known to expose the provided list of base DNs.
+   * An empty list of base DNs will result in all partitions and all servers being returned.
+   * In other words, an empty list of base DNs implies that all servers contain exactly the same base DNs.
+   *
+   * @param baseDNs the baseDNs for which to retrieve the partitions
+   * @return the partitions that can serve the provided base DNs
+   */
+  Set<Partition> getPartitions(Collection<DN> baseDNs);
 }
