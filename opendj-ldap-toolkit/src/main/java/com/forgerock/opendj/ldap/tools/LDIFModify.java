@@ -145,9 +145,10 @@ public final class LDIFModify extends ToolConsoleApplication {
         final List<String> trailingArguments = argParser.getTrailingArguments();
         LDIFEntryReader sourceReader = null;
         LDIFChangeRecordReader changesReader = null;
-        LDIFEntryWriter outputWriter = null;
         try (InputStream sourceInputStream = getLDIFToolInputStream(this, trailingArguments.get(0));
-                OutputStream outputStream = getLDIFToolOutputStream(this, outputFilename)) {
+             OutputStream outputStream = getLDIFToolOutputStream(this, outputFilename);
+             LDIFEntryWriter outputWriter = new LDIFEntryWriter(outputStream)) {
+            outputWriter.setWrapColumn(computeWrapColumn(wrapColumn));
             final int nbTrailingArgs = trailingArguments.size();
             final boolean readChangesFromStdin = nbTrailingArgs == 1
                     || (nbTrailingArgs == 2 && USE_SYSTEM_STREAM_TOKEN.equals(trailingArguments.get(1)));
@@ -162,7 +163,6 @@ public final class LDIFModify extends ToolConsoleApplication {
                 changesReader = new LDIFChangeRecordReader(
                         Utils.getLinesFromFiles(trailingArguments.subList(1, nbTrailingArgs)));
             }
-            outputWriter = new LDIFEntryWriter(outputStream).setWrapColumn(computeWrapColumn(wrapColumn));
 
             final RejectedChangeRecordListener listener = new RejectedChangeRecordListener() {
                 @Override
@@ -248,7 +248,7 @@ public final class LDIFModify extends ToolConsoleApplication {
         } catch (final ArgumentException ae) {
             throw newToolParamException(ae, ae.getMessageObject());
         } finally {
-            closeSilently(sourceReader, changesReader, outputWriter);
+            closeSilently(sourceReader, changesReader);
         }
 
         return ResultCode.SUCCESS.intValue();
