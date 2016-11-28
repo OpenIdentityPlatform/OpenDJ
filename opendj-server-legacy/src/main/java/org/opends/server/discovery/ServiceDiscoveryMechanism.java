@@ -81,12 +81,15 @@ public interface ServiceDiscoveryMechanism<C extends ServiceDiscoveryMechanismCf
   void deregisterChangeListener(ServiceDiscoveryChangeListener listener);
 
   /**
-   * Returns the list of partitions.
-   * Each @see Partition will only contain servers that are known to expose the provided list of base DNs.
-   * An empty list of base DNs will result in all partitions and all servers being returned.
-   * In other words, an empty list of base DNs implies that all servers contain exactly the same base DNs.
+   * Returns the partitions.
+   * <p>
+   * Each {@link Partition} will only contain servers that are known to expose the provided list of
+   * base DNs. An empty list of base DNs will result in all partitions and all servers being
+   * returned. In other words, an empty list of base DNs implies that all servers contain exactly
+   * the same base DNs.
    *
-   * @param baseDNs the baseDNs for which to retrieve the partitions
+   * @param baseDNs
+   *          the baseDNs for which to retrieve the partitions
    * @return the partitions that can serve the provided base DNs
    */
   Set<Partition> getPartitions(Collection<DN> baseDNs);

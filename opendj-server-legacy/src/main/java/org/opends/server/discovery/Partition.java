@@ -15,8 +15,6 @@
  */
 package org.opends.server.discovery;
 
-import static org.forgerock.util.Utils.*;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -27,17 +25,19 @@ import org.forgerock.util.Reject;
 import org.opends.server.types.HostPort;
 
 /**
- * Named set of servers defining a distributed service.
- *
- * A distribution load balancer expects data to be split up into shards referred to as "partitions",
- * each partition exposing the same set of naming contexts, but only a sub-set of the data.
- * For example, a distribution might have two partitions, the first containing all users whose name begins with A-M,
- * and the second containing all users whose name begins with N-Z.
- * Both partitions have the same naming contexts, e.g:
- *              dc=example,dc=com - unsharded parent naming context replicated across all servers.
- *                                  Contains data common to all partitions, such as ACIs, groups, etc
- *    ou=people,dc=example,dc=com - sharded naming context whose content (the users) is split up according
- *                                  to some function, e.g. consistent hashing.
+ * Named set of servers defining a distributed service. A distribution load balancer expects data to
+ * be split up into shards referred to as "partitions", each partition exposing the same set of
+ * naming contexts, but only a sub-set of the data. For example, a distribution might have two
+ * partitions, the first containing all users whose name begins with A-M, and the second containing
+ * all users whose name begins with N-Z. Both partitions have the same naming contexts, e.g:
+ * <dl>
+ * <dt>dc=example,dc=com
+ * <dd>unsharded parent naming context replicated across all servers.<br>
+ * Contains data common to all partitions, such as ACIs, groups, etc.
+ * <dt>ou=people,dc=example,dc=com<
+ * <dd>sharded naming context whose content (the users) is split up according to some function, e.g.
+ * consistent hashing.
+ * </dl>
  *
  * @see ServiceDiscoveryMechanism#getPartitions(Collection)
  */
