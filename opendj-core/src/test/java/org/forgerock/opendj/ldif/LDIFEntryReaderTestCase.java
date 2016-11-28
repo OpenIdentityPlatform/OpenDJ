@@ -1380,8 +1380,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testReadEntryBase64Encoded() throws Exception {
-        // @formatter:off
-        final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+        try (LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+            // @formatter:off
             "version: 1",
             "dn: cn=Gern Jensen, ou=Product Testing, dc=airius, dc=com",
             "objectclass: top",
@@ -1396,10 +1396,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
             + "IGlzIGJhc2UtNjQtZW5jb2RlZCBiZWNhdXNlIGl0IGhhcyBhIGNvbnRyb2wgY2hhcmFjdG"
             + "VyIGluIGl0IChhIENSKS4NICBCeSB0aGUgd2F5LCB5b3Ugc2hvdWxkIHJlYWxseSBnZXQg"
             + "b3V0IG1vcmUu")
-        );
-        // @formatter:on
-
-        try {
+            // @formatter:on
+        )) {
             assertThat(reader.hasNext());
             final Entry entry = reader.readEntry();
             assertThat(entry).isNotNull();
@@ -1415,8 +1413,6 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
                                     + "b3V0IG1vcmUu");
             assertThat(entry.getAttribute("description").firstValueAsString()).contains(
                     "What a careful reader you are!");
-        } finally {
-            reader.close();
         }
     }
 
@@ -1427,8 +1423,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testReadEntryBase64EncodedDN() throws Exception {
-        // @formatter:off
-        final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+        try (LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+            // @formatter:off
             "dn::  dWlkPXJvZ2FzYXdhcmEsb3U95Za25qWt6YOoLG89QWlyaXVz", // adding space before ok, after : ko
             "# dn:: uid=<uid>,ou=<JapaneseOU>,o=Airius",
             "objectclass: top",
@@ -1438,15 +1434,12 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
             "cn: Gern O Jensen",
             "sn: Jensen",
             "uid: gernj"
-        ));
-        // @formatter:on
-        try {
+            // @formatter:on
+        ))) {
             assertThat(reader.hasNext());
             final Entry entry = reader.readEntry();
             assertThat(reader.hasNext()).isFalse();
             assertThat(entry.getName().toString()).isEqualTo("uid=rogasawara,ou=営業部,o=Airius");
-        } finally {
-            reader.close();
         }
     }
 
@@ -1458,9 +1451,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = DecodeException.class)
     public void testReadEntryBase64EncodedDNMalformedThrowsError() throws Exception {
-
-        // @formatter:off
-        final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+        try (LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
+            // @formatter:off
             "dn:: dWlkPXJvZ2FzYXdh!!!OOOpppps!!!25qWt6YOoLG89QWlyaXVz",
             "# dn:: uid=<uid>,ou=<JapaneseOU>,o=Airius",
             "objectclass: top",
@@ -1470,13 +1462,9 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
             "cn: Gern O Jensen",
             "sn: Jensen",
             "uid: gernj"
-        ));
-        // @formatter:on
-
-        try {
+            // @formatter:on
+        ))) {
             reader.readEntry();
-        } finally {
-            reader.close();
         }
     }
 
@@ -1487,13 +1475,9 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public void testLDIFEntryReaderEntryAsArray() throws Exception {
-        final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(getStandardEntry()));
-
-        try {
+        try (LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(getStandardEntry()))) {
             assertThat(reader.hasNext());
             assertThat(reader.readEntry().getAttributeCount()).isEqualTo(nbStandardEntryAttributes);
-        } finally {
-            reader.close();
         }
     }
 
