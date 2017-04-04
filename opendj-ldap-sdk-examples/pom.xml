@@ -27,7 +27,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>opendj-project</artifactId>
-    <groupId>org.forgerock.opendj</groupId>
+    <groupId>org.forgerock.ce.opendj</groupId>
     <version>2.6.11</version>
   </parent>
   <artifactId>opendj-ldap-sdk-examples</artifactId>
@@ -35,7 +35,7 @@
   <description>Examples illustrating usage of the OpenDJ LDAP SDK</description>
   <dependencies>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.forgerock.ce.opendj</groupId>
       <artifactId>opendj-ldap-sdk</artifactId>
       <version>2.6.11</version>
       <scope>compile</scope>

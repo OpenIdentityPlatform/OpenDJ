@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>opendj-project</artifactId>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.forgerock.ce.opendj</groupId>
         <version>2.5.0-SNAPSHOT</version>
     </parent>
     <artifactId>opendj-virtual</artifactId>
@@ -34,28 +34,28 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.forgerock.opendj</groupId>
+            <groupId>org.forgerock.ce.opendj</groupId>
             <artifactId>opendj-ldap-sdk</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.forgerock.ce.commons</groupId>
             <artifactId>json-fluent</artifactId>
             <version>${forgerockRestVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.forgerock.ce.commons</groupId>
             <artifactId>json-resource</artifactId>
             <version>${forgerockRestVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.forgerock</groupId>
+            <groupId>org.forgerock.ce</groupId>
             <artifactId>forgerock-build-tools</artifactId>
             <version>${forgerockBuildToolsVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.forgerock.ce.commons</groupId>
             <artifactId>json-resource-servlet</artifactId>
             <version>${forgerockRestVersion}</version>
             <scope>test</scope>
@@ -82,7 +82,7 @@
         <plugins>
       <!--
       <plugin>
-        <groupId>org.forgerock.commons</groupId>
+        <groupId>org.forgerock.ce.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
         <executions>
           <execution>

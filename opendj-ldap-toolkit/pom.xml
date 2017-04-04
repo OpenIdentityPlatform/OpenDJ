@@ -27,7 +27,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>opendj-project</artifactId>
-    <groupId>org.forgerock.opendj</groupId>
+    <groupId>org.forgerock.ce.opendj</groupId>
     <version>2.6.11</version>
   </parent>
   <artifactId>opendj-ldap-toolkit</artifactId>
@@ -38,26 +38,26 @@
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.forgerock.ce.opendj</groupId>
       <artifactId>opendj-ldap-sdk</artifactId>
       <version>2.6.11</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock</groupId>
+      <groupId>org.forgerock.ce</groupId>
       <artifactId>forgerock-build-tools</artifactId>
       <version>${forgerockBuildToolsVersion}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.forgerock.ce.commons</groupId>
       <artifactId>i18n-core</artifactId>
     </dependency>
   </dependencies>
   <build>
     <plugins>
       <plugin>
-        <groupId>org.forgerock.commons</groupId>
+        <groupId>org.forgerock.ce.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
         <executions>
           <execution>
