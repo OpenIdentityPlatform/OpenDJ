@@ -45,7 +45,7 @@
             scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs
         </site.distribution.url>
 
-        <forgerock-build-tools.version>1.0.2</forgerock-build-tools.version>
+        <forgerock-build-tools.version>1.0.3</forgerock-build-tools.version>
         <forgerock-doc-plugin.version>3.2.2-SNAPSHOT</forgerock-doc-plugin.version>
         <freemarker.version>2.3.24-incubating</freemarker.version>
         <grizzly-framework.version>2.3.28</grizzly-framework.version>
@@ -64,7 +64,7 @@
         <opendj-copyright-maven-plugin.version>1.0.1</opendj-copyright-maven-plugin.version>
 
         <!--  ForgeRock build tools and Checkstyle versions (to avoid many checkstyle errors with ForgeRock Parent 2.0.10) -->
-        <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
+        <forgerockBuildToolsVersion>1.0.3</forgerockBuildToolsVersion>
         <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
         <checkstyleVersion>5.5</checkstyleVersion>
     </properties>
@@ -217,6 +217,7 @@
     </dependencies>
 
     <modules>
+    		<module>forgerock-parent</module>
         <module>opendj-bom</module>
 
         <module>opendj-core</module>
@@ -242,7 +243,7 @@
 
     <build>
         <plugins>
-            <plugin>
+             <plugin>
                 <groupId>org.forgerock.maven.plugins</groupId>
                 <artifactId>javadoc-updater-maven-plugin</artifactId>
                 <version>1.0.0</version>

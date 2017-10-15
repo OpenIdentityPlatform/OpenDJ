@@ -20,8 +20,8 @@
     <parent>
         <groupId>org.forgerock</groupId>
         <artifactId>forgerock-parent</artifactId>
-        <version>2.0.10</version>
-        <relativePath />
+        <version>2.0.6</version>
+        <relativePath>../forgerock-parent</relativePath>
     </parent>
 
     <groupId>org.forgerock.opendj</groupId>
@@ -45,7 +45,7 @@
             <dependency>
                 <groupId>org.forgerock.commons</groupId>
                 <artifactId>commons-bom</artifactId>
-                <version>21.0.0-alpha-17</version>
+                <version>21.0.0-SNAPSHOT</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -99,22 +99,22 @@
     </dependencyManagement>
 
     <repositories>
-        <repository>
-            <id>forgerock-staging-repository</id>
-            <name>ForgeRock Release Repository</name>
-            <url>http://maven.forgerock.org/repo/releases</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>forgerock-snapshots-repository</id>
-            <name>ForgeRock Snapshot Repository</name>
-            <url>http://maven.forgerock.org/repo/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
+<!--         <repository> -->
+<!--             <id>forgerock-staging-repository</id> -->
+<!--             <name>ForgeRock Release Repository</name> -->
+<!--             <url>http://maven.forgerock.org/repo/releases</url> -->
+<!--             <snapshots> -->
+<!--                 <enabled>false</enabled> -->
+<!--             </snapshots> -->
+<!--         </repository> -->
+<!--         <repository> -->
+<!--             <id>forgerock-snapshots-repository</id> -->
+<!--             <name>ForgeRock Snapshot Repository</name> -->
+<!--             <url>http://maven.forgerock.org/repo/snapshots</url> -->
+<!--             <releases> -->
+<!--                 <enabled>false</enabled> -->
+<!--             </releases> -->
+<!--         </repository> -->
         <repository>
             <id>jvnet-nexus-snapshots</id>
             <url>https://maven.java.net/content/repositories/snapshots</url>
