@@ -20,5 +20,7 @@ notifications:
 cache:
   directories:
   - $HOME/.m2
+before_install:
+  -  mvn -q -DskipTests install -f forgerock-parent
 script:
-  - mvn -q clean install
+  -  mvn -q install

@@ -5,6 +5,7 @@
 
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
+mvn clean install -f forgerock-parent
 mvn clean install -f OpenDJ
 ```
 
