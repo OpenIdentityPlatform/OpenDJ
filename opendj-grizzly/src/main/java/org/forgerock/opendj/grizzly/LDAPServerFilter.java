@@ -86,7 +86,7 @@ import io.reactivex.internal.util.BackpressureHelper;
  * Grizzly filter implementation for decoding LDAP requests and handling server side logic for SSL and SASL operations
  * over LDAP.
  */
-final class LDAPServerFilter extends BaseFilter {
+public final class LDAPServerFilter extends BaseFilter {
     private final Function<LDAPClientContext,
                            ReactiveHandler<LDAPClientContext, LdapRequestEnvelope, Stream<Response>>,
                            LdapException> connectionHandlerFactory;
