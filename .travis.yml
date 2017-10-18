@@ -17,10 +17,7 @@ branches:
 notifications:
  email:
   - support@openam.org.ru
-cache:
-  directories:
-  - $HOME/.m2
 before_install:
-  -  mvn -q -DskipTests install -f forgerock-parent
+  -  mvn -q -B -DskipTests clean install -f forgerock-parent
 script:
-  -  mvn -q install
+  -  mvn -q -B clean install
