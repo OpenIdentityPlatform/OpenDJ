@@ -7,10 +7,8 @@ matrix:
           jdk: openjdk8
         - os: osx
           osx_image: xcode9.1
-before_install:
- - date -u
- - uname -a
- - env | sort
+    allow_failures:
+        - os: osx
 branches:
  only:
    - master
@@ -18,6 +16,9 @@ notifications:
  email:
   - support@openam.org.ru
 before_install:
-  -  mvn -q -B -DskipTests clean install -f forgerock-parent
+ - date -u
+ - uname -a
+ - env | sort
+ - mvn -q -B -DskipTests clean install -f forgerock-parent
 script:
-  -  mvn -q -B clean install
+ - mvn -q -B clean install
