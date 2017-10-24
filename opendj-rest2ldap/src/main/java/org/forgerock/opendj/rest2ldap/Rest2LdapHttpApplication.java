@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -371,7 +372,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
                                                  rfc7662.get("clientId").required().asString(),
                                                  rfc7662.get("clientSecret").required().asString());
         } catch (final URISyntaxException e) {
-            throw new IllegalArgumentException(ERR_CONIFG_OAUTH2_INVALID_INTROSPECT_URL.get(
+            throw new IllegalArgumentException(ERR_CONFIG_OAUTH2_INVALID_INTROSPECT_URL.get(
                     introspectionEndPointURL, e.getLocalizedMessage()).toString(), e);
         }
     }
@@ -394,8 +395,8 @@ public class Rest2LdapHttpApplication implements HttpApplication {
             final Duration expiration = expirationJson.as(duration());
             if (expiration.isZero() || expiration.isUnlimited()) {
                 throw newJsonValueException(expirationJson,
-                                            expiration.isZero() ? ERR_CONIFG_OAUTH2_CACHE_ZERO_DURATION.get()
-                                                                : ERR_CONIFG_OAUTH2_CACHE_UNLIMITED_DURATION.get());
+                                            expiration.isZero() ? ERR_CONFIG_OAUTH2_CACHE_ZERO_DURATION.get()
+                                                                : ERR_CONFIG_OAUTH2_CACHE_UNLIMITED_DURATION.get());
             }
             return expiration;
         } catch (final Exception e) {
