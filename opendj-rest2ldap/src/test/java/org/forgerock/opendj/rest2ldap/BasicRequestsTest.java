@@ -93,7 +93,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     private static final QueryFilter<JsonPointer> NO_FILTER = QueryFilter.alwaysTrue();
 
     @Test
-    public void testQueryAll() throws Exception {
+    public void testQueryAllWithNoSubtree() throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new LinkedList<>();
         final QueryResponse result =
@@ -102,10 +102,25 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                 newQueryRequest("").setQueryFilter(NO_FILTER),
                 resources);
 
-        assertThat(resources).hasSize(5);
+        assertThat(resources).hasSize(7);
         assertThat(result.getPagedResultsCookie()).isNull();
         assertThat(result.getTotalPagedResults()).isEqualTo(-1);
     }
+
+//    @Test
+//    public void testQueryAllWithSubtree() throws Exception {
+//        final Connection connection = newConnection();
+//        final List<ResourceResponse> resources = new LinkedList<>();
+//        final QueryResponse result =
+//            connection.query(
+//                newAuthConnectionContext(),
+//                newQueryRequest("").setQueryFilter(NO_FILTER),
+//                resources);
+//
+//        assertThat(resources).hasSize(7);
+//        assertThat(result.getPagedResultsCookie()).isNull();
+//        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+//    }
 
     @Test
     public void testQueryNone() throws Exception {
@@ -128,12 +143,22 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         QueryResponse result =
             connection.query(
                 newAuthConnectionContext(),
-                newQueryRequest("").setQueryFilter(NO_FILTER).setPageSize(2), resources);
+                newQueryRequest("")
+                    .setQueryFilter(NO_FILTER)
+                    .setPageSize(3),
+                resources);
 
         assertThat(result.getPagedResultsCookie()).isNotNull();
-        assertThat(resources).hasSize(2);
-        assertThat(resources.get(0).getId()).isEqualTo("test1");
-        assertThat(resources.get(1).getId()).isEqualTo("test2");
+        assertThat(resources).hasSize(3);
+
+        assertThat(resources.get(0).getContent().get("_ou").isNotNull());
+        assertThat(resources.get(0).getContent().get("_ou").asString()).isEqualTo("level1");
+
+        assertThat(resources.get(1).getContent().get("_ou").isNull());
+        assertThat(resources.get(1).getId()).isEqualTo("test1");
+
+        assertThat(resources.get(2).getContent().get("_ou").isNull());
+        assertThat(resources.get(2).getId()).isEqualTo("test2");
 
         String cookie = result.getPagedResultsCookie();
 
@@ -145,14 +170,21 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                 newAuthConnectionContext(),
                 newQueryRequest("")
                     .setQueryFilter(NO_FILTER)
-                    .setPageSize(2)
+                    .setPageSize(3)
                     .setPagedResultsCookie(cookie),
                 resources);
 
         assertThat(result.getPagedResultsCookie()).isNotNull();
-        assertThat(resources).hasSize(2);
+        assertThat(resources).hasSize(3);
+
+        assertThat(resources.get(0).getContent().get("_ou").isNull());
         assertThat(resources.get(0).getId()).isEqualTo("test3");
+
+        assertThat(resources.get(1).getContent().get("_ou").isNull());
         assertThat(resources.get(1).getId()).isEqualTo("test4");
+
+        assertThat(resources.get(2).getContent().get("_ou").isNull());
+        assertThat(resources.get(2).getId()).isEqualTo("test5");
 
         cookie = result.getPagedResultsCookie();
 
@@ -164,13 +196,15 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                 newAuthConnectionContext(),
                 newQueryRequest("")
                     .setQueryFilter(NO_FILTER)
-                    .setPageSize(2)
+                    .setPageSize(3)
                     .setPagedResultsCookie(cookie),
                 resources);
 
         assertThat(result.getPagedResultsCookie()).isNull();
         assertThat(resources).hasSize(1);
-        assertThat(resources.get(0).getId()).isEqualTo("test5");
+
+        assertThat(resources.get(0).getContent().get("_ou").isNull());
+        assertThat(resources.get(0).getId()).isEqualTo("test6");
     }
 
     @Test
@@ -189,8 +223,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
         assertThat(result.getPagedResultsCookie()).isNotNull();
         assertThat(resources).hasSize(2);
-        assertThat(resources.get(0).getId()).isEqualTo("test3");
-        assertThat(resources.get(1).getId()).isEqualTo("test4");
+        assertThat(resources.get(0).getId()).isEqualTo("test2");
+        assertThat(resources.get(1).getId()).isEqualTo("test3");
     }
 
     @Test(expectedExceptions = NotFoundException.class)
@@ -775,6 +809,9 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                         "_id",
                         simple("uid").isRequired(true).writability(CREATE_ONLY))
                     .property(
+                        "_ou",
+                        simple("ou").isRequired(false).writability(CREATE_ONLY))
+                    .property(
                         "name",
                         object()
                           .property("displayName", simple("cn").isRequired(true))
@@ -799,18 +836,24 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
         assertThat(actual.getId()).isEqualTo(expectedResource.getId());
         assertThat(actual.getRevision()).isEqualTo(expectedResource.getRevision());
-        assertThat(actual.getContent().getObject()).isEqualTo(expectedResource.getContent().getObject());
+
+        assertThat(actual.getContent().getObject())
+            .isEqualTo(expectedResource.getContent().getObject());
     }
 
     private AuthenticatedConnectionContext newAuthConnectionContext() throws IOException {
         return newAuthConnectionContext(new ArrayList<Request>());
     }
 
-    private AuthenticatedConnectionContext newAuthConnectionContext(List<Request> requests) throws IOException {
-        return new AuthenticatedConnectionContext(ctx(), getConnectionFactory(requests).getConnection());
+    private AuthenticatedConnectionContext newAuthConnectionContext(List<Request> requests)
+    throws IOException {
+        return new AuthenticatedConnectionContext(
+            ctx(),
+            getConnectionFactory(requests).getConnection());
     }
 
-    private ConnectionFactory getConnectionFactory(final List<Request> requests) throws IOException {
+    private ConnectionFactory getConnectionFactory(final List<Request> requests)
+    throws IOException {
         // @formatter:off
         final MemoryBackend backend =
                 new MemoryBackend(new LDIFEntryReader(
@@ -862,7 +905,46 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                         "userpassword: password",
                         "cn: test user 5",
                         "sn: user 5",
-                        "etag: 55555"
+                        "etag: 55555",
+                        "",
+                        "dn: uid=test6,dc=test",
+                        "objectClass: top",
+                        "objectClass: person",
+                        "uid: test6",
+                        "userpassword: password",
+                        "cn: test user 6",
+                        "sn: user 6",
+                        "etag: 66666",
+                        "",
+                        "dn: ou=level1,dc=test",
+                        "objectClass: top",
+                        "objectClass: organizationalUnit",
+                        "ou: level1",
+                        "etag: 77777",
+                        "",
+                        "dn: uid=sub1,ou=level1,dc=test",
+                        "objectClass: top",
+                        "objectClass: person",
+                        "uid: sub1",
+                        "userpassword: password",
+                        "cn: test user level 1",
+                        "sn: user 7",
+                        "etag: 88888",
+                        "",
+                        "dn: ou=level2,ou=level1,dc=test",
+                        "objectClass: top",
+                        "objectClass: organizationalUnit",
+                        "ou: level2",
+                        "etag: 99999",
+                        "",
+                        "dn: uid=sub2,ou=level2,ou=level1,dc=test",
+                        "objectClass: top",
+                        "objectClass: person",
+                        "uid: sub2",
+                        "userpassword: password",
+                        "cn: test user level 2",
+                        "sn: user 8",
+                        "etag: 86753"
                 ));
         // @formatter:on
 
@@ -938,10 +1020,15 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
             @Override
             public void handleSearch(RequestContext requestContext, SearchRequest request,
-                IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler,
+                IntermediateResponseHandler intermediateResponseHandler,
+                SearchResultHandler entryHandler,
                 LdapResultHandler<Result> resultHandler) {
                 requests.add(request);
-                handler.handleSearch(requestContext, request, intermediateResponseHandler, entryHandler,
+                handler.handleSearch(
+                    requestContext,
+                    request,
+                    intermediateResponseHandler,
+                    entryHandler,
                     resultHandler);
             }
 
