@@ -21,6 +21,18 @@
                         "dnAttribute": "uid"
                     }
                 },
+                // This resource is the same as "users", but read-only.
+                // Users cannot be created, modified, or deleted through this sub-resource.
+                "read-only-users": {
+                    "type": "collection",
+                    "dnTemplate": "ou=people,dc=example,dc=com",
+                    "resource": "frapi:opendj:rest2ldap:user:1.0",
+                    "namingStrategy": {
+                        "type": "clientDnNaming",
+                        "dnAttribute": "uid"
+                    },
+                    "isReadOnly": true
+                },
                 "groups": {
                     "type": "collection",
                     "dnTemplate": "ou=groups,dc=example,dc=com",

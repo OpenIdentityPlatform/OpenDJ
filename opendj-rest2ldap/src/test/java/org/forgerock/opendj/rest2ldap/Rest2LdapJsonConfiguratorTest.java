@@ -23,6 +23,7 @@ import static org.forgerock.opendj.rest2ldap.Rest2Ldap.*;
 import static org.forgerock.util.Options.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,6 +31,9 @@ import java.util.Collections;
 
 import org.forgerock.api.CrestApiProducer;
 import org.forgerock.api.models.ApiDescription;
+import org.forgerock.api.models.Items;
+import org.forgerock.api.models.Resource;
+import org.forgerock.api.models.Services;
 import org.forgerock.http.routing.UriRouterContext;
 import org.forgerock.http.util.Json;
 import org.forgerock.json.JsonValue;
@@ -53,13 +57,20 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
     private static final String ID = "frapi:opendj:rest2ldap";
     private static final String VERSION = "4.0.0";
+
+    private static final Path SERVLET_MODULE_PATH =
+        getPathToMavenModule("opendj-rest2ldap-servlet");
+
     private static final Path CONFIG_DIR = Paths.get(
-        "../opendj-rest2ldap-servlet/src/main/webapp/WEB-INF/classes/rest2ldap");
+        SERVLET_MODULE_PATH.toString(), "src", "main", "webapp", "WEB-INF", "classes", "rest2ldap");
 
     @Test
     public void testConfigureEndpointsWithApiDescription() throws Exception {
-        final DescribableRequestHandler handler = configureEndpoints(CONFIG_DIR.resolve("endpoints").toFile());
+        final DescribableRequestHandler handler =
+            createDescribableHandler(CONFIG_DIR.resolve("endpoints").toFile());
+
         final ApiDescription api = requestApi(handler, "api/users/bjensen");
+
         assertThat(api).isNotNull();
 
         // Ensure we can can pretty print and parse back the generated api description
@@ -67,44 +78,115 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
 
         assertThat(api.getId()).isEqualTo(ID);
         assertThat(api.getVersion()).isEqualTo(VERSION);
-        assertThat(api.getPaths().getNames()).containsOnly("/api/users", "/api/groups");
+
+        assertThat(api.getPaths().getNames()).containsOnly(
+            "/api/users",
+            "/api/read-only-users",
+            "/api/groups");
+
         assertThat(api.getDefinitions().getNames()).containsOnly(
             "frapi:opendj:rest2ldap:object:1.0",
             "frapi:opendj:rest2ldap:group:1.0",
             "frapi:opendj:rest2ldap:user:1.0",
             "frapi:opendj:rest2ldap:posixUser:1.0");
+
+        final Services services = api.getServices();
+
+        assertThat(services.getNames()).containsOnly(
+            "frapi:opendj:rest2ldap:user:1.0:read-write",
+            "frapi:opendj:rest2ldap:user:1.0:read-only",
+            "frapi:opendj:rest2ldap:group:1.0:read-write");
+
+        final String[] readOnlyServices = new String[] {
+            "frapi:opendj:rest2ldap:user:1.0:read-only"
+        };
+
+        for (String serviceName : readOnlyServices) {
+            final Resource service = services.get(serviceName);
+            final Items items = service.getItems();
+
+            assertThat(service.getCreate()).isNull();
+            assertThat(items.getCreate()).isNull();
+            assertThat(items.getUpdate()).isNull();
+            assertThat(items.getDelete()).isNull();
+            assertThat(items.getPatch()).isNull();
+
+            assertThat(items.getRead()).isNotNull();
+        }
+
+        final String[] writableServices = new String[] {
+            "frapi:opendj:rest2ldap:user:1.0:read-write",
+            "frapi:opendj:rest2ldap:group:1.0:read-write"
+        };
+
+        for (String serviceName : writableServices) {
+            final Resource service = services.get(serviceName);
+            final Items items = service.getItems();
+
+            assertThat(service.getCreate()).isNotNull();
+            assertThat(items.getCreate()).isNotNull();
+            assertThat(items.getUpdate()).isNotNull();
+            assertThat(items.getDelete()).isNotNull();
+            assertThat(items.getPatch()).isNotNull();
+            assertThat(items.getRead()).isNotNull();
+        }
     }
 
-    private DescribableRequestHandler configureEndpoints(final File endpointsDir) throws Exception {
-        final RequestHandler rh = Rest2LdapJsonConfigurator.configureEndpoints(endpointsDir, Options.defaultOptions());
-        DescribableRequestHandler handler = new DescribableRequestHandler(rh);
+    private RequestHandler createRequestHandler(final File endpointsDir) throws IOException {
+        return Rest2LdapJsonConfigurator.configureEndpoints(endpointsDir, Options.defaultOptions());
+    }
+
+    private DescribableRequestHandler createDescribableHandler(final File endpointsDir)
+    throws Exception {
+        final RequestHandler rh = createRequestHandler(endpointsDir);
+        final DescribableRequestHandler handler = new DescribableRequestHandler(rh);
+
         handler.api(new CrestApiProducer(ID, VERSION));
+
         return handler;
     }
 
-    private ApiDescription requestApi(final DescribableRequestHandler handler, String uriPath) {
-        Context context = newRouterContext(uriPath);
-        Request request = newApiRequest(resourcePath(uriPath));
+    private ApiDescription requestApi(final DescribableRequestHandler handler,
+                                      final String uriPath) {
+        final Context context = newRouterContext(uriPath);
+        final Request request = newApiRequest(resourcePath(uriPath));
+
         return handler.handleApiRequest(context, request);
     }
 
     private Context newRouterContext(final String uriPath) {
         Context ctx = new RootContext();
+
         ctx = new Rest2LdapContext(ctx, rest2Ldap(defaultOptions()));
         ctx = new UriRouterContext(ctx, null, uriPath, Collections.<String, String> emptyMap());
+
         return ctx;
     }
 
     private String prettyPrint(Object o) throws Exception {
         final ObjectMapper objectMapper =
-            new ObjectMapper().registerModules(new Json.LocalizableStringModule(), new Json.JsonValueModule());
+            new ObjectMapper().registerModules(
+                new Json.LocalizableStringModule(),
+                new Json.JsonValueModule());
+
         final ObjectWriter writer = objectMapper.writer().withDefaultPrettyPrinter();
+
         return writer.writeValueAsString(o);
     }
 
-    static JsonValue parseJson(final String json) throws Exception {
+    private static JsonValue parseJson(final String json) throws Exception {
         try (StringReader r = new StringReader(json)) {
             return new JsonValue(readJsonLenient(r));
         }
+    }
+
+    private static Path getPathToClass(Class<?> clazz) {
+        return Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().getPath());
+    }
+
+    private static Path getPathToMavenModule(String moduleName) {
+        final Path testClassPath = getPathToClass(Rest2LdapJsonConfiguratorTest.class);
+
+        return Paths.get(testClassPath.toString(), "..", "..", "..", moduleName);
     }
 }
