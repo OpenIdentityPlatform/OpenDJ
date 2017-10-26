@@ -74,9 +74,11 @@ public final class SubResourceCollection extends SubResource {
     private final Attribute glueObjectClasses = new LinkedAttribute("objectClass");
 
     private NamingStrategy namingStrategy;
+    private boolean flattenSubtree;
 
     SubResourceCollection(final String resourceId) {
         super(resourceId);
+
         useClientDnNaming("uid");
     }
 
@@ -213,12 +215,36 @@ public final class SubResourceCollection extends SubResource {
     /**
      * Indicates whether this sub-resource collection only supports read and query operations.
      *
-     * @param readOnly
+     * @param isReadOnly
      *         {@code true} if this sub-resource collection is read-only.
      * @return A reference to this object.
      */
-    public SubResourceCollection isReadOnly(final boolean readOnly) {
-        isReadOnly = readOnly;
+    public SubResourceCollection isReadOnly(final boolean isReadOnly) {
+        this.isReadOnly = isReadOnly;
+        return this;
+    }
+
+    /**
+     * Controls whether or not LDAP entries in the hierarchy below the root entry of the resource
+     * collection are included in the list of resources (essentially, flattening the hierarchy
+     * into one collection of resources).
+     *
+     * This can only be used if the resource is read-only. The default is not to flatten, which
+     * preserves the legacy behavior of Rest2LDAP.
+     *
+     * @param  flattenSubtree
+     *         Whether or not to flatten the hierarchy by searching the entire subtree.
+     * @return A reference to this object.
+     * @throws IllegalArgumentException
+     *         If the configuration is invalid.
+     */
+    public SubResourceCollection flattenSubtree(boolean flattenSubtree) {
+        if (flattenSubtree && !this.isReadOnly) {
+            throw new LocalizedIllegalArgumentException(
+                ERR_CONFIG_MUST_BE_READ_ONLY_TO_FLATTEN_SUBTREE.get());
+        }
+
+        this.flattenSubtree = flattenSubtree;
         return this;
     }
 
@@ -256,11 +282,13 @@ public final class SubResourceCollection extends SubResource {
     }
 
     private SubResourceImpl collection(final Context context) {
-        return new SubResourceImpl(rest2Ldap,
-                                   dnFrom(context),
-                                   dnTemplateString.isEmpty() ? null : glueObjectClasses,
-                                   namingStrategy,
-                                   resource);
+        return new SubResourceImpl(
+            rest2Ldap,
+            dnFrom(context),
+            dnTemplateString.isEmpty() ? null : glueObjectClasses,
+            namingStrategy,
+            resource,
+            this.flattenSubtree);
     }
 
     private String idFrom(final Context context) {

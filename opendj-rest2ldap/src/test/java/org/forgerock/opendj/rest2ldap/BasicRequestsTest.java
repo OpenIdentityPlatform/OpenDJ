@@ -93,7 +93,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     private static final QueryFilter<JsonPointer> NO_FILTER = QueryFilter.alwaysTrue();
 
     @Test
-    public void testQueryAllWithNoSubtree() throws Exception {
+    public void testQueryAllWithNoSubtreeFlattening() throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new LinkedList<>();
         final QueryResponse result =
@@ -105,29 +105,92 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(resources).hasSize(7);
         assertThat(result.getPagedResultsCookie()).isNull();
         assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+
+        assertThat(resources.get(0).getContent().get("_ou").isNotNull());
+        assertThat(resources.get(0).getContent().get("_ou").asString()).isEqualTo("level1");
+
+        assertThat(resources.get(1).getContent().get("_ou").isNull());
+        assertThat(resources.get(1).getId()).isEqualTo("test1");
+
+        assertThat(resources.get(2).getContent().get("_ou").isNull());
+        assertThat(resources.get(2).getId()).isEqualTo("test2");
+
+        assertThat(resources.get(3).getContent().get("_ou").isNull());
+        assertThat(resources.get(3).getId()).isEqualTo("test3");
+
+        assertThat(resources.get(4).getContent().get("_ou").isNull());
+        assertThat(resources.get(4).getId()).isEqualTo("test4");
+
+        assertThat(resources.get(5).getContent().get("_ou").isNull());
+        assertThat(resources.get(5).getId()).isEqualTo("test5");
+
+        assertThat(resources.get(6).getContent().get("_ou").isNull());
+        assertThat(resources.get(6).getId()).isEqualTo("test6");
     }
 
-//    @Test
-//    public void testQueryAllWithSubtree() throws Exception {
-//        final Connection connection = newConnection();
-//        final List<ResourceResponse> resources = new LinkedList<>();
-//        final QueryResponse result =
-//            connection.query(
-//                newAuthConnectionContext(),
-//                newQueryRequest("").setQueryFilter(NO_FILTER),
-//                resources);
-//
-//        assertThat(resources).hasSize(7);
-//        assertThat(result.getPagedResultsCookie()).isNull();
-//        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
-//    }
+    @Test
+    public void testQueryAllWithSubtreeFlattening() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("all-users").setQueryFilter(NO_FILTER),
+                resources);
+
+        assertThat(resources).hasSize(10);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+
+        assertThat(resources.get(0).getContent().get("_ou").isNotNull());
+        assertThat(resources.get(0).getContent().get("_ou").asString()).isEqualTo("level1");
+
+        assertThat(resources.get(1).getContent().get("_ou").isNotNull());
+        assertThat(resources.get(1).getContent().get("_ou").asString()).isEqualTo("level2");
+
+        assertThat(resources.get(2).getContent().get("_ou").isNull());
+        assertThat(resources.get(2).getId()).isEqualTo("sub2");
+
+        assertThat(resources.get(3).getContent().get("_ou").isNull());
+        assertThat(resources.get(3).getId()).isEqualTo("sub1");
+
+        assertThat(resources.get(4).getContent().get("_ou").isNull());
+        assertThat(resources.get(4).getId()).isEqualTo("test1");
+
+        assertThat(resources.get(5).getContent().get("_ou").isNull());
+        assertThat(resources.get(5).getId()).isEqualTo("test2");
+
+        assertThat(resources.get(6).getContent().get("_ou").isNull());
+        assertThat(resources.get(6).getId()).isEqualTo("test3");
+
+        assertThat(resources.get(7).getContent().get("_ou").isNull());
+        assertThat(resources.get(7).getId()).isEqualTo("test4");
+
+        assertThat(resources.get(8).getContent().get("_ou").isNull());
+        assertThat(resources.get(8).getId()).isEqualTo("test5");
+
+        assertThat(resources.get(9).getContent().get("_ou").isNull());
+        assertThat(resources.get(9).getId()).isEqualTo("test6");
+    }
 
     @Test
-    public void testQueryNone() throws Exception {
+    public void testQueryNoneWithNoSubtreeFlattening() throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new LinkedList<>();
         final QueryResponse result = connection.query(newAuthConnectionContext(),
                 newQueryRequest("").setQueryFilter(QueryFilter.<JsonPointer> alwaysFalse()), resources);
+
+        assertThat(resources).hasSize(0);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+    }
+
+    @Test
+    public void testQueryNoneWithSubtreeFlattening() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result = connection.query(newAuthConnectionContext(),
+          newQueryRequest("all-users").setQueryFilter(QueryFilter.<JsonPointer> alwaysFalse()), resources);
 
         assertThat(resources).hasSize(0);
         assertThat(result.getPagedResultsCookie()).isNull();
@@ -799,35 +862,46 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     private Rest2Ldap usersApi() throws IOException {
         return rest2Ldap(
             defaultOptions(),
-            resource("api").subResource(
-                collectionOf("user").dnTemplate("dc=test").useClientDnNaming("uid")),
-                resource("user").objectClasses("top", "person")
-                    .property(
-                        "schemas",
-                        constant(asList("urn:scim:schemas:core:1.0")))
-                    .property(
-                        "_id",
-                        simple("uid").isRequired(true).writability(CREATE_ONLY))
-                    .property(
-                        "_ou",
-                        simple("ou").isRequired(false).writability(CREATE_ONLY))
-                    .property(
-                        "name",
-                        object()
-                          .property("displayName", simple("cn").isRequired(true))
-                          .property("surname",     simple("sn").isRequired(true)))
-                    .property(
-                        "_rev",
-                        simple("etag").isRequired(true).writability(READ_ONLY))
-                    .property(
-                        "description",
-                        simple("description").isMultiValued(true))
-                    .property(
-                        "singleNumber",
-                        simple("singleNumber").decoder(byteStringToInteger()))
-                    .property(
-                        "multiNumber",
-                        simple("multiNumber").isMultiValued(true).decoder(byteStringToInteger()))
+            resource("api")
+                .subResource(
+                    collectionOf("user")
+                        .dnTemplate("dc=test")
+                        .useClientDnNaming("uid"))
+                .subResource(
+                    collectionOf("user")
+                        .urlTemplate("all-users")
+                        .dnTemplate("dc=test")
+                        .useClientDnNaming("uid")
+                        .isReadOnly(true)
+                        .flattenSubtree(true)),
+            resource("user")
+                .objectClasses("top", "person")
+                .property(
+                    "schemas",
+                    constant(asList("urn:scim:schemas:core:1.0")))
+                .property(
+                    "_id",
+                    simple("uid").isRequired(true).writability(CREATE_ONLY))
+                .property(
+                    "_ou",
+                    simple("ou").isRequired(false).writability(CREATE_ONLY))
+                .property(
+                    "name",
+                    object()
+                      .property("displayName", simple("cn").isRequired(true))
+                      .property("surname",     simple("sn").isRequired(true)))
+                .property(
+                    "_rev",
+                    simple("etag").isRequired(true).writability(READ_ONLY))
+                .property(
+                    "description",
+                    simple("description").isMultiValued(true))
+                .property(
+                    "singleNumber",
+                    simple("singleNumber").decoder(byteStringToInteger()))
+                .property(
+                    "multiNumber",
+                    simple("multiNumber").isMultiValued(true).decoder(byteStringToInteger()))
         );
     }
 

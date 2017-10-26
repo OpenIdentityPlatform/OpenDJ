@@ -31,7 +31,6 @@ import static org.forgerock.json.resource.Responses.newResourceResponse;
 import static org.forgerock.opendj.ldap.ByteString.valueOfBytes;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
-import static org.forgerock.opendj.ldap.SearchScope.SINGLE_LEVEL;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.RoutingContext.newCollectionRoutingContext;
@@ -140,9 +139,11 @@ final class SubResourceImpl {
     private final boolean usePermissiveModify;
     private final Resource resource;
     private final Attribute glueObjectClasses;
+    private final boolean flattenSubtree;
 
     SubResourceImpl(final Rest2Ldap rest2Ldap, final DN baseDn, final Attribute glueObjectClasses,
-                    final NamingStrategy namingStrategy, final Resource resource) {
+                    final NamingStrategy namingStrategy, final Resource resource,
+                    final boolean flattenSubtree) {
         this.readOnUpdatePolicy = rest2Ldap.getOptions().get(READ_ON_UPDATE_POLICY);
         this.useSubtreeDelete = rest2Ldap.getOptions().get(USE_SUBTREE_DELETE);
         this.usePermissiveModify = rest2Ldap.getOptions().get(USE_PERMISSIVE_MODIFY);
@@ -153,6 +154,7 @@ final class SubResourceImpl {
         this.glueObjectClasses = glueObjectClasses;
         this.namingStrategy = namingStrategy;
         this.resource = resource;
+        this.flattenSubtree = flattenSubtree;
     }
 
     Promise<ActionResponse, ResourceException> action(
@@ -700,7 +702,7 @@ final class SubResourceImpl {
                 final String[] attributes = getLdapAttributesForUnknownType(request.getFields()).toArray(new String[0]);
                 final Filter searchFilter = ldapFilter == Filter.alwaysTrue() ? Filter.objectClassPresent()
                         : ldapFilter;
-                final SearchRequest searchRequest = newSearchRequest(baseDn, SINGLE_LEVEL, searchFilter, attributes);
+                final SearchRequest searchRequest = createSearchRequest(searchFilter, attributes);
 
                 // Add the page results control. We can support the page offset by reading the next offset pages, or
                 // offset x page size resources.
@@ -1062,6 +1064,34 @@ final class SubResourceImpl {
     private SearchRequest searchRequestForUnknownType(final String resourceId, final List<JsonPointer> fields) {
         final String[] attributes = getLdapAttributesForUnknownType(fields).toArray(new String[0]);
         return namingStrategy.createSearchRequest(baseDn, resourceId).addAttribute(attributes);
+    }
+
+    /**
+     * Creates a request to search LDAP for entries that match the provided search filter, and
+     * the specified attributes.
+     *
+     * If the subtree flattening is enabled, the search request will encompass the whole subtree.
+     *
+     * @param   searchFilter
+     *          The filter that entries must match to be returned.
+     * @param   desiredAttributes
+     *          The names of the attributes to be included with each entry.
+     *
+     * @return  The resulting search request.
+     */
+    private SearchRequest createSearchRequest(Filter searchFilter, String[] desiredAttributes) {
+        final SearchScope searchScope;
+        final SearchRequest searchRequest;
+
+        if (SubResourceImpl.this.flattenSubtree) {
+            searchScope = SearchScope.SUBORDINATES;
+        } else {
+            searchScope = SearchScope.SINGLE_LEVEL;
+        }
+
+        searchRequest = newSearchRequest(baseDn, searchScope, searchFilter, desiredAttributes);
+
+        return searchRequest;
     }
 
     @SuppressWarnings("unused")

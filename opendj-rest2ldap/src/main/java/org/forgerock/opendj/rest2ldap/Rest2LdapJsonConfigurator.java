@@ -306,24 +306,37 @@ public final class Rest2LdapJsonConfigurator {
     private enum NamingStrategyType { CLIENTDNNAMING, CLIENTNAMING, SERVERNAMING }
     private enum SubResourceType { COLLECTION, SINGLETON }
 
-    private static SubResource configureSubResource(final String urlTemplate, final JsonValue config) {
+    private static SubResource configureSubResource(final String urlTemplate,
+                                                    final JsonValue config) {
         final String dnTemplate = config.get("dnTemplate").defaultTo("").asString();
         final Boolean isReadOnly = config.get("isReadOnly").defaultTo(false).asBoolean();
         final String resourceId = config.get("resource").required().asString();
+        final Boolean flattenSubtree =
+            config.get("flattenSubtree").defaultTo(false).asBoolean();
 
-        if (config.get("type").required().as(enumConstant(SubResourceType.class)) == SubResourceType.COLLECTION) {
-            final String[] glueObjectClasses = config.get("glueObjectClasses")
-                                                     .defaultTo(emptyList())
-                                                     .asList(String.class)
-                                                     .toArray(new String[0]);
+        final SubResourceType subResourceType =
+          config.get("type").required().as(enumConstant(SubResourceType.class));
 
-            final SubResourceCollection collection = collectionOf(resourceId).urlTemplate(urlTemplate)
-                                                                             .dnTemplate(dnTemplate)
-                                                                             .isReadOnly(isReadOnly)
-                                                                             .glueObjectClasses(glueObjectClasses);
+        if (subResourceType == SubResourceType.COLLECTION) {
+            final String[] glueObjectClasses =
+                config.get("glueObjectClasses")
+                    .defaultTo(emptyList())
+                    .asList(String.class)
+                    .toArray(new String[0]);
+
+            final SubResourceCollection collection =
+                collectionOf(resourceId)
+                    .urlTemplate(urlTemplate)
+                    .dnTemplate(dnTemplate)
+                    .isReadOnly(isReadOnly)
+                    .glueObjectClasses(glueObjectClasses)
+                    .flattenSubtree(flattenSubtree);
 
             final JsonValue namingStrategy = config.get("namingStrategy").required();
-            switch (namingStrategy.get("type").required().as(enumConstant(NamingStrategyType.class))) {
+            final NamingStrategyType namingStrategyType =
+                namingStrategy.get("type").required().as(enumConstant(NamingStrategyType.class));
+
+            switch (namingStrategyType) {
             case CLIENTDNNAMING:
                 collection.useClientDnNaming(namingStrategy.get("dnAttribute").required().asString());
                 break;
@@ -339,7 +352,10 @@ public final class Rest2LdapJsonConfigurator {
 
             return collection;
         } else {
-            return singletonOf(resourceId).urlTemplate(urlTemplate).dnTemplate(dnTemplate).isReadOnly(isReadOnly);
+            return singletonOf(resourceId)
+                        .urlTemplate(urlTemplate)
+                        .dnTemplate(dnTemplate)
+                        .isReadOnly(isReadOnly);
         }
     }
 
