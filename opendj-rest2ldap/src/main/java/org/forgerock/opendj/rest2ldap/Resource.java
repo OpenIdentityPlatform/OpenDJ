@@ -471,7 +471,7 @@ public final class Resource {
     }
 
     /**
-     * Gets a unique name for the configuration of this resource in CREST.
+     * Gets a unique name for the configuration of this resource as a service in CREST.
      *
      * The name is the combination of the resource type and the writability of the resource. For
      * example, {@code frapi:opendj:rest2ldap:group:1.0:read-write} or
