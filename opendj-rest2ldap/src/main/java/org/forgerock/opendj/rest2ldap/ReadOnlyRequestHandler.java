@@ -18,6 +18,8 @@ package org.forgerock.opendj.rest2ldap;
 
 import static org.forgerock.opendj.rest2ldap.Rest2ldapMessages.ERR_READ_ONLY_ENDPOINT;
 
+import org.forgerock.api.models.ApiDescription;
+import org.forgerock.http.ApiProducer;
 import org.forgerock.json.resource.BadRequestException;
 import org.forgerock.json.resource.QueryRequest;
 import org.forgerock.json.resource.QueryResourceHandler;
@@ -28,6 +30,7 @@ import org.forgerock.json.resource.RequestHandler;
 import org.forgerock.json.resource.ResourceException;
 import org.forgerock.json.resource.ResourceResponse;
 import org.forgerock.services.context.Context;
+import org.forgerock.services.descriptor.Describable;
 import org.forgerock.util.promise.Promise;
 
 /**
@@ -55,5 +58,15 @@ final class ReadOnlyRequestHandler extends AbstractRequestHandler {
     @Override
     protected <V> Promise<V, ResourceException> handleRequest(final Context context, final Request request) {
         return new BadRequestException(ERR_READ_ONLY_ENDPOINT.get().toString()).asPromise();
+    }
+
+    @Override
+    public ApiDescription api(ApiProducer<ApiDescription> producer) {
+        if (delegate instanceof Describable) {
+            return ((Describable<ApiDescription, Request>)delegate).api(producer);
+        }
+        else {
+            return super.api(producer);
+        }
     }
 }
