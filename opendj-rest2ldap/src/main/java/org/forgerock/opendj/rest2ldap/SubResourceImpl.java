@@ -141,7 +141,7 @@ final class SubResourceImpl {
     private final Resource resource;
     private final Attribute glueObjectClasses;
     private final boolean flattenSubtree;
-    private Filter baseSearchFilter;
+    private final Filter baseSearchFilter;
 
     SubResourceImpl(final Rest2Ldap rest2Ldap, final DN baseDn, final Attribute glueObjectClasses,
                     final NamingStrategy namingStrategy, final Resource resource) {
