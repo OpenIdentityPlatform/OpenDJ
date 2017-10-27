@@ -61,6 +61,7 @@ final class ReadOnlyRequestHandler extends AbstractRequestHandler {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ApiDescription api(ApiProducer<ApiDescription> producer) {
         if (delegate instanceof Describable) {
             return ((Describable<ApiDescription, Request>)delegate).api(producer);
