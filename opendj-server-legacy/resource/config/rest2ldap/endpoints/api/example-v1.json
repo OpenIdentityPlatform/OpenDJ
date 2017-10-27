@@ -33,6 +33,20 @@
                     },
                     "isReadOnly": true
                 },
+                // This resource provides a read-only view of all users in the system, including
+                // users nested underneath entries like org units, organizations, etc., starting
+                // from "ou=people,dc=example,dc=com" and working down.
+                "all-users": {
+                    "type": "collection",
+                    "dnTemplate": "ou=people,dc=example,dc=com",
+                    "resource": "frapi:opendj:rest2ldap:user:1.0",
+                    "namingStrategy": {
+                        "type": "clientDnNaming",
+                        "dnAttribute": "uid"
+                    },
+                    "isReadOnly": true,
+                    "flattenSubtree": true
+                },
                 "groups": {
                     "type": "collection",
                     "dnTemplate": "ou=groups,dc=example,dc=com",

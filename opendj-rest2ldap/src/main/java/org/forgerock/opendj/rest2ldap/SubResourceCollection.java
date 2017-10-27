@@ -83,6 +83,17 @@ public final class SubResourceCollection extends SubResource {
     }
 
     /**
+     * Gets whether or not this sub-resource should flatten sub-entries in results.
+     *
+     * @return  {@code true} if entries deep in the sub-tree are included in a flattened
+     *          collection view; {@code false} if only entries at the top level of the DN for this
+     *          sub-resource should be returned.
+     */
+    public boolean shouldFlattenSubtree() {
+        return flattenSubtree;
+    }
+
+    /**
      * Indicates that the JSON resource ID must be provided by the user, and will be used for naming the associated LDAP
      * entry. More specifically, LDAP entry names will be derived by appending a single RDN to the collection's base DN
      * composed of the specified attribute type and LDAP value taken from the LDAP entry once attribute mapping has been

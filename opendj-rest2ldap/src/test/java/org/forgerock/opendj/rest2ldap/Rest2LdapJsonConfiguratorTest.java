@@ -29,6 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 
+import java.util.List;
+import java.util.Map;
 import org.forgerock.api.CrestApiProducer;
 import org.forgerock.api.models.ApiDescription;
 import org.forgerock.api.models.Items;
@@ -43,6 +45,7 @@ import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RootContext;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.forgerock.util.Options;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,9 +69,8 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
 
     @Test
     public void testConfigureEndpointsWithApiDescription() throws Exception {
-        final DescribableRequestHandler handler =
-            createDescribableHandler(CONFIG_DIR.resolve("endpoints").toFile());
-
+        final File endpointsDir = CONFIG_DIR.resolve("endpoints").toFile();
+        final DescribableRequestHandler handler = createDescribableHandler(endpointsDir);
         final ApiDescription api = requestApi(handler, "api/users/bjensen");
 
         assertThat(api).isNotNull();
@@ -82,6 +84,7 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
         assertThat(api.getPaths().getNames()).containsOnly(
             "/api/users",
             "/api/read-only-users",
+            "/api/all-users",
             "/api/groups");
 
         assertThat(api.getDefinitions().getNames()).containsOnly(
@@ -130,6 +133,201 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
             assertThat(items.getPatch()).isNotNull();
             assertThat(items.getRead()).isNotNull();
         }
+    }
+
+    @DataProvider
+    public Object[][] invalidSubResourceConfigurations() {
+        // @Checkstyle:off
+        return new Object[][] {
+                {
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'writeable-collection': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'flattenSubtree': true"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                },
+                {
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'writeable-collection': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'isReadOnly': false,"
+                                                        + "'flattenSubtree': true"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                }
+        };
+        // @Checkstyle:on
+    }
+
+    @DataProvider
+    public Object[][] validSubResourceConfigurations() {
+        // @Checkstyle:off
+        return new Object[][] {
+                {
+                        false,
+                        false,
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'all-users': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'flattenSubtree': false"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                },
+                {
+                        true,
+                        false,
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'all-users': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'isReadOnly': true"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                },
+                {
+                        true,
+                        false,
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'all-users': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'isReadOnly': true,"
+                                                        + "'flattenSubtree': false"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                },
+                {
+                        false,
+                        false,
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'all-users': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'isReadOnly': false,"
+                                                        + "'flattenSubtree': false"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                },
+                {
+                        true,
+                        true,
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'all-users': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'isReadOnly': true,"
+                                                        + "'flattenSubtree': true"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                }
+        };
+        // @Checkstyle:on
+    }
+
+    @Test(dataProvider = "invalidSubResourceConfigurations")
+    public void testInvalidSubResourceConfigurations(final String rawJson) throws Exception {
+        try {
+            Rest2LdapJsonConfigurator.configureResources(parseJson(rawJson));
+
+            fail("Expected an IllegalArgumentException");
+        }
+        catch (IllegalArgumentException ex) {
+            assertThat(ex.getMessage())
+                .isEqualTo("Sub-resources must be read-only to support sub-tree flattening.");
+        }
+    }
+
+    @Test(dataProvider = "validSubResourceConfigurations")
+    public void testValidSubResourceConfigurations(final boolean expectingReadOnly,
+                                                   final boolean expectingSubtreeFlattened,
+                                                   final String rawJson) throws Exception {
+        final List<org.forgerock.opendj.rest2ldap.Resource> resources =
+            Rest2LdapJsonConfigurator.configureResources(parseJson(rawJson));
+        final org.forgerock.opendj.rest2ldap.Resource firstResource;
+        final Map<String, SubResource> subResources;
+        final SubResourceCollection allUsersSubResource;
+
+        assertThat(resources.size()).isEqualTo(1);
+
+        firstResource = resources.get(0);
+
+        assertThat(firstResource.getResourceId()).isEqualTo("example-v1");
+
+        subResources = firstResource.getSubResourceMap();
+
+        assertThat(subResources.size()).isEqualTo(1);
+
+        allUsersSubResource = (SubResourceCollection)subResources.get("all-users");
+
+        assertThat(allUsersSubResource.isReadOnly()).isEqualTo(expectingReadOnly);
+        assertThat(allUsersSubResource.shouldFlattenSubtree()).isEqualTo(expectingSubtreeFlattened);
     }
 
     private RequestHandler createRequestHandler(final File endpointsDir) throws IOException {
