@@ -93,7 +93,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     private static final QueryFilter<JsonPointer> NO_FILTER = QueryFilter.alwaysTrue();
 
     @Test
-    public void testQueryAllWithNoSubtreeFlattening() throws Exception {
+    public void testQueryAllWithNoSubtreeFlatteningAndNoSearchFilter() throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new LinkedList<>();
         final QueryResponse result =
@@ -106,30 +106,75 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(result.getPagedResultsCookie()).isNull();
         assertThat(result.getTotalPagedResults()).isEqualTo(-1);
 
-        assertThat(resources.get(0).getContent().get("_ou").isNotNull());
-        assertThat(resources.get(0).getContent().get("_ou").asString()).isEqualTo("level1");
+        checkThatOrgUnitsExist(resources, "level1");
 
-        assertThat(resources.get(1).getContent().get("_ou").isNull());
-        assertThat(resources.get(1).getId()).isEqualTo("test1");
-
-        assertThat(resources.get(2).getContent().get("_ou").isNull());
-        assertThat(resources.get(2).getId()).isEqualTo("test2");
-
-        assertThat(resources.get(3).getContent().get("_ou").isNull());
-        assertThat(resources.get(3).getId()).isEqualTo("test3");
-
-        assertThat(resources.get(4).getContent().get("_ou").isNull());
-        assertThat(resources.get(4).getId()).isEqualTo("test4");
-
-        assertThat(resources.get(5).getContent().get("_ou").isNull());
-        assertThat(resources.get(5).getId()).isEqualTo("test5");
-
-        assertThat(resources.get(6).getContent().get("_ou").isNull());
-        assertThat(resources.get(6).getId()).isEqualTo("test6");
+        checkThatUsersExist(resources, 1,
+          "test1",
+          "test2",
+          "test3",
+          "test4",
+          "test5",
+          "test6"
+        );
     }
 
     @Test
-    public void testQueryAllWithSubtreeFlattening() throws Exception {
+    public void testQueryAllWithSearchFilterAndNoSubtreeFlattening() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("top-level-users").setQueryFilter(NO_FILTER),
+                resources);
+
+        assertThat(resources).hasSize(6);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+
+        checkThatUsersExist(resources,
+          "test1",
+          "test2",
+          "test3",
+          "test4",
+          "test5",
+          "test6"
+        );
+    }
+
+    @Test
+    public void testQueryAllWithSubtreeFlatteningAndNoSearchFilter() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("all-entries").setQueryFilter(NO_FILTER),
+                resources);
+
+        assertThat(resources).hasSize(10);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+
+        checkThatOrgUnitsExist(resources,
+          "level1",
+          "level2"
+        );
+
+        checkThatUsersExist(resources, 2,
+          "sub2",
+          "sub1",
+          "test1",
+          "test2",
+          "test3",
+          "test4",
+          "test5",
+          "test6"
+        );
+    }
+
+    @Test
+    public void testQueryAllWithSubtreeFlatteningAndSearchFilter() throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new LinkedList<>();
         final QueryResponse result =
@@ -138,47 +183,31 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                 newQueryRequest("all-users").setQueryFilter(NO_FILTER),
                 resources);
 
-        assertThat(resources).hasSize(10);
+        assertThat(resources).hasSize(8);
         assertThat(result.getPagedResultsCookie()).isNull();
         assertThat(result.getTotalPagedResults()).isEqualTo(-1);
 
-        assertThat(resources.get(0).getContent().get("_ou").isNotNull());
-        assertThat(resources.get(0).getContent().get("_ou").asString()).isEqualTo("level1");
-
-        assertThat(resources.get(1).getContent().get("_ou").isNotNull());
-        assertThat(resources.get(1).getContent().get("_ou").asString()).isEqualTo("level2");
-
-        assertThat(resources.get(2).getContent().get("_ou").isNull());
-        assertThat(resources.get(2).getId()).isEqualTo("sub2");
-
-        assertThat(resources.get(3).getContent().get("_ou").isNull());
-        assertThat(resources.get(3).getId()).isEqualTo("sub1");
-
-        assertThat(resources.get(4).getContent().get("_ou").isNull());
-        assertThat(resources.get(4).getId()).isEqualTo("test1");
-
-        assertThat(resources.get(5).getContent().get("_ou").isNull());
-        assertThat(resources.get(5).getId()).isEqualTo("test2");
-
-        assertThat(resources.get(6).getContent().get("_ou").isNull());
-        assertThat(resources.get(6).getId()).isEqualTo("test3");
-
-        assertThat(resources.get(7).getContent().get("_ou").isNull());
-        assertThat(resources.get(7).getId()).isEqualTo("test4");
-
-        assertThat(resources.get(8).getContent().get("_ou").isNull());
-        assertThat(resources.get(8).getId()).isEqualTo("test5");
-
-        assertThat(resources.get(9).getContent().get("_ou").isNull());
-        assertThat(resources.get(9).getId()).isEqualTo("test6");
+        checkThatUsersExist(resources,
+          "sub2",
+          "sub1",
+          "test1",
+          "test2",
+          "test3",
+          "test4",
+          "test5",
+          "test6"
+        );
     }
 
     @Test
-    public void testQueryNoneWithNoSubtreeFlattening() throws Exception {
+    public void testQueryNoneWithNoSubtreeFlatteningAndNoSearchFilter() throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new LinkedList<>();
-        final QueryResponse result = connection.query(newAuthConnectionContext(),
-                newQueryRequest("").setQueryFilter(QueryFilter.<JsonPointer> alwaysFalse()), resources);
+        final QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("").setQueryFilter(QueryFilter.<JsonPointer> alwaysFalse()),
+                resources);
 
         assertThat(resources).hasSize(0);
         assertThat(result.getPagedResultsCookie()).isNull();
@@ -186,7 +215,39 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     @Test
-    public void testQueryNoneWithSubtreeFlattening() throws Exception {
+    public void testQueryNoneWithSearchFilterAndNoSubtreeFlattening() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("top-level-users")
+                    .setQueryFilter(QueryFilter.<JsonPointer> alwaysFalse()),
+                resources);
+
+        assertThat(resources).hasSize(0);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+    }
+
+    @Test
+    public void testQueryNoneWithSubtreeFlatteningAndNoSearchFilter() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new LinkedList<>();
+        final QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("all-entries")
+                    .setQueryFilter(QueryFilter.<JsonPointer> alwaysFalse()),
+                resources);
+
+        assertThat(resources).hasSize(0);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getTotalPagedResults()).isEqualTo(-1);
+    }
+
+    @Test
+    public void testQueryNoneWithSubtreeFlatteningAndSearchFilter() throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new LinkedList<>();
         final QueryResponse result = connection.query(newAuthConnectionContext(),
@@ -198,7 +259,8 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     }
 
     @Test
-    public void testQueryPageResultsCookie() throws Exception {
+    public void testQueryPageResultsCookieWithNoSubtreeFlatteningAndNoSearchFilter()
+    throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new ArrayList<>();
 
@@ -214,14 +276,11 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(result.getPagedResultsCookie()).isNotNull();
         assertThat(resources).hasSize(3);
 
-        assertThat(resources.get(0).getContent().get("_ou").isNotNull());
-        assertThat(resources.get(0).getContent().get("_ou").asString()).isEqualTo("level1");
+        checkThatOrgUnitsExist(resources, "level1");
 
-        assertThat(resources.get(1).getContent().get("_ou").isNull());
-        assertThat(resources.get(1).getId()).isEqualTo("test1");
-
-        assertThat(resources.get(2).getContent().get("_ou").isNull());
-        assertThat(resources.get(2).getId()).isEqualTo("test2");
+        checkThatUsersExist(resources, 1,
+          "test1",
+          "test2");
 
         String cookie = result.getPagedResultsCookie();
 
@@ -240,14 +299,10 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(result.getPagedResultsCookie()).isNotNull();
         assertThat(resources).hasSize(3);
 
-        assertThat(resources.get(0).getContent().get("_ou").isNull());
-        assertThat(resources.get(0).getId()).isEqualTo("test3");
-
-        assertThat(resources.get(1).getContent().get("_ou").isNull());
-        assertThat(resources.get(1).getId()).isEqualTo("test4");
-
-        assertThat(resources.get(2).getContent().get("_ou").isNull());
-        assertThat(resources.get(2).getId()).isEqualTo("test5");
+        checkThatUsersExist(resources,
+            "test3",
+            "test4",
+            "test5");
 
         cookie = result.getPagedResultsCookie();
 
@@ -266,12 +321,62 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(result.getPagedResultsCookie()).isNull();
         assertThat(resources).hasSize(1);
 
-        assertThat(resources.get(0).getContent().get("_ou").isNull());
-        assertThat(resources.get(0).getId()).isEqualTo("test6");
+        checkThatUsersExist(resources,
+            "test6");
     }
 
     @Test
-    public void testQueryPageResultsIndexed() throws Exception {
+    public void testQueryPageResultsCookieWithSubtreeFlatteningAndSearchFilter() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new ArrayList<>();
+
+        // Read first page.
+        QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("all-users")
+                    .setQueryFilter(NO_FILTER)
+                    .setPageSize(5),
+                resources);
+
+        assertThat(result.getPagedResultsCookie()).isNotNull();
+        assertThat(resources).hasSize(5);
+
+        checkThatUsersExist(resources,
+            "sub2",
+            "sub1",
+            "test1",
+            "test2",
+            "test3");
+
+        String cookie = result.getPagedResultsCookie();
+
+        resources.clear();
+
+        // Read second page.
+        result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("all-users")
+                    .setQueryFilter(NO_FILTER)
+                    .setPageSize(5)
+                    .setPagedResultsCookie(cookie),
+                resources);
+
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(resources).hasSize(3);
+
+        checkThatUsersExist(resources,
+            "test4",
+            "test5",
+            "test6");
+
+        resources.clear();
+    }
+
+    @Test
+    public void testQueryPageResultsIndexedWithNoSubtreeFlatteningAndNoSearchFilter()
+    throws Exception {
         final Connection connection = newConnection();
         final List<ResourceResponse> resources = new ArrayList<>();
 
@@ -286,8 +391,33 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
         assertThat(result.getPagedResultsCookie()).isNotNull();
         assertThat(resources).hasSize(2);
-        assertThat(resources.get(0).getId()).isEqualTo("test2");
-        assertThat(resources.get(1).getId()).isEqualTo("test3");
+
+        checkThatUsersExist(resources,
+            "test2",
+            "test3");
+    }
+
+    @Test
+    public void testQueryPageResultsIndexedWithSubtreeFlatteningAndSearchFilter() throws Exception {
+        final Connection connection = newConnection();
+        final List<ResourceResponse> resources = new ArrayList<>();
+
+        QueryResponse result =
+            connection.query(
+                newAuthConnectionContext(),
+                newQueryRequest("all-users")
+                    .setQueryFilter(NO_FILTER)
+                    .setPageSize(3)
+                    .setPagedResultsOffset(1),
+                resources);
+
+        assertThat(result.getPagedResultsCookie()).isNotNull();
+        assertThat(resources).hasSize(3);
+
+        checkThatUsersExist(resources,
+            "test2",
+            "test3",
+            "test4");
     }
 
     @Test(expectedExceptions = NotFoundException.class)
@@ -869,11 +999,25 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                         .useClientDnNaming("uid"))
                 .subResource(
                     collectionOf("user")
+                        .urlTemplate("top-level-users")
+                        .dnTemplate("dc=test")
+                        .useClientDnNaming("uid")
+                        .baseSearchFilter("(objectClass=person)"))
+                .subResource(
+                    collectionOf("user")
+                        .urlTemplate("all-entries")
+                        .dnTemplate("dc=test")
+                        .useClientDnNaming("uid")
+                        .isReadOnly(true)
+                        .flattenSubtree(true))
+                .subResource(
+                    collectionOf("user")
                         .urlTemplate("all-users")
                         .dnTemplate("dc=test")
                         .useClientDnNaming("uid")
                         .isReadOnly(true)
-                        .flattenSubtree(true)),
+                        .flattenSubtree(true)
+                        .baseSearchFilter("(objectClass=person)")),
             resource("user")
                 .objectClasses("top", "person")
                 .property(
@@ -913,6 +1057,38 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
         assertThat(actual.getContent().getObject())
             .isEqualTo(expectedResource.getContent().getObject());
+    }
+
+    private void checkThatOrgUnitsExist(final List<ResourceResponse> resources,
+                                        final String... orgUnitIds) {
+        checkThatOrgUnitsExist(resources, 0, orgUnitIds);
+    }
+
+    private void checkThatOrgUnitsExist(final List<ResourceResponse> resources,
+                                        final int startingIndex,
+                                        final String... expectedOrgUnitIds) {
+        for (int orgUnitIndex = 0; orgUnitIndex < expectedOrgUnitIds.length; ++orgUnitIndex) {
+            final ResourceResponse resource = resources.get(startingIndex + orgUnitIndex);
+            final JsonValue orgUnitId = resource.getContent().get("_ou");
+
+            assertThat(orgUnitId).isNotNull();
+            assertThat(orgUnitId.asString()).isEqualTo(expectedOrgUnitIds[orgUnitIndex]);
+        }
+    }
+
+    private void checkThatUsersExist(final List<ResourceResponse> resources,
+                                     final String... expectedUserIds) {
+        checkThatUsersExist(resources, 0, expectedUserIds);
+    }
+
+    private void checkThatUsersExist(final List<ResourceResponse> resources,
+                                     final int startingIndex, final String... expectedUserIds) {
+        for (int userIndex = 0; userIndex < expectedUserIds.length; ++userIndex) {
+            final ResourceResponse resource = resources.get(startingIndex + userIndex);
+
+            assertThat(resource.getContent().get("_ou").isNull());
+            assertThat(resource.getId()).isEqualTo(expectedUserIds[userIndex]);
+        }
     }
 
     private AuthenticatedConnectionContext newAuthConnectionContext() throws IOException {

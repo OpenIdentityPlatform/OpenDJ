@@ -140,12 +140,7 @@ public final class SubResourceSingleton extends SubResource {
 
     private SubResourceImpl singleton(final Context context) {
         return new SubResourceImpl(
-            rest2Ldap,
-            dnFrom(context),
-            null,
-            SINGLETON_NAMING_STRATEGY,
-            resource,
-            false);
+            rest2Ldap, dnFrom(context), null, SINGLETON_NAMING_STRATEGY, resource);
     }
 
     /**

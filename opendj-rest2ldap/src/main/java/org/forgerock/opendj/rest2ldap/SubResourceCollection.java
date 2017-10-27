@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static org.forgerock.guava.common.base.Preconditions.checkNotNull;
 import static org.forgerock.http.routing.RoutingMode.EQUALS;
 import static org.forgerock.http.routing.RoutingMode.STARTS_WITH;
 import static org.forgerock.json.resource.RouteMatchers.requestUriMatcher;
@@ -75,6 +76,7 @@ public final class SubResourceCollection extends SubResource {
 
     private NamingStrategy namingStrategy;
     private boolean flattenSubtree;
+    private Filter baseSearchFilter;
 
     SubResourceCollection(final String resourceId) {
         super(resourceId);
@@ -91,6 +93,18 @@ public final class SubResourceCollection extends SubResource {
      */
     public boolean shouldFlattenSubtree() {
         return flattenSubtree;
+    }
+
+    /**
+     * Gets the base filter that always restricts what LDAP entries are accessible through this
+     * collection, before any filters are applied from the request itself.
+     *
+     * The default is {@code null} (no base filter restriction at all).
+     *
+     * @return  Either a search filter; or {@code null} if no base search filter has been defined.
+     */
+    public Filter getBaseSearchFilter() {
+        return baseSearchFilter;
     }
 
     /**
@@ -259,6 +273,42 @@ public final class SubResourceCollection extends SubResource {
         return this;
     }
 
+    /**
+     * Sets the base filter that always restricts what LDAP entries are accessible through this
+     * collection, before any filters are applied from the request itself.
+     *
+     * The default is {@code null} (no base filter restriction at all).
+     *
+     * @param   filter
+     *          The filter which should be used to restrict which LDAP entries are returned.
+     * @return  A reference to this object.
+     */
+    public SubResourceCollection baseSearchFilter(final Filter filter) {
+        this.baseSearchFilter = filter;
+        return this;
+    }
+
+    /**
+     * Sets the base filter that always restricts what LDAP entries are accessible through this
+     * collection, before any filters are applied from the request itself.
+     *
+     * The default is {@code null} (no base filter restriction at all).
+     *
+     * @param   filter
+     *          The filter which should be used to restrict which LDAP entries are returned.
+     * @return  A reference to this object.
+     */
+    public SubResourceCollection baseSearchFilter(final String filter) {
+        if (filter == null) {
+            baseSearchFilter((Filter)null);
+        }
+        else {
+            baseSearchFilter(Filter.valueOf(filter));
+        }
+
+        return this;
+    }
+
     @Override
     Router addRoutes(final Router router) {
         router.addRoute(requestUriMatcher(EQUALS, urlTemplate), readOnly(new CollectionHandler()));
@@ -299,7 +349,8 @@ public final class SubResourceCollection extends SubResource {
             dnTemplateString.isEmpty() ? null : glueObjectClasses,
             namingStrategy,
             resource,
-            this.flattenSubtree);
+            flattenSubtree,
+            baseSearchFilter);
     }
 
     private String idFrom(final Context context) {
