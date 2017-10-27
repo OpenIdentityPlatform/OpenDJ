@@ -41,6 +41,7 @@ import org.forgerock.http.util.Json;
 import org.forgerock.json.JsonValue;
 import org.forgerock.json.resource.Request;
 import org.forgerock.json.resource.RequestHandler;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.services.context.Context;
 import org.forgerock.services.context.RootContext;
 import org.forgerock.testng.ForgeRockTestCase;
@@ -136,7 +137,7 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
     }
 
     @DataProvider
-    public Object[][] invalidSubResourceConfigurations() {
+    public Object[][] invalidSubResourceSubtreeFlatteningConfigurations() {
         // @Checkstyle:off
         return new Object[][] {
                 {
@@ -187,6 +188,48 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
                 {
                         false,
                         false,
+                        null,
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'all-users': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "}"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                },
+                {
+                        false,
+                        false,
+                        "(objectClass=person)",
+                        "{"
+                                + "'example-v1': {"
+                                        + "'subResources': {"
+                                                + "'all-users': {"
+                                                        + "'type': 'collection',"
+                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                                        + "'namingStrategy': {"
+                                                            + "'type': 'clientDnNaming',"
+                                                            + "'dnAttribute': 'uid'"
+                                                        + "},"
+                                                        + "'baseSearchFilter': '(objectClass=person)'"
+                                                + "}"
+                                        + "}"
+                                + "}"
+                        + "}"
+                },
+                {
+                        false,
+                        false,
+                        null,
                         "{"
                                 + "'example-v1': {"
                                         + "'subResources': {"
@@ -207,6 +250,7 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
                 {
                         true,
                         false,
+                        null,
                         "{"
                                 + "'example-v1': {"
                                         + "'subResources': {"
@@ -227,6 +271,7 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
                 {
                         true,
                         false,
+                        null,
                         "{"
                                 + "'example-v1': {"
                                         + "'subResources': {"
@@ -248,6 +293,7 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
                 {
                         false,
                         false,
+                        null,
                         "{"
                                 + "'example-v1': {"
                                         + "'subResources': {"
@@ -269,6 +315,7 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
                 {
                         true,
                         true,
+                        null,
                         "{"
                                 + "'example-v1': {"
                                         + "'subResources': {"
@@ -291,8 +338,9 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
         // @Checkstyle:on
     }
 
-    @Test(dataProvider = "invalidSubResourceConfigurations")
-    public void testInvalidSubResourceConfigurations(final String rawJson) throws Exception {
+    @Test(dataProvider = "invalidSubResourceSubtreeFlatteningConfigurations")
+    public void testInvalidSubResourceSubtreeFlatteningConfigurations(final String rawJson)
+    throws Exception {
         try {
             Rest2LdapJsonConfigurator.configureResources(parseJson(rawJson));
 
@@ -304,9 +352,44 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
         }
     }
 
+    @Test
+    public void testInvalidSubResourceSearchFilterConfigurations()
+    throws Exception {
+        final String rawJson =
+            "{"
+                    + "'example-v1': {"
+                            + "'subResources': {"
+                                    + "'all-users': {"
+                                            + "'type': 'collection',"
+                                            + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                            + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                            + "'namingStrategy': {"
+                                                + "'type': 'clientDnNaming',"
+                                                + "'dnAttribute': 'uid'"
+                                            + "},"
+                                            + "'baseSearchFilter': 'badFilter'"
+                                    + "}"
+                            + "}"
+                    + "}"
+            + "}";
+
+        try {
+            Rest2LdapJsonConfigurator.configureResources(parseJson(rawJson));
+
+            fail("Expected an IllegalArgumentException");
+        }
+        catch (IllegalArgumentException ex) {
+            assertThat(ex.getMessage())
+                .isEqualTo(
+                    "The provided search filter \"badFilter\" was missing an equal sign in the " +
+                    "suspected simple filter component between positions 0 and 9");
+        }
+    }
+
     @Test(dataProvider = "validSubResourceConfigurations")
-    public void testValidSubResourceConfigurations(final boolean expectingReadOnly,
-                                                   final boolean expectingSubtreeFlattened,
+    public void testValidSubResourceConfigurations(final boolean expectedReadOnly,
+                                                   final boolean expectedSubtreeFlattened,
+                                                   final String expectedSearchFilter,
                                                    final String rawJson) throws Exception {
         final List<org.forgerock.opendj.rest2ldap.Resource> resources =
             Rest2LdapJsonConfigurator.configureResources(parseJson(rawJson));
@@ -326,8 +409,16 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
 
         allUsersSubResource = (SubResourceCollection)subResources.get("all-users");
 
-        assertThat(allUsersSubResource.isReadOnly()).isEqualTo(expectingReadOnly);
-        assertThat(allUsersSubResource.shouldFlattenSubtree()).isEqualTo(expectingSubtreeFlattened);
+        assertThat(allUsersSubResource.isReadOnly()).isEqualTo(expectedReadOnly);
+        assertThat(allUsersSubResource.shouldFlattenSubtree()).isEqualTo(expectedSubtreeFlattened);
+
+        if (expectedSearchFilter == null) {
+            assertThat(allUsersSubResource.getBaseSearchFilter()).isNull();
+        }
+        else {
+            assertThat(allUsersSubResource.getBaseSearchFilter().toString())
+                .isEqualTo(expectedSearchFilter);
+        }
     }
 
     private RequestHandler createRequestHandler(final File endpointsDir) throws IOException {

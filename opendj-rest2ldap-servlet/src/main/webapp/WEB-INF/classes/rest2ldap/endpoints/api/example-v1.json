@@ -35,7 +35,8 @@
                 },
                 // This resource provides a read-only view of all users in the system, including
                 // users nested underneath entries like org units, organizations, etc., starting
-                // from "ou=people,dc=example,dc=com" and working down.
+                // from "ou=people,dc=example,dc=com" and working down. It filters out any other
+                // structural elements, including organizations, org units, etc.
                 "all-users": {
                     "type": "collection",
                     "dnTemplate": "ou=people,dc=example,dc=com",
@@ -45,7 +46,8 @@
                         "dnAttribute": "uid"
                     },
                     "isReadOnly": true,
-                    "flattenSubtree": true
+                    "flattenSubtree": true,
+                    "baseSearchFilter": "(objectClass=person)"
                 },
                 "groups": {
                     "type": "collection",
