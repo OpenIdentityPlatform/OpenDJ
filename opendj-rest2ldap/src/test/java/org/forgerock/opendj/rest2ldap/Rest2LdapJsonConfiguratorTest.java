@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -140,43 +141,43 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
     public Object[][] invalidSubResourceSubtreeFlatteningConfigurations() {
         // @Checkstyle:off
         return new Object[][] {
-                {
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'writeable-collection': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'flattenSubtree': true"
-                                                + "}"
-                                        + "}"
-                                + "}"
+            {
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'writeable-collection': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'flattenSubtree': true"
+                            + "}"
                         + "}"
-                },
-                {
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'writeable-collection': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'isReadOnly': false,"
-                                                        + "'flattenSubtree': true"
-                                                + "}"
-                                        + "}"
-                                + "}"
+                    + "}"
+                + "}"
+            },
+            {
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'writeable-collection': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'isReadOnly': false,"
+                                + "'flattenSubtree': true"
+                            + "}"
                         + "}"
-                }
+                    + "}"
+                + "}"
+            }
         };
         // @Checkstyle:on
     }
@@ -185,155 +186,155 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
     public Object[][] validSubResourceConfigurations() {
         // @Checkstyle:off
         return new Object[][] {
-                {
-                        false,
-                        false,
-                        null,
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'all-users': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "}"
-                                                + "}"
-                                        + "}"
+            {
+                false,
+                false,
+                null,
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'all-users': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
                                 + "}"
+                            + "}"
                         + "}"
-                },
-                {
-                        false,
-                        false,
-                        "(objectClass=person)",
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'all-users': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'baseSearchFilter': '(objectClass=person)'"
-                                                + "}"
-                                        + "}"
-                                + "}"
+                    + "}"
+                + "}"
+            },
+            {
+                false,
+                false,
+                "(objectClass=person)",
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'all-users': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'baseSearchFilter': '(objectClass=person)'"
+                            + "}"
                         + "}"
-                },
-                {
-                        false,
-                        false,
-                        null,
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'all-users': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'flattenSubtree': false"
-                                                + "}"
-                                        + "}"
-                                + "}"
+                    + "}"
+                + "}"
+            },
+            {
+                false,
+                false,
+                null,
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'all-users': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'flattenSubtree': false"
+                            + "}"
                         + "}"
-                },
-                {
-                        true,
-                        false,
-                        null,
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'all-users': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'isReadOnly': true"
-                                                + "}"
-                                        + "}"
-                                + "}"
+                    + "}"
+                + "}"
+            },
+            {
+                true,
+                false,
+                null,
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'all-users': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'isReadOnly': true"
+                            + "}"
                         + "}"
-                },
-                {
-                        true,
-                        false,
-                        null,
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'all-users': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'isReadOnly': true,"
-                                                        + "'flattenSubtree': false"
-                                                + "}"
-                                        + "}"
-                                + "}"
+                    + "}"
+                + "}"
+            },
+            {
+                true,
+                false,
+                null,
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'all-users': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'isReadOnly': true,"
+                                + "'flattenSubtree': false"
+                            + "}"
                         + "}"
-                },
-                {
-                        false,
-                        false,
-                        null,
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'all-users': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'isReadOnly': false,"
-                                                        + "'flattenSubtree': false"
-                                                + "}"
-                                        + "}"
-                                + "}"
+                    + "}"
+                + "}"
+            },
+            {
+                false,
+                false,
+                null,
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'all-users': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'isReadOnly': false,"
+                                + "'flattenSubtree': false"
+                            + "}"
                         + "}"
-                },
-                {
-                        true,
-                        true,
-                        null,
-                        "{"
-                                + "'example-v1': {"
-                                        + "'subResources': {"
-                                                + "'all-users': {"
-                                                        + "'type': 'collection',"
-                                                        + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                                        + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                                        + "'namingStrategy': {"
-                                                            + "'type': 'clientDnNaming',"
-                                                            + "'dnAttribute': 'uid'"
-                                                        + "},"
-                                                        + "'isReadOnly': true,"
-                                                        + "'flattenSubtree': true"
-                                                + "}"
-                                        + "}"
-                                + "}"
+                    + "}"
+                + "}"
+            },
+            {
+                true,
+                true,
+                null,
+                "{"
+                    + "'example-v1': {"
+                        + "'subResources': {"
+                            + "'all-users': {"
+                                + "'type': 'collection',"
+                                + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                                + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                                + "'namingStrategy': {"
+                                    + "'type': 'clientDnNaming',"
+                                    + "'dnAttribute': 'uid'"
+                                + "},"
+                                + "'isReadOnly': true,"
+                                + "'flattenSubtree': true"
+                            + "}"
                         + "}"
-                }
+                    + "}"
+                + "}"
+            }
         };
         // @Checkstyle:on
     }
@@ -353,24 +354,24 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
     }
 
     @Test
-    public void testInvalidSubResourceSearchFilterConfigurations()
+    public void testInvalidSubResourceSearchFilterConfiguration()
     throws Exception {
         final String rawJson =
             "{"
-                    + "'example-v1': {"
-                            + "'subResources': {"
-                                    + "'all-users': {"
-                                            + "'type': 'collection',"
-                                            + "'dnTemplate': 'ou=people,dc=example,dc=com',"
-                                            + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
-                                            + "'namingStrategy': {"
-                                                + "'type': 'clientDnNaming',"
-                                                + "'dnAttribute': 'uid'"
-                                            + "},"
-                                            + "'baseSearchFilter': 'badFilter'"
-                                    + "}"
-                            + "}"
+                + "'example-v1': {"
+                    + "'subResources': {"
+                        + "'all-users': {"
+                            + "'type': 'collection',"
+                            + "'dnTemplate': 'ou=people,dc=example,dc=com',"
+                            + "'resource': 'frapi:opendj:rest2ldap:user:1.0',"
+                            + "'namingStrategy': {"
+                                + "'type': 'clientDnNaming',"
+                                + "'dnAttribute': 'uid'"
+                            + "},"
+                            + "'baseSearchFilter': 'badFilter'"
+                        + "}"
                     + "}"
+                + "}"
             + "}";
 
         try {
