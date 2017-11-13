@@ -8,9 +8,18 @@ git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
 mvn clean install -f forgerock-parent
 mvn clean install -f OpenDJ
 ```
+BIN: OpenDJ/opendj-server-legacy/target/package/opendj-4.0.0-SNAPSHOT.zip
 
-About
-==========
+## How-to run after build
+
+```bash
+cd OpenDJ/opendj-server-legacy/target/package/opendj
+./setup
+bin/start-ds
+bin/stop-ds
+```
+
+## About
 
 OpenDJ is an [LDAPv3](http://tools.ietf.org/html/rfc4510) compliant directory service, which has been developed 
 for the Java platform, providing a high performance, highly available, and secure store for the identities managed 
