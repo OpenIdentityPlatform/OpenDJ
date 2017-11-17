@@ -1002,8 +1002,8 @@
                 <exclude>**/*_zh_TW.properties</exclude>
                 <exclude>org/slf4j/**</exclude>
                 <exclude>org/opends/server/loggers/slf4j/OpenDJLogger*</exclude>
-                <exclude>org/opends/server/backends/jeb/**</exclude>
-                <exclude>org/opends/server/replication/server/changelog/je/**</exclude>
+<!--                 <exclude>org/opends/server/backends/jeb/**</exclude> -->
+<!--                 <exclude>org/opends/server/replication/server/changelog/je/**</exclude> -->
               </excludes>
               <archive>
                 <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
