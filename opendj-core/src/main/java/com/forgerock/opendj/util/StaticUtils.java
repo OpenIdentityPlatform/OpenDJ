@@ -23,10 +23,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.ServiceLoader;
 import java.util.TimeZone;
@@ -769,9 +767,6 @@ public final class StaticUtils {
             loader = ServiceLoader.load(providerClass,providerClass.getClassLoader());
         }
         StringBuilder providersFound = new StringBuilder();
-        logger.warn(LocalizableMessage.raw("getProvider start"));
-        for (Object provider : loader) 
-        		logger.warn(LocalizableMessage.raw("getProvider %s", provider.toString()));
         for (P provider : loader) {
             if (providersFound.length() > 0) {
                 providersFound.append(" ");
