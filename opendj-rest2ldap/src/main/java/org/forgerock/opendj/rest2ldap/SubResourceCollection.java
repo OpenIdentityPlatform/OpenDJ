@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -74,10 +75,36 @@ public final class SubResourceCollection extends SubResource {
     private final Attribute glueObjectClasses = new LinkedAttribute("objectClass");
 
     private NamingStrategy namingStrategy;
+    private boolean flattenSubtree;
+    private Filter baseSearchFilter;
 
     SubResourceCollection(final String resourceId) {
         super(resourceId);
+
         useClientDnNaming("uid");
+    }
+
+    /**
+     * Gets whether or not this sub-resource should flatten sub-entries in results.
+     *
+     * @return  {@code true} if entries deep in the sub-tree are included in a flattened
+     *          collection view; {@code false} if only entries at the top level of the DN for this
+     *          sub-resource should be returned.
+     */
+    public boolean shouldFlattenSubtree() {
+        return flattenSubtree;
+    }
+
+    /**
+     * Gets the base filter that always restricts what LDAP entries are accessible through this
+     * collection, before any filters are applied from the request itself.
+     *
+     * The default is {@code null} (no base filter restriction at all).
+     *
+     * @return  Either a search filter; or {@code null} if no base search filter has been defined.
+     */
+    public Filter getBaseSearchFilter() {
+        return baseSearchFilter;
     }
 
     /**
@@ -213,12 +240,72 @@ public final class SubResourceCollection extends SubResource {
     /**
      * Indicates whether this sub-resource collection only supports read and query operations.
      *
-     * @param readOnly
+     * @param isReadOnly
      *         {@code true} if this sub-resource collection is read-only.
      * @return A reference to this object.
      */
-    public SubResourceCollection isReadOnly(final boolean readOnly) {
-        isReadOnly = readOnly;
+    public SubResourceCollection isReadOnly(final boolean isReadOnly) {
+        this.isReadOnly = isReadOnly;
+        return this;
+    }
+
+    /**
+     * Controls whether or not LDAP entries in the hierarchy below the root entry of the resource
+     * collection are included in the list of resources (essentially, flattening the hierarchy
+     * into one collection of resources).
+     *
+     * This can only be used if the resource is read-only. The default is not to flatten, which
+     * preserves the legacy behavior of Rest2LDAP.
+     *
+     * @param  flattenSubtree
+     *         Whether or not to flatten the hierarchy by searching the entire subtree.
+     * @return A reference to this object.
+     * @throws IllegalArgumentException
+     *         If the configuration is invalid.
+     */
+    public SubResourceCollection flattenSubtree(boolean flattenSubtree) {
+        if (flattenSubtree && !this.isReadOnly) {
+            throw new LocalizedIllegalArgumentException(
+                ERR_CONFIG_MUST_BE_READ_ONLY_TO_FLATTEN_SUBTREE.get());
+        }
+
+        this.flattenSubtree = flattenSubtree;
+        return this;
+    }
+
+    /**
+     * Sets the base filter that always restricts what LDAP entries are accessible through this
+     * collection, before any filters are applied from the request itself.
+     *
+     * The default is {@code null} (no base filter restriction at all).
+     *
+     * @param   filter
+     *          The filter which should be used to restrict which LDAP entries are returned.
+     * @return  A reference to this object.
+     */
+    public SubResourceCollection baseSearchFilter(final Filter filter) {
+        this.baseSearchFilter = filter;
+        return this;
+    }
+
+    /**
+     * Sets the base filter that always restricts what LDAP entries are accessible through this
+     * collection, before any filters are applied from the request itself.
+     *
+     * The default is {@code null} (no base filter restriction at all).
+     *
+     * @param   filter
+     *          The filter which should be used to restrict which LDAP entries are returned.
+     * @return  A reference to this object.
+     */
+    public SubResourceCollection baseSearchFilter(final String filter) {
+        if (filter == null) {
+            baseSearchFilter((Filter)null);
+        }
+        else {
+            baseSearchFilter(Filter.valueOf(filter));
+        }
+
         return this;
     }
 
@@ -256,11 +343,14 @@ public final class SubResourceCollection extends SubResource {
     }
 
     private SubResourceImpl collection(final Context context) {
-        return new SubResourceImpl(rest2Ldap,
-                                   dnFrom(context),
-                                   dnTemplateString.isEmpty() ? null : glueObjectClasses,
-                                   namingStrategy,
-                                   resource);
+        return new SubResourceImpl(
+            rest2Ldap,
+            dnFrom(context),
+            dnTemplateString.isEmpty() ? null : glueObjectClasses,
+            namingStrategy,
+            resource,
+            flattenSubtree,
+            baseSearchFilter);
     }
 
     private String idFrom(final Context context) {

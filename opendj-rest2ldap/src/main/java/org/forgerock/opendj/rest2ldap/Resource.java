@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -34,6 +35,8 @@ import static org.forgerock.util.Utils.joinAsString;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -470,6 +473,46 @@ public final class Resource {
         return id;
     }
 
+    /**
+     * Gets a unique name for the configuration of this resource as a service in CREST.
+     *
+     * The name is the combination of the resource type and the writability of the resource. For
+     * example, {@code frapi:opendj:rest2ldap:group:1.0:read-write} or
+     * {@code frapi:opendj:rest2ldap:user:1.0:read-only}. Multiple resources can share the same
+     * service description if they manipulate the same resource type and have the same writability.
+     *
+     * @param  isReadOnly
+     *         Whether or not this resource is read-only.
+     *
+     * @return The unique service ID for this resource, given the specified writability.
+     */
+    String getServiceId(boolean isReadOnly) {
+        final StringBuilder serviceId = new StringBuilder(this.getResourceId());
+
+        if (isReadOnly) {
+            serviceId.append(":read-only");
+        } else {
+            serviceId.append(":read-write");
+        }
+
+        return serviceId.toString();
+    }
+
+    /**
+     * Gets a map of the sub-resources under this resource, keyed by URL template.
+     *
+     * @return  The map of sub-resource URL templates to sub-resources.
+     */
+    Map<String, SubResource> getSubResourceMap() {
+        final Map<String, SubResource> result = new HashMap<>();
+
+        for (SubResource subResource : this.subResources) {
+            result.put(subResource.getUrlTemplate(), subResource);
+        }
+
+        return result;
+    }
+
     void build(final Rest2Ldap rest2Ldap) {
         // Prevent re-entrant calls.
         if (isBuilt) {
@@ -522,7 +565,7 @@ public final class Resource {
 
         org.forgerock.api.models.Resource.Builder resource = org.forgerock.api.models.Resource.
             resource()
-            .title(id)
+            .title(this.getServiceId(isReadOnly))
             .description(toLS(description))
             .resourceSchema(schemaRef("#/definitions/" + id))
             .mvccSupported(isMvccSupported());
@@ -539,8 +582,8 @@ public final class Resource {
         return ApiDescription.apiDescription()
                       .id("unused").version("unused")
                       .definitions(definitions())
-                      .services(services(resource))
-                      .paths(paths())
+                      .services(services(resource, isReadOnly))
+                      .paths(paths(isReadOnly))
                       .errors(errors())
                       .build();
     }
@@ -555,13 +598,17 @@ public final class Resource {
     ApiDescription collectionApi(boolean isReadOnly) {
         org.forgerock.api.models.Resource.Builder resource = org.forgerock.api.models.Resource.
             resource()
-            .title(id)
+            .title(this.getServiceId(isReadOnly))
             .description(toLS(description))
             .resourceSchema(schemaRef("#/definitions/" + id))
             .mvccSupported(isMvccSupported());
 
         resource.items(buildItems(isReadOnly));
-        resource.create(createOperation(CreateMode.ID_FROM_SERVER));
+
+        if (!isReadOnly) {
+            resource.create(createOperation(CreateMode.ID_FROM_SERVER));
+        }
+
         resource.query(Query.query()
                            .stability(EVOLVING)
                            .type(QueryType.FILTER)
@@ -580,23 +627,29 @@ public final class Resource {
         return ApiDescription.apiDescription()
                              .id("unused").version("unused")
                              .definitions(definitions())
-                             .services(services(resource))
-                             .paths(paths())
+                             .services(services(resource, isReadOnly))
+                             .paths(paths(isReadOnly))
                              .errors(errors())
                              .build();
     }
 
-    private Services services(org.forgerock.api.models.Resource.Builder resource) {
+    private Services services(org.forgerock.api.models.Resource.Builder resource,
+                              boolean isReadOnly) {
+        final String serviceId = this.getServiceId(isReadOnly);
+
         return Services.services()
-                       .put(id, resource.build())
+                       .put(serviceId, resource.build())
                        .build();
     }
 
-    private Paths paths() {
+    private Paths paths(boolean isReadOnly) {
+        final String serviceId = this.getServiceId(isReadOnly);
+        final org.forgerock.api.models.Resource resource = resourceRef("#/services/" + serviceId);
+
         return Paths.paths()
                      // do not put anything in the path to avoid unfortunate string concatenation
                      // also use UNVERSIONED and rely on the router to stamp the version
-                     .put("", versionedPath().put(UNVERSIONED, resourceRef("#/services/" + id)).build())
+                     .put("", versionedPath().put(UNVERSIONED, resource).build())
                      .build();
     }
 

@@ -12,7 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- *
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -60,9 +60,10 @@ public abstract class SubResource {
 
     String urlTemplate = "";
     String dnTemplateString = "";
-    boolean isReadOnly = false;
-    Rest2Ldap rest2Ldap;
-    Resource resource;
+
+    protected boolean isReadOnly = false;
+    protected Rest2Ldap rest2Ldap;
+    protected Resource resource;
 
     SubResource(final String resourceId) {
         this.resourceId = resourceId;
@@ -80,7 +81,25 @@ public abstract class SubResource {
 
     @Override
     public final String toString() {
+        return getUrlTemplate();
+    }
+
+    /**
+     * Gets the URL template that must match for this sub-resource to apply to a given request.
+     *
+     * @return  The URL template for this sub-resource.
+     */
+    public String getUrlTemplate() {
         return urlTemplate;
+    }
+
+    /**
+     * Gets whether or not this sub-resource has been configured for read-only access.
+     *
+     * @return  {@code true} if the sub-resource is read-only; {@code false} otherwise.
+     */
+    public boolean isReadOnly() {
+        return isReadOnly;
     }
 
     final Resource getResource() {

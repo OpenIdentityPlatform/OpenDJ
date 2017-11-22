@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -190,7 +191,7 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
     }
 
     @DataProvider
-    public Object[][] ingnoredCacheResolverConfigurations() {
+    public Object[][] ignoredCacheResolverConfigurations() {
         // @Checkstyle:off
         return new Object[][] {
                 {
@@ -205,7 +206,7 @@ public class OAuth2JsonConfigurationTestCase extends ForgeRockTestCase {
         // @Checkstyle:on
     }
 
-    @Test(dataProvider = "ingnoredCacheResolverConfigurations")
+    @Test(dataProvider = "ignoredCacheResolverConfigurations")
     public void testNoCacheFallbackOnResolver(final String rawJson) throws Exception {
         assertThat(fakeApp.createCachedTokenResolverIfNeeded(parseJson(rawJson), resolver)).isEqualTo(resolver);
     }

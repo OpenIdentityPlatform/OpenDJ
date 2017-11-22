@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -31,7 +32,6 @@ import static org.forgerock.json.resource.Responses.newResourceResponse;
 import static org.forgerock.opendj.ldap.ByteString.valueOfBytes;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
-import static org.forgerock.opendj.ldap.SearchScope.SINGLE_LEVEL;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.RoutingContext.newCollectionRoutingContext;
@@ -140,9 +140,17 @@ final class SubResourceImpl {
     private final boolean usePermissiveModify;
     private final Resource resource;
     private final Attribute glueObjectClasses;
+    private final boolean flattenSubtree;
+    private final Filter baseSearchFilter;
 
     SubResourceImpl(final Rest2Ldap rest2Ldap, final DN baseDn, final Attribute glueObjectClasses,
                     final NamingStrategy namingStrategy, final Resource resource) {
+        this(rest2Ldap, baseDn, glueObjectClasses, namingStrategy, resource, false, null);
+    }
+
+    SubResourceImpl(final Rest2Ldap rest2Ldap, final DN baseDn, final Attribute glueObjectClasses,
+                    final NamingStrategy namingStrategy, final Resource resource,
+                    final boolean flattenSubtree, final Filter baseSearchFilter) {
         this.readOnUpdatePolicy = rest2Ldap.getOptions().get(READ_ON_UPDATE_POLICY);
         this.useSubtreeDelete = rest2Ldap.getOptions().get(USE_SUBTREE_DELETE);
         this.usePermissiveModify = rest2Ldap.getOptions().get(USE_PERMISSIVE_MODIFY);
@@ -153,6 +161,8 @@ final class SubResourceImpl {
         this.glueObjectClasses = glueObjectClasses;
         this.namingStrategy = namingStrategy;
         this.resource = resource;
+        this.flattenSubtree = flattenSubtree;
+        this.baseSearchFilter = baseSearchFilter;
     }
 
     Promise<ActionResponse, ResourceException> action(
@@ -504,7 +514,32 @@ final class SubResourceImpl {
     Promise<QueryResponse, ResourceException> query(
             final Context context, final QueryRequest request, final QueryResourceHandler resourceHandler) {
         return getLdapFilter(context, request.getQueryFilter())
+                .then(applyBaseSearchFilter())
                 .thenAsync(runQuery(context, request, resourceHandler));
+    }
+
+    /**
+     * Generates a function that applies any base filter that this sub-resource may have been
+     * initialized with.
+     *
+     * @return  The function to invoke to apply a base filter, if one has been specified.
+     */
+    private Function<Filter, Filter, ResourceException> applyBaseSearchFilter() {
+        return new Function<Filter, Filter, ResourceException>() {
+            @Override
+            public Filter apply(final Filter requestFilter) throws ResourceException {
+                final Filter baseSearchFilter = SubResourceImpl.this.baseSearchFilter,
+                             searchFilter;
+
+                if (baseSearchFilter != null) {
+                    searchFilter = Filter.and(baseSearchFilter, requestFilter);
+                } else {
+                    searchFilter = requestFilter;
+                }
+
+                return searchFilter;
+            }
+        };
     }
 
     // FIXME: supporting assertions against sub-type properties.
@@ -523,6 +558,7 @@ final class SubResourceImpl {
                     public Promise<Filter, ResourceException> visitAndFilter(
                             final Void unused, final List<QueryFilter<JsonPointer>> subFilters) {
                         final List<Promise<Filter, ResourceException>> promises = new ArrayList<>(subFilters.size());
+
                         for (final QueryFilter<JsonPointer> subFilter : subFilters) {
                             promises.add(subFilter.accept(this, unused));
                         }
@@ -532,14 +568,17 @@ final class SubResourceImpl {
                             public Filter apply(final List<Filter> value) {
                                 // Check for unmapped filter components and optimize.
                                 final Iterator<Filter> i = value.iterator();
+
                                 while (i.hasNext()) {
                                     final Filter f = i.next();
+
                                     if (f == alwaysFalse()) {
                                         return alwaysFalse();
                                     } else if (f == alwaysTrue()) {
                                         i.remove();
                                     }
                                 }
+
                                 switch (value.size()) {
                                 case 0:
                                     return alwaysTrue();
@@ -673,6 +712,7 @@ final class SubResourceImpl {
                                 parentDnAndType, resource, ROOT, field, STARTS_WITH, null, valueAssertion);
                     }
                 };
+        
         // Note that the returned LDAP filter may be null if it could not be mapped by any property mappers.
         return queryFilter.accept(visitor, null);
     }
@@ -700,7 +740,7 @@ final class SubResourceImpl {
                 final String[] attributes = getLdapAttributesForUnknownType(request.getFields()).toArray(new String[0]);
                 final Filter searchFilter = ldapFilter == Filter.alwaysTrue() ? Filter.objectClassPresent()
                         : ldapFilter;
-                final SearchRequest searchRequest = newSearchRequest(baseDn, SINGLE_LEVEL, searchFilter, attributes);
+                final SearchRequest searchRequest = createSearchRequest(searchFilter, attributes);
 
                 // Add the page results control. We can support the page offset by reading the next offset pages, or
                 // offset x page size resources.
@@ -1062,6 +1102,34 @@ final class SubResourceImpl {
     private SearchRequest searchRequestForUnknownType(final String resourceId, final List<JsonPointer> fields) {
         final String[] attributes = getLdapAttributesForUnknownType(fields).toArray(new String[0]);
         return namingStrategy.createSearchRequest(baseDn, resourceId).addAttribute(attributes);
+    }
+
+    /**
+     * Creates a request to search LDAP for entries that match the provided search filter, and
+     * the specified attributes.
+     *
+     * If the subtree flattening is enabled, the search request will encompass the whole subtree.
+     *
+     * @param   searchFilter
+     *          The filter that entries must match to be returned.
+     * @param   desiredAttributes
+     *          The names of the attributes to be included with each entry.
+     *
+     * @return  The resulting search request.
+     */
+    private SearchRequest createSearchRequest(Filter searchFilter, String[] desiredAttributes) {
+        final SearchScope searchScope;
+        final SearchRequest searchRequest;
+
+        if (SubResourceImpl.this.flattenSubtree) {
+            searchScope = SearchScope.SUBORDINATES;
+        } else {
+            searchScope = SearchScope.SINGLE_LEVEL;
+        }
+
+        searchRequest = newSearchRequest(baseDn, searchScope, searchFilter, desiredAttributes);
+
+        return searchRequest;
     }
 
     @SuppressWarnings("unused")

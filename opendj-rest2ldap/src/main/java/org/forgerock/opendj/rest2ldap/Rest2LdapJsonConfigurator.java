@@ -12,7 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
- *
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -306,41 +306,82 @@ public final class Rest2LdapJsonConfigurator {
     private enum NamingStrategyType { CLIENTDNNAMING, CLIENTNAMING, SERVERNAMING }
     private enum SubResourceType { COLLECTION, SINGLETON }
 
-    private static SubResource configureSubResource(final String urlTemplate, final JsonValue config) {
+    private static SubResource configureSubResource(final String urlTemplate,
+                                                    final JsonValue config) {
         final String dnTemplate = config.get("dnTemplate").defaultTo("").asString();
         final Boolean isReadOnly = config.get("isReadOnly").defaultTo(false).asBoolean();
         final String resourceId = config.get("resource").required().asString();
 
-        if (config.get("type").required().as(enumConstant(SubResourceType.class)) == SubResourceType.COLLECTION) {
-            final String[] glueObjectClasses = config.get("glueObjectClasses")
-                                                     .defaultTo(emptyList())
-                                                     .asList(String.class)
-                                                     .toArray(new String[0]);
+        final SubResourceType subResourceType =
+          config.get("type").required().as(enumConstant(SubResourceType.class));
 
-            final SubResourceCollection collection = collectionOf(resourceId).urlTemplate(urlTemplate)
-                                                                             .dnTemplate(dnTemplate)
-                                                                             .isReadOnly(isReadOnly)
-                                                                             .glueObjectClasses(glueObjectClasses);
-
-            final JsonValue namingStrategy = config.get("namingStrategy").required();
-            switch (namingStrategy.get("type").required().as(enumConstant(NamingStrategyType.class))) {
-            case CLIENTDNNAMING:
-                collection.useClientDnNaming(namingStrategy.get("dnAttribute").required().asString());
-                break;
-            case CLIENTNAMING:
-                collection.useClientNaming(namingStrategy.get("dnAttribute").required().asString(),
-                                           namingStrategy.get("idAttribute").required().asString());
-                break;
-            case SERVERNAMING:
-                collection.useServerNaming(namingStrategy.get("dnAttribute").required().asString(),
-                                           namingStrategy.get("idAttribute").required().asString());
-                break;
-            }
-
-            return collection;
+        if (subResourceType == SubResourceType.COLLECTION) {
+            return configureCollectionSubResource(
+                config, resourceId, urlTemplate, dnTemplate, isReadOnly);
         } else {
-            return singletonOf(resourceId).urlTemplate(urlTemplate).dnTemplate(dnTemplate).isReadOnly(isReadOnly);
+            return configureSingletonSubResource(
+                config, resourceId, urlTemplate, dnTemplate, isReadOnly);
         }
+    }
+
+    private static SubResource configureCollectionSubResource(final JsonValue config,
+                                                              final String resourceId,
+                                                              final String urlTemplate,
+                                                              final String dnTemplate,
+                                                              final Boolean isReadOnly) {
+        final String[] glueObjectClasses =
+            config.get("glueObjectClasses")
+                .defaultTo(emptyList())
+                .asList(String.class)
+                .toArray(new String[0]);
+
+        final Boolean flattenSubtree = config.get("flattenSubtree").defaultTo(false).asBoolean();
+        final String searchFilter = config.get("baseSearchFilter").asString();
+
+        final SubResourceCollection collection =
+            collectionOf(resourceId)
+                .urlTemplate(urlTemplate)
+                .dnTemplate(dnTemplate)
+                .isReadOnly(isReadOnly)
+                .glueObjectClasses(glueObjectClasses)
+                .flattenSubtree(flattenSubtree)
+                .baseSearchFilter(searchFilter);
+
+        configureCollectionNamingStrategy(config, collection);
+
+        return collection;
+    }
+
+    private static void configureCollectionNamingStrategy(final JsonValue config,
+                                                          final SubResourceCollection collection) {
+        final JsonValue namingStrategy = config.get("namingStrategy").required();
+        final NamingStrategyType namingStrategyType =
+            namingStrategy.get("type").required().as(enumConstant(NamingStrategyType.class));
+
+        switch (namingStrategyType) {
+        case CLIENTDNNAMING:
+            collection.useClientDnNaming(namingStrategy.get("dnAttribute").required().asString());
+            break;
+        case CLIENTNAMING:
+            collection.useClientNaming(namingStrategy.get("dnAttribute").required().asString(),
+                                       namingStrategy.get("idAttribute").required().asString());
+            break;
+        case SERVERNAMING:
+            collection.useServerNaming(namingStrategy.get("dnAttribute").required().asString(),
+                                       namingStrategy.get("idAttribute").required().asString());
+            break;
+        }
+    }
+
+    private static SubResource configureSingletonSubResource(final JsonValue config,
+                                                             final String resourceId,
+                                                             final String urlTemplate,
+                                                             final String dnTemplate,
+                                                             final Boolean isReadOnly) {
+        return singletonOf(resourceId)
+                    .urlTemplate(urlTemplate)
+                    .dnTemplate(dnTemplate)
+                    .isReadOnly(isReadOnly);
     }
 
     private static PropertyMapper configurePropertyMapper(final JsonValue mapper, final String defaultLdapAttribute) {

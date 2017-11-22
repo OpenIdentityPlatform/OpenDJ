@@ -12,6 +12,7 @@
  * information: "Portions copyright [year] [name of copyright owner]".
  *
  * Copyright 2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -139,7 +140,8 @@ public final class SubResourceSingleton extends SubResource {
     }
 
     private SubResourceImpl singleton(final Context context) {
-        return new SubResourceImpl(rest2Ldap, dnFrom(context), null, SINGLETON_NAMING_STRATEGY, resource);
+        return new SubResourceImpl(
+            rest2Ldap, dnFrom(context), null, SINGLETON_NAMING_STRATEGY, resource);
     }
 
     /**

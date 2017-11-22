@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2012-2016 ForgeRock AS.
+ * Portions Copyright 2017 Rosie Applications, Inc.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -82,6 +83,7 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
                             final String baseDnTemplate, final AttributeDescription primaryKey,
                             final PropertyMapper mapper) {
         super(ldapAttributeName);
+
         this.schema = schema;
         this.baseDnTemplate = DnTemplate.compile(baseDnTemplate);
         this.primaryKey = primaryKey;
@@ -89,13 +91,11 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
     }
 
     /**
-     * Sets the filter which should be used when searching for referenced LDAP
-     * entries. The default is {@code (objectClass=*)}.
+     * Sets the filter which should be used when searching for referenced LDAP entries.
      *
-     * @param filter
-     *            The filter which should be used when searching for referenced
-     *            LDAP entries.
-     * @return This property mapper.
+     * @param   filter
+     *          The filter which should be used when searching for referenced LDAP entries.
+     * @return  This property mapper.
      */
     public ReferencePropertyMapper searchFilter(final Filter filter) {
         this.filter = checkNotNull(filter);
@@ -104,25 +104,24 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
 
     /**
      * Sets the filter which should be used when searching for referenced LDAP
-     * entries. The default is {@code (objectClass=*)}.
+     * entries.
      *
-     * @param filter
-     *            The filter which should be used when searching for referenced
-     *            LDAP entries.
-     * @return This property mapper.
+     * @param   filter
+     *          The filter which should be used when searching for referenced LDAP entries.
+     * @return  This property mapper.
      */
     public ReferencePropertyMapper searchFilter(final String filter) {
         return searchFilter(Filter.valueOf(filter));
     }
 
     /**
-     * Sets the search scope which should be used when searching for referenced
-     * LDAP entries. The default is {@link SearchScope#WHOLE_SUBTREE}.
+     * Sets the search scope which should be used when searching for referenced LDAP entries.
+     * The default is {@link SearchScope#WHOLE_SUBTREE}.
      *
-     * @param scope
-     *            The search scope which should be used when searching for
-     *            referenced LDAP entries.
-     * @return This property mapper.
+     * @param   scope
+     *          The search scope which should be used when searching for
+     *          referenced LDAP entries.
+     * @return  This property mapper.
      */
     public ReferencePropertyMapper searchScope(final SearchScope scope) {
         this.scope = checkNotNull(scope);
@@ -142,9 +141,9 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         return mapper.getLdapFilter(context, resource, path, subPath, type, operator, valueAssertion)
                 .thenAsync(new AsyncFunction<Filter, Filter, ResourceException>() {
                     @Override
-                    public Promise<Filter, ResourceException> apply(final Filter result) {
+                    public Promise<Filter, ResourceException> apply(final Filter filter) {
                         // Search for all referenced entries and construct a filter.
-                        final SearchRequest request = createSearchRequest(context, result);
+                        final SearchRequest request = createSearchRequest(context, filter);
                         final List<Filter> subFilters = new LinkedList<>();
 
                         return connectionFrom(context).searchAsync(request, new SearchResultHandler() {
@@ -325,8 +324,9 @@ public final class ReferencePropertyMapper extends AbstractLdapPropertyMapper<Re
         }
     }
 
-    private SearchRequest createSearchRequest(final Context context, final Filter result) {
-        final Filter searchFilter = filter != null ? Filter.and(filter, result) : result;
+    private SearchRequest createSearchRequest(final Context context, final Filter filter) {
+        final Filter searchFilter = this.filter != null ? Filter.and(this.filter, filter) : filter;
+
         return newSearchRequest(baseDnTemplate.format(context), scope, searchFilter, "1.1");
     }
 
