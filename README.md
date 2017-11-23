@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/OpenIdentityPlatform/OpenDJ.svg)](https://travis-ci.org/OpenIdentityPlatform/OpenDJ)
 [![Build Status](https://img.shields.io/badge/license-CDDL-blue.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/legal-notices/CDDLv1_0.txt)
 [![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](http://gitter.im/OpenIdentityPlatform)
+[![GitHub top language](https://img.shields.io/github/languages/top/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 
 OpenDJ is an [LDAPv3](http://tools.ietf.org/html/rfc4510) compliant directory service, which has been developed 
