@@ -40,4 +40,4 @@ Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls
 
 ## Thanks
 * Sun OpenDS
-* Forgrock OpenDJ
+* Forgerock OpenDJ
