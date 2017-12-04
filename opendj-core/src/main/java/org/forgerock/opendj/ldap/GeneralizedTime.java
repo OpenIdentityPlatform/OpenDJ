@@ -890,6 +890,8 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
             // Format the year yyyy.
             int n = tmpCalendar.get(Calendar.YEAR);
+            if (n>9999)
+            		n=9999;
             if (n < 0) {
                 throw new IllegalArgumentException("Year cannot be < 0:" + n);
             } else if (n < 10) {
