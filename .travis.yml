@@ -47,10 +47,11 @@ cache:
 before_install:
   - date -u
   - uname -a
+  - git fetch -t
   - export git_version_last="$(git describe $(git rev-list --tags --max-count=1))"
   - export git_version="$(echo $git_version_last | awk -F . '{ printf "%d.%d.%d", $1,$2,$3 + 1}')"
   - env | sort
-  - git fetch -t; git log `git describe --tags --abbrev=0 HEAD^`..HEAD --oneline
+  - git log `git describe --tags --abbrev=0 HEAD^`..HEAD --oneline
   - mvn -q -B -DskipTests clean install -f forgerock-parent
 script:
   - mvn -q -B clean install
