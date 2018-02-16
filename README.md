@@ -1,4 +1,5 @@
 # <img alt="OpenDJ Logo" src="https://github.com/OpenIdentityPlatform/OpenDJ/raw/master/logo.png" width="300"/>
+[![Latest release](https://img.shields.io/github/release/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
 [![Build Status](https://travis-ci.org/OpenIdentityPlatform/OpenDJ.svg)](https://travis-ci.org/OpenIdentityPlatform/OpenDJ)
 [![Build Status](https://img.shields.io/badge/license-CDDL-blue.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/legal-notices/CDDLv1_0.txt)
 [![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](http://gitter.im/OpenIdentityPlatform)
@@ -14,13 +15,15 @@ the simplest, fastest directory to deploy and manage.
 This project is licensed under the Common Development and Distribution License (CDDL). The following text applies to 
 both this file, and should also be included in all files in the project:
 
+## Downloads
+[Latest release OpenDJ](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+
 ## How-to build
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
 mvn clean install -f forgerock-parent
 mvn clean install -f OpenDJ
 ```
-BIN: OpenDJ/opendj-server-legacy/target/package/opendj-4.0.0-SNAPSHOT.zip
 
 ## How-to run after build
 ```bash
@@ -40,4 +43,5 @@ Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls
 
 ## Thanks
 * Sun OpenDS
+* Oracle OpenDS
 * Forgerock OpenDJ
