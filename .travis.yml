@@ -14,7 +14,7 @@ matrix:
       draft: false
       prerelease: false
       name: $git_version
-      body: "compare: $git_version_last...$git_version"
+      body: "compare: $git_version_last...$TRAVIS_COMMIT"
       api_key:
         secure: PgK6BoNCzi1doFlci8nSFRkGe45wLszpN5ItmqVtkR7Hp2oUN7xNRfin2bAR5J3iAZbdcjl9JopRrlsZ3LQYtxuYH4TZVGMxIWMptNW96xizc3JbJVV+4U2MAGBvdEKoePg1GKwOVCcd6uj1+8JT3lhG9fBLA4rh3ExKRYaSyHg8U095OyhHUM9gtlAYwkgCF40vwG+qcOnhfgf+kqDCsOx0LW6NmZzgw7+7thmjM/92ERg65QnBtk5cSwcbqKcuZxdS9huBeFg2JMfISdFgr8Ps1QrDDm4E6HGctXwf9FudZC2qFTcKtL7dBg1DpAFGAkRQwPlwmTgmGeFTP2lBPAMwldxRexLwC7886kBDK533AedjMP33M3QlkpIitaTv8UwedkKi7b27+GachwsaPE4I5BpKMDw4V86qnHji4e8AXE/PDZhjn7w9SErN/09FcCb9t1J+IfwHzWVL+EqdOgbWdtQTVDFjpNjfdlMh9RJ8I0akxPu8V4fFIVfNCD/XRSe+Df6dmzhqHo6wrPTd842VHbiS4PCCuAVobAJ10zv/JGzS4XUa41o+oT2IZ+0psj8Wm19/XLmVyKm31ilB98vMqWPUuiZqlDfXIbFxYxVHL9Ubr6ThpVzQE2YPUBxQpjIbrNRUjn/r3j5kndEouhT0x+Oy4tbbato/oyDB4BQ=
       skip_cleanup: true
