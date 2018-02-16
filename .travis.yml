@@ -1,24 +1,56 @@
 language: java
 matrix:
-    include:
-        - os: linux
-          jdk: oraclejdk8
-        - os: linux
-          jdk: openjdk8
-        - os: osx
-          osx_image: xcode9.1
-    allow_failures:
-        - os: osx
+  include:
+  - os: linux
+    jdk: openjdk8
+    before_deploy: 
+      - echo 'before_deploy'
+      - git config --local user.name "OpenIdentityPlatform Community"
+      - git config --local user.email "open-identity-platform-opendj@googlegroups.com"
+      - git tag "$git_version"
+      - find opendj-server-legacy/target/package -type f -name "*?.?.?*" -execdir bash -c 'mv "$1"  "${1/[[:digit:]].[[:digit:]].[[:digit:]]/$git_version}"' _ {} \;
+    deploy:
+      provider: releases
+      draft: false
+      prerelease: false
+      name: $git_version
+      body: "changes: $TRAVIS_COMMIT_RANGE"
+      api_key:
+        secure: PgK6BoNCzi1doFlci8nSFRkGe45wLszpN5ItmqVtkR7Hp2oUN7xNRfin2bAR5J3iAZbdcjl9JopRrlsZ3LQYtxuYH4TZVGMxIWMptNW96xizc3JbJVV+4U2MAGBvdEKoePg1GKwOVCcd6uj1+8JT3lhG9fBLA4rh3ExKRYaSyHg8U095OyhHUM9gtlAYwkgCF40vwG+qcOnhfgf+kqDCsOx0LW6NmZzgw7+7thmjM/92ERg65QnBtk5cSwcbqKcuZxdS9huBeFg2JMfISdFgr8Ps1QrDDm4E6HGctXwf9FudZC2qFTcKtL7dBg1DpAFGAkRQwPlwmTgmGeFTP2lBPAMwldxRexLwC7886kBDK533AedjMP33M3QlkpIitaTv8UwedkKi7b27+GachwsaPE4I5BpKMDw4V86qnHji4e8AXE/PDZhjn7w9SErN/09FcCb9t1J+IfwHzWVL+EqdOgbWdtQTVDFjpNjfdlMh9RJ8I0akxPu8V4fFIVfNCD/XRSe+Df6dmzhqHo6wrPTd842VHbiS4PCCuAVobAJ10zv/JGzS4XUa41o+oT2IZ+0psj8Wm19/XLmVyKm31ilB98vMqWPUuiZqlDfXIbFxYxVHL9Ubr6ThpVzQE2YPUBxQpjIbrNRUjn/r3j5kndEouhT0x+Oy4tbbato/oyDB4BQ=
+      skip_cleanup: true
+      overwrite: true
+      file_glob: true
+      file: 
+        - "opendj-server-legacy/target/package/*.zip"
+      on:
+        repo: OpenIdentityPlatform/OpenDJ
+        tags: false
+        branch: 
+          - master
+    after_deploy:
+      - echo 'after_deploy'
+  - os: linux
+    jdk: oraclejdk8
+  - os: osx
+    osx_image: xcode9.1
+  allow_failures:
+  - os: osx
 branches:
- only:
-   - master
+  only:
+  - master
 notifications:
- email:
+  email:
   - open-identity-platform-opendj@googlegroups.com
+cache:
+  directories:
+    - "$HOME/.m2"
 before_install:
- - date -u
- - uname -a
- - env | sort
- - mvn -q -B -DskipTests clean install -f forgerock-parent
+  - date -u
+  - uname -a
+  - export git_version_last="$(git describe $(git rev-list --tags --max-count=1))"
+  - export git_version="$(echo $git_version_last | awk -F . '{ printf "%d.%d.%d", $1,$2,$3 + 1}')"
+  - env | sort
+  - git log `git describe --tags --abbrev=0 HEAD^`..HEAD --oneline
+  - mvn -q -B -DskipTests clean install -f forgerock-parent
 script:
- - mvn -q -B clean install
+  - mvn -q -B clean install
