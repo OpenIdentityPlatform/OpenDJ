@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-rpm</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>opendj-rpm-standard</artifactId>
@@ -36,7 +36,7 @@
         <rpm.product.name.lowercase>${product.name.lowercase}</rpm.product.name.lowercase>
         <rpm.resources.path>${project.parent.basedir}/resources</rpm.resources.path>
         <rpm.description.header>${product.name} LDAP Server</rpm.description.header>
-        <rpm.product.summary></rpm.product.summary>
+        <rpm.product.summary />
         <rpm.license>CDDL</rpm.license>
     </properties>
 
