@@ -6,10 +6,7 @@ matrix:
     before_deploy: 
       - git config --local user.name "OpenIdentityPlatform Community"
       - git config --local user.email "open-identity-platform-opendj@googlegroups.com"
-      - git tag "$git_version"
-      - find opendj-server-legacy/target/package -type f -name "*?.?.?*" -execdir bash -c 'mv "$1"  "${1/[[:digit:]].[[:digit:]].[[:digit:]]-SNAPSHOT/$git_version}"' _ {} \;
-      - find opendj-packages/opendj-deb/opendj-deb-standard/target -type f -name "*?.?.?*" -execdir bash -c 'mv "$1"  "${1/[[:digit:]].[[:digit:]].[[:digit:]]-SNAPSHOT-[[:digit:]]/$git_version}"' _ {} \;
-      - find opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch -type f -name "*?.?.?*" -execdir bash -c 'mv "$1"  "${1/[[:digit:]].[[:digit:]].[[:digit:]]_SNAPSHOT-[[:digit:]]/$git_version}"' _ {} \;
+      - mvn -DreleaseVersion="$git_version" -DignoreSnapshots=true --batch-mode release:prepare
     deploy:
       provider: releases
       draft: false
