@@ -5,6 +5,7 @@ matrix:
     jdk: openjdk8
     before_deploy: 
       - echo 'before_deploy'
+      - sudo apt-get install -y rpm
       - git config --local user.name "OpenIdentityPlatform Community"
       - git config --local user.email "open-identity-platform-opendj@googlegroups.com"
       - git tag "$git_version"
