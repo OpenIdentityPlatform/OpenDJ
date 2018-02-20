@@ -108,7 +108,7 @@
 
     <scm>
         <connection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:OpenIdentityPlatform/OpenDJ.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</developerConnection>
         <url>https://github.com/OpenIdentityPlatform/OpenDJ</url>
       	<tag>HEAD</tag>
   	</scm>
