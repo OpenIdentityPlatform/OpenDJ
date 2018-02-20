@@ -358,6 +358,9 @@
     <profiles>
         <profile>
             <id>man-pages</id>
+            <activation>
+            		<activeByDefault>true</activeByDefault>
+            	</activation>
             <build>
                 <plugins>
                     <plugin>
@@ -575,47 +578,46 @@
                     </plugin>
 
                     <!-- Format man pages -->
-                    <plugin>
-                        <groupId>org.forgerock.commons</groupId>
-                        <artifactId>forgerock-doc-maven-plugin</artifactId>
-                        <version>${forgerock-doc-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>build-man-pages</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>process</goal>
-                                    <goal>build</goal>
-                                </goals>
-                                <configuration>
-                                    <projectName>OpenDJ</projectName>
-                                    <projectVersion>${project.version}</projectVersion>
-                                    <releaseVersion>${project.version}</releaseVersion>
-                                    <googleAnalyticsId>UA-23412190-8</googleAnalyticsId>
-                                    <formats combine.self="override">
-                                        <format>man</format>
-                                    </formats>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+<!--                     <plugin> -->
+<!--                         <groupId>org.forgerock.commons</groupId> -->
+<!--                         <artifactId>forgerock-doc-maven-plugin</artifactId> -->
+<!--                         <version>${forgerock-doc-plugin.version}</version> -->
+<!--                         <executions> -->
+<!--                             <execution> -->
+<!--                                 <id>build-man-pages</id> -->
+<!--                                 <phase>package</phase> -->
+<!--                                 <goals> -->
+<!--                                     <goal>process</goal> -->
+<!--                                     <goal>build</goal> -->
+<!--                                 </goals> -->
+<!--                                 <configuration> -->
+<!--                                     <projectName>OpenDJ</projectName> -->
+<!--                                     <projectVersion>${project.version}</projectVersion> -->
+<!--                                     <releaseVersion>${project.version}</releaseVersion> -->
+<!--                                     <formats combine.self="override"> -->
+<!--                                         <format>man</format> -->
+<!--                                     </formats> -->
+<!--                                 </configuration> -->
+<!--                             </execution> -->
+<!--                         </executions> -->
+<!--                     </plugin> -->
 
                     <!-- Generate Artifacts -->
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <executions>
-                            <execution>
-                                <id>sdk-tools-man-pages</id>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <phase>package</phase>
-                                <configuration>
-                                    <descriptors>
-                                        <descriptor>src/main/assembly/sdk-tools-man-pages-assembly.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
-                            </execution>
+<!--                             <execution> -->
+<!--                                 <id>sdk-tools-man-pages</id> -->
+<!--                                 <goals> -->
+<!--                                     <goal>single</goal> -->
+<!--                                 </goals> -->
+<!--                                 <phase>package</phase> -->
+<!--                                 <configuration> -->
+<!--                                     <descriptors> -->
+<!--                                         <descriptor>src/main/assembly/sdk-tools-man-pages-assembly.xml</descriptor> -->
+<!--                                     </descriptors> -->
+<!--                                 </configuration> -->
+<!--                             </execution> -->
 
                             <execution>
                                 <id>server-tools-man-pages-sources</id>

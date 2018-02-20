@@ -36,8 +36,8 @@
         <rpm.product.name.lowercase>${product.name.lowercase}</rpm.product.name.lowercase>
         <rpm.resources.path>${project.parent.basedir}/resources</rpm.resources.path>
         <rpm.description.header>${product.name} LDAP Server</rpm.description.header>
-        <rpm.product.summary>This OpenDJ package includes the Berkeley JE Backend and cannot be redistributed without a suitable license</rpm.product.summary>
-        <rpm.license>CDDL, Oracle, France Telecom</rpm.license>
+        <rpm.product.summary></rpm.product.summary>
+        <rpm.license>CDDL</rpm.license>
     </properties>
 
     <build>

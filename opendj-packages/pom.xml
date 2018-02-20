@@ -39,46 +39,18 @@
     </properties>
 
     <modules>
-        <module>opendj-zip</module>
     </modules>
 
     <profiles>
         <profile>
             <id>opendj-deb</id>
             <activation>
-                <os><family>Linux</family></os>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
                 <module>opendj-deb</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>opendj-rpm</id>
-            <activation>
-                <file><exists>/bin/rpm</exists></file>
-            </activation>
-            <modules>
                 <module>opendj-rpm</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>opendj-svr4</id>
-            <activation>
-                <os><family>SunOS</family></os>
-            </activation>
-            <modules>
                 <module>opendj-svr4</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>opendj-msi</id>
-            <activation>
-                <os><family>Windows</family></os>
-            </activation>
-            <modules>
                 <module>opendj-msi</module>
             </modules>
         </profile>

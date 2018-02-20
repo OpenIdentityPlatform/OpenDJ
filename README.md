@@ -15,8 +15,13 @@ the simplest, fastest directory to deploy and manage.
 This project is licensed under the Common Development and Distribution License (CDDL). The following text applies to 
 both this file, and should also be included in all files in the project:
 
-## Downloads
-[Latest release OpenDJ](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+## Downloads 
+* [OpenDJ ZIP (All OS)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+* [OpenDJ DEB (Debian)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+* [OpenDJ RPM (Redhat/Centos)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+* [OpenDJ MSI (Windows/Wine)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+
+Java 1.8+ required
 
 ## How-to build
 ```bash

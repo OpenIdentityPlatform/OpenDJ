@@ -9,6 +9,8 @@ matrix:
       - git config --local user.email "open-identity-platform-opendj@googlegroups.com"
       - git tag "$git_version"
       - find opendj-server-legacy/target/package -type f -name "*?.?.?*" -execdir bash -c 'mv "$1"  "${1/[[:digit:]].[[:digit:]].[[:digit:]]-SNAPSHOT/$git_version}"' _ {} \;
+      - find opendj-packages/opendj-deb/opendj-deb-standard/target -type f -name "*?.?.?*" -execdir bash -c 'mv "$1"  "${1/[[:digit:]].[[:digit:]].[[:digit:]]-SNAPSHOT-[[:digit:]]/$git_version}"' _ {} \;
+      - find opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch -type f -name "*?.?.?*" -execdir bash -c 'mv "$1"  "${1/[[:digit:]].[[:digit:]].[[:digit:]]_SNAPSHOT-[[:digit:]]/$git_version}"' _ {} \;
     deploy:
       provider: releases
       draft: false
@@ -22,6 +24,8 @@ matrix:
       file_glob: true
       file: 
         - "opendj-server-legacy/target/package/*.zip"
+        - "opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb"
+        - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
       on:
         repo: OpenIdentityPlatform/OpenDJ
         tags: false

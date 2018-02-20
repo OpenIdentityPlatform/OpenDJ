@@ -28,15 +28,9 @@
     <profiles>
         <profile>
             <id>packages</id>
+            <activation><activeByDefault>true</activeByDefault></activation>
             <modules>
                 <module>opendj-deb-standard</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>packages-oem</id>
-            <modules>
-                <module>opendj-deb-oem</module>
             </modules>
         </profile>
     </profiles>
@@ -52,9 +46,9 @@
         <deb.prefix>/opt/${product.name.lowercase}</deb.prefix>
         <deb.docprefix>/usr/share/doc/${product.name.lowercase}</deb.docprefix>
         <deb.release>1</deb.release>
-        <deb.maintainer>opendj@forgerock.org</deb.maintainer>
+        <deb.maintainer>open-identity-platform-opendj@googlegroups.com</deb.maintainer>
         <manpage.dir>${project.build.directory}/dependency/man</manpage.dir>
-        <deb.doc.homepage.url>http://opendj.forgerock.org/</deb.doc.homepage.url>
+        <deb.doc.homepage.url>https://github.com/OpenIdentityPlatform/OpenDJ</deb.doc.homepage.url>
         <deb.product.name />
         <deb.product.name.lowercase />
         <deb.resources.path />

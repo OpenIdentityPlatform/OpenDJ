@@ -1,9 +1,9 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: opendj
-Upstream-Contact: Forgerock <opendj@forgerock.org>
-Source: http://opendj.forgerock.org/
+Upstream-Contact: Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
+Source: https://github.com/OpenIdentityPlatform/OpenDJ
 Files: *
-Copyright: 2013-2015 ForgeRock AS.
+Copyright: 2013-2015 ForgeRock AS. 2018- Open Identity Platform Community
 License: CDDL
  The contents of this file are subject to the terms of the Common Development and
  Distribution License (the License). You may not use this file except in compliance with the

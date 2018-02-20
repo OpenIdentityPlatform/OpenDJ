@@ -37,7 +37,7 @@
   <property name="svr4.fullname"   value="${svr4.name}" />
   <property name="svr4.arch"       value="all" />
   <property name="svr4.desc"       value="${product}, Open Source LDAP Directory Server" />
-  <property name="svr4.vendor"     value="ForgeRock AS." />
+  <property name="svr4.vendor"     value="Open Identity Platform Community" />
   <property name="svr4.basedir"    value="/usr" />
   <property name="svr4.type"       value="usr" />
   <property name="svr4.prefix"     value="${product.name.lowercase}" />
