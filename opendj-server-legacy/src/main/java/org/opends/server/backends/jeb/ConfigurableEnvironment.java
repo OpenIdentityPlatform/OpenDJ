@@ -386,13 +386,13 @@ class ConfigurableEnvironment
 
   private static void validateDbCacheSize(long dbCacheSize) throws ConfigException
   {
-    if (dbCacheSize != 0)
+    if (dbCacheSize != 0) 
     {
-      if (MemoryBudget.getRuntimeMaxMemory() < dbCacheSize)
-      {
-        throw new ConfigException(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
-            dbCacheSize, MemoryBudget.getRuntimeMaxMemory()));
-      }
+//      if (MemoryBudget.getRuntimeMaxMemory() < dbCacheSize)
+//      {
+//        throw new ConfigException(ERR_BACKEND_CONFIG_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+//            dbCacheSize, MemoryBudget.getRuntimeMaxMemory()));
+//      }
       if (dbCacheSize < MemoryBudget.MIN_MAX_MEMORY_SIZE)
       {
         throw new ConfigException(ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(

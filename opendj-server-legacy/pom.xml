@@ -226,7 +226,7 @@
     <dependency>
       <groupId>com.sleepycat</groupId>
       <artifactId>je</artifactId>
-      <version>5.0.104</version>
+      <version>7.5.11</version>
     </dependency>
 
     <dependency>
@@ -234,11 +234,6 @@
       <artifactId>forgerock-persistit-core</artifactId>
       <version>4.3.1</version>
     </dependency>
-<!-- 	<dependency> -->
-<!-- 	    <groupId>com.akiban</groupId> -->
-<!-- 	    <artifactId>akiban-persistit</artifactId> -->
-<!-- 	    <version>3.3.0</version> -->
-<!-- 	</dependency> -->
 	
     <dependency>
       <groupId>com.github.stephenc.jcip</groupId>

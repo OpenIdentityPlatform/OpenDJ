@@ -13,20 +13,20 @@ the simplest, fastest directory to deploy and manage.
 
 ## License
 This project is licensed under the Common Development and Distribution License (CDDL). The following text applies to 
-both this file, and should also be included in all files in the project:
+both this file, and should also be included in all files in the project.
 
 ## Downloads 
-* [OpenDJ ZIP (All OS)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
-* [OpenDJ DEB (Debian)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
-* [OpenDJ RPM (Redhat/Centos)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
-* [OpenDJ MSI (Windows/Wine)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+* [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (All OS)
+* [OpenDJ DEB](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Debian)
+* [OpenDJ RPM](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Redhat/Centos)
+* [OpenDJ MSI](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Windows/Wine)
 
 Java 1.8+ required
 
 ## How-to build
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
-mvn clean install -f forgerock-parent
+mvn clean install -f OpenDJ/forgerock-parent
 mvn clean install -f OpenDJ
 ```
 
