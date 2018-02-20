@@ -46,9 +46,6 @@ branches:
 notifications:
   email:
   - open-identity-platform-opendj@googlegroups.com
-cache:
-  directories:
-    - "$HOME/.m2"
 before_install:
   - date -u
   - uname -a
