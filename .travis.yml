@@ -7,7 +7,7 @@ matrix:
       - git config --local user.name "OpenIdentityPlatform Community"
       - git config --local user.email "open-identity-platform-opendj@googlegroups.com"
       - git checkout -f $TRAVIS_BRANCH
-      - mvn -DreleaseVersion="$git_version" -DignoreSnapshots=true --batch-mode release:prepare
+      - mvn -DreleaseVersion="$git_version" -DignoreSnapshots=true  -DpushChanges=false --batch-mode release:prepare && git push 
     deploy:
       provider: releases
       draft: false
