@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>4.1.1</version>
+        <version>4.1.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-doc-maven-plugin</artifactId>
