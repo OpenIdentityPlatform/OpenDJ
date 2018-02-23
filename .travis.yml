@@ -35,7 +35,7 @@ matrix:
           - travis
     after_deploy:
       - echo 'after_deploy'
-  - os: linuxwin
+  - os: linux
     jdk: oraclejdk8
   - os: osx
     osx_image: xcode9.1
@@ -50,7 +50,7 @@ notifications:
 before_install:
   - date -u
   - uname -a
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then sudo apt-get install -y rpm; else brew install rpm; fi 
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then brew install rpm; else sudo apt-get install -y rpm; fi 
   - git fetch -t
   - export git_version_last="$(git describe --abbrev=0 --tags)"
   - export git_version="$(echo $git_version_last | awk -F . '{ printf "%d.%d.%d", $1,$2,$3 + 1}')"
