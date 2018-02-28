@@ -52,6 +52,7 @@
                 <module>opendj-rpm</module>
                 <module>opendj-svr4</module>
                 <module>opendj-msi</module>
+                <module>opendj-docker</module>
             </modules>
         </profile>
     </profiles>

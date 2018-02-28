@@ -40,7 +40,8 @@ matrix:
       - echo 'after_deploy'
       - echo 'build and push Docker'
       - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-      - docker build ./opendj-packages/opendj-docker/ -t $DOCKER_USERNAME/opendj
+      - docker build ./opendj-packages/opendj-docker/target -t $DOCKER_USERNAME/opendj -t $DOCKER_USERNAME/opendj:$git_version
+      - docker push $DOCKER_USERNAME/opendj:$git_version
       - docker push $DOCKER_USERNAME/opendj
   - os: linux
     jdk: oraclejdk8
