@@ -19,6 +19,7 @@ both this file, and should also be included in all files in the project.
 
 ## Downloads 
 * [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (All OS)
+* [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS)
 * [OpenDJ DEB](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Debian)
 * [OpenDJ RPM](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Redhat/Centos)
 * [OpenDJ MSI](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Windows/Wine)
