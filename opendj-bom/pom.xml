@@ -26,7 +26,7 @@
 
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-bom</artifactId>
-    <version>4.1.3</version>
+    <version>4.1.4-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
@@ -126,8 +126,4 @@
             </snapshots>
         </repository>
     </repositories>
-
-  <scm>
-    <tag>4.1.3</tag>
-  </scm>
 </project>
