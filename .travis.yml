@@ -30,6 +30,7 @@ matrix:
         - "opendj-server-legacy/target/package/*.zip"
         - "opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb"
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
+        - "opendj-packages/opendj-docker/target/Dockerfile"
       on:
         repo: OpenIdentityPlatform/OpenDJ
         tags: false
