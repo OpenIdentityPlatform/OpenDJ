@@ -127,7 +127,8 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
         commands.add(toolClass);
         commands.add("--help");
 
-        getLog().info("Writing man page: " + manPage.getPath());
+        getLog().info("Writing man page: "+manPage.getPath());
+        getLog().info(String.join(" ", commands));
         try {
             // Tools tend to use System.exit() so run them as separate processes.
             ProcessBuilder builder = new ProcessBuilder(commands);
@@ -236,6 +237,8 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
             while ((line = reader.readLine()) != null) {
                 writer.write(line);
                 writer.write(EOL);
+                if (getLog().isDebugEnabled())
+            			getLog().debug(line);
             }
         }
     }
@@ -286,6 +289,8 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
      */
     private void writeToFile(final String input, final File output) throws IOException {
         InputStream is = new ByteArrayInputStream(input.getBytes(Charset.forName("UTF-8")));
+        if (getLog().isDebugEnabled())
+        		getLog().debug(input);
         writeToFile(is, output);
     }
 }
