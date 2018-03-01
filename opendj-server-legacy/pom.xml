@@ -156,7 +156,6 @@
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>forgerock-audit-handler-json</artifactId>
-      <version>21.0.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
