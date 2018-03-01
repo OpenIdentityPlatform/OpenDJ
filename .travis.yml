@@ -28,6 +28,7 @@ matrix:
       file_glob: true
       file: 
         - "opendj-server-legacy/target/package/*.zip"
+        - "opendj-ldap-toolkit/target/*.zip"
         - "opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb"
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
         - "opendj-packages/opendj-docker/target/Dockerfile"
