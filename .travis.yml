@@ -31,6 +31,7 @@ matrix:
         - "opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb"
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
         - "opendj-packages/opendj-docker/target/Dockerfile"
+        - "opendj-doc-generated-ref/target/*.zip"
       on:
         repo: OpenIdentityPlatform/OpenDJ
         tags: false
