@@ -412,7 +412,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 // If this is a usage argument, then immediately stop and print
                 // usage information.
                 if (usageGroupArguments.containsKey(a)) {
-                    getUsage(a);
+                		writeToUsageOutputStream(getUsage());//getUsage(a);
                     return;
                 }
 
