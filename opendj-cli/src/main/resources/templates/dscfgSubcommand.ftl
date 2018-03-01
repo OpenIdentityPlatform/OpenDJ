@@ -25,8 +25,8 @@ ${marker}
 
  <info>
   <copyright>
-   <year>2011-${year}</year>
-   <holder>ForgeRock AS.</holder>
+   <year>${year}</year>
+   <holder>2011-2017 ForgeRock AS. 2017-${year} Open Identity Platform Community</holder>
   </copyright>
  </info>
 
