@@ -33,6 +33,8 @@ matrix:
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
         - "opendj-packages/opendj-docker/target/Dockerfile"
         - "opendj-doc-generated-ref/target/*.zip"
+        - "opendj-dsml-servlet/target/*.war"
+        - "opendj-rest2ldap-servlet/target/*.war"
       on:
         repo: OpenIdentityPlatform/OpenDJ
         tags: false
