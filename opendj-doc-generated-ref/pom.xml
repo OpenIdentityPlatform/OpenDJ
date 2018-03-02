@@ -358,9 +358,9 @@
     <profiles>
         <profile>
             <id>man-pages</id>
-            <activation>
-            		<activeByDefault>true</activeByDefault>
-            	</activation>
+<!--             <activation> -->
+<!--             		<activeByDefault>true</activeByDefault> -->
+<!--             	</activation> -->
             <build>
                 <plugins>
                     <plugin>
