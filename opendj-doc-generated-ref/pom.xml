@@ -588,17 +588,27 @@
                                 <goals>
                                     <goal>process</goal>
                                     <goal>build</goal>
+                                    <goal>release</goal>
                                 </goals>
-                                <configuration>
-                                    <projectName>OpenDJ</projectName>
-                                    <projectVersion>${project.version}</projectVersion>
-                                    <releaseVersion>${project.version}</releaseVersion>
-                                    <formats combine.self="override">
-                                        <format>man</format>
-                                    </formats>
-                                </configuration>
                             </execution>
                         </executions>
+                        <configuration>
+                            <projectName>OpenDJ</projectName>
+                            <projectVersion>${project.version}</projectVersion>
+                            <releaseVersion>${project.version}</releaseVersion>
+                            <buildReleaseZip>true</buildReleaseZip>
+                            <googleAnalyticsId></googleAnalyticsId>
+                            <isDraftMode>no</isDraftMode>
+                            <localeTag>en</localeTag>
+                            <formats combine.self="override">
+                                <format>man</format>
+                                <format>epub</format>
+                                <format>html</format>
+                                <format>pdf</format>
+                                <format>webhelp</format>
+                                <format>xhtml5</format>
+                            </formats>
+                        </configuration>
                     </plugin>
 
                     <!-- Generate Artifacts -->
