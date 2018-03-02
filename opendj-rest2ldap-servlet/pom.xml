@@ -78,9 +78,9 @@
             <!-- Include CDDLv1_0.txt -->
             <resource>
               <targetPath>WEB-INF/legal-notices</targetPath>
-              <directory>../legal-notices</directory>
+              <directory>../</directory>
               <includes>
-                <include>CDDLv1_0.txt</include>
+                <include>LICENSE.md</include>
               </includes>
             </resource>
 

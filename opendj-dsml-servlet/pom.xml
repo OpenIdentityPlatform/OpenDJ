@@ -257,10 +257,10 @@
                         <!-- Include CDDLv1_0.txt -->
                         <resource>
                             <targetPath>WEB-INF/legal-notices</targetPath>
-                            <directory>${basedir}/../legal-notices</directory>
-                            <excludes>
-                                <exclude>README.txt</exclude>
-                            </excludes>
+                            <directory>${basedir}/../</directory>
+                            <includes>
+                            		<include>LICENSE.md</include>
+                            </includes>
                         </resource>
 
                         <!-- Include THIRDPARTYREADME.txt -->
