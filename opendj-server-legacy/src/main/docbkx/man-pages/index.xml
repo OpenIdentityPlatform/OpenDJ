@@ -36,15 +36,11 @@
    <holder>ForgeRock AS.</holder>
   </copyright>
 
-  <authorgroup>
-   <author>
-    <personname>
-     <firstname>Mark</firstname> <surname>Craig</surname>
-    </personname>
-   </author>
-  </authorgroup>
- </info>
-
+  <copyright>
+   <year>2017+ </year>
+   <holder>Open Identity Platform Community</holder>
+  </copyright>
+  
  <toc />
 
  <reference>
