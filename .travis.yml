@@ -10,7 +10,7 @@ matrix:
       - git config --local user.name "Open Identity Platform Community" && git config --local user.email "open-identity-platform-opendj@googlegroups.com"
       - git checkout -f $TRAVIS_BRANCH
       - git tag -f $git_version && git tag -d $git_version
-      - mvn -q -B -DreleaseVersion="$git_version" -DignoreSnapshots=true  -DpushChanges=false -DscmCommentPrefix="[ci skip] $git_version_last->$git_version " -DskipTests -Darguments=-DskipTests release:prepare -Pman-pages
+      - mvn -q -B -DreleaseVersion="$git_version" -DignoreSnapshots=true  -DpushChanges=false -DscmCommentPrefix="[ci skip] $git_version_last->$git_version " -DskipTests -Darguments=-DskipTests release:prepare 
       - git push --quiet --force https://$GITHUBKEY@github.com/$TRAVIS_REPO_SLUG.git >/dev/null 2>&1
       - git push --quiet --force https://$GITHUBKEY@github.com/$TRAVIS_REPO_SLUG.git $git_version >/dev/null 2>&1
     deploy:
