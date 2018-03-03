@@ -43,7 +43,7 @@
 
     <profiles>
         <profile>
-            <id>opendj-deb</id>
+            <id>distribution</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
