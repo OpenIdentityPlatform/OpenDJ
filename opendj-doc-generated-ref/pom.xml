@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>4.1.4-SNAPSHOT</version>
+        <version>4.1.4</version>
     </parent>
 
     <artifactId>opendj-doc-generated-ref</artifactId>
@@ -597,7 +597,7 @@
                             <projectVersion>${project.version}</projectVersion>
                             <releaseVersion>${project.version}</releaseVersion>
                             <buildReleaseZip>true</buildReleaseZip>
-                            <googleAnalyticsId></googleAnalyticsId>
+                            <googleAnalyticsId />
                             <isDraftMode>no</isDraftMode>
                             <localeTag>en</localeTag>
                             <formats combine.self="override">
