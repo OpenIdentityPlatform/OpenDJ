@@ -6,6 +6,8 @@ matrix:
     sudo: required
     services:
       - docker
+    env:
+      - INSTALL_SUFFIX=-pl !opendj-doc-generated-ref,!opendj-packages     #exclude modules for release:prepare (double slow build phase) 
     before_deploy: 
       - git config --local user.name "Open Identity Platform Community" && git config --local user.email "open-identity-platform-opendj@googlegroups.com"
       - git checkout -f $TRAVIS_BRANCH
@@ -78,4 +80,4 @@ before_install:
 install:
   - mvn -q -B -V -DskipTests -Dmaven.javadoc.skip=true install -f forgerock-parent
 script:
-  - mvn -q -B install
+  - mvn -q -B install $INSTALL_SUFFIX
