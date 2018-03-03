@@ -75,6 +75,7 @@ before_install:
   - export git_version="$(echo $git_version_last | awk -F . '{ printf "%d.%d.%d", $1,$2,$3 + 1}')"
   - env | sort
   - git log `git describe --tags --abbrev=0 HEAD^`..HEAD --oneline
-  - mvn -q -B -DskipTests clean install -f forgerock-parent
+install:
+  - mvn -q -B -V -DskipTests -Dmaven.javadoc.skip=true install -f forgerock-parent
 script:
-  - mvn -q -B clean install
+  - mvn -q -B install
