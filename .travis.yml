@@ -51,6 +51,7 @@ matrix:
       -   cd ../wiki; git add -A; git commit -a -m "upload docs after deploy $git_version"; git tag -f $git_version
       -   git push --quiet --force https://$GITHUBKEY@github.com/$TRAVIS_REPO_SLUG.wiki.git >/dev/null 2>&1
       -   git push --quiet --force https://$GITHUBKEY@github.com/$TRAVIS_REPO_SLUG.wiki.git $git_version >/dev/null 2>&1 
+      -   cd $TRAVIS_BUILD_DIR
       - echo 'build and push Docker'
       -   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
       -   docker build ./opendj-packages/opendj-docker/target -t $DOCKER_USERNAME/opendj -t $DOCKER_USERNAME/opendj:$git_version
