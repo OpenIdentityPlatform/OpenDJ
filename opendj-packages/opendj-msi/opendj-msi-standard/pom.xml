@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-msi</artifactId>
-        <version>4.1.5-SNAPSHOT</version>
+        <version>4.1.5</version>
     </parent>
 
     <artifactId>opendj-msi-standard</artifactId>
@@ -170,7 +170,7 @@
                         </goals>
                         <configuration>
                             <target>
-                            	   <delete  dir="${user.home}/.msi" />
+                            	   <delete dir="${user.home}/.msi" />
                                 <mkdir dir="${user.home}/.msi" />
                                 <copy toDir="${user.home}/.msi">
                                     <fileset dir="${package.dir}">
@@ -198,7 +198,7 @@
 								</exec>
 								<echo>WineExitStatusCode=${WineExitStatusCode}</echo>
 								
-								<exec executable="sh" resultproperty="WineTricksExitStatusCode"  failifexecutionfails="false">
+								<exec executable="sh" resultproperty="WineTricksExitStatusCode" failifexecutionfails="false">
 									<arg value="${project.build.directory}/winetricks/winetricks-LAST.sh" />
 									<arg value="--unattended" />
 									<arg value="dotnet40" />
@@ -227,7 +227,7 @@
                                     <arg value="-v" />
                                 </exec>
                                 <echo>------------------- ${exec.candle} ${param.candle} -------------------</echo>
-                                <exec executable="${exec.candle}" dir="${project.build.directory}/msi"  resultproperty="candleStatusCode"  >
+                                <exec executable="${exec.candle}" dir="${project.build.directory}/msi" resultproperty="candleStatusCode">
                                 	   <arg value="${param.candle}" />
                                     <arg value="-nologo" />
                                     <arg value="-out" /> <arg value="build/" />
@@ -240,7 +240,7 @@
                                     <arg value="build/payload.wxs" />
                                 </exec>
                                 <echo>------------------- ${exec.light} ${param.light} -------------------</echo>
-                                <exec executable="${exec.light}" dir="${project.build.directory}/msi" resultproperty="lightStatusCode" >
+                                <exec executable="${exec.light}" dir="${project.build.directory}/msi" resultproperty="lightStatusCode">
                                 	   <arg value="${param.light}" />
                                     <arg value="-nologo" />
                                     <arg value="-ext" /> <arg value="WixUIExtension" />
@@ -250,7 +250,7 @@
                                     <arg value="build/payload.wixobj" />
                                 </exec>
                                 <echo>lightStatusCode=${lightStatusCode}</echo>
-                                <delete  dir="${user.home}/.msi" />
+                                <delete dir="${user.home}/.msi" />
                                 
                                 <attachartifact file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" />
                             </target>
