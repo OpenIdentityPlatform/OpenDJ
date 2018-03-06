@@ -243,7 +243,7 @@
                                 	   <arg value="${param.light}" />
                                     <arg value="-nologo" />
                                     <arg value="-ext" /> <arg value="WixUIExtension" />
-                                    <arg value="-out" /> <arg value="${product.name.lowercase}-${project.version}.msi" />
+                                    <arg value="-out" /> <arg value="${product.name.lowercase}.msi" />
                                     <arg value="-sval" />
                                     <arg value="-v" />
                                     <arg value="package.wixobj" />
@@ -251,7 +251,7 @@
                                 </exec>
                                 <echo>lightStatusCode=${lightStatusCode}</echo>
                                 <delete dir="${user.home}/.msi" />
-                                
+                                <move file="${project.build.directory}/${product.name.lowercase}.msi" tofile="${project.build.directory}/${product.name.lowercase}-${project.version}.msi"/>
                                 <attachartifact file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" />
                             </target>
                         </configuration>
