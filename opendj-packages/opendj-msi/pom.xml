@@ -49,6 +49,21 @@
             </properties>
         </profile>
         <profile>
+            <id>/usr/local/bin/wine</id>
+            <activation>
+            		<os><family>unix</family></os>
+            		<file><exists>/usr/local/bin/wine</exists></file>
+            	</activation>
+            <modules>
+                <module>opendj-msi-standard</module>
+            </modules>
+            <properties>
+            		<exec.heat>/usr/local/bin/wine</exec.heat><param.heat>${project.build.directory}/wix/heat.exe</param.heat>
+		        <exec.candle>/usr/local/bin/wine</exec.candle><param.candle>${project.build.directory}/wix/candle.exe</param.candle>
+		        <exec.light>/usr/local/bin/wine</exec.light><param.light>${project.build.directory}/wix/light.exe</param.light>
+            </properties>
+        </profile>
+        <profile>
             <id>/opt/local/bin/wine</id>
             <activation>
             		<os><family>unix</family></os>
