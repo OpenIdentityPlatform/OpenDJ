@@ -250,6 +250,7 @@
                                     <arg value="payload.wixobj" />
                                 </exec>
                                 <echo>lightStatusCode=${lightStatusCode}</echo>
+								<chmod file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" perm="ugo+r" verbose="true"/>
 								<exec executable="ls" dir="${project.build.directory}">
                                 	   <arg value="-laht" />
                                 </exec>
