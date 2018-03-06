@@ -82,4 +82,4 @@ before_install:
 install:
   - mvn -q -B -V -DskipTests -Dmaven.javadoc.skip=true install -f forgerock-parent
 script:
-  - mvn -B clean install $INSTALL_SUFFIX
+  - mvn -B install $INSTALL_SUFFIX
