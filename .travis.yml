@@ -33,7 +33,7 @@ matrix:
         - "opendj-ldap-toolkit/target/*.zip"
         - "opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb"
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
-        - "opendj-packages/opendj-msi/opendj-msi-standart/target/*.msi"
+        - "opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi"
         - "opendj-packages/opendj-docker/target/Dockerfile"
         - "opendj-doc-generated-ref/target/*.zip"
         - "opendj-dsml-servlet/target/*.war"
