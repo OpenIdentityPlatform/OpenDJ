@@ -33,6 +33,7 @@ matrix:
         - "opendj-ldap-toolkit/target/*.zip"
         - "opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb"
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
+        - "opendj-packages/opendj-msi/opendj-msi-standart/target/*.msi"
         - "opendj-packages/opendj-docker/target/Dockerfile"
         - "opendj-doc-generated-ref/target/*.zip"
         - "opendj-dsml-servlet/target/*.war"
@@ -72,7 +73,7 @@ notifications:
 before_install:
   - date -u
   - uname -a
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then brew install rpm; else sudo apt-get install -y rpm; fi 
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then brew install rpm wine; else sudo apt-get install -y rpm wine; fi 
   - git fetch -t
   - export git_version_last="$(git describe --abbrev=0 --tags)"
   - export git_version="$(echo $git_version_last | awk -F . '{ printf "%d.%d.%d", $1,$2,$3 + 1}')"
