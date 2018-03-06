@@ -118,7 +118,7 @@
                 <executions>
                     <execution>
                         <id>unpack-wix</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
@@ -138,7 +138,7 @@
                     </execution>
                     <execution>
                         <id>unpack-winetricks</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy</goal>
                         </goals>
@@ -164,7 +164,7 @@
                 <executions>
                     <execution>
                         <id>build-msi-package-prepare</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
