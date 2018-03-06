@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-msi</artifactId>
-        <version>4.1.5-SNAPSHOT</version>
+        <version>4.1.5</version>
     </parent>
 
     <artifactId>opendj-msi-standard</artifactId>
@@ -168,7 +168,7 @@
                         </goals>
                         <configuration>
                             <target>
-                            	   <delete  dir="${user.home}/.msi" />
+                            	   <delete dir="${user.home}/.msi" />
                                 <mkdir dir="${user.home}/.msi" />
                                 <copy toDir="${user.home}/.msi">
                                     <fileset dir="${package.dir}">
@@ -195,7 +195,7 @@
 								</exec>
 								<echo>WineExitStatusCode=${WineExitStatusCode}</echo>
 								
-								<exec executable="sh" resultproperty="WineTricksExitStatusCode"  failifexecutionfails="false">
+								<exec executable="sh" resultproperty="WineTricksExitStatusCode" failifexecutionfails="false">
 									<arg value="${project.build.directory}/winetricks/winetricks-LAST.sh" />
 									<arg value="--unattended" />
 									<arg value="dotnet40" />
@@ -250,7 +250,7 @@
                                     <arg value="payload.wixobj" />
                                 </exec>
                                 <echo>lightStatusCode=${lightStatusCode}</echo>
-								<chmod file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" perm="ugo+r" verbose="true"/>
+								<chmod file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" perm="ugo+r" verbose="true" />
 								<exec executable="ls" dir="${project.build.directory}">
                                 	   <arg value="-laht" />
                                 </exec>
