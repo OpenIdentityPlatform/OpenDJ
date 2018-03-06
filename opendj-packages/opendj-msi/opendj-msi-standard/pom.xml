@@ -66,21 +66,19 @@
 					<force>false</force>
 					<artifactItems>
 						<artifactItem>
-							<groupId>wixtoolset.org</groupId>
+							<groupId>openidentityplatform.org</groupId>
 							<artifactId>wixtoolset</artifactId>
 							<version>3.11.1</version>
 							<packaging>zip</packaging>
-							<install>true</install>
 							<downloadUrl>
 									https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311-binaries.zip
 	                        </downloadUrl>
 						</artifactItem>
 						<artifactItem>
-							<groupId>winetricks</groupId>
+							<groupId>openidentityplatform.org</groupId>
 							<artifactId>winetricks</artifactId>
 							<version>LAST</version>
 							<packaging>sh</packaging>
-							<install>true</install>
 							<downloadUrl>
 								https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 	                        </downloadUrl>
@@ -125,7 +123,7 @@
                         <configuration>
                             <artifactItems>
 			                 	<artifactItem>
-				                   	<groupId>wixtoolset.org</groupId>
+				                   	<groupId>openidentityplatform.org</groupId>
 								   	<artifactId>wixtoolset</artifactId>
 								    <version>3.11.1</version>
 									<type>zip</type>
@@ -145,7 +143,7 @@
                         <configuration>
                             <artifactItems>
 			                 	<artifactItem>
-				                   	<groupId>winetricks</groupId>
+				                   	<groupId>openidentityplatform.org</groupId>
 									<artifactId>winetricks</artifactId>
 									<version>LAST</version>
 									<type>sh</type>
@@ -187,10 +185,9 @@
                                     </fileset>
                                 </copy>
 
-                                <mkdir dir="${project.build.directory}/msi/build" />
-                                <copy file="${msi.resources}/package.wxs" toDir="${project.build.directory}/msi/build" />
-                                <copy file="${msi.resources}/opendjbanner.bmp" toDir="${project.build.directory}/msi/build" />
-                                <copy file="${msi.resources}/opendjdialog.bmp" toDir="${project.build.directory}/msi/build" />
+                                <copy file="${msi.resources}/package.wxs" toDir="${project.build.directory}" />
+                                <copy file="${msi.resources}/opendjbanner.bmp" toDir="${project.build.directory}" />
+                                <copy file="${msi.resources}/opendjdialog.bmp" toDir="${project.build.directory}" />
 								
 								<exec executable="wine" resultproperty="WineExitStatusCode" failifexecutionfails="false">
 									<arg value="wineboot" />
@@ -211,7 +208,7 @@
 								<property name="exec.light" value="wine" /><property name="param.light" value="${project.build.directory}/wix/light.exe" />
 							    
 							    <echo>------------------- ${exec.heat} ${param.heat} -------------------</echo>
-								<exec executable="${exec.heat}" dir="${project.build.directory}/msi" failifexecutionfails="false" resultproperty="heatStatusCode">
+								<exec executable="${exec.heat}" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
 								   <arg value="${param.heat}" />
                                     <arg value="dir" /> <arg value="${user.home}/.msi" />
                                     <arg value="-nologo" />
@@ -223,31 +220,34 @@
                                     <arg value="-dr" /><arg value="OPENDJ" />
                                     <arg value="-var" /><arg value="var.src" />
                                     <arg value="-template" /><arg value="fragment" />
-                                    <arg value="-o" /><arg value="build/payload.wxs" />
+                                    <arg value="-o" /><arg value="payload.wxs" />
                                     <arg value="-v" />
                                 </exec>
+                                <echo>heatStatusCode=${heatStatusCode}</echo>
                                 <echo>------------------- ${exec.candle} ${param.candle} -------------------</echo>
-                                <exec executable="${exec.candle}" dir="${project.build.directory}/msi" resultproperty="candleStatusCode">
+                                <exec executable="${exec.candle}" dir="${project.build.directory}" resultproperty="candleStatusCode">
                                 	   <arg value="${param.candle}" />
                                     <arg value="-nologo" />
-                                    <arg value="-out" /> <arg value="build/" />
                                     <arg value="-dsrc=${user.home}/.msi" />
                                     <arg value="-dname=${product.name}" />
                                     <arg value="-dmajor=${parsedVersion.majorVersion}" />
                                     <arg value="-dminor=${parsedVersion.minorVersion}" />
                                     <arg value="-dpoint=${parsedVersion.incrementalVersion}" />
-                                    <arg value="build/package.wxs" />
-                                    <arg value="build/payload.wxs" />
+                                    <arg value="package.wxs" />
+                                    <arg value="payload.wxs" />
+                                    <arg value="-v" />
                                 </exec>
+                                <echo>candleStatusCode=${candleStatusCode}</echo>
                                 <echo>------------------- ${exec.light} ${param.light} -------------------</echo>
-                                <exec executable="${exec.light}" dir="${project.build.directory}/msi" resultproperty="lightStatusCode">
+                                <exec executable="${exec.light}" dir="${project.build.directory}" resultproperty="lightStatusCode">
                                 	   <arg value="${param.light}" />
                                     <arg value="-nologo" />
                                     <arg value="-ext" /> <arg value="WixUIExtension" />
-                                    <arg value="-out" /> <arg value="../${product.name.lowercase}-${project.version}.msi" />
-                                     <arg value="-sval" />
-                                    <arg value="build/package.wixobj" />
-                                    <arg value="build/payload.wixobj" />
+                                    <arg value="-out" /> <arg value="${product.name.lowercase}-${project.version}.msi" />
+                                    <arg value="-sval" />
+                                    <arg value="-v" />
+                                    <arg value="package.wixobj" />
+                                    <arg value="payload.wixobj" />
                                 </exec>
                                 <echo>lightStatusCode=${lightStatusCode}</echo>
                                 <delete dir="${user.home}/.msi" />
