@@ -8,10 +8,15 @@
 [![Top language](https://img.shields.io/github/languages/top/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 [![Code size in bytes](https://img.shields.io/github/languages/code-size/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 
-[OpenDJ](https://github.com/OpenIdentityPlatform/OpenDJ) is an [LDAPv3](http://tools.ietf.org/html/rfc4510) compliant directory service, which has been developed 
-for the Java platform, providing a high performance, highly available, and secure store for the identities managed 
-by your organization. Its easy installation process, combined with the power of the Java platform makes OpenDJ
+[OpenDJ](https://github.com/OpenIdentityPlatform/OpenDJ) is an [LDAPv3](http://tools.ietf.org/html/rfc4510) compliant directory service, which has been developed for the Java platform, providing a high performance, highly available, and secure store for the identities managed by your organization. Its easy installation process, combined with the power of the Java platform makes OpenDJ
 the simplest, fastest directory to deploy and manage.
+
+An open source, lightweight, embeddable directory that can easily share real-time customer, device, and user identity data across enterprise, cloud, social, and mobile environments.
+* Massive data scale and high availability providings developers with ultra-lightweight ways to access identity data
+* High Performance - ms response times & tens of thousands of w/r per sec
+* Multi Master replication for high availability
+
+As well as the expected LDAP access OpenDJ lets you access directory data as JSON resources over HTTP making it super convenient for web and phone apps.
 
 ## [OpenDJ](https://github.com/OpenIdentityPlatform/OpenDJ) License
 This project is licensed under the Common Development and Distribution License (CDDL). The following text applies to 
