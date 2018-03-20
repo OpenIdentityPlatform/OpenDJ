@@ -25,12 +25,11 @@ This project is licensed under the Common Development and Distribution License (
 both this file, and should also be included in all files in the project.
 
 ## Downloads 
-* [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (All OS)
-* [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (All OS)
-* [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS)
 * [OpenDJ DEB](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Debian)
 * [OpenDJ RPM](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Redhat/Centos)
 * [OpenDJ MSI](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Windows/Wine)
+* [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (All OS)
+* [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS)
 
 Java 1.8+ required
 
