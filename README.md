@@ -1,5 +1,5 @@
 # <img alt="OpenDJ Logo" src="https://github.com/OpenIdentityPlatform/OpenDJ/raw/master/logo.png" width="300"/>
-[![Latest release](https://img.shields.io/github/release/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest)
+[![Latest release](https://img.shields.io/github/release/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/releases)
 [![Build Status](https://travis-ci.org/OpenIdentityPlatform/OpenDJ.svg)](https://travis-ci.org/OpenIdentityPlatform/OpenDJ)
 [![Issues](https://img.shields.io/github/issues/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/issues)
 [![Last commit](https://img.shields.io/github/last-commit/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/commits/master)
@@ -13,16 +13,24 @@ for the Java platform, providing a high performance, highly available, and secur
 by your organization. Its easy installation process, combined with the power of the Java platform makes OpenDJ
 the simplest, fastest directory to deploy and manage.
 
+An open source, lightweight, embeddable directory that can easily share real-time customer, device, and user identity data across enterprise, cloud, social, and mobile environments.
+* Massive data scale and high availability providings developers with ultra-lightweight ways to access identity data
+* High Performance - ms response times & tens of thousands of w/r per sec
+* Multi Master replication for high availability
+
+As well as the expected LDAP access OpenDJ lets you access directory data as JSON resources over HTTP making it super convenient for web and phone apps.
+
 ## License
 This project is licensed under the Common Development and Distribution License (CDDL). The following text applies to 
 both this file, and should also be included in all files in the project.
 
 ## Downloads 
 * [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (All OS)
+* [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (All OS)
 * [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS)
-* [OpenDJ DEB](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Debian)
-* [OpenDJ RPM](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Redhat/Centos)
-* [OpenDJ MSI](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Windows/Wine)
+* [OpenDJ DEB](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Debian)
+* [OpenDJ RPM](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Redhat/Centos)
+* [OpenDJ MSI](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Windows/Wine)
 
 Java 1.8+ required
 
