@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>4.1.6-SNAPSHOT</version>
+        <version>4.1.6</version>
     </parent>
 
     <artifactId>opendj-grizzly</artifactId>
