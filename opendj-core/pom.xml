@@ -125,7 +125,8 @@
                             com.forgerock.opendj.ldap*,
                             org.forgerock.opendj.io,
                             org.forgerock.opendj.ldap*,
-                            org.forgerock.opendj.ldif
+                            org.forgerock.opendj.ldif,
+                            com.forgerock.reactive
                         </Export-Package>
                         <Build-Maven>Apache Maven ${maven.version}</Build-Maven>
                         <SCM-Revision>${buildRevision}</SCM-Revision>

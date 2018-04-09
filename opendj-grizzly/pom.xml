@@ -46,6 +46,12 @@
             <artifactId>opendj-core</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
+            <exclusions>
+	            	<exclusion>
+	            		<groupId>io.reactivex.rxjava2</groupId>
+	            		<artifactId>rxjava</artifactId>
+	            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
