@@ -711,6 +711,7 @@
 
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
         <executions>
           <!-- Package boostrap jar - contains only a manifest with classpath for the server -->
           <execution>
