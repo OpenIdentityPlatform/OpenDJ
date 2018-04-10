@@ -10,7 +10,7 @@ matrix:
     services:
       - docker
     env:
-      - INSTALL_SUFFIX="-P \!man-pages,\!distribution"     #exclude modules for release:prepare (double slow build phase) 
+      - INSTALL_SUFFIX=-P\!man-pages,\!distribution     #exclude modules for release:prepare (double slow build phase) 
     before_deploy: 
       - git config --local user.name "Open Identity Platform Community" && git config --local user.email "open-identity-platform-opendj@googlegroups.com"
       - git checkout -f $TRAVIS_BRANCH
