@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-deb</artifactId>
-        <version>4.1.6</version>
+        <version>4.1.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-deb-standard</artifactId>
