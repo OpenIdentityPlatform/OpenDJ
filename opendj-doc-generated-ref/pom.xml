@@ -93,6 +93,265 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-doc-maven-plugin</artifactId>
+
+                <executions>
+                    <execution>
+                        <id>generate-configuration-reference-doc</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-config-ref</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <id>generate-global-acis-table-and-ref-for-doc</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-global-acis-table</goal>
+                            <goal>generate-schema-ref</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <id>generate-log-reference-doc</id>
+                        <goals>
+                            <goal>generate-xml-messages-doc</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/docbkx-sources/shared</outputDirectory>
+                            <messageFileNames>
+                                <!--
+                                  For each .properties with messages of at least error severity,
+                                  generate a section in the log message reference listing the messages.
+                                -->
+                                <messageFileName>access_control</messageFileName>
+                                <messageFileName>admin</messageFileName>
+                                <messageFileName>admin_tool</messageFileName>
+                                <messageFileName>backend</messageFileName>
+                                <messageFileName>config</messageFileName>
+                                <messageFileName>core</messageFileName>
+                                <messageFileName>extension</messageFileName>
+                                <messageFileName>external</messageFileName>
+                                <messageFileName>logger</messageFileName>
+                                <messageFileName>plugin</messageFileName>
+                                <messageFileName>protocol</messageFileName>
+                                <messageFileName>quickSetup</messageFileName>
+                                <messageFileName>replication</messageFileName>
+                                <messageFileName>runtime</messageFileName>
+                                <messageFileName>schema</messageFileName>
+                                <messageFileName>task</messageFileName>
+                                <messageFileName>tool</messageFileName>
+                                <messageFileName>utility</messageFileName>
+                                <messageFileName>version</messageFileName>
+                            </messageFileNames>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>generate-result-code-doc</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>generate-result-code-doc</goal>
+                        </goals>
+                        <configuration>
+                            <resultCodeSource>
+                                ${project.build.directory}/dependency/org/forgerock/opendj/ldap/ResultCode.java
+                            </resultCodeSource>
+                            <xmlFile>${project.build.directory}/docbkx-sources/shared/appendix-ldap-result-codes.xml
+                            </xmlFile>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>generate-doc</id>
+                        <goals>
+                            <goal>generate-refentry</goal>
+                        </goals>
+                        <configuration>
+                            <archiveDir>${project.build.directory}/opendj-ldap-toolkit</archiveDir>
+                            <mode>TOOLKIT</mode>
+                            <extendedClasspath>
+                                ${project.build.directory}/dependency/freemarker-${freemarker.version}.jar
+                            </extendedClasspath>
+                            <outputDir>${project.build.directory}/docbkx-sources/man-pages</outputDir>
+                            <tools>
+                                <tool>
+                                    <name>addrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.AddRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-80-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>addrate-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>authrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.AuthRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>authrate-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>base64</name>
+                                    <application>com.forgerock.opendj.ldap.tools.Base64</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                                        <trailingSectionPath>base64-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldapcompare</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDAPCompare</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>ldapcompare-exit-codes.xml</trailingSectionPath>
+                                        <trailingSectionPath>files.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldapdelete</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDAPDelete</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>files.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldapdelete-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldapmodify</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDAPModify</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>files.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldapmodify-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldappasswordmodify</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDAPPasswordModify
+                                    </application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>files.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldappasswordmodify-examples.xml
+                                        </trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldapsearch</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDAPSearch</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>filters.xml</trailingSectionPath>
+                                        <trailingSectionPath>attributes.xml</trailingSectionPath>
+                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>files.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldapsearch-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldifdiff</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDIFDiff</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>ldifdiff-exit-codes.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldifdiff-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldifmodify</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDIFModify</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldifmodify-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>ldifsearch</name>
+                                    <application>com.forgerock.opendj.ldap.tools.LDIFSearch</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
+                                        <trailingSectionPath>ldifsearch-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>makeldif</name>
+                                    <application>com.forgerock.opendj.ldap.tools.MakeLDIF</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-1.xml</trailingSectionPath>
+                                        <trailingSectionPath>makeldif-examples.xml</trailingSectionPath>
+                                        <trailingSectionPath>makeldif-see-also.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>modrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.ModRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>modrate-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+
+                                <tool>
+                                    <name>searchrate</name>
+                                    <application>com.forgerock.opendj.ldap.tools.SearchRate</application>
+                                    <trailingSectionPaths>
+                                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
+                                        <trailingSectionPath>searchrate-examples.xml</trailingSectionPath>
+                                    </trailingSectionPaths>
+                                </tool>
+                            </tools>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Generate Artifacts -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>config-ref</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/config-ref-assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>generated-doc-sources</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/generated-doc-sources-assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -104,233 +363,6 @@
             	</activation>
             <build>
                 <plugins>
-                		<plugin>
-		                <groupId>org.forgerock.opendj</groupId>
-		                <artifactId>opendj-doc-maven-plugin</artifactId>
-		
-		                <executions>
-		                    <execution>
-		                        <id>generate-configuration-reference-doc</id>
-		                        <phase>generate-sources</phase>
-		                        <goals>
-		                            <goal>generate-config-ref</goal>
-		                        </goals>
-		                    </execution>
-		
-		                    <execution>
-		                        <id>generate-global-acis-table-and-ref-for-doc</id>
-		                        <phase>generate-sources</phase>
-		                        <goals>
-		                            <goal>generate-global-acis-table</goal>
-		                            <goal>generate-schema-ref</goal>
-		                        </goals>
-		                    </execution>
-		
-		                    <execution>
-		                        <id>generate-log-reference-doc</id>
-		                        <goals>
-		                            <goal>generate-xml-messages-doc</goal>
-		                        </goals>
-		                        <phase>prepare-package</phase>
-		                        <configuration>
-		                            <outputDirectory>${project.build.directory}/docbkx-sources/shared</outputDirectory>
-		                            <messageFileNames>
-		                                <!--
-		                                  For each .properties with messages of at least error severity,
-		                                  generate a section in the log message reference listing the messages.
-		                                -->
-		                                <messageFileName>access_control</messageFileName>
-		                                <messageFileName>admin</messageFileName>
-		                                <messageFileName>admin_tool</messageFileName>
-		                                <messageFileName>backend</messageFileName>
-		                                <messageFileName>config</messageFileName>
-		                                <messageFileName>core</messageFileName>
-		                                <messageFileName>extension</messageFileName>
-		                                <messageFileName>external</messageFileName>
-		                                <messageFileName>logger</messageFileName>
-		                                <messageFileName>plugin</messageFileName>
-		                                <messageFileName>protocol</messageFileName>
-		                                <messageFileName>quickSetup</messageFileName>
-		                                <messageFileName>replication</messageFileName>
-		                                <messageFileName>runtime</messageFileName>
-		                                <messageFileName>schema</messageFileName>
-		                                <messageFileName>task</messageFileName>
-		                                <messageFileName>tool</messageFileName>
-		                                <messageFileName>utility</messageFileName>
-		                                <messageFileName>version</messageFileName>
-		                            </messageFileNames>
-		                        </configuration>
-		                    </execution>
-		
-		                    <execution>
-		                        <id>generate-result-code-doc</id>
-		                        <phase>prepare-package</phase>
-		                        <goals>
-		                            <goal>generate-result-code-doc</goal>
-		                        </goals>
-		                        <configuration>
-		                            <resultCodeSource>
-		                                ${project.build.directory}/dependency/org/forgerock/opendj/ldap/ResultCode.java
-		                            </resultCodeSource>
-		                            <xmlFile>${project.build.directory}/docbkx-sources/shared/appendix-ldap-result-codes.xml
-		                            </xmlFile>
-		                        </configuration>
-		                    </execution>
-		
-		                    <execution>
-		                        <id>generate-doc</id>
-		                        <goals>
-		                            <goal>generate-refentry</goal>
-		                        </goals>
-		                        <configuration>
-		                            <archiveDir>${project.build.directory}/opendj-ldap-toolkit</archiveDir>
-		                            <mode>TOOLKIT</mode>
-		                            <extendedClasspath>
-		                                ${project.build.directory}/dependency/freemarker-${freemarker.version}.jar
-		                            </extendedClasspath>
-		                            <outputDir>${project.build.directory}/docbkx-sources/man-pages</outputDir>
-		                            <tools>
-		                                <tool>
-		                                    <name>addrate</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.AddRate</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-80-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>addrate-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>authrate</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.AuthRate</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>authrate-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>base64</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.Base64</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-		                                        <trailingSectionPath>base64-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldapcompare</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDAPCompare</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>ldapcompare-exit-codes.xml</trailingSectionPath>
-		                                        <trailingSectionPath>files.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldapcompare-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldapdelete</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDAPDelete</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>files.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldapdelete-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldapmodify</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDAPModify</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>files.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldapmodify-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldappasswordmodify</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDAPPasswordModify
-		                                    </application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>files.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldappasswordmodify-examples.xml
-		                                        </trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldapsearch</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDAPSearch</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>filters.xml</trailingSectionPath>
-		                                        <trailingSectionPath>attributes.xml</trailingSectionPath>
-		                                        <trailingSectionPath>exit-codes-0-ldap-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>files.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldapsearch-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldifdiff</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDIFDiff</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>ldifdiff-exit-codes.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldifdiff-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldifmodify</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDIFModify</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldifmodify-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>ldifsearch</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.LDIFSearch</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-gt0.xml</trailingSectionPath>
-		                                        <trailingSectionPath>ldifsearch-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>makeldif</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.MakeLDIF</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-1.xml</trailingSectionPath>
-		                                        <trailingSectionPath>makeldif-examples.xml</trailingSectionPath>
-		                                        <trailingSectionPath>makeldif-see-also.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>modrate</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.ModRate</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>modrate-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		
-		                                <tool>
-		                                    <name>searchrate</name>
-		                                    <application>com.forgerock.opendj.ldap.tools.SearchRate</application>
-		                                    <trailingSectionPaths>
-		                                        <trailingSectionPath>exit-codes-0-89.xml</trailingSectionPath>
-		                                        <trailingSectionPath>searchrate-examples.xml</trailingSectionPath>
-		                                    </trailingSectionPaths>
-		                                </tool>
-		                            </tools>
-		                        </configuration>
-		                    </execution>
-		                </executions>
-		            </plugin>
-                
                     <plugin>
                         <groupId>org.forgerock.opendj</groupId>
                         <artifactId>opendj-doc-maven-plugin</artifactId>
@@ -624,37 +656,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!-- Generate Artifacts -->
-		            <plugin>
-		                <artifactId>maven-assembly-plugin</artifactId>
-		                <executions>
-		                    <execution>
-		                        <id>config-ref</id>
-		                        <goals>
-		                            <goal>single</goal>
-		                        </goals>
-		                        <phase>package</phase>
-		                        <configuration>
-		                            <descriptors>
-		                                <descriptor>src/main/assembly/config-ref-assembly.xml</descriptor>
-		                            </descriptors>
-		                        </configuration>
-		                    </execution>
-		
-		                    <execution>
-		                        <id>generated-doc-sources</id>
-		                        <goals>
-		                            <goal>single</goal>
-		                        </goals>
-		                        <phase>package</phase>
-		                        <configuration>
-		                            <descriptors>
-		                                <descriptor>src/main/assembly/generated-doc-sources-assembly.xml</descriptor>
-		                            </descriptors>
-		                        </configuration>
-		                    </execution>
-		                </executions>
-		            </plugin>
                 </plugins>
             </build>
         </profile>

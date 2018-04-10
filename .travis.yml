@@ -1,4 +1,7 @@
 language: java
+cache:
+  directories:
+   - $HOME/.m2
 matrix:
   include:
   - os: linux
