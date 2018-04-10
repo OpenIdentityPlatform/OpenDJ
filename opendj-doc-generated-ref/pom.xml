@@ -599,7 +599,7 @@
                             <buildReleaseZip>true</buildReleaseZip>
                             <googleAnalyticsId />
                             <isDraftMode>no</isDraftMode>
-                            <localeTag>en</localeTag>
+<!--                             <localeTag>en</localeTag> -->
                             <formats combine.self="override">
                                 <format>man</format>
                                 <format>epub</format>
