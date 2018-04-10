@@ -48,10 +48,6 @@
                 <artifactId>build-helper-maven-plugin</artifactId>
             </plugin>
 
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-            </plugin>
-
 			<plugin>
 				<groupId>com.savage7.maven.plugins</groupId>
 				<artifactId>maven-external-dependency-plugin</artifactId>
