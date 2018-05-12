@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-packages</artifactId>
-        <version>4.1.8</version>
+        <version>4.1.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-svr4</artifactId>
