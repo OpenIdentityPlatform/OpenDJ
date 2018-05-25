@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>4.1.9-SNAPSHOT</version>
+        <version>4.1.9</version>
     </parent>
 
     <artifactId>opendj-doc-generated-ref</artifactId>
