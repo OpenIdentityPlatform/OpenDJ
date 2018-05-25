@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-packages</artifactId>
-        <version>4.1.9</version>
+        <version>4.1.10-SNAPSHOT</version>
     </parent>
 
     <packaging>pom</packaging>
