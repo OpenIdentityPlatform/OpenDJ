@@ -90,12 +90,6 @@ public class CreateRCScript
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     JDKLogging.disableLogging();
 
-    if (! OperatingSystem.isUnixBased())
-    {
-      printWrappedText(err, ERR_CREATERC_ONLY_RUNS_ON_UNIX.get());
-      return 1;
-    }
-
     LocalizableMessage description = INFO_CREATERC_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser(CreateRCScript.class.getName(), description, false);
