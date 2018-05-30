@@ -34,6 +34,11 @@ both this file, and should also be included in all files in the project.
 Java 1.8+ required
 
 ## How-to build
+For windows use:
+```bash
+git config --system core.longpaths true
+```
+
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
 mvn clean install -f OpenDJ/forgerock-parent
