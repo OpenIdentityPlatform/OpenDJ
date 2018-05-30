@@ -37,7 +37,7 @@ Java 1.8+ required
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
 mvn clean install -f OpenDJ/forgerock-parent
-mvn clean install -f OpenDJ -P\!distribution
+mvn clean install -f OpenDJ
 ```
 
 ## How-to run after build

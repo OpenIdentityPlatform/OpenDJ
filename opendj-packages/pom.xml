@@ -45,10 +45,10 @@
         <profile>
             <id>distribution</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <modules>
-            		<module>../opendj-doc-generated-ref</module>
+            	<module>../opendj-doc-generated-ref</module>
                 <module>opendj-deb</module>
                 <module>opendj-rpm</module>
                 <module>opendj-svr4</module>
