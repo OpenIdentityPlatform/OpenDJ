@@ -2,17 +2,17 @@ FROM java:8
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
-ENV PORT 1389
+ARG PORT=1389
 
-ENV LDAPS_PORT 1636
+ARG LDAPS_PORT=1636
 
-ENV BASE_DN dc=example,dc=com
+ARG BASE_DN="dc=example,dc=com"
 
-ENV ROOT_USER_DN cn=Directory Manager
+ARG ROOT_USER_DN="cn=Directory Manager"
 
-ENV ROOT_PASSWORD password
+ARG ROOT_PASSWORD=password
 
-ENV VERSION @project_version@
+ARG VERSION=@project_version@
 
 WORKDIR /opt
 
