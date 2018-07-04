@@ -1,4 +1,4 @@
-FROM java:8
+FROM java:8-alpine
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
@@ -18,7 +18,7 @@ ARG VERSION=@project_version@
 
 WORKDIR /opt
 
-RUN apt-get install -y wget unzip
+RUN apk add --update wget unzip
 
 RUN wget --quiet \
   https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip && \
