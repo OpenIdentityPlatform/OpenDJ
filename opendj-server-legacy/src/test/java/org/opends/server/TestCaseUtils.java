@@ -1923,26 +1923,26 @@ public final class TestCaseUtils {
     return dump.toString();
   }
 
-  /** FIXME Replace with {@link Assert#assertNotEquals(Object, Object)} once we upgrade to testng >= 6.1. */
-  public static void assertNotEquals(Object actual1, Object actual2)
-  {
-    assertNotEquals(actual1, actual2, null);
-  }
+//  /** FIXME Replace with {@link Assert#assertNotEquals(Object, Object)} once we upgrade to testng >= 6.1. */
+//  public static void assertNotEquals(Object actual1, Object actual2)
+//  {
+//    assertNotEquals(actual1, actual2, null);
+//  }
 
-  /** FIXME Replace with {@link Assert#assertNotEquals(Object, Object, String)} once we upgrade to testng >= 6.1. */
-  public static void assertNotEquals(Object actual1, Object actual2, String message)
-  {
-    try
-    {
-      Assert.assertEquals(actual1, actual2);
-      Assert.fail(message);
-    }
-    catch (AssertionError e)
-    {
-      // this is good: they are not equals
-      return;
-    }
-  }
+//  /** FIXME Replace with {@link Assert#assertNotEquals(Object, Object, String)} once we upgrade to testng >= 6.1. */
+//  public static void assertNotEquals(Object actual1, Object actual2, String message)
+//  {
+//    try
+//    {
+//      Assert.assertEquals(actual1, actual2);
+//      Assert.fail(message);
+//    }
+//    catch (AssertionError e)
+//    {
+//      // this is good: they are not equals
+//      return;
+//    }
+//  }
 
   public static int runLdapSearchTrustCertificateForSession(final String[] args)
   {

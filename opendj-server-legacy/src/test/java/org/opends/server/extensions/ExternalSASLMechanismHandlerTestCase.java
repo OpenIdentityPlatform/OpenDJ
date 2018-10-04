@@ -278,7 +278,7 @@ public class ExternalSASLMechanismHandlerTestCase
         Connection conn = factory.getConnection())
     {
       BindResult result = conn.bind(Requests.newExternalSASLBindRequest());
-      TestCaseUtils.assertNotEquals(result.getResultCode(), ResultCode.SUCCESS);
+      assertNotEquals(result.getResultCode(), ResultCode.SUCCESS);
     }
  }
 
