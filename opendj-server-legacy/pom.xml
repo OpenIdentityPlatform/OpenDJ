@@ -1175,39 +1175,39 @@
       <build>
         <plugins>
 
-          <!-- Enforce Checkstyle -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <executions>
-              <!-- Disable default from parent -->
-              <execution>
-                <id>check-src-and-tests</id>
-                <phase>none</phase>
-                <goals>
-                  <goal>checkstyle</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>check-src-and-tests-alternative</id>
-                <configuration>
-                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**</excludes>
-                  <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation>
-                  <headerLocation>${checkstyleHeaderLocation}</headerLocation>
-                  <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation>
-                  <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                  <includeResources>false</includeResources>
-                  <!-- Only output errors if we're not expecting any -->
-                  <consoleOutput>${checkstyleFailOnError}</consoleOutput>
-                  <failsOnError>${checkstyleFailOnError}</failsOnError>
-                </configuration>
-                <phase>process-test-classes</phase>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
-         </plugin>
+<!--           Enforce Checkstyle -->
+<!--           <plugin> -->
+<!--             <groupId>org.apache.maven.plugins</groupId> -->
+<!--             <artifactId>maven-checkstyle-plugin</artifactId> -->
+<!--             <executions> -->
+<!--               Disable default from parent -->
+<!--               <execution> -->
+<!--                 <id>check-src-and-tests</id> -->
+<!--                 <phase>none</phase> -->
+<!--                 <goals> -->
+<!--                   <goal>checkstyle</goal> -->
+<!--                 </goals> -->
+<!--               </execution> -->
+<!--               <execution> -->
+<!--                 <id>check-src-and-tests-alternative</id> -->
+<!--                 <configuration> -->
+<!--                   <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**</excludes> -->
+<!--                   <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation> -->
+<!--                   <headerLocation>${checkstyleHeaderLocation}</headerLocation> -->
+<!--                   <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation> -->
+<!--                   <includeTestSourceDirectory>true</includeTestSourceDirectory> -->
+<!--                   <includeResources>false</includeResources> -->
+<!--                   Only output errors if we're not expecting any -->
+<!--                   <consoleOutput>${checkstyleFailOnError}</consoleOutput> -->
+<!--                   <failsOnError>${checkstyleFailOnError}</failsOnError> -->
+<!--                 </configuration> -->
+<!--                 <phase>process-test-classes</phase> -->
+<!--                 <goals> -->
+<!--                   <goal>check</goal> -->
+<!--                 </goals> -->
+<!--               </execution> -->
+<!--             </executions> -->
+<!--          </plugin> -->
 
           <!--
              Run unit/integration tests.
@@ -1476,17 +1476,6 @@
       </build>
     </profile>
 
-    <profile>
-      <id>forgerock-release</id>
-
-      <properties>
-        <!-- Released documentation is published at ForgeRock.com -->
-        <docHomepageUrl>https://backstage.forgerock.com/#!/docs/opendj</docHomepageUrl>
-        <docWikiUrl>https://backstage.forgerock.com/#!/docs/opendj</docWikiUrl>
-        <docGuideRefUrl>https://backstage.forgerock.com/#!/docs/opendj/${project.version}/admin-guide</docGuideRefUrl>
-        <docGuideAdminUrl>https://backstage.forgerock.com/#!/docs/opendj/${project.version}/admin-guide</docGuideAdminUrl>
-      </properties>
-    </profile>
   </profiles>
 
 </project>
