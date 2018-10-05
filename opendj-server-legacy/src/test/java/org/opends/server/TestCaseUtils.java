@@ -654,7 +654,7 @@ public final class TestCaseUtils {
 
   public static File getBuildRoot()
   {
-    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT,System.getProperty("user.dir"));
     return new File(buildRoot);
   }
 
