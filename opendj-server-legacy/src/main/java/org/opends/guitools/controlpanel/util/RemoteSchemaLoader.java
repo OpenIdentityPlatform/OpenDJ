@@ -81,7 +81,7 @@ public class RemoteSchemaLoader extends SchemaLoader
 
     // Add missing matching rules and attribute syntaxes to base schema to allow read of remote server schema
     // (see OPENDJ-1122 for more details)
-    SchemaHandler.addServerSyntaxesAndMatchingRules(schemaBuilder);
+    //SchemaHandler.addServerSyntaxesAndMatchingRules(schemaBuilder);
 
     // Add remote schema entry
     final SearchRequest request = newSearchRequest(
@@ -89,7 +89,7 @@ public class RemoteSchemaLoader extends SchemaLoader
         ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES, ATTR_OBJECTCLASSES);
     final SearchResultEntry entry = connWrapper.getConnection().searchSingleEntry(request);
     removeNonOpenDjOrOpenDsSyntaxes(entry);
-    schemaBuilder.addSchema(entry, true);
+    //schemaBuilder.addSchema(entry, true);
 
     return buildSchema(schemaBuilder);
 
