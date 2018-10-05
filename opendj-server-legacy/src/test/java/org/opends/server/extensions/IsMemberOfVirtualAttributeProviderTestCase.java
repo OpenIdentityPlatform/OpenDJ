@@ -43,6 +43,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.google.common.base.Joiner;
+
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
@@ -916,6 +918,80 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     assertTrue(entries.size()>4000);
   }
+  
+  /**
+   * https://github.com/OpenIdentityPlatform/OpenDJ/issues/10
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void test_issues_10() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntries(
+        "dn: cn=bannished,ou=groups,dc=example,dc=com\n" + 
+        "objectClass: extensibleObject\n" + 
+        "objectClass: top\n" + 
+        "objectClass: groupOfUniqueNames\n" + 
+        "description: All Hobbits\n" + 
+        "cn: bannished\n" + 
+        "\n" + 
+        "dn: cn=wizards,ou=groups,dc=example,dc=com\n" + 
+        "objectClass: extensibleObject\n" + 
+        "objectClass: top\n" + 
+        "objectClass: groupOfURLs\n" + 
+        "description: All Wizards\n" + 
+        "cn: wizards\n" + 
+        "memberURL: ldap:///ou=people,dc=example,dc=com??sub?(&(objectClass=person)(o=wizard)(!(memberOf=cn=bannished,ou=groups,dc=example,dc=com)))\n" + 
+        "\n" + 
+        "dn: cn=hobbits,ou=groups,dc=example,dc=com\n" + 
+        "objectClass: extensibleObject\n" + 
+        "objectClass: top\n" + 
+        "objectClass: groupOfURLs\n" + 
+        "description: All Hobbits\n" + 
+        "cn: hobbits\n" + 
+        "memberURL: ldap:///ou=people,dc=example,dc=com??sub?(&(objectClass=person)(!(memberOf=cn=wizards,ou=groups,dc=example,dc=com)))\n" + 
+        "\n" + 
+        "\n" + 
+        "dn: uid=frb0000,ou=people,dc=example,dc=com\n" + 
+        "objectClass: person\n" + 
+        "objectClass: organizationalPerson\n" + 
+        "objectClass: inetOrgPerson\n" + 
+        "objectClass: extensibleObject\n" + 
+        "objectClass: top\n" + 
+        "givenName: Frodo\n" + 
+        "sn: Baggins\n" + 
+        "cn: Frodo Baggins\n" + 
+        "displayName: Frodo in the Bag\n" + 
+        "o: shire\n" + 
+        "uid: frb0000\n" + 
+        "\n" + 
+        "dn: uid=gtg0000,ou=people,dc=example,dc=com\n" + 
+        "objectClass: person\n" + 
+        "objectClass: organizationalPerson\n" + 
+        "objectClass: inetOrgPerson\n" + 
+        "objectClass: extensibleObject\n" + 
+        "objectClass: top\n" + 
+        "givenName: Gandalf\n" + 
+        "sn: the Grey\n" + 
+        "cn: Gandalf the Grey\n" + 
+        "displayName: Gandalf the White\n" + 
+        "o: wizard\n" + 
+        "uid: gtg0000\n"+
+        "memberOf: cn=bannished,ou=groups,dc=example,dc=com\n"+
+        "\n"
+        );
+
+    SearchRequest request = newSearchRequest(DN.valueOf("ou=people,dc=example,dc=com"), SearchScope.WHOLE_SUBTREE, SearchFilter.createFilterFromString("(cn=*)"),"dn","isMemberOf");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+   
+    System.out.println(Joiner.on("\n").join(entries));
+    
+
+  }
+
 
   private VirtualAttributeRule buildRule(IsMemberOfVirtualAttributeProvider provider)
   {
