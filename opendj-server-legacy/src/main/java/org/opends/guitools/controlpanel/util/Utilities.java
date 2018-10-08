@@ -1839,14 +1839,13 @@ public class Utilities
     {
       final String normPath = classPath.replace(File.separatorChar, '/');
       if (normPath.endsWith(OPENDJ_BOOTSTRAP_CLIENT_JAR_RELATIVE_PATH)
-          || normPath.endsWith(OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH) 
-          || normPath.endsWith("classes"))
+          || normPath.endsWith(OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
       {
         return classPath;
       }
     }
     return null;
-  } 
+  }
 
   /**
    * Returns whether the server located in the provided path is running.
