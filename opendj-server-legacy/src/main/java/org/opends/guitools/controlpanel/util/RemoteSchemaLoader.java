@@ -89,9 +89,9 @@ public class RemoteSchemaLoader extends SchemaLoader
         ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES, ATTR_OBJECTCLASSES);
     final SearchResultEntry entry = connWrapper.getConnection().searchSingleEntry(request);
     removeNonOpenDjOrOpenDsSyntaxes(entry);
-    //schemaBuilder.addSchema(entry, true);
+    new SchemaBuilder(getBaseSchema()).addSchema(entry, true);
 
-    return buildSchema(schemaBuilder);
+    return buildSchema(schemaBuilder); 
 
   }
 
