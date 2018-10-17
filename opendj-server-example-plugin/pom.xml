@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.2.3-SNAPSHOT</version>
+    <version>4.2.3</version>
   </parent>
   <artifactId>opendj-server-example-plugin</artifactId>
   <name>OpenDJ Server Example Plugin</name>
