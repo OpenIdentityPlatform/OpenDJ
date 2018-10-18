@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.2.4-SNAPSHOT</version>
+    <version>4.2.4</version>
   </parent>
   <artifactId>opendj-server</artifactId>
   <name>OpenDJ Server NG</name>
