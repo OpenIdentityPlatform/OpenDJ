@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.1.11-SNAPSHOT</version>
+    <version>4.2.4-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
@@ -206,14 +206,6 @@
       <version>1.5.1</version>
     </dependency>
 
-    <!-- We need to override testNG version to make test works (see OPENDJ-2389) -->
-    <dependency>
-      <groupId>org.testng</groupId>
-      <artifactId>testng</artifactId>
-      <version>6.0.1</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
@@ -237,7 +229,6 @@
     <dependency>
       <groupId>com.github.stephenc.jcip</groupId>
       <artifactId>jcip-annotations</artifactId>
-      <version>1.0-1</version>
     </dependency>
 
     <dependency>
@@ -1175,39 +1166,39 @@
       <build>
         <plugins>
 
-          <!-- Enforce Checkstyle -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <executions>
-              <!-- Disable default from parent -->
-              <execution>
-                <id>check-src-and-tests</id>
-                <phase>none</phase>
-                <goals>
-                  <goal>checkstyle</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>check-src-and-tests-alternative</id>
-                <configuration>
-                  <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**</excludes>
-                  <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation>
-                  <headerLocation>${checkstyleHeaderLocation}</headerLocation>
-                  <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation>
-                  <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                  <includeResources>false</includeResources>
-                  <!-- Only output errors if we're not expecting any -->
-                  <consoleOutput>${checkstyleFailOnError}</consoleOutput>
-                  <failsOnError>${checkstyleFailOnError}</failsOnError>
-                </configuration>
-                <phase>process-test-classes</phase>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
-         </plugin>
+<!--           Enforce Checkstyle -->
+<!--           <plugin> -->
+<!--             <groupId>org.apache.maven.plugins</groupId> -->
+<!--             <artifactId>maven-checkstyle-plugin</artifactId> -->
+<!--             <executions> -->
+<!--               Disable default from parent -->
+<!--               <execution> -->
+<!--                 <id>check-src-and-tests</id> -->
+<!--                 <phase>none</phase> -->
+<!--                 <goals> -->
+<!--                   <goal>checkstyle</goal> -->
+<!--                 </goals> -->
+<!--               </execution> -->
+<!--               <execution> -->
+<!--                 <id>check-src-and-tests-alternative</id> -->
+<!--                 <configuration> -->
+<!--                   <excludes>generated/org/opends/server/snmp/**,org/opends/messages/**</excludes> -->
+<!--                   <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation> -->
+<!--                   <headerLocation>${checkstyleHeaderLocation}</headerLocation> -->
+<!--                   <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation> -->
+<!--                   <includeTestSourceDirectory>true</includeTestSourceDirectory> -->
+<!--                   <includeResources>false</includeResources> -->
+<!--                   Only output errors if we're not expecting any -->
+<!--                   <consoleOutput>${checkstyleFailOnError}</consoleOutput> -->
+<!--                   <failsOnError>${checkstyleFailOnError}</failsOnError> -->
+<!--                 </configuration> -->
+<!--                 <phase>process-test-classes</phase> -->
+<!--                 <goals> -->
+<!--                   <goal>check</goal> -->
+<!--                 </goals> -->
+<!--               </execution> -->
+<!--             </executions> -->
+<!--          </plugin> -->
 
           <!--
              Run unit/integration tests.
@@ -1223,6 +1214,11 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+            	<classpathDependencyExcludes>
+	            	<classpathDependencyExcludes>org.slf4j:slf4j-jdk14</classpathDependencyExcludes>
+	          	</classpathDependencyExcludes>
+            </configuration>
             <executions>
               <execution>
                 <goals>
@@ -1261,6 +1257,7 @@
                       <name>configfailurepolicy</name>
                       <value>skip</value>
                     </property>
+                    
                   </properties>
                   <systemPropertyVariables>
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
@@ -1273,6 +1270,8 @@
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
                   <argLine>-server -Xmx2048M -XX:MaxPermSize=256m</argLine>
+	        	  <parallel>methods</parallel>
+	          	  <threadCount>1</threadCount>
                 </configuration>
               </execution>
             </executions>
@@ -1476,17 +1475,6 @@
       </build>
     </profile>
 
-    <profile>
-      <id>forgerock-release</id>
-
-      <properties>
-        <!-- Released documentation is published at ForgeRock.com -->
-        <docHomepageUrl>https://backstage.forgerock.com/#!/docs/opendj</docHomepageUrl>
-        <docWikiUrl>https://backstage.forgerock.com/#!/docs/opendj</docWikiUrl>
-        <docGuideRefUrl>https://backstage.forgerock.com/#!/docs/opendj/${project.version}/admin-guide</docGuideRefUrl>
-        <docGuideAdminUrl>https://backstage.forgerock.com/#!/docs/opendj/${project.version}/admin-guide</docGuideAdminUrl>
-      </properties>
-    </profile>
   </profiles>
 
 </project>

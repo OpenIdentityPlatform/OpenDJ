@@ -63,13 +63,13 @@ public class IsMemberOfVirtualAttributeProvider
   @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    // FIXME -- This probably isn't the most efficient implementation.
+	// FIXME -- This probably isn't the most efficient implementation.
     AttributeBuilder builder = new AttributeBuilder(rule.getAttributeType());
     for (Group<?> g : DirectoryServer.getGroupManager().getGroupInstances())
     {
       try
       {
-        if (g.isMember(entry))
+        if (!builder.contains(ByteString.valueOfUtf8(g.getGroupDN().toString())) && g.isMember(entry))
         {
           builder.add(g.getGroupDN().toString());
         }

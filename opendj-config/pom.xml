@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.1.11-SNAPSHOT</version>
+    <version>4.2.4-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-config</artifactId>
   <name>OpenDJ Configuration API</name>
@@ -58,14 +58,6 @@
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-cli</artifactId>
-    </dependency>
-
-    <!-- We need to override testNG version to make test works (see OPENDJ-2389) -->
-    <dependency>
-      <groupId>org.testng</groupId>
-      <artifactId>testng</artifactId>
-      <version>6.0.1</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -174,6 +166,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+        	 <parallel>methods</parallel>
+          	 <threadCount>1</threadCount>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
