@@ -26,6 +26,7 @@ import static org.forgerock.util.Options.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -471,7 +472,11 @@ public class Rest2LdapJsonConfiguratorTest extends ForgeRockTestCase {
     }
 
     private static Path getPathToClass(Class<?> clazz) {
-        return Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().getPath());
+    	try {
+    		return Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
+    	} catch (URISyntaxException e) {
+    		throw new RuntimeException(e);
+    	}
     }
 
     private static Path getPathToMavenModule(String moduleName) {
