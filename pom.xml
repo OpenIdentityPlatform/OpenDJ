@@ -18,14 +18,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-bom</artifactId>
-        <version>4.2.4-SNAPSHOT</version>
-        <relativePath>opendj-bom/pom.xml</relativePath>
+        <groupId>org.forgerock</groupId>
+        <artifactId>forgerock-parent</artifactId>
+        <version>2.0.6</version>
+        <relativePath>../forgerock-parent</relativePath>
     </parent>
-
+	<groupId>org.forgerock</groupId>
     <artifactId>opendj-parent</artifactId>
-
+	<version>4.2.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenDJ Directory Services Project</name>
@@ -138,6 +138,13 @@
 
     <dependencyManagement>
         <dependencies>
+           <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>commons-bom</artifactId>
+                <version>21.0.0-SNAPSHOT</version>
+                <scope>import</scope>
+                <type>pom</type>
+           </dependency>
           <!-- Dropwizard metrics-core -->
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
@@ -216,8 +223,6 @@
     </dependencies>
 
     <modules>
-        <module>opendj-bom</module>
-
         <module>opendj-core</module>
         <module>opendj-doc-maven-plugin</module>
         <module>opendj-grizzly</module>
