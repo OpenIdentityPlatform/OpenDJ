@@ -55,6 +55,7 @@ bin/stop-ds
 ```
 
 ## Support and Mailing List Information
+* OpenDJ Community Wiki: https://github.com/OpenIdentityPlatform/OpenDJ/wiki
 * OpenDJ Community Mailing List: open-identity-platform-opendj@googlegroups.com
 * OpenDJ Community Archive: https://groups.google.com/d/forum/open-identity-platform-opendj
 * OpenDJ Community on Gitter: https://gitter.im/OpenIdentityPlatform/OpenDJ
