@@ -22,7 +22,7 @@
         <version>2.0.6</version>
         <relativePath>forgerock-parent</relativePath>
      </parent>
-	<groupId>org.forgerock</groupId>
+	<groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
 	<version>4.2.5-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -49,7 +49,7 @@
         <freemarker.version>2.3.28</freemarker.version>
         <grizzly-framework.version>2.4.3</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
-
+		<i18n-framework.version>1.4.2</i18n-framework.version>
         <!-- OSGi bundles properties -->
         <opendj.osgi.import.additional />
         <!--
@@ -144,6 +144,46 @@
                 <scope>import</scope>
                 <type>pom</type>
            </dependency>
+           <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-core</artifactId>
+                <version>${i18n-framework.version}</version>
+           </dependency>
+           <dependency>
+                <groupId>org.forgerock.commons</groupId>
+                <artifactId>i18n-slf4j</artifactId>
+                <version>${i18n-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.stephenc.jcip</groupId>
+                <artifactId>jcip-annotations</artifactId>
+                <version>1.0-1</version>
+            </dependency>
+            
+            <!-- OpenDJ SDK -->
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-cli</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-grizzly</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-rest2ldap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
           <!-- Dropwizard metrics-core -->
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
