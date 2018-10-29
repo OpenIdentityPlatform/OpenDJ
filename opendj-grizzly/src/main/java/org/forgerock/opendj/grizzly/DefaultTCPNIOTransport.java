@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.glassfish.grizzly.memory.HeapMemoryManager;
+import org.glassfish.grizzly.memory.PooledMemoryManager;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -135,8 +135,8 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
             // Enabled by default.
             builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
         }
-        // Default heap manager has changed in grizzly 2.3.27 to the more memory consuming PooledMemoryManager
-        builder.setMemoryManager(new HeapMemoryManager());
+        builder.setMemoryManager(new PooledMemoryManager(true));
+        
 
         final TCPNIOTransport transport = builder.build();
 
