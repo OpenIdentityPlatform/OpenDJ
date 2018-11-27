@@ -84,6 +84,7 @@
             com.sun.security.auth*;resolution:=optional
         </opendj.osgi.import.additional>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
+        <doclint>none</doclint>
     </properties>
 
 

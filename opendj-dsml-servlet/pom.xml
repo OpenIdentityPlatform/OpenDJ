@@ -33,6 +33,7 @@
         <forgerock.license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</forgerock.license.output.dir>
         <opendj.server.module.name>opendj-server-legacy</opendj.server.module.name>
         <opendj.jars.folder>opendj-jars</opendj.jars.folder>
+        <doclint>none</doclint>
     </properties>
 
     <dependencies>

@@ -69,6 +69,8 @@
     <product.archive.name>${product.name.lowercase}-${project.version}</product.archive.name>
 
     <juel.version>2.2.7</juel.version>
+    
+    <doclint>none</doclint>
   </properties>
 
   <dependencies>

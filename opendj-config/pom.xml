@@ -65,6 +65,7 @@
     <opendj.osgi.import.additional>
       org.forgerock.opendj.*;provide:=true
     </opendj.osgi.import.additional>
+    <doclint>none</doclint>
   </properties>
 
   <build>
