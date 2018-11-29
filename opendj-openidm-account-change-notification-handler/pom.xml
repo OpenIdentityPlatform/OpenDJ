@@ -27,7 +27,9 @@
     An OpenDJ Server notification handler that notifies account changes to OpenIDM through REST.
     </description>
   <packaging>jar</packaging>
-  
+  <properties>
+  	<doclint>none</doclint>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
