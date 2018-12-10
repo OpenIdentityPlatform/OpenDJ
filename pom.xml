@@ -24,7 +24,7 @@
      </parent>
 	<groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-	<version>4.2.6-SNAPSHOT</version>
+	<version>4.3.1</version>
     <packaging>pom</packaging>
 
     <name>OpenDJ Directory Services Project</name>
@@ -109,7 +109,7 @@
         <connection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</connection>
         <developerConnection>scm:git:https://github.com/OpenIdentityPlatform/OpenDJ.git</developerConnection>
         <url>https://github.com/OpenIdentityPlatform/OpenDJ</url>
-      	<tag>HEAD</tag>
+      	<tag>4.3.1</tag>
   	</scm>
 
     <distributionManagement>
