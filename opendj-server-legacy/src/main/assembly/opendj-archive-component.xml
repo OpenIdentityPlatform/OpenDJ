@@ -294,6 +294,21 @@
       <excludes>
         <exclude>build-tools.jar</exclude>
         <exclude>${snmp.jar.name}.jar</exclude>
+        <exclude>opendj-bootstrap.jar</exclude>
+        <exclude>opendj-bootstrap-client.jar</exclude>
+        <exclude>opendj-build-tools.jar</exclude>
+        <exclude>opendj-quicksetup.jar</exclude>
+<!--         <exclude>opendj-slf4j-adapter.jar</exclude> -->
+<!--         <exclude>opendj-je-backend.jar</exclude> -->
+        <exclude>opendj-i18n-ca_ES.jar</exclude>
+        <exclude>opendj-i18n-de.jar</exclude>
+        <exclude>opendj-i18n-es.jar</exclude>
+        <exclude>opendj-i18n-fr.jar</exclude>
+        <exclude>opendj-i18n-ja.jar</exclude>
+        <exclude>opendj-i18n-ko.jar</exclude>
+        <exclude>opendj-i18n-pl.jar</exclude>
+        <exclude>opendj-i18n-zh_CN.jar</exclude>
+        <exclude>opendj-i18n-zh_TW.jar</exclude>
       </excludes>
     </fileSet>
     <fileSet>
@@ -305,7 +320,66 @@
     </fileSet>
   </fileSets>
   <files>
-
+	<file>
+		<source>${jars.dir}/opendj-bootstrap.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>bootstrap.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-bootstrap-client.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>bootstrap-client.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-quicksetup.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>quicksetup.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-i18n-ca_ES.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_ca_ES.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-i18n-de.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_de.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-es.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_es.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-fr.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_fr.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-ja.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_ja.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-ko.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_ko.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-pl.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_pl.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-zh_CN.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_zh_CN.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-zh_TW.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_zh_TW.jar</destName>
+	</file>
     <!-- Adds Generated config.ldif file -->
     <file>
       <source>${project.build.directory}/template/config/config.ldif</source>
