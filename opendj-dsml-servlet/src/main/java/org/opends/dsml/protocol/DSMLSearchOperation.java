@@ -277,7 +277,7 @@ class DSMLSearchOperation
   private static LDAPFilter createSubstringFilter(SubstringFilter sf)
         throws LDAPException, IOException
   {
-    List<String> anyo = sf.getAny();
+    List anyo = sf.getAny();
     ArrayList<ByteString> subAnyElements = new ArrayList<>(anyo.size());
 
     for (Object o : anyo)
@@ -555,7 +555,7 @@ class DSMLSearchOperation
             DsmlAttr dsmlAttr = objFactory.createDsmlAttr();
 
             dsmlAttr.setName(nm);
-            List<String> dsmlAttrVal = dsmlAttr.getValue();
+            List dsmlAttrVal = dsmlAttr.getValue();
             List<ByteString> vals = attr.getValues();
             for (ByteString val : vals)
             {

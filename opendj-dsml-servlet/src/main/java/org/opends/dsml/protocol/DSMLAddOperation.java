@@ -87,7 +87,7 @@ class DSMLAddOperation
     for(DsmlAttr attr : addList)
     {
       ArrayList<ByteString> values = new ArrayList<>();
-      List<String> vals = attr.getValue();
+      List vals = attr.getValue();
       for(Object val : vals)
       {
         values.add(ByteStringUtility.convertValue(val));
