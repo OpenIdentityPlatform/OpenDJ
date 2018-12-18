@@ -752,10 +752,20 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         writer.close();
 
         final String[] expected =
-                new String[] { "dn: cn=John Doe,ou=people,dc=example,dc=com", "objectClass: top",
-                    "objectClass: person", "objectClass: inetOrgPerson", "cn: John Doe", "sn: Doe",
-                    "givenName: John", "description: one two", "description: three four",
-                    "description: five six", "typeOnly: ", "localized;lang-fr:: w6dlZGlsbGE=", "", };
+                new String[] { "dn: cn=John Doe,ou=people,dc=example,dc=com", 
+                		"cn: John Doe", 
+                		"description: one two", 
+                		"description: three four",
+                		"description: five six", 
+                		"givenName: John",
+                		"localized;lang-fr:: w6dlZGlsbGE=", 
+                		"objectClass: top",
+                		"objectClass: person", 
+                		"objectClass: inetOrgPerson", 
+                		"sn: Doe",
+                		"typeOnly: ", 
+                		
+                		"", };
 
         Assert.assertEquals(actual.size(), expected.length);
         for (int i = 0; i < expected.length; i++) {

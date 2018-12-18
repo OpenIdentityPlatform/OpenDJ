@@ -20,10 +20,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
@@ -269,6 +272,8 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
         }
 
         writeKeyAndValue("dn", entry.getName().toString());
+
+        final TreeMap<String,AbstractMap.SimpleEntry<String,ByteSequence>> attr=new TreeMap<>(); //sort by key:value
         for (final Attribute attribute : entry.getAllAttributes()) {
             // Filter the attribute if required.
             if (isAttributeExcluded(attribute.getAttributeDescription())) {
@@ -277,13 +282,16 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
 
             final String attributeDescription = attribute.getAttributeDescriptionAsString();
             if (attribute.isEmpty()) {
-                writeKeyAndValue(attributeDescription, ByteString.empty());
+            	attr.put(attributeDescription+attr.size(), new AbstractMap.SimpleEntry<String,ByteSequence>(attributeDescription,ByteString.empty()) );
             } else {
                 for (final ByteString value : attribute) {
-                    writeKeyAndValue(attributeDescription, value);
+                    attr.put(attributeDescription+attr.size(), new AbstractMap.SimpleEntry<String,ByteSequence>(attributeDescription,value));
                 }
             }
         }
+        for (AbstractMap.SimpleEntry<String,ByteSequence> kv : attr.values()) {
+        	 writeKeyAndValue(kv.getKey(), kv.getValue());
+		}
 
         // Make sure there is a blank line after the entry.
         impl.println();
