@@ -754,14 +754,14 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         final String[] expected =
                 new String[] { "dn: cn=John Doe,ou=people,dc=example,dc=com", 
                 		"cn: John Doe", 
+                		"description: five six",
                 		"description: one two", 
                 		"description: three four",
-                		"description: five six", 
                 		"givenName: John",
                 		"localized;lang-fr:: w6dlZGlsbGE=", 
-                		"objectClass: top",
-                		"objectClass: person", 
                 		"objectClass: inetOrgPerson", 
+                		"objectClass: person", 
+                		"objectClass: top",
                 		"sn: Doe",
                 		"typeOnly: ", 
                 		

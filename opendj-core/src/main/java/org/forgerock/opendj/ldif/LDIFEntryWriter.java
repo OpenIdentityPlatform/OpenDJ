@@ -282,10 +282,10 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
 
             final String attributeDescription = attribute.getAttributeDescriptionAsString();
             if (attribute.isEmpty()) {
-            	attr.put(attributeDescription+attr.size(), new AbstractMap.SimpleEntry<String,ByteSequence>(attributeDescription,ByteString.empty()) );
+            	attr.put(attributeDescription, new AbstractMap.SimpleEntry<String,ByteSequence>(attributeDescription,ByteString.empty()) );
             } else {
                 for (final ByteString value : attribute) {
-                    attr.put(attributeDescription+attr.size(), new AbstractMap.SimpleEntry<String,ByteSequence>(attributeDescription,value));
+                    attr.put(attributeDescription+value, new AbstractMap.SimpleEntry<String,ByteSequence>(attributeDescription,value));
                 }
             }
         }

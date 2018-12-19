@@ -6,6 +6,6 @@ coretokenid: tokenId
 coretokenobject: {"redirectURI":["http://fake.com"],"acr":[],"clientID":["clientOIDC"],"lineFoldingTest":["This line should have been correctly folded"],"tokenName":["refresh_token"],"authModules":["LDAP"],"realm":["/myrealm"],"id":["fakeid"],"userName":["johndoe"],"tokenType":["Bearer"]}
 coretokenstring07: Bearer
 coretokenstring08: /myrealm
-objectClass: top
 objectClass: frCoreToken
+objectClass: top
 

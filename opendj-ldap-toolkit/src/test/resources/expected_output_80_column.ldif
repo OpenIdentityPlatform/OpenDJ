@@ -9,6 +9,6 @@ coretokenobject: {"redirectURI":["http://fake.com"],"acr":[],"clientID":["client
  id"],"userName":["johndoe"],"tokenType":["Bearer"]}
 coretokenstring07: Bearer
 coretokenstring08: /myrealm
-objectClass: top
 objectClass: frCoreToken
+objectClass: top
 
