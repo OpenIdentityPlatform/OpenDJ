@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>4.2.6-SNAPSHOT</version>
+        <version>4.3.2-SNAPSHOT</version>
     </parent>
 	
     <artifactId>opendj-rest2ldap</artifactId>
@@ -34,6 +34,7 @@
             org.forgerock.opendj.*;provide:=true,
             org.forgerock.json.*;provide:=true
         </opendj.osgi.import.additional>
+        <doclint>none</doclint>
     </properties>
 
 

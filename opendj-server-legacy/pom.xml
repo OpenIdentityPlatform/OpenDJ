@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.2.6-SNAPSHOT</version>
+    <version>4.3.2-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
@@ -52,12 +52,7 @@
     <!-- Product information properties -->
     <patchFixIds />
     <isDebugBuild>false</isDebugBuild>
-    <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
-    <docWikiUrl>http://opendj.forgerock.org/docs.html</docWikiUrl>
-    <docGuideRefUrl>http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/admin-guide/</docGuideRefUrl>
-    <docGuideAdminUrl>http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/admin-guide/</docGuideAdminUrl>
-
-    <!-- Other properties -->
+      <!-- Other properties -->
     <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
 
     <!-- Additional OSGI import package for this module -->
@@ -69,6 +64,8 @@
     <product.archive.name>${product.name.lowercase}-${project.version}</product.archive.name>
 
     <juel.version>2.2.7</juel.version>
+    
+    <doclint>none</doclint>
   </properties>
 
   <dependencies>
@@ -542,61 +539,61 @@
           </execution>
 
           <!-- Attach localized jars to this module -->
-          <execution>
-            <id>attach-localized-jars</id>
-            <phase>package</phase>
-            <goals>
-              <goal>attach-artifact</goal>
-            </goals>
-            <configuration>
-              <artifacts>
-                <artifact>
-                  <file>${jars.dir}/opendj_ca_ES.jar</file>
-                  <classifier>${localized.jars.classifier}-ca_ES</classifier>
-                </artifact>
+<!--           <execution> -->
+<!--             <id>attach-localized-jars</id> -->
+<!--             <phase>package</phase> -->
+<!--             <goals> -->
+<!--               <goal>attach-artifact</goal> -->
+<!--             </goals> -->
+<!--             <configuration> -->
+<!--               <artifacts> -->
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-ca_ES.jar</file> -->
+<!--                   <classifier>_ca_ES</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_de.jar</file>
-                  <classifier>${localized.jars.classifier}-de</classifier>
-                </artifact>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-de.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-de</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_es.jar</file>
-                  <classifier>${localized.jars.classifier}-es</classifier>
-                </artifact>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-es.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-es</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_fr.jar</file>
-                  <classifier>${localized.jars.classifier}-fr</classifier>
-                </artifact>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-fr.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-fr</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_ja.jar</file>
-                  <classifier>${localized.jars.classifier}-ja</classifier>
-                </artifact>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-ja.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-ja</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_ko.jar</file>
-                  <classifier>${localized.jars.classifier}-ko</classifier>
-                </artifact>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-ko.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-ko</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_pl.jar</file>
-                  <classifier>${localized.jars.classifier}-pl</classifier>
-                </artifact>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-pl.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-pl</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_zh_CN.jar</file>
-                  <classifier>${localized.jars.classifier}-zh_CN</classifier>
-                </artifact>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-zh_CN.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-zh_CN</classifier> -->
+<!--                 </artifact> -->
 
-                <artifact>
-                  <file>${jars.dir}/opendj_zh_TW.jar</file>
-                  <classifier>${localized.jars.classifier}-zh_TW</classifier>
-                </artifact>
-              </artifacts>
-            </configuration>
-          </execution>
+<!--                 <artifact> -->
+<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-zh_TW.jar</file> -->
+<!--                   <classifier>${localized.jars.classifier}-zh_TW</classifier> -->
+<!--                 </artifact> -->
+<!--               </artifacts> -->
+<!--             </configuration> -->
+<!--           </execution> -->
         </executions>
       </plugin>
 
@@ -702,7 +699,6 @@
 
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.6</version>
         <executions>
           <!-- Package boostrap jar - contains only a manifest with classpath for the server -->
           <execution>
@@ -712,7 +708,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>bootstrap</finalName>
+              <classifier>bootstrap</classifier>
               <includes>
                 <include>nothing</include>
               </includes>
@@ -731,7 +727,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>bootstrap-client</finalName>
+              <classifier>bootstrap-client</classifier>
               <includes>
                 <include>nothing</include>
               </includes>
@@ -750,7 +746,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>build-tools</finalName>
+              <classifier>build-tools</classifier>
               <includes>
                 <include>**/messages/Severity.class</include>
                 <include>**/messages/Category.class</include>
@@ -775,7 +771,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>quicksetup</finalName>
+              <classifier>quicksetup</classifier>
               <includes>
                 <include>**/quicksetup/**</include>
                 <include>**/org/opends/admin/ads/*</include>
@@ -805,7 +801,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj-slf4j-adapter</finalName>
+              <classifier>slf4j-adapter</classifier>
               <includes>
                 <include>**/org/slf4j/**</include>
                 <include>**/org/opends/server/loggers/slf4j/**</include>
@@ -825,7 +821,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj-je-backend</finalName>
+              <classifier>je-backend</classifier>
               <includes>
                 <include>org/opends/server/backends/jeb/**</include>
                 <include>org/opends/server/replication/server/changelog/je/**</include>
@@ -845,7 +841,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_ca_ES</finalName>
+              <classifier>${localized.jars.classifier}-ca_ES</classifier>
               <includes>
                 <include>**/*_ca_ES.properties</include>
               </includes>
@@ -859,7 +855,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_de</finalName>
+              <classifier>${localized.jars.classifier}-de</classifier>
               <includes>
                 <include>**/*_de.properties</include>
               </includes>
@@ -873,7 +869,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_es</finalName>
+              <classifier>${localized.jars.classifier}-es</classifier>
               <includes>
                 <include>**/*_es.properties</include>
               </includes>
@@ -887,7 +883,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_fr</finalName>
+              <classifier>${localized.jars.classifier}-fr</classifier>
               <includes>
                 <include>**/*_fr.properties</include>
               </includes>
@@ -901,7 +897,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_ja</finalName>
+              <classifier>${localized.jars.classifier}-ja</classifier>
               <includes>
                 <include>**/*_ja.properties</include>
               </includes>
@@ -915,7 +911,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_ko</finalName>
+              <classifier>${localized.jars.classifier}-ko</classifier>
               <includes>
                 <include>**/*_ko.properties</include>
               </includes>
@@ -929,7 +925,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_pl</finalName>
+              <classifier>${localized.jars.classifier}-pl</classifier>
               <includes>
                 <include>**/*_pl.properties</include>
               </includes>
@@ -943,7 +939,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_zh_CN</finalName>
+              <classifier>${localized.jars.classifier}-zh_CN</classifier>
               <includes>
                 <include>**/*_zh_CN.properties</include>
               </includes>
@@ -957,7 +953,7 @@
               <goal>jar</goal>
             </goals>
             <configuration>
-              <finalName>opendj_zh_TW</finalName>
+              <classifier>${localized.jars.classifier}-zh_TW</classifier>
               <includes>
                 <include>**/*_zh_TW.properties</include>
               </includes>
