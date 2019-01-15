@@ -2,42 +2,49 @@ FROM java:8
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
-ARG ADD_BASE_ENTRY="--addBaseEntry"
+ENV ADD_BASE_ENTRY="--addBaseEntry"
 
-ARG PORT=1389
+ENV PORT=1389
 
-ARG LDAPS_PORT=1636
+ENV LDAPS_PORT=1636
 
-ARG BASE_DN="dc=example,dc=com"
+ENV BASE_DN=${BASE_DN:-"dc=example,dc=com"}
 
-ARG ROOT_USER_DN="cn=Directory Manager"
+ENV ROOT_USER_DN=${ROOT_USER_DN:-"cn=Directory Manager"}
 
-ARG ROOT_PASSWORD=password
+ENV ROOT_PASSWORD=${ROOT_PASSWORD:-"password"}
 
-ARG VERSION=@project_version@
+ENV SECRET_VOLUME=${SECRET_VOLUME}
 
-ARG OPENDJ_USER="opendj"
+ENV MASTER_SERVER=${MASTER_SERVER}
+
+ENV VERSION=@project_version@
+
+#ENV VERSION=4.3.1
+
+ENV OPENDJ_USER="opendj"
 
 WORKDIR /opt
 
-RUN apt-get install -y wget unzip
-
-RUN wget --quiet \
+RUN wget --show-progress --progress=bar:force:noscroll --quiet \
   https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip && \
   unzip opendj-$VERSION.zip && \
   rm -r opendj-$VERSION.zip
 
-RUN /opt/opendj/setup --cli -p $PORT --ldapsPort $LDAPS_PORT --enableStartTLS \
-  --generateSelfSignedCertificate --baseDN "$BASE_DN" -h localhost --rootUserDN "$ROOT_USER_DN" \
-  --rootUserPassword "$ROOT_PASSWORD" --acceptLicense --no-prompt --doNotStart $ADD_BASE_ENTRY
+RUN echo "/opt/opendj/data" > /opt/opendj/instance.loc  && \
+    mkdir -p /opt/opendj/data/lib/extensions
 
-RUN useradd -m -r -u 1001 -g root $OPENDJ_USER 
+ADD bootstrap/ /opt/opendj/bootstrap/
+
+ADD run.sh /opt/opendj/run.sh
+
+RUN useradd -m -r -u 1001 -G root,sudo $OPENDJ_USER
 
 RUN chgrp -R 0 /opt/opendj && \
     chmod -R g=u /opt/opendj
-    
+
 USER $OPENDJ_USER
 
 EXPOSE $PORT $LDAPS_PORT 4444
 
-CMD ["/opt/opendj/bin/start-ds", "--nodetach"]
+ENTRYPOINT ["/opt/opendj/run.sh"]
