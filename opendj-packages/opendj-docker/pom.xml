@@ -12,7 +12,7 @@
   Header, with the fields enclosed by brackets [] replaced by your own identifying
   information: "Portions Copyright [year] [name of copyright owner]".
 
-  Copyright 2015-2016 ForgeRock AS.
+  Copyright 2018-2019 Open Identity Community.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -40,8 +40,8 @@
     </description>
 
     <build>
-            <plugins>
-                <plugin>
+      <plugins>
+        <plugin>
 				    <artifactId>maven-antrun-plugin</artifactId>
 				    <executions>
 				      <execution>
@@ -49,11 +49,13 @@
 				        <configuration>
 				          <tasks>
 				          	<copy todir="${project.build.directory}">
-    							<fileset dir="${basedir}">
-        							<include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
-    							</fileset>
-							</copy>
-				            <replace token="@project_version@" value="${project.version}" dir="target/">                                 
+    							    <fileset dir="${basedir}">
+        							  <include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
+                        <include name="bootstrap/**" />
+                        <include name="run.sh" />
+    							    </fileset>
+							      </copy>
+				            <replace token="@project_version@" value="${project.version}" dir="target/">
 				              <include name="Dockerfile" />
 				            </replace>
 				          </tasks>
@@ -64,6 +66,6 @@
 				      </execution>
 				    </executions>
 				  </plugin>
-            </plugins>
+      </plugins>
     </build>
 </project>
