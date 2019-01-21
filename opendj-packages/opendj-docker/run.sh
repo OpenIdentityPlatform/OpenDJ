@@ -13,6 +13,7 @@ cd /opt/opendj
 
 # Instance dir does not exist? Then we need to run setup
 if [ ! -d ./data/config ] ; then
+
   echo "Instance data Directory is empty. Creating new DJ instance"
 
   BOOTSTRAP=${BOOTSTRAP:-/opt/opendj/bootstrap/setup.sh}

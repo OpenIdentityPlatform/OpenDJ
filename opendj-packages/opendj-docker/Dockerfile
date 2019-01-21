@@ -18,9 +18,9 @@ ENV SECRET_VOLUME=${SECRET_VOLUME}
 
 ENV MASTER_SERVER=${MASTER_SERVER}
 
-ENV VERSION=@project_version@
+#ENV VERSION=@project_version@
 
-#ENV VERSION=4.3.1
+ENV VERSION=4.3.1
 
 ENV OPENDJ_USER="opendj"
 
@@ -43,12 +43,8 @@ RUN useradd -m -r -u 1001 -G root,sudo $OPENDJ_USER
 RUN chgrp -R 0 /opt/opendj && \
     chmod -R g=u /opt/opendj
 
-USER $OPENDJ_USER
-
-RUN /opt/opendj/setup --cli -p $PORT --ldapsPort $LDAPS_PORT --enableStartTLS \
-  --generateSelfSignedCertificate --baseDN "$BASE_DN" -h localhost --rootUserDN "$ROOT_USER_DN" \
-  --rootUserPassword "$ROOT_PASSWORD" --acceptLicense --no-prompt --doNotStart $ADD_BASE_ENTRY
-
 EXPOSE $PORT $LDAPS_PORT 4444
+
+USER $OPENDJ_USER
 
 ENTRYPOINT ["/opt/opendj/run.sh"]
