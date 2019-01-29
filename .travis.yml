@@ -36,7 +36,7 @@ matrix:
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
         - "opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi"
         - "opendj-packages/opendj-docker/target/Dockerfile"
-	- "opendj-packages/opendj-openshift-template/*.yaml"
+        - "opendj-packages/opendj-openshift-template/*.yaml"
         - "opendj-doc-generated-ref/target/*.zip"
         - "opendj-dsml-servlet/target/*.war"
         - "opendj-rest2ldap-servlet/target/*.war"
