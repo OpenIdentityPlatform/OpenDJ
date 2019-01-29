@@ -26,7 +26,7 @@ env
 # This is hacky....
 echo "Will sleep for a bit to ensure master is up"
 
-sleep 10
+sleep 5
 
 if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ] then
   echo "Enabling Standart Replication..."

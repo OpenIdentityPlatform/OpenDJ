@@ -28,8 +28,8 @@ if [ ! -d ./data/config ] ; then
    echo "Running $BOOTSTRAP"
    sh "${BOOTSTRAP}"
 
-   # Check if MASTER_SERVER var is set. If it is - replicate to that server
-   if [ ! -z ${MASTER_SERVER} ];  then
+   # Check if OPENDJ_REPLICATION_TYPE var is set. If it is - replicate to that server
+   if [ ! -z ${MASTER_SERVER} ] && [ ! -z ${OPENDJ_REPLICATION_TYPE} ];  then
       /opt/opendj/bootstrap/replicate.sh
    fi
 else
