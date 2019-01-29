@@ -3,7 +3,7 @@
 ```bash
 oc create -f opendj-template.yml
 ```
-if you already installed the template and want to update it, user
+if you already installed the template and want to update it, run
 
 ```bash
 oc update -f opendj-template.yml
