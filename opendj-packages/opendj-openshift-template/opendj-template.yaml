@@ -1,0 +1,191 @@
+---
+apiVersion: v1
+kind: Template
+labels:
+  template: opendj-persistent-template
+message: |-
+  The following service(s) have been created in your project: ${OPENDJ_SERVICE_NAME}.
+
+     Root user DN: ${OPENDJ_ROOT_USER_DN}
+         Password: ${OPENDJ_ROOT_PASSWORD}
+          Base DN: ${OPENDJ_BASE_DN}
+   Connection URL: ldap://${OPENDJ_SERVICE_NAME}:1389/
+      Replication: ${OPENDJ_REPLICATION_TYPE}
+    Master Server: ${OPENDJ_MASTER_SERVER}
+    Secret Volume: ${OPENDJ_SECRET_VOLUME}
+
+  For more information about using this template, including OpenShift considerations, see TODO: add urls.
+metadata:
+  annotations:
+    description: |-
+      OpenDJ is an LDAPv3 compliant directory service, which has been developed for the Java platform, providing a high performance, highly available, and secure store for the identities managed by your organization.
+      For more information about using this template, including OpenShift considerations, see TODO: add urls.
+
+      NOTE: Scaling to more than one replica is not supported. You must have persistent volumes available in your cluster to use this template.
+    iconClass: icon-sso
+    openshift.io/display-name: OpenDJ
+    openshift.io/documentation-url: https://github.com/OpenIdentityPlatform/OpenDJ/wiki
+    openshift.io/long-description: This template provides a standalone OpenDJ
+      server with a database created.  The database is stored on persistent storage.  The
+      root DN, base DN, and password are chosen via parameters when provisioning
+      this service.
+    openshift.io/provider-display-name: Open Identity Platform Community.
+    openshift.io/support-url: http://www.openidentityplatform.org
+    tags: database,opendj,ldap
+  name: opendj
+objects:
+#Secret
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-password: "{.data['opendj-root-password']}"
+    name: ${OPENDJ_SERVICE_NAME}
+  labels:
+    name: ${OPENDJ_SERVICE_NAME}
+  stringData:
+    opendj-root-password: ${OPENDJ_ROOT_PASSWORD}
+
+#Service
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: ldap://{.spec.clusterIP}:{.spec.ports[?(.name=="opendj")].port}
+    name: "${OPENDJ_SERVICE_NAME}"
+    labels:
+      name: ${OPENDJ_SERVICE_NAME}
+  spec:
+    ports:
+    - name: 1389-tcp
+      port: 1389
+      protocol: TCP
+      targetPort: 1389
+    - name: 1636-tcp
+      port: 1636
+      protocol: TCP
+      targetPort: 1636
+    - name: 4444-tcp
+      port: 4444
+      protocol: TCP
+      targetPort: 4444
+    selector:
+      name: "${OPENDJ_SERVICE_NAME}"
+    sessionAffinity: None
+    clusterIP: None
+    type: ClusterIP
+    selector:
+      app: ${OPENDJ_SERVICE_NAME}
+
+#StatefulSet
+- apiVersion: apps/v1
+  kind: StatefulSet
+  metadata:
+    name: ${OPENDJ_SERVICE_NAME}
+    labels:
+      app: ${OPENDJ_SERVICE_NAME}
+  spec:
+    serviceName: ${OPENDJ_SERVICE_NAME}
+    replicas: 1
+    selector:
+      matchLabels:
+        app: ${OPENDJ_SERVICE_NAME}
+    template:
+      metadata:
+        labels:
+          app: ${OPENDJ_SERVICE_NAME}
+      spec:
+        terminationGracePeriodSeconds: 1800
+        containers:
+        - name: "${OPENDJ_SERVICE_NAME}"
+          image: docker.io/openidentityplatform/opendj
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 1389
+            protocol: TCP
+          - containerPort: 1636
+            protocol: TCP
+          - containerPort: 4444
+            protocol: TCP
+          resources: {}
+          #securityContext:
+          #lifecycle: {}
+          volumeMounts:
+          - mountPath: "/opt/opendj/data/"
+            name: "${OPENDJ_SERVICE_NAME}-data"
+          env:
+            - name: BASE_DN
+              value: ${OPENDJ_BASE_DN}
+            - name: ROOT_USER_DN
+              value: ${OPENDJ_ROOT_USER_DN}
+            - name: ROOT_PASSWORD
+              value: ${OPENDJ_ROOT_PASSWORD}
+            - name: MASTER_SERVER
+              value: ${OPENDJ_MASTER_SERVER}
+            - name: SECRET_VOLUME
+              value: ${OPENDJ_SECRET_VOLUME}
+            - name: MYHOSTNAME
+              value: ${OPENDJ_SERVICE_NAME}
+    volumeClaimTemplates:
+    - metadata:
+        name: "${OPENDJ_SERVICE_NAME}-data"
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "${VOLUME_CAPACITY}"
+
+parameters:
+- description: The name of the OpenShift Service exposed for the database.
+  displayName: Database Service Name
+  name: OPENDJ_SERVICE_NAME
+  required: true
+  value: "opendj"
+- description: DN for OpenDJ user that will be used for accessing the database.
+  displayName: OpenDJ Root User DN
+  name: OPENDJ_ROOT_USER_DN
+  required: true
+  value: "cn=Directory Manager"
+- description: Password for the OpenDJ Root User.
+  displayName: OpenDJ Connection Password
+  from: "[a-zA-Z0-9]{16}"
+  generate: expression
+  name: OPENDJ_ROOT_PASSWORD
+  required: true
+- description: Name of the OpenDJ Base DN
+  displayName: Base DN
+  name: OPENDJ_BASE_DN
+  required: true
+  value: "dc=example,dc=com"
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: VOLUME_CAPACITY
+  required: true
+  value: 20Gi
+- description: |-
+    OpenDJ Replication type, valid values are:
+    simple - standart replication
+    srs - standalone replication servers
+    sdsr - Standalone Directory Server Replicas
+    rg - Replication Groups
+    Other values will be ignored
+  displayName: OpenDJ Replication Type
+  name: OPENDJ_REPLICATION_TYPE
+  value:
+  required: false
+- description: OpenDJ master server for replication.
+  displayName: OpenDJ Master Server
+  name: OPENDJ_MASTER_SERVER
+  value:
+  required: false
+- description: OpenDJ replication group id, used only for rg replication type
+  displayName: OpenDJ Replication Group Id
+  name: OPENDJ_REPLICATION_GROUP_ID
+  value:
+  required: false
+- description: Secret keystore volume.
+  displayName: Secret Keystore Volume
+  name: OPENDJ_SECRET_VOLUME
+  value:
+  required: false
