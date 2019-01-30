@@ -58,7 +58,7 @@
 				            <replace token="@project_version@" value="${project.version}" dir="${project.build.directory}/opendj-docker/">
 				              <include name="Dockerfile" />
 				            </replace>
-                    <zip basedir="${project.build.directory}/opendj-docker/" destfile="${project.build.directory}/Dockerfile.zip" />
+                    <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**" />
 				          </tasks>
 				        </configuration>
 				        <goals>
