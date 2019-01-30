@@ -35,7 +35,7 @@ matrix:
         - "opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb"
         - "opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm"
         - "opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi"
-        - "opendj-packages/opendj-docker/target/Dockerfile"
+        - "opendj-packages/opendj-docker/target/Dockerfile.zip"
         - "opendj-packages/opendj-openshift-template/*.yaml"
         - "opendj-doc-generated-ref/target/*.zip"
         - "opendj-dsml-servlet/target/*.war"
@@ -57,7 +57,7 @@ matrix:
       -   cd $TRAVIS_BUILD_DIR
       - echo 'build and push Docker'
       -   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-      -   docker build ./opendj-packages/opendj-docker/target -t $DOCKER_USERNAME/opendj -t $DOCKER_USERNAME/opendj:$git_version
+      -   docker build ./opendj-packages/opendj-docker/target/opendj-docker -t $DOCKER_USERNAME/opendj -t $DOCKER_USERNAME/opendj:$git_version
       -   docker push $DOCKER_USERNAME/opendj:$git_version
       -   docker push $DOCKER_USERNAME/opendj
   - os: linux
