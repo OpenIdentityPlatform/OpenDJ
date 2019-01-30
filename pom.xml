@@ -24,7 +24,7 @@
      </parent>
 	<groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-	<version>4.3.2-SNAPSHOT</version>
+	<version>4.3.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenDJ Directory Services Project</name>
