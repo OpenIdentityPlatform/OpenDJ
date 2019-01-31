@@ -33,7 +33,7 @@ if [ ! -d ./data/config ] ; then
       /opt/opendj/bootstrap/replicate.sh
    fi
 else
- exec ./bin/upgrade -n
+ sh ./upgrade -n
  exec ./bin/start-ds --nodetach
  return
 fi
@@ -58,7 +58,7 @@ if (bin/status -n | grep Started) ; then
 fi
 
 echo "Try to upgrade OpenDJ"
-exec ./bin/upgrade -n
+sh ./upgrade -n
 
 echo "Starting OpenDJ"
 exec ./bin/start-ds --nodetach
