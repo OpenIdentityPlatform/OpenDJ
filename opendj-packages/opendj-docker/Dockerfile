@@ -20,7 +20,7 @@ ENV MASTER_SERVER=${MASTER_SERVER}
 
 ENV OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE}
 
-ENV VERSION=@project_version@
+ENV VERSION=4.3.2
 
 ENV OPENDJ_USER="opendj"
 
@@ -41,7 +41,10 @@ ADD run.sh /opt/opendj/run.sh
 RUN useradd -m -r -u 1001 -G root,sudo $OPENDJ_USER
 
 RUN chgrp -R 0 /opt/opendj && \
-    chmod -R g=u /opt/opendj
+    chmod -R g=u /opt/opendj && \
+    chmod +x /opt/opendj/run.sh \
+     /opt/opendj/bootstrap/setup.sh \
+     /opt/opendj/bootstrap/replicate.sh
 
 EXPOSE $PORT $LDAPS_PORT 4444
 
