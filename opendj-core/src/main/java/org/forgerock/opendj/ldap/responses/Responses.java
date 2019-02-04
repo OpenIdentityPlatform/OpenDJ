@@ -308,6 +308,25 @@ public final class Responses {
         Reject.ifNull(entry);
         return new SearchResultEntryImpl(entry);
     }
+    
+     /**
+     * Creates a new search result entry backed by the provided entry.
+     * Modifications made to {@code entry} will be reflected in the returned
+     * search result entry. The returned search result entry supports updates to
+     * its list of controls, as well as updates to the name and attributes if
+     * the underlying entry allows.
+     *
+     * @param entry
+     *            The SearchResultEntry.
+     * @return The new search result entry.
+     * @throws NullPointerException
+     *             If {@code entry} was {@code null} .
+     */
+    public static SearchResultEntry newSearchResultEntry(final SearchResultEntry entry) {
+        Reject.ifNull(entry);
+        return new SearchResultEntryImpl(entry);
+    }
+
 
     /**
      * Creates a new search result entry using the provided distinguished name
