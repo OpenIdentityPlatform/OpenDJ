@@ -47,7 +47,7 @@
         <forgerock-build-tools.version>1.0.3</forgerock-build-tools.version>
         <forgerock-doc-plugin.version>21.0.0-SNAPSHOT</forgerock-doc-plugin.version>
         <freemarker.version>2.3.28</freemarker.version>
-        <grizzly-framework.version>2.4.3</grizzly-framework.version>
+        <grizzly-framework.version>2.4.4</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
 		<i18n-framework.version>1.4.2</i18n-framework.version>
         <!-- OSGi bundles properties -->
