@@ -25,8 +25,8 @@ docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj openidentityp
 |OPENDJ_REPLICATION_TYPE|-|OpenDJ Replication type, valid values are: <ul><li>simple - standart replication</li><li>srs - standalone replication servers</li><li>sdsr - Standalone Directory Server Replicas</li><li>rg - Replication Groups</li></ul>Other values will be ignored|
 
 
-# Important Note
-If migrating from 4.3.1 and earlier version you should do the following
+# Note
+If you want to change service data and settings directory, you should do the following
 Run migration.sh from Dockerfile.zip archive
 This script copies all data from existing container to the host.
 sample usage:

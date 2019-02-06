@@ -31,9 +31,6 @@ RUN wget --show-progress --progress=bar:force:noscroll --quiet \
   unzip opendj-$VERSION.zip && \
   rm -r opendj-$VERSION.zip
 
-RUN echo "/opt/opendj/data" > /opt/opendj/instance.loc  && \
-    mkdir -p /opt/opendj/data/lib/extensions
-
 ADD bootstrap/ /opt/opendj/bootstrap/
 
 ADD run.sh /opt/opendj/run.sh
