@@ -10,6 +10,11 @@
 
 cd /opt/opendj
 
+#if defaul data folder exists do not change it
+if [ ! -d ./db ] ; then
+  echo "/opt/opendj/data" > /opt/opendj/instance.loc  && \
+    mkdir -p /opt/opendj/data/lib/extensions
+fi
 
 # Instance dir does not exist? Then we need to run setup
 if [ ! -d ./data/config ] ; then
@@ -33,6 +38,7 @@ if [ ! -d ./data/config ] ; then
       /opt/opendj/bootstrap/replicate.sh
    fi
 else
+ sh ./upgrade -n
  exec ./bin/start-ds --nodetach
  return
 fi
@@ -56,9 +62,8 @@ if (bin/status -n | grep Started) ; then
    while true; do sleep 100000; done
 fi
 
+echo "Try to upgrade OpenDJ"
+sh ./upgrade -n
 
 echo "Starting OpenDJ"
-
-#
-
 exec ./bin/start-ds --nodetach

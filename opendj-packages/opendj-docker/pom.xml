@@ -48,16 +48,17 @@
 				        <phase>prepare-package</phase>
 				        <configuration>
 				          <tasks>
-				          	<copy todir="${project.build.directory}">
+				          	<copy todir="${project.build.directory}/opendj-docker/">
     							    <fileset dir="${basedir}">
         							  <include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
                         <include name="bootstrap/**" />
                         <include name="run.sh" />
     							    </fileset>
 							      </copy>
-				            <replace token="@project_version@" value="${project.version}" dir="target/">
+				            <replace token="@project_version@" value="${project.version}" dir="${project.build.directory}/opendj-docker/">
 				              <include name="Dockerfile" />
 				            </replace>
+                    <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**" />
 				          </tasks>
 				        </configuration>
 				        <goals>
