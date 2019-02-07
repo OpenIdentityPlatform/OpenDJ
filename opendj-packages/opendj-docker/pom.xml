@@ -53,7 +53,6 @@
         							  <include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
                         <include name="bootstrap/**" />
                         <include name="run.sh" />
-                        <include name="migration.sh" />
     							    </fileset>
 							      </copy>
 				            <replace token="@project_version@" value="${project.version}" dir="${project.build.directory}/opendj-docker/">
