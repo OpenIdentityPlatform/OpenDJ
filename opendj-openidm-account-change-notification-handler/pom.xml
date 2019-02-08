@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.3.3-SNAPSHOT</version>
+    <version>4.3.3</version>
   </parent>
   <artifactId>opendj-openidm-account-change-notification-handler</artifactId>
   <name>OpenDJ account change notification handler for OpenIDM</name>
