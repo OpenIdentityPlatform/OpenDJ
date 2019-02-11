@@ -99,6 +99,9 @@ import com.forgerock.reactive.ServerConnectionFactoryAdapter;
  */
 @SuppressWarnings("javadoc")
 public class ConnectionFactoryTestCase extends SdkTestCase {
+	static {
+		System.setProperty("https.cipherSuites", "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA");
+	}
     /** Test timeout in ms for tests which need to wait for network events. */
     private static final long TEST_TIMEOUT = 30L;
     private static final long TEST_TIMEOUT_MS = TEST_TIMEOUT * 1000L;
