@@ -190,8 +190,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ModifyOperation mod2 = (ModifyOperation) generatedMsg.createOperation(conn);
 
     assertEquals(mod1.getRawEntryDN(), mod2.getRawEntryDN());
-    assertEquals(mod1.getAttachment(SYNCHROCONTEXT),
-                 mod2.getAttachment(SYNCHROCONTEXT));
+    assertEquals((Object)mod1.getAttachment(SYNCHROCONTEXT),
+    		(Object)mod2.getAttachment(SYNCHROCONTEXT));
     assertEquals(mod1.getModifications(), mod2.getModifications());
   }
 
@@ -494,7 +494,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     AddOperation genAddOp = generatedMsg.createOperation(conn, dn);
 
     assertEquals(addOp.getRawEntryDN(), genAddOp.getRawEntryDN());
-    assertEquals(addOp.getAttachment(SYNCHROCONTEXT), genAddOp.getAttachment(SYNCHROCONTEXT));
+    assertEquals((Object)addOp.getAttachment(SYNCHROCONTEXT), (Object)genAddOp.getAttachment(SYNCHROCONTEXT));
     assertEquals(addOp.getObjectClasses(), genAddOp.getObjectClasses());
     assertEquals(addOp.getOperationalAttributes(), genAddOp.getOperationalAttributes());
     assertEquals(addOp.getUserAttributes(), genAddOp.getUserAttributes());
