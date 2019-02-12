@@ -176,14 +176,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         final Options startTlsOptions = defaultOptions()
                                    .set(SSL_CONTEXT, sslContext)
                                    .set(SSL_USE_STARTTLS, true)
-                                   .set(SSL_ENABLED_CIPHER_SUITES,
-                                        asList("SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
-                                                      "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
-                                                      "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
-                                                      "SSL_DH_anon_WITH_DES_CBC_SHA",
-                                                      "SSL_DH_anon_WITH_RC4_128_MD5",
-                                                      "TLS_DH_anon_WITH_AES_128_CBC_SHA",
-                                                      "TLS_DH_anon_WITH_AES_256_CBC_SHA"));
+                                   ;
         factories[5][0] = new LDAPConnectionFactory(serverAddress.getHostName(),
                                                     serverAddress.getPort(),
                                                     startTlsOptions);

@@ -245,8 +245,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     AddOperationBasis genAddOpBasis = (AddOperationBasis) generatedOperation;
 
     assertEquals(addOpBasis.getRawEntryDN(), genAddOpBasis.getRawEntryDN());
-    assertEquals( addOpBasis.getAttachment(SYNCHROCONTEXT),
-                  genAddOpBasis.getAttachment(SYNCHROCONTEXT));
+    assertEquals((Object) addOpBasis.getAttachment(SYNCHROCONTEXT),
+    		(Object)genAddOpBasis.getAttachment(SYNCHROCONTEXT));
     assertEquals(addOpBasis.getObjectClasses(), genAddOpBasis.getObjectClasses());
     assertEquals(addOpBasis.getOperationalAttributes(), genAddOpBasis.getOperationalAttributes());
     assertEquals(addOpBasis.getUserAttributes(), genAddOpBasis.getUserAttributes());
@@ -293,8 +293,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     genAddOpBasis = (AddOperationBasis) generatedOperation;
 
     assertEquals(addOpBasis.getRawEntryDN(), genAddOpBasis.getRawEntryDN());
-    assertEquals( addOpBasis.getAttachment(SYNCHROCONTEXT),
-                  genAddOpBasis.getAttachment(SYNCHROCONTEXT));
+    assertEquals((Object) addOpBasis.getAttachment(SYNCHROCONTEXT),
+    		(Object)genAddOpBasis.getAttachment(SYNCHROCONTEXT));
     assertEquals(addOpBasis.getObjectClasses(), genAddOpBasis.getObjectClasses());
     assertEquals(addOpBasis.getOperationalAttributes(), genAddOpBasis.getOperationalAttributes());
     assertEquals(addOpBasis.getUserAttributes(), genAddOpBasis.getUserAttributes());
@@ -546,8 +546,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     ModifyOperationBasis genModOpBasisFromV1 = (ModifyOperationBasis) opFromV1;
 
     assertEquals(modOpBasisFromOrigVlast.getRawEntryDN(), genModOpBasisFromV1.getRawEntryDN());
-    assertEquals( modOpBasisFromOrigVlast.getAttachment(SYNCHROCONTEXT),
-                  genModOpBasisFromV1.getAttachment(SYNCHROCONTEXT));
+    assertEquals( (Object)modOpBasisFromOrigVlast.getAttachment(SYNCHROCONTEXT),
+    		(Object)genModOpBasisFromV1.getAttachment(SYNCHROCONTEXT));
     List<Modification> modsvlast = modOpBasisFromOrigVlast.getModifications();
     List<Modification> modsv1 = genModOpBasisFromV1.getModifications();
 
@@ -595,8 +595,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     assertEquals(modOpBasisFromOrigVlast.getRawEntryDN(),
         modOpBasisFromGeneratedVlast.getRawEntryDN());
-    assertEquals( modOpBasisFromOrigVlast.getAttachment(SYNCHROCONTEXT),
-        modOpBasisFromGeneratedVlast.getAttachment(SYNCHROCONTEXT));
+    assertEquals((Object) modOpBasisFromOrigVlast.getAttachment(SYNCHROCONTEXT),
+    		(Object)modOpBasisFromGeneratedVlast.getAttachment(SYNCHROCONTEXT));
     assertEquals(modOpBasisFromOrigVlast.getModifications(),
         modOpBasisFromGeneratedVlast.getModifications());
   }
@@ -719,8 +719,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     ModifyDNOperationBasis genModDnOpBasis = (ModifyDNOperationBasis) generatedOperation;
 
     assertEquals(modDnOpBasis.getRawEntryDN(), genModDnOpBasis.getRawEntryDN());
-    assertEquals( modDnOpBasis.getAttachment(SYNCHROCONTEXT),
-                  genModDnOpBasis.getAttachment(SYNCHROCONTEXT));
+    assertEquals((Object) modDnOpBasis.getAttachment(SYNCHROCONTEXT),
+    		(Object)genModDnOpBasis.getAttachment(SYNCHROCONTEXT));
 
     // Check default value for only VLAST fields
     assertEquals(newMsg.getAssuredMode(), AssuredMode.SAFE_DATA_MODE);
@@ -770,8 +770,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     genModDnOpBasis = (ModifyDNOperationBasis) generatedOperation;
 
     assertEquals(modDnOpBasis.getRawEntryDN(), genModDnOpBasis.getRawEntryDN());
-    assertEquals( modDnOpBasis.getAttachment(SYNCHROCONTEXT),
-                  genModDnOpBasis.getAttachment(SYNCHROCONTEXT));
+    assertEquals((Object) modDnOpBasis.getAttachment(SYNCHROCONTEXT),
+    		(Object)genModDnOpBasis.getAttachment(SYNCHROCONTEXT));
     assertEquals(modDnOpBasis.getModifications(), genModDnOpBasis.getModifications());
   }
 

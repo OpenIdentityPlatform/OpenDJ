@@ -818,8 +818,10 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                     false);
             sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ? null : protocols
                     .toArray(new String[protocols.size()]));
+            sslEngineConfigurator.setProtocolConfigured(true);
             sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ? null : cipherSuites
                     .toArray(new String[cipherSuites.size()]));
+            sslEngineConfigurator.setCipherConfigured(true);
             final SSLFilter sslFilter = new SSLFilter(DUMMY_SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
             installFilter(sslFilter);
             sslFilter.handshake(connection, completionHandler);
