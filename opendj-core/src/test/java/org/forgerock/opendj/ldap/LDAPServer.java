@@ -23,6 +23,8 @@ import static org.forgerock.opendj.ldap.TestCaseUtils.loopbackWithDynamicPort;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,6 +33,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.security.auth.callback.Callback;
@@ -73,6 +76,9 @@ import org.forgerock.util.Options;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.reactive.ServerConnectionFactoryAdapter;
+
+import sun.security.tools.keytool.CertAndKeyGen;
+import sun.security.x509.X500Name;
 
 /**
  * A simple ldap server that manages 1000 entries and used for running
@@ -394,7 +400,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final LdapResultHandler<R> resultHandler) throws UnsupportedOperationException {
             if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
-                final SSLEngine engine = sslContext.createSSLEngine();
+            	final SSLEngine engine = sslContext.createSSLEngine();
                 engine.setEnabledCipherSuites(sslContext.getServerSocketFactory().getSupportedCipherSuites());
                 engine.setNeedClientAuth(false);
                 engine.setUseClientMode(false);
@@ -404,6 +410,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             }
         }
 
+        
         @Override
         public void handleModify(final Integer context, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -472,7 +479,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
      */
     private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress = new ConcurrentHashMap<>();
 
-    private SSLContext sslContext;
+    private static SSLContext sslContext;
 
     private LDAPServer() {
         // Add the root dse first.
@@ -509,6 +516,25 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         return isRunning;
     }
 
+
+    static {
+        final String password="keypassword";
+        try {
+	        CertAndKeyGen keyGen=new CertAndKeyGen("RSA","SHA1WithRSA",null);
+	        keyGen.generate(2048);
+	        X509Certificate[] chain=new X509Certificate[1];
+	        chain[0]=keyGen.getSelfCertificate(new X500Name("CN=localhost"), (long)1*3600);
+	        
+	        KeyStore ks = KeyStore.getInstance("JKS");
+	        ks.load(null, null);
+	        ks.setKeyEntry("localhost", keyGen.getPrivateKey(),password.toCharArray(), chain);
+	        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+	        kmf.init(ks, password.toCharArray());
+	        sslContext = new SSLContextBuilder().setKeyManager(kmf.getKeyManagers()[0]).getSSLContext();
+        }catch (Exception e) {
+			new RuntimeException("generate self-signed certificate",e);
+		}
+    }
     /**
      * Starts the server.
      *
@@ -518,7 +544,6 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         if (isRunning) {
             return;
         }
-        sslContext = new SSLContextBuilder().getSSLContext();
         listener = new LDAPListener(Collections.singleton(loopbackWithDynamicPort()),
                 new ServerConnectionFactoryAdapter(Options.defaultOptions().get(LDAP_DECODE_OPTIONS),
                         getInstance()),
