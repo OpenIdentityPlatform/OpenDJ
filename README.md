@@ -30,7 +30,8 @@ both this file, and should also be included in all files in the project.
 * [OpenDJ RPM](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Redhat/Centos)
 * [OpenDJ MSI](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Windows/Wine)
 * [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (All OS)
-* [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS)
+* [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS) 
+* * [OpenDJ OpenShift](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-packages/opendj-openshift-template)
 
 Java 1.8+ required
 
