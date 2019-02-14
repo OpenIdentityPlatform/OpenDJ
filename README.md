@@ -26,10 +26,7 @@ This project is licensed under the Common Development and Distribution License (
 both this file, and should also be included in all files in the project.
 
 ## Downloads 
-* [OpenDJ DEB](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Debian)
-* [OpenDJ RPM](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Redhat/Centos)
-* [OpenDJ MSI](https://github.com/OpenIdentityPlatform/OpenDJ/releases) (Windows/Wine)
-* [OpenDJ ZIP](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (All OS)
+* [OpenDJ DEB, RPM, MSI, ZIP all available](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Debian,Redhat/Centos/Windows/All OS)
 * [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS) 
 * * [OpenDJ OpenShift](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-packages/opendj-openshift-template)
 
@@ -54,6 +51,7 @@ cd OpenDJ/opendj-server-legacy/target/package/opendj
 bin/start-ds
 bin/stop-ds
 ```
+See the wiki for [Full Installation guide, Administration guide, and Developers guide](https://github.com/OpenIdentityPlatform/OpenDJ/wiki)
 
 ## Support and Mailing List Information
 * OpenDJ Community Wiki: https://github.com/OpenIdentityPlatform/OpenDJ/wiki
