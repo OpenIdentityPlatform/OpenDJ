@@ -28,7 +28,7 @@ both this file, and should also be included in all files in the project.
 ## Downloads 
 * [OpenDJ DEB, RPM, MSI, ZIP all available](https://github.com/OpenIdentityPlatform/OpenDJ/releases/latest) (Debian,Redhat/Centos/Windows/All OS)
 * [OpenDJ Docker](https://hub.docker.com/r/openidentityplatform/opendj/) (All OS) 
-* * [OpenDJ OpenShift](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-packages/opendj-openshift-template)
+  * [OpenDJ OpenShift](https://github.com/OpenIdentityPlatform/OpenDJ/tree/master/opendj-packages/opendj-openshift-template)
 
 Java 1.8+ required
 
