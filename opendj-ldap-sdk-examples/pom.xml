@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.forgerock.opendj</groupId>
-        <version>4.3.4-SNAPSHOT</version>
+        <version>4.3.4</version>
     </parent>
 
     <artifactId>opendj-ldap-sdk-examples</artifactId>
