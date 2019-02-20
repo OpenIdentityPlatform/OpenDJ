@@ -2325,7 +2325,7 @@ public class Installer extends GuiApplication
    */
   private String getHostNameFile()
   {
-    return Utils.getPath(getInstallation().getRootDirectory().getAbsolutePath(), SetupUtils.HOST_NAME_FILE);
+    return Utils.getPath(getInstallation().getInstanceDirectory().getAbsolutePath(),SetupUtils.HOST_NAME_FILE);
   }
 
   /**
