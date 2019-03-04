@@ -358,6 +358,8 @@ class ConfigurableEnvironment
     // will block indefinitely.
     envConfig.setLockTimeout(0, TimeUnit.MICROSECONDS);
 
+    //FIX https://github.com/OpenIdentityPlatform/OpenDJ/issues/53 https://docs.oracle.com/cd/E17277_02/html/java/com/sleepycat/je/EnvironmentConfig.html#FREE_DISK
+    envConfig.setConfigParam("je.freeDisk",String.valueOf(50*1024*1024));
     return envConfig;
   }
 
