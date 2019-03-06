@@ -29,7 +29,6 @@ if [ -d /opt/opendj/bootstrap/schema/ ]; then
 fi
 
 if [ -d /opt/opendj/bootstrap/data/ ]; then
-  echo "Loading initial data:"
   for file in /opt/opendj/bootstrap/data/*;  do
       echo "Loading $file ..."
       /opt/opendj/bin/ldapmodify -D "$ROOT_USER_DN" -h localhost -p $PORT -w $ROOT_PASSWORD -f $file
