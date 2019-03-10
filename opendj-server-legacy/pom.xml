@@ -66,6 +66,7 @@
     <juel.version>2.2.7</juel.version>
     
     <doclint>none</doclint>
+    <opendmk.lib.dir>${basedir}/opendmk</opendmk.lib.dir>
   </properties>
 
   <dependencies>
@@ -1259,7 +1260,7 @@
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
                     <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
-                    <!-- <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}" /> -->
+                    <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}" />
                     <org.opends.server.CleanupDirectories>true</org.opends.server.CleanupDirectories>
                     <org.opends.test.suppressOutput>true</org.opends.test.suppressOutput>
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
@@ -1281,14 +1282,14 @@
 
       This profile is only actived when command line contains the 'opendmk.lib.dir'
       property that must point to the directory where OpenDMK jars are located.
-      Example: mvn install -Dopendmk.lib.dir=/path/to/opendmk/jars
+       <opendmk.lib.dir>${basedir}/opendmk</opendmk.lib.dir>
     -->
     <profile>
       <id>snmp</id>
       <activation>
-        <property>
-          <name>opendmk.lib.dir</name>
-        </property>
+       	<file>
+       		<exists>${opendmk.lib.dir}/jdmkrt.jar</exists>
+       	</file>
       </activation>
 
       <properties>
