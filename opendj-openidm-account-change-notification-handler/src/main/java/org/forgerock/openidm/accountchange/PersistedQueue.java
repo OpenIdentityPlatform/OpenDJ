@@ -66,6 +66,7 @@ public class PersistedQueue {
         final EnvironmentConfig dbEnvConfig = new EnvironmentConfig();
         dbEnvConfig.setTransactional(false);
         dbEnvConfig.setAllowCreate(true);
+        dbEnvConfig.setConfigParam("je.freeDisk",String.valueOf(50*1024*1024));
         this.dbEnv = new Environment(queueEnvPath,
                 dbEnvConfig);
 

@@ -723,7 +723,8 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
         .setCacheSize(IMPORT_DB_CACHE_SIZE)
         .setDurability(Durability.COMMIT_NO_SYNC)
         .setConfigParam(CLEANER_MIN_UTILIZATION, String.valueOf(config.getDBCleanerMinUtilization()))
-        .setConfigParam(LOG_FILE_MAX, String.valueOf(config.getDBLogFileMax()));
+        .setConfigParam(LOG_FILE_MAX, String.valueOf(config.getDBLogFileMax()))
+      	.setConfigParam("je.freeDisk",String.valueOf(50*1024*1024));
     }
     else
     {
@@ -802,7 +803,7 @@ public final class JEStorage implements Storage, Backupable, ConfigurationChange
     if (isBackendIncomplete(accessMode))
     {
       envConfig = new EnvironmentConfig();
-      envConfig.setAllowCreate(false).setTransactional(false);
+      envConfig.setAllowCreate(false).setTransactional(false).setConfigParam("je.freeDisk",String.valueOf(50*1024*1024));
       // Do not open files on disk
       return;
     }

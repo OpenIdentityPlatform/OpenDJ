@@ -1076,7 +1076,7 @@ final class UpgradeTasks
 
     private static void migrateDatabases(final File envDir, final Map<String, String> renamedDbs)
           throws ClientException {
-      EnvironmentConfig config = new EnvironmentConfig().setTransactional(true);
+      EnvironmentConfig config = new EnvironmentConfig().setTransactional(true).setConfigParam("je.freeDisk",String.valueOf(50*1024*1024));
       try (Environment je = new Environment(envDir, config)) {
         final Transaction txn = je.beginTransaction(null, new TransactionConfig());
         try {
