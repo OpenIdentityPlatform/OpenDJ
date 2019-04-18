@@ -6,7 +6,7 @@ echo "Setting up default OpenDJ instance"
 # If any optional LDIF files are present load them
 
 /opt/opendj/setup --cli -p $PORT --ldapsPort $LDAPS_PORT --enableStartTLS --generateSelfSignedCertificate \
-  --baseDN $BASE_DN -h localhost --rootUserPassword "$ROOT_PASSWORD" \
+  --baseDN $BASE_DN -h localhost --rootUserDN "$ROOT_USER_DN" --rootUserPassword "$ROOT_PASSWORD" \
   --acceptLicense --no-prompt  $ADD_BASE_ENTRY #--sampleData 1
 
 if [ -d /opt/opendj/bootstrap/schema/ ]; then
@@ -21,7 +21,7 @@ if [ -d /opt/opendj/bootstrap/data/ ]; then
   #allow pre encoded passwords
   /opt/opendj/bin/dsconfig \
          set-password-policy-prop \
-         --bindDN "cn=Directory Manager" \
+         --bindDN "$ROOT_USER_DN" \
          --bindPassword "$ROOT_PASSWORD" \
          --policy-name "Default Password Policy" \
          --set allow-pre-encoded-passwords:true \
