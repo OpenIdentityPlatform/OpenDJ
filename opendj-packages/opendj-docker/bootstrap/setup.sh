@@ -5,7 +5,7 @@ echo "Setting up default OpenDJ instance"
 
 # If any optional LDIF files are present load them
 
-/opt/opendj/setup --cli -p $PORT --ldapsPort $LDAPS_PORT --enableStartTLS --generateSelfSignedCertificate \
+/opt/opendj/setup --cli -p $PORT --ldapsPort $LDAPS_PORT --enableStartTLS $SSL_OPTIONS \
   --baseDN $BASE_DN -h localhost --rootUserDN "$ROOT_USER_DN" --rootUserPassword "$ROOT_PASSWORD" \
   --acceptLicense --no-prompt  $ADD_BASE_ENTRY #--sampleData 1
 
