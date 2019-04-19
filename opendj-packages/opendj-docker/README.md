@@ -23,4 +23,4 @@ docker run -d -p 1389:1389 -p 1636:1636 -p 4444:4444 --name opendj openidentityp
 |VERSION|4.3.1|OpenDJ version|
 |OPENDJ_USER|-|user which runs OpenDJ|
 |OPENDJ_REPLICATION_TYPE|-|OpenDJ Replication type, valid values are: <ul><li>simple - standart replication</li><li>srs - standalone replication servers</li><li>sdsr - Standalone Directory Server Replicas</li><li>rg - Replication Groups</li></ul>Other values will be ignored|
-|SSL_OPTIONS|--generateSelfSignedCertificate|you can replace ssl options at here, like : "--usePkcs12keyStore /opt/domain.pfx --keyStorePassword domain"
+|OPENDJ_SSL_OPTIONS|--generateSelfSignedCertificate|you can replace ssl options at here, like : "--usePkcs12keyStore /opt/domain.pfx --keyStorePassword domain"
