@@ -7,6 +7,7 @@
 # If the service is called
 
 MYHOSTNAME=${MYHOSTNAME:-`hostname -f`}
+export PATH=/opt/opendj/bin:$PATH
 
 echo "Setting up replication from $MYHOSTNAME to $MASTER_SERVER"
 
