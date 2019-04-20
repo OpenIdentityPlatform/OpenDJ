@@ -28,7 +28,7 @@ echo "Will sleep for a bit to ensure master is up"
 
 sleep 5
 
-if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ] then
+if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ]; then
   echo "Enabling Standart Replication..."
   /opt/opendj/bin/dsreplication enable --host1 $MYHOSTNAME --port1 4444 \
     --bindDN1 "$ROOT_USER_DN" \
@@ -44,7 +44,7 @@ if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ] then
     --hostSource $MYHOSTNAME --portSource 4444 \
     --hostDestination $MASTER_SERVER --portDestination 4444 -X -n
 
-elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ] then
+elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
   echo "Enabling Standalone Replication Servers..."
   dsreplication enable \
    --adminUID admin \
@@ -76,7 +76,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ] then
    --trustAll \
    --no-prompt
 
-elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ] then
+elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
   echo "Enabling Standalone Directory Server Replicas...."
   dsreplication \
    enable \
@@ -109,7 +109,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ] then
    --trustAll \
    --no-prompt
 
-elif [ "$OPENDJ_REPLICATION_TYPE" == "rg" ] then
+elif [ "$OPENDJ_REPLICATION_TYPE" == "rg" ]; then
   echo "Enabling Replication Groups..."
 
   dsconfig \
