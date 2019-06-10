@@ -363,7 +363,7 @@ public class DSMLServlet extends HttpServlet {
           }
           else if (headerVal.startsWith(SOAPConstants.SOAP_1_2_CONTENT_TYPE))
           {
-            MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
+            messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
             messageContentType = SOAPConstants.SOAP_1_2_CONTENT_TYPE;
           }
           else {
