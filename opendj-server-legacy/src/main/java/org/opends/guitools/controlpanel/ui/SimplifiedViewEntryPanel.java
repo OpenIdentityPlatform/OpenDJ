@@ -39,6 +39,7 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -924,7 +925,6 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     hmEditors.put(attrName.toLowerCase(), components);
 
     final Schema schema = getInfo().getServerDescriptor().getSchema();
-    boolean isBinary = isBinary(attrName);
     for (ByteString v : values)
     {
       gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -981,17 +981,17 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
         components.add(new EditorComponent(ocCellPanel));
         break;
       }
-      else if (isPassword(attrName) || isConfirmPassword(attrName))
+      else if (isConfirmPassword(attrName) || isPassword(attrName))
       {
         JPasswordField pf = Utilities.createPasswordField();
         if (!"".equals(v))
         {
-          pf.setText(getPasswordStringValue(attrName, v));
+          pf.setText(getPasswordStringValue(getAttributeForConfirmPasswordKey(attrName), v));
         }
         panel.add(pf, gbc);
         components.add(new EditorComponent(pf));
       }
-      else if (!isBinary)
+      else if (!isBinary(attrName))
       {
         if (isSingleValue(attrName))
         {
@@ -1215,7 +1215,7 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
     }
 
     final String ldif = getLDIF();
-    try (LDIFEntryReader reader = new LDIFEntryReader(ldif)
+    try (LDIFEntryReader reader = new LDIFEntryReader(new StringReader(ldif))
         .setSchemaValidationPolicy(checkSchema() ? defaultPolicy():ignoreAll()))
     {
       final Entry entry = reader.readEntry();
@@ -1285,6 +1285,11 @@ class SimplifiedViewEntryPanel extends ViewEntryPanel
   {
     return key.startsWith(CONFIRM_PASSWORD);
   }
+
+	private String getAttributeForConfirmPasswordKey(String key)
+	{
+		return key.startsWith(CONFIRM_PASSWORD) ? key.substring(CONFIRM_PASSWORD.length()) : key;
+	}  
 
   /**
    * Returns the LDIF representation of the displayed entry.
