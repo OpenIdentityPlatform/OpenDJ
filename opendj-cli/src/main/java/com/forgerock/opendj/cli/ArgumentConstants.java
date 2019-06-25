@@ -162,6 +162,11 @@ public final class ArgumentConstants {
     /** The value for the long option certNickname . */
     public static final String OPTION_LONG_CERT_NICKNAME = "certNickname";
 
+    /** The value for the short option certNickname . */
+    public static final char OPTION_SHORT_CONTINUE_ON_ERROR = 'c';
+    /** The value for the long option certNickname . */
+    public static final String OPTION_LONG_CONTINUE_ON_ERROR = "continueOnError";
+
     /** The value for the long option assertionFilter . */
     public static final String OPTION_LONG_ASSERTION_FILE = "assertionFilter";
 

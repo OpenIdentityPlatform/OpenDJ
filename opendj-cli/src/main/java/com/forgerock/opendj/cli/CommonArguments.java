@@ -136,8 +136,8 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static BooleanArgument continueOnErrorArgument() throws ArgumentException {
-        return BooleanArgument.builder("continueOnError")
-                .shortIdentifier('c')
+        return BooleanArgument.builder(OPTION_LONG_CONTINUE_ON_ERROR)
+                .shortIdentifier(OPTION_SHORT_CONTINUE_ON_ERROR)
                 .description(INFO_DESCRIPTION_CONTINUE_ON_ERROR.get())
                 .buildArgument();
     }
