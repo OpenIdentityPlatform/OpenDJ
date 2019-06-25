@@ -263,6 +263,7 @@ public final class LDAPModify extends ToolConsoleApplication {
         BooleanArgument continueOnError;
         BooleanArgument noop;
         BooleanArgument showUsage;
+        BooleanArgument defaultAdd;
         StringArgument assertionFilter;
         StringArgument controlStr;
         StringArgument filename;
@@ -318,6 +319,12 @@ public final class LDAPModify extends ToolConsoleApplication {
 
             continueOnError = continueOnErrorArgument();
             argParser.addArgument(continueOnError);
+
+            /* Legacy argument in ForgeRock's OpenDJ to avoid failing when running older scripts.
+            The current behaviour is the opposite of Forgerock (defaultAdd false),
+            as we treat records with no changetype as add operations by default. */
+            defaultAdd = defaultAddArgument();
+            argParser.addArgument(defaultAdd);
 
             noop = noOpArgument();
             argParser.addArgument(noop);

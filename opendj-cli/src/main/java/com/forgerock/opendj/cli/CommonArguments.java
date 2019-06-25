@@ -143,6 +143,21 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "Default Add" boolean argument. <br>
+     * This is a legacy argument and exists for backwards compatibility.
+     *
+     * @return The "defaultAdd" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument defaultAddArgument() throws ArgumentException {
+        return BooleanArgument.builder(OPTION_LONG_DEFAULT_ADD)
+                .shortIdentifier(OPTION_SHORT_DEFAULT_ADD)
+                .description(INFO_DESCRIPTION_DEFAULT_ADD.get())
+                .buildArgument();
+    }
+
+    /**
      * Returns the "control" string argument.
      *
      * @return The "control" argument.

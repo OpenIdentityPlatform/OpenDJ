@@ -162,6 +162,11 @@ public final class ArgumentConstants {
     /** The value for the long option certNickname . */
     public static final String OPTION_LONG_CERT_NICKNAME = "certNickname";
 
+    /** The value for the short option defaultAdd . */
+    public static final char OPTION_SHORT_DEFAULT_ADD = 'a';
+    /** The value for the long option defaultAdd . */
+    public static final String OPTION_LONG_DEFAULT_ADD = "defaultAdd";
+
     /** The value for the long option assertionFilter . */
     public static final String OPTION_LONG_ASSERTION_FILE = "assertionFilter";
 
