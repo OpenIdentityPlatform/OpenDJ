@@ -146,6 +146,7 @@ public final class CommonArguments {
      * Returns the "Default Add" boolean argument. <br>
      * This is a legacy argument and exists for backwards compatibility.
      *
+     * <br><i> N.B : the 'a' short option is also used by backupall, addBaseEntry.</i>
      * @return The "defaultAdd" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
