@@ -122,7 +122,7 @@ public final class ArgumentConstants {
     public static final String OPTION_LONG_ADMIN_CONNECTOR_PORT = "adminConnectorPort";
 
     /** The value for the short option ldapPort. */
-    public static final String OPTION_SHORT_LDAP_PORT = OPTION_SHORT_PORT;
+    public static final char OPTION_SHORT_LDAP_PORT = OPTION_SHORT_PORT;
     /** The value for the long option ldapPort. */
     public static final String OPTION_LONG_LDAP_PORT = "ldapPort";
 
@@ -223,7 +223,7 @@ public final class ArgumentConstants {
     public static final String OPTION_LONG_GENERATE_SELF_SIGNED_CERTIFICATE = "generateSelfSignedCertificate";
 
     /** The value for the short option ldapsPort . */
-    public static final String OPTION_SHORT_LDAPS_PORT = OPTION_SHORT_USE_SSL;
+    public static final char OPTION_SHORT_LDAPS_PORT = OPTION_SHORT_USE_SSL;
 
     /** The value for the long option ldapsPort . */
     public static final String OPTION_LONG_LDAPS_PORT = "ldapsPort";
