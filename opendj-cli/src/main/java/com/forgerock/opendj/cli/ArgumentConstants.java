@@ -93,10 +93,38 @@ public final class ArgumentConstants {
     /** The value for the long option bindPassword. */
     public static final String OPTION_LONG_BINDPWD = "bindPassword";
 
+    /** The value for the short option rootUserPassword. */
+    public static final char OPTION_SHORT_ROOTUSERPWD = OPTION_SHORT_BINDPWD;
+    /** The value for the long option rootUserPassword. */
+    public static final String OPTION_LONG_ROOTUSERPWD = "rootUserPassword";
+
     /** The value for the short option bindPasswordFile. */
     public static final char OPTION_SHORT_BINDPWD_FILE = 'j';
     /** The value for the long option bindPasswordFile. */
     public static final String OPTION_LONG_BINDPWD_FILE = "bindPasswordFile";
+
+    /** The value for the short option rootUserPasswordFile. */
+    public static final char OPTION_SHORT_ROOTUSERPWD_FILE = OPTION_SHORT_BINDPWD_FILE;
+    /** The value for the long option rootUserPasswordFile. */
+    public static final String OPTION_LONG_ROOTUSERPWD_FILE = "rootUserPasswordFile";
+
+    /** The value for the short option skipPortCheck. */
+    public static final char OPTION_SHORT_SKIP_PORT_CHECK = 'S';
+    /** The value for the long option skipPortCheck. */
+    public static final String OPTION_LONG_SKIP_PORT_CHECK = "skipPortCheck";
+
+    /** The value for the short option jmxPort. */
+    public static final char OPTION_SHORT_JMX_PORT = 'x';
+    /** The value for the long option jmxPort. */
+    public static final String OPTION_LONG_JMX_PORT = "jmxPort";
+
+    /** The value for the long option adminConnectorPort. */
+    public static final String OPTION_LONG_ADMIN_CONNECTOR_PORT = "adminConnectorPort";
+
+    /** The value for the short option ldapPort. */
+    public static final char OPTION_SHORT_LDAP_PORT = OPTION_SHORT_PORT;
+    /** The value for the long option ldapPort. */
+    public static final String OPTION_LONG_LDAP_PORT = "ldapPort";
 
     /** The value for the short option compress. */
     public static final char OPTION_SHORT_COMPRESS = 'c';
@@ -117,6 +145,21 @@ public final class ArgumentConstants {
     public static final char OPTION_SHORT_START_TLS = 'q';
     /** The value for the long option useStartTLS. */
     public static final String OPTION_LONG_START_TLS = "useStartTLS";
+
+    /** The value for the short option enableStartTLS. */
+    public static final char OPTION_SHORT_ENABLE_TLS = OPTION_SHORT_START_TLS;
+    /** The value for the long option enableStartTLS. */
+    public static final String OPTION_LONG_ENABLE_TLS = "enableStartTLS";
+
+    /** The value for the short option doNotStart. */
+    public static final char OPTION_SHORT_DO_NOT_START = 'O';
+    /** The value for the long option doNotStart. */
+    public static final String OPTION_LONG_DO_NOT_START = "doNotStart";
+
+    /** The value for the short option enableWindowsService. */
+    public static final char OPTION_SHORT_ENABLE_WINDOWS_SERVICE = 'e';
+    /** The value for the long option enableWindowsService. */
+    public static final String OPTION_LONG_ENABLE_WINDOWS_SERVICE = "enableWindowsService";
 
     /** The value for the short option randomSeed. */
     public static final char OPTION_SHORT_RANDOM_SEED = 's';
@@ -161,6 +204,37 @@ public final class ArgumentConstants {
     public static final char OPTION_SHORT_CERT_NICKNAME = 'N';
     /** The value for the long option certNickname . */
     public static final String OPTION_LONG_CERT_NICKNAME = "certNickname";
+
+    /** The value for the short option continueOnError . */
+    public static final char OPTION_SHORT_CONTINUE_ON_ERROR = 'c';
+    /** The value for the long option continueOnError . */
+    public static final String OPTION_LONG_CONTINUE_ON_ERROR = "continueOnError";
+
+    /** The value for the long option usePkcs11keyStore . */
+    public static final String OPTION_LONG_USE_PKCS11_KEYSTORE = "usePkcs11keyStore";
+
+    /** The value for the long option usePkcs12keyStore . */
+    public static final String OPTION_LONG_USE_PKCS12_KEYSTORE = "usePkcs12keyStore";
+
+    /** The value for the long option useJavaKeystore . */
+    public static final String OPTION_LONG_USE_JAVA_KEYSTORE = "useJavaKeystore";
+
+    /** The value for the long option generateSelfSignedCertificate . */
+    public static final String OPTION_LONG_GENERATE_SELF_SIGNED_CERTIFICATE = "generateSelfSignedCertificate";
+
+    /** The value for the short option ldapsPort . */
+    public static final char OPTION_SHORT_LDAPS_PORT = OPTION_SHORT_USE_SSL;
+
+    /** The value for the long option ldapsPort . */
+    public static final String OPTION_LONG_LDAPS_PORT = "ldapsPort";
+
+    /** The value for the long option useJCEKS . */
+    public static final String OPTION_LONG_USE_JCEKS = "useJCEKS";
+
+    /** The value for the short option configFile . */
+    public static final char OPTION_SHORT_CONFIG_FILE = 'f';
+    /** The value for the long option configFile . */
+    public static final String OPTION_LONG_CONFIG_FILE = "configFile";
 
     /** The value for the long option assertionFilter . */
     public static final String OPTION_LONG_ASSERTION_FILE = "assertionFilter";
@@ -232,10 +306,23 @@ public final class ArgumentConstants {
     /** Short form of script friendly option. */
     public static final Character OPTION_SHORT_SCRIPT_FRIENDLY = 's';
 
+    /** Long form of script friendly option. */
+    public static final String OPTION_LONG_SCRIPT_FRIENDLY_SDK = "scriptFriendly";
+    /** Short form of script friendly option. */
+    public static final Character OPTION_SHORT_SCRIPT_FRIENDLY_SDK = 'S';
+
     /** Value for verbose option short form. */
     public static final Character OPTION_SHORT_VERBOSE = 'v';
     /** Value for verbose option long form. */
     public static final String OPTION_LONG_VERBOSE = "verbose";
+
+    /** The value for the short option sampleData . */
+    public static final Character OPTION_SHORT_SAMPLE_DATA = 'd';
+    /** The value for the long option sampleData . */
+    public static final String OPTION_LONG_SAMPLE_DATA = "sampleData";
+
+    /** The value for the long option skipFile . */
+    public static final String OPTION_LONG_SKIP_FILE = "skipFile";
 
     /** The value for the long option propertiesFilePAth . */
     public static final String OPTION_LONG_PROP_FILE_PATH = "propertiesFilePath";
@@ -248,6 +335,18 @@ public final class ArgumentConstants {
     /** Long form of admin UID. */
     public static final String OPTION_LONG_ADMIN_UID = "adminUID";
 
+    /** The value for the short option rejectFile . */
+    public static final Character OPTION_SHORT_REJECT_FILE = 'R';
+    /** The value for the long option rejectFile . */
+    public static final String OPTION_LONG_REJECT_FILE = "rejectFile";
+
+    /** The value for the short option addBaseEntry . */
+    public static final Character OPTION_SHORT_ADD_BASE_ENTRY = 'a';
+    /** The value for the long option addBaseEntry . */
+    public static final String OPTION_LONG_ADD_BASE_ENTRY = "addBaseEntry";
+
+    /** The value for the short option reportAuthzID . */
+    public static final Character OPTION_SHORT_REPORT_AUTHZ_ID = 'E';
     /** Long form of report authorization ID connection option. */
     public static final String OPTION_LONG_REPORT_AUTHZ_ID = "reportAuthzID";
 
@@ -364,6 +463,8 @@ public final class ArgumentConstants {
     /** The value for the long option ignore errors. */
     public static final String OPTION_LONG_IGNORE_ERRORS = "ignoreErrors";
 
+    /** Value for the restart option short form. */
+    public static final Character OPTION_SHORT_RESTART = 'R';
     /** Value for the restart option long form. */
     public static final String OPTION_LONG_RESTART = "restart";
 
