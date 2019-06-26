@@ -205,7 +205,12 @@ public final class ArgumentConstants {
     /** The value for the long option certNickname . */
     public static final String OPTION_LONG_CERT_NICKNAME = "certNickname";
 
-    /** The value for the short option continueOnError . */
+    /** The value for the short option defaultAdd . */
+    public static final char OPTION_SHORT_DEFAULT_ADD = 'a';
+    /** The value for the long option defaultAdd . */
+    public static final String OPTION_LONG_DEFAULT_ADD = "defaultAdd";
+
+  /** The value for the short option continueOnError . */
     public static final char OPTION_SHORT_CONTINUE_ON_ERROR = 'c';
     /** The value for the long option continueOnError . */
     public static final String OPTION_LONG_CONTINUE_ON_ERROR = "continueOnError";
