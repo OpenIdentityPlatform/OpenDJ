@@ -99,10 +99,13 @@ public final class ManagedObjectDefinitionResource {
             String baseName = prefix + "." + d.getClass().getName();
             String path = baseName.replace('.', '/') + ".properties";
             InputStream stream = ConfigurationFramework.class.getClassLoader().getResourceAsStream(path);
-
+            if(stream == null) { //try target class class loader
+            	stream = d.getClass().getClassLoader().getResourceAsStream(path);
+            }
             if (stream == null) {
                 throw new MissingResourceException("Can't find resource " + path, baseName, "");
             }
+            
 
             p = new Properties();
             try (InputStream is = new BufferedInputStream(stream)) {
