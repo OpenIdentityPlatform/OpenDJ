@@ -65,6 +65,7 @@ import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
 import org.forgerock.opendj.server.config.server.LDAPConnectionHandlerCfg;
 import org.forgerock.util.Function;
 import org.forgerock.util.Options;
+import org.glassfish.grizzly.utils.ArrayUtils;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -854,6 +855,10 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
             final Set<String> protocols = config.getSSLProtocol();
             if (!protocols.isEmpty()) {
                 sslEngine.setEnabledProtocols(protocols.toArray(new String[0]));
+            } else { //enforce enable TLSv1.3 to avoid jdk 11 TLSv1.3 problem
+            	String[] enabledProtocols = sslEngine.getEnabledProtocols();
+            	String[] enabledProtocolsNoTLSv13 = ArrayUtils.remove(enabledProtocols, "TLSv1.3");
+            	sslEngine.setEnabledProtocols(enabledProtocolsNoTLSv13);
             }
 
             final Set<String> ciphers = config.getSSLCipherSuite();
