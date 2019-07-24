@@ -25,6 +25,7 @@
     </parent>
 
     <artifactId>opendj-msi-standard</artifactId>
+    <packaging>pom</packaging>
     <name>OpenDJ MSI Standard Package</name>
 
     <packaging>pom</packaging>
