@@ -309,6 +309,7 @@ public class ReplicationServer
   {
     synchronized (connectThreadLock)
     {
+      final Map<HostPort, Long> blacklistedHosts = new HashMap<>();
       while (!shutdown.get())
       {
         HostPort localAddress = HostPort.localAddress(getReplicationPort());
@@ -336,7 +337,16 @@ public class ReplicationServer
               continue; // Skip: avoid connecting to self.
             }
 
-            connect(rsAddress, domain.getBaseDN());
+            if (blacklistedHosts.getOrDefault(rsAddress, 0L) > domainTicket)
+            {
+              continue; // Skip: avoid connecting to blacklisted hosts.
+            }
+
+            if (!connect(rsAddress, domain.getBaseDN()))
+            {
+                // Blacklist for a few iterations
+                blacklistedHosts.put(rsAddress, domainTicket + 6);
+            }
           }
         }
 
@@ -381,7 +391,7 @@ public class ReplicationServer
    * @param baseDN
    *          The baseDN of the connection
    */
-  private void connect(HostPort remoteServerAddress, DN baseDN)
+  private boolean connect(HostPort remoteServerAddress, DN baseDN)
   {
     boolean sslEncryption = replSessionSecurity.isSslEncryption();
 
@@ -414,7 +424,9 @@ public class ReplicationServer
       logger.traceException(e);
       close(session);
       close(socket);
+      return false;
     }
+    return true;
   }
 
   /** Initialization function for the replicationServer. */
