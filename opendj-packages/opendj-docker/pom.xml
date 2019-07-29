@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.forgerock.opendj</groupId>
         <artifactId>opendj-packages</artifactId>
-        <version>4.4.3-SNAPSHOT</version>
+        <version>4.4.3</version>
     </parent>
 
     <profiles>
@@ -75,7 +75,7 @@
 		        <phase>prepare-package</phase>
 		        <configuration>
 		          <tasks>
-			          <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**" >
+			          <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**">
 	                  	<fileset dir="${basedir}">
 	      					<include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
 	                      	<include name="bootstrap/**" />
