@@ -22,16 +22,12 @@ ENV MASTER_SERVER=${MASTER_SERVER}
 
 ENV OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE}
 
-ARG VERSION=@project_version@
-
 ENV OPENDJ_USER="opendj"
 
 WORKDIR /opt
 
-RUN wget --show-progress --progress=bar:force:noscroll --quiet \
-  https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip && \
-  unzip opendj-$VERSION.zip && \
-  rm -r opendj-$VERSION.zip
+ADD target/opendj-*.zip .
+RUN unzip opendj-*.zip && rm -r opendj-*.zip
 
 ADD bootstrap/ /opt/opendj/bootstrap/
 

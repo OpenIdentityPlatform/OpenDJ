@@ -41,32 +41,55 @@
 
     <build>
       <plugins>
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-dependency-plugin</artifactId>
+	        <executions>
+	          <execution>
+	            <id>copy</id>
+	            <phase>prepare-package</phase>
+	            <goals>
+	              <goal>copy</goal>
+	            </goals>
+	          </execution>
+	        </executions>
+	        <configuration>
+	          <artifactItems>
+	            <artifactItem>
+	              <groupId>org.forgerock.opendj</groupId>
+	              <artifactId>opendj-server-legacy</artifactId>
+	              <version>${project.version}</version>
+	              <type>zip</type>
+	              <overWrite>true</overWrite>
+	            </artifactItem>
+	          </artifactItems>
+	          <outputDirectory>${project.build.directory}/</outputDirectory>
+	          <overWriteReleases>true</overWriteReleases>
+	          <overWriteSnapshots>true</overWriteSnapshots>
+	        </configuration>
+	      </plugin>
         <plugin>
-				    <artifactId>maven-antrun-plugin</artifactId>
-				    <executions>
-				      <execution>
-				        <phase>prepare-package</phase>
-				        <configuration>
-				          <tasks>
-				          	<copy todir="${project.build.directory}/opendj-docker/">
-    							    <fileset dir="${basedir}">
-        							  <include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
-                        <include name="bootstrap/**" />
-                        <include name="run.sh" />
-    							    </fileset>
-							      </copy>
-				            <replace token="@project_version@" value="${project.version}" dir="${project.build.directory}/opendj-docker/">
-				              <include name="Dockerfile" />
-				            </replace>
-                    <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**" />
-				          </tasks>
-				        </configuration>
-				        <goals>
-				          <goal>run</goal>
-				        </goals>
-				      </execution>
-				    </executions>
-				  </plugin>
+		    <artifactId>maven-antrun-plugin</artifactId>
+		    <executions>
+		      <execution>
+		        <phase>prepare-package</phase>
+		        <configuration>
+		          <tasks>
+			          <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**" >
+	                  	<fileset dir="${basedir}">
+	      					<include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
+	                      	<include name="bootstrap/**" />
+	                      	<include name="run.sh" />
+	  					</fileset>
+	                  </zip>
+		          </tasks>
+		        </configuration>
+		        <goals>
+		          <goal>run</goal>
+		        </goals>
+		      </execution>
+		    </executions>
+		  </plugin>
       </plugins>
     </build>
 </project>
