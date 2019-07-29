@@ -25,9 +25,8 @@
     </parent>
 
     <artifactId>opendj-msi-standard</artifactId>
-    <name>OpenDJ MSI Standard Package</name>
-
     <packaging>pom</packaging>
+    <name>OpenDJ MSI Standard Package</name>
 
     <description>
         This module generates an OpenDJ MSI package.

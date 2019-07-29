@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>opendj-deb-standard</artifactId>
+    <packaging>pom</packaging>
     <name>OpenDJ Debian Standard Package</name>
 
     <description>
@@ -43,11 +44,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-
-            <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
             </plugin>
 
@@ -62,6 +58,14 @@
             <plugin>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
+                <configuration>
+                	<skipPOMs>false</skipPOMs>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
