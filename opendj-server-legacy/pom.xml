@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.4.3</version>
+    <version>4.4.4-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
