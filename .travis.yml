@@ -66,8 +66,6 @@ matrix:
       -   #docker push docker.pkg.github.com/openidentityplatform/opendj/opendj:$git_version
       -   #docker push docker.pkg.github.com/openidentityplatform/opendj/opendj         
   - os: linux
-    jdk: oraclejdk8
-  - os: linux
     jdk: oraclejdk11
   - os: linux
     jdk: openjdk11
