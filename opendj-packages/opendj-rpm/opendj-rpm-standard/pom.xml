@@ -24,7 +24,6 @@
     </parent>
 
     <artifactId>opendj-rpm-standard</artifactId>
-    <packaging>pom</packaging>
     <name>OpenDJ RPM Standard Package</name>
 
     <description>

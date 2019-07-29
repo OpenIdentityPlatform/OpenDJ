@@ -24,7 +24,6 @@
     </parent>
 
     <artifactId>opendj-svr4-sandard</artifactId>
-    <packaging>pom</packaging>
     <name>OpenDJ SVR4 Standard Package</name>
 
     <packaging>pom</packaging>

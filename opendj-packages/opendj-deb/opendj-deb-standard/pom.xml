@@ -24,7 +24,6 @@
     </parent>
 
     <artifactId>opendj-deb-standard</artifactId>
-    <packaging>pom</packaging>
     <name>OpenDJ Debian Standard Package</name>
 
     <description>
