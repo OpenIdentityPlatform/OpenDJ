@@ -28,7 +28,7 @@ get_property() {
   if test -f "${INSTANCE_ROOT}/config/java.properties"
   then
     PROPERTY_VALUE=
-    PROPERTY_VALUE=`grep "^\s*${1}=" "${INSTANCE_ROOT}/config/java.properties" |cut -d'=' -f2 2> /dev/null`
+    PROPERTY_VALUE=`grep "^\s*${1}=" "${INSTANCE_ROOT}/config/java.properties" |cut -d'=' -f2- 2> /dev/null`
   fi
 }
 
