@@ -18,7 +18,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.forgerock.opendj</groupId>
+    <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
     <version>4.4.4-SNAPSHOT</version>
   </parent>
@@ -72,27 +72,27 @@
   <dependencies>
     <!-- ForgeRock libraries -->
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-cli</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-rest2ldap</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>i18n-slf4j</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-config</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-config</artifactId>
       <version>${project.version}</version>
       <type>test-jar</type>
@@ -100,89 +100,89 @@
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-server</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-ldap-toolkit</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock</groupId>
+      <groupId>org.openidentityplatform</groupId>
       <artifactId>forgerock-build-tools</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-util</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>json-resource</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>json-resource-http</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.http</groupId>
+      <groupId>org.openidentityplatform.http</groupId>
       <artifactId>chf-http-core</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.http</groupId>
+      <groupId>org.openidentityplatform.http</groupId>
       <artifactId>chf-http-grizzly</artifactId>
     </dependency>
 
     <!-- ForgeRock Common Audit libraries -->
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-core</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-handler-csv</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-handler-json</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-handler-elasticsearch</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-handler-splunk</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-handler-jms</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-json</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-handler-syslog</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-audit-handler-jdbc</artifactId>
     </dependency>
 
@@ -219,7 +219,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>forgerock-persistit-core</artifactId>
       <version>4.3.1</version>
     </dependency>
@@ -325,7 +325,7 @@
                 </pluginExecution>
                 <pluginExecution>
                 	<pluginExecutionFilter>
-                		<groupId>org.forgerock.opendj</groupId>
+                		<groupId>org.openidentityplatform.opendj</groupId>
                 		<artifactId>opendj-maven-plugin</artifactId>
                 		<versionRange>[4.0.0-SNAPSHOT,)</versionRange>
                 		<goals>
@@ -376,7 +376,7 @@
 
       <!-- Generate i18n messages -->
       <plugin>
-        <groupId>org.forgerock.commons</groupId>
+        <groupId>org.openidentityplatform.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
         <executions>
           <execution>
@@ -471,7 +471,7 @@
       </plugin>
 
       <plugin>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
 
         <executions>
@@ -1010,7 +1010,7 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>org.forgerock.opendj</groupId>
+                  <groupId>org.openidentityplatform.opendj</groupId>
                   <artifactId>opendj-ldap-toolkit</artifactId>
                   <version>${project.version}</version>
                   <type>zip</type>
@@ -1113,7 +1113,7 @@
 
       <!-- Build javadoc -->
       <plugin>
-        <groupId>org.forgerock.maven.plugins</groupId>
+        <groupId>org.openidentityplatform.maven.plugins</groupId>
         <artifactId>javadoc-updater-maven-plugin</artifactId>
         <version>1.0.0</version>
         <executions>

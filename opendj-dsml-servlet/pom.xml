@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-parent</artifactId>
         <version>4.4.4-SNAPSHOT</version>
     </parent>
@@ -47,34 +47,34 @@
 
         <!-- ForgeRock libraries -->
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.openidentityplatform.commons</groupId>
             <artifactId>forgerock-util</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.openidentityplatform.commons</groupId>
             <artifactId>i18n-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.openidentityplatform.commons</groupId>
             <artifactId>i18n-slf4j</artifactId>
         </dependency>
 
         <!-- OpenDJ SDK dependency -->
         <dependency>
-            <groupId>org.forgerock.opendj</groupId>
+            <groupId>org.openidentityplatform.opendj</groupId>
             <artifactId>opendj-core</artifactId>
         </dependency>
 
         <!-- OpenDJ Server dependencies -->
         <dependency>
-            <groupId>org.forgerock.opendj</groupId>
+            <groupId>org.openidentityplatform.opendj</groupId>
             <artifactId>opendj-config</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.opendj</groupId>
+            <groupId>org.openidentityplatform.opendj</groupId>
             <artifactId>${opendj.server.module.name}</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
@@ -108,7 +108,7 @@
                             <artifactItems>
                                 <!-- Copy and rename opendj main jar -->
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <outputDirectory>${project.build.directory}/${opendj.jars.folder}</outputDirectory>
@@ -117,7 +117,7 @@
 
                                 <!-- Copy and rename opendj localized jars -->
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-ca_ES</classifier>
@@ -126,7 +126,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-de</classifier>
@@ -135,7 +135,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-es</classifier>
@@ -144,7 +144,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-fr</classifier>
@@ -153,7 +153,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-ja</classifier>
@@ -162,7 +162,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-ko</classifier>
@@ -171,7 +171,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-pl</classifier>
@@ -180,7 +180,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-zh_CN</classifier>
@@ -189,7 +189,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>${opendj.server.module.name}</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>${localized.jars.classifier}-zh_TW</classifier>

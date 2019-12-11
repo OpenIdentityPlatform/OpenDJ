@@ -19,7 +19,7 @@
 
     <parent>
         <artifactId>opendj-parent</artifactId>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <version>4.4.4-SNAPSHOT</version>
     </parent>
 
@@ -29,12 +29,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.forgerock.opendj</groupId>
+            <groupId>org.openidentityplatform.opendj</groupId>
             <artifactId>opendj-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.opendj</groupId>
+            <groupId>org.openidentityplatform.opendj</groupId>
             <artifactId>opendj-grizzly</artifactId>
         </dependency>
 

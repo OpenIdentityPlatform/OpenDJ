@@ -17,7 +17,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.forgerock.opendj</groupId>
+    <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
     <version>4.4.4-SNAPSHOT</version>
   </parent>
@@ -32,17 +32,17 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-core</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-config</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>i18n-slf4j</artifactId>
       <scope>provided</scope>
     </dependency>
@@ -52,22 +52,22 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-server-legacy</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>json-crypto-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.http</groupId>
+      <groupId>org.openidentityplatform.http</groupId>
       <artifactId>chf-http-core</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.http</groupId>
+      <groupId>org.openidentityplatform.http</groupId>
       <artifactId>chf-client-apache-async</artifactId>
     </dependency>
   </dependencies>
@@ -75,7 +75,7 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.forgerock.commons</groupId>
+        <groupId>org.openidentityplatform.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
         <executions>
           <execution>
@@ -93,7 +93,7 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
         <executions>
           <execution>

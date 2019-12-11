@@ -17,7 +17,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.forgerock.opendj</groupId>
+    <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
     <version>4.4.4-SNAPSHOT</version>
   </parent>
@@ -41,17 +41,17 @@
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.http</groupId>
+      <groupId>org.openidentityplatform.http</groupId>
       <artifactId>chf-http-servlet</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-rest2ldap</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-grizzly</artifactId>
     </dependency>
   </dependencies>
