@@ -20,7 +20,7 @@
     <packaging>pom</packaging>
 
     <parent>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-packages</artifactId>
         <version>4.4.4-SNAPSHOT</version>
     </parent>
@@ -71,7 +71,7 @@
                             <configuration>
                                 <artifactItems>
                                     <artifactItem>
-                                        <groupId>org.forgerock.opendj</groupId>
+                                        <groupId>org.openidentityplatform.opendj</groupId>
                                         <artifactId>opendj-doc-generated-ref</artifactId>
                                         <version>${project.version}</version>
                                         <outputDirectory>${project.build.directory}/dependency/man</outputDirectory>

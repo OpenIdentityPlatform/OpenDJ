@@ -17,7 +17,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.forgerock.opendj</groupId>
+    <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
     <version>4.4.4-SNAPSHOT</version>
   </parent>
@@ -30,11 +30,11 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>i18n-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.commons</groupId>
+      <groupId>org.openidentityplatform.commons</groupId>
       <artifactId>i18n-slf4j</artifactId>
     </dependency>
     <dependency>
@@ -42,21 +42,21 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.forgerock</groupId>
+      <groupId>org.openidentityplatform</groupId>
       <artifactId>forgerock-build-tools</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-core</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
+      <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-cli</artifactId>
     </dependency>
   </dependencies>
@@ -122,7 +122,7 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.forgerock.commons</groupId>
+        <groupId>org.openidentityplatform.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
         <executions>
           <execution>
@@ -141,7 +141,7 @@
       </plugin>
       <!-- Validate core components XML definition files and generate the components. -->
       <plugin>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-maven-plugin</artifactId>
         <executions>
           <execution>

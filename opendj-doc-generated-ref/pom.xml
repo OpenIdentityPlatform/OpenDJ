@@ -19,7 +19,7 @@
 
     <parent>
         <artifactId>opendj-parent</artifactId>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <version>4.4.4-SNAPSHOT</version>
     </parent>
 
@@ -48,14 +48,14 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>opendj-core</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>sources</classifier>
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>opendj-server-legacy</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
@@ -64,7 +64,7 @@
                                 </artifactItem>
 
                                 <artifactItem>
-                                    <groupId>org.forgerock.opendj</groupId>
+                                    <groupId>org.openidentityplatform.opendj</groupId>
                                     <artifactId>opendj-ldap-toolkit</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
@@ -95,7 +95,7 @@
             </plugin>
 
             <plugin>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-doc-maven-plugin</artifactId>
 
                 <executions>
@@ -364,7 +364,7 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.forgerock.opendj</groupId>
+                        <groupId>org.openidentityplatform.opendj</groupId>
                         <artifactId>opendj-doc-maven-plugin</artifactId>
 
                         <executions>
@@ -579,7 +579,7 @@
 
                     <!-- Format man pages -->
                     <plugin>
-                        <groupId>org.forgerock.commons</groupId>
+                        <groupId>org.openidentityplatform.commons</groupId>
                         <artifactId>forgerock-doc-maven-plugin</artifactId>
                         <executions>
                             <execution>

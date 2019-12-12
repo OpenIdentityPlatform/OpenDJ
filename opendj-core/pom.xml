@@ -19,7 +19,7 @@
 
     <parent>
         <artifactId>opendj-parent</artifactId>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <version>4.4.4-SNAPSHOT</version>
     </parent>
 
@@ -35,7 +35,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.openidentityplatform.commons</groupId>
             <artifactId>i18n-core</artifactId>
         </dependency>
 
@@ -45,7 +45,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.openidentityplatform.commons</groupId>
             <artifactId>forgerock-util</artifactId>
         </dependency>
 
@@ -62,7 +62,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.openidentityplatform.commons</groupId>
             <artifactId>i18n-slf4j</artifactId>
         </dependency>
 
@@ -72,7 +72,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock</groupId>
+            <groupId>org.openidentityplatform</groupId>
             <artifactId>forgerock-build-tools</artifactId>
             <scope>test</scope>
         </dependency>
@@ -108,7 +108,7 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.forgerock.commons</groupId>
+                <groupId>org.openidentityplatform.commons</groupId>
                 <artifactId>i18n-maven-plugin</artifactId>
                 <executions>
                     <execution>
@@ -284,7 +284,7 @@
                             <includeDependencySources>true</includeDependencySources>
                             <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
                             <dependencySourceIncludes>
-                                <dependencySourceInclude>org.forgerock.*:*</dependencySourceInclude>
+                                <dependencySourceInclude>org.openidentityplatform.*:*</dependencySourceInclude>
                             </dependencySourceIncludes>
                             <excludePackageNames>com.*:*.internal</excludePackageNames>
                             <groups>

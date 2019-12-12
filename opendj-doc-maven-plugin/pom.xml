@@ -19,7 +19,7 @@
 
     <parent>
         <artifactId>opendj-parent</artifactId>
-        <groupId>org.forgerock.opendj</groupId>
+        <groupId>org.openidentityplatform.opendj</groupId>
         <version>4.4.4-SNAPSHOT</version>
     </parent>
 
@@ -36,12 +36,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.forgerock.opendj</groupId>
+            <groupId>org.openidentityplatform.opendj</groupId>
             <artifactId>opendj-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.commons</groupId>
+            <groupId>org.openidentityplatform.commons</groupId>
             <artifactId>i18n-core</artifactId>
         </dependency>
 
@@ -75,7 +75,7 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.forgerock.commons</groupId>
+                <groupId>org.openidentityplatform.commons</groupId>
                 <artifactId>i18n-maven-plugin</artifactId>
                 <executions>
                     <execution>

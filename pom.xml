@@ -17,12 +17,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
      <parent>
-        <groupId>org.forgerock</groupId>
+        <groupId>org.openidentityplatform</groupId>
         <artifactId>forgerock-parent</artifactId>
         <version>2.0.6</version>
         <relativePath>forgerock-parent</relativePath>
      </parent>
-	<groupId>org.forgerock.opendj</groupId>
+	<groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
 	<version>4.4.4-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -138,19 +138,19 @@
     <dependencyManagement>
         <dependencies>
            <dependency>
-                <groupId>org.forgerock.commons</groupId>
+                <groupId>org.openidentityplatform.commons</groupId>
                 <artifactId>commons-bom</artifactId>
                 <version>21.0.0-SNAPSHOT</version>
                 <scope>import</scope>
                 <type>pom</type>
            </dependency>
            <dependency>
-                <groupId>org.forgerock.commons</groupId>
+                <groupId>org.openidentityplatform.commons</groupId>
                 <artifactId>i18n-core</artifactId>
                 <version>${i18n-framework.version}</version>
            </dependency>
            <dependency>
-                <groupId>org.forgerock.commons</groupId>
+                <groupId>org.openidentityplatform.commons</groupId>
                 <artifactId>i18n-slf4j</artifactId>
                 <version>${i18n-framework.version}</version>
             </dependency>
@@ -162,25 +162,25 @@
             
             <!-- OpenDJ SDK -->
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-cli</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-grizzly</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-rest2ldap</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -193,7 +193,7 @@
 
             <!-- Commons -->
             <dependency>
-                <groupId>org.forgerock</groupId>
+                <groupId>org.openidentityplatform</groupId>
                 <artifactId>forgerock-build-tools</artifactId>
                 <version>${forgerock-build-tools.version}</version>
                 <scope>test</scope>
@@ -201,7 +201,7 @@
 
             <!-- OpenDJ SDK -->
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-core</artifactId>
                 <type>test-jar</type>
                 <version>${project.version}</version>
@@ -209,19 +209,19 @@
             </dependency>
 
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-config</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-legacy</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.forgerock.opendj</groupId>
+                <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -287,7 +287,7 @@
     <build>
         <plugins>
              <plugin>
-                <groupId>org.forgerock.maven.plugins</groupId>
+                <groupId>org.openidentityplatform.maven.plugins</groupId>
                 <artifactId>javadoc-updater-maven-plugin</artifactId>
                 <version>1.0.0</version>
                 <executions>
@@ -386,7 +386,7 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.forgerock.opendj</groupId>
+                    <groupId>org.openidentityplatform.opendj</groupId>
                     <artifactId>opendj-doc-maven-plugin</artifactId>
                     <version>${project.version}</version>
                 </plugin>
@@ -424,7 +424,7 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.forgerock.commons</groupId>
+                    <groupId>org.openidentityplatform.commons</groupId>
                     <artifactId>i18n-maven-plugin</artifactId>
                     <version>${i18n-framework.version}</version>
                 </plugin>
@@ -461,7 +461,7 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.forgerock.opendj</groupId>
+                    <groupId>org.openidentityplatform.opendj</groupId>
                     <artifactId>opendj-copyright-maven-plugin</artifactId>
                     <version>${opendj-copyright-maven-plugin.version}</version>
                     <configuration>
@@ -484,7 +484,7 @@
 
                 <!-- Provides build capabilities for docs in DocBook XML format. -->
                 <plugin>
-                    <groupId>org.forgerock.commons</groupId>
+                    <groupId>org.openidentityplatform.commons</groupId>
                     <artifactId>forgerock-doc-maven-plugin</artifactId>
                     <version>${forgerock-doc-plugin.version}</version>
                     <configuration>
@@ -496,7 +496,7 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.forgerock.opendj</groupId>
+                    <groupId>org.openidentityplatform.opendj</groupId>
                     <artifactId>opendj-maven-plugin</artifactId>
                     <version>${project.version}</version>
                     <!-- bootstrap and bootstrap-client MANIFEST.MF files generation. -->
@@ -515,7 +515,7 @@
                                 <classPathProperty>classpath.bootstrap</classPathProperty>
                                 <excludes>
                                     <exclude>org.slf4j:slf4j-jdk14</exclude>
-                                    <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+                                    <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
                                 </excludes>
                                 <additionalJars>
                                     <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
@@ -532,7 +532,7 @@
                                 <classPathProperty>classpath.bootstrap-client</classPathProperty>
                                 <excludes>
                                     <exclude>org.slf4j:jul-to-slf4j</exclude>
-                                    <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+                                    <exclude>org.openidentityplatform.opendj:opendj-server-legacy</exclude>
                                 </excludes>
                             </configuration>
                         </execution>
@@ -600,7 +600,7 @@
                             <pluginExecutions>
                                 <pluginExecution>
                                     <pluginExecutionFilter>
-                                        <groupId>org.forgerock.opendj</groupId>
+                                        <groupId>org.openidentityplatform.opendj</groupId>
                                         <artifactId>opendj-maven-plugin</artifactId>
                                         <versionRange>[1.0.0,)</versionRange>
                                         <goals>
@@ -642,7 +642,7 @@
 <!--             <build> -->
 <!--                 <plugins> -->
 <!--                     <plugin> -->
-<!--                         <groupId>org.forgerock.opendj</groupId> -->
+<!--                         <groupId>org.openidentityplatform.opendj</groupId> -->
 <!--                         <artifactId>opendj-copyright-maven-plugin</artifactId> -->
 <!--                         <executions> -->
 <!--                             <execution> -->
@@ -662,7 +662,7 @@
 <!--             <build> -->
 <!--                 <plugins> -->
 <!--                     <plugin> -->
-<!--                         <groupId>org.forgerock.opendj</groupId> -->
+<!--                         <groupId>org.openidentityplatform.opendj</groupId> -->
 <!--                         <artifactId>opendj-copyright-maven-plugin</artifactId> -->
 <!--                         <executions> -->
 <!--                             <execution> -->
