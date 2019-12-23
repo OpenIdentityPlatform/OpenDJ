@@ -111,14 +111,46 @@
         <url>https://github.com/OpenIdentityPlatform/OpenDJ</url>
       	<tag>HEAD</tag>
   	</scm>
-
-    <distributionManagement>
-        <site>
-            <id>forgerock.org</id>
-            <name>OpenDJ Community</name>
-            <url>${site.distribution.url}</url>
-        </site>
-    </distributionManagement>
+	<repositories>
+		<repository>
+			<id>ossrh-releases</id>
+			<name>Sonatype OSS</name>
+			<url>https://oss.sonatype.org/service/local/repositories/orgopenidentityplatform-1000/content/</url>
+		</repository>
+		<repository>
+			<id>ossrh-snapshots</id>
+			<name>Sonatype OSS Repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots><enabled>true</enabled></snapshots>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>ossrh-releases</id>
+			<name>Sonatype OSS</name>
+			<url>https://oss.sonatype.org/service/local/repositories/orgopenidentityplatform-1000/content/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>ossrh-snapshots</id>
+			<name>Sonatype OSS Repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+	<distributionManagement>
+		<repository>
+			<id>ossrh</id>
+			<name>Sonatype OSS Repository</name>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<name>Sonatype OSS Repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 <!--     <ciManagement> -->
 <!--         <system>jenkins</system> -->

@@ -41,7 +41,7 @@ git config --system core.longpaths true
 
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
-mvn clean install -f OpenDJ/forgerock-parent
+#mvn clean install -f OpenDJ/forgerock-parent
 mvn clean install -f OpenDJ
 ```
 
