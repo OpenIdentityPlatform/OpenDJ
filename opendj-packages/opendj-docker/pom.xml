@@ -39,7 +39,7 @@
         This module contains configuration and generic plugin calls to generate Docker file for OpenDJ.
     </description>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
       <plugins>
 	      <plugin>
 	        <groupId>org.apache.maven.plugins</groupId>

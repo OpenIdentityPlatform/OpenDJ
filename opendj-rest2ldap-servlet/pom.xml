@@ -31,18 +31,13 @@
 
   <properties>
     <!-- If the binary-licensing profile is activated, we need the ForgeRock license there -->
-    <forgerock.license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</forgerock.license.output.dir>
+    <license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</license.output.dir>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.openidentityplatform.http</groupId>
-      <artifactId>chf-http-servlet</artifactId>
+      <groupId>org.openidentityplatform.commons.http-framework</groupId>
+      <artifactId>servlet</artifactId>
     </dependency>
 
     <dependency>
@@ -56,7 +51,7 @@
     </dependency>
   </dependencies>
 
-  <build>
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
     <plugins>
       <plugin>
         <groupId>org.eclipse.jetty</groupId>

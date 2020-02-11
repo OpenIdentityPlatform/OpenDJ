@@ -95,7 +95,7 @@ before_install:
   - env | sort
   - git log `git describe --tags --abbrev=0 HEAD^`..HEAD --oneline
 install:
-  - mvn -q -B -V -DskipTests -Dmaven.javadoc.skip=true install -f forgerock-parent
+  - #mvn -q -B -V -DskipTests -Dmaven.javadoc.skip=true install -f commons
 script:
   - echo "mvn -B install $INSTALL_SUFFIX"
   - eval "mvn -B install $INSTALL_SUFFIX"

@@ -52,11 +52,11 @@
     </dependency>
     <dependency>
       <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-util</artifactId>
+      <artifactId>util</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>i18n-core</artifactId>
+      <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+      <artifactId>core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -69,8 +69,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.openidentityplatform</groupId>
-      <artifactId>forgerock-build-tools</artifactId>
+      <groupId>org.openidentityplatform.commons</groupId>
+      <artifactId>build-tools</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
@@ -87,7 +88,7 @@
       <version>1.2.0</version>
     </dependency>
   </dependencies>
-  <build>
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -112,8 +113,8 @@
       </plugin>
 
       <plugin>
-        <groupId>org.openidentityplatform.commons</groupId>
-        <artifactId>i18n-maven-plugin</artifactId>
+        <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+        <artifactId>maven-plugin</artifactId>
         <executions>
           <execution>
             <phase>generate-sources</phase>

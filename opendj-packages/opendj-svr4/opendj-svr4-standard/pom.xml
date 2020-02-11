@@ -33,7 +33,7 @@
         This module generates a standard SVR4 OpenDJ version.
     </description>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

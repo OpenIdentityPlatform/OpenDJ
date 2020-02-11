@@ -35,8 +35,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>i18n-core</artifactId>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>core</artifactId>
         </dependency>
 
         <dependency>
@@ -46,7 +46,7 @@
 
         <dependency>
             <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>forgerock-util</artifactId>
+            <artifactId>util</artifactId>
         </dependency>
 
         <dependency>
@@ -62,8 +62,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>i18n-slf4j</artifactId>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>slf4j</artifactId>
         </dependency>
 
         <dependency>
@@ -72,8 +72,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.openidentityplatform</groupId>
-            <artifactId>forgerock-build-tools</artifactId>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>build-tools</artifactId>
             <scope>test</scope>
         </dependency>
         
@@ -105,11 +105,11 @@
     </properties>
 
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.openidentityplatform.commons</groupId>
-                <artifactId>i18n-maven-plugin</artifactId>
+                <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+                <artifactId>maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
@@ -191,12 +191,11 @@
                 </file>
             </activation>
 
-            <build>
+            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>clirr-maven-plugin</artifactId>
-                        <version>${clirrPluginVersion}</version>
                         <inherited>true</inherited>
                         <configuration>
                             <comparisonArtifacts>
@@ -233,7 +232,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>clirr-maven-plugin</artifactId>
-                        <version>${clirrPluginVersion}</version>
                         <inherited>true</inherited>
                         <configuration>
                             <comparisonArtifacts>
@@ -267,7 +265,7 @@
                 <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
             </properties>
 
-            <build>
+            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
                 <plugins>
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>

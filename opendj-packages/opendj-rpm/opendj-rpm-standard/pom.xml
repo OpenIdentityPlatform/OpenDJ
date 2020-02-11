@@ -41,7 +41,7 @@
         <rpm.license>CDDL</rpm.license>
     </properties>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

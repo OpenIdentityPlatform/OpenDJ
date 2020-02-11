@@ -56,44 +56,42 @@
 
         <dependency>
             <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>forgerock-util</artifactId>
+            <artifactId>util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons.http-framework</groupId>
+  			<artifactId>oauth2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons.http-framework</groupId>
+            <artifactId>client-apache-async</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>i18n-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openidentityplatform.http</groupId>
-            <artifactId>chf-oauth2</artifactId>
-            <version>21.0.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openidentityplatform.http</groupId>
-            <artifactId>chf-client-apache-async</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openidentityplatform</groupId>
-            <artifactId>forgerock-build-tools</artifactId>
+            <artifactId>build-tools</artifactId>
             <scope>test</scope>
         </dependency>
-         <dependency>
-        		<groupId>org.openidentityplatform.commons</groupId>
-             <artifactId>api-descriptor</artifactId>
-             <version>21.0.0-SNAPSHOT</version>
-             <type>jar</type>
+
+        <dependency>
+        	<groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>api-descriptor</artifactId>
          </dependency>
     </dependencies>
 
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.openidentityplatform.commons</groupId>
-                <artifactId>i18n-maven-plugin</artifactId>
+                <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+                <artifactId>maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>

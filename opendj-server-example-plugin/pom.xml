@@ -41,11 +41,11 @@
       <version>3.3.2</version>
     </dependency>
   </dependencies>
-  <build>
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
     <plugins>
       <plugin>
-        <groupId>org.openidentityplatform.commons</groupId>
-        <artifactId>i18n-maven-plugin</artifactId>
+        <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+        <artifactId>maven-plugin</artifactId>
         <executions>
           <execution>
             <phase>generate-sources</phase>

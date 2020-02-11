@@ -30,7 +30,7 @@
 
     <properties>
         <!-- If the binary-licensing profile is activated, we need the ForgeRock license there -->
-        <forgerock.license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</forgerock.license.output.dir>
+        <license.output.dir>${project.build.directory}/${project.build.finalName}/WEB-INF/legal-notices</license.output.dir>
         <opendj.server.module.name>opendj-server-legacy</opendj.server.module.name>
         <opendj.jars.folder>opendj-jars</opendj.jars.folder>
         <doclint>none</doclint>
@@ -48,17 +48,17 @@
         <!-- ForgeRock libraries -->
         <dependency>
             <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>forgerock-util</artifactId>
+            <artifactId>util</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>i18n-core</artifactId>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>i18n-slf4j</artifactId>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>slf4j</artifactId>
         </dependency>
 
         <!-- OpenDJ SDK dependency -->
@@ -88,7 +88,7 @@
         </dependency>
     </dependencies>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <!-- Parse version to generate properties (major.version, minor.version, ...) -->
             <plugin>
@@ -307,7 +307,7 @@
     <profiles>
         <profile>
             <id>precommit</id>
-            <build>
+            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
