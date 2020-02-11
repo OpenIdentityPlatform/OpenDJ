@@ -37,11 +37,6 @@
             <groupId>org.openidentityplatform.opendj</groupId>
             <artifactId>opendj-grizzly</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-        </dependency>
     </dependencies>
 
     <distributionManagement>
@@ -52,7 +47,7 @@
         </site>
     </distributionManagement>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

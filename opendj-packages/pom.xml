@@ -58,7 +58,7 @@
         </profile>
     </profiles>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <pluginManagement>
             <plugins>
                 <!-- Unpack files from OpenDJ standard archive -->

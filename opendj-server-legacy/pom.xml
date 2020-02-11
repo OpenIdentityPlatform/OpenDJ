@@ -82,8 +82,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>i18n-slf4j</artifactId>
+      <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+      <artifactId>slf4j</artifactId>
     </dependency>
 
     <dependency>
@@ -111,13 +111,14 @@
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform</groupId>
-      <artifactId>forgerock-build-tools</artifactId>
+      <groupId>org.openidentityplatform.commons</groupId>
+      <artifactId>build-tools</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-util</artifactId>
+      <artifactId>util</artifactId>
     </dependency>
 
     <dependency>
@@ -131,66 +132,66 @@
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.http</groupId>
-      <artifactId>chf-http-core</artifactId>
+      <groupId>org.openidentityplatform.commons.http-framework</groupId>
+      <artifactId>core</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.http</groupId>
-      <artifactId>chf-http-grizzly</artifactId>
+      <groupId>org.openidentityplatform.commons.http-framework</groupId>
+      <artifactId>grizzly</artifactId>
     </dependency>
 
     <!-- ForgeRock Common Audit libraries -->
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-core</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>core</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-handler-csv</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>handler-csv</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-handler-json</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>handler-json</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-handler-elasticsearch</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>handler-elasticsearch</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-handler-splunk</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>handler-splunk</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-handler-jms</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>handler-jms</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-json</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>json</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-handler-syslog</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>handler-syslog</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-audit-handler-jdbc</artifactId>
+      <groupId>org.openidentityplatform.commons.audit</groupId>
+      <artifactId>handler-jdbc</artifactId>
     </dependency>
 
     <!-- slf4j libraries -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-    </dependency>
+<!--     <dependency> -->
+<!--       <groupId>org.slf4j</groupId> -->
+<!--       <artifactId>slf4j-jdk14</artifactId> -->
+<!--     </dependency> -->
 
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -201,7 +202,6 @@
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>javax.mail</artifactId>
-      <version>1.5.1</version>
     </dependency>
 
     <dependency>
@@ -219,9 +219,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>forgerock-persistit-core</artifactId>
-      <version>4.3.1</version>
+      <groupId>org.openidentityplatform.commons.persistit</groupId>
+      <artifactId>core</artifactId>
     </dependency>
 	
     <dependency>
@@ -242,7 +241,7 @@
     </dependency>
   </dependencies>
 
-  <build>
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
     <resources>
       <!-- Main resources -->
       <resource>
@@ -376,8 +375,8 @@
 
       <!-- Generate i18n messages -->
       <plugin>
-        <groupId>org.openidentityplatform.commons</groupId>
-        <artifactId>i18n-maven-plugin</artifactId>
+        <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+        <artifactId>maven-plugin</artifactId>
         <executions>
           <execution>
             <phase>generate-sources</phase>
@@ -538,64 +537,7 @@
               </sources>
             </configuration>
           </execution>
-
-          <!-- Attach localized jars to this module -->
-<!--           <execution> -->
-<!--             <id>attach-localized-jars</id> -->
-<!--             <phase>package</phase> -->
-<!--             <goals> -->
-<!--               <goal>attach-artifact</goal> -->
-<!--             </goals> -->
-<!--             <configuration> -->
-<!--               <artifacts> -->
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-ca_ES.jar</file> -->
-<!--                   <classifier>_ca_ES</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-de.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-de</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-es.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-es</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-fr.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-fr</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-ja.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-ja</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-ko.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-ko</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-pl.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-pl</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-zh_CN.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-zh_CN</classifier> -->
-<!--                 </artifact> -->
-
-<!--                 <artifact> -->
-<!--                   <file>${jars.dir}/opendj-${localized.jars.classifier}-zh_TW.jar</file> -->
-<!--                   <classifier>${localized.jars.classifier}-zh_TW</classifier> -->
-<!--                 </artifact> -->
-<!--               </artifacts> -->
-<!--             </configuration> -->
-<!--           </execution> -->
-        </executions>
+         </executions>
       </plugin>
 
       <!--
@@ -688,7 +630,7 @@
                   ${opendj.osgi.import}
                 </Import-Package>
                 <Embed-Dependency>
-                  forgerock-persistit-core,
+                  org.openidentityplatform.commons.persistit:core,
                   <!--je,-->
                   jcip-annotations
                 </Embed-Dependency>
@@ -1160,7 +1102,7 @@
     -->
     <profile>
       <id>precommit</id>
-      <build>
+      <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
 
 <!--           Enforce Checkstyle -->
@@ -1316,7 +1258,7 @@
         </dependency>
       </dependencies>
 
-      <build>
+      <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
           <plugin>
             <groupId>org.codehaus.mojo</groupId>

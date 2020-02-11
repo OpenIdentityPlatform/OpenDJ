@@ -40,7 +40,7 @@
 	<dependencies>
 
 	</dependencies>
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -50,7 +50,6 @@
 			<plugin>
 				<groupId>org.openidentityplatform.commons</groupId>
 				<artifactId>maven-external-dependency-plugin</artifactId>
-				<version>0.6-SNAPSHOT</version>
 				<inherited>false</inherited>
 				<configuration>
 					<stagingDirectory>

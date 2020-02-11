@@ -138,7 +138,7 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
             if (file.getAbsoluteFile().isFile()) {
                 final Artifact artifact = findArtifactWithFile(project.getArtifacts(), file);
                 if (isAccepted(artifact)) {
-                    final String artifactString = artifact.getArtifactId() + "." + artifact.getType();
+                    final String artifactString = artifact.getGroupId()+ "."+artifact.getArtifactId() + "." + artifact.getType();
                     classpathItems.add(artifactString);
                 }
             }

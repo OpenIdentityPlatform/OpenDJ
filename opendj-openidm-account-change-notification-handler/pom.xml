@@ -42,8 +42,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>i18n-slf4j</artifactId>
+      <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+      <artifactId>slf4j</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -58,25 +58,25 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.openidentityplatform.commons</groupId>
-      <artifactId>json-crypto-core</artifactId>
+      <groupId>org.openidentityplatform.commons.json-crypto</groupId>
+      <artifactId>core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.openidentityplatform.http</groupId>
-      <artifactId>chf-http-core</artifactId>
+      <groupId>org.openidentityplatform.commons.http-framework</groupId>
+      <artifactId>core</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.openidentityplatform.http</groupId>
-      <artifactId>chf-client-apache-async</artifactId>
+      <groupId>org.openidentityplatform.commons.http-framework</groupId>
+      <artifactId>client-apache-async</artifactId>
     </dependency>
   </dependencies>
   
-  <build>
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
     <plugins>
       <plugin>
-        <groupId>org.openidentityplatform.commons</groupId>
-        <artifactId>i18n-maven-plugin</artifactId>
+        <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+        <artifactId>maven-plugin</artifactId>
         <executions>
           <execution>
             <phase>generate-sources</phase>

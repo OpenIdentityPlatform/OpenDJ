@@ -41,7 +41,7 @@
         <deb.resources.path>../resources</deb.resources.path>
     </properties>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>

@@ -16,12 +16,6 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-     <parent>
-        <groupId>org.openidentityplatform</groupId>
-        <artifactId>forgerock-parent</artifactId>
-        <version>2.0.6</version>
-        <relativePath>forgerock-parent</relativePath>
-     </parent>
 	<groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
 	<version>4.4.4-SNAPSHOT</version>
@@ -39,17 +33,9 @@
         <product.name.lowercase>opendj</product.name.lowercase>
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <localized.jars.classifier>i18n</localized.jars.classifier>
-
-        <site.distribution.url>
-            scp://community.internal.forgerock.com/var/www/vhosts/opendj.forgerock.org/httpdocs
-        </site.distribution.url>
-
-        <forgerock-build-tools.version>1.0.3</forgerock-build-tools.version>
-        <forgerock-doc-plugin.version>21.0.0-SNAPSHOT</forgerock-doc-plugin.version>
         <freemarker.version>2.3.28</freemarker.version>
         <grizzly-framework.version>2.4.4</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
-		<i18n-framework.version>1.4.2</i18n-framework.version>
         <!-- OSGi bundles properties -->
         <opendj.osgi.import.additional />
         <!--
@@ -63,7 +49,6 @@
 <!--         <opendj-copyright-maven-plugin.version>1.0.1</opendj-copyright-maven-plugin.version> -->
 
         <!--  ForgeRock build tools and Checkstyle versions (to avoid many checkstyle errors with ForgeRock Parent 2.0.10) -->
-        <forgerockBuildToolsVersion>1.0.3</forgerockBuildToolsVersion>
         <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
         <checkstyleVersion>5.5</checkstyleVersion>
     </properties>
@@ -112,11 +97,11 @@
       	<tag>HEAD</tag>
   	</scm>
 	<repositories>
-		<repository>
-			<id>ossrh-releases</id>
-			<name>Sonatype OSS</name>
-			<url>https://oss.sonatype.org/service/local/repositories/orgopenidentityplatform-1000/content/</url>
-		</repository>
+<!-- 		<repository> -->
+<!-- 			<id>ossrh-releases</id> -->
+<!-- 			<name>Sonatype OSS</name> -->
+<!-- 			<url>https://oss.sonatype.org/content/repositories/releases/</url> -->
+<!-- 		</repository> -->
 		<repository>
 			<id>ossrh-snapshots</id>
 			<name>Sonatype OSS Repository</name>
@@ -125,11 +110,11 @@
 		</repository>
 	</repositories>
 	<pluginRepositories>
-		<pluginRepository>
-			<id>ossrh-releases</id>
-			<name>Sonatype OSS</name>
-			<url>https://oss.sonatype.org/service/local/repositories/orgopenidentityplatform-1000/content/</url>
-		</pluginRepository>
+<!-- 		<pluginRepository> -->
+<!-- 			<id>ossrh-releases</id> -->
+<!-- 			<name>Sonatype OSS</name> -->
+<!-- 			<url>https://oss.sonatype.org/content/repositories/releases/</url> -->
+<!-- 		</pluginRepository> -->
 		<pluginRepository>
 			<id>ossrh-snapshots</id>
 			<name>Sonatype OSS Repository</name>
@@ -152,46 +137,21 @@
 		</snapshotRepository>
 	</distributionManagement>
 
-<!--     <ciManagement> -->
-<!--         <system>jenkins</system> -->
-<!--         <url>https://ci.forgerock.org/view/OpenDJ/job/OpenDJ%20-%20postcommit</url> -->
-<!--         <notifiers> -->
-<!--             <notifier> -->
-<!--                 <type>mail</type> -->
-<!--                 <sendOnError>true</sendOnError> -->
-<!--                 <sendOnFailure>true</sendOnFailure> -->
-<!--                 <sendOnSuccess>false</sendOnSuccess> -->
-<!--                 <sendOnWarning>false</sendOnWarning> -->
-<!--                 <address>opendj-dev@forgerock.org</address> -->
-<!--             </notifier> -->
-<!--         </notifiers> -->
-<!--     </ciManagement> -->
-
     <dependencyManagement>
         <dependencies>
-           <dependency>
-                <groupId>org.openidentityplatform.commons</groupId>
-                <artifactId>commons-bom</artifactId>
-                <version>21.0.0-SNAPSHOT</version>
-                <scope>import</scope>
-                <type>pom</type>
-           </dependency>
-           <dependency>
-                <groupId>org.openidentityplatform.commons</groupId>
-                <artifactId>i18n-core</artifactId>
-                <version>${i18n-framework.version}</version>
-           </dependency>
-           <dependency>
-                <groupId>org.openidentityplatform.commons</groupId>
-                <artifactId>i18n-slf4j</artifactId>
-                <version>${i18n-framework.version}</version>
-            </dependency>
+        	<dependency>
+        		<groupId>org.openidentityplatform.commons</groupId>
+        		<artifactId>parent</artifactId>
+        		<version>2.0.7-SNAPSHOT</version>
+        		<type>pom</type>
+        		<scope>import</scope>
+        	</dependency>
             <dependency>
                 <groupId>com.github.stephenc.jcip</groupId>
                 <artifactId>jcip-annotations</artifactId>
                 <version>1.0-1</version>
             </dependency>
-            
+
             <!-- OpenDJ SDK -->
             <dependency>
                 <groupId>org.openidentityplatform.opendj</groupId>
@@ -223,14 +183,6 @@
                 <version>${metrics-core.version}</version>
             </dependency>
 
-            <!-- Commons -->
-            <dependency>
-                <groupId>org.openidentityplatform</groupId>
-                <artifactId>forgerock-build-tools</artifactId>
-                <version>${forgerock-build-tools.version}</version>
-                <scope>test</scope>
-            </dependency>
-
             <!-- OpenDJ SDK -->
             <dependency>
                 <groupId>org.openidentityplatform.opendj</groupId>
@@ -255,6 +207,11 @@
             <dependency>
                 <groupId>org.openidentityplatform.opendj</groupId>
                 <artifactId>opendj-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+             <dependency>
+                <groupId>org.openidentityplatform.opendj</groupId>
+                <artifactId>opendj-server-legacy</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -317,6 +274,7 @@
     </modules>
 
     <build>
+    	<finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
              <plugin>
                 <groupId>org.openidentityplatform.maven.plugins</groupId>
@@ -358,15 +316,24 @@
 			      </goals>
 			    </execution>
 			  </executions>
+			  <configuration>
+			  	<failOnError>false</failOnError>
+			  </configuration>
 			</plugin>
         </plugins>
 
         <pluginManagement>
             <plugins>
+            	<plugin>
+			     <groupId>org.apache.maven.plugins</groupId>
+			     <artifactId>maven-antrun-plugin</artifactId>
+			     <version>1.8</version>
+			    </plugin>
                 <plugin>
                     <inherited>true</inherited>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -377,9 +344,52 @@
                     </configuration>
                 </plugin>
 
+				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.2.3</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.0.0-M4</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.1.1</version>
                     <configuration>
                         <links>
                             <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
@@ -390,6 +400,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.0</version>
                     <executions>
                         <execution>
                             <goals>
@@ -402,6 +413,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M4</version>
                     <configuration>
                         <argLine>-server</argLine>
                         <properties>
@@ -456,9 +468,8 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.openidentityplatform.commons</groupId>
-                    <artifactId>i18n-maven-plugin</artifactId>
-                    <version>${i18n-framework.version}</version>
+                    <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+                    <artifactId>maven-plugin</artifactId>
                 </plugin>
 
                 <plugin>
@@ -517,8 +528,7 @@
                 <!-- Provides build capabilities for docs in DocBook XML format. -->
                 <plugin>
                     <groupId>org.openidentityplatform.commons</groupId>
-                    <artifactId>forgerock-doc-maven-plugin</artifactId>
-                    <version>${forgerock-doc-plugin.version}</version>
+                    <artifactId>doc-maven-plugin</artifactId>
                     <configuration>
                         <projectName>OpenDJ</projectName>
                         <projectVersion>${project.version}</projectVersion>
@@ -671,7 +681,7 @@
 
 <!--         <profile> -->
 <!--             <id>precommit</id> -->
-<!--             <build> -->
+<!--             <build><finalName>${project.groupId}.${project.artifactId}</finalName> -->
 <!--                 <plugins> -->
 <!--                     <plugin> -->
 <!--                         <groupId>org.openidentityplatform.opendj</groupId> -->
@@ -691,7 +701,7 @@
 
 <!--         <profile> -->
 <!--             <id>update-copyrights</id> -->
-<!--             <build> -->
+<!--             <build><finalName>${project.groupId}.${project.artifactId}</finalName> -->
 <!--                 <plugins> -->
 <!--                     <plugin> -->
 <!--                         <groupId>org.openidentityplatform.opendj</groupId> -->
@@ -721,7 +731,7 @@
             <activation>
                 <jdk>[1.8,)</jdk>
             </activation>
-            <build>
+            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
                 <plugins>
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>

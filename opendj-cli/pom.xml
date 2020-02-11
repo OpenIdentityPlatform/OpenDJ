@@ -43,13 +43,13 @@
         </dependency>
 
         <dependency>
-            <groupId>org.openidentityplatform.commons</groupId>
-            <artifactId>i18n-core</artifactId>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.openidentityplatform</groupId>
-            <artifactId>forgerock-build-tools</artifactId>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>build-tools</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -69,11 +69,11 @@
     </properties>
 
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.openidentityplatform.commons</groupId>
-                <artifactId>i18n-maven-plugin</artifactId>
+                <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+                <artifactId>maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>

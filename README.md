@@ -41,7 +41,7 @@ git config --system core.longpaths true
 
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
-#mvn clean install -f OpenDJ/forgerock-parent
+#mvn clean install -f OpenDJ/commons
 mvn clean install -f OpenDJ
 ```
 
@@ -59,7 +59,7 @@ See the wiki for [Full Installation guide, Administration guide, and Developers 
 * OpenDJ Community Mailing List: open-identity-platform-opendj@googlegroups.com
 * OpenDJ Community Archive: https://groups.google.com/d/forum/open-identity-platform-opendj
 * OpenDJ Community on Gitter: https://gitter.im/OpenIdentityPlatform/OpenDJ
-* OpenDJ Commercial support RFP: support@openam.org.ru (English, Russian)
+* OpenDJ Commercial support RFP: support@3a-systems.ru (English, Russian)
 
 ## Contributing
 Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls)

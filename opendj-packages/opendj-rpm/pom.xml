@@ -74,7 +74,7 @@
         <rpm.product.summary />
     </properties>
 
-    <build>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
         <pluginManagement>
             <plugins>
                 <!-- Unpack man pages -->
