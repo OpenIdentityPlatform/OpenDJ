@@ -84,10 +84,10 @@ public final class Platform
   public static enum KeyType
   {
     /** RSA key algorithm with 2048 bits size and SHA1withRSA signing algorithm. */
-    RSA("rsa", 2048, "SHA1WithRSA"),
+    RSA("rsa", 2048, "SHA256WithRSA"),
 
     /** Elliptic Curve key algorithm with 233 bits size and SHA1withECDSA signing algorithm. */
-    EC("ec", 256, "SHA1withECDSA");
+    EC("ec", 256, "SHA256withECDSA");
 
     /** Default key type used when none can be determined. */
     public final static KeyType DEFAULT = RSA;
