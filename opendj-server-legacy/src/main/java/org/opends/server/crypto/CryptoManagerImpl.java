@@ -98,6 +98,7 @@ import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
+import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
@@ -924,19 +925,23 @@ public class CryptoManagerImpl implements ConfigurationChangeListener<CryptoMana
         for (SearchResultEntry resultEntry : resultEntries)
         {
           String hostname = resultEntry.parseAttribute("hostname").asString();
-          Integer ldapPort = resultEntry.parseAttribute("ldapport").asInteger();
+          Integer adminPort = resultEntry.parseAttribute("adminport").asInteger();
 
           // Connect to the server.
           AtomicInteger nextMessageID = new AtomicInteger(1);
+          SSLConnectionFactory sslCF = new SSLConnectionFactory();
+          sslCF.init(true, null, null, null, null, null);
           LDAPConnectionOptions connectionOptions =
-               new LDAPConnectionOptions();
+               new LDAPConnectionOptions();          
+          connectionOptions.setUseSSL(true);
+          connectionOptions.setSSLConnectionFactory(sslCF);
           PrintStream nullPrintStream =
                new PrintStream(new OutputStream() {
                  @Override
                  public void write ( int b ) { }
                });
           LDAPConnection connection =
-               new LDAPConnection(hostname, ldapPort,
+               new LDAPConnection(hostname, adminPort,
                                   connectionOptions,
                                   nullPrintStream,
                                   nullPrintStream);

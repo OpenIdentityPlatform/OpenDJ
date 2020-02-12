@@ -3542,9 +3542,15 @@ public final class DirectoryServer
 
         case EXTENDED:
          ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
-         String   requestOID = extOp.getRequestOID();
-         if (!OID_START_TLS_REQUEST.equals(requestOID))
+         String requestOID = extOp.getRequestOID();
+         if (!OID_START_TLS_REQUEST.equals(requestOID) 
+             && !OID_GET_SYMMETRIC_KEY_EXTENDED_OP.equals(requestOID))
          {
+           // Clients must be allowed to enable TLS before authenticating.
+
+           // Authentication is not required for the get symmetric key request as it depends on out of band trust
+           // negotiation. See OPENDJ-3445.
+
            message = directoryServer.lockdownMode
                ? NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get()
                : ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
