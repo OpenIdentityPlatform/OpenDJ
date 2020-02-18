@@ -954,7 +954,7 @@ final class OnDiskMergeImporter
   /** DB cache size to use during import. */
   private static final int DB_CACHE_SIZE = 32 * MB;
   /** Required free memory for this importer. */
-  private static final int REQUIRED_FREE_MEMORY = 50 * MB;
+  private static final int REQUIRED_FREE_MEMORY = 350 * MB;
   /** LDIF reader. */
   /** Map of DNs to Suffix objects. */
   private final AbstractTwoPhaseImportStrategy importStrategy;
