@@ -2955,18 +2955,28 @@ final class OnDiskMergeImporter
       {
         Method tmpDirectBufferCleanerMethod = null;
         Method tmpDirectBufferCleanerCleanMethod = null;
-        boolean tmpCleanSupported;
-        try
-        {
-          tmpDirectBufferCleanerMethod = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner");
-          tmpDirectBufferCleanerMethod.setAccessible(true);
-          tmpDirectBufferCleanerCleanMethod = Class.forName("sun.misc.Cleaner").getMethod("clean");
-          tmpDirectBufferCleanerCleanMethod.setAccessible(true);
-          tmpCleanSupported = true;
-        }
-        catch (Exception e)
-        {
-          tmpCleanSupported = false;
+        boolean tmpCleanSupported = false;
+        // 
+        // We know that this will fail in Java 9+ since sun.misc.Cleaner was moved to jdk.internal.ref.Cleaner (see JDK-8148117)
+        // Also in Java9+, calling 'setAccessible(true)' to Java internal classes generates warnings:
+        // * WARNING: An illegal reflective access operation has occurred
+        // * WARNING: All illegal access operations will be denied in a future release
+        // unless the JVM is started with the 'add-opens=java.base/java.nio=ALL-UNNAMED' flag
+        // Since this is only an optimization, avoid it completely in Java 9+
+        // 
+        if (System.getProperty("java.version").startsWith("1.")) {
+          try
+          {
+            tmpDirectBufferCleanerMethod = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner");
+            tmpDirectBufferCleanerMethod.setAccessible(true);
+            tmpDirectBufferCleanerCleanMethod = Class.forName("sun.misc.Cleaner").getMethod("clean");
+            tmpDirectBufferCleanerCleanMethod.setAccessible(true);
+            tmpCleanSupported = true;
+          }
+          catch (Exception e)
+          {
+            tmpCleanSupported = false;
+          }
         }
         CLEAN_SUPPORTED = tmpCleanSupported;
         directBufferCleanerMethod = tmpDirectBufferCleanerMethod;
