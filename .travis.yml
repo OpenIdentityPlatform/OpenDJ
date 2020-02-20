@@ -88,7 +88,7 @@ notifications:
 before_install:
   - date -u
   - uname -a
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then brew install rpm && brew cask install wine-stable; else sudo apt-get install -y rpm winehq-stable; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then brew install rpm && brew cask install wine-stable; else sudo apt-get install -y rpm && sudo dpkg --add-architecture i386 && wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add - && sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ xenial main' && sudo apt update && sudo apt install --install-recommends winehq-stable ; fi
   - git fetch -t
   - export git_version_last="$(git describe --abbrev=0 --tags)"
   - export git_version="$(echo $git_version_last | awk -F . '{ printf "%d.%d.%d", $1,$2,$3 + 1}')"
