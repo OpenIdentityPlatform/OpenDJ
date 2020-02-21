@@ -23,7 +23,7 @@ matrix:
       target_commitish: $(git rev-list -n 1 $git_version)
       tag_name: $git_version
       name: $git_version
-      body: "compare: $(git rev-list -n 1 $git_version_last)...$(git rev-list -n 1 $git_version)"
+      release_notes: "compare: $(git rev-list -n 1 $git_version_last)...$(git rev-list -n 1 $git_version)"
       api_key:
         secure: bprK7kiogA+nA4TuYU7BHHIPasg2Ve7dG/eZRQ+mJpH2y6GXFBqoEpN2AQECrJ5IgVQZ9WyBc+/PXhjh/VYrg3bvU9lE2zTnkQa5kiPFGnC5cOmqO2dSdUjiBcm3yBO9J3pL//Qsr8g7fv9g5580yMW/NYMs0R70S5ystqjJFSFQHXLkWJBzXQnIyMqjPNsndmqR9lnqX690u298z9H56pNrZqK851NVjTX9WKIoWlVezCSp3nwvAD5tW+p1A0Sy/6kPheYyudEHvHO5zUe33vh3lxB/qqXzIszlEPvIzzcig/ElxTCQ+4eWL34MlGLUzeJ8DdR7JshIPkTrAQ9i5nbOIP0NLu5wfNh642Sl4diGqa+7ioAmhIQuQmBJcOb0l9pP01fLVmgJoPVLGctWpklB9FdNCu96EtHmqj6FmsQzSTpmkfhCjRrgPHQYTZNcl25xdN6GSYZpiP2fYSmp06Wz2mi2OO2gvwjU2iX2b8j/koJ8kWQHrCYamTKbu4X08Vd+lE3EupTBfBzmiPiu8pC5PRi+nmilKdg40lsga++HB3IRRoPYhULo29Yfh6kMmWrP4Pn7RFOyI0Jm5NhLlZW2A5Q+FpEr8qyiLV1eC5RxMlAdaqassz2aWgwxrJC2taF0gUnZbg6w0xa5O0UAl0VAAGAJb2cXl9yJDCkYL18=
       skip_cleanup: true
@@ -57,9 +57,9 @@ matrix:
       -   cd $TRAVIS_BUILD_DIR
       - echo 'build and push Docker'
       -   echo "$DOCKER_PASSWORD" | docker login -u "openidentityplatformcommunity" --password-stdin
-      -   docker build ./opendj-packages/opendj-docker -t openidentityplatformcommunity/opendj -t openidentityplatformcommunity/opendj:$git_version
-      -   docker push openidentityplatformcommunity/opendj:$git_version
-      -   docker push openidentityplatformcommunity/opendj
+      -   docker build ./opendj-packages/opendj-docker -t openidentityplatform/opendj -t openidentityplatform/opendj:$git_version
+      -   docker push openidentityplatform/opendj:$git_version
+      -   docker push openidentityplatform/opendj
       - echo 'build and push Github Docker'
       -   echo "$GITHUBKEY" | docker login -u "Open Identity Platform Community" docker.pkg.github.com --password-stdin
       -   docker build ./opendj-packages/opendj-docker -t docker.pkg.github.com/openidentityplatform/opendj/opendj -t docker.pkg.github.com/openidentityplatform/opendj/opendj:$git_version
