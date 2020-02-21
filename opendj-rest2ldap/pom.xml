@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.4.4-SNAPSHOT</version>
+        <version>4.4.4</version>
     </parent>
 	
     <artifactId>opendj-rest2ldap</artifactId>
