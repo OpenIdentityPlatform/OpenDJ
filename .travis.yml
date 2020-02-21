@@ -13,7 +13,7 @@ matrix:
       - git config --local user.name "Open Identity Platform Community" && git config --local user.email "open-identity-platform-opendj@googlegroups.com"
       - git checkout -f $TRAVIS_BRANCH
       - git tag -f $git_version && git tag -d $git_version
-      - mvn -B -DreleaseVersion="$git_version" -DignoreSnapshots=true  -DpushChanges=false -DscmCommentPrefix="[ci skip] $git_version_last->$git_version " -DskipTests -Darguments=-DskipTests -Dresume=false -P distribution release:prepare
+      - mvn -B -DtagNameFormat="$git_version" -DreleaseVersion="$git_version" -DignoreSnapshots=true  -DpushChanges=false -DscmCommentPrefix="[ci skip] $git_version_last->$git_version " -DskipTests -Darguments=-DskipTests -Dresume=false -P distribution release:prepare
       - git push --quiet --force https://$GITHUBKEY@github.com/$TRAVIS_REPO_SLUG.git >/dev/null 2>&1
       - git push --quiet --force https://$GITHUBKEY@github.com/$TRAVIS_REPO_SLUG.git $git_version >/dev/null 2>&1
     deploy:
@@ -56,12 +56,12 @@ matrix:
       -   git push --quiet --force https://$GITHUBKEY@github.com/$TRAVIS_REPO_SLUG.wiki.git $git_version >/dev/null 2>&1
       -   cd $TRAVIS_BUILD_DIR
       - echo 'build and push Docker'
-      -   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-      -   docker build ./opendj-packages/opendj-docker -t $DOCKER_USERNAME/opendj -t $DOCKER_USERNAME/opendj:$git_version
-      -   docker push $DOCKER_USERNAME/opendj:$git_version
-      -   docker push $DOCKER_USERNAME/opendj
+      -   echo "$DOCKER_PASSWORD" | docker login -u "openidentityplatformcommunity" --password-stdin
+      -   docker build ./opendj-packages/opendj-docker -t openidentityplatformcommunity/opendj -t openidentityplatformcommunity/opendj:$git_version
+      -   docker push openidentityplatformcommunity/opendj:$git_version
+      -   docker push openidentityplatformcommunity/opendj
       - echo 'build and push Github Docker'
-      -   docker login docker.pkg.github.com -u "$GITHUB_USERNAME" -p "$GITHUB_PASSWORD"
+      -   echo "$GITHUBKEY" | docker login -u "Open Identity Platform Community" docker.pkg.github.com --password-stdin
       -   docker build ./opendj-packages/opendj-docker -t docker.pkg.github.com/openidentityplatform/opendj/opendj -t docker.pkg.github.com/openidentityplatform/opendj/opendj:$git_version
       -   docker push docker.pkg.github.com/openidentityplatform/opendj/opendj:$git_version
       -   docker push docker.pkg.github.com/openidentityplatform/opendj/opendj         
