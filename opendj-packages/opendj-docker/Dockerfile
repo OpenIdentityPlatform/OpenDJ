@@ -33,7 +33,8 @@ ADD bootstrap/ /opt/opendj/bootstrap/
 
 ADD run.sh /opt/opendj/run.sh
 
-RUN useradd -m -r -u 1001 -G root,sudo $OPENDJ_USER
+RUN useradd -m -r -u 1001 -G root,sudo $OPENDJ_USER \
+    && install -d -o $OPENDJ_USER /opt/opendj/data
 
 RUN chgrp -R 0 /opt/opendj && \
     chmod -R g=u /opt/opendj && \
