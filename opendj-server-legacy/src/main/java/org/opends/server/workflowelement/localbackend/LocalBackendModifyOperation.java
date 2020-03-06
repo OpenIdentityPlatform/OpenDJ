@@ -16,6 +16,7 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -1381,22 +1382,7 @@ public class LocalBackendModifyOperation
           ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attrDesc));
     }
 
-    MatchingRule eqRule = t.getEqualityMatchingRule();
-    ByteString v = attr.iterator().next();
-
-    long incrementValue;
-    try
-    {
-      String nv = eqRule.normalizeAttributeValue(v).toString();
-      incrementValue = Long.parseLong(nv);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(entryDN, attrDesc, v), e);
-    }
+    BigInteger incrementValue = parseLdapInteger(attr.iterator().next(), attrDesc, entryDN);
 
     // Get the attribute that is to be incremented.
     Attribute modifiedAttr = modifiedEntry.getAttribute(attrDesc);
@@ -1412,29 +1398,24 @@ public class LocalBackendModifyOperation
     AttributeBuilder builder = new AttributeBuilder(modifiedAttrDesc);
     for (ByteString existingValue : modifiedAttr)
     {
-      long currentValue;
-      try
-      {
-        currentValue = Long.parseLong(existingValue.toString());
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        throw new DirectoryException(
-            ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(entryDN, modifiedAttrDesc, existingValue),
-            e);
-      }
-
-      long newValue = currentValue + incrementValue;
-      builder.add(String.valueOf(newValue));
+      BigInteger currentValue = parseLdapInteger(existingValue, modifiedAttrDesc, entryDN);
+      builder.add(currentValue.add(incrementValue).toString());
     }
 
     // Replace the existing attribute with the incremented version.
     modifiedEntry.replaceAttribute(builder.toAttribute());
   }
 
+  private BigInteger parseLdapInteger(ByteString v, AttributeDescription attrDesc, DN entryDN) throws DirectoryException {
+    try {
+      return new BigInteger(v.toString());
+    } catch (Exception e) {
+      logger.traceException(e);
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+          ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(entryDN, attrDesc, v), e);
+    } 
+  }
+  
   /**
    * Performs additional preliminary processing that is required for a password change.
    *
