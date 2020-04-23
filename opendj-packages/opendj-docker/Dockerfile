@@ -1,4 +1,4 @@
-FROM java:8
+FROM openjdk:8
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
