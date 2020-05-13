@@ -18,6 +18,7 @@ package org.forgerock.opendj.reactive;
 
 import static java.util.Collections.*;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.AccessLogger.logConnect;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -642,6 +643,7 @@ public final class LDAPConnectionHandler2 extends ConnectionHandler<LDAPConnecti
                             LDAPClientContext clientContext) throws LdapException {
                         final LDAPClientConnection2 conn = canAccept(clientContext);
                         clientConnections.add(conn);
+                        logConnect(conn);
                         clientContext.addListener(new LDAPClientContextEventListener() {
                             @Override
                             public void handleConnectionError(final LDAPClientContext context, final Throwable error) {
