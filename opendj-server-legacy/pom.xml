@@ -198,6 +198,7 @@
       <artifactId>jul-to-slf4j</artifactId>
     </dependency>
 
+       
     <!-- mail -->
     <dependency>
       <groupId>com.sun.mail</groupId>
@@ -494,6 +495,7 @@
             </goals>
             <configuration>
               <additionalJars>
+              	<additionalJar>opendj-slf4j-adapter.jar</additionalJar>
                  <additionalJar>opendj-je-backend.jar</additionalJar>
               </additionalJars>
             </configuration>
