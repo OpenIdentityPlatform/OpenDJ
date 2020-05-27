@@ -2473,14 +2473,14 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   {
     String[] authPWComponents = AuthPasswordSyntax.decodeAuthPassword(encodedAuthPassword);
     PasswordStorageScheme<?> scheme = DirectoryServer.getAuthPasswordStorageScheme(authPWComponents[0]);
-    return scheme.authPasswordMatches(password, authPWComponents[1], authPWComponents[2]);
+    return scheme != null && scheme.authPasswordMatches(password, authPWComponents[1], authPWComponents[2]);
   }
 
   private boolean encodedUserPasswordMatches(ByteString password, String encodedUserPassword) throws DirectoryException
   {
     String[] userPWComponents = UserPasswordSyntax.decodeUserPassword(encodedUserPassword);
     PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(userPWComponents[0]);
-    return scheme.passwordMatches(password, ByteString.valueOfUtf8(userPWComponents[1]));
+    return scheme != null && scheme.passwordMatches(password, ByteString.valueOfUtf8(userPWComponents[1]));
   }
 
   private void logResult(String passwordType, boolean passwordMatches)
@@ -2511,7 +2511,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
         {
           PasswordStorageScheme<?> scheme = getPasswordStorageScheme(v);
 
-          if (scheme.isStorageSchemeSecure())
+          if (scheme != null && scheme.isStorageSchemeSecure())
           {
             addPasswordToHistory(v.toString());
             insecurePassword = null;
