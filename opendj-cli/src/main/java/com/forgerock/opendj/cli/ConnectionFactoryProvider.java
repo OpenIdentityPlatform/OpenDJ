@@ -187,12 +187,7 @@ public final class ConnectionFactoryProvider {
             argumentParser.addLdapConnectionArgument(useStartTLSArg);
         }
 
-        String defaultHostName;
-        try {
-            defaultHostName = InetAddress.getLocalHost().getHostName();
-        } catch (final Exception e) {
-            defaultHostName = "Unknown (" + e + ")";
-        }
+        String defaultHostName = "localhost";
         hostNameArg = hostNameArgument(defaultHostName);
         argumentParser.addLdapConnectionArgument(hostNameArg);
 
