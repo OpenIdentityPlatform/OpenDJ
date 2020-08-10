@@ -91,7 +91,7 @@ elif [ "$OPENDJ_REPLICATION_TYPE" == "sdsr" ]; then
    --host2 $MYHOSTNAME \
    --port2 4444 \
    --bindDN2 "$ROOT_USER_DN" \
-   --bindPassword2 ROOT_PASSWORD \
+   --bindPassword2 $ROOT_PASSWORD \
    --noReplicationServer2 \
    --trustAll \
    --no-prompt
