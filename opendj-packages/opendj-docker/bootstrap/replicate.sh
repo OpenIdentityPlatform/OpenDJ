@@ -30,20 +30,21 @@ echo "Will sleep for a bit to ensure master is up"
 sleep 5
 
 if [ "$OPENDJ_REPLICATION_TYPE" == "simple" ]; then
-  echo "Enabling Standart Replication..."
-  /opt/opendj/bin/dsreplication enable --host1 $MYHOSTNAME --port1 4444 \
+  echo "Enabling Standard Replication..."
+  /opt/opendj/bin/dsreplication enable --host1 $MASTER_SERVER --port1 4444 \
     --bindDN1 "$ROOT_USER_DN" \
     --bindPassword1 $ROOT_PASSWORD --replicationPort1 8989 \
-    --host2 $MASTER_SERVER --port2 4444 --bindDN2 "$ROOT_USER_DN" \
+    --host2 $MYHOSTNAME --port2 4444 --bindDN2 "$ROOT_USER_DN" \
     --bindPassword2 $ROOT_PASSWORD --replicationPort2 8989 \
     --adminUID admin --adminPassword $ROOT_PASSWORD --baseDN $BASE_DN -X -n
 
   echo "initializing replication"
 
+  # replicating data in MASTER_SERVER to MYHOSTNAME:
   /opt/opendj/bin/dsreplication initialize --baseDN $BASE_DN \
     --adminUID admin --adminPassword $ROOT_PASSWORD \
-    --hostSource $MYHOSTNAME --portSource 4444 \
-    --hostDestination $MASTER_SERVER --portDestination 4444 -X -n
+    --hostSource $MASTER_SERVER --portSource 4444 \
+    --hostDestination $MYHOSTNAME --portDestination 4444 -X -n
 
 elif [ "$OPENDJ_REPLICATION_TYPE" == "srs" ]; then
   echo "Enabling Standalone Replication Servers..."
