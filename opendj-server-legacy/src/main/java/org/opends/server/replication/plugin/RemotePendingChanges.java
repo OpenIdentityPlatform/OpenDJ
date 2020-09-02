@@ -39,6 +39,7 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.Operation;
 
@@ -393,6 +394,15 @@ final class RemotePendingChanges
       {
         if (((ModifyDNMsg) pendingMsg).newDNIsEqual(targetDN))
         {
+          hasDependencies = true;
+          addDependency(change);
+        }
+      }
+      else if (pendingMsg instanceof ModifyMsg)
+      {
+        if (pendingMsg.getDN().equals(targetDN))
+        {
+          // it is another modify on the same DN, they depend
           hasDependencies = true;
           addDependency(change);
         }
