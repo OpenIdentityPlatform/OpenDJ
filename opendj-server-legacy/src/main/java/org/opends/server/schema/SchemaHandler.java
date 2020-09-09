@@ -147,6 +147,7 @@ public final class SchemaHandler
    * Example: replication uses this to store its state and GenerationID.
    */
   private Map<String, Attribute> extraAttributes = new HashMap<>();
+  private Map<String, org.forgerock.opendj.ldap.Attribute> extraAttributesInitialize = new HashMap<>();
 
   /** Guards updates to the schema. */
   private final Lock exclusiveLock = new ReentrantLock();
@@ -224,6 +225,15 @@ public final class SchemaHandler
       {
         throw new ConfigException(e.getMessageObject(), e);
       }
+
+      // Do attribute conversion after fully loading the schema
+      // otherwise attributes using types defined in the schema will not be properly converted
+      for (final Map.Entry<String, org.forgerock.opendj.ldap.Attribute> entry : extraAttributesInitialize.entrySet())
+      {
+        Attribute a = Converters.toAttribute(entry.getValue());
+        extraAttributes.put(entry.getKey(), a);
+      }
+      extraAttributesInitialize.clear();
   }
 
   /**
@@ -960,6 +970,15 @@ public final class SchemaHandler
     final Entry entry = readSchemaEntry(schemaFile, readSchema);
     if (entry != null)
     {
+      for (org.forgerock.opendj.ldap.Attribute a : entry.getAllAttributes())
+      {
+        AttributeType attrType = a .getAttributeDescription().getAttributeType();
+        String attrName = attrType.getNameOrOID();
+        if (attrName.startsWith("ds-sync-") || attrName.equals("modifiersName") || attrName.equals("modifyTimestamp"))
+        {
+          extraAttributesInitialize.put(attrName, a);
+        }
+      }
       updateSchemaBuilderWithEntry(schemaBuilder, entry, schemaFile.getName(), failOnError);
     }
     return entry;
