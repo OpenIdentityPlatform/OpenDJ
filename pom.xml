@@ -87,7 +87,16 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
+    <developers>
+    	<developer>
+    		<id>Open Identity Platform Community</id>
+    		<name>Open Identity Platform Community</name>
+    		<email>open-identity-platform@googlegroups.com</email>
+    		<organization>Open Identity Platform Community</organization>
+    		<organizationUrl>https://www.openidentityplatform.org/</organizationUrl>
+    		<url>https://github.com/OpenIdentityPlatform/commons</url>
+    	</developer>
+    </developers>
      <issueManagement>
         <system>github.com</system>
         <url>https://github.com/OpenIdentityPlatform/OpenDJ/issues</url>
@@ -100,11 +109,11 @@
       	<tag>4.4.7</tag>
   	</scm>
 	<repositories>
-<!-- 		<repository> -->
-<!-- 			<id>ossrh-releases</id> -->
-<!-- 			<name>Sonatype OSS</name> -->
-<!-- 			<url>https://oss.sonatype.org/content/repositories/releases/</url> -->
-<!-- 		</repository> -->
+		<repository>
+			<id>ossrh-releases</id>
+			<name>Sonatype OSS</name>
+			<url>https://oss.sonatype.org/content/repositories/releases/</url>
+		</repository>
 		<repository>
 			<id>ossrh-snapshots</id>
 			<name>Sonatype OSS Repository</name>
@@ -113,11 +122,11 @@
 		</repository>
 	</repositories>
 	<pluginRepositories>
-<!-- 		<pluginRepository> -->
-<!-- 			<id>ossrh-releases</id> -->
-<!-- 			<name>Sonatype OSS</name> -->
-<!-- 			<url>https://oss.sonatype.org/content/repositories/releases/</url> -->
-<!-- 		</pluginRepository> -->
+		<pluginRepository>
+			<id>ossrh-releases</id>
+			<name>Sonatype OSS</name>
+			<url>https://oss.sonatype.org/content/repositories/releases/</url>
+		</pluginRepository>
 		<pluginRepository>
 			<id>ossrh-snapshots</id>
 			<name>Sonatype OSS Repository</name>
@@ -145,7 +154,7 @@
         	<dependency>
         		<groupId>org.openidentityplatform.commons</groupId>
         		<artifactId>parent</artifactId>
-        		<version>2.0.7-SNAPSHOT</version>
+        		<version>2.0.7</version>
         		<type>pom</type>
         		<scope>import</scope>
         	</dependency>
@@ -323,6 +332,20 @@
 			  	<failOnError>false</failOnError>
 			  </configuration>
 			</plugin>
+			<plugin>
+		      <groupId>org.sonatype.plugins</groupId>
+		      <artifactId>nexus-staging-maven-plugin</artifactId>
+		      <version>1.6.7</version>
+		      <extensions>true</extensions>
+		      <configuration>
+		        <serverId>ossrh</serverId>
+		        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+		        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+		        <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
+		        <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
+		        <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
+		      </configuration>
+		    </plugin>
         </plugins>
 
         <pluginManagement>
@@ -686,52 +709,36 @@
             </modules>
         </profile>
 
-<!--         <profile> -->
-<!--             <id>precommit</id> -->
-<!--             <build><finalName>${project.groupId}.${project.artifactId}</finalName> -->
-<!--                 <plugins> -->
-<!--                     <plugin> -->
-<!--                         <groupId>org.openidentityplatform.opendj</groupId> -->
-<!--                         <artifactId>opendj-copyright-maven-plugin</artifactId> -->
-<!--                         <executions> -->
-<!--                             <execution> -->
-<!--                                 <id>check-copyright</id> -->
-<!--                                 <goals> -->
-<!--                                     <goal>check-copyright</goal> -->
-<!--                                 </goals> -->
-<!--                             </execution> -->
-<!--                         </executions> -->
-<!--                     </plugin> -->
-<!--                 </plugins> -->
-<!--             </build> -->
-<!--         </profile> -->
-
-<!--         <profile> -->
-<!--             <id>update-copyrights</id> -->
-<!--             <build><finalName>${project.groupId}.${project.artifactId}</finalName> -->
-<!--                 <plugins> -->
-<!--                     <plugin> -->
-<!--                         <groupId>org.openidentityplatform.opendj</groupId> -->
-<!--                         <artifactId>opendj-copyright-maven-plugin</artifactId> -->
-<!--                         <executions> -->
-<!--                             <execution> -->
-<!--                                 <id>check-copyright</id> -->
-<!--                                 <phase>none</phase> -->
-<!--                                 <goals> -->
-<!--                                     <goal>check-copyright</goal> -->
-<!--                                 </goals> -->
-<!--                             </execution> -->
-<!--                             <execution> -->
-<!--                                 <id>update-copyright</id> -->
-<!--                                 <goals> -->
-<!--                                     <goal>update-copyright</goal> -->
-<!--                                 </goals> -->
-<!--                             </execution> -->
-<!--                         </executions> -->
-<!--                     </plugin> -->
-<!--                 </plugins> -->
-<!--             </build> -->
-<!--         </profile> -->
+		<profile>
+	        <id>release-sign-artifacts</id>
+	        <activation>
+	            <property>
+			        <name>gpg.passphrase</name>
+			    </property>
+	        </activation>
+	        <build>
+	            <plugins>
+	                <plugin>
+				      <groupId>org.apache.maven.plugins</groupId>
+				      <artifactId>maven-gpg-plugin</artifactId>
+				      <version>1.6</version>
+				      <configuration>
+                      	<passphrase>${gpg.passphrase}</passphrase>
+                        <useAgent>true</useAgent>
+                      </configuration>
+				      <executions>
+				        <execution>
+				          <id>sign-artifacts</id>
+				          <phase>verify</phase>
+				          <goals>
+				            <goal>sign</goal>
+				          </goals>
+				        </execution>
+				      </executions>
+				    </plugin>
+	            </plugins>
+	        </build>
+	    </profile>
 
         <profile>
             <id>disable-doclint-for-java-8</id>
