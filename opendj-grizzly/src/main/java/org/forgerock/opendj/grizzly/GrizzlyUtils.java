@@ -225,6 +225,15 @@ final class GrizzlyUtils {
         }
     }
 
+    static long getLongProperty(final String name, final long defaultValue) {
+        final String value = System.getProperty(name);
+        try {
+            return value != null ? Long.parseLong(value) : defaultValue;
+        } catch (final NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     /** Prevent instantiation. */
     private GrizzlyUtils() {
         // No implementation required.
