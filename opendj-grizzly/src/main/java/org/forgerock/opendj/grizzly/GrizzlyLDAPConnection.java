@@ -19,6 +19,7 @@ package org.forgerock.opendj.grizzly;
 import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT;
 import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT;
 import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_REQUEST_TIMEOUT;
+import static org.forgerock.opendj.grizzly.GrizzlyUtils.getLongProperty;
 import static org.forgerock.opendj.ldap.LDAPConnectionFactory.REQUEST_TIMEOUT;
 import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.ResultCode.CLIENT_SIDE_LOCAL_ERROR;
@@ -823,6 +824,7 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
                     .toArray(new String[cipherSuites.size()]));
             sslEngineConfigurator.setCipherConfigured(true);
             final SSLFilter sslFilter = new SSLFilter(DUMMY_SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+            sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", sslFilter.getHandshakeTimeout(TimeUnit.MILLISECONDS)), TimeUnit.MILLISECONDS);
             installFilter(sslFilter);
             sslFilter.handshake(connection, completionHandler);
         }

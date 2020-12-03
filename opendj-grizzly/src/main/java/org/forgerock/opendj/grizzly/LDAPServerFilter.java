@@ -18,6 +18,7 @@ package org.forgerock.opendj.grizzly;
 
 import static com.forgerock.reactive.RxJavaStreams.*;
 import static org.forgerock.opendj.grizzly.GrizzlyUtils.configureConnection;
+import static org.forgerock.opendj.grizzly.GrizzlyUtils.getLongProperty;
 import static org.forgerock.opendj.io.LDAP.*;
 import static org.forgerock.opendj.ldap.responses.Responses.newGenericExtendedResult;
 import static org.forgerock.opendj.ldap.spi.LdapMessages.newResponseMessage;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLEngine;
@@ -384,7 +386,9 @@ public final class LDAPServerFilter extends BaseFilter {
                     return false;
                 }
                 SSLUtils.setSSLEngine(connection, sslEngine);
-                installFilter(startTls ? new StartTLSFilter(new SSLFilter()) : new SSLFilter());
+                SSLFilter sslFilter = new SSLFilter();
+                sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", sslFilter.getHandshakeTimeout(TimeUnit.MILLISECONDS)), TimeUnit.MILLISECONDS);
+                installFilter(startTls ? new StartTLSFilter(sslFilter) : sslFilter);
                 return true;
             }
         }
