@@ -14,6 +14,8 @@ rem
 rem Copyright 2008-2010 Sun Microsystems, Inc.
 rem Portions Copyright 2011-2016 ForgeRock AS.
 
+set OPENDJ_JAVA_ARGS=" --illegal-access=permit %OPENDJ_JAVA_ARGS%"
+
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
 set SET_CLASSPATH_DONE=false
