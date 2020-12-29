@@ -101,7 +101,6 @@ set_java_home_and_args() {
       OPENDJ_JAVA_ARGS="${PROPERTY_VALUE}"
     fi
   fi
-  OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS} --illegal-access=permit"
   set_opendj_java_bin
 }
 
