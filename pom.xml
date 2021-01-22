@@ -267,6 +267,7 @@
         <module>opendj-rest2ldap-servlet</module>
         <module>opendj-server</module>
         <module>opendj-server-example-plugin</module>
+        <module>opendj-server-msad-plugin</module>
         <module>opendj-legacy</module>
         <module>opendj-server-legacy</module>
         <module>opendj-dsml-servlet</module>
