@@ -139,6 +139,7 @@ import com.forgerock.opendj.util.PackedLong;
 import com.forgerock.opendj.util.Predicate;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Imports LDIF data contained in files into the database. Because of the B-Tree structure used in backend, import is
@@ -2787,10 +2788,27 @@ final class OnDiskMergeImporter
   private static <K> List<K> waitTasksTermination(CompletionService<K> completionService, int nbTasks)
       throws InterruptedException, ExecutionException
   {
+    InterruptedException ie = null;
+    ExecutionException ee = null;
     final List<K> results = new ArrayList<>(nbTasks);
     for (int i = 0; i < nbTasks; i++)
     {
-      results.add(completionService.take().get());
+      try {
+        results.add(completionService.take().get());
+      } catch (Exception e) {
+        logger.error(LocalizableMessage.raw("failed to execute task"), e);
+        if (e instanceof InterruptedException) {
+          ie = (InterruptedException) e;
+        } else if (e instanceof ExecutionException) {
+          ee = (ExecutionException) e;
+        }
+      }
+    }
+    if (ie != null) {
+      throw ie;
+    }
+    if (ee != null) {
+        throw ee;
     }
     return results;
   }
