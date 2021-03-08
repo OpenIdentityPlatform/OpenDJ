@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:8-jre-slim
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
