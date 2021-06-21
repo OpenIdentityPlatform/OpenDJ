@@ -27,6 +27,8 @@ ENV OPENDJ_USER="opendj"
 WORKDIR /opt
 
 ADD target/opendj-*.zip .
+
+RUN apt-get update && apt-get install -y --no-install-recommends  unzip  && rm -rf /var/lib/apt/lists/*
 RUN unzip opendj-*.zip && rm -r opendj-*.zip
 
 ADD bootstrap/ /opt/opendj/bootstrap/
