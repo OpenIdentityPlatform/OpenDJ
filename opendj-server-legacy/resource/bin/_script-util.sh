@@ -136,7 +136,7 @@ print_error_message() {
 test_java() {
   if test -z "${OPENDJ_JAVA_ARGS}"
   then
-    "${OPENDJ_JAVA_BIN}" org.opends.server.tools.CheckJVMVersion 2> /dev/null
+    "${OPENDJ_JAVA_BIN}" org.opends.server.tools.CheckJVMVersion
     RESULT_CODE=${?}
     if test ${RESULT_CODE} -eq 13
     then
@@ -151,7 +151,7 @@ test_java() {
       exit 1
     fi
   else
-    "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} org.opends.server.tools.CheckJVMVersion 2> /dev/null
+    "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} org.opends.server.tools.CheckJVMVersion 
     RESULT_CODE=${?}
     if test ${RESULT_CODE} -eq 13
     then
