@@ -458,4 +458,9 @@ public class ApplicationTrustManager implements X509TrustManager
     }
     return hostMatch;
   }
+
+  public X509TrustManager getX509TrustManager() {
+	return trustManager;
+  }
+  
 }

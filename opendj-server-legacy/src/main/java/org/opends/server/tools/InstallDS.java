@@ -825,7 +825,7 @@ public class InstallDS extends ConsoleApplication
       certType = SecurityOptions.CertificateType.NO_CERTIFICATE;
     }
 
-    Collection<String> certNicknames = argParser.certNicknameArg.getValues();
+    Collection<String> certNicknames = getCertNickNames();
     if (pathToCertificat != null)
     {
       checkCertificateInKeystore(certType, pathToCertificat, pwd, certNicknames, errorMessages, keystoreAliases);
@@ -838,6 +838,20 @@ public class InstallDS extends ConsoleApplication
     final SecurityOptions securityOptions = SecurityOptions.createOptionsForCertificatType(
         certType, pathToCertificat, pwd, enableSSL, enableStartTLS, sslPort, certNicknames);
     uData.setSecurityOptions(securityOptions);
+  }
+
+  private List<String> getCertNickNames() {
+	  List<String> certNicknames = argParser.certNicknameArg.getValues();
+	  if ((certNicknames == null) || (certNicknames.size() == 0)) {
+		  return certNicknames;
+	  }
+
+	  List<String> splitedCertNicknames = new ArrayList<>();
+	  for (String certNickname : certNicknames) {
+		  splitedCertNicknames.addAll(StaticUtils.splittedStringAsList(certNickname, " "));
+	  }
+	  
+	  return splitedCertNicknames;
   }
 
   private void checkCanUsePort(int port, List<LocalizableMessage> errorMessages)
@@ -1943,7 +1957,7 @@ public class InstallDS extends ConsoleApplication
       boolean enableStartTLS, int ldapsPort) throws UserDataException, ClientException
   {
     String path;
-    Collection<String> certNicknames = argParser.certNicknameArg.getValues();
+    Collection<String> certNicknames = getCertNickNames();
     String pwd = argParser.getKeyStorePassword();
     if (pwd != null && pwd.length() == 0)
     {

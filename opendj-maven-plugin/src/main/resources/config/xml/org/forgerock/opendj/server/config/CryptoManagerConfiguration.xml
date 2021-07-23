@@ -48,7 +48,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>SHA-1</adm:value>
+        <adm:value>SHA-256</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -75,7 +75,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>HmacSHA1</adm:value>
+        <adm:value>HmacSHA256</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>

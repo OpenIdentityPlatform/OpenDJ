@@ -28,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -71,6 +72,7 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
 import org.reactivestreams.Publisher;
@@ -386,6 +388,15 @@ public final class LDAPServerFilter extends BaseFilter {
                     return false;
                 }
                 SSLUtils.setSSLEngine(connection, sslEngine);
+                
+                Properties props = System.getProperties();
+
+                // Workaround for PKCS11
+                String keyStoreFile = props.getProperty(SSLContextConfigurator.KEY_STORE_FILE);
+                if ("none".equalsIgnoreCase(keyStoreFile)) {
+                	System.setProperty(SSLContextConfigurator.TRUST_STORE_FILE, "NONE");
+                }
+                
                 SSLFilter sslFilter = new SSLFilter();
                 sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", sslFilter.getHandshakeTimeout(TimeUnit.MILLISECONDS)), TimeUnit.MILLISECONDS);
                 installFilter(startTls ? new StartTLSFilter(sslFilter) : sslFilter);

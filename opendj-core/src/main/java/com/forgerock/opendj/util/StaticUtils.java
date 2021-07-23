@@ -42,6 +42,9 @@ import org.forgerock.opendj.ldap.spi.Provider;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTER;
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTERED_ALREADY;
+
 /**
  * Common utility methods.
  */
@@ -784,6 +787,33 @@ public final class StaticUtils {
             throw new ProviderNotFoundException(providerClass, requestedProvider, String.format(
                     "There was no provider of type '%s' available.", providerClass.getName()));
         }
+    }
+
+    public static boolean isFips() {
+    	java.security.Provider[] providers = java.security.Security.getProviders();
+		for (int i = 0; i < providers.length; i++) {
+			if (providers[i].getName().toLowerCase().contains("fips"))
+				return true;
+		}
+
+		return false;
+	}
+
+    public static void registerBcProvider()
+    {
+    	if (!isFips()) {
+    		return;
+    	}
+    	
+    	org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider bouncyCastleProvider = (org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider) java.security.Security.getProvider(org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider.PROVIDER_NAME);
+  		if (bouncyCastleProvider == null) {
+  			logger.info(INFO_BC_PROVIDER_REGISTER.get());
+
+  			bouncyCastleProvider = new org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider();
+  			java.security.Security.insertProviderAt(bouncyCastleProvider, 1);
+  		} else {
+  			logger.info(INFO_BC_PROVIDER_REGISTERED_ALREADY.get());
+  		}
     }
 
 }

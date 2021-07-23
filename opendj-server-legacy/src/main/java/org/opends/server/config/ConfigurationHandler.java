@@ -589,10 +589,12 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
    *          The original entry that is being replaced.
    * @param newEntry
    *          The new entry to use in place of the existing entry with the same DN.
+   * @param structuralUpdate
+   *          Force objectClass update.
    * @throws DirectoryException
    *           If a problem occurs while trying to replace the entry.
    */
-  public void replaceEntry(final Entry oldEntry, final Entry newEntry) throws DirectoryException
+  public void replaceEntry(final Entry oldEntry, final Entry newEntry, final boolean structuralUpdate) throws DirectoryException
   {
     final DN newEntryDN = newEntry.getName();
     if (!backend.contains(newEntryDN))
@@ -601,7 +603,7 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
           ERR_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY.get(oldEntry), getMatchedDN(newEntryDN), null);
     }
 
-    if (!Entries.getStructuralObjectClass(oldEntry, serverContext.getSchema()).equals(
+    if (!structuralUpdate && !Entries.getStructuralObjectClass(oldEntry, serverContext.getSchema()).equals(
         Entries.getStructuralObjectClass(newEntry, serverContext.getSchema())))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
@@ -655,6 +657,11 @@ public class ConfigurationHandler implements ConfigurationRepository, AlertGener
       String reasons = Utils.joinAsString(".  ", ccr.getMessages());
       throw new DirectoryException(ccr.getResultCode(), ERR_CONFIG_FILE_MODIFY_APPLY_FAILED.get(reasons));
     }
+  }
+
+  public void replaceEntry(final Entry oldEntry, final Entry newEntry) throws DirectoryException
+  {
+	  replaceEntry(oldEntry, newEntry, false);
   }
 
   @Override

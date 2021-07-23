@@ -20,6 +20,8 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
+import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Installation;
@@ -91,6 +93,8 @@ public class SetupLauncher extends Launcher {
     try
     {
       argParser.parseArguments(args);
+      
+      registerBcProvider();
 
       if (argParser.isVersionArgumentPresent())
       {

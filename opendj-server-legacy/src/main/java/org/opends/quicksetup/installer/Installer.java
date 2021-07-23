@@ -27,6 +27,7 @@ import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
+import static org.opends.messages.AdminMessages.WARN_ADMIN_SET_PERMISSIONS_FAILED;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.installer.DataReplicationOptions.Type.*;
@@ -37,10 +38,15 @@ import static org.opends.server.backends.task.TaskState.*;
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +59,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.naming.ldap.Rdn;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.swing.JPanel;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -125,6 +133,8 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilePermission;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.CollectionUtils;
@@ -204,6 +214,8 @@ public class Installer extends GuiApplication
   private final Map<WizardStep, WizardStep> hmPreviousSteps = new HashMap<>();
 
   private char[] selfSignedCertPw;
+
+  private ApplicationTrustManager trustManager;
 
   private boolean registeredNewServerOnRemote;
   private boolean createdAdministrator;
@@ -1363,6 +1375,8 @@ public class Installer extends GuiApplication
       case PKCS11:
         configureKeyAndTrustStore(CertificateManager.KEY_STORE_PATH_PKCS11, CertificateManager.KEY_STORE_TYPE_PKCS11,
             CertificateManager.KEY_STORE_TYPE_JKS, sec);
+        configureAdminKeyAndTrustStore(CertificateManager.KEY_STORE_PATH_PKCS11, CertificateManager.KEY_STORE_TYPE_PKCS11,
+                CertificateManager.KEY_STORE_TYPE_JKS, sec);
         break;
 
       default:
@@ -1394,6 +1408,38 @@ public class Installer extends GuiApplication
     }
   }
 
+  private void configureAdminKeyAndTrustStore(final String keyStorePath, final String keyStoreType,
+      final String trustStoreType, final SecurityOptions sec) throws Exception
+  {
+    final String keystorePassword = sec.getKeystorePassword();
+    final String trustStorePath = getPath2("admin-truststore");
+
+    CertificateManager certManager = new CertificateManager(keyStorePath, keyStoreType, keystorePassword);
+    for (String keyStoreAlias : sec.getAliasesToUse())
+    {
+      SetupUtils.exportCertificate(certManager, keyStoreAlias, getTemporaryCertificatePath());
+      configureAdminTrustStore(trustStorePath, trustStoreType, keyStoreAlias, keystorePassword);
+    }
+
+    // Set default trustManager to allow check server startup status
+    if (com.forgerock.opendj.util.StaticUtils.isFips()) {
+        KeyStore truststore = null;
+        try (final FileInputStream fis = new FileInputStream(trustStorePath))
+        {
+          truststore = KeyStore.getInstance(trustStoreType);
+          truststore.load(fis, keystorePassword.toCharArray());
+        }
+        catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
+        {
+          // Nothing to do: if this occurs we will systematically refuse the certificates.
+          // Maybe we should avoid this and be strict, but we are in a best effort mode.
+          logger.warn(LocalizableMessage.raw("Error with the truststore"), e);
+        }
+
+        this.trustManager = new ApplicationTrustManager(truststore);
+    }
+  }
+
   private void configureTrustStore(final String type, final String keyStoreAlias, final String password)
       throws Exception
   {
@@ -1404,6 +1450,28 @@ public class Installer extends GuiApplication
     createProtectedFile(getKeystorePinPath(), password);
     final File f = new File(getTemporaryCertificatePath());
     f.delete();
+  }
+
+  private void configureAdminTrustStore(final String trustStorePath, final String type, final String keyStoreAlias, final String password)
+      throws Exception
+  {
+    final String alias = keyStoreAlias != null ? keyStoreAlias : SELF_SIGNED_CERT_ALIASES[0];
+    final CertificateManager trustMgr = new CertificateManager(trustStorePath, type, password);
+    trustMgr.addCertificate(alias, new File(getTemporaryCertificatePath()));
+
+    createProtectedFile(getKeystorePinPath(), password);
+    final File f = new File(getTemporaryCertificatePath());
+    f.delete();
+  }
+
+  @Override
+  public ApplicationTrustManager getTrustManager()
+  {
+	if (trustManager != null) {
+		return trustManager;
+	}
+
+	return super.getTrustManager();
   }
 
   private void addCertificateArguments(SecurityOptions sec, List<String> argList)
@@ -4602,6 +4670,7 @@ public class Installer extends GuiApplication
     FileManager fileManager = new FileManager();
     fileManager.synchronize(getInstallation().getTemplateDirectory(), getInstallation().getInstanceDirectory());
   }
+
 }
 
 /** Class used to be able to cancel long operations. */

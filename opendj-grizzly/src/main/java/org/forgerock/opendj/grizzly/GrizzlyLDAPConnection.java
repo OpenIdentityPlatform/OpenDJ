@@ -87,6 +87,8 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 /** LDAP connection implementation. */
 final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventListener {
     static final int LDAP_V3 = 3;
@@ -95,12 +97,15 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
      * config. This prevents Grizzly from needlessly using JVM defaults which
      * may be incorrectly configured.
      */
-    private static final SSLEngineConfigurator DUMMY_SSL_ENGINE_CONFIGURATOR;
+    private static SSLEngineConfigurator DUMMY_SSL_ENGINE_CONFIGURATOR = null;
     static {
         try {
-            DUMMY_SSL_ENGINE_CONFIGURATOR =
-                    new SSLEngineConfigurator(new SSLContextBuilder().setTrustManager(
-                            TrustManagers.distrustAll()).getSSLContext());
+        	// We need to use FIPS compatible Trust Manasger in FIPS mode
+        	if (!StaticUtils.isFips()) {
+	        	DUMMY_SSL_ENGINE_CONFIGURATOR =
+	                    new SSLEngineConfigurator(new SSLContextBuilder().setTrustManager(
+	                            TrustManagers.distrustAll()).getSSLContext());
+        	}
         } catch (GeneralSecurityException e) {
             // This should never happen.
             throw new IllegalStateException("Unable to create Dummy SSL Engine Configurator", e);
@@ -823,14 +828,30 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
             sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ? null : cipherSuites
                     .toArray(new String[cipherSuites.size()]));
             sslEngineConfigurator.setCipherConfigured(true);
-            final SSLFilter sslFilter = new SSLFilter(DUMMY_SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+            
+            SSLEngineConfigurator serverSslEngineConfigurator = buildServerSSLEngineConfigurator(sslContext);
+            final SSLFilter sslFilter = new SSLFilter(serverSslEngineConfigurator, sslEngineConfigurator);
             sslFilter.setHandshakeTimeout(getLongProperty("org.forgerock.opendj.grizzly.handshakeTimeout", sslFilter.getHandshakeTimeout(TimeUnit.MILLISECONDS)), TimeUnit.MILLISECONDS);
             installFilter(sslFilter);
             sslFilter.handshake(connection, completionHandler);
         }
     }
 
-    private LdapException adaptRequestIOException(final IOException e) {
+    private SSLEngineConfigurator buildServerSSLEngineConfigurator(SSLContext sslContext) {
+        if (DUMMY_SSL_ENGINE_CONFIGURATOR != null) {
+        	return DUMMY_SSL_ENGINE_CONFIGURATOR;
+        }
+        
+        if (sslContext == null) {
+            throw new IllegalStateException("SSL context should be defined in FIPS mode");
+        }
+        
+        SSLEngineConfigurator sslEngineConfigurator = new SSLEngineConfigurator(sslContext);
+        
+        return sslEngineConfigurator;
+	}
+
+	private LdapException adaptRequestIOException(final IOException e) {
         // FIXME: what other sort of IOExceptions can be thrown?
         // FIXME: Is this the best result code?
         final Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
