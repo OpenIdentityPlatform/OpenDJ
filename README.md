@@ -5,7 +5,7 @@
 [![Last commit](https://img.shields.io/github/last-commit/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/commits/master)
 [![License](https://img.shields.io/badge/license-CDDL-blue.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/LICENSE.md)
 [![Downloads](https://img.shields.io/github/downloads/OpenIdentityPlatform/OpenDJ/total.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/releases)
-[![Docker](https://shields.beevelop.com/docker/pulls/openidentityplatform/opendj.svg)](https://hub.docker.com/r/openidentityplatform/opendj)
+[![Docker](https://img.shields.io/docker/pulls/openidentityplatform/opendj.svg)](https://hub.docker.com/r/openidentityplatform/opendj)
 [![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/OpenIdentityPlatform/OpenDJ)
 [![Top language](https://img.shields.io/github/languages/top/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 [![Code size in bytes](https://img.shields.io/github/languages/code-size/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
