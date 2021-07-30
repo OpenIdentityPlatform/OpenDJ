@@ -85,6 +85,7 @@ import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This class provides a very basic tool that can be used to configure some of
@@ -186,6 +187,8 @@ public class ConfigureDS
       + "ds-cfg-enabled: false" + NEW_LINE
       + "ds-cfg-trust-store-type: JCEKS" + NEW_LINE
       + "ds-cfg-trust-store-file: config/truststore" + NEW_LINE;
+
+  private static final String DN_ADMIN_KEY_MANAGER = "cn=Administration,cn=Key Manager Providers," + DN_CONFIG_ROOT;
 
   /** The DN of the configuration entry defining the LDAP connection handler. */
   private static final String DN_LDAP_CONNECTION_HANDLER = "cn=LDAP Connection Handler," + DN_CONNHANDLER_BASE;
@@ -878,6 +881,9 @@ public class ConfigureDS
       putKeyManagerConfigAttribute(enableStartTLS, DN_LDAP_CONNECTION_HANDLER);
       putKeyManagerConfigAttribute(ldapsPort, DN_LDAPS_CONNECTION_HANDLER);
       putKeyManagerConfigAttribute(ldapsPort, DN_HTTP_CONNECTION_HANDLER);
+      if (StaticUtils.isFips()) {
+          putAdminKeyManagerConfigAttribute(ldapsPort, DN_ADMIN_KEY_MANAGER);
+      }
 
       if (keyManagerPath.isPresent())
       {
@@ -909,6 +915,39 @@ public class ConfigureDS
             ATTR_KEYMANAGER_DN,
             CoreSchema.getDirectoryStringSyntax(),
             keyManagerProviderDN.getValue());
+      }
+      catch (final Exception e)
+      {
+        throw new ConfigureDSException(e, ERR_CONFIGDS_CANNOT_UPDATE_KEYMANAGER_REFERENCE.get(e));
+      }
+    }
+  }
+
+  private void putAdminKeyManagerConfigAttribute(final Argument arg, final String attributeDN)
+      throws ConfigureDSException
+  {
+    if (arg.isPresent())
+    {
+      try
+      {
+        updateConfigEntryByRemovingAttribute(attributeDN, ATTR_KEYSTORE_TYPE);
+        updateConfigEntryByRemovingAttribute(attributeDN, ATTR_KEYSTORE_FILE);
+
+        updateConfigEntryWithObjectClasses(
+                attributeDN,
+                "top", "ds-cfg-pkcs11-key-manager-provider", "ds-cfg-key-manager-provider");
+
+        updateConfigEntryWithAttribute(
+            attributeDN,
+            ATTR_KEYMANAGER_CLASS,
+            CoreSchema.getDirectoryStringSyntax(),
+            "org.opends.server.extensions.PKCS11KeyManagerProvider");
+
+        updateConfigEntryWithAttribute(
+                attributeDN,
+                ATTR_KEYSTORE_PIN_FILE,
+                CoreSchema.getDirectoryStringSyntax(),
+                "config/keystore.pin");
       }
       catch (final Exception e)
       {
@@ -1127,6 +1166,15 @@ public class ConfigureDS
     configHandler.replaceEntry(configEntry, Converters.from(newEntry));
   }
 
+  /** Update a config entry with the provided objectCLass parameters. */
+  private void updateConfigEntryWithObjectClasses(String entryDn, Object...objectCLasses)
+      throws DirectoryException, ConfigException
+  {
+    org.forgerock.opendj.ldap.Entry configEntry = configHandler.getEntry(DN.valueOf(entryDn));
+    final org.forgerock.opendj.ldap.Entry newEntry = putAttribute(configEntry, ATTR_OBJECTCLASS, CoreSchema.getOIDSyntax(), objectCLasses);
+    configHandler.replaceEntry(configEntry, newEntry, true);
+  }
+
   /**
    * Duplicate the provided entry, and put an attribute to the duplicated entry.
    * <p>
@@ -1158,7 +1206,7 @@ public class ConfigureDS
     {
       if (t.hasNameOrOID(attrName))
       {
-        entry.getUserAttributes().remove(t);
+    	duplicateEntry.getUserAttributes().remove(t);
         return duplicateEntry;
       }
     }
@@ -1167,7 +1215,7 @@ public class ConfigureDS
     {
       if (t.hasNameOrOID(attrName))
       {
-        entry.getOperationalAttributes().remove(t);
+    	duplicateEntry.getOperationalAttributes().remove(t);
         return duplicateEntry;
       }
     }

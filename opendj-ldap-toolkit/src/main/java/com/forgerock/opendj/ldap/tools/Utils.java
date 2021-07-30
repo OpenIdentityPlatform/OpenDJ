@@ -26,6 +26,8 @@ import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
+import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -463,6 +465,7 @@ final class Utils {
     @VisibleForTesting
     static int runTool(final ToolConsoleApplication tool, final String... args) {
         try {
+        	registerBcProvider();
             return tool.run(args);
         } catch (final LDAPToolException e) {
             e.printErrorMessage(tool);

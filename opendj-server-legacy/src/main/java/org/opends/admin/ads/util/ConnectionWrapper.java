@@ -26,6 +26,7 @@ import static org.opends.admin.ads.util.PreferredConnection.Type.*;
 import java.io.Closeable;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManager;
@@ -152,9 +153,18 @@ public class ConnectionWrapper implements Closeable
     if (isLdaps || isStartTls)
     {
       try {
-        options.set(SSL_CONTEXT, getSSLContext(trustManager, keyManager))
+    	SSLContext sslContext = getSSLContext(trustManager, keyManager);
+
+    	List<String> defaultProtocols;
+    	if (trustManager == null) {
+    		defaultProtocols = ConnectionFactoryProvider.getDefaultProtocols();
+    	} else {
+    		defaultProtocols = ConnectionFactoryProvider.getDefaultProtocols(sslContext);
+    	}
+
+    	options.set(SSL_CONTEXT, sslContext)
                 .set(SSL_USE_STARTTLS, isStartTls)
-                .set(SSL_ENABLED_PROTOCOLS, ConnectionFactoryProvider.getDefaultProtocols());
+                .set(SSL_ENABLED_PROTOCOLS, defaultProtocols);
       } catch (NoSuchAlgorithmException e) {
           throw newLdapException(CLIENT_SIDE_PARAM_ERROR, "Unable to perform SSL initialization:" + e.getMessage());
       }

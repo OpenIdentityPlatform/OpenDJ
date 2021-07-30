@@ -90,10 +90,26 @@
 		  <groupId>com.sun.xml.bind</groupId>
 		  <artifactId>jaxb-impl</artifactId>
 		</dependency>
+
+	    <!-- BC FIPS Provider libs -->
+	    <dependency>
+	      <groupId>org.bouncycastle</groupId>
+	      <artifactId>bc-fips</artifactId>
+	      <version>${bc.fips.version}</version>
+	    </dependency>
+	
+	    <dependency>
+	      <groupId>org.bouncycastle</groupId>
+	      <artifactId>bctls-fips</artifactId>
+	      <version>${bctls.fips.version}</version>
+	    </dependency>
     </dependencies>
 
 
     <properties>
+        <bc.fips.version>1.0.2.1</bc.fips.version>
+        <bctls.fips.version>1.0.9</bctls.fips.version>
+
         <opendj.osgi.import.additional>
             com.sun.security.auth*;resolution:=optional
         </opendj.osgi.import.additional>

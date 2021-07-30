@@ -27,6 +27,8 @@ import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -1403,6 +1405,7 @@ public final class DirectoryServer
       // The core Directory Server configuration.
       coreConfigManager.initializeCoreConfig();
 
+      registerBcProvider();
       initializeCryptoManager();
 
       rotationPolicyConfigManager = new LogRotationPolicyConfigManager(serverContext);

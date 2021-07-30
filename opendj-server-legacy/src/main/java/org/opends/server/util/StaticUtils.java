@@ -71,6 +71,8 @@ import org.opends.server.types.IdentifiedException;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import java.security.Provider;
+import java.security.Security;
 
 /**
  * This class defines a number of static utility methods that may be used
@@ -2579,5 +2581,18 @@ public final class StaticUtils
       }
     }
   }
+
+  public static List<String> splittedStringAsList(String str, String delim) {
+      final List<String> result = new ArrayList<String>();
+      if ((str != null) && !str.isEmpty()) {
+          final String[] array = str.split(delim);
+          if (array.length > 0) {
+              result.addAll(Arrays.asList(array));
+          }
+      }
+
+      return result;
+  }
+
 }
 

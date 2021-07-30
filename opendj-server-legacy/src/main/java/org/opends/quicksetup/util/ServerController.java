@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.net.ssl.TrustManager;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -39,6 +41,7 @@ import org.opends.server.types.HostPort;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
+import com.forgerock.opendj.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
@@ -308,6 +311,7 @@ public class ServerController {
    * connect to the server after starting to verify that it is listening.
    * @param suppressOutput indicating that ouput to standard output streams
    * from the server should be suppressed.
+   * @param trustManager can be null
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
   private void startServer(boolean verifyCanConnect, boolean suppressOutput)
@@ -454,6 +458,11 @@ public class ServerController {
       userDn = null;
       userPw = null;
     }
+    
+    TrustManager trustManager = null;
+    if (StaticUtils.isFips()) {
+      trustManager = application.getTrustManager().getX509TrustManager();
+    }
 
     for (int i=0; i<50 && !connected; i++)
     {
@@ -463,7 +472,7 @@ public class ServerController {
         timeout = application.getUserData().getConnectTimeout();
       }
       HostPort hp = new HostPort(getHostName(i), port);
-      try (ConnectionWrapper conn = new ConnectionWrapper(hp, LDAPS, userDn, userPw, timeout, null))
+      try (ConnectionWrapper conn = new ConnectionWrapper(hp, LDAPS, userDn, userPw, timeout, trustManager))
       {
         return;
       }

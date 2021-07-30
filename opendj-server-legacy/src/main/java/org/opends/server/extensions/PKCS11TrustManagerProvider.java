@@ -12,7 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2006-2010 Sun Microsystems, Inc.
- * Portions Copyright 2014-2016 ForgeRock AS.
+ * Portions Copyright 2021 Gluu, Inc.
  */
 package org.opends.server.extensions;
 
@@ -28,7 +28,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.server.config.server.TrustManagerProviderCfg;
-import org.forgerock.opendj.server.config.server.FileBasedTrustManagerProviderCfg;
+import org.forgerock.opendj.server.config.server.PKCS11TrustManagerProviderCfg;
 import org.opends.server.api.TrustManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -43,77 +43,69 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.FileBasedKeyManagerProvider.getKeyStorePIN;
 import static org.opends.server.util.StaticUtils.*;
 
-import static com.forgerock.opendj.util.StaticUtils.isFips;
-
 /**
  * This class defines a trust manager provider that will reference certificates
  * stored in a file located on the Directory Server filesystem.
  */
-public class FileBasedTrustManagerProvider
-       extends TrustManagerProvider<FileBasedTrustManagerProviderCfg>
-       implements ConfigurationChangeListener<FileBasedTrustManagerProviderCfg>
+public class PKCS11TrustManagerProvider
+       extends TrustManagerProvider<PKCS11TrustManagerProviderCfg>
+       implements ConfigurationChangeListener<PKCS11TrustManagerProviderCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** The truststore type to use when accessing the PKCS#11 keystore. */
+  private static final String PKCS11_TRUSTSTORE_TYPE = "PKCS11";
 
   /** The PIN needed to access the trust store. */
   private char[] trustStorePIN;
 
   /** The handle to the configuration for this trust manager. */
-  private FileBasedTrustManagerProviderCfg currentConfig;
-
-  /** The path to the trust store backing file. */
-  private String trustStoreFile;
-
-  /** The trust store type to use. */
-  private String trustStoreType;
+  private PKCS11TrustManagerProviderCfg currentConfig;
 
   /**
    * Creates a new instance of this file-based trust manager provider.  The
    * <CODE>initializeTrustManagerProvider</CODE> method must be called on the
    * resulting object before it may be used.
    */
-  public FileBasedTrustManagerProvider()
+  public PKCS11TrustManagerProvider()
   {
     // No implementation is required.
   }
 
   @Override
-  public void initializeTrustManagerProvider(FileBasedTrustManagerProviderCfg cfg)
+  public void initializeTrustManagerProvider(PKCS11TrustManagerProviderCfg cfg)
           throws ConfigException, InitializationException
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     currentConfig = cfg;
-    trustStoreFile = getTrustStoreFile(cfg, ccr);
-    trustStoreType = getTrustStoreType(cfg, ccr);
     trustStorePIN = getTrustStorePIN(cfg, ccr);
     if (!ccr.getMessages().isEmpty())
     {
       throw new InitializationException(ccr.getMessages().get(0));
     }
 
-    cfg.addFileBasedChangeListener(this);
+    cfg.addPKCS11ChangeListener(this);
   }
 
   @Override
   public void finalizeTrustManagerProvider()
   {
-    currentConfig.removeFileBasedChangeListener(this);
+    currentConfig.removePKCS11ChangeListener(this);
   }
 
   @Override
   public TrustManager[] getTrustManagers() throws DirectoryException
   {
     KeyStore trustStore;
-    try (FileInputStream inputStream = new FileInputStream(getFileForPath(trustStoreFile)))
-    {
-      trustStore = KeyStore.getInstance(trustStoreType);
-      trustStore.load(inputStream, trustStorePIN);
+    try {
+      trustStore = KeyStore.getInstance(PKCS11_TRUSTSTORE_TYPE);
+      trustStore.load(null, trustStorePIN);
     }
     catch (Exception e)
     {
       logger.traceException(e);
-      LocalizableMessage message = ERR_FILE_TRUSTMANAGER_CANNOT_LOAD.get(trustStoreFile, getExceptionMessage(e));
+      LocalizableMessage message = ERR_PKCS11_KEYMANAGER_CANNOT_LOAD.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
 
@@ -123,23 +115,15 @@ public class FileBasedTrustManagerProvider
       TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(trustManagerAlgorithm);
       trustManagerFactory.init(trustStore);
       TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
-      TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
-      if (isFips()) {
-    	  newTrustManagers = trustManagers;
-      } else {
-	      for (int i=0; i < trustManagers.length; i++)
-	      {
-	        newTrustManagers[i] = new ExpirationCheckTrustManager((X509TrustManager) trustManagers[i]);
-	      }
-      }
-      return newTrustManagers;
+
+      return trustManagers;
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
       LocalizableMessage message =
-              ERR_FILE_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(trustStoreFile, getExceptionMessage(e));
+    		  ERR_PKCS11_TRUSTMANAGER_CANNOT_CREATE_FACTORY.get(getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getCoreConfigManager().getServerErrorResultCode(), message, e);
     }
   }
@@ -147,19 +131,17 @@ public class FileBasedTrustManagerProvider
   @Override
   public boolean isConfigurationAcceptable(TrustManagerProviderCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    FileBasedTrustManagerProviderCfg config = (FileBasedTrustManagerProviderCfg) cfg;
+    PKCS11TrustManagerProviderCfg config = (PKCS11TrustManagerProviderCfg) cfg;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
   @Override
-  public boolean isConfigurationChangeAcceptable(FileBasedTrustManagerProviderCfg cfg,
+  public boolean isConfigurationChangeAcceptable(PKCS11TrustManagerProviderCfg cfg,
                                                  List<LocalizableMessage> unacceptableReasons)
   {
     int startSize = unacceptableReasons.size();
 
     final ConfigChangeResult ccr = new ConfigChangeResult();
-    getTrustStoreFile(cfg, ccr);
-    getTrustStoreType(cfg, ccr);
     getTrustStorePIN(cfg, ccr);
     unacceptableReasons.addAll(ccr.getMessages());
 
@@ -167,63 +149,25 @@ public class FileBasedTrustManagerProvider
   }
 
   @Override
-  public ConfigChangeResult applyConfigurationChange(FileBasedTrustManagerProviderCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(PKCS11TrustManagerProviderCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-    String newTrustStoreFile = getTrustStoreFile(cfg, ccr);
-    String newTrustStoreType = getTrustStoreType(cfg, ccr);
     char[] newPIN = getTrustStorePIN(cfg, ccr);
 
     if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       currentConfig = cfg;
       trustStorePIN   = newPIN;
-      trustStoreFile  = newTrustStoreFile;
-      trustStoreType  = newTrustStoreType;
     }
 
     return ccr;
   }
 
-  /** Get the path to the key store file. */
-  private String getTrustStoreFile(FileBasedTrustManagerProviderCfg cfg, ConfigChangeResult ccr)
-  {
-    final String keyStoreFile = cfg.getTrustStoreFile();
-    final File f = getFileForPath(keyStoreFile);
-    if (!f.exists() || !f.isFile())
-    {
-      ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
-      ccr.addMessage(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(keyStoreFile, cfg.dn()));
-    }
-    return keyStoreFile;
-  }
-
-  /** Get the keystore type. If none is specified, then use the default type. */
-  private String getTrustStoreType(FileBasedTrustManagerProviderCfg cfg, ConfigChangeResult ccr)
-  {
-    final String trustStoreType = cfg.getTrustStoreType();
-    if (trustStoreType != null)
-    {
-      try
-      {
-        KeyStore.getInstance(trustStoreType);
-        return trustStoreType;
-      }
-      catch (KeyStoreException e)
-      {
-        logger.traceException(e);
-        ccr.setResultCode(DirectoryServer.getCoreConfigManager().getServerErrorResultCode());
-        ccr.addMessage(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(trustStoreType, cfg.dn(), getExceptionMessage(e)));
-      }
-    }
-    return KeyStore.getDefaultType();
-  }
-
-  private char[] getTrustStorePIN(FileBasedTrustManagerProviderCfg cfg, ConfigChangeResult ccr)
+  private char[] getTrustStorePIN(PKCS11TrustManagerProviderCfg cfg, ConfigChangeResult ccr)
   {
     try
     {
-      return getKeyStorePIN(cfg.getTrustStorePinProperty(),
+      return FileBasedKeyManagerProvider.getKeyStorePIN(cfg.getTrustStorePinProperty(),
                             cfg.getTrustStorePinEnvironmentVariable(),
                             cfg.getTrustStorePinFile(),
                             cfg.getTrustStorePin(),

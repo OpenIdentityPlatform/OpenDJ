@@ -34,12 +34,15 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
@@ -62,6 +65,8 @@ import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.util.Options;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 /** A connection factory designed for use with command line tools. */
 public final class ConnectionFactoryProvider {
@@ -356,7 +361,10 @@ public final class ConnectionFactoryProvider {
      *         If an SSL context could not be created.
      */
     public static List<String> getDefaultProtocols() throws NoSuchAlgorithmException {
-        List<String> enabled = Arrays.asList(SSLContext.getDefault().createSSLEngine().getEnabledProtocols());
+    	return getDefaultProtocols(SSLContext.getDefault());
+    }
+    public static List<String> getDefaultProtocols(SSLContext sslContext) throws NoSuchAlgorithmException {
+        List<String> enabled = Arrays.asList(sslContext.createSSLEngine().getEnabledProtocols());
         final String property = System.getProperty("org.opends.ldaps.protocols");
         final List<String> defaults = new ArrayList<>();
         if (property != null && property.length() != 0) {
@@ -445,6 +453,8 @@ public final class ConnectionFactoryProvider {
 
                         if (akm != null && clientAlias != null) {
                             keyManager = KeyManagers.useSingleCertificate(clientAlias, akm);
+                        } else {
+                        	keyManager = akm;
                         }
 
                         sslContext =
@@ -462,7 +472,7 @@ public final class ConnectionFactoryProvider {
                 try {
                     options.set(SSL_CONTEXT, sslContext)
                             .set(SSL_USE_STARTTLS, useStartTLSArg.isPresent())
-                            .set(SSL_ENABLED_PROTOCOLS, getDefaultProtocols());
+                            .set(SSL_ENABLED_PROTOCOLS, getDefaultProtocols(sslContext));
                 } catch (NoSuchAlgorithmException e) {
                     throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(e.toString()), e);
                 }
@@ -694,9 +704,10 @@ public final class ConnectionFactoryProvider {
      *             If a problem occurs while loading with the key store.
      * @throws CertificateException
      *             If a problem occurs while loading with the key store.
+     * @throws UnrecoverableKeyException 
      */
     public X509KeyManager getKeyManager(String keyStoreFile) throws KeyStoreException,
-            IOException, NoSuchAlgorithmException, CertificateException {
+            IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {
         if (keyStoreFile == null) {
             // Lookup the file name through the JDK property.
             keyStoreFile = getKeyStore();
@@ -712,11 +723,29 @@ public final class ConnectionFactoryProvider {
             keyStorePIN = keyStorePass.toCharArray();
         }
 
-        final KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-        try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
-            keystore.load(fos, keyStorePIN);
+        boolean isFips = StaticUtils.isFips();
+        final String keyStoreType = KeyStore.getDefaultType();
+        final KeyStore keystore = KeyStore.getInstance(keyStoreType);
+        if (isFips) {
+            keystore.load(null, keyStorePIN);
+        } else {
+	        try (final FileInputStream fos = new FileInputStream(keyStoreFile)) {
+	            keystore.load(fos, keyStorePIN);
+	        }
         }
 
+        if (isFips) {
+	        String keyManagerAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+	        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(keyManagerAlgorithm);
+	        keyManagerFactory.init(keystore, keyStorePIN);
+	        
+	        for (final KeyManager km : keyManagerFactory.getKeyManagers()) {
+	            if (km instanceof X509KeyManager) {
+	                return (X509KeyManager) km;
+	            }
+	        }
+        }
+        
         return new ApplicationKeyManager(keystore, keyStorePIN);
     }
 
@@ -802,16 +831,25 @@ public final class ConnectionFactoryProvider {
             return TrustManagers.trustAll();
         }
 
+        boolean isFips = StaticUtils.isFips();
         X509TrustManager tm = null;
         if (trustStorePathArg.isPresent() && trustStorePathArg.getValue().length() > 0) {
-            tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg.getValue(),
-                    TrustManagers.checkUsingTrustStore(trustStorePathArg.getValue(), getTrustStorePIN(), null)));
+        	if (isFips) {
+	            tm = TrustManagers.checkUsingTrustStore(trustStorePathArg.getValue(), getTrustStorePIN(), null);
+        	} else {
+	            tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg.getValue(),
+	                    TrustManagers.checkUsingTrustStore(trustStorePathArg.getValue(), getTrustStorePIN(), null)));
+        	}
         } else if (getTrustStore() != null) {
-            tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg.getValue(),
-                    TrustManagers.checkUsingTrustStore(getTrustStore(), getTrustStorePIN(), null)));
+        	if (isFips) {
+	            tm = TrustManagers.checkUsingTrustStore(getTrustStore(), getTrustStorePIN(), null);
+        	} else {
+                tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg.getValue(),
+                        TrustManagers.checkUsingTrustStore(getTrustStore(), getTrustStorePIN(), null)));
+        	}
         }
 
-        if (app != null && !app.isQuiet()) {
+        if (app != null && !app.isQuiet() && !isFips) {
             return new PromptingTrustManager(app, tm);
         }
 

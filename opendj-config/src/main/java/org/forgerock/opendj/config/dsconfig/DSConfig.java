@@ -28,6 +28,8 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 import static org.forgerock.opendj.config.PropertyOption.*;
 import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
 
+import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -1053,6 +1055,7 @@ public final class DSConfig extends ConsoleApplication {
     private int run(String[] args) {
         // Register global arguments and sub-commands.
         try {
+            registerBcProvider();
             initializeGlobalArguments();
             initializeSubCommands();
         } catch (ArgumentException e) {
