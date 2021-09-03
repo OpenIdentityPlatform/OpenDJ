@@ -1,6 +1,7 @@
 # <img alt="OpenDJ Logo" src="https://github.com/OpenIdentityPlatform/OpenDJ/raw/master/logo.png" width="300"/>
 [![Latest release](https://img.shields.io/github/release/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/releases)
-[![Build](https://github.com/OpenIdentityPlatform/OpenDJ/actions/workflows/maven.yml/badge.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/actions/workflows/maven.yml)
+[![Build](https://github.com/OpenIdentityPlatform/OpenDJ/actions/workflows/build.yml/badge.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/actions/workflows/build.yml)
+[![Deploy](https://github.com/OpenIdentityPlatform/OpenDJ/actions/workflows/deploy.yml/badge.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/actions/workflows/deploy.yml)
 [![Issues](https://img.shields.io/github/issues/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/issues)
 [![Last commit](https://img.shields.io/github/last-commit/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/commits/master)
 [![License](https://img.shields.io/badge/license-CDDL-blue.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/LICENSE.md)
