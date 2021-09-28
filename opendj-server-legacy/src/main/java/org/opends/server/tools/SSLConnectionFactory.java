@@ -47,7 +47,7 @@ import org.opends.server.util.SelectableCertificateKeyManager;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 
 import static org.opends.messages.ToolMessages.*;
-
+import static com.forgerock.opendj.util.StaticUtils.isFips;
 
 /**
  * This class provides SSL connection related utility functions.
@@ -127,11 +127,15 @@ public class SSLConnectionFactory
              getTrustManagers(KeyStore.getDefaultType(), null, trustStorePath,
                               trustStorePassword);
         trustManagers = new TrustManager[tmpTrustManagers.length];
-        for (int i=0; i < trustManagers.length; i++)
-        {
-          trustManagers[i] =
-               new ExpirationCheckTrustManager((X509TrustManager)
-                                               tmpTrustManagers[i]);
+        if (isFips()) {
+          trustManagers = tmpTrustManagers;
+        } else {
+          for (int i=0; i < trustManagers.length; i++)
+          {
+            trustManagers[i] =
+                 new ExpirationCheckTrustManager((X509TrustManager)
+                                                 tmpTrustManagers[i]);
+          }
         }
       }
       if(keyStorePath != null)

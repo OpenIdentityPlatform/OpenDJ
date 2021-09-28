@@ -166,10 +166,10 @@ public class LDAPConnectionArgumentParser extends ArgumentParser
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(args.getTrustAllArg().isPresent(),
                                   args.getKeyStorePathArg().getValue(),
-                                  args.getKeyStorePasswordArg().getValue(),
+                                  getFirstArgumentValue(args.getKeyStorePasswordArg(), args.getKeyStorePasswordFileArg()),
                                   clientAlias,
                                   args.getTrustStorePathArg().getValue(),
-                                  args.getTrustStorePasswordArg().getValue());
+                                  getFirstArgumentValue(args.getTrustStorePasswordArg(), args.getTrustStorePasswordFileArg()));
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
       catch (SSLConnectionException sce)
