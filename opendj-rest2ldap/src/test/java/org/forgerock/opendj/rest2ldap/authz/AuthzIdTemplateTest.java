@@ -47,7 +47,7 @@ public final class AuthzIdTemplateTest extends ForgeRockTestCase {
             {
                 // Should perform DN quoting.
                 "dn:uid={uid},ou={realm},dc=example,dc=com",
-                "uid=test.user,ou=test\\+cn=quoting,dc=example,dc=com",
+                "uid=test.user,ou=test\\+cn\\=quoting,dc=example,dc=com",
                 map("uid", "test.user", "realm", "test+cn=quoting")
             },
             {

@@ -105,9 +105,9 @@ public class DNTestCase extends SdkTestCase {
             { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
                 "cn=doe+givenname=john,ou=people,dc=example,dc=com",
                 "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
-            { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
-                "givenname=john\\+cn=doe,ou=people,dc=example,dc=com",
-                "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
+            { "givenName=John\\+cn\\=Doe,ou=People,dc=example,dc=com",
+                "givenname=john\\+cn\\=doe,ou=people,dc=example,dc=com",
+                "givenName=John\\+cn\\=Doe,ou=People,dc=example,dc=com" },
             { "cn=Doe\\, John,ou=People,dc=example,dc=com",
                 "cn=doe\\, john,ou=people,dc=example,dc=com",
                 "cn=Doe\\, John,ou=People,dc=example,dc=com" },
@@ -1111,14 +1111,14 @@ public class DNTestCase extends SdkTestCase {
         DN actual = DN.format("uid=%s,dc=test", "#cn=foo+sn=bar");
         DN expected = DN.valueOf("dc=test").child("uid", "#cn=foo+sn=bar");
         assertEquals(actual, expected);
-        assertEquals(actual.toString(), "uid=\\#cn=foo\\+sn=bar,dc=test");
+        assertEquals(actual.toString(), "uid=\\#cn\\=foo\\+sn\\=bar,dc=test");
     }
 
     /** Tests the {@link DN#escapeAttributeValue(Object)} method. */
     @Test
     public void testEscapeAttributeValue() {
         String actual = DN.escapeAttributeValue("#cn=foo+sn=bar");
-        assertEquals(actual, "\\#cn=foo\\+sn=bar");
+        assertEquals(actual, "\\#cn\\=foo\\+sn\\=bar");
     }
 
     /** Tests the {@link DN#toNormalizedByteString()} method. */
