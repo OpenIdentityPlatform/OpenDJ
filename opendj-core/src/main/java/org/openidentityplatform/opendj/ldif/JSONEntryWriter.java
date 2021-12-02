@@ -15,6 +15,7 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldif.EntryWriter;
 import org.forgerock.util.Reject;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class JSONEntryWriter implements EntryWriter {
@@ -48,7 +49,7 @@ public final class JSONEntryWriter implements EntryWriter {
     public JSONEntryWriter writeEntry(final Entry entry) throws IOException {
         Reject.ifNull(entry);
         
-        this.out.println(((firstEntry)?" ":",")+"{\""+entry.getName().toString()+"\":[");
+        this.out.println(((firstEntry)?" ":",")+"{\""+new String(JsonStringEncoder.getInstance().quoteAsString(entry.getName().toString())) +"\":[");
         firstEntry=false;
         
         final TreeMap<String,AbstractMap.SimpleEntry<String,ByteSequence>> attr=new TreeMap<>(); //sort by key:value
