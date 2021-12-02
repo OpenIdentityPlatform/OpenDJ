@@ -47,8 +47,13 @@ public final class JSONEntryReader implements EntryReader {
     public Entry readEntry() throws DecodeException, IOException {
     	if (hasNext()) {
     		final Map<String,List<Map<String,String>>> entry=mapper.readValue(parser,new TypeReference<Map<String,List<Map<String,String>>>>() {});
-    		final Entry res=new LinkedHashMapEntry(entry.keySet().iterator().next());
-    		for (Map<String,String> attrs : entry.get(res.getName().toString())) {
+    		final String key=entry.keySet().iterator().next(); 
+    		final Entry res=new LinkedHashMapEntry(key);
+    		List<Map<String,String>> attrsArray=entry.get(res.getName().toString());
+    		if (attrsArray==null) {
+    			attrsArray=entry.get(key);
+    		}
+    		for (Map<String,String> attrs : attrsArray) {
     			for (java.util.Map.Entry<String,String> attr : attrs.entrySet()) {
     				res.addAttribute(attr.getKey(), attr.getValue());
 				}
