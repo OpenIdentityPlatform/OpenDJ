@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.LDAPWriter;
@@ -87,8 +88,6 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
-import com.forgerock.opendj.util.StaticUtils;
-
 /** LDAP connection implementation. */
 final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventListener {
     static final int LDAP_V3 = 3;
@@ -101,7 +100,7 @@ final class GrizzlyLDAPConnection implements LDAPConnectionImpl, TimeoutEventLis
     static {
         try {
         	// We need to use FIPS compatible Trust Manasger in FIPS mode
-        	if (!StaticUtils.isFips()) {
+        	if (!FipsStaticUtils.isFips()) {
 	        	DUMMY_SSL_ENGINE_CONFIGURATOR =
 	                    new SSLEngineConfigurator(new SSLContextBuilder().setTrustManager(
 	                            TrustManagers.distrustAll()).getSSLContext());

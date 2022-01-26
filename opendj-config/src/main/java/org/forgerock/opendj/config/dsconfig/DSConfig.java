@@ -28,7 +28,7 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 import static org.forgerock.opendj.config.PropertyOption.*;
 import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
 
-import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+import static com.forgerock.opendj.util.FipsStaticUtils.registerBcProvider;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

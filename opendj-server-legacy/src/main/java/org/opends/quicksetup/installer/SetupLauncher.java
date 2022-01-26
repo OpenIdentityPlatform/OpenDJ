@@ -20,7 +20,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+import static com.forgerock.opendj.util.FipsStaticUtils.registerBcProvider;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.CliApplication;

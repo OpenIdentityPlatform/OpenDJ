@@ -16,22 +16,6 @@
  */
 package com.forgerock.opendj.util;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.ServiceLoader;
-import java.util.TimeZone;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -42,8 +26,15 @@ import org.forgerock.opendj.ldap.spi.Provider;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 
-import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTER;
-import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTERED_ALREADY;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Common utility methods.
@@ -71,11 +62,6 @@ public final class StaticUtils {
      * The end-of-line character for this platform.
      */
     public static final String EOL = System.getProperty("line.separator");
-
-    /**
-     * A zero-length byte array.
-     */
-    public static final byte[] EMPTY_BYTES = new byte[0];
 
     /** The name of the time zone for universal coordinated time (UTC). */
     private static final String TIME_ZONE_UTC = "UTC";
@@ -787,33 +773,6 @@ public final class StaticUtils {
             throw new ProviderNotFoundException(providerClass, requestedProvider, String.format(
                     "There was no provider of type '%s' available.", providerClass.getName()));
         }
-    }
-
-    public static boolean isFips() {
-    	java.security.Provider[] providers = java.security.Security.getProviders();
-		for (int i = 0; i < providers.length; i++) {
-			if (providers[i].getName().toLowerCase().contains("fips"))
-				return true;
-		}
-
-		return false;
-	}
-
-    public static void registerBcProvider()
-    {
-    	if (!isFips()) {
-    		return;
-    	}
-    	
-    	org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider bouncyCastleProvider = (org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider) java.security.Security.getProvider(org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider.PROVIDER_NAME);
-  		if (bouncyCastleProvider == null) {
-  			logger.info(INFO_BC_PROVIDER_REGISTER.get());
-
-  			bouncyCastleProvider = new org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider();
-  			java.security.Security.insertProviderAt(bouncyCastleProvider, 1);
-  		} else {
-  			logger.info(INFO_BC_PROVIDER_REGISTERED_ALREADY.get());
-  		}
     }
 
 }

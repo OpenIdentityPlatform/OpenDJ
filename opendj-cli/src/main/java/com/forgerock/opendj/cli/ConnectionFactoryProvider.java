@@ -29,7 +29,6 @@ import static com.forgerock.opendj.cli.CommonArguments.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -48,6 +47,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -65,8 +65,6 @@ import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.util.Options;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /** A connection factory designed for use with command line tools. */
 public final class ConnectionFactoryProvider {
@@ -723,7 +721,7 @@ public final class ConnectionFactoryProvider {
             keyStorePIN = keyStorePass.toCharArray();
         }
 
-        boolean isFips = StaticUtils.isFips();
+        boolean isFips = FipsStaticUtils.isFips();
         final String keyStoreType = KeyStore.getDefaultType();
         final KeyStore keystore = KeyStore.getInstance(keyStoreType);
         if (isFips) {
@@ -831,7 +829,7 @@ public final class ConnectionFactoryProvider {
             return TrustManagers.trustAll();
         }
 
-        boolean isFips = StaticUtils.isFips();
+        boolean isFips = FipsStaticUtils.isFips();
         X509TrustManager tm = null;
         if (trustStorePathArg.isPresent() && trustStorePathArg.getValue().length() > 0) {
         	if (isFips) {
