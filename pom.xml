@@ -78,8 +78,8 @@
 
     <licenses>
         <license>
-            <name>CDDL-1.0</name>
-            <url>http://www.opensource.org/licenses/CDDL-1.0</url>
+            <name>CDDL-1.1</name>
+            <url>https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/LICENSE.md</url>
             <comments>Common Development and Distribution License (CDDL) 1.0.
                 This license applies to OpenDJ source code as indicated in the
                 source files.
