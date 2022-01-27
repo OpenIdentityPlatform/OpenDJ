@@ -47,7 +47,7 @@ import org.opends.server.util.SelectableCertificateKeyManager;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.isFips;
+import static com.forgerock.opendj.util.FipsStaticUtils.isFips;
 
 /**
  * This class provides SSL connection related utility functions.

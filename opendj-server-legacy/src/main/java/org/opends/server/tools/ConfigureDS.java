@@ -43,6 +43,7 @@ import java.util.Set;
 
 import javax.crypto.Cipher;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.adapter.server3x.Converters;
@@ -85,7 +86,6 @@ import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * This class provides a very basic tool that can be used to configure some of
@@ -881,7 +881,7 @@ public class ConfigureDS
       putKeyManagerConfigAttribute(enableStartTLS, DN_LDAP_CONNECTION_HANDLER);
       putKeyManagerConfigAttribute(ldapsPort, DN_LDAPS_CONNECTION_HANDLER);
       putKeyManagerConfigAttribute(ldapsPort, DN_HTTP_CONNECTION_HANDLER);
-      if (StaticUtils.isFips()) {
+      if (FipsStaticUtils.isFips()) {
           putAdminKeyManagerConfigAttribute(ldapsPort, DN_ADMIN_KEY_MANAGER);
       }
 

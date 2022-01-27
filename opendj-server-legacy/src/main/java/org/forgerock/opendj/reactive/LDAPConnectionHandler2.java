@@ -22,7 +22,7 @@ import static org.opends.server.loggers.AccessLogger.logConnect;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import static com.forgerock.opendj.util.StaticUtils.isFips;
+import static com.forgerock.opendj.util.FipsStaticUtils.isFips;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -94,8 +94,6 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Stream;
-import java.security.Provider;
-import java.security.Security;
 
 /**
  * This class defines a connection handler that will be used for communicating with clients over LDAP. It is actually

@@ -25,6 +25,7 @@ import java.util.Map;
 
 import javax.net.ssl.TrustManager;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -41,7 +42,6 @@ import org.opends.server.types.HostPort;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
-import com.forgerock.opendj.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
@@ -460,7 +460,7 @@ public class ServerController {
     }
     
     TrustManager trustManager = null;
-    if (StaticUtils.isFips()) {
+    if (FipsStaticUtils.isFips()) {
       trustManager = application.getTrustManager().getX509TrustManager();
     }
 

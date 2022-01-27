@@ -26,7 +26,7 @@ import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolException
 import static com.forgerock.opendj.ldap.tools.LDAPToolException.newToolParamException;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
-import static com.forgerock.opendj.util.StaticUtils.registerBcProvider;
+import static com.forgerock.opendj.util.FipsStaticUtils.registerBcProvider;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

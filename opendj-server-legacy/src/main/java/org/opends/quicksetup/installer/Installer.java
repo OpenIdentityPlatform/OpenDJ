@@ -27,7 +27,6 @@ import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.admin.ads.util.PreferredConnection.Type.*;
-import static org.opends.messages.AdminMessages.WARN_ADMIN_SET_PERMISSIONS_FAILED;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.installer.DataReplicationOptions.Type.*;
@@ -42,7 +41,6 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -59,10 +57,9 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.naming.ldap.Rdn;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
 import javax.swing.JPanel;
 
+import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
@@ -133,8 +130,6 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.tools.BackendTypeHelper;
 import org.opends.server.tools.BackendTypeHelper.BackendTypeUIAdapter;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.FilePermission;
 import org.opends.server.types.HostPort;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.CollectionUtils;
@@ -1422,7 +1417,7 @@ public class Installer extends GuiApplication
     }
 
     // Set default trustManager to allow check server startup status
-    if (com.forgerock.opendj.util.StaticUtils.isFips()) {
+    if (FipsStaticUtils.isFips()) {
         KeyStore truststore = null;
         try (final FileInputStream fis = new FileInputStream(trustStorePath))
         {
