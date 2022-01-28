@@ -59,7 +59,6 @@ import java.util.Set;
 import javax.naming.ldap.Rdn;
 import javax.swing.JPanel;
 
-import com.forgerock.opendj.util.FipsStaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
@@ -1417,7 +1416,7 @@ public class Installer extends GuiApplication
     }
 
     // Set default trustManager to allow check server startup status
-    if (FipsStaticUtils.isFips()) {
+    if (com.forgerock.opendj.util.StaticUtils.isFips()) {
         KeyStore truststore = null;
         try (final FileInputStream fis = new FileInputStream(trustStorePath))
         {
