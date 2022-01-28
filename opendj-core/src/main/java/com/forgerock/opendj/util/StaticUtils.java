@@ -36,6 +36,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTER;
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTERED_ALREADY;
+
 /**
  * Common utility methods.
  */
@@ -775,4 +778,18 @@ public final class StaticUtils {
         }
     }
 
+    public static boolean isFips() {
+    	java.security.Provider[] providers = java.security.Security.getProviders();
+		for (int i = 0; i < providers.length; i++) {
+			if (providers[i].getName().toLowerCase().contains("fips"))
+				return true;
+		}
+		return false;
+	}
+
+    public static void registerBcProvider() {
+       try {
+           FipsStaticUtils.registerBcProvider();
+       } catch (NoClassDefFoundError e) {}
+    }
 }

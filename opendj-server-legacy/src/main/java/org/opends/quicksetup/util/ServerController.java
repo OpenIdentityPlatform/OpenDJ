@@ -25,7 +25,7 @@ import java.util.Map;
 
 import javax.net.ssl.TrustManager;
 
-import com.forgerock.opendj.util.FipsStaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -460,7 +460,7 @@ public class ServerController {
     }
     
     TrustManager trustManager = null;
-    if (FipsStaticUtils.isFips()) {
+    if (StaticUtils.isFips()) {
       trustManager = application.getTrustManager().getX509TrustManager();
     }
 

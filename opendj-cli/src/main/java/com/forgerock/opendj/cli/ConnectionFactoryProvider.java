@@ -47,7 +47,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import com.forgerock.opendj.util.FipsStaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -721,7 +721,7 @@ public final class ConnectionFactoryProvider {
             keyStorePIN = keyStorePass.toCharArray();
         }
 
-        boolean isFips = FipsStaticUtils.isFips();
+        boolean isFips = StaticUtils.isFips();
         final String keyStoreType = KeyStore.getDefaultType();
         final KeyStore keystore = KeyStore.getInstance(keyStoreType);
         if (isFips) {
@@ -829,7 +829,7 @@ public final class ConnectionFactoryProvider {
             return TrustManagers.trustAll();
         }
 
-        boolean isFips = FipsStaticUtils.isFips();
+        boolean isFips = StaticUtils.isFips();
         X509TrustManager tm = null;
         if (trustStorePathArg.isPresent() && trustStorePathArg.getValue().length() > 0) {
         	if (isFips) {
