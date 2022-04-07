@@ -2,31 +2,43 @@ FROM openjdk:8-jre-alpine
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
-ARG ADD_BASE_ENTRY="--addBaseEntry"
-
-ARG PORT=1389
-
-ARG LDAPS_PORT=1636
-
-ARG BASE_DN="dc=example,dc=com"
-
-ARG ROOT_USER_DN="cn=Directory Manager"
-
-ARG ROOT_PASSWORD=password
+ENV ADD_BASE_ENTRY="--addBaseEntry" \
+    PORT=1389 \
+    LDAPS_PORT=1636 \
+    BASE_DN=${BASE_DN:-"dc=example,dc=com"} \
+    ROOT_USER_DN=${ROOT_USER_DN:-"cn=Directory Manager"} \
+    ROOT_PASSWORD=${ROOT_PASSWORD:-"password"} \
+    SECRET_VOLUME=${SECRET_VOLUME} \
+    OPENDJ_SSL_OPTIONS=${SSL_OPTIONS:-"--generateSelfSignedCertificate"} \
+    MASTER_SERVER=${MASTER_SERVER} \
+    OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE} \
+    OPENDJ_USER="opendj"
 
 ARG VERSION=@project_version@
 
 WORKDIR /opt
 
-RUN apk add --update --no-cache wget unzip && apk --update upgrade --no-cache
+RUN apk add --update --no-cache --virtual builddeps wget unzip \
+ && apk upgrade --update --no-cache \
+ && apk add bash \
+ && wget --quiet https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip \
+ && unzip opendj-$VERSION.zip \
+ && apk del builddeps \
+ && rm -r opendj-$VERSION.zip \
+ && addgroup -S $OPENDJ_USER \
+ && adduser -S -u 1001 -G $OPENDJ_USER $OPENDJ_USER \
+ && install -d -o $OPENDJ_USER /opt/opendj/data \
+ && chown -R $OPENDJ_USER:$OPENDJ_USER /opt/opendj \
+ && chmod -R g=u /opt/opendj
 
-RUN wget --quiet \
-  https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip && \
-  unzip opendj-$VERSION.zip && \
-  rm -r opendj-$VERSION.zip
+COPY --chown=$OPENDJ_USER:$OPENDJ_USER bootstrap/ /opt/opendj/bootstrap/
 
-RUN /opt/opendj/setup --cli -p $PORT --ldapsPort $LDAPS_PORT --enableStartTLS \
-  --generateSelfSignedCertificate --baseDN "$BASE_DN" -h localhost --rootUserDN "$ROOT_USER_DN" \
-  --rootUserPassword "$ROOT_PASSWORD" --acceptLicense --no-prompt --doNotStart $ADD_BASE_ENTRY
+COPY --chown=$OPENDJ_USER:$OPENDJ_USER run.sh /opt/opendj/run.sh
 
-CMD ["/opt/opendj/bin/start-ds", "--nodetach"]
+RUN chmod +x /opt/opendj/run.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/bootstrap/replicate.sh
+
+EXPOSE $PORT $LDAPS_PORT 4444
+
+USER $OPENDJ_USER
+
+ENTRYPOINT ["/opt/opendj/run.sh"]
