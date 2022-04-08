@@ -275,8 +275,8 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
                 }
             }
             writeToFile(builder.toString(), output);
-            if (!pageCopy.delete()) {
-                throw new IOException("Failed to delete " +  pageCopy.getName());
+            if (pageCopy.exists() && !pageCopy.delete()) {
+                throw new IOException("Failed to delete " +pageCopy.getPath() + " " + pageCopy.getName());
             }
         }
     }
