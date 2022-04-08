@@ -30,4 +30,4 @@ jobs:
     - name: Build with Maven
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-      run: mvn --batch-mode  --update-snapshots package --file pom.xml
+      run: mvn --batch-mode  --update-snapshots package -P distribution --file pom.xml

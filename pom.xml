@@ -144,7 +144,7 @@
         	<dependency>
         		<groupId>org.openidentityplatform.commons</groupId>
         		<artifactId>parent</artifactId>
-        		<version>2.0.13-SNAPSHOT</version>
+        		<version>2.0.13</version>
         		<type>pom</type>
         		<scope>import</scope>
         	</dependency>
@@ -325,7 +325,7 @@
 			<plugin>
 		      <groupId>org.sonatype.plugins</groupId>
 		      <artifactId>nexus-staging-maven-plugin</artifactId>
-		      <version>1.6.11</version>
+		      <version>1.6.12</version>
 		      <extensions>true</extensions>
 		      <configuration>
 		        <serverId>ossrh</serverId>
@@ -335,6 +335,13 @@
 		        <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
 		        <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
 		      </configuration>
+		      <dependencies>
+		      	<dependency>
+			        <groupId>com.google.guava</groupId>
+			        <artifactId>guava</artifactId>
+			        <version>15.0</version>
+			     </dependency>
+		      </dependencies>
 		    </plugin>
         </plugins>
 
