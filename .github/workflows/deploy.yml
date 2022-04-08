@@ -43,4 +43,4 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
         if: ${{ env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!=''}}
-        run: mvn --batch-mode --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -P distribution deploy --file pom.xml
+        run: mvn --batch-mode --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} --activate-profiles distribution deploy --file pom.xml
