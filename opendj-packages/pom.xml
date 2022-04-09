@@ -43,17 +43,28 @@
 
     <profiles>
         <profile>
-            <id>distribution</id>
+            <id>distribution-unix</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <os><family>unix</family></os>
             </activation>
             <modules>
             	<module>../opendj-doc-generated-ref</module>
                 <module>opendj-deb</module>
                 <module>opendj-rpm</module>
                 <module>opendj-svr4</module>
+                
                 <module>opendj-msi</module>
-                <module>opendj-docker</module>
+    		 	<module>opendj-docker</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>distribution-windows</id>
+            <activation>
+                <os><family>windows</family></os>
+            </activation>
+            <modules>
+            	<module>opendj-msi</module>
+    	 		<module>opendj-docker</module>
             </modules>
         </profile>
     </profiles>
