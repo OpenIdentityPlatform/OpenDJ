@@ -204,7 +204,7 @@
 							    
 							    <echo>------------------- ${exec.heat} ${param.heat} -------------------</echo>
 								<exec executable="${exec.heat}" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
-								   <arg value="${param.heat}" />
+								   <arg value=" ${param.heat}" />
                                     <arg value="dir" /> <arg value="${user.home}/.msi" />
                                     <arg value="-nologo" />
                                     <arg value="-cg" /><arg value="all" />
@@ -221,7 +221,7 @@
                                 <echo>heatStatusCode=${heatStatusCode}</echo>
                                 <echo>------------------- ${exec.candle} ${param.candle} -------------------</echo>
                                 <exec executable="${exec.candle}" dir="${project.build.directory}" resultproperty="candleStatusCode">
-                                	   <arg value="${param.candle}" />
+                                	   <arg value=" ${param.candle}" />
                                     <arg value="-nologo" />
                                     <arg value="-dsrc=${user.home}/.msi" />
                                     <arg value="-dname=${product.name}" />
@@ -235,7 +235,7 @@
                                 <echo>candleStatusCode=${candleStatusCode}</echo>
                                 <echo>------------------- ${exec.light} ${param.light} -------------------</echo>
                                 <exec executable="${exec.light}" dir="${project.build.directory}" resultproperty="lightStatusCode">
-                                	   <arg value="${param.light}" />
+                                	   <arg value=" ${param.light}" />
                                     <arg value="-nologo" />
                                     <arg value="-ext" /> <arg value="WixUIExtension" />
                                     <arg value="-out" /> <arg value="${product.name.lowercase}-${project.version}.msi" />
