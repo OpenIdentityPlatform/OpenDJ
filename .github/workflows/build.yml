@@ -25,12 +25,6 @@ jobs:
               sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
               sudo apt install -y wine32 
               wine --version
-         elif [ "$RUNNER_OS" == "macOS" ]; then
-              brew update
-              brew install rpm 
-              brew install wine-stable --cask
-              #WINEARCH=win32 WINEPREFIX=~/.wine32 wine64 winecfg
-              wine --version
          fi
       shell: bash
     - uses: actions/checkout@v2
