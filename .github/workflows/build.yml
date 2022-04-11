@@ -26,7 +26,7 @@ jobs:
               sudo apt install -y wine32 
               wine --version
          elif [ "$RUNNER_OS" == "macOS" ]; then
-              brew update && brew install rpm && brew cask install wine-stable && wine --version
+              brew update && brew install rpm && brew install wine-stable --cask && wine --version
          fi
       shell: bash
     - uses: actions/checkout@v2
