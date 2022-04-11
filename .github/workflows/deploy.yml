@@ -1,4 +1,4 @@
-name: Deploy Maven
+name: Package/Deploy Maven
 
 on:
   workflow_run:
