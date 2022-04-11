@@ -15,10 +15,10 @@ jobs:
         java: [ '8', '11']
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     steps:
-    - name:  Install wine+rpm for msi
+    - name:  Install wine+rpm for ditribution
       run:   |
          if [ "$RUNNER_OS" == "Linux" ]; then
-              sudo apt-get install -y rpm && sudo dpkg --add-architecture i386 && wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add - && sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ xenial main' && sudo apt update && sudo apt install --install-recommends winehq-stable 
+              sudo dpkg --add-architecture i386 && wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add - && sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ $(lsb_release -cs) main' && sudo apt update && sudo apt install --install-recommends winehq-stable 
          elif [ "$RUNNER_OS" == "macOS" ]; then
               brew update && brew install rpm && brew cask install wine-stable
          fi
