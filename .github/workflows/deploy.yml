@@ -61,19 +61,54 @@ jobs:
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
         if: ${{ github.event.workflow_run.event=='push' && env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!=''}}
         run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} deploy --file pom.xml
-      - name: Upload artifacts
+      - name: Upload artifacts OpenDJ Server
         uses: actions/upload-artifact@v3
         with:
-         name: OpenDJ
-         path: |
-          opendj-server-legacy/target/package/*.zip
-          opendj-ldap-toolkit/target/*.zip
-          opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
-          opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
-          opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
-          opendj-packages/opendj-docker/target/Dockerfile.zip
-          opendj-packages/opendj-openshift-template/*.yaml
-          opendj-doc-generated-ref/target/*.zip
-          opendj-dsml-servlet/target/*.war
-          opendj-rest2ldap-servlet/target/*.war
+         name: OpenDJ Server
+         path: opendj-server-legacy/target/package/*.zip
+      - name: Upload artifacts OpenDJ SDK Toolkit
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ SDK Toolkit
+         path: opendj-ldap-toolkit/target/*.zip
+      - name: Upload artifacts OpenDJ Debian Package
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ Debian Package
+         path: opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
+      - name: Upload artifacts OpenDJ RPM Package
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ RPM Package
+         path: opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+      - name: Upload artifacts OpenDJ MSI Package
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ MSI Package
+         path: opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+      - name: Upload artifacts OpenDJ Docker Packages
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ Docker Packages
+         path: opendj-packages/opendj-docker/target/Dockerfile.zip
+      - name: Upload artifacts OpenDJ Openshift template
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ Openshift template
+         path: opendj-packages/opendj-openshift-template/*.yaml
+      - name: Upload artifacts OpenDJ Doc Generated Reference
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ Doc Generated References
+         path: opendj-doc-generated-ref/target/*.zip
+      - name: Upload artifacts OpenDJ DSML Gateway
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ DSML Gateway
+         path: opendj-dsml-servlet/target/*.war
+      - name: Upload artifacts OpenDJ Commons REST LDAP Gateway
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ Commons REST LDAP Gateway
+         path: opendj-rest2ldap-servlet/target/*.war
 
