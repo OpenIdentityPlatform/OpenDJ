@@ -18,9 +18,9 @@ jobs:
     - name:  Install wine+rpm for ditribution
       run:   |
          if [ "$RUNNER_OS" == "Linux" ]; then
-              sudo dpkg --add-architecture i386 && wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add - && sudo apt-add-repository https://dl.winehq.org/wine-builds/ubuntu/  && sudo apt update && sudo apt install --install-recommends winehq-stable 
+              sudo dpkg --add-architecture i386 && sudo apt update && sudo apt install wine64 wine32 && wine --version
          elif [ "$RUNNER_OS" == "macOS" ]; then
-              brew update && brew install rpm && brew cask install wine-stable
+              brew update && brew install rpm && brew cask install wine-stable && wine --version
          fi
       shell: bash
     - uses: actions/checkout@v2
