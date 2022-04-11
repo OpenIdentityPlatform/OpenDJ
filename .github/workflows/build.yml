@@ -26,7 +26,11 @@ jobs:
               sudo apt install -y wine32 
               wine --version
          elif [ "$RUNNER_OS" == "macOS" ]; then
-              brew update && brew install rpm && brew install wine-stable --cask && wine --version
+              brew update
+              brew install rpm 
+              brew install wine-stable --cask
+              WINEARCH=win32 WINEPREFIX=~/.wine32 winecfg
+              wine --version
          fi
       shell: bash
     - uses: actions/checkout@v2
@@ -44,6 +48,4 @@ jobs:
     - name: Build with Maven
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-        WINEPREFIX: ~/.wine32 
-        WINEARCH: win32
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
