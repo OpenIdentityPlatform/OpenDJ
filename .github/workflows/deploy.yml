@@ -8,13 +8,25 @@ on:
 jobs:
   deploy:
     name: Maven deploy
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event=='push' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Print github context
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: echo "$GITHUB_CONTEXT"
+      - name:  Install wine+rpm for ditribution
+        run:   |
+         if [ "$RUNNER_OS" == "Linux" ]; then
+              sudo dpkg --add-architecture i386
+              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
+              sudo add-apt-repository 'deb [arch=amd64] https://mirror.mxe.cc/repos/apt focal main'
+              sudo apt -qq update
+              sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
+              sudo apt install -y wine32 
+              wine --version
+         fi
+         shell: bash
       - uses: actions/checkout@v2
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v2
@@ -37,10 +49,31 @@ jobs:
         run: |
            cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
            gpg --list-secret-keys --keyid-format LONG
+      - name: Build package local
+        env:
+          MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+        if: ${{ !(github.event.workflow_run.event=='push' && env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!='')}}
+        run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} package --file pom.xml
       - name: Publish to the Maven Central Repository
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-        if: ${{ env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!=''}}
+        if: ${{ github.event.workflow_run.event=='push' && env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!=''}}
         run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} deploy --file pom.xml
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+         name: OpenDJ
+         path: |
+          opendj-server-legacy/target/package/*.zip
+          opendj-ldap-toolkit/target/*.zip
+          opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
+          opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+          opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+          opendj-packages/opendj-docker/target/Dockerfile.zip
+          opendj-packages/opendj-openshift-template/*.yaml
+          opendj-doc-generated-ref/target/*.zip
+          opendj-dsml-servlet/target/*.war
+          opendj-rest2ldap-servlet/target/*.war
+
