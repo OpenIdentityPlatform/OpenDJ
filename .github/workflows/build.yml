@@ -29,6 +29,7 @@ jobs:
               brew update
               brew install rpm 
               brew install wine-stable --cask
+              rm -rf ~/.wine32
               WINEARCH=win32 WINEPREFIX=~/.wine32 wine64 winecfg
               wine --version
          fi
