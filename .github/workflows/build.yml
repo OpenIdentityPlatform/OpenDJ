@@ -15,6 +15,14 @@ jobs:
         java: [ '8', '11']
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     steps:
+    - name:  Install wine+rpm for msi
+      run:   |
+         if [ "$RUNNER_OS" == "Linux" ]; then
+              sudo apt-get install -y rpm && sudo dpkg --add-architecture i386 && wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add - && sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ xenial main' && sudo apt update && sudo apt install --install-recommends winehq-stable 
+         elif [ "$RUNNER_OS" == "macOS" ]; then
+              brew update && brew install rpm && brew cask install wine-stable
+         fi
+      shell: bash
     - uses: actions/checkout@v2
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@v2
@@ -30,4 +38,6 @@ jobs:
     - name: Build with Maven
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+        WINEPREFIX: ~/.wine32 
+        WINEARCH: win32
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
