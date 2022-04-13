@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-slim
+FROM openjdk:11-jre-slim
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
@@ -14,13 +14,14 @@ ENV ADD_BASE_ENTRY="--addBaseEntry" \
     OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE} \
     OPENDJ_USER="opendj"
 
+ARG VERSION=@project_version@
+
 WORKDIR /opt
 
-ADD target/opendj-*.zip .
-
 RUN apt-get update \
- && apt-get install -y --no-install-recommends unzip \
- && unzip opendj-*.zip \
+ && apt-get install -y --no-install-recommends wget unzip \
+ && wget --quiet https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip \
+ && unzip opendj-$VERSION.zip \
  && apt-get remove -y --purge unzip \
  && rm -rf /var/lib/apt/lists/* \
  && rm -r opendj-*.zip \

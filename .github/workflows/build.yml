@@ -46,7 +46,7 @@ jobs:
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v3
       with:
-        name: os-${{ matrix.os }}-java-${{ matrix.java }}
+        name: ${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5
         path:  |
             opendj-server-legacy/target/package/*.zip

@@ -15,7 +15,8 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name:  Install wine+rpm for ditribution
+      - name: Install wine+rpm for ditribution
+        shell: bash
         run:   |
            if [ "$RUNNER_OS" == "Linux" ]; then
                 sudo dpkg --add-architecture i386
@@ -26,7 +27,6 @@ jobs:
                 sudo apt install -y wine32 
                 wine --version
            fi
-        shell: bash
       - uses: actions/checkout@v2
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v2
@@ -61,6 +61,17 @@ jobs:
           MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
         if: ${{ github.event.workflow_run.event=='push' && env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!=''}}
         run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} deploy --file pom.xml
+      - name: Configure Git User
+        run: |
+          git config --local user.name "Open Identity Platform Community"
+          git config --local user.email "open-identity-platform-opendj@googlegroups.com"
+      - name: Publish docs in wiki
+        shell: bash
+        run:   |
+          git clone https://${{ github.token }}@github.com/${{ github.event.repository.html_url }}.wiki.git ../wiki >/dev/null 2>&1
+          rm -rf ../wiki/docbkx; mv opendj-doc-generated-ref/target/docbkx ../wiki;
+          cd ../wiki; git add -A; git commit -a -m "upload docs after deploy ${{ github.sha }}"; 
+          git push --quiet --force https://${{ github.token }}@github.com/${{ github.event.repository.html_url }}.wiki.git >/dev/null 2>&1
       - name: Upload artifacts OpenDJ Server
         uses: actions/upload-artifact@v3
         with:
