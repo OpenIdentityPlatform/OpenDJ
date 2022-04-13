@@ -68,10 +68,10 @@ jobs:
       - name: Publish docs in wiki
         shell: bash
         run:   |
-          git clone https://${{ github.token }}@github.com/${{ github.event.repository.html_url }}.wiki.git ../wiki >/dev/null 2>&1
+          git clone https://${{ github.token }}@github.com/${{ github.repository }}.wiki.git ../wiki >/dev/null 2>&1
           rm -rf ../wiki/docbkx; mv opendj-doc-generated-ref/target/docbkx ../wiki;
           cd ../wiki; git add -A; git commit -a -m "upload docs after deploy ${{ github.sha }}"; 
-          git push --quiet --force https://${{ github.token }}@github.com/${{ github.event.repository.html_url }}.wiki.git >/dev/null 2>&1
+          git push --quiet --force https://${{ github.token }}@github.com/${{ github.repository }}.wiki.git >/dev/null 2>&1
       - name: Upload artifacts OpenDJ Server
         uses: actions/upload-artifact@v3
         with:
