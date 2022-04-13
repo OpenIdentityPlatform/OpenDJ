@@ -43,3 +43,19 @@ jobs:
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
+    - name: Upload artifacts OpenDJ Server
+      uses: actions/upload-artifact@v3
+      with:
+        name: os-${{ matrix.os }}-java-${{ matrix.java }}
+        retention-days: 5
+        path:  |
+            opendj-server-legacy/target/package/*.zip
+            opendj-ldap-toolkit/target/*.zip
+            opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
+            opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+            opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+            opendj-packages/opendj-docker/target/Dockerfile.zip
+            opendj-packages/opendj-openshift-template/*.yaml
+            opendj-doc-generated-ref/target/*.zip
+            opendj-dsml-servlet/target/*.war
+            opendj-rest2ldap-servlet/target/*.war
