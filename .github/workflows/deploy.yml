@@ -65,13 +65,17 @@ jobs:
         run: |
           git config --local user.name "Open Identity Platform Community"
           git config --local user.email "open-identity-platform-opendj@googlegroups.com"
+      - name: Checkout wiki
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
       - name: Publish docs in wiki
         shell: bash
         run:   |
-          git clone https://${{ github.token }}@github.com/${{ github.repository }}.wiki.git ../wiki >/dev/null 2>&1
-          rm -rf ../wiki/docbkx; mv opendj-doc-generated-ref/target/docbkx ../wiki;
-          cd ../wiki; git add -A; git commit -a -m "upload docs after deploy ${{ github.sha }}"; 
-          git push --quiet --force https://${{ github.token }}@github.com/${{ github.repository }}.wiki.git >/dev/null 2>&1
+          rm -rf $GITHUB_WORKSPACE//wiki/docbkx; mv opendj-doc-generated-ref/target/docbkx $GITHUB_WORKSPACE//wiki;
+          cd $GITHUB_WORKSPACE//wiki; git add -A; git commit -a -m "upload docs after deploy ${{ github.sha }}"; 
+          git push --quiet --force 
       - name: Upload artifacts OpenDJ Server
         uses: actions/upload-artifact@v3
         with:
