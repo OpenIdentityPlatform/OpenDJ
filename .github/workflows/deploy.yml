@@ -130,7 +130,6 @@ jobs:
         run:   |
            cd ${{ github.event.repository.name }}.wiki
            mv ../opendj-doc-generated-ref/target/docbkx ../${{ github.event.repository.name }}.wiki
-           echo 2 && ls -laht
            git add -A
            git commit -a -m "upload docs after deploy ${{ github.sha }}"
            git push --quiet --force
