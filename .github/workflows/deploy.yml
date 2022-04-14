@@ -27,7 +27,7 @@ jobs:
                 sudo apt install -y wine32 
                 wine --version
            fi
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v2
         with:
@@ -116,7 +116,7 @@ jobs:
           git config --global user.name "Open Identity Platform Community"
           git config --global user.email "open-identity-platform-opendj@googlegroups.com"
           cd ..
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         continue-on-error: true
         with:
           repository: ${{ github.repository }}.wiki
@@ -128,6 +128,7 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
         run:   |
+           pwd && ls
            cd ../${{ github.event.repository.name }}.wiki
            mv ../${{ github.event.repository.name }}/opendj-doc-generated-ref/target/docbkx ..
            git add -A
