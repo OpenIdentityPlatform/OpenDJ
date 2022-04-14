@@ -27,14 +27,14 @@ jobs:
               wine --version
          fi
       shell: bash
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@v2
       with:
         java-version: ${{ matrix.java }}
         distribution: 'adopt'
     - name: Cache Maven packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}

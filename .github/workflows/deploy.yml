@@ -128,9 +128,8 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
         run:   |
-           pwd && ls
-           cd ../${{ github.event.repository.name }}.wiki
-           mv ../${{ github.event.repository.name }}/opendj-doc-generated-ref/target/docbkx ..
+           cd ${{ github.event.repository.name }}.wiki
+           mv ../opendj-doc-generated-ref/target/docbkx ..
            git add -A
            git commit -a -m "upload docs after deploy ${{ github.sha }}"
            git push --quiet --force
