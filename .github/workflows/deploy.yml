@@ -115,6 +115,7 @@ jobs:
         run: |
           git config --global user.name "Open Identity Platform Community"
           git config --global user.email "open-identity-platform-opendj@googlegroups.com"
+          cd ..
       - uses: actions/checkout@v2
         continue-on-error: true
         with:
@@ -127,8 +128,8 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
         run:   |
-           mv $GITHUB_WORKSPACE/${{ github.event.repository.name }}/opendj-doc-generated-ref/target/docbkx $GITHUB_WORKSPACE/${{ github.event.repository.name }}.wiki
-           cd $GITHUB_WORKSPACE/${{ github.event.repository.name }}.wiki
+           cd ../${{ github.event.repository.name }}.wiki
+           mv ../${{ github.event.repository.name }}/opendj-doc-generated-ref/target/docbkx ..
            git add -A
            git commit -a -m "upload docs after deploy ${{ github.sha }}"
            git push --quiet --force
