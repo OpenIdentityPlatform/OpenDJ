@@ -118,7 +118,7 @@ jobs:
       - uses: actions/checkout@v2
         continue-on-error: true
         with:
-          repository: "${{ github.repository }}.wiki
+          repository: ${{ github.repository }}.wiki
           path: ${{ github.event.repository.name }}.wiki
       - name: Publish docs in wiki
         continue-on-error: true
