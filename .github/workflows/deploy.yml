@@ -63,8 +63,8 @@ jobs:
         run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} deploy --file pom.xml
       - name: Configure Git User
         run: |
-          git config --local user.name "Open Identity Platform Community"
-          git config --local user.email "open-identity-platform-opendj@googlegroups.com"
+          git config --global user.name "Open Identity Platform Community"
+          git config --global user.email "open-identity-platform-opendj@googlegroups.com"
       - name: Upload artifacts OpenDJ Server
         uses: actions/upload-artifact@v3
         with:
@@ -116,5 +116,12 @@ jobs:
          name: OpenDJ Commons REST LDAP Gateway
          path: opendj-rest2ldap-servlet/target/*.war
       - name: Publish docs in wiki
+        continue-on-error: true
         shell: bash
-        run:   (git clone https://${{ github.token }}@github.com/${{ github.repository }}.wiki ../wiki && mv opendj-doc-generated-ref/target/docbkx ../wiki && cd ../wiki && git add -A && git commit -a -m "upload docs after deploy ${{ github.sha }}" && git push --quiet --force) || true
+        run:   |
+           git clone https://${{ github.token }}@github.com/${{ github.repository }}.wiki ../wiki
+           mv opendj-doc-generated-ref/target/docbkx ../wiki
+           cd ../wiki
+           git add -A
+           git commit -a -m "upload docs after deploy ${{ github.sha }}"
+           git push --quiet --force
