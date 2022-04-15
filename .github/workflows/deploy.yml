@@ -129,6 +129,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run:   |
            cd ${{ github.event.repository.name }}.wiki
+           rm -rf docbkx
            mv ../opendj-doc-generated-ref/target/docbkx ../${{ github.event.repository.name }}.wiki
            git add -A
            git commit -a -m "upload docs after deploy ${{ github.sha }}"
