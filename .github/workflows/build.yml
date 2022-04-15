@@ -16,6 +16,7 @@ jobs:
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     steps:
     - name:  Install wine+rpm for ditribution
+      shell: bash
       run:   |
          if [ "$RUNNER_OS" == "Linux" ]; then
               sudo dpkg --add-architecture i386
@@ -26,7 +27,6 @@ jobs:
               sudo apt install -y wine32 
               wine --version
          fi
-      shell: bash
     - uses: actions/checkout@v3
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@v2
@@ -43,6 +43,12 @@ jobs:
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
+    - name: Docker build
+      shell: bash
+      run:   |
+         export git_version_last="$(git describe --abbrev=0 --tags)"
+         docker build opendj-packages/opendj-docker -f Dockerfile -t ${{ github.repository }}:$git_version_last --build-arg VERSION=$git_version_last
+         docker build opendj-packages/opendj-docker -f Dockerfile-alpine -t ${{ github.repository }}:$git_version_last-alpine --build-arg VERSION=$git_version_last
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v3
       with:
