@@ -16,17 +16,16 @@ jobs:
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     steps:
     - name:  Install wine+rpm for ditribution
+      if: runner.os == 'Linux'
       shell: bash
       run:   |
-         if [ "$RUNNER_OS" == "Linux" ]; then
-              sudo dpkg --add-architecture i386
-              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
-              sudo add-apt-repository 'deb [arch=amd64] https://mirror.mxe.cc/repos/apt focal main'
-              sudo apt -qq update
-              sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
-              sudo apt install -y wine32 
-              wine --version
-         fi
+         sudo dpkg --add-architecture i386
+         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
+         sudo add-apt-repository 'deb [arch=amd64] https://mirror.mxe.cc/repos/apt focal main'
+         sudo apt -qq update
+         sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
+         sudo apt install -y wine32 
+         wine --version
     - uses: actions/checkout@v3
       with:
          fetch-depth: 0
@@ -46,6 +45,7 @@ jobs:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
     - name: Docker build
+      if: runner.os != 'Windows'
       shell: bash
       run:   |
          git fetch -t; export git_version_last="$(git describe --abbrev=0 --tags)" ; echo "last release: $git_version_last"
