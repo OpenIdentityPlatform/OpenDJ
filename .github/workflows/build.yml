@@ -45,7 +45,7 @@ jobs:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
     - name: Docker build
-      if: runner.os != 'Windows'
+      if: runner.os == 'Linux'
       shell: bash
       run:   |
          git fetch -t; export git_version_last="$(git describe --abbrev=0 --tags)" ; echo "last release: $git_version_last"
