@@ -46,9 +46,9 @@ jobs:
     - name: Docker build
       shell: bash
       run:   |
-         git fetch --all --tags; export git_version_last="$(git describe --abbrev=0 --tags  --always)" ; echo $git_version_last
-         docker build opendj-packages/opendj-docker -f Dockerfile -t ${GITHUB_REPOSITORY,,}:$git_version_last --build-arg VERSION=$git_version_last
-         docker build opendj-packages/opendj-docker -f Dockerfile-alpine -t ${GITHUB_REPOSITORY,,}:$git_version_last-alpine --build-arg VERSION=$git_version_last
+         git fetch -t; export git_version_last="$(git describe --abbrev=0 --tags)" ; echo "last release: $git_version_last"
+         docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t ${GITHUB_REPOSITORY,,}:$git_version_last --build-arg VERSION=$git_version_last
+         docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile-alpine -t ${GITHUB_REPOSITORY,,}:$git_version_last-alpine --build-arg VERSION=$git_version_last
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v3
       with:
