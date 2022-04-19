@@ -27,6 +27,9 @@ jobs:
            sudo apt install -y wine32 
            wine --version
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
       - name: Set up Java for publishing to Maven Central Repository OSS
         uses: actions/setup-java@v2
         with:
