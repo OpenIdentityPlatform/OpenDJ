@@ -359,7 +359,7 @@
         <profile>
             <id>man-pages</id>
             <activation>
-            		<activeByDefault>true</activeByDefault>
+            		<os><family>unix</family></os>
             	</activation>
             <build><finalName>${project.groupId}.${project.artifactId}</finalName>
                 <plugins>

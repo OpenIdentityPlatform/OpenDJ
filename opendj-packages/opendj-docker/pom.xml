@@ -77,7 +77,8 @@
 		          <tasks>
 			          <zip basedir="${project.build.directory}" destfile="${project.build.directory}/Dockerfile.zip" includes="opendj-docker/**">
 	                  	<fileset dir="${basedir}">
-	      					<include name="Dockerfile" />  <!--NOTE DIFFERENCE HERE-->
+	      					<include name="Dockerfile*" /> 
+	      					<include name="../opendj-openshift-template/*.yaml" /> 
 	                      	<include name="bootstrap/**" />
 	                      	<include name="run.sh" />
 	  					</fileset>

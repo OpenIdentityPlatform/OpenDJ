@@ -1,0 +1,135 @@
+name: Release Maven
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: "Default version to use when preparing a release."
+        required: true
+        default: "X.Y.Z"
+      developmentVersion:
+        description: "Default version to use for new local working copy."
+        required: true
+        default: "X.Y.Z-SNAPSHOT"
+jobs:
+  release:
+    name: Maven release
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Print github context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Install wine+rpm for ditribution
+        shell: bash
+        run:   |
+           sudo dpkg --add-architecture i386
+           sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
+           sudo add-apt-repository 'deb [arch=amd64] https://mirror.mxe.cc/repos/apt focal main'
+           sudo apt -qq update
+           sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
+           sudo apt install -y wine32 
+           wine --version
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Set up Java for publishing to Maven Central Repository OSS
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+         path: ~/.m2/repository
+         key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
+         restore-keys: ${{ runner.os }}-m2-repository
+      - name: Install gpg secret key
+        env:
+           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        if: ${{ env.GPG_PRIVATE_KEY!=''}}
+        run: |
+           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+           gpg --list-secret-keys --keyid-format LONG
+      - name: Configure Git User
+        run: |
+          git config --global user.name "Open Identity Platform Community"
+          git config --global user.email "open-identity-platform-opendj@googlegroups.com"
+      - name: Release and publish to the Maven Central Repository
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+        if: ${{ env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!='' }}
+        run: mvn --batch-mode -Darguments="-Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}" -DtagNameFormat="${{ github.event.inputs.releaseVersion }}" -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }} release:prepare release:perform --file pom.xml
+      - name: Release on GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ github.event.inputs.releaseVersion }}
+          tag_name: ${{ github.event.inputs.releaseVersion }}
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: false
+          generate_release_notes: true
+          files: |
+            opendj-server-legacy/target/package/*.zip
+            opendj-ldap-toolkit/target/*.zip
+            opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
+            opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+            opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+            opendj-packages/opendj-docker/target/Dockerfile.zip
+            opendj-packages/opendj-openshift-template/*.yaml
+            opendj-doc-generated-ref/target/*.zip
+            opendj-dsml-servlet/target/*.war
+            opendj-rest2ldap-servlet/target/*.war
+      - name: Docker publish hub.docker.com
+        if: ${{ secrets.DOCKER_PASSWORD!='' && secrets.DOCKER_USERNAME!=''}}
+        continue-on-error: true
+        shell: bash
+        run:   |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t ${GITHUB_REPOSITORY,,} -t ${GITHUB_REPOSITORY,,}:${{ github.event.inputs.releaseVersion }} --build-arg VERSION=${{ github.event.inputs.releaseVersion }}
+          docker push ${GITHUB_REPOSITORY,,}
+          docker push ${GITHUB_REPOSITORY,,}:${{ github.event.inputs.releaseVersion }}
+          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile-alpine -t ${GITHUB_REPOSITORY,,}:alpine -t ${GITHUB_REPOSITORY,,}:${{ github.event.inputs.releaseVersion }}-alpine --build-arg VERSION=${{ github.event.inputs.releaseVersion }}
+          docker push ${GITHUB_REPOSITORY,,}:alpine
+          docker push ${GITHUB_REPOSITORY,,}:${{ github.event.inputs.releaseVersion }}-alpine
+      - name: Docker publish docker.pkg.github.com
+        continue-on-error: true
+        shell: bash
+        env:
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run:   |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u "Open Identity Platform Community" docker.pkg.github.com --password-stdin
+          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,} -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}:${{ github.event.inputs.releaseVersion }}/${GITHUB_REPOSITORY_NAME,,} --build-arg VERSION=${{ github.event.inputs.releaseVersion }}
+          docker push docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}
+          docker push docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:${{ github.event.inputs.releaseVersion }}
+          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile-alpine -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:alpine -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:${{ github.event.inputs.releaseVersion }}-alpine --build-arg VERSION=${{ github.event.inputs.releaseVersion }}
+          docker push docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:alpine
+          docker push docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:${{ github.event.inputs.releaseVersion }}-alpine
+      - uses: actions/checkout@v3
+        continue-on-error: true
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: ${{ github.event.repository.name }}.wiki
+      - name: Publish docs in wiki
+        continue-on-error: true
+        shell: bash
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run:   |
+           cd ${{ github.event.repository.name }}.wiki
+           rm -rf docbkx
+           mv ../opendj-doc-generated-ref/target/docbkx ../${{ github.event.repository.name }}.wiki
+           git add -A
+           git commit -a -m "upload docs after release ${{ github.event.inputs.releaseVersion }}"
+           git push --quiet --force
+           git tag -f ${{ github.event.inputs.releaseVersion }}           
+           git push --quiet --force ${{ github.event.inputs.releaseVersion }}

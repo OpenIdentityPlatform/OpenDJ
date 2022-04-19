@@ -15,14 +15,28 @@ jobs:
         java: [ '8', '11']
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
     steps:
-    - uses: actions/checkout@v2
+    - name:  Install wine+rpm for ditribution
+      if: runner.os == 'Linux'
+      shell: bash
+      run:   |
+         sudo dpkg --add-architecture i386
+         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 86B72ED9
+         sudo add-apt-repository 'deb [arch=amd64] https://mirror.mxe.cc/repos/apt focal main'
+         sudo apt -qq update
+         sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
+         sudo apt install -y wine32 
+         wine --version
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: recursive
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@v2
       with:
         java-version: ${{ matrix.java }}
         distribution: 'adopt'
     - name: Cache Maven packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -30,4 +44,27 @@ jobs:
     - name: Build with Maven
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-      run: mvn --batch-mode  --update-snapshots package --file pom.xml
+      run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
+    - name: Docker build
+      if: runner.os == 'Linux'
+      shell: bash
+      run:   |
+         git fetch -t; export git_version_last="$(git describe --abbrev=0 --tags)" ; echo "last release: $git_version_last"
+         docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t ${GITHUB_REPOSITORY,,}:$git_version_last --build-arg VERSION=$git_version_last
+         docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile-alpine -t ${GITHUB_REPOSITORY,,}:$git_version_last-alpine --build-arg VERSION=$git_version_last
+    - name: Upload artifacts OpenDJ Server
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.os }}-${{ matrix.java }}
+        retention-days: 5
+        path:  |
+            opendj-server-legacy/target/package/*.zip
+            opendj-ldap-toolkit/target/*.zip
+            opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
+            opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+            opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+            opendj-packages/opendj-docker/target/Dockerfile.zip
+            opendj-packages/opendj-openshift-template/*.yaml
+            opendj-doc-generated-ref/target/*.zip
+            opendj-dsml-servlet/target/*.war
+            opendj-rest2ldap-servlet/target/*.war

@@ -85,9 +85,9 @@
                 <module>opendj-msi-standard</module>
             </modules>
             <properties>
-                <exec.heat>${project.build.directory}/wix/heat.exe</exec.heat><param.heat />
-		        <exec.candle>${project.build.directory}/wix/candle.exe</exec.candle><param.candle />
-		        <exec.light>${project.build.directory}/wix/light.exe</exec.light><param.light />
+                <exec.heat>${project.build.directory}\wix\heat.exe</exec.heat><param.heat />
+		        <exec.candle>${project.build.directory}\wix\candle.exe</exec.candle><param.candle />
+		        <exec.light>${project.build.directory}\wix\light.exe</exec.light><param.light />
             </properties>
         </profile>
     </profiles>

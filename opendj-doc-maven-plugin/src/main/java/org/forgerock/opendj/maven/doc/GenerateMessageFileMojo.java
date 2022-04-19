@@ -365,7 +365,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         final JarFile jarFile = new JarFile(
                 Paths.get(project.getBuild().getDirectory(), "opendj", "lib", "opendj.jar").toString());
         return jarFile.getInputStream(jarFile.getJarEntry(
-                Paths.get("org", "opends", "messages", category + ".properties").toString()));
+                Paths.get("org", "opends", "messages", category + ".properties").toString().replace('\\','/')));
     }
 
     private Map<MessagePropertyKey, String> loadErrorProperties(Properties properties) throws Exception {

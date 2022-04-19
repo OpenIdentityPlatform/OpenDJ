@@ -274,10 +274,11 @@ public final class GenerateRefEntriesMojo extends AbstractMojo {
                     builder.append(line).append(System.getProperty("line.separator"));
                 }
             }
+            reader.close();
             writeToFile(builder.toString(), output);
-            if (!pageCopy.delete()) {
-                throw new IOException("Failed to delete " +  pageCopy.getName());
-            }
+        }
+        if (pageCopy.exists() && !pageCopy.delete()) {
+            throw new IOException("Failed to delete " +pageCopy.getPath() + " " + pageCopy.getName());
         }
     }
 
