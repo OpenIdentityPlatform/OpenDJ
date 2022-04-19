@@ -67,6 +67,7 @@
 							<downloadUrl>
 									https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311-binaries.zip
 	                        </downloadUrl>
+	                        <deploy>false</deploy>
 						</artifactItem>
 						<artifactItem>
 							<groupId>openidentityplatform.org</groupId>
@@ -76,6 +77,7 @@
 							<downloadUrl>
 								https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
 	                        </downloadUrl>
+	                        <deploy>false</deploy>
 						</artifactItem>
 					</artifactItems>
 				</configuration>
