@@ -26,16 +26,16 @@ jobs:
          sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
          sudo apt install -y wine32 
          wine --version
-    - uses: actions/checkout@latest
+    - uses: actions/checkout@v3
       with:
          fetch-depth: 0
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
-      uses: actions/setup-java@latest
+      uses: actions/setup-java@v2
       with:
         java-version: ${{ matrix.java }}
         distribution: 'adopt'
     - name: Cache Maven packages
-      uses: actions/cache@latest
+      uses: actions/cache@v3
       with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -52,7 +52,7 @@ jobs:
          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t ${GITHUB_REPOSITORY,,}:$git_version_last --build-arg VERSION=$git_version_last
          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile-alpine -t ${GITHUB_REPOSITORY,,}:$git_version_last-alpine --build-arg VERSION=$git_version_last
     - name: Upload artifacts OpenDJ Server
-      uses: actions/upload-artifact@latest
+      uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5
