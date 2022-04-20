@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-msi</artifactId>
-        <version>4.4.12-SNAPSHOT</version>
+        <version>4.4.12</version>
     </parent>
 
     <artifactId>opendj-msi-standard</artifactId>
@@ -237,7 +237,7 @@
 								<property name="exec.candle" value="wine" /><property name="param.candle" value="${project.build.directory}/wix/candle.exe" />
 								<property name="exec.light" value="wine" /><property name="param.light" value="${project.build.directory}/wix/light.exe" />
 							    <echo>------------------- ${exec.heat} ${param.heat} -------------------</echo>
-								<exec osfamily="unix"  executable="${exec.heat}" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
+								<exec osfamily="unix" executable="${exec.heat}" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
 								   <arg value="${param.heat}" />
                                     <arg value="dir" /> <arg value="${user.home}/.msi" />
                                     <arg value="-nologo" />
