@@ -112,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run:   |
           echo "$GITHUB_TOKEN" | docker login -u "Open Identity Platform Community" docker.pkg.github.com --password-stdin
-          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,} -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}:${{ github.event.inputs.releaseVersion }}/${GITHUB_REPOSITORY_NAME,,} --build-arg VERSION=${{ github.event.inputs.releaseVersion }}
+          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,} -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:${{ github.event.inputs.releaseVersion }} --build-arg VERSION=${{ github.event.inputs.releaseVersion }}
           docker push docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}
           docker push docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:${{ github.event.inputs.releaseVersion }}
           docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile-alpine -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:alpine -t docker.pkg.github.com/${GITHUB_REPOSITORY,,}/${GITHUB_REPOSITORY_NAME,,}:${{ github.event.inputs.releaseVersion }}-alpine --build-arg VERSION=${{ github.event.inputs.releaseVersion }}
