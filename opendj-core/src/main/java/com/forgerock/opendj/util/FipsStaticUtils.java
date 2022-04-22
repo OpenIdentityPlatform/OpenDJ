@@ -15,7 +15,11 @@ public class FipsStaticUtils {
 
     public static void registerBcProvider()
     {
-          org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider bouncyCastleProvider = (org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider) java.security.Security.getProvider(org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider.PROVIDER_NAME);
+        if(!StaticUtils.isFips()) {
+            return;
+        }
+        org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider bouncyCastleProvider
+                = (org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider) java.security.Security.getProvider(org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider.PROVIDER_NAME);
         if (bouncyCastleProvider == null) {
             FipsStaticUtils.logger.info(INFO_BC_PROVIDER_REGISTER.get());
 
