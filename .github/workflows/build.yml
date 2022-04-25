@@ -53,9 +53,9 @@ jobs:
          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile -t ${GITHUB_REPOSITORY,,}:$git_version_last --build-arg VERSION=$git_version_last
          docker build opendj-packages/opendj-docker -f opendj-packages/opendj-docker/Dockerfile-alpine -t ${GITHUB_REPOSITORY,,}:$git_version_last-alpine --build-arg VERSION=$git_version_last
     - name: Docker test
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
+      if: runner.os == 'Linux'
+      shell: bash
+      run:   |
           docker run --rm -it -d --name=opendj_1  --health-cmd='/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1 || /opt/opendj/bin/stop-ds || exit 1'  --health-retries=10 --health-timeout=10s ${GITHUB_REPOSITORY,,}
           timeout 30s bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj_1 | grep -q \"healthy\"; do sleep 10; done';
     - name: Upload artifacts OpenDJ Server
