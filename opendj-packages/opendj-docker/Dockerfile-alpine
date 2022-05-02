@@ -5,6 +5,7 @@ MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googl
 ENV ADD_BASE_ENTRY="--addBaseEntry" \
     PORT=1389 \
     LDAPS_PORT=1636 \
+    ADMIN_PORT=4444 \
     BASE_DN=${BASE_DN:-"dc=example,dc=com"} \
     ROOT_USER_DN=${ROOT_USER_DN:-"cn=Directory Manager"} \
     ROOT_PASSWORD=${ROOT_PASSWORD:-"password"} \
@@ -32,12 +33,11 @@ RUN apk add --update --no-cache --virtual builddeps wget unzip \
  && chmod -R g=u /opt/opendj
 
 COPY --chown=$OPENDJ_USER:$OPENDJ_USER bootstrap/ /opt/opendj/bootstrap/
-
 COPY --chown=$OPENDJ_USER:$OPENDJ_USER run.sh /opt/opendj/run.sh
 
 RUN chmod +x /opt/opendj/run.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/bootstrap/replicate.sh
 
-EXPOSE $PORT $LDAPS_PORT 4444
+EXPOSE $PORT $LDAPS_PORT $ADMIN_PORT
 
 USER $OPENDJ_USER
 
