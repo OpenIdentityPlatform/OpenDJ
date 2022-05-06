@@ -115,18 +115,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Build image (alpine)
-        continue-on-error: true
-        uses: docker/build-push-action@v2
-        with:
-          context: ./opendj-packages/opendj-docker
-          file: ./opendj-packages/opendj-docker/Dockerfile-alpine
-          build-args: |
-            VERSION=${{ env.release_version }}
-          platforms: linux/amd64,linux/arm64/8
-          push: true
-          tags: ${{ steps.meta_alpine.outputs.tags }}
-          labels: ${{ steps.meta_alpine.outputs.labels }}
       - name: Docker test
         shell: bash
         run: |
@@ -135,3 +123,23 @@ jobs:
           docker run --rm -it -d --name=opendj_1 --health-cmd='/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1 || /opt/opendj/bin/stop-ds || exit 1'  --health-retries=10 --health-timeout=10s ${docker_image}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj_1 | grep -q \"healthy\"; do sleep 10; done'
           docker stop opendj_1 || true
+      - name: Build image (alpine)
+        continue-on-error: true
+        uses: docker/build-push-action@v2
+        with:
+          context: ./opendj-packages/opendj-docker
+          file: ./opendj-packages/opendj-docker/Dockerfile-alpine
+          build-args: |
+            VERSION=${{ env.release_version }}
+          platforms: linux/amd64,linux/arm64/8, linux/s390x, linux/386, linux/arm/v7, linux/arm/v6, linux/ppc64le
+          push: true
+          tags: ${{ steps.meta_alpine.outputs.tags }}
+          labels: ${{ steps.meta_alpine.outputs.labels }}
+      - name: Docker alpine test
+        shell: bash
+        run: |
+          export docker_image="localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine"
+          echo "last release: ${{ env.release_version }}, docker image: ${docker_image}"
+          docker run --rm -it -d --name=opendj_alpine --health-cmd='/opt/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "" --searchScope base "(objectClass=*)" 1.1 || /opt/opendj/bin/stop-ds || exit 1'  --health-retries=10 --health-timeout=10s ${docker_image}
+          timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" opendj_alpine | grep -q \"healthy\"; do sleep 10; done'
+          docker stop opendj_alpine || true
