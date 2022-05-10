@@ -73,6 +73,17 @@ public class ExtensionsConstants
    */
   public static final String AUTH_PASSWORD_SCHEME_NAME_PBKDF2 = "PBKDF2";
 
+  /**
+   * The authentication password scheme name for use with passwords encoded in a
+   * PBKDF2 representation.
+   */
+  public static final String AUTH_PASSWORD_SCHEME_NAME_PBKDF2_HMAC_SHA256 = "PBKDF2-HMAC-SHA256";
+
+  /**
+   * The authentication password scheme name for use with passwords encoded in a
+   * PBKDF2 representation.
+   */
+  public static final String AUTH_PASSWORD_SCHEME_NAME_PBKDF2_HMAC_SHA512 = "PBKDF2-HMAC-SHA512";
 
   /**
    * The authentication password scheme name for use with passwords encoded in a
@@ -128,7 +139,19 @@ public class ExtensionsConstants
   public static final String MESSAGE_DIGEST_ALGORITHM_PBKDF2 =
        "PBKDF2WithHmacSHA1";
 
+  /**
+   * The name of the message digest algorithm that should be used to generate
+   * PBKDF2 hashes.
+   */
+  public static final String MESSAGE_DIGEST_ALGORITHM_PBKDF2_HMAC_SHA256 =
+          "PBKDF2WithHmacSHA256";
 
+  /**
+   * The name of the message digest algorithm that should be used to generate
+   * PBKDF2 hashes.
+   */
+  public static final String MESSAGE_DIGEST_ALGORITHM_PBKDF2_HMAC_SHA512 =
+          "PBKDF2WithHmacSHA512";
 
   /**
    * The name of the pseudo-random number generator using SHA-1.
@@ -328,6 +351,17 @@ public class ExtensionsConstants
    */
   public static final String STORAGE_SCHEME_NAME_PBKDF2 = "PBKDF2";
 
+  /**
+   * The password storage scheme name that will be used for passwords stored in
+   * a PBKDF2 representation.
+   */
+  public static final String STORAGE_SCHEME_NAME_PBKDF2_HMAC_SHA256 = "PBKDF2-HMAC-SHA256";
+
+  /**
+   * The password storage scheme name that will be used for passwords stored in
+   * a PBKDF2 representation.
+   */
+  public static final String STORAGE_SCHEME_NAME_PBKDF2_HMAC_SHA512 = "PBKDF2-HMAC-SHA512";
 
   /**
    * The password storage scheme name that will be used for passwords stored in
