@@ -27,26 +27,27 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
  * for things that need the clear-text password like DIGEST-MD5).  This
  * implementation uses a configurable number of iterations.
  */
-public class PBKDF2PasswordStorageScheme
+public class PBKDF2HmacSHA512PasswordStorageScheme
     extends AbstractPBKDF2PasswordStorageScheme
 {
   public String getStorageSchemeName() {
-    return STORAGE_SCHEME_NAME_PBKDF2;
+    return STORAGE_SCHEME_NAME_PBKDF2_HMAC_SHA512;
   }
 
   public String getAuthPasswordSchemeName() {
-    return AUTH_PASSWORD_SCHEME_NAME_PBKDF2;
+    return AUTH_PASSWORD_SCHEME_NAME_PBKDF2_HMAC_SHA512;
   }
 
   String getMessageDigestAlgorithm() {
-    return MESSAGE_DIGEST_ALGORITHM_PBKDF2;
+    return MESSAGE_DIGEST_ALGORITHM_PBKDF2_HMAC_SHA512;
   }
 
   int getDigestSize() {
-    return 20;
+    return 64;
   }
 
   public static String encodeOffline(byte[] passwordBytes) throws DirectoryException {
-    return encodeOffline(passwordBytes, AUTH_PASSWORD_SCHEME_NAME_PBKDF2, MESSAGE_DIGEST_ALGORITHM_PBKDF2, 20);
+    return encodeOffline(passwordBytes,
+            AUTH_PASSWORD_SCHEME_NAME_PBKDF2_HMAC_SHA512, MESSAGE_DIGEST_ALGORITHM_PBKDF2_HMAC_SHA512, 64);
   }
 }
