@@ -395,7 +395,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private void initializeStylesheets() throws TransformerConfigurationException {
         getLog().info("Loading XSLT stylesheets...");
         stylesheetFactory = TransformerFactory.newInstance();
-        stylesheetFactory.setAttribute("jdk.xml.xpathTotalOpLimit", "0");
+        //stylesheetFactory.setAttribute("jdk.xml.xpathTotalOpLimit", "0");
         stylesheetFactory.setAttribute("jdk.xml.xpathExprGrpLimit", "0");
         stylesheetFactory.setAttribute("jdk.xml.xpathExprOpLimit", "0");
         stylesheetFactory.setURIResolver(resolver);
