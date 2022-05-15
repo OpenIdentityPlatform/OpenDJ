@@ -25,6 +25,8 @@ RUN apk add --update --no-cache --virtual builddeps wget unzip \
  && wget --quiet https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
  && apk del builddeps \
+ && apk del wget \
+ && apk del unzip \
  && rm -r opendj-$VERSION.zip \
  && addgroup -S $OPENDJ_USER \
  && adduser -S -u 1001 -G $OPENDJ_USER $OPENDJ_USER \

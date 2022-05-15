@@ -24,6 +24,7 @@ RUN apt-get update \
  && wget --quiet https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
  && apt-get remove -y --purge unzip \
+ && apt-get remove -y --purge wget \
  && rm -rf /var/lib/apt/lists/* \
  && rm -r opendj-*.zip \
  && groupadd $OPENDJ_USER \
