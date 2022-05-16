@@ -1,13 +1,12 @@
-name: Package/Deploy Maven
+name: Package/Deploy
 
 on:
   workflow_run:
     branches: [ master ]
-    workflows: ["Build Maven"]
+    workflows: ["Build"]
     types: [completed]
 jobs:
-  deploy:
-    name: Maven deploy
+  deploy-maven:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: 'ubuntu-latest'
     steps:
