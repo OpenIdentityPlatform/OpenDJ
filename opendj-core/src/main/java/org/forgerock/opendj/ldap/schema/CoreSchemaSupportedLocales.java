@@ -196,7 +196,7 @@ public final class CoreSchemaSupportedLocales {
         LOCALE_NAMES_TO_OIDS.put("sw", "1.3.6.1.4.1.42.2.27.9.4.131.1");
         LOCALE_NAMES_TO_OIDS.put("sw-KE", "1.3.6.1.4.1.42.2.27.9.4.132.1");
         LOCALE_NAMES_TO_OIDS.put("sw-TZ", "1.3.6.1.4.1.42.2.27.9.4.133.1");
-        LOCALE_NAMES_TO_OIDS.put("ta", "1 3  1.3.6.1.4.1.42.2.27.9.4.134.1");
+        LOCALE_NAMES_TO_OIDS.put("ta", "1.3.6.1.4.1.42.2.27.9.4.134.1");
         LOCALE_NAMES_TO_OIDS.put("te", "1.3.6.1.4.1.42.2.27.9.4.135.1");
         LOCALE_NAMES_TO_OIDS.put("th", "1.3.6.1.4.1.42.2.27.9.4.136.1");
         LOCALE_NAMES_TO_OIDS.put("ti", "1.3.6.1.4.1.42.2.27.9.4.137.1");
