@@ -1,4 +1,4 @@
-FROM openjdk:11-jre-slim
+FROM openjdk:11
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
@@ -20,10 +20,10 @@ ARG VERSION=@project_version@
 WORKDIR /opt
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends wget unzip \
- && wget --quiet https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip \
+ && apt-get install -y --no-install-recommends curl unzip \
+ && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
- && apt-get remove -y --purge unzip \
+ && apt-get remove -y --purge curl unzip \
  && rm -rf /var/lib/apt/lists/* \
  && rm -r opendj-*.zip \
  && groupadd $OPENDJ_USER \
@@ -40,5 +40,7 @@ RUN chmod +x /opt/opendj/run.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/boots
 EXPOSE $PORT $LDAPS_PORT $ADMIN_PORT
 
 USER $OPENDJ_USER
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "$ROOT_USER_DN" --bindPassword $ROOT_PASSWORD --useSsl --trustAll --baseDN "$BASE_DN" --searchScope base "(objectClass=*)" 1.1 || exit 1
 
 ENTRYPOINT ["/opt/opendj/run.sh"]

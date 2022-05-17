@@ -19,12 +19,14 @@ ARG VERSION=@project_version@
 
 WORKDIR /opt
 
-RUN apk add --update --no-cache --virtual builddeps wget unzip \
+RUN apk add --update --no-cache --virtual builddeps curl unzip \
  && apk upgrade --update --no-cache \
  && apk add bash \
- && wget --quiet https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip \
+ && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
  && apk del builddeps \
+ && apk del curl \
+ && apk del unzip \
  && rm -r opendj-$VERSION.zip \
  && addgroup -S $OPENDJ_USER \
  && adduser -S -u 1001 -G $OPENDJ_USER $OPENDJ_USER \
@@ -40,5 +42,7 @@ RUN chmod +x /opt/opendj/run.sh /opt/opendj/bootstrap/setup.sh /opt/opendj/boots
 EXPOSE $PORT $LDAPS_PORT $ADMIN_PORT
 
 USER $OPENDJ_USER
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=1s --retries=3 CMD opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "$ROOT_USER_DN" --bindPassword $ROOT_PASSWORD --useSsl --trustAll --baseDN "$BASE_DN" --searchScope base "(objectClass=*)" 1.1 || exit 1
 
 ENTRYPOINT ["/opt/opendj/run.sh"]
