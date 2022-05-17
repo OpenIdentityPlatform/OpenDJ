@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.LocalBackend;
 import org.opends.server.api.ClientConnection;
@@ -278,8 +279,9 @@ public class LocalBackendDeleteOperation
           DirectoryServer.getInstance().getServerContext().getBackendConfigManager();
       for (DN dn : backendConfigManager.findSubordinateLocalNamingContextsForEntry(entryDN))
       {
-        setResultCodeAndMessageNoInfoDisclosure(entry,
-            ResultCode.NOT_ALLOWED_ON_NONLEAF, ERR_DELETE_HAS_SUB_BACKEND.get(entryDN, dn));
+    	  if (dn.isInScopeOf(entryDN, SearchScope.WHOLE_SUBTREE)) {
+    		  setResultCodeAndMessageNoInfoDisclosure(entry,ResultCode.NOT_ALLOWED_ON_NONLEAF, ERR_DELETE_HAS_SUB_BACKEND.get(entryDN, dn));
+    	  }
         return;
       }
 
