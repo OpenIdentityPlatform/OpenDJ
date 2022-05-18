@@ -86,6 +86,12 @@
 		    <version>2.3.2</version>
 		    <type>pom</type>
         </dependency>
+        
+        <dependency>
+		    <groupId>jakarta.xml.bind</groupId>
+		    <artifactId>jakarta.xml.bind-api</artifactId>
+		    <version>3.0.1</version>
+		</dependency>
     </dependencies>
 
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
@@ -229,7 +235,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>1.6</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>prepare-dsml-library</id>
@@ -238,23 +244,19 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/gen</outputDirectory>
-                            <schemaDirectory>${basedir}/resources/schema</schemaDirectory>
-                            <schemaFiles>DSMLv2.xsd</schemaFiles>
+                            <sources>
+                            	<source>resources/schema/DSMLv2.xsd</source>
+                            </sources>
                             <packageName>org.opends.dsml.protocol</packageName>
-                            <bindingDirectory>${basedir}/resources/schema</bindingDirectory>
-                            <bindingFiles>bindings.xjb</bindingFiles>
-                            <target>2.1</target>
-                            <npa>true</npa>
+                            <xjbSources>
+                            	<xjbSource>resources/schema/bindings.xjb</xjbSource>
+                            </xjbSources>
+                            <target>3.0</target>
+                            <extension>true</extension>
+                            <noPackageLevelAnnotations>true</noPackageLevelAnnotations>
                         </configuration>
                     </execution>
                 </executions>
-                <dependencies>
-                	<dependency>
-					    <groupId>javax.activation</groupId>
-					    <artifactId>activation</artifactId>
-					    <version>1.1.1</version>
-					</dependency>
-                </dependencies>
             </plugin>
 
             <!-- WAR artefact is build by the assembly plugin -->

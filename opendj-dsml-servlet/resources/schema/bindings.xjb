@@ -14,7 +14,7 @@
 
   Copyright 2012 ForgeRock AS.
   ! -->
-<bindings xmlns="http://java.sun.com/xml/ns/jaxb" version="2.0" 
+<bindings xmlns="https://jakarta.ee/xml/ns/jaxb" version="3.0" 
 xmlns:xsd="http://www.w3.org/2001/XMLSchema" schemaLocation="DSMLv2.xsd" >
  <bindings 
 node="//xsd:complexType[@name='AttributeValueAssertion']/xsd:sequence/xsd:element[@name='value']">
