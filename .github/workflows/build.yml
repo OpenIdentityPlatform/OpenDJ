@@ -45,7 +45,6 @@ jobs:
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
     - name: Test on Unix
       if: runner.os != 'Windows'
-      shell: bash
       run:   |
         opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --addBaseEntry --cli --acceptLicense --no-prompt
         opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
