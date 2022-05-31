@@ -17,22 +17,25 @@
 package org.opends.quicksetup;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
 import java.util.Date;
 import java.text.DateFormat;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.loggers.JDKLogging;
+import org.opends.server.loggers.DebugLogPublisher;
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 
 /** This class represents a temporary log file which should be usually deleted if linked operation succeeded. */
 public class TempLogFile
 {
   private static final LocalizedLogger localizedLogger = LocalizedLogger.getLoggerForThisClass();
 
-  private static final String OPENDS_LOGGER_NAME = "org.opends";
 
   /**
    * Creates a new temporary log file.
@@ -57,35 +60,32 @@ public class TempLogFile
     }
   }
 
-  /** Prevents messages written to loggers from appearing in the console output. */
-  private static void disableConsoleLogging(final Logger logger)
-  {
-    if (!"true".equalsIgnoreCase(System.getenv("OPENDJ_LOG_TO_STDOUT")))
-    {
-      logger.setUseParentHandlers(false);
-    }
-  }
-
   private final File logFile;
-  private final FileHandler fileHandler;
 
   private TempLogFile()
   {
     this.logFile = null;
-    this.fileHandler = null;
+    this.writer=null;
   }
 
+  final TextWriter writer;
+  
   private TempLogFile(final File file) throws IOException
   {
     logFile = file;
-    fileHandler = new FileHandler(logFile.getCanonicalPath());
-    fileHandler.setFormatter(JDKLogging.getFormatter());
-    final Logger parentLogger = Logger.getLogger(OPENDS_LOGGER_NAME);
-    parentLogger.addHandler(fileHandler);
-    disableConsoleLogging(parentLogger);
-    final Logger logger = Logger.getLogger(getClass().getPackage().getName());
-    logger.info("QuickSetup application launched " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG)
-          .format(new Date()));
+    // Install the default loggers so the startup messages
+    // will be printed.
+     
+    if ("true".equalsIgnoreCase(System.getenv("OPENDJ_LOG_TO_STDOUT"))) {
+    	writer=new TextWriter.STDOUT(); 
+    }else {
+    	writer=new TextWriter.STREAM(new FileOutputStream(file));
+    }
+    ErrorLogPublisher startupErrorLogPublisher = TextErrorLogPublisher.getServerStartupTextErrorPublisher(writer);
+    ErrorLogger.getInstance().addLogPublisher(startupErrorLogPublisher);
+    DebugLogPublisher startupDebugLogPublisher = DebugLogger.getInstance().addPublisherIfRequired(writer);
+
+    localizedLogger.info(LocalizableMessage.raw("QuickSetup application launched " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(new Date()), null));
   }
 
   /**
@@ -103,7 +103,9 @@ public class TempLogFile
   {
     if (isEnabled())
     {
-      fileHandler.close();
+    	if (writer!=null) {
+    		writer.shutdown();
+    	}
       logFile.delete();
     }
   }
