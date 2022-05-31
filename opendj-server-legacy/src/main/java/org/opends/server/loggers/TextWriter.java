@@ -16,6 +16,7 @@
  */
 package org.opends.server.loggers;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
@@ -139,7 +140,10 @@ public interface TextWriter
     @Override
     public void shutdown()
     {
-      // Should never close the system error stream.
+    	writer.close();
+		try {
+ 			stream.close();
+		} catch (IOException e) {}
     }
 
     @Override
