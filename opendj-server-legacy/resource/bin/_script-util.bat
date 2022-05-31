@@ -232,8 +232,8 @@ exit /B 0
 rem read the provided property from the configuration/java.properties and stores it in PROPERTY_VALUE variable
 :readProperty
 set PROPERTY_VALUE=
-set JAVA_PROPERTIES="%INSTALL_ROOT%\config\java.properties"
-if not exist %JAVA_PROPERTIES% goto:eof
-set CMD="findstr /b [^#]*%~1=.* %JAVA_PROPERTIES%"
+set JAVA_PROPERTIES=%INSTALL_ROOT%\config\java.properties
+if not exist "%JAVA_PROPERTIES%" goto:eof
+set CMD=findstr /b [^#]*%~1=.* "%JAVA_PROPERTIES%"
 for /f "tokens=2 delims==" %%a in ( '%CMD%' ) do set PROPERTY_VALUE=%%a
 goto:eof
