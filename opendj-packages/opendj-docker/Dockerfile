@@ -1,4 +1,4 @@
-FROM openjdk:11
+FROM openjdk:17
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
@@ -13,18 +13,19 @@ ENV ADD_BASE_ENTRY="--addBaseEntry" \
     OPENDJ_SSL_OPTIONS=${SSL_OPTIONS:-"--generateSelfSignedCertificate"} \
     MASTER_SERVER=${MASTER_SERVER} \
     OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE} \
-    OPENDJ_USER="opendj"
-
+    OPENDJ_USER="opendj" \ 
+	OPENDJ_JAVA_ARGS=""
+	
 ARG VERSION=@project_version@
 
 WORKDIR /opt
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends curl unzip \
+RUN  microdnf upgrade --nodocs \
+ && microdnf install  --nodocs curl unzip \
  && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
- && apt-get remove -y --purge curl unzip \
- && rm -rf /var/lib/apt/lists/* \
+ && microdnf remove unzip \
+ && microdnf clean all\
  && rm -r opendj-*.zip \
  && groupadd $OPENDJ_USER \
  && useradd -m -r -u 1001 -g $OPENDJ_USER $OPENDJ_USER \
