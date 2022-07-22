@@ -21,7 +21,7 @@ ARG VERSION=@project_version@
 WORKDIR /opt
 
 RUN  microdnf upgrade --nodocs \
- && microdnf install  --nodocs curl unzip \
+ && microdnf install  --nodocs curl unzip findutils \
  && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
  && microdnf remove unzip \
