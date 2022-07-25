@@ -28,6 +28,7 @@ jobs:
           dpkg -l | grep '^ii' | fgrep deb.sury.org | awk '{print $2}' | grep '^php' \
             | xargs -r -t sudo apt-get remove --yes libzip4
           sudo apt-get -o Dpkg::Options::="--force-overwrite" install libpcre2-posix3
+          sudo apt update && sudo apt upgrade
           dpkg -l | grep '^ii' | fgrep deb.sury.org | awk '{print $2}' | sed "s,\$,/${UBUNTU_CODENAME}," \
             | xargs -r -t sudo apt-get install --yes --no-install-recommends --allow-downgrades -V
           ! dpkg -l | grep '^ii' | fgrep deb.sury.org
