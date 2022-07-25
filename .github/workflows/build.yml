@@ -26,6 +26,7 @@ jobs:
          #   2. Revert (remaining) packages that ppa:ondrej/php and plain Ubuntu share, back to the plain Ubuntu version
          #   3. Assert that no packages from ppa:ondrej/php are left installed
          dpkg -l | grep '^ii' | fgrep deb.sury.org | awk '{print $2}' | grep '^php' | xargs -r -t sudo apt-get remove --yes libzip4
+         sudo apt install -y --allow-downgrades libpcre2-8-0=10.34-7
          dpkg -l | grep '^ii' | fgrep deb.sury.org | awk '{print $2}' | sed "s,\$,/${UBUNTU_CODENAME}," | xargs -r -t sudo apt-get install --yes --no-install-recommends --allow-downgrades -V
          ! dpkg -l | grep '^ii' | fgrep deb.sury.org
          sudo dpkg --add-architecture i386
