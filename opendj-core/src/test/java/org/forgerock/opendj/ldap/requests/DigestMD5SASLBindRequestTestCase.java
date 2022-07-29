@@ -17,7 +17,7 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-import static com.forgerock.opendj.util.FipsStaticUtils.EMPTY_BYTES;
+import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
