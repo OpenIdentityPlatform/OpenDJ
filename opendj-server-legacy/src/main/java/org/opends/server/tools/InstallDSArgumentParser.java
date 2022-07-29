@@ -79,6 +79,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   BooleanArgument   generateSelfSignedCertificateArg;
   StringArgument    hostNameArg;
   BooleanArgument   usePkcs11Arg;
+  StringArgument   useBcfksArg;
   private FileBasedArgument directoryManagerPwdFileArg;
   private FileBasedArgument keyStorePasswordFileArg;
   IntegerArgument   ldapPortArg;
@@ -341,6 +342,13 @@ public class InstallDSArgumentParser extends ArgumentParser
                     .description(INFO_INSTALLDS_DESCRIPTION_USE_PKCS11.get())
                     .buildArgument();
     addArgument(usePkcs11Arg);
+
+    useBcfksArg =
+    		StringArgument.builder("useBcfksKeystore")
+                    .description(INFO_INSTALLDS_DESCRIPTION_USE_BCFKS.get())
+                    .valuePlaceholder(INFO_KEYSTOREPATH_PLACEHOLDER.get())
+                    .buildArgument();
+    addArgument(useBcfksArg);
 
     useJavaKeyStoreArg =
             StringArgument.builder("useJavaKeystore")
@@ -608,6 +616,10 @@ public class InstallDSArgumentParser extends ArgumentParser
       certificateType++;
     }
     if (usePkcs12Arg.isPresent())
+    {
+      certificateType++;
+    }
+    if (useBcfksArg.isPresent())
     {
       certificateType++;
     }
