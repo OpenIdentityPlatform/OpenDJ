@@ -1370,15 +1370,8 @@ public class Installer extends GuiApplication
         configureKeyAndTrustStore(CertificateManager.KEY_STORE_PATH_PKCS11, CertificateManager.KEY_STORE_TYPE_PKCS11,
             CertificateManager.KEY_STORE_TYPE_JKS, sec);
         configureAdminKeyAndTrustStore(CertificateManager.KEY_STORE_PATH_PKCS11, CertificateManager.KEY_STORE_TYPE_PKCS11,
-                CertificateManager.KEY_STORE_TYPE_JKS, sec, true);
+                CertificateManager.KEY_STORE_TYPE_JKS, sec);
         break;
-
-      case BCFKS:
-          configureKeyAndTrustStore(sec.getKeystorePath(), CertificateManager.KEY_STORE_TYPE_BCFKS,
-                  CertificateManager.KEY_STORE_TYPE_JKS, sec);
-          configureAdminKeyAndTrustStore(sec.getKeystorePath(), CertificateManager.KEY_STORE_TYPE_BCFKS,
-                  CertificateManager.KEY_STORE_TYPE_BCFKS, sec, true);
-          break;
 
       default:
         throw new IllegalStateException("Unknown certificate type: " + certType);
@@ -1410,35 +1403,24 @@ public class Installer extends GuiApplication
   }
 
   private void configureAdminKeyAndTrustStore(final String keyStorePath, final String keyStoreType,
-      final String trustStoreType, final SecurityOptions sec, boolean exportKeys) throws Exception
+      final String trustStoreType, final SecurityOptions sec) throws Exception
   {
     final String keystorePassword = sec.getKeystorePassword();
+    final String trustStorePath = getPath2("admin-truststore");
 
-    if (exportKeys) {
-    	final String exportTrustStorePath = getExportTrustManagerPath(trustStoreType);
-	    CertificateManager certManager = new CertificateManager(keyStorePath, keyStoreType, keystorePassword);
-	    for (String keyStoreAlias : sec.getAliasesToUse())
-	    {
-	      SetupUtils.exportCertificate(certManager, keyStoreAlias, getTemporaryCertificatePath());
-	      configureAdminTrustStore(exportTrustStorePath, trustStoreType, keyStoreAlias, keystorePassword);
-	    }
+    CertificateManager certManager = new CertificateManager(keyStorePath, keyStoreType, keystorePassword);
+    for (String keyStoreAlias : sec.getAliasesToUse())
+    {
+      SetupUtils.exportCertificate(certManager, keyStoreAlias, getTemporaryCertificatePath());
+      configureAdminTrustStore(trustStorePath, trustStoreType, keyStoreAlias, keystorePassword);
     }
 
     // Set default trustManager to allow check server startup status
-    final String trustStorePath = getPath2("truststore");
     if (com.forgerock.opendj.util.StaticUtils.isFips()) {
-    	String usedTrustStorePath = trustStorePath;
-    	String usedTrustStoreType = "JKS";
-/*
-        if (keyStoreType.equals(CertificateManager.KEY_STORE_TYPE_BCFKS)) {
-        	usedTrustStorePath = getTrustManagerPath(keyStoreType);
-        	usedTrustStoreType = keyStoreType;
-        }
-*/
         KeyStore truststore = null;
-        try (final FileInputStream fis = new FileInputStream(usedTrustStorePath))
+        try (final FileInputStream fis = new FileInputStream(trustStorePath))
         {
-          truststore = KeyStore.getInstance(usedTrustStoreType);
+          truststore = KeyStore.getInstance(trustStoreType);
           truststore.load(fis, keystorePassword.toCharArray());
         }
         catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e)
@@ -1514,10 +1496,6 @@ public class Installer extends GuiApplication
       addCertificateArguments(argList, null, aliasInKeyStore, "cn=PKCS11,cn=Key Manager Providers,cn=config",
           "cn=JKS,cn=Trust Manager Providers,cn=config");
       break;
-    case BCFKS:
-        addCertificateArguments(argList, sec, aliasInKeyStore, "cn=BCFKS,cn=Key Manager Providers,cn=config",
-            "cn=BCFKS,cn=Trust Manager Providers,cn=config");
-        break;
     case NO_CERTIFICATE:
       // Nothing to do.
       break;
@@ -4064,22 +4042,6 @@ public class Installer extends GuiApplication
   private String getTrustManagerPath()
   {
     return getPath2("truststore");
-  }
-
-  /**
-   * Returns the trustmanager path to be used for exported
-   * certificate.
-   *
-   * @return the trustmanager path to be used for exporting
-   *         certificate.
-   */
-  private String getExportTrustManagerPath(String type)
-  {
-	  if (type.equals(CertificateManager.KEY_STORE_TYPE_BCFKS)) {
-		  return getPath2("truststore.bcfks");
-	  }
-
-	  return getPath2("admin-truststore");
   }
 
   /**

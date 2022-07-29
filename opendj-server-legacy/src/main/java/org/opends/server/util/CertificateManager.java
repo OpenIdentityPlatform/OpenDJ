@@ -64,11 +64,6 @@ public final class CertificateManager {
   public static final String KEY_STORE_TYPE_PKCS12 = "PKCS12";
 
   /**
-   * The key store type value that should be used for the "BCFKS" key store.
-   */
-  public static final String KEY_STORE_TYPE_BCFKS = "BCFKS";
-
-  /**
    * The key store path value that must be used in conjunction with the PKCS11
    * key store type.
    */
@@ -162,7 +157,7 @@ public final class CertificateManager {
       }
     } else if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
         keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
-        keyStoreType.equals(KEY_STORE_TYPE_PKCS12) || keyStoreType.equals(KEY_STORE_TYPE_BCFKS)) {
+        keyStoreType.equals(KEY_STORE_TYPE_PKCS12)) {
       File keyStoreFile = new File(keyStorePath);
       if (keyStoreFile.exists()) {
         if (! keyStoreFile.isFile()) {
@@ -179,7 +174,7 @@ public final class CertificateManager {
     } else {
       LocalizableMessage msg =  ERR_CERTMGR_INVALID_STORETYPE.get(
           KEY_STORE_TYPE_JKS, KEY_STORE_TYPE_JCEKS,
-          KEY_STORE_TYPE_PKCS11, KEY_STORE_TYPE_PKCS12, KEY_STORE_TYPE_BCFKS);
+          KEY_STORE_TYPE_PKCS11, KEY_STORE_TYPE_PKCS12);
       throw new IllegalArgumentException(msg.toString());
     }
     this.keyStorePath = keyStorePath;
@@ -382,8 +377,7 @@ public final class CertificateManager {
       FileInputStream keyStoreInputStream = null;
       if (keyStoreType.equals(KEY_STORE_TYPE_JKS) ||
           keyStoreType.equals(KEY_STORE_TYPE_JCEKS) ||
-          keyStoreType.equals(KEY_STORE_TYPE_PKCS12) ||
-          keyStoreType.equals(KEY_STORE_TYPE_BCFKS))
+          keyStoreType.equals(KEY_STORE_TYPE_PKCS12))
       {
           final File keyStoreFile = new File(keyStorePath);
           if (! keyStoreFile.exists())

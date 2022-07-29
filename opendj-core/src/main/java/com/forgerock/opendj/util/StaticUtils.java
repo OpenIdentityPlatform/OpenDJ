@@ -36,6 +36,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTER;
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_BC_PROVIDER_REGISTERED_ALREADY;
+
 /**
  * Common utility methods.
  */
@@ -62,11 +65,6 @@ public final class StaticUtils {
      * The end-of-line character for this platform.
      */
     public static final String EOL = System.getProperty("line.separator");
-
-    /**
-     * A zero-length byte array.
-     */
-    public static final byte[] EMPTY_BYTES = new byte[0];
 
     /** The name of the time zone for universal coordinated time (UTC). */
     private static final String TIME_ZONE_UTC = "UTC";
@@ -786,14 +784,12 @@ public final class StaticUtils {
 			if (providers[i].getName().toLowerCase().contains("fips"))
 				return true;
 		}
-
 		return false;
 	}
 
-    public static void registerBcProvider(){
-        try {
-            FipsStaticUtils.registerBcProvider();
-        } catch (NoClassDefFoundError e) {}
-	}
-
+    public static void registerBcProvider() {
+       try {
+           FipsStaticUtils.registerBcProvider();
+       } catch (NoClassDefFoundError e) {}
+    }
 }

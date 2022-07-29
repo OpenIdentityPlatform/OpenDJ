@@ -48,9 +48,7 @@ public class SecurityOptions
     /** Use an existing PKCS#11 key store. */
     PKCS11,
     /** Use an existing PKCS#12 key store. */
-    PKCS12,
-    /** Use an existing BCFKS key store. */
-    BCFKS
+    PKCS12
   }
 
   private CertificateType certificateType;
@@ -213,30 +211,6 @@ public class SecurityOptions
   {
     return createOptionsForCertificatType(
             CertificateType.PKCS12, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasesToUse);
-  }
-
-  /**
-   * Creates a new instance of a SecurityOptions using a BCFKS Key Store.
-   *
-   * @param keystorePath
-   *          the path of the key store.
-   * @param keystorePwd
-   *          the password of the key store.
-   * @param enableSSL
-   *          whether SSL is enabled or not.
-   * @param enableStartTLS
-   *          whether Start TLS is enabled or not.
-   * @param sslPort
-   *          the value of the LDAPS port.
-   * @param aliasesToUse
-   *          the aliases of the certificates in the keystore to be used.
-   * @return a new instance of a SecurityOptions using a PKCS#12 Key Store.
-   */
-  public static SecurityOptions createBCFKSCertificateOptions( String keystorePath, String keystorePwd,
-          boolean enableSSL, boolean enableStartTLS, int sslPort, Collection<String> aliasesToUse)
-  {
-    return createOptionsForCertificatType(
-            CertificateType.BCFKS, keystorePath, keystorePwd, enableSSL, enableStartTLS, sslPort, aliasesToUse);
   }
 
   /**

@@ -522,22 +522,6 @@ public final class TrustManagers {
         throw new NoSuchAlgorithmException();
     }
 
-    public static X509TrustManager checkUsingPkcs11TrustStore() throws GeneralSecurityException, IOException {
-        final KeyStore keyStore = KeyStore.getInstance("PKCS11");
-        keyStore.load(null, null);
-
-        final TrustManagerFactory tmf =
-                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(keyStore);
-
-        for (final TrustManager tm : tmf.getTrustManagers()) {
-            if (tm instanceof X509TrustManager) {
-                return (X509TrustManager) tm;
-            }
-        }
-        throw new NoSuchAlgorithmException();
-    }
-
     public static boolean isFips() {
 		Provider[] providers = Security.getProviders();
 		for (int i = 0; i < providers.length; i++) {

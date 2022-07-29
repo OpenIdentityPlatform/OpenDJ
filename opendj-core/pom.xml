@@ -112,8 +112,8 @@
 
 
     <properties>
-        <bc.fips.version>1.0.2.3</bc.fips.version>
-        <bctls.fips.version>1.0.13</bctls.fips.version>
+        <bc.fips.version>1.0.2.1</bc.fips.version>
+        <bctls.fips.version>1.0.9</bctls.fips.version>
 
         <opendj.osgi.import.additional>
             com.sun.security.auth*;resolution:=optional

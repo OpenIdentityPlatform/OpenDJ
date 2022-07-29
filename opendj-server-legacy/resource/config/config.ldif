@@ -693,17 +693,6 @@ ds-cfg-java-class: org.opends.server.extensions.PKCS11KeyManagerProvider
 ds-cfg-enabled: false
 ds-cfg-key-store-pin-file: config/keystore.pin
 
-dn: cn=BCFKS,cn=Key Manager Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-key-manager-provider
-objectClass: ds-cfg-file-based-key-manager-provider
-cn: BCFKS
-ds-cfg-java-class: org.opends.server.extensions.FileBasedKeyManagerProvider
-ds-cfg-enabled: false
-ds-cfg-key-store-type: BCFKS
-ds-cfg-key-store-file: config/keystore.bcfks
-ds-cfg-key-store-pin-file: config/keystore.pin
-
 dn: cn=Loggers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
@@ -1576,17 +1565,6 @@ ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider
 ds-cfg-enabled: false
 ds-cfg-trust-store-type: PKCS12
 ds-cfg-trust-store-file: config/truststore.p12
-
-dn: cn=BCFKS,cn=Trust Manager Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-trust-manager-provider
-objectClass: ds-cfg-file-based-trust-manager-provider
-cn: BCFKS
-ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider
-ds-cfg-enabled: false
-ds-cfg-trust-store-type: BCFKS
-ds-cfg-trust-store-file: config/truststore.bcfks
-ds-cfg-trust-store-pin-file: config/keystore.pin
 
 dn: cn=Virtual Attributes,cn=config
 objectClass: top
