@@ -40,7 +40,6 @@ import javax.net.ssl.X509TrustManager;
 import org.opends.server.extensions.BlindTrustManagerProvider;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
-import org.forgerock.opendj.ldap.TrustManagers;
 import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -121,13 +120,8 @@ public class SSLConnectionFactory
             new BlindTrustManagerProvider();
         trustManagers = blindTrustProvider.getTrustManagers();
       } else if (trustStorePath == null) {
-			if (isFips()) {
-				TrustManager tm = TrustManagers.checkUsingPkcs11TrustStore();
-				trustManagers = new TrustManager[] { tm };
-			} else {
-				trustManagers = PromptTrustManager.getTrustManagers();
-			}
-	  } else
+        trustManagers = PromptTrustManager.getTrustManagers();
+      } else
       {
         TrustManager[] tmpTrustManagers =
              getTrustManagers(KeyStore.getDefaultType(), null, trustStorePath,
