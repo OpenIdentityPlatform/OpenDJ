@@ -820,6 +820,11 @@ public class InstallDS extends ConsoleApplication
       certType = SecurityOptions.CertificateType.PKCS12;
       pathToCertificat = argParser.usePkcs12Arg.getValue();
     }
+    else if (argParser.useBcfksArg.isPresent())
+    {
+      certType = SecurityOptions.CertificateType.BCFKS;
+      pathToCertificat = argParser.useBcfksArg.getValue();
+    }
     else
     {
       certType = SecurityOptions.CertificateType.NO_CERTIFICATE;
@@ -1592,6 +1597,12 @@ public class InstallDS extends ConsoleApplication
         createSecurityOptionsPrompting(SecurityOptions.CertificateType.PKCS11,
             enableSSL, enableStartTLS, ldapsPort);
     }
+    else if (argParser.useBcfksArg.isPresent())
+    {
+      securityOptions =
+        createSecurityOptionsPrompting(SecurityOptions.CertificateType.BCFKS,
+            enableSSL, enableStartTLS, ldapsPort);
+    }
     else if (!enableSSL && !enableStartTLS)
     {
       // If the user did not want to enable SSL or start TLS do not ask
@@ -1605,13 +1616,15 @@ public class InstallDS extends ConsoleApplication
       final int JCEKS = 3;
       final int PKCS12 = 4;
       final int PKCS11 = 5;
-      final int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11};
+      final int BCFKS = 6;
+      final int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11, BCFKS};
       final LocalizableMessage[] msgs = {
           INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(),
           INFO_INSTALLDS_CERT_OPTION_JKS.get(),
           INFO_INSTALLDS_CERT_OPTION_JCEKS.get(),
           INFO_INSTALLDS_CERT_OPTION_PKCS12.get(),
-          INFO_INSTALLDS_CERT_OPTION_PKCS11.get()
+          INFO_INSTALLDS_CERT_OPTION_PKCS11.get(),
+          INFO_INSTALLDS_CERT_OPTION_BCFKS.get()
       };
 
       final MenuBuilder<Integer> builder = new MenuBuilder<>(this);
@@ -1647,6 +1660,10 @@ public class InstallDS extends ConsoleApplication
           builder.setDefault(LocalizableMessage.raw(String.valueOf(PKCS12)),
               MenuResult.success(PKCS12));
           break;
+        case BCFKS:
+            builder.setDefault(LocalizableMessage.raw(String.valueOf(BCFKS)),
+                MenuResult.success(BCFKS));
+            break;
         default:
           builder.setDefault(LocalizableMessage.raw(String.valueOf(SELF_SIGNED)),
               MenuResult.success(SELF_SIGNED));
@@ -1703,6 +1720,13 @@ public class InstallDS extends ConsoleApplication
         securityOptions =
           createSecurityOptionsPrompting(
               SecurityOptions.CertificateType.PKCS11, enableSSL,
+              enableStartTLS, ldapsPort);
+      }
+      else if (certType == BCFKS)
+      {
+        securityOptions =
+          createSecurityOptionsPrompting(
+              SecurityOptions.CertificateType.BCFKS, enableSSL,
               enableStartTLS, ldapsPort);
       }
       else
@@ -1852,6 +1876,13 @@ public class InstallDS extends ConsoleApplication
               pwd);
           break;
 
+          case BCFKS:
+          certManager = new CertificateManager(
+              path,
+              CertificateManager.KEY_STORE_TYPE_BCFKS,
+              pwd);
+          break;
+
           default:
             throw new IllegalArgumentException("Invalid type: "+type);
         }
@@ -1873,6 +1904,9 @@ public class InstallDS extends ConsoleApplication
           case PKCS11:
             errorMessages.add(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST.get());
             break;
+          case BCFKS:
+              errorMessages.add(INFO_BCFKS_KEYSTORE_DOES_NOT_EXIST.get());
+              break;
           default:
             throw new IllegalArgumentException("Invalid type: "+type);
           }
@@ -2000,6 +2034,15 @@ public class InstallDS extends ConsoleApplication
       }
       pathPrompt = INFO_INSTALLDS_PROMPT_PKCS12_PATH.get();
       break;
+    case BCFKS:
+        path = argParser.useBcfksArg.getValue();
+        defaultPathValue = argParser.useBcfksArg.getValue();
+        if (defaultPathValue == null)
+        {
+          defaultPathValue = lastResetKeyStorePath;
+        }
+        pathPrompt = INFO_INSTALLDS_PROMPT_BCFKS_PATH.get();
+        break;
     default:
       throw new IllegalStateException(
           "Called promptIfRequiredCertificate with invalid type: "+type);
@@ -2095,6 +2138,9 @@ public class InstallDS extends ConsoleApplication
           certNicknames);
     case PKCS11:
       return SecurityOptions.createPKCS11CertificateOptions(pwd, enableSSL, enableStartTLS, ldapsPort, certNicknames);
+    case BCFKS:
+        return SecurityOptions.createBCFKSCertificateOptions(path, pwd, enableSSL, enableStartTLS, ldapsPort,
+            certNicknames);
     default:
       throw new IllegalStateException("Called createSecurityOptionsPrompting with invalid type: " + type);
     }
