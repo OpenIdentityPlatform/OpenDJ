@@ -55,13 +55,14 @@ abstract class LdapCodec extends LDAPBaseFilter {
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
         try {
             final Buffer buffer = ctx.getMessage();
-            try (final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer)) {
+            final ASN1BufferReader reader = new ASN1BufferReader(maxASN1ElementSize, buffer);
                 // Due to a bug in grizzly's ByteBufferWrapper.split(), we can't use byteBuffer.mark()
                 final int mark = buffer.position();
                 if (!reader.elementAvailable()) {
                     buffer.position(mark);
                     // We need to create a duplicate because buffer will be closed by the reader (try-with-resources)
-                    return ctx.getStopAction(buffer.duplicate());
+//                  final Buffer bufferDuplicated = buffer.duplicate();
+                    return ctx.getStopAction(buffer);
                 }
                 final int length = reader.peekLength();
                 if (length > maxASN1ElementSize) {
@@ -74,9 +75,8 @@ abstract class LdapCodec extends LDAPBaseFilter {
                         : null;
                 buffer.position(mark);
                 ctx.setMessage(decodePacket(new ASN1BufferReader(maxASN1ElementSize, buffer.asReadOnlyBuffer())));
-                buffer.tryDispose();
+                reader.close();
                 return ctx.getInvokeAction(remainder);
-            }
         } catch (Exception e) {
             onLdapCodecError(ctx, e);
             ctx.getConnection().closeSilently();
