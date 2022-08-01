@@ -1285,6 +1285,8 @@ public class Utils
       return INFO_PKCS11_CERTIFICATE.get();
     case PKCS12:
       return INFO_PKCS12_CERTIFICATE.get();
+    case BCFKS:
+        return INFO_BCFKS_CERTIFICATE.get();
     default:
       throw new IllegalStateException("Unknown certificate options type: " + ops.getCertificateType());
     }
