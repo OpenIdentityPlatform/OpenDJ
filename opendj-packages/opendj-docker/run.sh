@@ -2,7 +2,7 @@
 # Run the OpenDJ server
 # The idea is to consolidate all of the writable DJ directories to
 # a single instance directory root, and update DJ's instance.loc file to point to that root
-# This allows us to to mount a data volume on that root which  gives us
+# This allows us to to mount a data volume on that root which gives us
 # persistence across restarts of OpenDJ.
 # For Docker - mount a data volume on /opt/opendj/data
 # For Kubernetes mount a PV
@@ -54,7 +54,7 @@ fi
 
 if (bin/status -n | grep Started); then
   echo "OpenDJ is started"
-  # We cant exit because we are pid 1
+  # We can't exit because we are pid 1
   while true; do sleep 100000; done
 fi
 

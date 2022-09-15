@@ -13,9 +13,9 @@ ENV ADD_BASE_ENTRY="--addBaseEntry" \
     OPENDJ_SSL_OPTIONS=${SSL_OPTIONS:-"--generateSelfSignedCertificate"} \
     MASTER_SERVER=${MASTER_SERVER} \
     OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE} \
-    OPENDJ_USER="opendj" \ 
-	OPENDJ_JAVA_ARGS=""
-	
+    OPENDJ_USER="opendj" \
+    OPENDJ_JAVA_ARGS=""
+
 ARG VERSION=@project_version@
 
 WORKDIR /opt
