@@ -26,6 +26,7 @@ echo "Setting up default OpenDJ instance"
 # See below for imports via `ldapmodify`.
 if [ -d /opt/opendj/bootstrap/config/schema/ ]; then
   echo "Copying schema:"
+  mkdir -p /opt/opendj/config/schema
   for file in /opt/opendj/bootstrap/config/schema/*; do
     target_file="/opt/opendj/config/schema/$(basename -- $file)"
     echo "Copying $file to $target_file"
