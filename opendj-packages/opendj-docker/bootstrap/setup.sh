@@ -5,6 +5,19 @@ echo "Setting up default OpenDJ instance"
 
 # If any optional LDIF files are present load them
 
+# There are multiple types of ldif files.
+# This step makes plain copies.
+# See below for imports via `ldapmodify`.
+if [ -d /opt/opendj/bootstrap/config/schema/ ]; then
+  echo "Copying schema:"
+  mkdir -p /opt/opendj/template/config/schema
+  for file in /opt/opendj/bootstrap/config/schema/*; do
+    target_file="/opt/opendj/template/config/schema/$(basename -- $file)"
+    echo "Copying $file to $target_file"
+    cp "$file" "$target_file"
+  done
+fi
+
 /opt/opendj/setup \
   --cli \
   -h localhost \
@@ -20,19 +33,6 @@ echo "Setting up default OpenDJ instance"
   --noPropertiesFile \
   --doNotStart \
   $ADD_BASE_ENTRY #--sampleData 1
-
-# There are multiple types of ldif files.
-# This step makes plain copies.
-# See below for imports via `ldapmodify`.
-if [ -d /opt/opendj/bootstrap/config/schema/ ]; then
-  echo "Copying schema:"
-  mkdir -p /opt/opendj/config/schema
-  for file in /opt/opendj/bootstrap/config/schema/*; do
-    target_file="/opt/opendj/config/schema/$(basename -- $file)"
-    echo "Copying $file to $target_file"
-    cp $file $target_file
-  done
-fi
 
 /opt/opendj/bin/start-ds
 
