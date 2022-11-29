@@ -112,7 +112,7 @@
 
 
     <properties>
-        <bc.fips.version>1.0.2.3</bc.fips.version>
+        <bc.fips.version>1.0.2.4</bc.fips.version>
         <bctls.fips.version>1.0.13</bctls.fips.version>
 
         <opendj.osgi.import.additional>
