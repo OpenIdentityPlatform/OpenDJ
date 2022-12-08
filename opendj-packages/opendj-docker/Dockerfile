@@ -1,4 +1,4 @@
-FROM openjdk:17
+FROM eclipse-temurin:17-jre-jammy
 
 MAINTAINER Open Identity Platform Community <open-identity-platform-opendj@googlegroups.com>
 
@@ -20,12 +20,12 @@ ARG VERSION=@project_version@
 
 WORKDIR /opt
 
-RUN  microdnf upgrade --nodocs \
- && microdnf install  --nodocs curl unzip findutils \
+RUN  apt-get update \
+ && apt-get install -y --no-install-recommends curl unzip \
  && curl -L https://github.com/OpenIdentityPlatform/OpenDJ/releases/download/$VERSION/opendj-$VERSION.zip --output opendj-$VERSION.zip \
  && unzip opendj-$VERSION.zip \
- && microdnf remove unzip \
- && microdnf clean all\
+ && apt-get remove -y --purge curl unzip \
+ && rm -rf /var/lib/apt/lists/* \
  && rm -r opendj-*.zip \
  && groupadd $OPENDJ_USER \
  && useradd -m -r -u 1001 -g $OPENDJ_USER $OPENDJ_USER \
