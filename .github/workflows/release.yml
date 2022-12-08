@@ -165,7 +165,7 @@ jobs:
           file: ./opendj-packages/opendj-docker/Dockerfile
           build-args: |
             VERSION=${{ github.event.inputs.releaseVersion }}
-          platforms: linux/amd64,linux/arm64/8
+          platforms: linux/amd64, linux/arm64/8, linux/arm/v7, linux/ppc64le, linux/s390x
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
