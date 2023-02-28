@@ -15,6 +15,7 @@
 # Portions Copyright 2011 profiq, s.r.o.
 # Portions Copyright 2012 Manuel Gaupp
 # Portions copyright 2015 Edan Idzerda
+# Portions copyright 2023 3A Systems LLC
 
 # This file contains the attribute type and objectclass definitions for use
 # with the Directory Server configuration.
@@ -6005,6 +6006,14 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.26
         ds-cfg-disk-full-threshold $
         ds-cfg-disk-low-threshold $
         ds-cfg-je-property )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.26.1
+  NAME 'ds-cfg-cas-backend'
+  SUP ds-cfg-pluggable-backend
+  STRUCTURAL
+  MUST ds-cfg-db-directory
+  MAY ( 
+   )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.27
   NAME 'ds-task-reset-change-number'

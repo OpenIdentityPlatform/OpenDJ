@@ -13,6 +13,7 @@
 
   Copyright 2008-2009 Sun Microsystems, Inc.
   Portions copyright 2011-2016 ForgeRock AS.
+  Portions copyright 2023 3A Systems LLC
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -43,7 +44,7 @@
               or $value = 'des' or $value = 'aes' or $value = 'rc4'
               or $value = 'db' or $value = 'snmp' or $value = 'qos'
               or $value = 'ecl' or $value = 'ttl' or $value = 'jpeg'
-              or $value = 'pbkdf2' or $value = 'pkcs5s2' or $value = 'pdb'
+              or $value = 'pbkdf2' or $value = 'pkcs5s2' or $value = 'pdb' or $value = 'cas'
              "/>
   </xsl:template>
 </xsl:stylesheet>
