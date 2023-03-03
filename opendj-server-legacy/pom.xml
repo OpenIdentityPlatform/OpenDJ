@@ -70,11 +70,6 @@
   </properties>
 
   <dependencies>
-    <!-- ForgeRock libraries -->
-    <dependency>
-      <groupId>org.openidentityplatform.opendj</groupId>
-      <artifactId>opendj-cli</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
@@ -89,6 +84,16 @@
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
       <artifactId>opendj-config</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-cli</artifactId>
+    </dependency>
+    
+     <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-legacy</artifactId>
     </dependency>
 
     <dependency>
@@ -535,7 +540,7 @@
                 <source>src/messages/src</source>
                 <source>src/build-tools</source>
                 <source>${project.build.directory}/java-stubs</source>
-                <source>../opendj-legacy/src/main/java</source>
+<!--                <source>../opendj-legacy/src/main/java</source>-->
               </sources>
             </configuration>
           </execution>
@@ -1211,8 +1216,8 @@
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
                   <argLine>-server -Xmx2048M -XX:MaxPermSize=256m</argLine>
-	        	  <parallel>methods</parallel>
-	          	  <threadCount>1</threadCount>
+<!--	        	  <parallel>methods</parallel>-->
+<!--	          	  <threadCount>10</threadCount>-->
                 </configuration>
               </execution>
             </executions>
@@ -1275,10 +1280,13 @@
                 </goals>
                 <configuration>
                   <sources>
-                    <source>src/snmp</source>
+                    <source>src/snmp/generated</source>
+                    <source>src/snmp/src</source>
+                     <source>src/snmp/resource</source>
                   </sources>
                 </configuration>
               </execution>
+             
             </executions>
           </plugin>
 

@@ -143,7 +143,23 @@
                     </execution>
                 </executions>
             </plugin>
-
+		      <plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>build-helper-maven-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <phase>generate-sources</phase>
+		            <goals>
+		              <goal>add-source</goal>
+		            </goals>
+		            <configuration>
+		              <sources>
+		                <source>target/generated-sources/messages</source>
+		              </sources>
+		            </configuration>
+		          </execution>
+		         </executions>
+		      </plugin>
             <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
