@@ -132,10 +132,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-			        <shutdown>testset</shutdown>
-			        <forkedProcessExitTimeoutInSeconds>5</forkedProcessExitTimeoutInSeconds>
-			    </configuration>
+                <version>3.0.0-M4</version>
             </plugin>
 
             <plugin>
