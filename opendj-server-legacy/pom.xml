@@ -530,7 +530,7 @@
           <!-- Take into account several sources directories for the build -->
           <execution>
             <id>main-java-sources</id>
-            <phase>generate-sources</phase>
+            <phase>process-sources</phase>
             <goals>
               <goal>add-source</goal>
             </goals>
@@ -1274,7 +1274,7 @@
               <!-- Add snmp source directory and snmp generated directory as sources -->
               <execution>
                 <id>snmp-java-sources</id>
-                <phase>generate-sources</phase>
+               <phase>process-sources</phase>
                 <goals>
                   <goal>add-source</goal>
                 </goals>
