@@ -152,11 +152,42 @@
             <configuration>
               <sources>
                 <source>target/generated-sources/config</source>
-                <source>target/generated-sources/messages</source>
               </sources>
             </configuration>
           </execution>
          </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-resource</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>target/generated-resources/META-INF/services</directory>
+                  <filtering>true</filtering>
+				  <includes>
+				     <include>**</include>
+				  </includes>
+                </resource>
+                <resource>
+                  <directory>target/generated-resources/config</directory>
+                  <filtering>true</filtering>
+				  <includes>
+				     <include>**/*.properties</include>
+				  </includes>
+                </resource>
+                 
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <!-- Validate core components XML definition files and generate the components. -->
       <plugin>
