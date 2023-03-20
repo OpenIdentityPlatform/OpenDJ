@@ -152,6 +152,7 @@
             <configuration>
               <sources>
                 <source>target/generated-sources/config</source>
+                <source>target/generated-sources/messages</source>
               </sources>
             </configuration>
           </execution>
