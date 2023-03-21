@@ -70,22 +70,22 @@
   </properties>
 
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
-    <resources>
-      <!-- Main resources -->
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>false</filtering>
-      </resource>
-      <!-- Generated resources -->
-      <resource>
-        <directory>${project.build.directory}/generated-resources</directory>
-        <filtering>false</filtering>
-        <includes>
-          <include>**/*.properties</include>
-          <include>**/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>
-        </includes>
-      </resource>
-    </resources>
+<!--    <resources>-->
+<!--       Main resources -->
+<!--      <resource>-->
+<!--        <directory>src/main/resources</directory>-->
+<!--        <filtering>false</filtering>-->
+<!--      </resource>-->
+<!--       Generated resources -->
+<!--      <resource>-->
+<!--        <directory>${project.build.directory}/generated-resources</directory>-->
+<!--        <filtering>false</filtering>-->
+<!--        <includes>-->
+<!--          <include>**/*.properties</include>-->
+<!--          <include>**/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>-->
+<!--        </includes>-->
+<!--      </resource>-->
+<!--    </resources>-->
 
     <plugins>
       <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
