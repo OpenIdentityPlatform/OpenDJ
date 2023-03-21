@@ -70,22 +70,22 @@
   </properties>
 
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
-<!--    <resources>-->
-<!--       Main resources -->
-<!--      <resource>-->
-<!--        <directory>src/main/resources</directory>-->
-<!--        <filtering>false</filtering>-->
-<!--      </resource>-->
-<!--       Generated resources -->
-<!--      <resource>-->
-<!--        <directory>${project.build.directory}/generated-resources</directory>-->
-<!--        <filtering>false</filtering>-->
-<!--        <includes>-->
-<!--          <include>**/*.properties</include>-->
-<!--          <include>**/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>-->
-<!--        </includes>-->
-<!--      </resource>-->
-<!--    </resources>-->
+    <resources>
+      <!-- Main resources -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+      <!-- Generated resources -->
+      <resource>
+        <directory>${project.build.directory}/generated-resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.properties</include>
+          <include>**/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>
+        </includes>
+      </resource>
+    </resources>
 
     <plugins>
       <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
@@ -157,39 +157,6 @@
             </configuration>
           </execution>
          </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>add-resource</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>add-resource</goal>
-            </goals>
-            <configuration>
-              <resources>
-                <resource>
-                  <directory>target/generated-resources/META-INF/services</directory>
-                  <filtering>true</filtering>
-				  <includes>
-				     <include>**</include>
-				  </includes>
-                </resource>
-                <resource>
-                  <directory>target/generated-resources/config</directory>
-                  <filtering>false</filtering>
-				  <includes>
-				     <include>**/*.properties</include>
-				     <include>**/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>
-				  </includes>
-                </resource>
-                 
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <!-- Validate core components XML definition files and generate the components. -->
       <plugin>
