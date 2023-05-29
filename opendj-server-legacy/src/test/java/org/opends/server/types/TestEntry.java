@@ -715,8 +715,17 @@ public final class TestEntry extends TypesTestCase {
          "modifyTimestamp: 20070101000001Z");
 
     List<String> expectedAttrNames = newArrayList(
-        "cn", "cn;lang-en-US", "sn", "sn;lang-en-US", "givenName", "givenName;lang-en-US", "creatorsName",
-        "createTimestamp", "modifyTimestamp", "modifiersName");
+        "cn", 
+        "cn;lang-en-US", 
+        "givenName", 
+        "givenName;lang-en-US", 
+        "sn", 
+        "sn;lang-en-US", 
+        "creatorsName",
+        "createTimestamp", 
+        "modifiersName", 
+        "modifyTimestamp"
+        );
 
     Iterator<Attribute> allAttrsIt = e.getAllAttributes().iterator();
     Iterator<String> expectedAttrNameIt = expectedAttrNames.iterator();

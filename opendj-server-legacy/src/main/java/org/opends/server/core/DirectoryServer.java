@@ -4258,7 +4258,9 @@ public final class DirectoryServer
       }
     }
 
-    directoryServer.backendConfigManager.shutdownLocalBackends();
+    if (directoryServer.backendConfigManager != null) {
+    	directoryServer.backendConfigManager.shutdownLocalBackends();
+    }
 
     if (directoryServer.configurationHandler != null) {
       directoryServer.configurationHandler.finalize();
@@ -4270,8 +4272,9 @@ public final class DirectoryServer
       ec.finalizeEntryCache();
     }
 
-    directoryServer.serviceDiscoveryMechanismConfigManager.finalize();
-
+    if (directoryServer.serviceDiscoveryMechanismConfigManager != null) {
+    	directoryServer.serviceDiscoveryMechanismConfigManager.finalize();
+    }
     // Release exclusive lock held on server.lock file
     try {
         String serverLockFileName = LockFileManager.getServerLockFileName();

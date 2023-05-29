@@ -53,10 +53,14 @@ jobs:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
          restore-keys: ${{ runner.os }}-m2-repository
+    - name: Set Failsafe Test Environment
+      if: runner.os != 'Windows'
+      run: > 
+        echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT 
     - name: Build with Maven
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-      run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
+      run: mvn --batch-mode --errors --update-snapshots package --file pom.xml ${{ steps.maven-profile-flag.outputs.MAVEN_PROFILE_FLAG }}
     - name: Test on Unix
       if: runner.os != 'Windows'
       run:   |

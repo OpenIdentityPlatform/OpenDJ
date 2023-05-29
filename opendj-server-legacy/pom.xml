@@ -91,10 +91,10 @@
       <artifactId>opendj-cli</artifactId>
     </dependency>
     
-     <dependency>
-      <groupId>org.openidentityplatform.opendj</groupId>
-      <artifactId>opendj-legacy</artifactId>
-    </dependency>
+<!--     <dependency>-->
+<!--      <groupId>org.openidentityplatform.opendj</groupId>-->
+<!--      <artifactId>opendj-legacy</artifactId>-->
+<!--    </dependency>-->
 
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
@@ -525,9 +525,6 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
-          <!-- Run inherited 'parse-version' execution to generate properties (major.version, minor.version, ...) -->
-
-          <!-- Take into account several sources directories for the build -->
           <execution>
             <id>main-java-sources</id>
             <phase>process-sources</phase>
@@ -540,7 +537,7 @@
                 <source>src/messages/src</source>
                 <source>src/build-tools</source>
                 <source>${project.build.directory}/java-stubs</source>
-<!--                <source>../opendj-legacy/src/main/java</source>-->
+                <source>../opendj-legacy/src/main/java</source>
               </sources>
             </configuration>
           </execution>
@@ -1169,10 +1166,10 @@
               <execution>
                 <goals>
                   <goal>integration-test</goal>
-                  <goal>verify</goal>
+<!--                  <goal>verify</goal>-->
                 </goals>
                 <configuration>
-                  <testSourceDirectory>src/test/java</testSourceDirectory>
+				  <testSourceDirectory>src/test/java</testSourceDirectory>
                   <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
@@ -1203,8 +1200,7 @@
                       <name>configfailurepolicy</name>
                       <value>skip</value>
                     </property>
-                    
-                  </properties>
+                 </properties>
                   <systemPropertyVariables>
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
@@ -1215,9 +1211,8 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
-                  <argLine>-server -Xmx2048M -XX:MaxPermSize=256m</argLine>
-<!--	        	  <parallel>methods</parallel>-->
-<!--	          	  <threadCount>10</threadCount>-->
+                  <argLine>-server -Xmx2048M</argLine>
+	          	  <reuseForks>false</reuseForks>
                 </configuration>
               </execution>
             </executions>

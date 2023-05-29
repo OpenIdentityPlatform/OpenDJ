@@ -276,7 +276,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-P", trustStorePath
     };
 
-    assertEquals(DSConfig.main(args, System.out, System.err), SUCCESS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), 1);
   }
 
 

@@ -172,7 +172,7 @@ public class Entry
     {
       return map;
     }
-    return new HashMap<>();
+    return new LinkedHashMap<>();
   }
 
 
