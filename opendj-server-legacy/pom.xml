@@ -1166,7 +1166,7 @@
               <execution>
                 <goals>
                   <goal>integration-test</goal>
-<!--                  <goal>verify</goal>-->
+                  <goal>verify</goal>
                 </goals>
                 <configuration>
 				  <testSourceDirectory>src/test/java</testSourceDirectory>
@@ -1211,7 +1211,7 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
-                  <argLine>-server -Xmx2048M</argLine>
+                  <argLine>-server -Xmx2048M @{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>
                 </configuration>
               </execution>
