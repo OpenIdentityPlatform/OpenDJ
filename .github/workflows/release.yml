@@ -22,25 +22,13 @@ jobs:
       - name: Install wine+rpm for distribution
         shell: bash
         run:   |
-          set -x -u -o pipefail
-          source /etc/os-release
-          # https://github.com/actions/runner-images/issues/7192
-          echo 'APT::Get::Always-Include-Phased-Updates "false";' | sudo tee /etc/apt/apt.conf.d/99-phased-updatess
-          # Get rid of packages installed from ppa:ondrej/php so that we will be able to install wine32:i386 without conflicts
-          # (see issue https://github.com/actions/virtual-environments/issues/4589)
-          # In detail we:
-          #   1. Remove all packages that ppa:ondrej/php has but plain Ubuntu doesn't, i.e. libzip4 and everything PHP
-          #   2. Revert (remaining) packages that ppa:ondrej/php and plain Ubuntu share, back to the plain Ubuntu version
-          #   3. Assert that no packages from ppa:ondrej/php are left installed
-          (dpkg -l | grep '^ii' | fgrep deb.sury.org | awk '{print $2}' | grep '^php' | xargs -r -t sudo apt-get remove --yes libzip4) || echo ""
-          sudo apt update && sudo apt upgrade
-          (dpkg -l | grep '^ii' | fgrep deb.sury.org | grep -v libpcre2-posix3 | awk '{print $2}' | sed "s,\$,/${UBUNTU_CODENAME}," | xargs -r -t sudo apt-get install --yes --no-install-recommends --allow-downgrades -V) || echo ""
-          ! dpkg -l | grep '^ii' | fgrep deb.sury.org
-          # Install 32bit Wine
-          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get install ppa-purge && sudo ppa-purge -y ppa:ubuntu-toolchain-r/test
           sudo dpkg --add-architecture i386
-          sudo apt-get update -qq
-          sudo apt-get install -yqq --allow-downgrades libc6:i386 libgcc-s1:i386 libstdc++6:i386 wine
+          sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources
+          sudo apt-get update
+          sudo apt install --install-recommends winehq-stable
+          sudo mkdir -p /opt/wine/mono && sudo wget "https://dl.winehq.org/wine/wine-mono/8.0.0/wine-mono-8.0.0-x86.tar.xz" -P /opt/wine/mono && sudo tar -xf /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz -C /opt/wine/mono && sudo rm /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz
           wine --version
       - uses: actions/checkout@v3
         with:

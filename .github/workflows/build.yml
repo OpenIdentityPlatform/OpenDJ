@@ -41,6 +41,7 @@ jobs:
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
          restore-keys: ${{ runner.os }}-m2-repository
     - name: Set Failsafe Test Environment
+      id: maven-profile-flag
       if: runner.os != 'Windows'
       run: > 
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT 
