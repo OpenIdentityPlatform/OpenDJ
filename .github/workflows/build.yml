@@ -32,12 +32,10 @@ jobs:
           (dpkg -l | grep '^ii' | fgrep deb.sury.org | grep -v libpcre2-posix3 | awk '{print $2}' | sed "s,\$,/${UBUNTU_CODENAME}," | xargs -r -t sudo apt-get install --yes --no-install-recommends --allow-downgrades -V) || echo ""
           ! dpkg -l | grep '^ii' | fgrep deb.sury.org
           # Install 32bit Wine
-          sudo dpkg --add-architecture i386  # for wine32
-          sudo apt update && sudo apt upgrade  # again, due to new architecture
-          sudo apt-get install --yes --no-install-recommends -V \
-              wine-stable \
-              wine32:i386
-          wine --version
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -qq
+          sudo apt-get install -yqq --allow-downgrades libc6:i386 libgcc-s1:i386 libstdc++6:i386 wine
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
