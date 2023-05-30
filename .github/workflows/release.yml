@@ -38,7 +38,7 @@ jobs:
           ! dpkg -l | grep '^ii' | fgrep deb.sury.org
           # Install 32bit Wine
           sudo dpkg --add-architecture i386  # for wine32
-          sudo apt-get update  # again, due to new architecture
+          sudo apt update && sudo apt upgrade  # again, due to new architecture
           sudo apt-get install --yes --no-install-recommends -V \
               wine-stable \
               wine32:i386
