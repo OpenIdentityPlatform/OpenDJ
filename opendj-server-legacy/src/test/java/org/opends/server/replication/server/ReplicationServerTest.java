@@ -202,8 +202,8 @@ public class ReplicationServerTest extends ReplicationTestCase
   /** Create two brokers: open for each a sender session and a receiver session to the replicationServer. */
   private ReplicationBroker[] createReplicationBrokers1And2() throws Exception {
     return new ReplicationBroker[] {
-       openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000),
-       openReplicationSession(TEST_ROOT_DN, 2, 100, replicationServerPort, 1000)
+       openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 3000),
+       openReplicationSession(TEST_ROOT_DN, 2, 100, replicationServerPort, 3000)
     };
   }
 
@@ -332,7 +332,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     ReplicationBroker broker = null;
 
     try {
-      broker = openReplicationSession(TEST_ROOT_DN, 3, 100, replicationServerPort, 1000);
+      broker = openReplicationSession(TEST_ROOT_DN, 3, 100, replicationServerPort, 3000);
 
       ReplicationMsg receivedMsg = broker.receive();
       broker.updateWindowAfterReplay();
@@ -492,7 +492,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       /* Start the client threads. */
       for (int i =0; i< CLIENT_THREADS; i++)
       {
-        clientBroker[i] = openReplicationSession(TEST_ROOT_DN, 100+i, 100, replicationServerPort, 1000);
+        clientBroker[i] = openReplicationSession(TEST_ROOT_DN, 100+i, 100, replicationServerPort, 3000);
         client[i] = new BrokerReader(clientBroker[i], TOTAL_MSG);
       }
 
@@ -649,8 +649,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       try
       {
         // create and connect client1 to changelog1 and client2 to changelog2
-        broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
-        broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[0], 1000);
+        broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 3000);
+        broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[0], 3000);
 
         // - Test messages between clients by publishing now
         CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());
@@ -720,7 +720,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       try
       {
         // only create and connect client1 to changelog1 client2 will be created later
-        broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
+        broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 3000);
 
         // - Test messages between clients by publishing now
         CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());
@@ -746,7 +746,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
         // Connect broker 2 to changelog2
         broker2 = openReplicationSession(TEST_ROOT_DN,
-            brokerIds[1], 100, changelogPorts[1], 2000);
+            brokerIds[1], 100, changelogPorts[1], 3000);
 
         // - Check msg receives by broker, through changeLog2
         List<ReplicationMsg> msgs = receiveReplicationMsgs(broker2, 4);
@@ -1097,8 +1097,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
          // Create and connect client1 to changelog1
          // and client2 to changelog2
-         broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
-         broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[1], 1000);
+         broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 3000);
+         broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[1], 3000);
 
          // - Test messages between clients by publishing now
          CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());
