@@ -1213,6 +1213,9 @@
                   </systemPropertyVariables>
                   <argLine>-server -Xmx2048M @{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>
+	          	  <forkCount>1</forkCount>
+	          	  <parallel>none</parallel>
+	          	  <runOrder>alphabetical</runOrder>
                 </configuration>
               </execution>
             </executions>
