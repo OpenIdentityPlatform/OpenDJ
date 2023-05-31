@@ -332,8 +332,8 @@ public class GenerationIdTest extends ReplicationTestCase
     int rsPort = getRSPort(replServerId);
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
     ReplicationServer replicationServer = new ReplicationServer(
-        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 100, servers));
-    Thread.sleep(1000);
+        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 10000, servers));
+    Thread.sleep(3000);
     return replicationServer;
   }
 
@@ -939,7 +939,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting broker2 to replServer3 with a good genId");
       broker2 = openReplicationSession(server2ID, replServer3, genId);
-      Thread.sleep(1000);
+      Thread.sleep(3000);
 
       debugInfo("Expecting that broker2 is not in bad gen id since it has a correct genId");
       assertFalse(isDegradedDueToGenerationId(replServer1, server2ID));
@@ -954,7 +954,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Connecting broker3 to replServer1 with a bad genId");
       long badGenId = 1;
       broker3 = openReplicationSession(server3ID, replServer1, badGenId);
-      Thread.sleep(1000);
+      Thread.sleep(3000);
 
       debugInfo("Expecting that broker3 is in bad gen id since it has a bad genId");
       assertTrue(isDegradedDueToGenerationId(replServer1, server3ID));
