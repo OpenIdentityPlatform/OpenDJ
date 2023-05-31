@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.openidentityplatform.opendj</groupId>
         <artifactId>opendj-parent</artifactId>
-        <version>4.5.2-SNAPSHOT</version>
+        <version>4.5.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-dsml-servlet</artifactId>
@@ -92,6 +92,13 @@
 		    <artifactId>jakarta.xml.bind-api</artifactId>
 		    <version>3.0.1</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>4.0.1</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build><finalName>${project.groupId}.${project.artifactId}</finalName>
