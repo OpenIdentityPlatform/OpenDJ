@@ -714,7 +714,7 @@ public final class TestCaseUtils {
           throws IOException
   {
     ServerSocket serverLdapSocket = new ServerSocket();
-    serverLdapSocket.setReuseAddress(true);
+    //serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress(port));
     return serverLdapSocket;
   }
