@@ -202,8 +202,8 @@ public class ReplicationServerTest extends ReplicationTestCase
   /** Create two brokers: open for each a sender session and a receiver session to the replicationServer. */
   private ReplicationBroker[] createReplicationBrokers1And2() throws Exception {
     return new ReplicationBroker[] {
-       openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 3000),
-       openReplicationSession(TEST_ROOT_DN, 2, 100, replicationServerPort, 3000)
+       openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 10000),
+       openReplicationSession(TEST_ROOT_DN, 2, 100, replicationServerPort, 10000)
     };
   }
 
