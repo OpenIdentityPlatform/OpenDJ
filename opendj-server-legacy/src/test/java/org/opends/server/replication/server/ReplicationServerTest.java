@@ -1097,8 +1097,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
          // Create and connect client1 to changelog1
          // and client2 to changelog2
-         broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 4000);
-         broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[1], 4000);
+         broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 3000);
+         broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[1], 3000);
 
          // - Test messages between clients by publishing now
          CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());
