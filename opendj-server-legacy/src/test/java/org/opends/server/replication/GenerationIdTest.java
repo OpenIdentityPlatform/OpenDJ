@@ -1120,6 +1120,6 @@ public class GenerationIdTest extends ReplicationTestCase
   protected ReplicationBroker openReplicationSession(int serverId, ReplicationServer replServer, long generationId)
       throws Exception
   {
-    return openReplicationSession(baseDN, serverId, 100, replServer.getReplicationPort(), 1000, generationId);
+    return openReplicationSession(baseDN, serverId, 100, replServer.getReplicationPort(), 1900, generationId);
   }
 }
