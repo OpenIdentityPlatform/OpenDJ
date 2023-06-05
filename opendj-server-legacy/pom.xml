@@ -91,10 +91,10 @@
       <artifactId>opendj-cli</artifactId>
     </dependency>
     
-<!--     <dependency>-->
-<!--      <groupId>org.openidentityplatform.opendj</groupId>-->
-<!--      <artifactId>opendj-legacy</artifactId>-->
-<!--    </dependency>-->
+     <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-legacy</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.openidentityplatform.opendj</groupId>
@@ -537,7 +537,7 @@
                 <source>src/messages/src</source>
                 <source>src/build-tools</source>
                 <source>${project.build.directory}/java-stubs</source>
-                <source>../opendj-legacy/src/main/java</source>
+<!--                <source>../opendj-legacy/src/main/java</source>-->
               </sources>
             </configuration>
           </execution>
