@@ -380,7 +380,7 @@ public class HistoricalTest extends ReplicationTestCase
     // Perform a few check on the Operation to see that it
     // was correctly generated.
     assertFakeOperations(dn1, entry, ops, 1);
-
+        
     // Now apply a modifications to the entry and check that the
     // ADD historical information has been preserved.
     TestCaseUtils.applyModifications(false,
@@ -474,6 +474,7 @@ public class HistoricalTest extends ReplicationTestCase
     }
 
       assertEquals(count, assertCount);
+      Thread.sleep(1000);
     }
 
   /**
