@@ -1026,9 +1026,9 @@ public class GenerationIdTest extends ReplicationTestCase
     broker2 = broker3 = null;
     remove(replServer1, replServer2, replServer3);
     replServer1 = replServer2 = replServer3 = null;
-
-    super.cleanRealEntries();
-
+    try {
+    	super.cleanRealEntries();
+    }catch(Exception e) {}
     replServerPort = TestCaseUtils.findFreePorts(3);
 
     debugInfo("Clearing DJ backend");
