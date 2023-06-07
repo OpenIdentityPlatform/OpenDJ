@@ -225,7 +225,7 @@ public class HistoricalTest extends ReplicationTestCase
    * on one entry, and the reverse ordering that would happen on the
    * second server on a different entry.  Confused yet?
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void conflictSingleValue() throws Exception
   {
     final DN dn1 = DN.valueOf("cn=test1," + TEST_ROOT_DN_STRING);
@@ -240,7 +240,7 @@ public class HistoricalTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDN, 2, 100, replServerPort, 1000);
+      openReplicationSession(baseDN, 2, 100, replServerPort, 3000);
 
 
     // Clear the backend and create top entry
