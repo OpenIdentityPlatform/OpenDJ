@@ -508,7 +508,7 @@ public class HistoricalTest extends ReplicationTestCase
         "--set","conflicts-historical-purge-delay:1m");
 
     // Let's go past the purge delay
-    Thread.sleep(60 * 1000);
+    Thread.sleep(90 * 1000);
 
     // launch the purge
     final int maxWaitTimeInSeconds = 120;
