@@ -116,7 +116,6 @@ import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFReader;
-import org.testng.Assert;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -713,9 +712,8 @@ public final class TestCaseUtils {
   private static ServerSocket bindPort(int port)
           throws IOException
   {
-    ServerSocket serverLdapSocket = new ServerSocket();
-    //serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress(port));
+	final ServerSocket serverLdapSocket = new ServerSocket(port);
+    serverLdapSocket.setReuseAddress(true);
     return serverLdapSocket;
   }
 
@@ -731,18 +729,7 @@ public final class TestCaseUtils {
    */
   public static ServerSocket bindFreePort() throws IOException
   {
-    for (int port = 10000; port < 32768; port++)
-    {
-      try
-      {
-        return bindPort(port);
-      }
-      catch (BindException e)
-      {
-        // Try next port.
-      }
-    }
-    throw new BindException("Unable to bind to a free port");
+	  return bindPort(0);
   }
 
   /**
