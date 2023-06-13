@@ -37,7 +37,7 @@ import static org.testng.Assert.*;
  */
 @Test(groups = "entrycache", sequential=true)
 public class FIFOEntryCacheTestCase
-       extends CommonEntryCacheTestCase<FIFOEntryCacheCfg>
+       extends CommonEntryCache<FIFOEntryCacheCfg>
 {
   /**
    * Initialize the entry cache test.

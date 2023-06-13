@@ -1170,7 +1170,8 @@
                 </goals>
                 <configuration>
 				  <testSourceDirectory>src/test/java</testSourceDirectory>
-                  <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
+				  <enableProcessChecker>all</enableProcessChecker>
+                  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
                     <exclude>org/opends/quicksetup/**</exclude>
@@ -1211,7 +1212,7 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
-                  <argLine>-server -Xmx2048M @{argLine}</argLine>
+                  <argLine>-server -Xmx2g @{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>
 	          	  <forkCount>1</forkCount>
 	          	  <parallel>none</parallel>

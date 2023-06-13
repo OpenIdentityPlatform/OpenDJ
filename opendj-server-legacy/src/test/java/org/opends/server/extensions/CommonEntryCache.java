@@ -32,7 +32,7 @@ import org.testng.annotations.AfterClass;
  * A common set of test cases for all entry cache implementations.
  * @param <C> The type of entry cache configuration.
  */
-public abstract class CommonEntryCacheTestCase<C extends EntryCacheCfg>
+public abstract class CommonEntryCache<C extends EntryCacheCfg>
        extends ExtensionsTestCase
 {
   /**

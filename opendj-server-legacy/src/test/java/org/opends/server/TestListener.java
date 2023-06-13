@@ -277,7 +277,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     originalSystemErr.println("Test classes run interleaved: " + _classesWithTestsRunInterleaved.size());
 
     // Try to hard to reclaim as much memory as possible.
-    runGc();
+    //runGc();
 
     originalSystemErr.printf("Final amount of memory in use: %.1f MB",
             (usedMemory() / (1024.0 * 1024.0))).println();

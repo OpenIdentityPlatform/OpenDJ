@@ -34,7 +34,7 @@ import static org.testng.Assert.*;
  */
 @Test(groups = "entrycache", sequential=true)
 public class SoftReferenceEntryCacheTestCase
-       extends CommonEntryCacheTestCase<SoftReferenceEntryCacheCfg>
+       extends CommonEntryCache<SoftReferenceEntryCacheCfg>
 {
   /**
    * Initialize the entry cache test.
