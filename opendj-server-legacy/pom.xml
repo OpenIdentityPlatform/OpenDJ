@@ -1172,6 +1172,7 @@
 				  <testSourceDirectory>src/test/java</testSourceDirectory>
 				  <enableProcessChecker>all</enableProcessChecker>
                   <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+                  <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
                     <exclude>org/opends/quicksetup/**</exclude>
