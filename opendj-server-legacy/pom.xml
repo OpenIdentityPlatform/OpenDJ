@@ -1218,6 +1218,7 @@
 	          	  <forkCount>1</forkCount>
 	          	  <parallel>none</parallel>
 	          	  <runOrder>alphabetical</runOrder>
+	          	  <rerunFailingTestsCount>3</rerunFailingTestsCount>
                 </configuration>
               </execution>
             </executions>

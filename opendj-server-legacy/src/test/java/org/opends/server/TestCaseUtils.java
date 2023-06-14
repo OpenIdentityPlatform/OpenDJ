@@ -712,8 +712,9 @@ public final class TestCaseUtils {
   private static ServerSocket bindPort(int port)
           throws IOException
   {
-	final ServerSocket serverLdapSocket = new ServerSocket(port);
+	final ServerSocket serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress(port));
     return serverLdapSocket;
   }
 
@@ -729,7 +730,15 @@ public final class TestCaseUtils {
    */
   public static ServerSocket bindFreePort() throws IOException
   {
-	  return bindPort(0);
+	  for (int port = 15000; port < 32000; port++)
+	  {
+	     try
+	     {
+	       return bindPort(port);
+	     }
+	     catch (BindException e){}		
+	  }
+	  throw new BindException("Unable to bind to a free port");
   }
 
   /**
@@ -761,15 +770,15 @@ public final class TestCaseUtils {
       final int[] ports = new int[nb];
       for (int i = 0; i < nb; i++)
       {
-        final ServerSocket socket = bindFreePort();
-        sockets[i] = socket;
-        ports[i] = socket.getLocalPort();
+        sockets[i] = bindFreePort();
+        ports[i] = sockets[i].getLocalPort();
       }
+      close(sockets);
       return ports;
     }
     finally
     {
-      close(sockets);
+      
     }
   }
 
