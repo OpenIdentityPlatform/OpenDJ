@@ -712,9 +712,13 @@ public final class TestCaseUtils {
   private static ServerSocket bindPort(int port)
           throws IOException
   {
-	final ServerSocket serverLdapSocket = new ServerSocket();
+	ServerSocket serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress(port));
+    serverLdapSocket.close();
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
     return serverLdapSocket;
   }
 
