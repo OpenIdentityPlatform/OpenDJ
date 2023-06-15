@@ -56,6 +56,7 @@ import java.net.SocketAddress;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -403,7 +404,6 @@ public final class TestCaseUtils {
     File unitClassesDir = new File(paths.unitRoot, "classes");
     File libDir = new File(paths.buildDir.getPath() + "/package/opendj/lib");
     File upgradeDir = new File(paths.buildDir.getPath() + "/package/opendj/template/config/upgrade");
-    System.out.println("libDir=" + libDir);
     File resourceDir = new File(paths.buildRoot, "resource");
     File testResourceDir = new File(paths.testSrcRoot, "resource");
     // Set the class variable
@@ -534,6 +534,7 @@ public final class TestCaseUtils {
     ErrorLogger.getInstance().addLogPublisher(
         (ErrorLogPublisher) getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
+    DebugLogger.getInstance().removeAllLogPublishers();
     DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
   }
 
@@ -1643,12 +1644,20 @@ public final class TestCaseUtils {
    */
   public static void appendLogsContents(StringBuilder logsContents)
   {
-    appendMessages(logsContents, TestCaseUtils.ACCESS_TEXT_WRITER, "Access Log Messages:");
     appendMessages(logsContents, TestCaseUtils.ERROR_TEXT_WRITER, "Error Log Messages:");
     appendMessages(logsContents, TestCaseUtils.DEBUG_TEXT_WRITER, "Debug Log Messages:");
-
+    appendMessages(logsContents, TestCaseUtils.ACCESS_TEXT_WRITER, "Access Log Messages:");
+    
     appendStreamContent(logsContents, TestCaseUtils.getSystemOutContents(), "System.out");
     appendStreamContent(logsContents, TestCaseUtils.getSystemErrContents(), "System.err");
+    
+    for (final File logFile : Arrays.asList(new File(paths.testInstanceRoot, "logs").listFiles())) {
+    	 try {
+			appendStreamContent(logsContents, readFile(logFile.getPath()), logFile.getPath());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}   
   }
 
   private static void appendStreamContent(StringBuilder out, String content, String name)
