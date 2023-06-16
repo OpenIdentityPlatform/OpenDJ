@@ -297,7 +297,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     for (DN dn : entriesToCleanup)
     {
-      deleteEntry(dn);
+    	try {
+    		deleteEntry(dn);
+    	}catch (Throwable e) {}
     }
     entriesToCleanup.clear();
   }
