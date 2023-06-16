@@ -534,7 +534,6 @@ public final class TestCaseUtils {
     ErrorLogger.getInstance().addLogPublisher(
         (ErrorLogPublisher) getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
-    DebugLogger.getInstance().removeAllLogPublishers();
     DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
   }
 
@@ -723,6 +722,7 @@ public final class TestCaseUtils {
     return serverLdapSocket;
   }
 
+  static int port = 15000;
   /**
    * Find and binds to a free server socket port on the local host. Avoid allocating ephemeral ports since these may
    * be used by client applications such as dsconfig. Instead scan through ports starting from a reasonably high number
@@ -733,13 +733,13 @@ public final class TestCaseUtils {
    *
    * @throws IOException in case of underlying exception.
    */
-  public static ServerSocket bindFreePort() throws IOException
+  public synchronized static ServerSocket bindFreePort() throws IOException
   {
-	  for (int port = 15000; port < 32000; port++)
+	  for (; port < 32000;)
 	  {
 	     try
 	     {
-	       return bindPort(port);
+	       return bindPort(port++);
 	     }
 	     catch (BindException e){}		
 	  }
