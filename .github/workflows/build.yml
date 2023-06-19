@@ -49,7 +49,15 @@ jobs:
       if: runner.os != 'Windows'
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-      run: mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit -X
+      run: mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit
+    - name: Upload IT test failiure opendj-server-legacy/target
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: ${{ matrix.os }}-${{ matrix.java }}-target
+        retention-days: 5
+        path:  |
+            opendj-server-legacy/target/
     - name: Test on Unix
       if: runner.os != 'Windows'
       run:   |
