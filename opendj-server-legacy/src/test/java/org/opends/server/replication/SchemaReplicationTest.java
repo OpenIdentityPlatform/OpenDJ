@@ -250,9 +250,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
   {
     String sep = File.separator;
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String buildDir = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot + sep + "target");
-    final String path = buildDir + sep
-        + "unit-tests" + sep + "package-instance" + sep + "config" + sep + "schema" + sep + "99-user.ldif";
+    //String buildDir = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot + sep + "target");
+    final String path = TestCaseUtils.paths.testInstanceRoot.getPath()+ sep + "config" + sep + "schema" + sep + "99-user.ldif";
     return new File(path);
   }
 

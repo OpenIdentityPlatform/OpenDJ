@@ -227,7 +227,7 @@ public final class TestCaseUtils {
   private static int serverRestarts;
 
   /** The paths to directories and files used in the tests. */
-  private static TestPaths paths = new TestPaths();
+  public static TestPaths paths = new TestPaths();
 
   /** The ports used in the tests. */
   private static TestPorts ports;
@@ -255,14 +255,14 @@ public final class TestCaseUtils {
     DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(Schema.getDefaultSchema());
   }
 
-  static class TestPaths
+  public static class TestPaths
   {
     final String buildRoot;
     final File buildDir;
     final File unitRoot;
     final String installedRoot;
     final File testInstallRoot;
-    final File testInstanceRoot;
+    public final File testInstanceRoot;
     final File testConfigDir;
     final File configFile;
     final File testSrcRoot;

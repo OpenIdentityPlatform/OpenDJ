@@ -57,24 +57,21 @@ public class CertificateManagerTestCase
   /**
    * The path to a JKS key store file.
    */
-  public static final String JKS_KEY_STORE_PATH = TestCaseUtils.getUnitTestRootPath()
-       + File.separator + "package-instance" + File.separator + "config" + File.separator + "server.keystore";
+  public static final String JKS_KEY_STORE_PATH = TestCaseUtils.paths.testInstanceRoot.getPath() + File.separator + "config" + File.separator + "server.keystore";
 
 
 
   /**
    * The path to a PKCS#12 key store file.
    */
-  public static final String PKCS12_KEY_STORE_PATH = TestCaseUtils.getUnitTestRootPath()
-       + File.separator + "package-instance" + File.separator + "config" + File.separator + "server-cert.p12";
+  public static final String PKCS12_KEY_STORE_PATH = TestCaseUtils.paths.testInstanceRoot.getPath() + File.separator + "config" + File.separator + "server-cert.p12";
 
 
 
   /**
    * The path to the unit test working directory.
    */
-  public static final String TEST_DIR = TestCaseUtils.getUnitTestRootPath()
-       + File.separator + "package-instance";
+  public static final String TEST_DIR = TestCaseUtils.paths.testInstanceRoot.getPath();
 
 
 
