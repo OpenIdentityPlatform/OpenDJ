@@ -277,7 +277,7 @@ public final class TestCaseUtils {
       if (installedRoot == null)
       {
          testInstallRoot = new File(unitRoot, "package-install");
-         testInstanceRoot = new File(unitRoot, "package-instance");
+         testInstanceRoot = new File(unitRoot, "package-instance-"+java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
       }
       else
       {
@@ -1686,16 +1686,20 @@ public final class TestCaseUtils {
   }
 
   public static synchronized void unsupressOutput() {
-    System.setOut(originalSystemOut);
-    System.setErr(originalSystemErr);
-
-    for (Map.Entry<Logger, Handler> entry : disabledLogHandlers.entrySet())
-    {
-      Logger l = entry.getKey();
-      Handler h = entry.getValue();
-      l.addHandler(h);
-    }
-    disabledLogHandlers.clear();
+	  String suppressStr = System.getProperty("org.opends.test.suppressOutput");
+	  if ("true".equalsIgnoreCase(suppressStr))
+	  {
+		  System.setOut(originalSystemOut);
+		  System.setErr(originalSystemErr);
+		
+		    for (Map.Entry<Logger, Handler> entry : disabledLogHandlers.entrySet())
+		    {
+		      Logger l = entry.getKey();
+		      Handler h = entry.getValue();
+		      l.addHandler(h);
+		    }
+		    disabledLogHandlers.clear();
+	    }
   }
 
   /** Read the contents of a file and return it as a String. */
