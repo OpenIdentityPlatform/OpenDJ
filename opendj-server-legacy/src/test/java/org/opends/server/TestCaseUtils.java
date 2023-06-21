@@ -716,6 +716,12 @@ public final class TestCaseUtils {
     serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress(port));
     serverLdapSocket.close();
+    
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress("localhost",port));
+    serverLdapSocket.close();
+    
     serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));

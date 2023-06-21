@@ -54,7 +54,7 @@ jobs:
       uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: ${{ matrix.os }}-${{ matrix.java }}-target
+        name: failsafe-${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5
         path:  |
             opendj-server-legacy/target/

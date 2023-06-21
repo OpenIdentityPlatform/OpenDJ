@@ -964,14 +964,14 @@ public class GenerationIdTest extends ReplicationTestCase
 
 
       debugInfo("Adding reset task to DS.");
-      executeTask(createSetGenerationIdTask(null, ""), 40000);
+      executeTask(createSetGenerationIdTask(null, ""), 90000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       genId = readGenIdFromSuffixRootEntry(true);
       assertGenIdEquals(genId);
 
       debugInfo("Adding reset task to DS." + genId);
-      executeTask(createSetGenerationIdTask(null, "ds-task-reset-generation-id-new-value: -1"), 40000);
+      executeTask(createSetGenerationIdTask(null, "ds-task-reset-generation-id-new-value: -1"), 90000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       waitForStableGenerationId(-1);

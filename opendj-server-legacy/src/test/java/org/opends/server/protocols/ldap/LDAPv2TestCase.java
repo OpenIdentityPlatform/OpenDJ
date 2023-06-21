@@ -82,7 +82,7 @@ public class LDAPv2TestCase
       "replace: ds-cfg-allow-ldap-v2",
       "ds-cfg-allow-ldap-v2: false");
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password", LDAPResultCode.PROTOCOL_ERROR);
     }
@@ -107,7 +107,7 @@ public class LDAPv2TestCase
   @Test(expectedExceptions = EOFException.class)
   public void testRejectExtendedRequest() throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
       conn.writeMessage(new ExtendedRequestProtocolOp(OID_START_TLS_REQUEST));
@@ -127,7 +127,7 @@ public class LDAPv2TestCase
   public void testRejectAddControls()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
 
@@ -168,7 +168,7 @@ public class LDAPv2TestCase
   public void testRejectBindControls()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password",
           LDAPResultCode.PROTOCOL_ERROR, new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
@@ -185,7 +185,7 @@ public class LDAPv2TestCase
   public void testRejectCompareControls()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
 
@@ -209,7 +209,7 @@ public class LDAPv2TestCase
   public void testRejectDeleteControls()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
 
@@ -233,7 +233,7 @@ public class LDAPv2TestCase
   public void testRejectModifyControls()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
 
@@ -258,7 +258,7 @@ public class LDAPv2TestCase
   public void testRejectModifyDNControls()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
 
@@ -282,7 +282,7 @@ public class LDAPv2TestCase
   public void testRejectSearchControls()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       bindLdapV2(conn, "cn=Directory Manager", "password");
 
