@@ -89,7 +89,7 @@ public class CancelExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -101,7 +101,7 @@ public class CancelExtendedOperationTestCase
           newRawAttribute("ou", "People"));
       AddRequestProtocolOp addRequest =
           new AddRequestProtocolOp(ByteString.valueOfUtf8("ou=People,o=test"), attributes);
-      conn.writeMessage(addRequest, DelayPreOpPlugin.createDelayControlList(10000));
+      conn.writeMessage(addRequest, DelayPreOpPlugin.createDelayControlList(100000));
 
       conn.writeMessage(cancelRequestExtendedOp(2));
 
@@ -124,7 +124,7 @@ public class CancelExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -133,7 +133,7 @@ public class CancelExtendedOperationTestCase
       // cancel request.
       CompareRequestProtocolOp compareRequest =
           new CompareRequestProtocolOp(ByteString.valueOfUtf8("o=test"), "o", ByteString.valueOfUtf8("test"));
-      conn.writeMessage(compareRequest, DelayPreOpPlugin.createDelayControlList(10000));
+      conn.writeMessage(compareRequest, DelayPreOpPlugin.createDelayControlList(100000));
 
       conn.writeMessage(cancelRequestExtendedOp(2));
 
@@ -159,7 +159,7 @@ public class CancelExtendedOperationTestCase
          "objectClass: device",
          "cn: test");
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -168,7 +168,7 @@ public class CancelExtendedOperationTestCase
       // cancel request.
       DeleteRequestProtocolOp deleteRequest =
           new DeleteRequestProtocolOp(ByteString.valueOfUtf8("cn=test,o=test"));
-      conn.writeMessage(deleteRequest, DelayPreOpPlugin.createDelayControlList(10000));
+      conn.writeMessage(deleteRequest, DelayPreOpPlugin.createDelayControlList(100000));
 
       conn.writeMessage(cancelRequestExtendedOp(2));
 
@@ -188,7 +188,7 @@ public class CancelExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -196,7 +196,7 @@ public class CancelExtendedOperationTestCase
       // sure to include the delay request control so it won't complete before we
       // can send the cancel request.
       ExtendedRequestProtocolOp whoAmIRequest = new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST, null);
-      conn.writeMessage(whoAmIRequest, DelayPreOpPlugin.createDelayControlList(10000));
+      conn.writeMessage(whoAmIRequest, DelayPreOpPlugin.createDelayControlList(100000));
 
       conn.writeMessage(cancelRequestExtendedOp(2));
 
@@ -224,7 +224,7 @@ public class CancelExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -236,7 +236,7 @@ public class CancelExtendedOperationTestCase
 
       conn.writeMessage(
           new ModifyRequestProtocolOp(ByteString.valueOfUtf8("o=test"), mods),
-          DelayPreOpPlugin.createDelayControlList(10000));
+          DelayPreOpPlugin.createDelayControlList(100000));
 
       // Create a cancel request and send it to the server.
       conn.writeMessage(cancelRequestExtendedOp(2));
@@ -278,7 +278,7 @@ public class CancelExtendedOperationTestCase
          "objectClass: device",
          "cn: test");
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -287,7 +287,7 @@ public class CancelExtendedOperationTestCase
       // the cancel request.
       ModifyDNRequestProtocolOp modifyDNRequest = new ModifyDNRequestProtocolOp(
           ByteString.valueOfUtf8("cn=test,o=test"), ByteString.valueOfUtf8("cn=test2"), true);
-      conn.writeMessage(modifyDNRequest, DelayPreOpPlugin.createDelayControlList(10000));
+      conn.writeMessage(modifyDNRequest, DelayPreOpPlugin.createDelayControlList(100000));
 
       conn.writeMessage(cancelRequestExtendedOp(2));
 
@@ -361,7 +361,7 @@ public class CancelExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -375,7 +375,7 @@ public class CancelExtendedOperationTestCase
               0, false,
               LDAPFilter.decode("(match=false)"),
               new LinkedHashSet<String>());
-      conn.writeMessage(searchRequest, DelayPreOpPlugin.createDelayControlList(10000));
+      conn.writeMessage(searchRequest, DelayPreOpPlugin.createDelayControlList(100000));
       conn.writeMessage(cancelRequestExtendedOp(2));
       assertEquals(getCancelledResponseMessageType(conn), OP_TYPE_SEARCH_RESULT_DONE);
     }
@@ -393,7 +393,7 @@ public class CancelExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -421,7 +421,7 @@ public class CancelExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -450,7 +450,7 @@ public class CancelExtendedOperationTestCase
     TestCaseUtils.initializeTestBackend(true);
 
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -477,7 +477,7 @@ public class CancelExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 

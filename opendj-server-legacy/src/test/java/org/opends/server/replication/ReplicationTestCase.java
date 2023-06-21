@@ -218,7 +218,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected DomainFakeCfg newFakeCfg(final DN baseDN, int serverId, int port)
   {
-    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newTreeSet("localhost:" + port));
+    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newTreeSet("127.0.0.1:" + port));
     fakeCfg.setHeartbeatInterval(100000);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     return fakeCfg;

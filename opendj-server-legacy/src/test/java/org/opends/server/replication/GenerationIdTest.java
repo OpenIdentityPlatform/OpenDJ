@@ -318,15 +318,15 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       if (replServerId != replServerId1)
       {
-        servers.add("localhost:" + getRSPort(replServerId1));
+        servers.add("127.0.0.1:" + getRSPort(replServerId1));
       }
       if (replServerId != replServerId2)
       {
-        servers.add("localhost:" + getRSPort(replServerId2));
+        servers.add("127.0.0.1:" + getRSPort(replServerId2));
       }
       if (replServerId != replServerId3)
       {
-        servers.add("localhost:" + getRSPort(replServerId3));
+        servers.add("127.0.0.1:" + getRSPort(replServerId3));
       }
     }
     int rsPort = getRSPort(replServerId);
@@ -349,7 +349,7 @@ public class GenerationIdTest extends ReplicationTestCase
         + "objectClass: ds-cfg-replication-domain\n"
         + "cn: " + testName + "\n"
         + "ds-cfg-base-dn: " + baseDnStr + "\n"
-        + "ds-cfg-replication-server: localhost:" + rs.getReplicationPort() + "\n"
+        + "ds-cfg-replication-server: 127.0.0.1:" + rs.getReplicationPort() + "\n"
         + "ds-cfg-server-id: " + server1ID + "\n"
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;
