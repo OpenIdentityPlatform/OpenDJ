@@ -112,8 +112,13 @@ public class SetGenerationIdTask extends Task
     {
       logger.error(de.getMessageObject());
       return TaskState.STOPPED_BY_ERROR;
+    }catch(Throwable de)
+    {
+		LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
+	    mb.append(de.toString());
+	    logger.error(mb.toMessage());
+	    return TaskState.STOPPED_BY_ERROR;
     }
-
     if (logger.isTraceEnabled())
     {
       logger.trace("setGenerationIdTask is ending SUCCESSFULLY");
