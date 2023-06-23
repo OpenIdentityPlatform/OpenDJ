@@ -95,7 +95,7 @@ public class HistoricalTest extends ReplicationTestCase
          + "objectClass: ds-cfg-replication-domain\n"
          + "cn: " + testName + "\n"
          + "ds-cfg-base-dn: " + TEST_ROOT_DN_STRING + "\n"
-         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
+         + "ds-cfg-replication-server: 127.0.0.1:" + replServerPort + "\n"
          + "ds-cfg-server-id: 1\n"
          + "ds-cfg-receive-status: true\n";
 
@@ -203,7 +203,7 @@ public class HistoricalTest extends ReplicationTestCase
     assertFalse(hist.encodeAndPurge().isEmpty());
 
     // Now wait for the purge time to be done
-    Thread.sleep(testPurgeDelayInMillisec + 200);
+    Thread.sleep(testPurgeDelayInMillisec + 500);
 
     // Read the entry back to get its history operational attribute.
     // The hist attribute should now be empty since purged
