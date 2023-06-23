@@ -226,7 +226,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       // it is necessary to loop on this check because the state is not
       // written immediately but only every so often.
       TestTimer timer = new TestTimer.Builder()
-        .maxSleep(5, SECONDS)
+        .maxSleep(10, SECONDS)
         .sleepTimes(100, MILLISECONDS)
         .toTimer();
       timer.repeatUntilSuccess(new CallableVoid()

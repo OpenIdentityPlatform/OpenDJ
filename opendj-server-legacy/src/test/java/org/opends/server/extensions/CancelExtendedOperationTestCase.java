@@ -204,11 +204,11 @@ public class CancelExtendedOperationTestCase
       // responses, one with the result code CANCELED and one with SUCCESS.
       LDAPMessage message = conn.readMessage();
       ExtendedResponseProtocolOp extendedResponse = message.getExtendedResponseProtocolOp();
-      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.CANCELED);
+      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.CANCELED,message.toString());
 
       message = conn.readMessage();
       extendedResponse = message.getExtendedResponseProtocolOp();
-      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS);
+      assertEquals(extendedResponse.getResultCode(), LDAPResultCode.SUCCESS,message.toString());
     }
   }
 
