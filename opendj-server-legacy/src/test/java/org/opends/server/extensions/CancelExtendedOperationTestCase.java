@@ -197,7 +197,8 @@ public class CancelExtendedOperationTestCase
       // can send the cancel request.
       ExtendedRequestProtocolOp whoAmIRequest = new ExtendedRequestProtocolOp(OID_WHO_AM_I_REQUEST, null);
       conn.writeMessage(whoAmIRequest, DelayPreOpPlugin.createDelayControlList(100000));
-
+      Thread.sleep(1000);
+      
       conn.writeMessage(cancelRequestExtendedOp(2));
 
       // Read two response messages from the server. They should both be extended
