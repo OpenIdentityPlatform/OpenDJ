@@ -64,7 +64,7 @@ public class DisconnectClientTaskTestCase
   public void testDisconnectWithNotification()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
@@ -90,7 +90,7 @@ public class DisconnectClientTaskTestCase
   public void testDisconnectWithoutNotification()
          throws Exception
   {
-    try (RemoteConnection conn = new RemoteConnection("localhost", TestCaseUtils.getServerLdapPort()))
+    try (RemoteConnection conn = new RemoteConnection("127.0.0.1", TestCaseUtils.getServerLdapPort()))
     {
       conn.bind("cn=Directory Manager", "password");
 
