@@ -1202,7 +1202,7 @@
                       <value>skip</value>
                     </property>
                  </properties>
-                  <systemPropertyVariables>
+                 <systemPropertyVariables>
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
                     <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
@@ -1212,7 +1212,7 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
-                  <argLine> -Xmx2g @{argLine}</argLine>
+                  <argLine> -Xmx2g -Djava.net.preferIPv4Stack=true @{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>
 	          	  <forkCount>1</forkCount>
 	          	  <parallel>none</parallel>
