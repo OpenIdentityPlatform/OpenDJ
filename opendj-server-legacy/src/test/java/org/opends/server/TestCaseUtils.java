@@ -277,7 +277,8 @@ public final class TestCaseUtils {
       if (installedRoot == null)
       {
          testInstallRoot = new File(unitRoot, "package-install");
-         testInstanceRoot = new File(unitRoot, "package-instance-"+java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+         //testInstanceRoot = new File(unitRoot, "package-instance-"+java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+         testInstanceRoot = new File(unitRoot, "package-instance");
       }
       else
       {
