@@ -2248,10 +2248,10 @@ public class LDAPAuthenticationHandlerTestCase
   }
 
   private void getFQDN() {
-      try {
-         this.hostname = InetAddress.getLocalHost().getCanonicalHostName();
-      } catch(UnknownHostException ex) {
-         this.hostname = "127.0.0.1";
-      }
+//      try {
+//         this.hostname = InetAddress.getLocalHost().getCanonicalHostName();
+//      } catch(UnknownHostException ex) {
+         this.hostname = "localhost";
+//      }
   }
 }

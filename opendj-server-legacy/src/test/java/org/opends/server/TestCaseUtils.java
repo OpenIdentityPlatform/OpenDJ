@@ -342,7 +342,7 @@ public final class TestCaseUtils {
   private static void initializePortsAndServer() throws Exception
   {
     ports = new TestPorts();
-    hostname = InetAddress.getLocalHost().getHostName();
+    hostname = "127.0.0.1";
     server = manageEmbeddedDirectoryServer(
         configParams()
           .serverRootDirectory(paths.testInstallRoot.getPath())
