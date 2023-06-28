@@ -1131,6 +1131,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         try
         {
           // Set ldapSocket cfg before connecting.
+          plainSocket.setReuseAddress(true);
           plainSocket.setTcpNoDelay(cfg.isUseTCPNoDelay());
           plainSocket.setKeepAlive(cfg.isUseTCPKeepAlive());
           plainSocket.setSoTimeout(timeoutMS);

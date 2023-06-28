@@ -46,13 +46,17 @@ jobs:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
     - name: IT test
+      id: failsafe
       if: runner.os != 'Windows'
+      timeout-minutes: 90
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
-      run: mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit
+      run:   |
+        cat /etc/hosts
+        mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit
     - name: Upload IT test failiure opendj-server-legacy/target
       uses: actions/upload-artifact@v3
-      if: failure()
+      if: steps.failsafe.conclusion == 'failure'
       with:
         name: failsafe-${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5

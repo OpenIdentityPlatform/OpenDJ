@@ -2485,7 +2485,7 @@ public abstract class ReplicationDomain
         {
           try
           {
-            Thread.sleep(i*100);
+            Thread.sleep(100);
           } catch (InterruptedException e)
           {
             Thread.currentThread().interrupt();

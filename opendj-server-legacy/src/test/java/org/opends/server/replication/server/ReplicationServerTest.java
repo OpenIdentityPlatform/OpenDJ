@@ -850,6 +850,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     InetSocketAddress serverAddr =
         new HostPort("localhost", replicationServerPort).toInetSocketAddress();
     Socket socket = new Socket();
+    socket.setReuseAddress(true);
     socket.setReceiveBufferSize(1000000);
     socket.setTcpNoDelay(true);
     int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();

@@ -713,9 +713,11 @@ public final class TestCaseUtils {
   private static ServerSocket bindPort(int port)
           throws IOException
   {
-	ServerSocket serverLdapSocket = new ServerSocket();
+	ServerSocket serverLdapSocket;
+	
+	serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress(port));
+    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
     serverLdapSocket.close();
     
     serverLdapSocket = new ServerSocket();
@@ -723,9 +725,15 @@ public final class TestCaseUtils {
     serverLdapSocket.bind(new InetSocketAddress("localhost",port));
     serverLdapSocket.close();
     
+    
     serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
+    serverLdapSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(),port));
+    serverLdapSocket.close();
+    
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress(port));
     return serverLdapSocket;
   }
 
@@ -1388,6 +1396,7 @@ public final class TestCaseUtils {
    */
   public static void configureSocket(Socket s) throws Exception
   {
+	  s.setReuseAddress(true);
     s.setSoTimeout(60 * 1000);
   }
 

@@ -22,6 +22,7 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -1443,7 +1444,10 @@ public class LDAPAuthenticationHandlerTestCase
 
   private Socket newSocket() throws UnknownHostException, IOException
   {
-    return new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+	  final Socket socket=new Socket();
+	  socket.setReuseAddress(true);
+	  socket.connect(new InetSocketAddress("127.0.0.1",TestCaseUtils.getServerLdapPort()));
+	  return socket;
   }
 
   private LDAPAuthenticationHandler newLDAPAuthenticationHandler(Socket s, String hostName2) throws IOException
@@ -2248,10 +2252,10 @@ public class LDAPAuthenticationHandlerTestCase
   }
 
   private void getFQDN() {
-//      try {
-//         this.hostname = InetAddress.getLocalHost().getCanonicalHostName();
-//      } catch(UnknownHostException ex) {
-         this.hostname = "localhost";
-//      }
+      try {
+         this.hostname = InetAddress.getLocalHost().getCanonicalHostName();
+      } catch(UnknownHostException ex) {
+         this.hostname = "127.0.0.1";
+      }
   }
 }
