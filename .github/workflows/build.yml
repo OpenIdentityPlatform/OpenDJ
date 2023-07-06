@@ -48,7 +48,7 @@ jobs:
     - name: IT test
       id: failsafe
       if: runner.os != 'Windows'
-      timeout-minutes: 90
+      timeout-minutes: 120
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run:   |

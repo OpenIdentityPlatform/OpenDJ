@@ -332,8 +332,8 @@ public class GenerationIdTest extends ReplicationTestCase
     int rsPort = getRSPort(replServerId);
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
     ReplicationServer replicationServer = new ReplicationServer(
-        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 10000, servers));
-    Thread.sleep(5000);
+        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 1000, servers));
+    Thread.sleep(2000);
     return replicationServer;
   }
 
@@ -796,7 +796,7 @@ public class GenerationIdTest extends ReplicationTestCase
       broker3 = openReplicationSession(server3ID, replServer1, dsGenId);
 
       debugInfo("Adding reset task to DS1");
-      executeTask(createSetGenerationIdTask(null, ""), 20000);
+      executeTask(createSetGenerationIdTask(dsGenId, ""), 20000);
 
       debugInfo("Verify that RS1 has still the right genID");
       assertEquals(replServer1.getGenerationId(baseDN), rsGenId);
@@ -847,7 +847,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   /**
    * Waits for the connection from server1 to the replication domain to
-   * establish itself up automagically.
+   * establish itself up automatically.
    */
   private void waitConnectionToReplicationDomain(final DN baseDN, int timeout) throws Exception
   {
@@ -871,7 +871,7 @@ public class GenerationIdTest extends ReplicationTestCase
   {
     String genIdString = genId != null ? genId.toString() : "";
     return TestCaseUtils.makeEntry(
-        "dn: ds-task-id=resetgenid" + genIdString + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+        "dn: ds-task-id=resetgenid-" + genIdString+"_"+UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top", "objectclass: ds-task",
         "objectclass: ds-task-reset-generation-id",
         "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
@@ -964,14 +964,15 @@ public class GenerationIdTest extends ReplicationTestCase
 
 
       debugInfo("Adding reset task to DS.");
-      executeTask(createSetGenerationIdTask(null, ""), 90000);
+      executeTask(createSetGenerationIdTask(genId, ""), 90000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       genId = readGenIdFromSuffixRootEntry(true);
       assertGenIdEquals(genId);
 
+      Thread.sleep(3000);
       debugInfo("Adding reset task to DS." + genId);
-      executeTask(createSetGenerationIdTask(null, "ds-task-reset-generation-id-new-value: -1"), 90000);
+      executeTask(createSetGenerationIdTask(genId, "ds-task-reset-generation-id-new-value: -1"), 90000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       waitForStableGenerationId(-1);

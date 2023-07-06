@@ -22,7 +22,7 @@ import static org.forgerock.opendj.server.embedded.ConnectionParameters.connecti
 import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 
 import static org.opends.server.loggers.TextAccessLogPublisher.getStartupTextAccessPublisher;
-import static org.opends.server.loggers.TextErrorLogPublisher.getToolStartupTextErrorPublisher;
+import static org.opends.server.loggers.TextErrorLogPublisher.*;
 import static org.opends.server.loggers.TextHTTPAccessLogPublisher.getStartupTextHTTPAccessPublisher;
 import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.PROPERTY_RUNNING_UNIT_TESTS;
@@ -534,6 +534,9 @@ public final class TestCaseUtils {
     // Enable more verbose error logger.
     ErrorLogger.getInstance().addLogPublisher(
         (ErrorLogPublisher) getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
+    
+    ErrorLogger.getInstance().addLogPublisher(
+            (ErrorLogPublisher) getServerStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
     DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
   }

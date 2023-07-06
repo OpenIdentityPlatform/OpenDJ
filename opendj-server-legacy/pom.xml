@@ -1218,6 +1218,7 @@
 	          	  <parallel>none</parallel>
 	          	  <runOrder>alphabetical</runOrder>
 	          	  <rerunFailingTestsCount>3</rerunFailingTestsCount>
+	          	  <useFile>false</useFile>
                 </configuration>
               </execution>
             </executions>
