@@ -1158,9 +1158,9 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-            	<classpathDependencyExcludes>
-	            	<classpathDependencyExcludes>org.slf4j:slf4j-jdk14</classpathDependencyExcludes>
-	          	</classpathDependencyExcludes>
+<!--            	<classpathDependencyExcludes>-->
+<!--	            	<classpathDependencyExcludes>org.slf4j:slf4j-jdk14</classpathDependencyExcludes>-->
+<!--	          	</classpathDependencyExcludes>-->
             </configuration>
             <executions>
               <execution>
@@ -1169,7 +1169,11 @@
                   <goal>verify</goal>
                 </goals>
                 <configuration>
+				  <additionalClasspathElements>
+		            <additionalClasspathElement>${project.build.directory}/jars/opendj-slf4j-adapter.jar</additionalClasspathElement>
+		          </additionalClasspathElements>
 				  <testSourceDirectory>src/test/java</testSourceDirectory>
+				  <enableProcessChecker>all</enableProcessChecker>
 				  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <excludes>
@@ -1218,7 +1222,6 @@
 	          	  <parallel>none</parallel>
 	          	  <runOrder>alphabetical</runOrder>
 	          	  <rerunFailingTestsCount>3</rerunFailingTestsCount>
-	          	  <useFile>false</useFile>
                 </configuration>
               </execution>
             </executions>
