@@ -273,11 +273,10 @@ public final class TestCaseUtils {
       buildRoot = System.getProperty(PROPERTY_BUILD_ROOT,System.getProperty("user.dir"));
       String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "target");
       buildDir = new File(buildDirStr);
-      unitRoot  = new File(buildDir, "unit-tests");
+      unitRoot  = new File(buildDir, "unit-tests/pid-"+java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
       if (installedRoot == null)
       {
          testInstallRoot = new File(unitRoot, "package-install");
-         //testInstanceRoot = new File(unitRoot, "package-instance-"+java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
          testInstanceRoot = new File(unitRoot, "package-instance");
       }
       else

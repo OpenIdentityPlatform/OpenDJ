@@ -56,7 +56,7 @@ jobs:
         mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit
     - name: Upload IT test failiure opendj-server-legacy/target
       uses: actions/upload-artifact@v3
-      if: steps.failsafe.conclusion == 'failure'
+      if: failure()
       with:
         name: failsafe-${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5

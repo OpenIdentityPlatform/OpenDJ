@@ -1173,7 +1173,7 @@
 		            <additionalClasspathElement>${project.build.directory}/jars/opendj-slf4j-adapter.jar</additionalClasspathElement>
 		          </additionalClasspathElements>
 				  <testSourceDirectory>src/test/java</testSourceDirectory>
-				  <enableProcessChecker>all</enableProcessChecker>
+<!--				  <enableProcessChecker>all</enableProcessChecker>-->
 				  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                   <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <excludes>
