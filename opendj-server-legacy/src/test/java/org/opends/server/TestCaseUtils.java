@@ -273,7 +273,7 @@ public final class TestCaseUtils {
       buildRoot = System.getProperty(PROPERTY_BUILD_ROOT,System.getProperty("user.dir"));
       String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "target");
       buildDir = new File(buildDirStr);
-      unitRoot  = new File(buildDir, "unit-tests/pid-"+java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+      unitRoot  = new File(buildDir, "unit-tests"+((testName!=null)?"/"+testName:""));
       if (installedRoot == null)
       {
          testInstallRoot = new File(unitRoot, "package-install");
@@ -356,7 +356,10 @@ public final class TestCaseUtils {
          System.out,
          System.err);
   }
-
+  public static void cleanTestPath() throws IOException {
+	  deleteDirectory(paths.unitRoot);
+  }
+  
   /**
    * Setup the directory server in separate install root directory and instance root directory.
    * After this method the directory server should be ready to be started.
@@ -367,6 +370,7 @@ public final class TestCaseUtils {
     String cleanupRequiredString = System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
     boolean cleanupRequired = !"false".equalsIgnoreCase(cleanupRequiredString);
 
+    //originalSystemErr.println("start "+paths.unitRoot);
     if (cleanupRequired) {
       deleteDirectory(paths.testInstallRoot);
       deleteDirectory(paths.testInstanceRoot);
@@ -2000,4 +2004,11 @@ public final class TestCaseUtils {
       System.setIn(stdin);
     }
   }
+
+  	static String testName=null;
+	public static void setTestName(String name) {
+		testName=name;
+		paths=new TestPaths();
+		//originalSystemErr.println(paths.unitRoot);
+	}
 }

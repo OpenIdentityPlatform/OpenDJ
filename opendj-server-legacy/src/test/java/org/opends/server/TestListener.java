@@ -19,6 +19,7 @@ package org.opends.server;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -153,9 +154,30 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   @Override
   public void onStart(ITestContext testContext) {
     super.onStart(testContext);
-
+    
+    if (testContext.getAllTestMethods().length>0) {
+    	TestCaseUtils.setTestName(testContext.getAllTestMethods()[0].getInstance().getClass().getName());
+    }
+    
     // Delete the previous report if it's there.
     new File(testContext.getOutputDirectory(), REPORT_FILE_NAME).delete();
+  }
+
+  @Override
+  public void onFinish(ITestContext testContext) {
+	super.onFinish(testContext);
+	
+	if (testContext.getAllTestMethods().length>0) {
+		if (testContext.getFailedConfigurations().size()==0 && testContext.getFailedTests().size()==0) {
+		    try {
+				TestCaseUtils.cleanTestPath();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}else {
+			originalSystemErr.println("check state: "+paths.unitRoot);
+		}
+	}
   }
 
   @Override

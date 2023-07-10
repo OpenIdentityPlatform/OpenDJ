@@ -50,28 +50,34 @@ public class CertificateManagerTestCase
 
 
   /** Get the build root and use it to create a test package directory. */
-  public static final String BUILD_ROOT =
-          System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+//  public static final String BUILD_ROOT =
+//          System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
 
 
   /**
    * The path to a JKS key store file.
    */
-  public static final String JKS_KEY_STORE_PATH = TestCaseUtils.paths.testInstanceRoot.getPath() + File.separator + "config" + File.separator + "server.keystore";
-
+  public static final String JKS_KEY_STORE_PATH() {
+	  return TestCaseUtils.paths.testInstanceRoot.getPath() + File.separator + "config" + File.separator + "server.keystore";
+  }
+  
 
 
   /**
    * The path to a PKCS#12 key store file.
    */
-  public static final String PKCS12_KEY_STORE_PATH = TestCaseUtils.paths.testInstanceRoot.getPath() + File.separator + "config" + File.separator + "server-cert.p12";
+  public static final String PKCS12_KEY_STORE_PATH() {
+	  return TestCaseUtils.paths.testInstanceRoot.getPath() + File.separator + "config" + File.separator + "server-cert.p12";
+  }
 
 
 
   /**
    * The path to the unit test working directory.
    */
-  public static final String TEST_DIR = TestCaseUtils.paths.testInstanceRoot.getPath();
+  public static final String TEST_DIR() {
+	  return TestCaseUtils.paths.testInstanceRoot.getPath();
+  }
 
 
 
@@ -135,7 +141,7 @@ public class CertificateManagerTestCase
   public void testConstructorNonexistentPath()
          throws Exception
   {
-    String path = TEST_DIR + File.separator + "nonexistent" + File.separator +
+    String path = TEST_DIR() + File.separator + "nonexistent" + File.separator +
                   "doesntmatter";
 
     new CertificateManager(path, "JKS", "password");
@@ -153,7 +159,7 @@ public class CertificateManagerTestCase
   public void testConstructorPathNotFile()
          throws Exception
   {
-    new CertificateManager(TEST_DIR, "JKS", "password");
+    new CertificateManager(TEST_DIR(), "JKS", "password");
   }
 
 
@@ -168,7 +174,7 @@ public class CertificateManagerTestCase
   public void testConstructorNullType()
          throws Exception
   {
-    new CertificateManager(JKS_KEY_STORE_PATH, null, "password");
+    new CertificateManager(JKS_KEY_STORE_PATH(), null, "password");
   }
 
 
@@ -183,7 +189,7 @@ public class CertificateManagerTestCase
   public void testConstructorEmptyType()
          throws Exception
   {
-    new CertificateManager(JKS_KEY_STORE_PATH, "", "password");
+    new CertificateManager(JKS_KEY_STORE_PATH(), "", "password");
   }
 
 
@@ -197,7 +203,7 @@ public class CertificateManagerTestCase
   public void testConstructorInvalidType()
          throws Exception
   {
-    new CertificateManager(JKS_KEY_STORE_PATH, "invalid", "password");
+    new CertificateManager(JKS_KEY_STORE_PATH(), "invalid", "password");
   }
 
 
@@ -212,7 +218,7 @@ public class CertificateManagerTestCase
   public void testConstructorInvalidPKCS11Path()
          throws Exception
   {
-    new CertificateManager(JKS_KEY_STORE_PATH, "PKCS11", "password");
+    new CertificateManager(JKS_KEY_STORE_PATH(), "PKCS11", "password");
   }
 
 
@@ -227,7 +233,7 @@ public class CertificateManagerTestCase
   public void testConstructorNullPIN()
          throws Exception
   {
-    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH, "JKS", (String) null));
+    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", (String) null));
   }
 
 
@@ -242,7 +248,7 @@ public class CertificateManagerTestCase
   public void testConstructorEmptyPIN()
          throws Exception
   {
-    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH, "JKS", ""));
+    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", ""));
   }
 
 
@@ -259,7 +265,7 @@ public class CertificateManagerTestCase
       return;
     }
 
-    new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+    new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
   }
 
 
@@ -276,7 +282,7 @@ public class CertificateManagerTestCase
       return;
     }
 
-    new CertificateManager(PKCS12_KEY_STORE_PATH, "PKCS12", "password");
+    new CertificateManager(PKCS12_KEY_STORE_PATH(), "PKCS12", "password");
   }
 
 
@@ -296,7 +302,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -322,7 +328,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -383,11 +389,11 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
     assertTrue(certManager.aliasInUse("server-cert"));
     assertFalse(certManager.aliasInUse("nonexistent"));
 
-    String path = TEST_DIR + File.separator + "nonexistent";
+    String path = TEST_DIR() + File.separator + "nonexistent";
     certManager = new CertificateManager(path, "JKS", "password");
     assertFalse(certManager.aliasInUse("doesntmatter"));
   }
@@ -409,11 +415,11 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(PKCS12_KEY_STORE_PATH, "PKCS12", "password");
+         new CertificateManager(PKCS12_KEY_STORE_PATH(), "PKCS12", "password");
     assertTrue(certManager.aliasInUse("server-cert"));
     assertFalse(certManager.aliasInUse("nonexistent"));
 
-    String path = TEST_DIR + File.separator + "nonexistent";
+    String path = TEST_DIR() + File.separator + "nonexistent";
     certManager = new CertificateManager(path, "PKCS12", "password");
     assertFalse(certManager.aliasInUse("doesntmatter"));
   }
@@ -436,14 +442,14 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     String[] aliases = certManager.getCertificateAliases();
     assertNotNull(aliases);
     assertTrue(aliases.length > 0);
     assertTrue(Arrays.asList(aliases).contains("server-cert"));
 
-    String path = TEST_DIR + File.separator + "nonexistent";
+    String path = TEST_DIR() + File.separator + "nonexistent";
     certManager = new CertificateManager(path, "JKS", "password");
     assertNull(certManager.getCertificateAliases());
   }
@@ -466,14 +472,14 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(PKCS12_KEY_STORE_PATH, "PKCS12", "password");
+         new CertificateManager(PKCS12_KEY_STORE_PATH(), "PKCS12", "password");
 
     String[] aliases = certManager.getCertificateAliases();
     assertNotNull(aliases);
     assertTrue(aliases.length > 0);
     assertTrue(Arrays.asList(aliases).contains("server-cert"));
 
-    String path = TEST_DIR + File.separator + "nonexistent";
+    String path = TEST_DIR() + File.separator + "nonexistent";
     certManager = new CertificateManager(path, "PKCS12", "password");
     assertNull(certManager.getCertificateAliases());
   }
@@ -495,7 +501,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -521,7 +527,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -547,11 +553,11 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
     assertNotNull(certManager.getCertificate("server-cert"));
     assertNull(certManager.getCertificate("nonexistent"));
 
-    String path = TEST_DIR + File.separator + "nonexistent";
+    String path = TEST_DIR() + File.separator + "nonexistent";
     certManager = new CertificateManager(path, "JKS", "password");
     try
     {
@@ -578,11 +584,11 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(PKCS12_KEY_STORE_PATH, "PKCS12", "password");
+         new CertificateManager(PKCS12_KEY_STORE_PATH(), "PKCS12", "password");
     assertNotNull(certManager.getCertificate("server-cert"));
     assertNull(certManager.getCertificate("nonexistent"));
 
-    String path = TEST_DIR + File.separator + "nonexistent";
+    String path = TEST_DIR() + File.separator + "nonexistent";
     certManager = new CertificateManager(path, "PKCS12", "password");
     try
     {
@@ -608,7 +614,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -635,7 +641,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -662,7 +668,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -690,7 +696,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -717,7 +723,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -776,7 +782,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -862,7 +868,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
     File exportFile = exportCertificate();
 
     try
@@ -891,7 +897,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
     File exportFile = exportCertificate();
 
     try
@@ -920,7 +926,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -947,9 +953,9 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
-    File f = new File(TEST_DIR, "nonexistent");
+    File f = new File(TEST_DIR(), "nonexistent");
 
     try
     {
@@ -977,9 +983,9 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
-    File f = new File(TEST_DIR);
+    File f = new File(TEST_DIR());
 
     try
     {
@@ -1007,7 +1013,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     File path = File.createTempFile("testAddCertificateFileNotCertificate",
                                     ".notacertificate");
@@ -1042,7 +1048,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -1068,7 +1074,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -1095,7 +1101,7 @@ public class CertificateManagerTestCase
     }
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     try
     {
@@ -1158,7 +1164,7 @@ public class CertificateManagerTestCase
     path.delete();
 
     CertificateManager certManager =
-         new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "password");
+         new CertificateManager(JKS_KEY_STORE_PATH(), "JKS", "password");
 
     Certificate certificate = certManager.getCertificate("server-cert");
     assertNotNull(certificate);
