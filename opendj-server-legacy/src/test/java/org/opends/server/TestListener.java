@@ -386,6 +386,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     appendFailureInfo(failureInfo);
 
     failureInfo.append(EOL).append(EOL);
+    originalSystemErr.printf("[%s]  ",TEST_PROGESS_TIME_FORMAT.format(new Date()));
     originalSystemErr.print(EOL + EOL + EOL + "                 T E S T   S K I P P E D ! ! !" + EOL + EOL);
     originalSystemErr.print(failureInfo);
     originalSystemErr.print(DIVIDER_LINE + EOL + EOL);

@@ -723,7 +723,7 @@ public final class TestCaseUtils {
 	
 	serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
+    serverLdapSocket.bind(new InetSocketAddress(port));
     serverLdapSocket.close();
     
     serverLdapSocket = new ServerSocket();
@@ -739,11 +739,11 @@ public final class TestCaseUtils {
     
     serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress(port));
+    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
     return serverLdapSocket;
   }
 
-  static int port = 15000;
+  static int port = 30000;
   /**
    * Find and binds to a free server socket port on the local host. Avoid allocating ephemeral ports since these may
    * be used by client applications such as dsconfig. Instead scan through ports starting from a reasonably high number
@@ -756,11 +756,11 @@ public final class TestCaseUtils {
    */
   public synchronized static ServerSocket bindFreePort() throws IOException
   {
-	  for (; port < 32000;)
+	  for (; port > 15000;)
 	  {
 	     try
 	     {
-	       return bindPort(port++);
+	       return bindPort(port--);
 	     }
 	     catch (BindException e){}		
 	  }
@@ -1403,7 +1403,7 @@ public final class TestCaseUtils {
   public static void configureSocket(Socket s) throws Exception
   {
 	  s.setReuseAddress(true);
-    s.setSoTimeout(60 * 1000);
+	  s.setSoTimeout(60 * 1000);
   }
 
   /**
