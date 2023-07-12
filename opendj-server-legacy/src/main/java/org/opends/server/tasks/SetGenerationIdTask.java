@@ -104,16 +104,20 @@ public class SetGenerationIdTask extends Task
       logger.trace("setGenerationIdTask is starting on domain %s" + domain.getBaseDN());
     }
 
-    try
-    {
-      domain.resetGenerationId(generationId);
+    try {
+	    try
+	    {
+	      domain.resetGenerationId(generationId);
+	    }
+	    catch(DirectoryException de)
+	    {
+	      logger.error(de.getMessageObject());
+	      return TaskState.STOPPED_BY_ERROR;
+	    }
+    }catch(Throwable de){
+	    logger.error(LocalizableMessage.raw(de.toString()));
+	    return TaskState.STOPPED_BY_ERROR;
     }
-    catch(DirectoryException de)
-    {
-      logger.error(de.getMessageObject());
-      return TaskState.STOPPED_BY_ERROR;
-    }
-
     if (logger.isTraceEnabled())
     {
       logger.trace("setGenerationIdTask is ending SUCCESSFULLY");

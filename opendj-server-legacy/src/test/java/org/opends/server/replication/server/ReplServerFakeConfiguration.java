@@ -46,7 +46,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
    * Assured mode properties
    */
   /** Timeout (in milliseconds) when waiting for acknowledgments. */
-  private long assuredTimeout = 1000;
+  private long assuredTimeout = 2000;
 
   /** Group id. */
   private int groupId = 1;

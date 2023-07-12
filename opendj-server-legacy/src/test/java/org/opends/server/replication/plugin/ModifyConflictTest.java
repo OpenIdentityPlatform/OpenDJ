@@ -552,7 +552,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     Attribute attr = buildSyncHist(DISPLAYNAME,
         ":0000000000000003000000000000:attrDel",
         ":0000000000000004000000000000:add:new value");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
   }
 
   /**
@@ -676,7 +676,7 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000001000000000000:add:value2",
         ":0000000000000002000000000000:del:value3",
         ":0000000000000002000000000000:del:value4");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
   }
 
   /**
@@ -1340,14 +1340,14 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value3",
         ":0000000000000001000000000000:del:value1");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
 
     // simulate a delete of same value in the same operation done at time t2
     testModify(entry, hist, 2, false, newModification(DELETE, DESCRIPTION, "value1"));
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value3",
         ":0000000000000002000000000000:del:value1");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
 
     // simulate an add of new value in the same operation done at time t2
     testModify(entry, hist, 2, true, newModification(ADD, DESCRIPTION, "value4"));
@@ -1355,7 +1355,7 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000001000000000000:add:value3",
         ":0000000000000002000000000000:del:value1",
         ":0000000000000002000000000000:add:value4");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
 
     // The entry should have no value
     Iterable<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);
@@ -1385,7 +1385,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     attr = buildSyncHist(DESCRIPTION,
         ":0000000000000001000000000000:add:value4",
         ":0000000000000001000000000000:del:value1");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
 
     // simulate a delete of another value in the same operation done at time t2
     testModify(entry, hist, 2, true, newModification(DELETE, DESCRIPTION, "value2"));
@@ -1393,7 +1393,7 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000001000000000000:del:value1",
         ":0000000000000001000000000000:add:value4",
         ":0000000000000002000000000000:del:value2");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
 
     // simulate an add of already added value in the same operation done at time
     // t2
@@ -1402,7 +1402,7 @@ public class ModifyConflictTest extends ReplicationTestCase
         ":0000000000000001000000000000:del:value1",
         ":0000000000000002000000000000:del:value2",
         ":0000000000000002000000000000:add:value4");
-    assertEquals(hist.encodeAndPurge(), attr);
+    assertThat(hist.encodeAndPurge()).hasSameElementsAs(attr);
 
     // The entry should have no value
     Iterable<Attribute> attrs = entry.getAllAttributes(DESCRIPTION);

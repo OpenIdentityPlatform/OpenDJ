@@ -19,6 +19,7 @@ package org.opends.server;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -153,9 +154,30 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   @Override
   public void onStart(ITestContext testContext) {
     super.onStart(testContext);
-
+    
+    if (testContext.getAllTestMethods().length>0) {
+    	TestCaseUtils.setTestName(testContext.getAllTestMethods()[0].getInstance().getClass().getName());
+    }
+    
     // Delete the previous report if it's there.
     new File(testContext.getOutputDirectory(), REPORT_FILE_NAME).delete();
+  }
+
+  @Override
+  public void onFinish(ITestContext testContext) {
+	super.onFinish(testContext);
+	
+	if (testContext.getAllTestMethods().length>0) {
+		if (testContext.getFailedConfigurations().size()==0 && testContext.getFailedTests().size()==0) {
+		    try {
+				TestCaseUtils.cleanTestPath();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}else {
+			originalSystemErr.println("check state: "+paths.unitRoot);
+		}
+	}
   }
 
   @Override
@@ -277,7 +299,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     originalSystemErr.println("Test classes run interleaved: " + _classesWithTestsRunInterleaved.size());
 
     // Try to hard to reclaim as much memory as possible.
-    runGc();
+    //runGc();
 
     originalSystemErr.printf("Final amount of memory in use: %.1f MB",
             (usedMemory() / (1024.0 * 1024.0))).println();
@@ -364,6 +386,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     appendFailureInfo(failureInfo);
 
     failureInfo.append(EOL).append(EOL);
+    originalSystemErr.printf("[%s]  ",TEST_PROGESS_TIME_FORMAT.format(new Date()));
     originalSystemErr.print(EOL + EOL + EOL + "                 T E S T   S K I P P E D ! ! !" + EOL + EOL);
     originalSystemErr.print(failureInfo);
     originalSystemErr.print(DIVIDER_LINE + EOL + EOL);

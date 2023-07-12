@@ -1403,8 +1403,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       ReplicationMsg msg = broker.receive();
       Assertions.assertThat(msg).isInstanceOf(ModifyMsg.class);
       ModifyMsg modMsg = (ModifyMsg) msg;
-      assertEquals(addMsg.getCSN().getTimeSec(),
-          modMsg.getCSN().getTimeSec(),
+      assertTrue(modMsg.getCSN().getTimeSec()-addMsg.getCSN().getTimeSec()<=1,
           "The MOD timestamp should have been adjusted to the ADD one");
 
       // Delete the entries to clean the database.

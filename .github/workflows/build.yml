@@ -12,32 +12,20 @@ jobs:
       matrix:
         java: [ '8','11','17','19']
         os: [ 'ubuntu-latest', 'macos-latest', 'windows-latest' ]
+      fail-fast: false
     steps:
     - name:  Install wine+rpm for distribution
       if: runner.os == 'Linux'
       shell: bash
       run:   |
-          set -x -u -o pipefail
-          source /etc/os-release
-          # https://github.com/actions/runner-images/issues/7192
-          echo 'APT::Get::Always-Include-Phased-Updates "false";' | sudo tee /etc/apt/apt.conf.d/99-phased-updates
-          # Get rid of packages installed from ppa:ondrej/php so that we will be able to install wine32:i386 without conflicts
-          # (see issue https://github.com/actions/virtual-environments/issues/4589)
-          # In detail we:
-          #   1. Remove all packages that ppa:ondrej/php has but plain Ubuntu doesn't, i.e. libzip4 and everything PHP
-          #   2. Revert (remaining) packages that ppa:ondrej/php and plain Ubuntu share, back to the plain Ubuntu version
-          #   3. Assert that no packages from ppa:ondrej/php are left installed
-          (dpkg -l | grep '^ii' | fgrep deb.sury.org | awk '{print $2}' | grep '^php' | xargs -r -t sudo apt-get remove --yes libzip4) || echo ""
-          sudo apt update && sudo apt upgrade
-          (dpkg -l | grep '^ii' | fgrep deb.sury.org | grep -v libpcre2-posix3 | awk '{print $2}' | sed "s,\$,/${UBUNTU_CODENAME}," | xargs -r -t sudo apt-get install --yes --no-install-recommends --allow-downgrades -V) || echo ""
-          ! dpkg -l | grep '^ii' | fgrep deb.sury.org
-          # Install 32bit Wine
-          sudo dpkg --add-architecture i386  # for wine32
-          sudo apt-get update  # again, due to new architecture
-          sudo apt-get install --yes --no-install-recommends -V \
-              wine-stable \
-              wine32:i386
-          wine --version
+        sudo apt-get install ppa-purge && sudo ppa-purge -y ppa:ubuntu-toolchain-r/test
+        sudo dpkg --add-architecture i386
+        sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+        sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources
+        sudo apt-get update
+        sudo apt install --install-recommends winehq-stable
+        sudo mkdir -p /opt/wine/mono && sudo wget "https://dl.winehq.org/wine/wine-mono/8.0.0/wine-mono-8.0.0-x86.tar.xz" -P /opt/wine/mono && sudo tar -xf /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz -C /opt/wine/mono && sudo rm /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz
+        wine --version
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
@@ -57,6 +45,23 @@ jobs:
       env:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run: mvn --batch-mode --errors --update-snapshots package --file pom.xml
+    - name: IT test
+      id: failsafe
+      if: runner.os != 'Windows'
+      timeout-minutes: 120
+      env:
+        MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+      run:   |
+        cat /etc/hosts
+        mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit
+    - name: Upload IT test failiure opendj-server-legacy/target
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: failsafe-${{ matrix.os }}-${{ matrix.java }}
+        retention-days: 5
+        path:  |
+            opendj-server-legacy/target/
     - name: Test on Unix
       if: runner.os != 'Windows'
       run:   |
@@ -109,7 +114,6 @@ jobs:
           images: |
             localhost:5000/${{ github.repository }}
           tags: |
-            type=raw,value=latest
             type=raw,value=${{ env.release_version }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2

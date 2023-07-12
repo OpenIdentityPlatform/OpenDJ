@@ -485,12 +485,14 @@ public abstract class AbstractOperation
     return (T) attachments.put(name, value);
   }
 
+  volatile Boolean completed=false;
   @Override
   public final void operationCompleted()
   {
     // Notify the client connection that this operation is complete
     // and that it no longer needs to be retained.
     clientConnection.removeOperationInProgress(messageID);
+    completed=true;
   }
 
   @Override
@@ -499,7 +501,7 @@ public abstract class AbstractOperation
     abort(cancelRequest);
 
     long stopWaitingTime = System.currentTimeMillis() + 5000;
-    while (cancelResult == null && System.currentTimeMillis() < stopWaitingTime)
+    while ((cancelResult == null || !completed)&& System.currentTimeMillis() < stopWaitingTime)
     {
       try
       {

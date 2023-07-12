@@ -1071,6 +1071,7 @@ public class ReplicationBroker
     {
       // Open a socket connection to the next candidate.
       socket = new Socket();
+      socket.setReuseAddress(true);
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
       if (config.getSourceAddress() != null)

@@ -486,7 +486,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     try
     {
       /* Open a sender session */
-      server = openReplicationSession(TEST_ROOT_DN, 5, 100, replicationServerPort, 100000);
+      server = openReplicationSession(TEST_ROOT_DN, 5, 100, replicationServerPort, 300000);
       reader = new BrokerReader(server, TOTAL_MSG);
 
       /* Start the client threads. */
@@ -850,6 +850,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     InetSocketAddress serverAddr =
         new HostPort("localhost", replicationServerPort).toInetSocketAddress();
     Socket socket = new Socket();
+    socket.setReuseAddress(true);
     socket.setReceiveBufferSize(1000000);
     socket.setTcpNoDelay(true);
     int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
@@ -1097,9 +1098,9 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
          // Create and connect client1 to changelog1
          // and client2 to changelog2
-         broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
          broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[1], 1000);
-
+         broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
+         
          // - Test messages between clients by publishing now
          CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());
 

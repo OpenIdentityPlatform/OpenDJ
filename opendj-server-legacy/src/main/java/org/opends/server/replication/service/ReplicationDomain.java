@@ -2480,7 +2480,7 @@ public abstract class ReplicationDomain
       for (RSInfo rsInfo : getRsInfos())
       {
         // the 'empty' RSes (generationId==-1) are considered as good citizens
-        if (rsInfo.getGenerationId() != -1 &&
+        if (rsInfo.getGenerationId() != -1L &&
             rsInfo.getGenerationId() != generationID)
         {
           try
@@ -2522,7 +2522,7 @@ public abstract class ReplicationDomain
     resetGenerationId(-1L);
 
     // check that at least one ReplicationServer did change its generation-id
-    checkGenerationID(-1);
+    checkGenerationID(-1L);
 
     // Reconnect to the Replication Server so that it adopts our GenerationID.
     restartService();

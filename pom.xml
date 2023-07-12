@@ -35,7 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
         <freemarker.version>2.3.31</freemarker.version>
-        <grizzly-framework.version>2.4.4</grizzly-framework.version>
+        <grizzly-framework.version>3.0.1</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -54,6 +54,7 @@
         <!--  ForgeRock build tools and Checkstyle versions (to avoid many checkstyle errors with ForgeRock Parent 2.0.10) -->
         <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
         <checkstyleVersion>5.5</checkstyleVersion>
+        <argLine></argLine>
     </properties>
 
     <inceptionYear>2011</inceptionYear>
@@ -246,11 +247,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <modules>
@@ -404,7 +400,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.0.0-M4</version>
+                    <version>3.1.0</version>
                 </plugin>
                 
                 <plugin>

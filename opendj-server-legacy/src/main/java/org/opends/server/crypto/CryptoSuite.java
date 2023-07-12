@@ -36,7 +36,7 @@ public class CryptoSuite
 {
   /** Cipher specific settings that can change at runtime. */
   @Immutable
-  private static final class CipherInfo
+  public static final class CipherInfo
   {
     private final String cipherTransformation;
     private final int cipherKeyLength;

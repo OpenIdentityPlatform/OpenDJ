@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
  */
 @Test(groups = "entrycache", sequential=true)
 public class DefaultEntryCacheTestCase
-       extends CommonEntryCacheTestCase<EntryCacheCfg>
+       extends CommonEntryCache<EntryCacheCfg>
 {
   // Entry cache implementations participating in this test.
   private SoftReferenceEntryCache softRefCache;

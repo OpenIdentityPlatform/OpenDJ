@@ -107,7 +107,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     final int nbRSs = getNbRSs(testCase);
     for (int i = 0; i < nbRSs; i++)
     {
-      replServers.add("localhost:" + rsPort[i]);
+      replServers.add("127.0.0.1:" + rsPort[i]);
     }
     return replServers;
   }
@@ -143,13 +143,13 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     for (int i = 0; i < nbRSs; i++)
     {
       if (i != rsIndex){
-        replServers.add("localhost:" + rsPort[i]);
+        replServers.add("127.0.0.1:" + rsPort[i]);
       }
     }
 
     String dir = "replicationServerLoadBalancingTest" + rsIndex + testCase + "Db";
     ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(
-        rsPort[rsIndex], dir, 0, rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
+        rsPort[rsIndex], dir, 0, rsIndex + 501, 0, 100, replServers, 1, 2000, 5000, weight);
     return new ReplicationServer(conf);
   }
 
@@ -169,7 +169,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       {
         if (i != rsIndex)
         {
-          replServers.add("localhost:" + rsPort[i]);
+          replServers.add("127.0.0.1:" + rsPort[i]);
         }
       }
     }
@@ -180,7 +180,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 
     String dir = "replicationServerLoadBalancingTest" + rsIndex + testCase + "Db";
     return new ReplServerFakeConfiguration(
-        rsPort[rsIndex], dir, 0, rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
+        rsPort[rsIndex], dir, 0, rsIndex + 501, 0, 100, replServers, 1, 2000, 5000, weight);
   }
 
   /**
@@ -238,8 +238,9 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
        * - RS4 has 8 DSs
        */
       createReplicationDomains(testCase, 1, NDS);
-
-     // Now check the number of connected DSs for each RS
+      Thread.sleep(2000);     
+      
+      // Now check the number of connected DSs for each RS
       assertEquals(getNbDSsConnectedToRS(0), 2,
        "Wrong expected number of DSs connected to RS1");
       assertEquals(getNbDSsConnectedToRS(1), 4,

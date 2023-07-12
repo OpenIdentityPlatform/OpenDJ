@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -439,7 +440,10 @@ public class LDAPConnection
       {
         try
         {
-          return new Socket(inetAddress, portNumber);
+        	final Socket s=new Socket();
+        	s.setReuseAddress(true);
+        	s.bind( new InetSocketAddress(inetAddress, portNumber));
+        	return s;
         }
         catch (ConnectException ce2)
         {

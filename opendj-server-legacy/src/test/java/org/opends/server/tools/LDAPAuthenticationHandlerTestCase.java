@@ -22,6 +22,7 @@ import static org.testng.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -131,7 +132,7 @@ public class LDAPAuthenticationHandlerTestCase
     List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"), ByteString.valueOfUtf8("password"),
           requestControls, responseControls);
     }
@@ -151,7 +152,7 @@ public class LDAPAuthenticationHandlerTestCase
     List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, null, null, requestControls, responseControls);
     }
   }
@@ -170,7 +171,7 @@ public class LDAPAuthenticationHandlerTestCase
     List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(), requestControls, responseControls);
     }
   }
@@ -190,7 +191,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
                                ByteString.empty(), requestControls,
                                responseControls);
@@ -212,7 +213,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"),
                                ByteString.valueOfUtf8("wrongPassword"),
                                requestControls, responseControls);
@@ -234,7 +235,7 @@ public class LDAPAuthenticationHandlerTestCase
     requestControls.add(new PasswordPolicyRequestControl());
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"), ByteString.valueOfUtf8("password"),
           requestControls, responseControls);
     }
@@ -255,7 +256,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSASLBind(null, null, null, saslProperties, requestControls, responseControls);
     }
   }
@@ -275,7 +276,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSASLBind(null, null, "", saslProperties, requestControls, responseControls);
     }
   }
@@ -295,7 +296,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSASLBind(null, null, "invalid", saslProperties,
                              requestControls, responseControls);
     }
@@ -316,7 +317,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       anonymous(authHandler, saslProperties);
     }
   }
@@ -339,7 +340,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       anonymous(authHandler, saslProperties);
     }
 
@@ -362,7 +363,7 @@ public class LDAPAuthenticationHandlerTestCase
     Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       anonymous(authHandler, saslProperties);
     }
     handler.finalizeSASLMechanismHandler();
@@ -388,7 +389,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       anonymous(authHandler, saslProperties);
     }
     finally
@@ -416,7 +417,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       anonymous(authHandler, saslProperties);
     }
     finally
@@ -446,7 +447,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSASLBind(ByteString.empty(), ByteString.empty(), "ANONYMOUS", saslProperties, requestControls,
           responseControls);
     }
@@ -591,7 +592,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("CRAM-MD5", "invalidPassword", authHandler, saslProperties);
     }
   }
@@ -725,7 +726,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
 
       authHandler.doSASLBind(ByteString.empty(), ByteString.valueOfUtf8("password"), "CRAM-MD5", saslProperties,
           requestControls, responseControls);
@@ -767,7 +768,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       digestMD5(authHandler, saslProperties);
     }
     finally
@@ -1157,7 +1158,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("DIGEST-MD5", "wrongPassword", authHandler, saslProperties);
     }
   }
@@ -1270,7 +1271,7 @@ public class LDAPAuthenticationHandlerTestCase
     Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("EXTERNAL", null, authHandler, saslProperties);
     }
     finally
@@ -1313,7 +1314,7 @@ public class LDAPAuthenticationHandlerTestCase
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
       Map<String, List<String>> saslProperties = new LinkedHashMap<>();
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("EXTERNAL", null, authHandler, saslProperties);
     }
   }
@@ -1358,7 +1359,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("EXTERNAL", null, authHandler, saslProperties);
     }
     finally
@@ -1405,7 +1406,7 @@ public class LDAPAuthenticationHandlerTestCase
     Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("EXTERNAL", null, authHandler, saslProperties);
       authHandler.doSASLBind(ByteString.empty(), null, "EXTERNAL", saslProperties, requestControls, responseControls);
     }
@@ -1443,7 +1444,10 @@ public class LDAPAuthenticationHandlerTestCase
 
   private Socket newSocket() throws UnknownHostException, IOException
   {
-    return new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+	  final Socket socket=new Socket();
+	  socket.setReuseAddress(true);
+	  socket.connect(new InetSocketAddress("127.0.0.1",TestCaseUtils.getServerLdapPort()));
+	  return socket;
   }
 
   private LDAPAuthenticationHandler newLDAPAuthenticationHandler(Socket s, String hostName2) throws IOException
@@ -1496,7 +1500,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     try (Socket s = newSocket())
     {
-      plain(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+      plain(newLDAPAuthenticationHandler(s, "127.0.0.1"), saslProperties);
     }
   }
 
@@ -1504,7 +1508,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     try (Socket s = newSocket())
     {
-      cramMD5(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+      cramMD5(newLDAPAuthenticationHandler(s, "127.0.0.1"), saslProperties);
     }
   }
 
@@ -1512,7 +1516,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     try (Socket s = newSocket())
     {
-      digestMD5(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+      digestMD5(newLDAPAuthenticationHandler(s, "127.0.0.1"), saslProperties);
     }
   }
 
@@ -1520,7 +1524,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     try (Socket s = newSocket())
     {
-      gssapi(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+      gssapi(newLDAPAuthenticationHandler(s, "127.0.0.1"), saslProperties);
     }
   }
 
@@ -1742,7 +1746,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       plain(authHandler, saslProperties);
     }
     finally
@@ -1778,7 +1782,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       plain(authHandler, saslProperties);
     }
   }
@@ -1912,7 +1916,7 @@ public class LDAPAuthenticationHandlerTestCase
       Map<String, List<String>> saslProperties = new LinkedHashMap<>();
       saslProperties.put("authid", newArrayList("dn:uid=does.not.exist,o=test"));
 
-      plain(newLDAPAuthenticationHandler(s, "localhost"), saslProperties);
+      plain(newLDAPAuthenticationHandler(s, "127.0.0.1"), saslProperties);
     }
   }
 
@@ -1944,7 +1948,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", newArrayList("dn:uid=does.not.exist,o=test"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("PLAIN", "wrongPassword", authHandler, saslProperties);
     }
   }
@@ -1980,7 +1984,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSASLBind(ByteString.empty(), ByteString.valueOfUtf8("password"), "PLAIN", saslProperties,
           requestControls, responseControls);
     }
@@ -1998,7 +2002,7 @@ public class LDAPAuthenticationHandlerTestCase
   {
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       assertNull(authHandler.requestAuthorizationIdentity());
     }
   }
@@ -2018,7 +2022,7 @@ public class LDAPAuthenticationHandlerTestCase
 
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.empty(), ByteString.empty(), requestControls, responseControls);
       assertNull(authHandler.requestAuthorizationIdentity());
     }
@@ -2038,7 +2042,7 @@ public class LDAPAuthenticationHandlerTestCase
     List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("cn=Directory Manager"), ByteString.valueOfUtf8("password"),
           requestControls, responseControls);
       assertNotNull(authHandler.requestAuthorizationIdentity());
@@ -2072,7 +2076,7 @@ public class LDAPAuthenticationHandlerTestCase
     List<Control> responseControls = new ArrayList<>();
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       authHandler.doSimpleBind(3, ByteString.valueOfUtf8("uid=test.user,o=test"), ByteString.valueOfUtf8("password"),
           requestControls, responseControls);
       assertNotNull(authHandler.requestAuthorizationIdentity());
@@ -2096,7 +2100,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("trace", newArrayList("testDoSASLBindAnonymous"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       anonymous(authHandler, saslProperties);
       assertNull(authHandler.requestAuthorizationIdentity());
     }
@@ -2132,7 +2136,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       cramMD5(authHandler, saslProperties);
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
@@ -2208,7 +2212,7 @@ public class LDAPAuthenticationHandlerTestCase
     Map<String, List<String>> saslProperties = new LinkedHashMap<>();
     try (Socket s = factory.createSocket("127.0.0.1", TestCaseUtils.getServerLdapsPort()))
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       doSASLBind("EXTERNAL", null, authHandler, saslProperties);
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
@@ -2241,7 +2245,7 @@ public class LDAPAuthenticationHandlerTestCase
     saslProperties.put("authid", newArrayList("dn:uid=test.user,o=test"));
     try (Socket s = newSocket())
     {
-      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "localhost");
+      LDAPAuthenticationHandler authHandler = newLDAPAuthenticationHandler(s, "127.0.0.1");
       plain(authHandler, saslProperties);
       assertNotNull(authHandler.requestAuthorizationIdentity());
     }
@@ -2251,7 +2255,7 @@ public class LDAPAuthenticationHandlerTestCase
       try {
          this.hostname = InetAddress.getLocalHost().getCanonicalHostName();
       } catch(UnknownHostException ex) {
-         this.hostname = "localhost";
+         this.hostname = "127.0.0.1";
       }
   }
 }

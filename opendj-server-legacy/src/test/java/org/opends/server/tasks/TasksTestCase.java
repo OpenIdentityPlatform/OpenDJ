@@ -71,7 +71,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
     assertTrue(taskState == TaskState.COMPLETED_SUCCESSFULLY || !logMessages.isEmpty(),
         "No log messages were written to the task entry on a failed task.\n"
           + "taskState=" + taskState
-          + "logMessages size=" + logMessages.size() + " and content=[" + logMessages + "]");
+          + "\nlogMessages size=" + logMessages.size() + " and content=[" + logMessages + "]");
   }
 
   private Entry getCompletedTaskEntry(DN name, final int timeoutInSec) throws Exception

@@ -525,9 +525,6 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
-          <!-- Run inherited 'parse-version' execution to generate properties (major.version, minor.version, ...) -->
-
-          <!-- Take into account several sources directories for the build -->
           <execution>
             <id>main-java-sources</id>
             <phase>process-sources</phase>
@@ -1161,9 +1158,9 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-            	<classpathDependencyExcludes>
-	            	<classpathDependencyExcludes>org.slf4j:slf4j-jdk14</classpathDependencyExcludes>
-	          	</classpathDependencyExcludes>
+<!--            	<classpathDependencyExcludes>-->
+<!--	            	<classpathDependencyExcludes>org.slf4j:slf4j-jdk14</classpathDependencyExcludes>-->
+<!--	          	</classpathDependencyExcludes>-->
             </configuration>
             <executions>
               <execution>
@@ -1172,8 +1169,13 @@
                   <goal>verify</goal>
                 </goals>
                 <configuration>
-                  <testSourceDirectory>src/test/java</testSourceDirectory>
-                  <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
+				  <additionalClasspathElements>
+		            <additionalClasspathElement>${project.build.directory}/jars/opendj-slf4j-adapter.jar</additionalClasspathElement>
+		          </additionalClasspathElements>
+				  <testSourceDirectory>src/test/java</testSourceDirectory>
+<!--				  <enableProcessChecker>all</enableProcessChecker>-->
+				  <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+                  <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
                     <exclude>org/opends/quicksetup/**</exclude>
@@ -1203,9 +1205,8 @@
                       <name>configfailurepolicy</name>
                       <value>skip</value>
                     </property>
-                    
-                  </properties>
-                  <systemPropertyVariables>
+                 </properties>
+                 <systemPropertyVariables>
                     <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
                     <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
                     <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
@@ -1215,9 +1216,12 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
-                  <argLine>-server -Xmx2048M -XX:MaxPermSize=256m</argLine>
-<!--	        	  <parallel>methods</parallel>-->
-<!--	          	  <threadCount>10</threadCount>-->
+                  <argLine> -Xmx2g @{argLine}</argLine>
+	          	  <reuseForks>false</reuseForks>
+	          	  <forkCount>1</forkCount>
+	          	  <parallel>none</parallel>
+	          	  <runOrder>alphabetical</runOrder>
+	          	  <rerunFailingTestsCount>3</rerunFailingTestsCount>
                 </configuration>
               </execution>
             </executions>

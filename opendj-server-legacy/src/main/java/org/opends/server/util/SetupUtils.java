@@ -253,6 +253,7 @@ public class SetupUtils
        */
       try (Socket s = new Socket())
       {
+    	  s.setReuseAddress(true);
         s.connect(socketAddress, 1000);
         return false;
       } catch (Throwable t)
