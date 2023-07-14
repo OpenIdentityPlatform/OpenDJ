@@ -14,7 +14,7 @@ ENV ADD_BASE_ENTRY="--addBaseEntry" \
     MASTER_SERVER=${MASTER_SERVER} \
     OPENDJ_REPLICATION_TYPE=${OPENDJ_REPLICATION_TYPE} \
     OPENDJ_USER="opendj" \
-    OPENDJ_JAVA_ARGS=""
+    OPENDJ_JAVA_ARGS="-server -XX:+UseContainerSupport"
 
 ARG VERSION=@project_version@
 

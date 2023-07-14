@@ -23,6 +23,7 @@ import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -866,42 +867,26 @@ public class UserData
 
   private void createDefaultJavaArguments()
   {
-    hmJavaArguments = new HashMap<>();
-    int maxMemoryMb = 256;
-    int minMemoryMb = 128;
-    final int maxMemoryBytes = maxMemoryMb * 1024 * 1024;
-    // If the current max memory is bigger than the max heap we want to set,
-    // assume that the JVM ergonomics are going to be able to allocate enough
-    // memory.
-    long currentMaxMemoryBytes = Runtime.getRuntime().maxMemory();
-    if (currentMaxMemoryBytes > maxMemoryBytes)
-    {
-      maxMemoryMb = -1;
-      minMemoryMb = -1;
-    }
+    hmJavaArguments = new LinkedHashMap<>();
+
+    JavaArguments defaultPanelJavaArgument = new JavaArguments();
+    hmJavaArguments.put("default", defaultPanelJavaArgument);
+    
     for (String clientScript : getClientScripts())
     {
       JavaArguments javaArgument = new JavaArguments();
-      javaArgument.setInitialMemory(8);
-      javaArgument.setAdditionalArguments(new String[] {"-client"});
       hmJavaArguments.put(clientScript, javaArgument);
     }
     for (String serverScript : getServerScripts())
     {
       JavaArguments javaArgument = new JavaArguments();
-      javaArgument.setInitialMemory(minMemoryMb);
-      javaArgument.setMaxMemory(maxMemoryMb);
-      javaArgument.setAdditionalArguments(new String[] {"-server"});
       hmJavaArguments.put(serverScript, javaArgument);
     }
 
     JavaArguments controlPanelJavaArgument = new JavaArguments();
-    controlPanelJavaArgument.setInitialMemory(64);
-    controlPanelJavaArgument.setMaxMemory(128);
-    controlPanelJavaArgument.setAdditionalArguments(new String[] {"-client"});
     hmJavaArguments.put("control-panel", controlPanelJavaArgument);
 
-    hmDefaultJavaArguments = new HashMap<>(hmJavaArguments);
+    hmDefaultJavaArguments = new LinkedHashMap<>(hmJavaArguments);
   }
 
   private String[] getClientScripts()
