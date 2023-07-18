@@ -6232,3 +6232,16 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.58
         ds-cfg-bind-password $
         ds-cfg-discovery-interval )
   X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.104
+  NAME 'ds-cfg-pbkdf2-hmac-sha256-password-storage-scheme'
+  SUP ds-cfg-pbkdf2-password-storage-scheme
+  STRUCTURAL
+  MAY ds-cfg-pbkdf2-iterations
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.105
+  NAME 'ds-cfg-pbkdf2-hmac-sha512-password-storage-scheme'
+  SUP ds-cfg-pbkdf2-password-storage-scheme
+  STRUCTURAL
+  MAY ds-cfg-pbkdf2-iterations
+  X-ORIGIN 'OpenDJ Directory Server' )
+  
