@@ -46,6 +46,7 @@
                             <goal>unpack</goal>
                         </goals>
                         <configuration>
+							<ignorePermissions>true</ignorePermissions>
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.openidentityplatform.opendj</groupId>

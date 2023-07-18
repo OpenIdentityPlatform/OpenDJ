@@ -35,8 +35,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -142,7 +142,7 @@ public class InstallerHelper {
     final ProcessBuilder processBuilder = new ProcessBuilder(argList.toArray(new String[argList.size()]));
     final Map<String, String> env = processBuilder.environment();
     env.remove(SetupUtils.OPENDJ_JAVA_HOME);
-    env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
+    //env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
     env.remove("CLASSPATH");
     processBuilder.directory(installPath);
 
@@ -755,7 +755,7 @@ public class InstallerHelper {
 
     // Try to transform things if necessary.  The following map has as key
     // the original JavaArgument object and as value the 'transformed' JavaArgument.
-    Map<JavaArguments, JavaArguments> hmJavaArguments = new HashMap<>();
+    Map<JavaArguments, JavaArguments> hmJavaArguments = new LinkedHashMap<>();
     for (String script : uData.getScriptNamesForJavaArguments())
     {
       JavaArguments origJavaArguments = uData.getJavaArguments(script);
@@ -778,8 +778,8 @@ public class InstallerHelper {
     }
 
     Properties fileProperties = getJavaPropertiesFileContents(getPropertiesFileName(installPath));
-    Map<String, JavaArguments> args = new HashMap<>();
-    Map<String, String> otherProperties = new HashMap<>();
+    Map<String, JavaArguments> args = new LinkedHashMap<>();
+    Map<String, String> otherProperties = new LinkedHashMap<>();
 
     for (String script : uData.getScriptNamesForJavaArguments())
     {
@@ -910,6 +910,7 @@ public class InstallerHelper {
         break;
       }
     }
+    reader.close();
     return commentLines;
   }
 
@@ -984,8 +985,8 @@ public class InstallerHelper {
     {
       fLib.mkdir();
     }
-    final String destinationFile = Utils.getPath(libDir, isWindows() ? SET_JAVA_PROPERTIES_FILE_WINDOWS
-                                                                     : SET_JAVA_PROPERTIES_FILE_UNIX);
+//    final String destinationFile = Utils.getPath(libDir, isWindows() ? SET_JAVA_PROPERTIES_FILE_WINDOWS
+//                                                                     : SET_JAVA_PROPERTIES_FILE_UNIX);
   }
 
   /**
