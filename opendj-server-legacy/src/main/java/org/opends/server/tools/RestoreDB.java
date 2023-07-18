@@ -173,6 +173,7 @@ public class RestoreDB extends TaskTool {
                       .shortIdentifier('l')
                       .description(INFO_RESTOREDB_DESCRIPTION_LIST_BACKUPS.get())
                       .buildAndAddToParser(argParser);
+      
       verifyOnly =
               BooleanArgument.builder(OPTION_LONG_DRYRUN)
                       .shortIdentifier(OPTION_SHORT_DRYRUN)
@@ -218,10 +219,8 @@ public class RestoreDB extends TaskTool {
       return 0;
     }
 
-
-    if (listBackups.isPresent() && !runOffline()) {
-      printWrappedText(err, ERR_LDAP_CONN_INCOMPATIBLE_ARGS.get(listBackups.getLongIdentifier()));
-      return 1;
+    if (listBackups.isPresent()) {
+  	  runOfflineArg.setPresent(true);
     }
 
     // Checks the version - if upgrade required, the tool is unusable

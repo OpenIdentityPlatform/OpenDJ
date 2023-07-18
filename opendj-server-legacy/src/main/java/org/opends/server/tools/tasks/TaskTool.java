@@ -88,7 +88,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   private TaskScheduleArgs taskScheduleArgs;
 
   /** Argument used to know if the tool should be run in offline mode. */
-  private BooleanArgument runOfflineArg;
+  protected BooleanArgument runOfflineArg;
 
   /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
