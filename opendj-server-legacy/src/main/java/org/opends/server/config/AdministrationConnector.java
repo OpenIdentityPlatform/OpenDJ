@@ -48,6 +48,7 @@ import org.forgerock.opendj.server.config.server.TrustManagerProviderCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.SynchronousStrategy;
+import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
@@ -98,7 +99,7 @@ public final class AdministrationConnector implements
   /** 5 Mb. */
   private static final int ADMIN_MAX_REQUEST_SIZE = 5000000;
   private static final int ADMIN_WRITE_BUFFER_SIZE = 4096;
-  private static final int ADMIN_NUM_REQUEST_HANDLERS = 1;
+  private static final int ADMIN_NUM_REQUEST_HANDLERS = 4;
   private static final boolean ADMIN_SEND_REJECTION_NOTICE = true;
   private static final boolean ADMIN_USE_TCP_KEEP_ALIVE = true;
   private static final boolean ADMIN_USE_TCP_NO_DELAY = true;
@@ -132,7 +133,7 @@ public final class AdministrationConnector implements
 
     // Administration Connector uses the LDAP connection handler implementation
     adminConnectionHandler = new LDAPConnectionHandler2(
-        new SynchronousStrategy(), FRIENDLY_NAME);
+        new WorkQueueStrategy(), FRIENDLY_NAME);
     adminConnectionHandler.initializeConnectionHandler(serverContext, new LDAPConnectionCfgAdapter(config));
     adminConnectionHandler.setAdminConnectionHandler();
 
