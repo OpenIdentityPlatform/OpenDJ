@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-    <version>4.5.5-SNAPSHOT</version>
+    <version>4.5.6-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-config</artifactId>
   <name>OpenDJ Configuration API</name>
@@ -139,6 +139,24 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>target/generated-sources/config</source>
+                <source>target/generated-sources/messages</source>
+              </sources>
+            </configuration>
+          </execution>
+         </executions>
       </plugin>
       <!-- Validate core components XML definition files and generate the components. -->
       <plugin>

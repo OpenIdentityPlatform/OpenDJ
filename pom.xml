@@ -18,7 +18,7 @@
     <modelVersion>4.0.0</modelVersion>
 	<groupId>org.openidentityplatform.opendj</groupId>
     <artifactId>opendj-parent</artifactId>
-	<version>4.5.5-SNAPSHOT</version>
+	<version>4.5.6-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenDJ Directory Services Project</name>
@@ -35,7 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
         <freemarker.version>2.3.31</freemarker.version>
-        <grizzly-framework.version>2.4.4</grizzly-framework.version>
+        <grizzly-framework.version>3.0.1</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -54,6 +54,7 @@
         <!--  ForgeRock build tools and Checkstyle versions (to avoid many checkstyle errors with ForgeRock Parent 2.0.10) -->
         <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
         <checkstyleVersion>5.5</checkstyleVersion>
+        <argLine />
     </properties>
 
     <inceptionYear>2011</inceptionYear>
@@ -144,7 +145,7 @@
         	<dependency>
         		<groupId>org.openidentityplatform.commons</groupId>
         		<artifactId>parent</artifactId>
-        		<version>2.0.17</version>
+        		<version>2.0.18</version>
         		<type>pom</type>
         		<scope>import</scope>
         	</dependency>
@@ -246,11 +247,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <modules>
@@ -386,7 +382,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.0</version>
                 </plugin>
                 
                 <plugin>
@@ -404,7 +400,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.0.0-M4</version>
+                    <version>3.1.0</version>
                 </plugin>
                 
                 <plugin>
@@ -418,7 +414,11 @@
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>3.1.0</version>
                 </plugin>
-                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.6.0</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
@@ -448,7 +448,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M4</version> <!-- M6 DecodeException but got java.nio.BufferOverflowException -->
                     <configuration>
-                        <properties>
+						<properties>
                             <property>
                                 <name>usedefaultlisteners</name>
                                 <value>false</value>
@@ -616,7 +616,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.8</version>
+                    <version>3.3.0</version>
                     <executions>
                         <!-- Parse version to generate properties (major.version, minor.version, ...) -->
                         <execution>

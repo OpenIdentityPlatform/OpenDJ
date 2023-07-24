@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.5.5-SNAPSHOT</version>
+        <version>4.5.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-doc-generated-ref</artifactId>
@@ -46,6 +46,7 @@
                             <goal>unpack</goal>
                         </goals>
                         <configuration>
+							<ignorePermissions>true</ignorePermissions>
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.openidentityplatform.opendj</groupId>

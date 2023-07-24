@@ -20,7 +20,7 @@
     <parent>
         <artifactId>opendj-parent</artifactId>
         <groupId>org.openidentityplatform.opendj</groupId>
-        <version>4.5.5-SNAPSHOT</version>
+        <version>4.5.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>opendj-doc-maven-plugin</artifactId>
@@ -91,6 +91,23 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+	            <groupId>org.codehaus.mojo</groupId>
+	            <artifactId>build-helper-maven-plugin</artifactId>
+	            <executions>
+	              <execution>
+	                <phase>process-sources</phase>
+	                <goals>
+	                  <goal>add-source</goal>
+	                </goals>
+	                <configuration>
+	                  <sources>
+	                    <source>target/generated-sources/messages</source>
+	                  </sources>
+	                </configuration>
+	              </execution>
+	            </executions>
+	        </plugin>
         </plugins>
     </build>
 </project>

@@ -405,6 +405,7 @@ public class ReplicationServer
     Session session = null;
     try
     {
+      socket.setReuseAddress(true);
       socket.setTcpNoDelay(true);
       if (config.getSourceAddress() != null)
       {

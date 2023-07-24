@@ -98,7 +98,7 @@ final class ServerTCPNIOTransport extends ReferenceCountedObject<TCPNIOTransport
             builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
         }
         // Force usage of PooledMemoryManager which allows to use grizzly's buffers across threads.
-        builder.setMemoryManager(new PooledMemoryManager(true));
+        //builder.setMemoryManager(new PooledMemoryManager(true));
 
         final TCPNIOTransport transport = builder.build();
 

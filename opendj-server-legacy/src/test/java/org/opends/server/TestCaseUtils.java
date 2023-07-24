@@ -22,7 +22,7 @@ import static org.forgerock.opendj.server.embedded.ConnectionParameters.connecti
 import static org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer.manageEmbeddedDirectoryServer;
 
 import static org.opends.server.loggers.TextAccessLogPublisher.getStartupTextAccessPublisher;
-import static org.opends.server.loggers.TextErrorLogPublisher.getToolStartupTextErrorPublisher;
+import static org.opends.server.loggers.TextErrorLogPublisher.*;
 import static org.opends.server.loggers.TextHTTPAccessLogPublisher.getStartupTextHTTPAccessPublisher;
 import static org.opends.server.types.NullOutputStream.nullPrintStream;
 import static org.opends.server.util.ServerConstants.PROPERTY_RUNNING_UNIT_TESTS;
@@ -56,6 +56,7 @@ import java.net.SocketAddress;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -116,7 +117,6 @@ import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServer;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFReader;
-import org.testng.Assert;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -227,7 +227,7 @@ public final class TestCaseUtils {
   private static int serverRestarts;
 
   /** The paths to directories and files used in the tests. */
-  private static TestPaths paths = new TestPaths();
+  public static TestPaths paths = new TestPaths();
 
   /** The ports used in the tests. */
   private static TestPorts ports;
@@ -250,18 +250,19 @@ public final class TestCaseUtils {
    */
   public static void startFakeServer() throws Exception
   {
+	DirectoryServer.bootstrapClient();
     schemaBeforeStartingFakeServer = DirectoryServer.getInstance().getServerContext().getSchema();
     DirectoryServer.getInstance().getServerContext().getSchemaHandler().updateSchema(Schema.getDefaultSchema());
   }
 
-  static class TestPaths
+  public static class TestPaths
   {
     final String buildRoot;
     final File buildDir;
     final File unitRoot;
     final String installedRoot;
     final File testInstallRoot;
-    final File testInstanceRoot;
+    public final File testInstanceRoot;
     final File testConfigDir;
     final File configFile;
     final File testSrcRoot;
@@ -272,7 +273,7 @@ public final class TestCaseUtils {
       buildRoot = System.getProperty(PROPERTY_BUILD_ROOT,System.getProperty("user.dir"));
       String buildDirStr = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "target");
       buildDir = new File(buildDirStr);
-      unitRoot  = new File(buildDir, "unit-tests");
+      unitRoot  = new File(buildDir, "unit-tests"+((testName!=null)?"/"+testName:""));
       if (installedRoot == null)
       {
          testInstallRoot = new File(unitRoot, "package-install");
@@ -340,7 +341,7 @@ public final class TestCaseUtils {
   private static void initializePortsAndServer() throws Exception
   {
     ports = new TestPorts();
-    hostname = InetAddress.getLocalHost().getHostName();
+    hostname = "127.0.0.1";
     server = manageEmbeddedDirectoryServer(
         configParams()
           .serverRootDirectory(paths.testInstallRoot.getPath())
@@ -355,7 +356,10 @@ public final class TestCaseUtils {
          System.out,
          System.err);
   }
-
+  public static void cleanTestPath() throws IOException {
+	  deleteDirectory(paths.unitRoot);
+  }
+  
   /**
    * Setup the directory server in separate install root directory and instance root directory.
    * After this method the directory server should be ready to be started.
@@ -366,6 +370,7 @@ public final class TestCaseUtils {
     String cleanupRequiredString = System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
     boolean cleanupRequired = !"false".equalsIgnoreCase(cleanupRequiredString);
 
+    //originalSystemErr.println("start "+paths.unitRoot);
     if (cleanupRequired) {
       deleteDirectory(paths.testInstallRoot);
       deleteDirectory(paths.testInstanceRoot);
@@ -403,7 +408,6 @@ public final class TestCaseUtils {
     File unitClassesDir = new File(paths.unitRoot, "classes");
     File libDir = new File(paths.buildDir.getPath() + "/package/opendj/lib");
     File upgradeDir = new File(paths.buildDir.getPath() + "/package/opendj/template/config/upgrade");
-    System.out.println("libDir=" + libDir);
     File resourceDir = new File(paths.buildRoot, "resource");
     File testResourceDir = new File(paths.testSrcRoot, "resource");
     // Set the class variable
@@ -533,6 +537,9 @@ public final class TestCaseUtils {
     // Enable more verbose error logger.
     ErrorLogger.getInstance().addLogPublisher(
         (ErrorLogPublisher) getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
+    
+    ErrorLogger.getInstance().addLogPublisher(
+            (ErrorLogPublisher) getServerStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
     DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
   }
@@ -712,12 +719,31 @@ public final class TestCaseUtils {
   private static ServerSocket bindPort(int port)
           throws IOException
   {
-    ServerSocket serverLdapSocket = new ServerSocket();
+	ServerSocket serverLdapSocket;
+	
+	serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress(port));
+    serverLdapSocket.close();
+    
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress("localhost",port));
+    serverLdapSocket.close();
+    
+    
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(),port));
+    serverLdapSocket.close();
+    
+    serverLdapSocket = new ServerSocket();
+    serverLdapSocket.setReuseAddress(true);
+    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1",port));
     return serverLdapSocket;
   }
 
+  static int port = 30000;
   /**
    * Find and binds to a free server socket port on the local host. Avoid allocating ephemeral ports since these may
    * be used by client applications such as dsconfig. Instead scan through ports starting from a reasonably high number
@@ -728,20 +754,17 @@ public final class TestCaseUtils {
    *
    * @throws IOException in case of underlying exception.
    */
-  public static ServerSocket bindFreePort() throws IOException
+  public synchronized static ServerSocket bindFreePort() throws IOException
   {
-    for (int port = 10000; port < 32768; port++)
-    {
-      try
-      {
-        return bindPort(port);
-      }
-      catch (BindException e)
-      {
-        // Try next port.
-      }
-    }
-    throw new BindException("Unable to bind to a free port");
+	  for (; port > 15000;)
+	  {
+	     try
+	     {
+	       return bindPort(port--);
+	     }
+	     catch (BindException e){}		
+	  }
+	  throw new BindException("Unable to bind to a free port");
   }
 
   /**
@@ -773,15 +796,15 @@ public final class TestCaseUtils {
       final int[] ports = new int[nb];
       for (int i = 0; i < nb; i++)
       {
-        final ServerSocket socket = bindFreePort();
-        sockets[i] = socket;
-        ports[i] = socket.getLocalPort();
+        sockets[i] = bindFreePort();
+        ports[i] = sockets[i].getLocalPort();
       }
+      close(sockets);
       return ports;
     }
     finally
     {
-      close(sockets);
+      
     }
   }
 
@@ -1379,7 +1402,8 @@ public final class TestCaseUtils {
    */
   public static void configureSocket(Socket s) throws Exception
   {
-    s.setSoTimeout(60 * 1000);
+	  s.setReuseAddress(true);
+	  s.setSoTimeout(60 * 1000);
   }
 
   /**
@@ -1642,12 +1666,20 @@ public final class TestCaseUtils {
    */
   public static void appendLogsContents(StringBuilder logsContents)
   {
-    appendMessages(logsContents, TestCaseUtils.ACCESS_TEXT_WRITER, "Access Log Messages:");
     appendMessages(logsContents, TestCaseUtils.ERROR_TEXT_WRITER, "Error Log Messages:");
     appendMessages(logsContents, TestCaseUtils.DEBUG_TEXT_WRITER, "Debug Log Messages:");
-
+    appendMessages(logsContents, TestCaseUtils.ACCESS_TEXT_WRITER, "Access Log Messages:");
+    
     appendStreamContent(logsContents, TestCaseUtils.getSystemOutContents(), "System.out");
     appendStreamContent(logsContents, TestCaseUtils.getSystemErrContents(), "System.err");
+    
+    for (final File logFile : Arrays.asList(new File(paths.testInstanceRoot, "logs").listFiles())) {
+    	 try {
+			appendStreamContent(logsContents, readFile(logFile.getPath()), logFile.getPath());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}   
   }
 
   private static void appendStreamContent(StringBuilder out, String content, String name)
@@ -1676,16 +1708,20 @@ public final class TestCaseUtils {
   }
 
   public static synchronized void unsupressOutput() {
-    System.setOut(originalSystemOut);
-    System.setErr(originalSystemErr);
-
-    for (Map.Entry<Logger, Handler> entry : disabledLogHandlers.entrySet())
-    {
-      Logger l = entry.getKey();
-      Handler h = entry.getValue();
-      l.addHandler(h);
-    }
-    disabledLogHandlers.clear();
+	  String suppressStr = System.getProperty("org.opends.test.suppressOutput");
+	  if ("true".equalsIgnoreCase(suppressStr))
+	  {
+		  System.setOut(originalSystemOut);
+		  System.setErr(originalSystemErr);
+		
+		    for (Map.Entry<Logger, Handler> entry : disabledLogHandlers.entrySet())
+		    {
+		      Logger l = entry.getKey();
+		      Handler h = entry.getValue();
+		      l.addHandler(h);
+		    }
+		    disabledLogHandlers.clear();
+	    }
   }
 
   /** Read the contents of a file and return it as a String. */
@@ -1968,4 +2004,11 @@ public final class TestCaseUtils {
       System.setIn(stdin);
     }
   }
+
+  	static String testName=null;
+	public static void setTestName(String name) {
+		testName=name;
+		paths=new TestPaths();
+		//originalSystemErr.println(paths.unitRoot);
+	}
 }

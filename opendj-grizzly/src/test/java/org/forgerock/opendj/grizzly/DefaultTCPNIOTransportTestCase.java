@@ -51,6 +51,7 @@ public class DefaultTCPNIOTransportTestCase extends SdkTestCase {
 
         // Establish a socket connection to see if the transport factory works.
         try (Socket socket = new Socket()) {
+        	socket.setReuseAddress(true);
             socket.connect(socketAddress);
 
             // Successfully connected if there is no exception.

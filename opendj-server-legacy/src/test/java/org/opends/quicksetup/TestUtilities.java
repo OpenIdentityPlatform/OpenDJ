@@ -103,7 +103,7 @@ public class TestUtilities {
     ServerController controller = new ServerController(getInstallation());
     controller.stopServer();
   }
-//-Dorg.opends.server.ServerRoot=/Users/vharseko/git/OpenIdentityPlatform/OpenAM/OpenDJ/opendj-server-legacy/target/unit-tests/package-instance -Dorg.opends.quicksetup.Root=/Users/vharseko/git/OpenIdentityPlatform/OpenAM/OpenDJ/opendj-server-legacy/target/package/opendj
+
   public static File getInstallPackageFile() throws FileNotFoundException {
     File installPackageFile = null;
     String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT,System.getProperty("user.dir"));

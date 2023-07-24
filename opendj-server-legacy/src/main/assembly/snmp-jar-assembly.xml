@@ -29,9 +29,9 @@
 	</fileSets>
 	<files>
 		<!-- Adds generated mib rfc 2605 file -->
-		<file>
-			<source>src/snmp/resource/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition</source>
-			<outputDirectory>META-INF/services</outputDirectory>
-		</file>
+<!-- 		<file> -->
+<!-- 			<source>src/snmp/resource/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition</source> -->
+<!-- 			<outputDirectory>META-INF/services</outputDirectory> -->
+<!-- 		</file> -->
 	</files>
 </assembly>

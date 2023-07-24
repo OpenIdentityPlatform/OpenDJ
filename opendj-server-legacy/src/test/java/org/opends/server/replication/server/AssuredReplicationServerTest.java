@@ -823,6 +823,7 @@ public class AssuredReplicationServerTest
         InetSocketAddress serverAddr =
           new InetSocketAddress("localhost", port);
         Socket socket = new Socket();
+        socket.setReuseAddress(true);
         socket.setTcpNoDelay(true);
         int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
         socket.connect(serverAddr, timeoutMS);

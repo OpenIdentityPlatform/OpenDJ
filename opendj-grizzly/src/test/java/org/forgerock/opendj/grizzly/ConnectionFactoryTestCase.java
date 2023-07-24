@@ -565,6 +565,9 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     assertThat(context.isClosed()).isFalse();
                     if (config.sendDisconnectNotification) {
                         context.disconnect(ResultCode.BUSY, "busy");
+                        for(int i=1;i<10 && !context.isClosed() ;i++) {
+                        	Thread.sleep(100);
+                        }
                     } else {
                         context.disconnect();
                     }

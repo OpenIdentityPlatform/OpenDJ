@@ -1296,6 +1296,7 @@ public final class StaticUtils
       // handled in their respective address space.
       if (address.isAnyLocalAddress()) {
         try (Socket clientSocket = new Socket()) {
+        	clientSocket.setReuseAddress(true);
           // This might fail on some stacks but this is the best we
           // can do. No need for explicit timeout since it is local
           // address and we have to know for sure unless it fails.

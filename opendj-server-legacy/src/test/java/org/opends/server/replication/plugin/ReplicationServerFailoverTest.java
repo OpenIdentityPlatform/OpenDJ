@@ -123,7 +123,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rd1 = createReplicationDomain(baseDn, DS1_ID);
 
       // Wait a bit so that connections are performed
-      Thread.sleep(2000);
+      Thread.sleep(5000);
 
       // DS1 connected to RS1 ?
       // Check which replication server is connected to this LDAP server
@@ -194,7 +194,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rd2 = createReplicationDomain(baseDn, DS2_ID);
 
       // Wait a bit so that connections are performed
-      Thread.sleep(3000);
+      Thread.sleep(5000);
 
       // Simulate RS1 failure
       rs1.remove();

@@ -52,7 +52,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   /** Safe Data level (used when assuredType is safe data). */
   private int assuredSdLevel = 1;
   /** Timeout (in milliseconds) when waiting for acknowledgments. */
-  private long assuredTimeout = 1000;
+  private long assuredTimeout = 3000;
   /** Group id. */
   private final int groupId;
   /** Referrals urls to be published to other servers of the topology. */

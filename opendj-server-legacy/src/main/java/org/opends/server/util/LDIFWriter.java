@@ -726,7 +726,8 @@ outerLoop:
   public static void appendLDIFSeparatorAndValue(StringBuilder buffer,
       ByteSequence valueBytes, boolean isURL, boolean isBase64)
   {
-    ifNull(buffer, valueBytes);
+    ifNull(buffer);
+    ifNull(valueBytes);
 
 
     // If the value is empty, then just append a single colon (the URL '<' if

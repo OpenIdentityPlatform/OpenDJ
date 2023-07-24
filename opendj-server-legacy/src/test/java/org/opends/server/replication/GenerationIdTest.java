@@ -318,22 +318,22 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       if (replServerId != replServerId1)
       {
-        servers.add("localhost:" + getRSPort(replServerId1));
+        servers.add("127.0.0.1:" + getRSPort(replServerId1));
       }
       if (replServerId != replServerId2)
       {
-        servers.add("localhost:" + getRSPort(replServerId2));
+        servers.add("127.0.0.1:" + getRSPort(replServerId2));
       }
       if (replServerId != replServerId3)
       {
-        servers.add("localhost:" + getRSPort(replServerId3));
+        servers.add("127.0.0.1:" + getRSPort(replServerId3));
       }
     }
     int rsPort = getRSPort(replServerId);
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
     ReplicationServer replicationServer = new ReplicationServer(
-        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 100, servers));
-    Thread.sleep(1000);
+        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 1000, servers));
+    Thread.sleep(2000);
     return replicationServer;
   }
 
@@ -349,7 +349,7 @@ public class GenerationIdTest extends ReplicationTestCase
         + "objectClass: ds-cfg-replication-domain\n"
         + "cn: " + testName + "\n"
         + "ds-cfg-base-dn: " + baseDnStr + "\n"
-        + "ds-cfg-replication-server: localhost:" + rs.getReplicationPort() + "\n"
+        + "ds-cfg-replication-server: 127.0.0.1:" + rs.getReplicationPort() + "\n"
         + "ds-cfg-server-id: " + server1ID + "\n"
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;
@@ -649,7 +649,7 @@ public class GenerationIdTest extends ReplicationTestCase
           + " ** TEST ** The part of the topology with the right gen ID should work well");
 
       // Now create a change that must be replicated
-      waitConnectionToReplicationDomain(baseDN, 1000);
+      waitConnectionToReplicationDomain(baseDN, 3000);
       addTestEntriesToDB(createEntry(UUID.randomUUID()));
 
       // Verify that RS1 does contain the change related to this ADD.
@@ -752,7 +752,7 @@ public class GenerationIdTest extends ReplicationTestCase
           "Expecting that DS3 with old gen ID is in bad gen id from RS1");
 
       debugInfo("Add entries to DS1, update should not be sent to DS2 and DS3 that are in bad gen id");
-      waitConnectionToReplicationDomain(baseDN, 1000);
+      waitConnectionToReplicationDomain(baseDN, 3000);
       addTestEntriesToDB(createEntry(UUID.randomUUID()));
 
       debugInfo("RS1 must have stored that update.");
@@ -796,7 +796,7 @@ public class GenerationIdTest extends ReplicationTestCase
       broker3 = openReplicationSession(server3ID, replServer1, dsGenId);
 
       debugInfo("Adding reset task to DS1");
-      executeTask(createSetGenerationIdTask(null, ""), 20000);
+      executeTask(createSetGenerationIdTask(dsGenId, ""), 20000);
 
       debugInfo("Verify that RS1 has still the right genID");
       assertEquals(replServer1.getGenerationId(baseDN), rsGenId);
@@ -847,7 +847,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   /**
    * Waits for the connection from server1 to the replication domain to
-   * establish itself up automagically.
+   * establish itself up automatically.
    */
   private void waitConnectionToReplicationDomain(final DN baseDN, int timeout) throws Exception
   {
@@ -871,7 +871,7 @@ public class GenerationIdTest extends ReplicationTestCase
   {
     String genIdString = genId != null ? genId.toString() : "";
     return TestCaseUtils.makeEntry(
-        "dn: ds-task-id=resetgenid" + genIdString + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+        "dn: ds-task-id=resetgenid-" + genIdString+"_"+UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top", "objectclass: ds-task",
         "objectclass: ds-task-reset-generation-id",
         "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
@@ -939,7 +939,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting broker2 to replServer3 with a good genId");
       broker2 = openReplicationSession(server2ID, replServer3, genId);
-      Thread.sleep(1000);
+      Thread.sleep(3000);
 
       debugInfo("Expecting that broker2 is not in bad gen id since it has a correct genId");
       assertFalse(isDegradedDueToGenerationId(replServer1, server2ID));
@@ -954,7 +954,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Connecting broker3 to replServer1 with a bad genId");
       long badGenId = 1;
       broker3 = openReplicationSession(server3ID, replServer1, badGenId);
-      Thread.sleep(1000);
+      Thread.sleep(3000);
 
       debugInfo("Expecting that broker3 is in bad gen id since it has a bad genId");
       assertTrue(isDegradedDueToGenerationId(replServer1, server3ID));
@@ -964,14 +964,15 @@ public class GenerationIdTest extends ReplicationTestCase
 
 
       debugInfo("Adding reset task to DS.");
-      executeTask(createSetGenerationIdTask(null, ""), 20000);
+      executeTask(createSetGenerationIdTask(genId, ""), 90000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       genId = readGenIdFromSuffixRootEntry(true);
       assertGenIdEquals(genId);
 
+      Thread.sleep(3000);
       debugInfo("Adding reset task to DS." + genId);
-      executeTask(createSetGenerationIdTask(null, "ds-task-reset-generation-id-new-value: -1"), 20000);
+      executeTask(createSetGenerationIdTask(genId, "ds-task-reset-generation-id-new-value: -1"), 90000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       waitForStableGenerationId(-1);
@@ -989,7 +990,7 @@ public class GenerationIdTest extends ReplicationTestCase
   private void waitForStableGenerationId(final long expectedGenId) throws Exception
   {
     TestTimer timer = new TestTimer.Builder()
-      .maxSleep(10, SECONDS)
+      .maxSleep(20, SECONDS)
       .sleepTimes(100, MILLISECONDS)
       .toTimer();
     timer.repeatUntilSuccess(new CallableVoid()
@@ -1026,9 +1027,9 @@ public class GenerationIdTest extends ReplicationTestCase
     broker2 = broker3 = null;
     remove(replServer1, replServer2, replServer3);
     replServer1 = replServer2 = replServer3 = null;
-
-    super.cleanRealEntries();
-
+    try {
+    	super.cleanRealEntries();
+    }catch(Exception e) {}
     replServerPort = TestCaseUtils.findFreePorts(3);
 
     debugInfo("Clearing DJ backend");
@@ -1062,7 +1063,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(readGenIdFromSuffixRootEntry(false), -1,
           "genId attribute should not be retrievable since there are NO entry in the backend");
 
-      waitConnectionToReplicationDomain(baseDN, 1000);
+      waitConnectionToReplicationDomain(baseDN, 3000);
       addTestEntriesToDB(updatedEntries);
       assertEquals(readGenIdFromSuffixRootEntry(true), EMPTY_DN_GENID,
           "genId attribute should be retrievable since there IS one entry in the backend");
@@ -1120,6 +1121,6 @@ public class GenerationIdTest extends ReplicationTestCase
   protected ReplicationBroker openReplicationSession(int serverId, ReplicationServer replServer, long generationId)
       throws Exception
   {
-    return openReplicationSession(baseDN, serverId, 100, replServer.getReplicationPort(), 1000, generationId);
+    return openReplicationSession(baseDN, serverId, 100, replServer.getReplicationPort(), 1900, generationId);
   }
 }

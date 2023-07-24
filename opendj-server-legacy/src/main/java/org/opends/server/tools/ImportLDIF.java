@@ -76,7 +76,7 @@ public class ImportLDIF extends TaskTool {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The buffer size that should be used when reading data from LDIF. */
-  private static final int LDIF_BUFFER_SIZE = 1048576;
+  private static final int LDIF_BUFFER_SIZE = 8192;
 
   /**
    * The main method for ImportLDIF tool.

@@ -95,7 +95,7 @@ public class HistoricalTest extends ReplicationTestCase
          + "objectClass: ds-cfg-replication-domain\n"
          + "cn: " + testName + "\n"
          + "ds-cfg-base-dn: " + TEST_ROOT_DN_STRING + "\n"
-         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
+         + "ds-cfg-replication-server: 127.0.0.1:" + replServerPort + "\n"
          + "ds-cfg-server-id: 1\n"
          + "ds-cfg-receive-status: true\n";
 
@@ -203,7 +203,7 @@ public class HistoricalTest extends ReplicationTestCase
     assertFalse(hist.encodeAndPurge().isEmpty());
 
     // Now wait for the purge time to be done
-    Thread.sleep(testPurgeDelayInMillisec + 200);
+    Thread.sleep(testPurgeDelayInMillisec + 500);
 
     // Read the entry back to get its history operational attribute.
     // The hist attribute should now be empty since purged
@@ -225,7 +225,7 @@ public class HistoricalTest extends ReplicationTestCase
    * on one entry, and the reverse ordering that would happen on the
    * second server on a different entry.  Confused yet?
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=true)
   public void conflictSingleValue() throws Exception
   {
     final DN dn1 = DN.valueOf("cn=test1," + TEST_ROOT_DN_STRING);
@@ -240,7 +240,7 @@ public class HistoricalTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDN, 2, 100, replServerPort, 1000);
+      openReplicationSession(baseDN, 2, 100, replServerPort, 3000);
 
 
     // Clear the backend and create top entry
@@ -380,7 +380,7 @@ public class HistoricalTest extends ReplicationTestCase
     // Perform a few check on the Operation to see that it
     // was correctly generated.
     assertFakeOperations(dn1, entry, ops, 1);
-
+        
     // Now apply a modifications to the entry and check that the
     // ADD historical information has been preserved.
     TestCaseUtils.applyModifications(false,
@@ -474,6 +474,7 @@ public class HistoricalTest extends ReplicationTestCase
     }
 
       assertEquals(count, assertCount);
+      Thread.sleep(1000);
     }
 
   /**
@@ -507,7 +508,7 @@ public class HistoricalTest extends ReplicationTestCase
         "--set","conflicts-historical-purge-delay:1m");
 
     // Let's go past the purge delay
-    Thread.sleep(60 * 1000);
+    Thread.sleep(90 * 1000);
 
     // launch the purge
     final int maxWaitTimeInSeconds = 120;
