@@ -66,6 +66,7 @@ import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableTransaction;
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyDNOperation;
@@ -186,6 +187,12 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backend.configureBackend(backendCfg, TestCaseUtils.getServerContext());
     backend.openBackend();
 
+    if (backend.entryExists(testBaseDN)) {
+    	DeleteOperation op = mock(DeleteOperation.class);
+    	when(op.getRequestControl(SubtreeDeleteControl.DECODER)).thenReturn(new SubtreeDeleteControl(true));
+        backend.deleteEntry(testBaseDN, op);
+    }
+    
     topEntries = TestCaseUtils.makeEntries(
                 "dn: " + testBaseDN,
                 "objectclass: top",
@@ -550,7 +557,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     searchDN = entries.get(1).getName();
     badEntryDN = testBaseDN.child(DN.valueOf("ou=bogus")).child(DN.valueOf("ou=dummy"));
     backupID = "backupID1";
-
+    
     addEntriesToBackend(topEntries);
     addEntriesToBackend(entries);
     addEntriesToBackend(workEntries);

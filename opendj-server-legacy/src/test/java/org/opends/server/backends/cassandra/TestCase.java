@@ -22,22 +22,24 @@ import org.forgerock.opendj.server.config.server.CASBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
 import org.testng.annotations.Test;
 
-/** {@link JEBackend} Tester. */
+//docker run --rm -it -p 9042:9042 --name cassandra cassandra
+
 @Test
 public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg>
 {
   @Override
   protected Backend createBackend()
   {
-    return new Backend();
+	  System.setProperty("datastax-java-driver.basic.request.timeout", "10 seconds"); //for docker slow start
+	  return new Backend();
   }
 
   @Override
   protected CASBackendCfg createBackendCfg()
   {
 	  CASBackendCfg backendCfg = mockCfg(CASBackendCfg.class);
-    when(backendCfg.getBackendId()).thenReturn("CASTestCase");
-    when(backendCfg.getDBDirectory()).thenReturn("CASTestCase");
-    return backendCfg;
+	  when(backendCfg.getBackendId()).thenReturn("CASTestCase");
+	  when(backendCfg.getDBDirectory()).thenReturn("CASTestCase");
+	  return backendCfg;
   }
 }

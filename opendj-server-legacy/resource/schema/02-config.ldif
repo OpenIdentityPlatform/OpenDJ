@@ -6007,13 +6007,11 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.26
         ds-cfg-disk-low-threshold $
         ds-cfg-je-property )
   X-ORIGIN 'OpenDJ Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.26.1
+objectClasses: ( 1.3.6.1.4.1.60142.2.1.2.1
   NAME 'ds-cfg-cas-backend'
   SUP ds-cfg-pluggable-backend
   STRUCTURAL
   MUST ds-cfg-db-directory
-  MAY ( 
-   )
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.27
   NAME 'ds-task-reset-change-number'
