@@ -20,7 +20,7 @@
   xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
   xmlns:cli="http://opendj.forgerock.org/admin-cli">
   <adm:synopsis>
-    A <adm:user-friendly-name/> stores application ata in a Apache Cassandra cluster.
+    A <adm:user-friendly-name/> stores application data in a Apache Cassandra cluster.
   </adm:synopsis>
   <adm:description>
     It is the traditional "directory server" backend and is similar to

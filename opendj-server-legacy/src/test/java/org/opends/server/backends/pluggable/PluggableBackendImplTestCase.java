@@ -12,6 +12,7 @@
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
  * Copyright 2015-2016 ForgeRock AS.
+ * Copyright 2023 	   3A Systems, LLC.
  */
 package org.opends.server.backends.pluggable;
 
@@ -1178,6 +1179,8 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backend.finalizeBackend();
     try
     {
+      readOnlyContainer.open(AccessMode.READ_WRITE); //init storage before read
+      readOnlyContainer.close();
       readOnlyContainer.open(AccessMode.READ_ONLY);
       readOnlyContainer.getStorage().write(new WriteOperation()
       {

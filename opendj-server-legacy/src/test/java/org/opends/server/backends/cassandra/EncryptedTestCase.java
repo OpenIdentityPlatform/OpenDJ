@@ -25,7 +25,7 @@ import org.testng.annotations.Test;
 //docker run --rm -it -p 9042:9042 --name cassandra cassandra
 
 @Test
-public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg>
+public class EncryptedTestCase extends PluggableBackendImplTestCase<CASBackendCfg>
 {
   @Override
   protected Backend createBackend()
@@ -38,8 +38,12 @@ public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg>
   protected CASBackendCfg createBackendCfg()
   {
 	  CASBackendCfg backendCfg = mockCfg(CASBackendCfg.class);
-	  when(backendCfg.getBackendId()).thenReturn("CASTestCase");
-	  when(backendCfg.getDBDirectory()).thenReturn("CASTestCase");
+	  when(backendCfg.getBackendId()).thenReturn("EncCASTestCase"+System.currentTimeMillis());
+	  when(backendCfg.getDBDirectory()).thenReturn("EncCASTestCase");
+	  
+	  when(backendCfg.isConfidentialityEnabled()).thenReturn(true);
+	  when(backendCfg.getCipherKeyLength()).thenReturn(128);
+	  when(backendCfg.getCipherTransformation()).thenReturn("AES/CBC/PKCS5Padding");
 	  return backendCfg;
   }
 }
