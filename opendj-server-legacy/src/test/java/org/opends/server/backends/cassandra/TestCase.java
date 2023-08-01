@@ -20,26 +20,37 @@ import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 
 import org.forgerock.opendj.server.config.server.CASBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
+
+import com.datastax.oss.driver.api.core.AllNodesFailedException;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 
 //docker run --rm -it -p 9042:9042 --name cassandra cassandra
 
 @Test
-public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg>
-{
-  @Override
-  protected Backend createBackend()
-  {
-	  System.setProperty("datastax-java-driver.basic.request.timeout", "10 seconds"); //for docker slow start
-	  return new Backend();
-  }
+public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg> {
 
-  @Override
-  protected CASBackendCfg createBackendCfg()
-  {
-	  CASBackendCfg backendCfg = mockCfg(CASBackendCfg.class);
-	  when(backendCfg.getBackendId()).thenReturn("CASTestCase");
-	  when(backendCfg.getDBDirectory()).thenReturn("CASTestCase");
-	  return backendCfg;
-  }
+	@Override
+	protected Backend createBackend() {
+		System.setProperty("datastax-java-driver.basic.request.timeout", "10 seconds"); //for docker slow start
+		//test allow cassandra
+		try(CqlSession session=CqlSession.builder()
+				.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
+				.build()){
+			session.close();
+		}catch (AllNodesFailedException e) {
+			throw new SkipException("run before test: docker run --rm -it -p 9042:9042 --name cassandra cassandra");
+		}
+		return new Backend();
+	}
+
+	@Override
+	protected CASBackendCfg createBackendCfg() {
+		CASBackendCfg backendCfg = mockCfg(CASBackendCfg.class);
+		when(backendCfg.getBackendId()).thenReturn("CASTestCase");
+		when(backendCfg.getDBDirectory()).thenReturn("CASTestCase");
+		return backendCfg;
+	}
 }

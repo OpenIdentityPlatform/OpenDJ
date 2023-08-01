@@ -53,6 +53,8 @@ jobs:
         MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
       run:   |
         cat /etc/hosts
+        docker run --rm -it -d -p 9042:9042 --name cassandra cassandra
+        timeout 5m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" cassandra | grep -q \"healthy\"; do sleep 10; done'
         mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit
     - name: Upload IT test failiure opendj-server-legacy/target
       uses: actions/upload-artifact@v3
