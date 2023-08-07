@@ -150,7 +150,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	final static String profile="ddl";
 	static {
 		if (System.getProperty("datastax-java-driver.profiles."+profile+".basic.request.timeout")==null) {
-			System.setProperty("datastax-java-driver.profiles."+profile+".basic.request.timeout", "15 seconds");
+			System.setProperty("datastax-java-driver.profiles."+profile+".basic.request.timeout", "60 seconds");
 		}
 	}
 	private final class TransactionImpl implements ReadableTransaction,WriteableTransaction,Closeable {
