@@ -250,7 +250,13 @@
 	    <groupId>com.datastax.oss</groupId>
 	    <artifactId>java-driver-core</artifactId>
 	    <version>4.17.0</version>
-	</dependency>
+	    <exclusions>
+	    	<exclusion>
+	    		<groupId>org.reactivestreams</groupId>
+	    		<artifactId>reactive-streams</artifactId>
+	    	</exclusion>
+	    </exclusions>
+    </dependency>
   </dependencies>
 
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
