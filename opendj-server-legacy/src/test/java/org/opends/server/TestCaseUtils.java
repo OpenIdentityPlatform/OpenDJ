@@ -1673,13 +1673,15 @@ public final class TestCaseUtils {
     appendStreamContent(logsContents, TestCaseUtils.getSystemOutContents(), "System.out");
     appendStreamContent(logsContents, TestCaseUtils.getSystemErrContents(), "System.err");
     
-    for (final File logFile : Arrays.asList(new File(paths.testInstanceRoot, "logs").listFiles())) {
-    	 try {
-			appendStreamContent(logsContents, readFile(logFile.getPath()), logFile.getPath());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}   
+    if (new File(paths.testInstanceRoot, "logs").listFiles()!=null) {
+	    for (final File logFile : Arrays.asList(new File(paths.testInstanceRoot, "logs").listFiles())) {
+	    	 try {
+				appendStreamContent(logsContents, readFile(logFile.getPath()), logFile.getPath());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}   
+    }
   }
 
   private static void appendStreamContent(StringBuilder out, String content, String name)
