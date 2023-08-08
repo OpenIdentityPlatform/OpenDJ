@@ -621,6 +621,7 @@ public class Installer extends GuiApplication
       notifyListeners(getFormattedProgress(INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)));
     //write log
       try {
+    	notifyListeners(getLineBreak());
 		notifyListeners(LocalizableMessage.valueOf(new String(Files.readAllBytes(Paths.get(tempLogFilePath)),"UTF-8")));
       } catch (UnsupportedEncodingException e) {
 		e.printStackTrace();
