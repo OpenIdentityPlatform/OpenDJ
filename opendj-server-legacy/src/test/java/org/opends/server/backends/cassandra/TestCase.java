@@ -34,7 +34,7 @@ public class TestCase extends PluggableBackendImplTestCase<CASBackendCfg> {
 
 	@Override
 	protected Backend createBackend() {
-		System.setProperty("datastax-java-driver.basic.request.timeout", "10 seconds"); //for docker slow start
+		System.setProperty("datastax-java-driver.basic.request.timeout", "30 seconds"); //for docker slow start
 		//test allow cassandra
 		try(CqlSession session=CqlSession.builder()
 				.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
