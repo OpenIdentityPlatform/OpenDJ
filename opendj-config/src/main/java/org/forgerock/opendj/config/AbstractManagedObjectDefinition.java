@@ -13,7 +13,6 @@
  *
  * Copyright 2007-2010 Sun Microsystems, Inc.
  * Portions Copyright 2015-2016 ForgeRock AS.
- * Portions Copyright 2023 3A Systems, LLC.
  */
 package org.forgerock.opendj.config;
 
@@ -23,13 +22,13 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -96,7 +95,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
     private final Set<ManagedObjectOption> options = EnumSet.noneOf(ManagedObjectOption.class);
 
     /** The set of managed object definitions which inherit from this definition. */
-    private final Map<String, AbstractManagedObjectDefinition<? extends C, ? extends S>> children = new LinkedHashMap<>();
+    private final Map<String, AbstractManagedObjectDefinition<? extends C, ? extends S>> children = new TreeMap<>();
 
     /**
      * Create a new abstract managed object definition.
