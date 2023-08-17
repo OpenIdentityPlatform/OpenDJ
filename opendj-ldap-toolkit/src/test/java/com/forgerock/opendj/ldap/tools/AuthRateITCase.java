@@ -74,7 +74,7 @@ public class AuthRateITCase extends ToolsITCase {
                 //Skip header line
                 for (int i = 1; i < authRateResLines.length; i++) {
                     String[] authRateLineData = authRateResLines[i].split(",");
-                    assertThat(authRateLineData[authRateLineData.length - 1].trim()).isEqualTo("0.0");
+                    assertThat(authRateLineData[authRateLineData.length - 1].trim()).as(outContent).isEqualTo("0.0");
                 }
             }
         }
