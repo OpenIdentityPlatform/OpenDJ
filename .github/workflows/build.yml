@@ -63,15 +63,15 @@ jobs:
         timeout 5m bash -c 'until docker logs cassandra | grep -q "Created default superuser role"; do sleep 5; done'
         mvn --batch-mode --errors verify --file opendj-server-legacy/pom.xml -P precommit
     - name: IT test failure Upload opendj-server-legacy/target
+      if: ${{ failure() && steps.failsafe.conclusion == 'failure' }}
       uses: actions/upload-artifact@v3
-      if: steps.failsafe.conclusion == 'failure'
       with:
         name: failsafe-${{ matrix.os }}-${{ matrix.java }}
         retention-days: 5
         path:  |
             opendj-server-legacy/target/
     - name: IT test failure cassandra logs
-      if: steps.failsafe.conclusion == 'failure'
+      if: ${{ failure() && steps.failsafe.conclusion == 'failure' }}
       run:   |
         docker logs cassandra
     - name: Test on Unix
