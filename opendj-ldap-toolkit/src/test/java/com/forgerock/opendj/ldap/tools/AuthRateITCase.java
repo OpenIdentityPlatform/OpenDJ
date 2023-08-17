@@ -50,7 +50,7 @@ public class AuthRateITCase extends ToolsITCase {
                 args("-h", TestCaseUtils.getServerSocketAddress().getHostName(),
                      "-p", Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()),
                      "-g", "rand(0,1000)", "-D", "uid=%d,ou=people,o=test", "-w", "password",
-                     "-i", "1", "-c", "1", "-m", "10", "-f", "-S", "-B", "0"),
+                     "-i", "1", "-c", "10", "-m", "10", "-f", "-S", "-B", "10"),
                 THROUGHPUT_TEXT, "" },
         };
     }
