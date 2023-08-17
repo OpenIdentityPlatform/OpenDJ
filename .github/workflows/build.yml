@@ -70,7 +70,7 @@ jobs:
         retention-days: 5
         path:  |
             opendj-server-legacy/target/
-            /var/log/
+            /var/log/docker.log
     - name: Test on Unix
       if: runner.os != 'Windows'
       run:   |
