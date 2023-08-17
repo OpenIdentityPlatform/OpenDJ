@@ -49,8 +49,6 @@ jobs:
       if: runner.os == 'macOS'
       shell: bash
       run:   |
-        brew update
-        brew upgrade
         brew install colima coreutils docker
         colima start --cpu 2 --memory 2 --disk 4
     - name: IT test
