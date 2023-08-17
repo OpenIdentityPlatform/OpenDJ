@@ -49,8 +49,10 @@ jobs:
       if: runner.os == 'macOS'
       shell: bash
       run:   |
-        brew install coreutils docker
-        colima start
+        brew update
+        brew upgrade
+        brew install colima coreutils docker
+        colima start --cpu 2 --memory 2 --disk 4
     - name: IT test
       id: failsafe
       if: runner.os != 'Windows'
@@ -70,10 +72,7 @@ jobs:
         retention-days: 5
         path:  |
             opendj-server-legacy/target/
-    - name: IT test failure cassandra logs
-      if: ${{ failure() && steps.failsafe.conclusion == 'failure' }}
-      run:   |
-        docker logs cassandra
+            /var/log/
     - name: Test on Unix
       if: runner.os != 'Windows'
       run:   |
@@ -82,6 +81,7 @@ jobs:
         opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "ou=people,dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | grep ^dn: | wc -l | grep -q 50000
+        opendj-server-legacy/target/package/opendj/bin/stop-ds
     - name: Test on Windows
       if: runner.os == 'Windows'
       run:   |
@@ -90,6 +90,7 @@ jobs:
         opendj-server-legacy\target\package\opendj\bat\status.bat --bindDN "cn=Directory Manager" --bindPassword password
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope sub "(uid=user.*)" dn | find /c '"dn:"' | findstr "50000"
+        opendj-server-legacy\target\package\opendj\bat\stop-ds.bat
     - name: Upload artifacts OpenDJ Server
       uses: actions/upload-artifact@v3
       with:
