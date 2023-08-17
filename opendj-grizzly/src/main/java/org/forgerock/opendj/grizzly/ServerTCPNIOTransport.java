@@ -98,8 +98,17 @@ final class ServerTCPNIOTransport extends ReferenceCountedObject<TCPNIOTransport
             builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
         }
         // Force usage of PooledMemoryManager which allows to use grizzly's buffers across threads.
-        builder.setMemoryManager(new PooledMemoryManager(true));
-
+        builder.setMemoryManager(new PooledMemoryManager(
+        		PooledMemoryManager.DEFAULT_BASE_BUFFER_SIZE*2, 
+        		PooledMemoryManager.DEFAULT_NUMBER_OF_POOLS, 
+        		PooledMemoryManager.DEFAULT_GROWTH_FACTOR, 
+        		Runtime.getRuntime().availableProcessors(),
+        		PooledMemoryManager.DEFAULT_HEAP_USAGE_PERCENTAGE, 
+        		PooledMemoryManager.DEFAULT_PREALLOCATED_BUFFERS_PERCENTAGE,
+                true));
+        builder.setReadBufferSize(8*1024);
+        builder.setWriteBufferSize(8*1024);
+        
         final TCPNIOTransport transport = builder.build();
 
         // FIXME: raise bug in Grizzly. We should not need to do this, but
