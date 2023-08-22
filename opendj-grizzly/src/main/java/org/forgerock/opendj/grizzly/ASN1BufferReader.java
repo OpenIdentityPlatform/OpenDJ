@@ -85,7 +85,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
         @Override
         public void checkLimit(final int readSize) throws IOException {
-            if (buffer.remaining() < readSize) {
+            if ( remaining() < readSize) {
                 final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
                 throw DecodeException.fatalError(message);
             }
@@ -99,7 +99,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
         @Override
         public int remaining() {
-            return buffer.remaining();
+            return buffer.hasRemaining() ? buffer.remaining() : 0;
         }
 
         @Override
