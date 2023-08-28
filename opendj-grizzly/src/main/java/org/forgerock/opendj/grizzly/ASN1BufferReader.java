@@ -60,7 +60,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         public SequenceLimiter endSequence() throws IOException {
             parent.checkLimit(remaining());
             if (remaining() > 0) {
-                logger.debug(LocalizableMessage.raw(
+                logger.error(LocalizableMessage.raw(
                     "Ignoring %d unused trailing bytes in ASN.1 SEQUENCE: %s", remaining(),toString()));
             }
             for (int i = 0; i < remaining(); i++) {
