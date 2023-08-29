@@ -35,7 +35,13 @@ import org.glassfish.grizzly.Buffer;
 /** Grizzly ASN1 reader implementation. */
 final class ASN1BufferReader extends AbstractASN1Reader {
     private final class ChildSequenceLimiter implements SequenceLimiter {
-        private SequenceLimiter parent;
+        @Override
+		public String toString() {
+			return "ChildSequenceLimiter [parent=" + parent + ", child=" + child + ", readLimit=" + readLimit
+					+ ", bytesRead=" + bytesRead + ", remaining()=" + remaining() + "]";
+		}
+
+		private SequenceLimiter parent;
         private ChildSequenceLimiter child;
         private int readLimit;
         private int bytesRead;
@@ -55,7 +61,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             parent.checkLimit(remaining());
             if (remaining() > 0) {
                 logger.debug(LocalizableMessage.raw(
-                    "Ignoring %d unused trailing bytes in ASN.1 SEQUENCE", remaining()));
+                    "Ignoring %d unused trailing bytes in ASN.1 SEQUENCE: %s", remaining(),toString()));
             }
             for (int i = 0; i < remaining(); i++) {
                 buffer.get();
@@ -81,11 +87,16 @@ final class ASN1BufferReader extends AbstractASN1Reader {
     }
 
     private final class RootSequenceLimiter implements SequenceLimiter {
-        private ChildSequenceLimiter child;
+        @Override
+		public String toString() {
+			return "RootSequenceLimiter [remaining()=" + remaining() + "]";
+		}
+
+		private ChildSequenceLimiter child;
 
         @Override
         public void checkLimit(final int readSize) throws IOException {
-            if (buffer.remaining() < readSize) {
+            if ( remaining() < readSize) {
                 final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
                 throw DecodeException.fatalError(message);
             }
@@ -99,7 +110,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
         @Override
         public int remaining() {
-            return buffer.remaining();
+            return buffer.hasRemaining() ? buffer.remaining() : 0;
         }
 
         @Override

@@ -429,7 +429,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 return ctx.getStopAction(buffer.duplicate());
             }
             final int length = reader.peekLength();
-            final Buffer remainder = buffer.remaining() > length ? buffer.split(buffer.position() + length) : null;
+            final Buffer remainder = (buffer.hasRemaining() && buffer.remaining() > length) ? buffer.split(buffer.position() + length) : null;
             buffer.reset();
             try (final ASN1BufferReader packetReader =
                     new ASN1BufferReader(maxASN1ElementSize, buffer.asReadOnlyBuffer())) {
