@@ -50,7 +50,7 @@ public class AuthRateITCase extends ToolsITCase {
                 args("-h", TestCaseUtils.getServerSocketAddress().getHostName(),
                      "-p", Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()),
                      "-g", "rand(0,1000)", "-D", "uid=%d,ou=people,o=test", "-w", "password",
-                     "-i", "1", "-c", "1", "-m", "10", "-f", "-S", "-B", "0"),
+                     "-i", "1", "-c", "1", "-m", "1000", "-f", "-S", "-B", "0"),
                 THROUGHPUT_TEXT, "" },
         };
     }
@@ -74,7 +74,7 @@ public class AuthRateITCase extends ToolsITCase {
                 //Skip header line
                 for (int i = 1; i < authRateResLines.length; i++) {
                     String[] authRateLineData = authRateResLines[i].split(",");
-                    assertThat(authRateLineData[authRateLineData.length - 1].trim()).isEqualTo("0.0");
+                    assertThat(authRateLineData[authRateLineData.length - 1].trim()).as(outContent).isEqualTo("0.0");
                 }
             }
         }
