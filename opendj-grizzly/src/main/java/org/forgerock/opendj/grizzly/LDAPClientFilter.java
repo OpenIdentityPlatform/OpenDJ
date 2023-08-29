@@ -440,7 +440,6 @@ final class LDAPClientFilter extends LDAPBaseFilter {
             return ctx.getInvokeAction(remainder);
         } catch (IOException e) {
             handleReadException(ctx, e);
-            e.printStackTrace();
             throw e;
         }
     }
