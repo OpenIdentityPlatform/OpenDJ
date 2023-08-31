@@ -47,17 +47,16 @@ jobs:
       run:   |
         brew install colima coreutils docker
         colima start --cpu 2 --memory 2 --disk 4
+    - name: Run docker cassandra
+      if: runner.os != 'Windows'
+      run:   |
+        docker run --rm -it -d -p 9042:9042 --name cassandra cassandra
+        timeout 5m bash -c 'until docker logs cassandra | grep -q "Created default superuser role"; do sleep 5; done'
     - name: Set Integration Test Environment 
       id: failsafe
       if: runner.os != 'Windows'
       run:   |
         echo "MAVEN_PROFILE_FLAG=-P precommit" >> $GITHUB_OUTPUT
-    - name: Run docker cassandra
-      id: failsafe
-      if: runner.os != 'Windows'
-      run:   |
-        docker run --rm -it -d -p 9042:9042 --name cassandra cassandra
-        timeout 5m bash -c 'until docker logs cassandra | grep -q "Created default superuser role"; do sleep 5; done'
     - name: Build with Maven
       timeout-minutes: 120
       env:
