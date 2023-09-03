@@ -520,7 +520,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
     static {
         final String password="keypassword";
         try {
-	        CertAndKeyGen keyGen=new CertAndKeyGen("RSA","SHA1WithRSA",null);
+	        CertAndKeyGen keyGen=new CertAndKeyGen("RSA","SHA256WithRSA",null);
 	        keyGen.generate(2048);
 	        X509Certificate[] chain=new X509Certificate[1];
 	        chain[0]=keyGen.getSelfCertificate(new X500Name("CN=localhost"), (long)1*3600);
