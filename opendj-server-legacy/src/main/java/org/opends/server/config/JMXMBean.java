@@ -13,38 +13,16 @@
  *
  * Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2023 3A Systems LLC.
  */
 package org.opends.server.config;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import javax.management.Attribute;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.DynamicMBean;
-import javax.management.InvalidAttributeValueException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanConstructorInfo;
-import javax.management.MBeanException;
-import javax.management.MBeanInfo;
-import javax.management.MBeanNotificationInfo;
-import javax.management.MBeanOperationInfo;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.server.config.server.MonitorProviderCfg;
 import org.forgerock.util.Utils;
 import org.opends.server.api.AlertGenerator;
@@ -59,11 +37,20 @@ import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.JmxClientConnection;
 import org.opends.server.types.DirectoryException;
 
+import javax.management.Attribute;
+import javax.management.*;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import static javax.xml.bind.DatatypeConverter.printDateTime;
+import static org.forgerock.opendj.ldap.Functions.*;
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.protocols.internal.Requests.newSearchRequest;
+import static org.opends.server.util.CollectionUtils.newArrayList;
+import static org.opends.server.util.ServerConstants.MBEAN_BASE_DOMAIN;
+import static org.opends.server.util.StaticUtils.isAlpha;
+import static org.opends.server.util.StaticUtils.isDigit;
 
 /**
  * This class defines a JMX MBean that can be registered with the Directory
@@ -340,25 +327,37 @@ public final class JMXMBean
 
           if (iterator.hasNext())
           {
-            List<String> stringValues = newArrayList(firstValue.toString());
+            List<Object> valueList = newArrayList(getAttributeValue(a.getAttributeDescription(), firstValue));
             while (iterator.hasNext())
             {
               ByteString value = iterator.next();
-              stringValues.add(value.toString());
+              valueList.add(getAttributeValue(a.getAttributeDescription(), value));
             }
 
-            String[] valueArray = stringValues.toArray(new String[stringValues.size()]);
+            Object[] valueArray = valueList.toArray(new Object[0]);
             return new Attribute(name, valueArray);
           }
           else
           {
-            return new Attribute(name, firstValue.toString());
+            return new Attribute(name, getAttributeValue(a.getAttributeDescription(), firstValue));
           }
         }
       }
     }
-
     return null;
+  }
+
+  private Object getAttributeValue(AttributeDescription ad, ByteString value) {
+    final Syntax syntax = ad.getAttributeType().getSyntax();
+    if (syntax.equals(CoreSchema.getBooleanSyntax())) {
+      return byteStringToBoolean().apply(value);
+    } else if (syntax.equals(CoreSchema.getIntegerSyntax())) {
+      return byteStringToLong().apply(value);
+    } else if (syntax.equals(CoreSchema.getGeneralizedTimeSyntax())) {
+      return printDateTime(byteStringToGeneralizedTime().apply(value).toCalendar());
+    } else {
+      return byteStringToString().apply(value);
+    }
   }
 
 
@@ -582,7 +581,8 @@ public final class JMXMBean
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
       {
-        attrs.add(new MBeanAttributeInfo(a.getAttributeDescription().getNameOrOID(), String.class.getName(),
+        final String className = getAttributeClass(a.getAttributeDescription()).getName();
+        attrs.add(new MBeanAttributeInfo(a.getAttributeDescription().getNameOrOID(), className,
                                          null, true, false, false));
       }
     }
@@ -613,6 +613,17 @@ public final class JMXMBean
                          "Configurable Attributes for " + configEntryDN,
                          mBeanAttributes, mBeanConstructors, mBeanOperations,
                          mBeanNotifications);
+  }
+
+  private Class<?> getAttributeClass(AttributeDescription ad) {
+    final Syntax syntax = ad.getAttributeType().getSyntax();
+    if (syntax.equals(CoreSchema.getBooleanSyntax())) {
+      return Boolean.class;
+    } else if (syntax.equals(CoreSchema.getIntegerSyntax())) {
+      return Long.class;
+    } else {
+      return String.class;
+    }
   }
 
   /**
