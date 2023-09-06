@@ -59,11 +59,14 @@ import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.JmxClientConnection;
 import org.opends.server.types.DirectoryException;
 
+import org.forgerock.opendj.ldap.schema.Schema;
+
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
 
 /**
  * This class defines a JMX MBean that can be registered with the Directory
@@ -374,7 +377,7 @@ public final class JMXMBean
    *                                      associated with this MBean.
    */
   @Override
-  public Attribute getAttribute(String attributeName)
+  public Object getAttribute(String attributeName)
          throws AttributeNotFoundException
   {
     // Get the jmx Client connection
@@ -399,7 +402,7 @@ public final class JMXMBean
         throw new AttributeNotFoundException(message.toString());
       }
 
-      return getJmxAttribute(attributeName);
+      return getJmxAttribute(attributeName).getValue();
     }
     catch (AttributeNotFoundException e)
     {
@@ -582,7 +585,11 @@ public final class JMXMBean
     {
       for (org.opends.server.types.Attribute a : monitor.getMonitorData())
       {
-        attrs.add(new MBeanAttributeInfo(a.getAttributeDescription().getNameOrOID(), String.class.getName(),
+    	Class typeClazz = String.class;
+    	if (SYNTAX_INTEGER_OID.equals(a.getAttributeDescription().getAttributeType().getSyntax().getOID())) {
+        	typeClazz = Integer.class;
+    	}
+        attrs.add(new MBeanAttributeInfo(a.getAttributeDescription().getNameOrOID(), typeClazz.getName(),
                                          null, true, false, false));
       }
     }
