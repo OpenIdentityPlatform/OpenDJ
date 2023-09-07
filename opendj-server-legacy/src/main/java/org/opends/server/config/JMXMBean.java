@@ -51,6 +51,7 @@ import static org.opends.server.util.CollectionUtils.newArrayList;
 import static org.opends.server.util.ServerConstants.MBEAN_BASE_DOMAIN;
 import static org.opends.server.util.StaticUtils.isAlpha;
 import static org.opends.server.util.StaticUtils.isDigit;
+import static org.opends.server.schema.SchemaConstants.SYNTAX_INTEGER_OID;
 
 /**
  * This class defines a JMX MBean that can be registered with the Directory
@@ -373,7 +374,7 @@ public final class JMXMBean
    *                                      associated with this MBean.
    */
   @Override
-  public Attribute getAttribute(String attributeName)
+  public Object getAttribute(String attributeName)
          throws AttributeNotFoundException
   {
     // Get the jmx Client connection
@@ -398,7 +399,7 @@ public final class JMXMBean
         throw new AttributeNotFoundException(message.toString());
       }
 
-      return getJmxAttribute(attributeName);
+      return getJmxAttribute(attributeName).getValue();
     }
     catch (AttributeNotFoundException e)
     {
