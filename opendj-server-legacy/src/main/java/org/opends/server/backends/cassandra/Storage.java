@@ -19,7 +19,6 @@ package org.opends.server.backends.cassandra;
 import static org.opends.server.backends.pluggable.spi.StorageUtils.addErrorMessage;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
@@ -30,6 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
@@ -61,13 +61,15 @@ import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.cql.Statement;
+import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 public class Storage implements org.opends.server.backends.pluggable.spi.Storage, ConfigurationChangeListener<CASBackendCfg>{
 	
-	//private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+	private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 	//private final ServerContext serverContext;
 	private CASBackendCfg config;
@@ -98,11 +100,42 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	    return ccr;
 	}
 
-	TransactionImpl tx=null;
+	CqlSession session=null;
 	
+	final LoadingCache<String,PreparedStatement> prepared=CacheBuilder.newBuilder()
+			.expireAfterAccess(Duration.ofMinutes(10))
+			.maximumSize(4096)
+			.build(new CacheLoader<String,PreparedStatement>(){
+				@Override
+				public PreparedStatement load(String query) throws Exception {
+					return session.prepare(query);
+				}
+			});
+	
+	ResultSet execute(Statement<?> statement) {
+		if (logger.isTraceEnabled()) {
+			final ResultSet res=session.execute(statement.setTracing(true));
+			logger.trace(LocalizableMessage.raw(
+					"cassandra: %s"
+					,res.getExecutionInfo().getQueryTrace().getParameters()
+					)
+				);
+			return res;
+		}
+		return session.execute(statement);
+	}
+	
+	AccessMode accessMode=null;
 	@Override
 	public void open(AccessMode accessMode) throws Exception {
-		tx=new TransactionImpl(config,accessMode);
+		this.accessMode=accessMode;
+		session=CqlSession.builder()
+				.withApplicationName("OpenDJ "+config.getDBDirectory()+"."+config.getBackendId())
+				.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
+				.build();
+		if (AccessMode.READ_WRITE.equals(accessMode)) {
+			execute(prepared.getUnchecked("CREATE KEYSPACE IF NOT EXISTS "+getKeyspaceName()+" WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};").bind().setExecutionProfileName(profile));
+		}
 		storageStatus = StorageStatus.working();
 	}
 
@@ -114,11 +147,11 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	
 	@Override
 	public void close() {
-		if (tx!=null) {
-			tx.close();
-			tx=null;
-		}
 		storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
+		if (session!=null && !session.isClosed()) {
+			session.close();
+		}
+		session=null;
 	}
 
 	String getKeyspaceName() {
@@ -130,68 +163,55 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	}
 	
 	@Override
-	public void removeStorageFiles() throws StorageRuntimeException {	
-		final TransactionImpl tx=new TransactionImpl(config,AccessMode.READ_WRITE);
-		tx.session.execute(tx.prepared.getUnchecked("DROP TABLE IF EXISTS "+getTableName()+";").bind().setExecutionProfileName(profile));
-		tx.close();
+	public void removeStorageFiles() throws StorageRuntimeException {
+		final Boolean isOpen=getStorageStatus().isWorking();
+		if (!isOpen) {
+			try {
+				open(AccessMode.READ_WRITE);
+			}catch (Exception e) {
+				throw new StorageRuntimeException(e);
+			}
+		}
+		try {
+			execute(prepared.getUnchecked("TRUNCATE TABLE "+getTableName()+";").bind().setExecutionProfileName(profile));
+		}catch (Throwable e) {}
+		if (!isOpen) {
+			close();
+		}
 	}
 	
 	//operation
 	@Override
 	public <T> T read(ReadOperation<T> readOperation) throws Exception {
-		return readOperation.run(tx);
+		return readOperation.run(new TransactionImpl(AccessMode.READ_ONLY));
 	}
 
 	@Override
 	public void write(WriteOperation writeOperation) throws Exception {
-		writeOperation.run(tx);
+		writeOperation.run(new TransactionImpl(accessMode));
 	}
 
 	final static String profile="ddl";
 	static {
+		if (System.getProperty("datastax-java-driver.basic.request.timeout")==null) {
+			System.setProperty("datastax-java-driver.basic.request.timeout", "10 seconds");
+		}
 		if (System.getProperty("datastax-java-driver.profiles."+profile+".basic.request.timeout")==null) {
 			System.setProperty("datastax-java-driver.profiles."+profile+".basic.request.timeout", "30 seconds");
 		}
 	}
-	private final class TransactionImpl implements ReadableTransaction,WriteableTransaction,Closeable {
-
-		CqlSession session=null;
-		
-		final LoadingCache<String,PreparedStatement> prepared=CacheBuilder.newBuilder()
-				.expireAfterAccess(Duration.ofMinutes(10))
-				.maximumSize(4096)
-				.build(new CacheLoader<String,PreparedStatement>(){
-					@Override
-					public PreparedStatement load(String query) throws Exception {
-						return session.prepare(query);
-					}
-				});
+	private final class TransactionImpl implements ReadableTransaction,WriteableTransaction {
 		
 		final AccessMode accessMode;
-		public TransactionImpl(CASBackendCfg config, AccessMode accessMode) {
+		public TransactionImpl(AccessMode accessMode) {
 			super();
 			this.accessMode=accessMode;
-			session=CqlSession.builder()
-					.withApplicationName("OpenDJ "+config.getDBDirectory()+"."+config.getBackendId())
-					.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
-					.build();
-			session.execute(prepared.getUnchecked("CREATE KEYSPACE IF NOT EXISTS "+getKeyspaceName()+" WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};").bind().setExecutionProfileName(profile));
-			session.execute(prepared.getUnchecked("USE "+getKeyspaceName()+";").bind().setExecutionProfileName(profile));
 		}
 
-		@Override
-		public void close() {
-			if (session!=null && !session.isClosed()) {
-				session.close();
-			}
-			session=null;
-			storageStatus = StorageStatus.lockedDown(LocalizableMessage.raw("closed"));
-		}
-		
 		@Override
 		public void openTree(TreeName name, boolean createOnDemand) {
 			if (createOnDemand) {
-				session.execute(prepared.getUnchecked("CREATE TABLE IF NOT EXISTS "+getTableName()+" (baseDN text,indexId text,key blob,value blob,PRIMARY KEY ((baseDN,indexId),key));").bind().setExecutionProfileName(profile));
+				execute(prepared.getUnchecked("CREATE TABLE IF NOT EXISTS "+getTableName()+" (baseDN text,indexId text,key blob,value blob,PRIMARY KEY ((baseDN,indexId),key));").bind().setExecutionProfileName(profile));
 			}
 		}
 		
@@ -202,12 +222,12 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		
 		@Override
 		public ByteString read(TreeName treeName, ByteSequence key) {
-			final Row row=session.execute(
+			final Row row=execute(
 					prepared.getUnchecked("SELECT value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId and key=:key").bind()
 						.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 						.setByteBuffer("key", ByteBuffer.wrap(key.toByteArray())) 
 					).one();
-			return row==null?null:ByteString.valueOfBytes(row.getByteBuffer("value").array());
+			return row==null?null:ByteString.wrap(row.getByteBuffer("value").array());
 		}
 
 		@Override
@@ -217,7 +237,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public long getRecordCount(TreeName treeName) {
-			return session.execute(
+			return execute(
 					prepared.getUnchecked("SELECT count(*) FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId").bind()
 						.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 					).one().getLong(0);
@@ -227,7 +247,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		public void deleteTree(TreeName treeName) {
 			checkReadOnly();
 			openTree(treeName,true);
-			session.execute(
+			execute(
 					prepared.getUnchecked("DELETE FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId").bind()
 						.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 					);
@@ -236,7 +256,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
 			checkReadOnly();
-			session.execute(
+			execute(
 				prepared.getUnchecked("INSERT INTO "+getTableName()+" (baseDN,indexId,key,value) VALUES (:baseDN,:indexId,:key,:value)").bind()
 					.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 					.setByteBuffer("key", ByteBuffer.wrap(key.toByteArray()))
@@ -265,7 +285,7 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		@Override
 		public boolean delete(TreeName treeName, ByteSequence key) {
 			checkReadOnly();
-			session.execute(
+			execute(
 					prepared.getUnchecked("DELETE FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId and key=:key").bind()
 						.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 						.setByteBuffer("key", ByteBuffer.wrap(key.toByteArray()))
@@ -294,8 +314,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 
 		ResultSet full(){
-			return tx.session.execute(
-						tx.prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId ORDER BY key").bind()
+			return execute(
+						prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId ORDER BY key").bind()
 							.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 						);
 		}
@@ -322,22 +342,25 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 
 		@Override
 		public ByteString getKey() throws NoSuchElementException {
-			if (current==null) {
+			if (!isDefined()) {
 				throw new NoSuchElementException();
 			}
-			return ByteString.valueOfBytes(current.getByteBuffer("key").array());
+			return ByteString.wrap(current.getByteBuffer("key").array());
 		}
 
 		@Override
 		public ByteString getValue() throws NoSuchElementException {
-			if (current==null) {
+			if (!isDefined()) {
 				throw new NoSuchElementException();
 			}
-			return ByteString.valueOfBytes(current.getByteBuffer("value").array());
+			return ByteString.wrap(current.getByteBuffer("value").array());
 		}
 
 		@Override
 		public void delete() throws NoSuchElementException, UnsupportedOperationException {
+			if (!isDefined()) {
+				throw new NoSuchElementException();
+			}
 			tx.delete(treeName, getKey());
 		}
 
@@ -345,11 +368,12 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		public void close() {
 			iterator=null;
 			current=null;
+			rc=null;
 		}
 
 		ResultSet full(ByteSequence key){
-			return tx.session.execute(
-						tx.prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId and key>=:key ORDER BY key").bind()
+			return execute(
+						prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId and key>=:key ORDER BY key").bind()
 							.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 							.setByteBuffer("key", ByteBuffer.wrap(key.toByteArray()))
 						);
@@ -376,8 +400,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		}
 
 		ResultSet last(){
-			return tx.session.execute(
-						tx.prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId ORDER BY key DESC LIMIT 1").bind()
+			return execute(
+						prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId ORDER BY key DESC LIMIT 1").bind()
 							.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
 						);
 		}
@@ -420,13 +444,25 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 	private final class ImporterImpl implements Importer {
 		final TransactionImpl tx;
 		
+		final Boolean isOpen;
+		
 		public ImporterImpl() {
-			tx=new TransactionImpl(config,AccessMode.READ_WRITE);
+			isOpen=getStorageStatus().isWorking();
+			if (!isOpen) {
+				try {
+					open(AccessMode.READ_WRITE);
+				}catch (Exception e) {
+					throw new StorageRuntimeException(e);
+				}
+			}
+			tx=new TransactionImpl(accessMode);
 		}
 		
 		@Override
 		public void close() {
-			tx.close();
+			if (!isOpen) {
+				Storage.this.close();
+			}
 		}
 		
 		@Override
