@@ -72,8 +72,8 @@ public class SSLConnectionFactory
     }
     catch (NoSuchAlgorithmException ex)
     {
-      logger.trace("Unable to retrieve default TLS protocols of the JVM, defaulting to TLSv1", ex);
-      protocols = Arrays.asList(SSLContextBuilder.PROTOCOL_TLS1);
+      logger.trace("Unable to retrieve default TLS protocols of the JVM, defaulting to TLS", ex);
+      protocols = Arrays.asList(SSLContextBuilder.PROTOCOL_TLS);
     }
     TLS_PROTOCOLS = protocols.toArray(new String[protocols.size()]);
   }

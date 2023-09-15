@@ -96,7 +96,7 @@ public final class RemoteConnection implements Closeable
 
   private Socket getSslSocket(String host, int port) throws Exception
   {
-    SSLContext sslCtx = SSLContext.getInstance("TLSv1");
+    SSLContext sslCtx = SSLContext.getInstance("TLS");
     TrustManager[] tm = new TrustManager[] { new BlindTrustManager() };
     sslCtx.init(null, tm, new SecureRandom());
     SSLSocketFactory socketFactory = sslCtx.getSocketFactory();

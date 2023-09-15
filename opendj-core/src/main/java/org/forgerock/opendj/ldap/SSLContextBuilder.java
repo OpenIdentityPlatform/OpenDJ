@@ -72,7 +72,7 @@ public final class SSLContextBuilder {
 
     private TrustManager trustManager;
     private KeyManager keyManager;
-    private String protocol = PROTOCOL_TLS1_2;
+    private String protocol = PROTOCOL_TLS;
     private SecureRandom random;
 
     /** These are mutually exclusive. */

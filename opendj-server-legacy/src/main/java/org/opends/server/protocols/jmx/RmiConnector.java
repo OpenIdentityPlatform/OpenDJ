@@ -285,7 +285,7 @@ public class RmiConnector
               : SelectableCertificateKeyManager.wrap(provider.getKeyManagers(), nicknames);
         }
 
-        SSLContext ctx = SSLContext.getInstance("TLSv1");
+        SSLContext ctx = SSLContext.getInstance("TLS");
         ctx.init(
             keyManagers,
             null,
