@@ -179,7 +179,7 @@ public class Rest2LdapHttpApplication implements HttpApplication {
             final URL configUrl = getClass().getResource("/config.json");
             this.configDirectory = configUrl != null ? new File(configUrl.toURI()).getParentFile() : null;
         } catch (final URISyntaxException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException(""+getClass().getResource("/config.json"),e);
         }
         this.schema = Schema.getDefaultSchema();
     }
