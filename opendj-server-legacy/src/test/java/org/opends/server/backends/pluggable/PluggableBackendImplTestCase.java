@@ -1179,7 +1179,7 @@ public abstract class PluggableBackendImplTestCase<C extends PluggableBackendCfg
     backend.finalizeBackend();
     try
     {
-      readOnlyContainer.open(AccessMode.READ_WRITE); //init storage before read
+      readOnlyContainer.open(AccessMode.READ_WRITE); //init storage before reading
       readOnlyContainer.close();
       readOnlyContainer.open(AccessMode.READ_ONLY);
       readOnlyContainer.getStorage().write(new WriteOperation()
