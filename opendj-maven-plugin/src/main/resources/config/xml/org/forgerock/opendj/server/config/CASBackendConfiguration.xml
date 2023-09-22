@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2023- 3A Systems LLC
+  ! -->
+<adm:managed-object name="cas-backend" plural-name="cas-backends"
+  package="org.forgerock.opendj.server.config"
+  extends="pluggable-backend" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
+  xmlns:cli="http://opendj.forgerock.org/admin-cli">
+  <adm:synopsis>
+    A <adm:user-friendly-name/> stores application data in a Apache Cassandra cluster.
+  </adm:synopsis>
+  <adm:description>
+    It is the traditional "directory server" backend and is similar to
+    the backends provided by the Sun Java System Directory Server. The
+    <adm:user-friendly-name />
+    stores the entries in an encoded form and also provides indexes that
+    can be used to quickly locate target entries based on different
+    kinds of criteria.
+  </adm:description>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-cas-backend</ldap:name>
+      <ldap:superior>ds-cfg-pluggable-backend</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.backends.cassandra.Backend
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  
+  <adm:property name="db-directory" mandatory="true">
+    <adm:TODO>Default this to the db/backend-id</adm:TODO>
+    <adm:synopsis>
+      Specifies the keyspace name
+    </adm:synopsis>
+    <adm:description>
+      The path may be either an absolute path or a path relative to the
+      directory containing the base of the <adm:product-name /> directory server
+      installation. The path may be any valid directory path in which
+      the server has appropriate permissions to read and write files and
+      has sufficient space to hold the database contents.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>ldap_opendj</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-db-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+</adm:managed-object>

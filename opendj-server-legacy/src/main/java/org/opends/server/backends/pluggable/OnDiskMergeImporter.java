@@ -389,6 +389,7 @@ final class OnDiskMergeImporter
       final int initialThreadCount = maxThreadCount;
       final Long offheapMemorySize = backendCfg.getImportOffheapMemorySize();
       boolean useOffHeap = (offheapMemorySize != null && offheapMemorySize > 0);
+      
       long memoryAvailable =
           useOffHeap ? offheapMemorySize.longValue() : calculateAvailableHeapMemoryForBuffersAfterGC();
       int threadCount = initialThreadCount;

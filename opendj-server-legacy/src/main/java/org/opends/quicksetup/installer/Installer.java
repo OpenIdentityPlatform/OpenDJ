@@ -41,6 +41,9 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -616,6 +619,15 @@ public class Installer extends GuiApplication
     {
       final String tempLogFilePath = tempLogFile.getPath();
       notifyListeners(getFormattedProgress(INFO_GENERAL_PROVIDE_LOG_IN_ERROR.get(tempLogFilePath)));
+    //write log
+      try {
+    	notifyListeners(getLineBreak());
+		notifyListeners(LocalizableMessage.valueOf(new String(Files.readAllBytes(Paths.get(tempLogFilePath)),"UTF-8")));
+      } catch (UnsupportedEncodingException e) {
+		e.printStackTrace();
+      } catch (IOException e) {
+		e.printStackTrace();
+      }
       notifyListeners(getLineBreak());
     }
   }

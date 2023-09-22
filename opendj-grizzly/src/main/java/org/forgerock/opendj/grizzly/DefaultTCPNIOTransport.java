@@ -136,7 +136,6 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
             builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
         }
         builder.setMemoryManager(new PooledMemoryManager(true));
-        
 
         final TCPNIOTransport transport = builder.build();
 

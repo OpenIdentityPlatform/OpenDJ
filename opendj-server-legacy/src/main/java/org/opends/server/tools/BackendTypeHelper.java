@@ -140,7 +140,11 @@ public class BackendTypeHelper
     try
     {
       Class.forName(backendClassName);
-      backends.add(backendToAdd);
+      if (backendClassName.equals("org.opends.server.backends.jeb.JEBackend")) { //default
+    	  backends.add(0,backendToAdd);
+      }else {
+    	  backends.add(backendToAdd);
+      }
     }
     catch (ClassNotFoundException ignored)
     {

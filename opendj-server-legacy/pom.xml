@@ -245,6 +245,18 @@
       <artifactId>juel-api</artifactId>
       <version>${juel.version}</version>
     </dependency>
+    
+    <dependency>
+	    <groupId>com.datastax.oss</groupId>
+	    <artifactId>java-driver-core</artifactId>
+	    <version>4.17.0</version>
+	    <exclusions>
+	    	<exclusion>
+	    		<groupId>org.reactivestreams</groupId>
+	    		<artifactId>reactive-streams</artifactId>
+	    	</exclusion>
+	    </exclusions>
+    </dependency>
   </dependencies>
 
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
@@ -1216,7 +1228,7 @@
                     <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
                     <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
                   </systemPropertyVariables>
-                  <argLine> -Xmx2g @{argLine}</argLine>
+                  <argLine> -Xmx1g @{argLine}</argLine>
 	          	  <reuseForks>false</reuseForks>
 	          	  <forkCount>1</forkCount>
 	          	  <parallel>none</parallel>

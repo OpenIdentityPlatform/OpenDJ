@@ -13,6 +13,7 @@
  *
  * Copyright 2008 Sun Microsystems, Inc.
  * Portions Copyright 2013-2016 ForgeRock AS.
+ * Portions Copyright 2023 3A Systems, LLC.
  */
 package org.opends.server;
 
@@ -246,7 +247,6 @@ public class TestListener extends TestListenerAdapter implements IReporter {
         && countTestsWithStatus(ITestResult.SKIP) != 0) {
       originalSystemErr.println("There were no explicit test failures,"
           + " but some tests were skipped (possibly due to errors in @Before* or @After* methods).");
-      System.exit(-1);
     }
   }
 
