@@ -20,6 +20,7 @@ import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 
 import org.forgerock.opendj.server.config.server.CASBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.CassandraContainer;
 import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
@@ -38,17 +39,16 @@ public class EncryptedTestCase extends PluggableBackendImplTestCase<CASBackendCf
   CassandraContainer cassandraContainer;
   @Override
   protected Backend createBackend() {
-
-	  cassandraContainer = new CassandraContainer<>("cassandra:latest").withExposedPorts(9042);
-	  cassandraContainer.start();
-
-	  InetSocketAddress contactPoint = cassandraContainer.getContactPoint();
-	  final String contactPointString = String.format("%s:%s", contactPoint.getHostName(), contactPoint.getPort());
+	  if(DockerClientFactory.instance().isDockerAvailable()) {
+		  cassandraContainer = new CassandraContainer<>("cassandra:latest").withExposedPorts(9042);
+		  cassandraContainer.start();
+		  InetSocketAddress contactPoint = cassandraContainer.getContactPoint();
+		  final String contactPointString = String.format("%s:%s", contactPoint.getHostName(), contactPoint.getPort());
+		  System.setProperty("datastax-java-driver.basic.contact-points.0", contactPointString);
+		  System.setProperty("datastax-java-driver.basic.load-balancing-policy.local-datacenter", cassandraContainer.getLocalDatacenter());
+	  }
 	  System.setProperty("datastax-java-driver.basic.request.timeout", "30 seconds"); //for docker slow start
-	  System.setProperty("datastax-java-driver.basic.contact-points.0", contactPointString);
-	  System.setProperty("datastax-java-driver.basic.load-balancing-policy.local-datacenter", cassandraContainer.getLocalDatacenter());
 
-	  System.setProperty("datastax-java-driver.basic.request.timeout", "30 seconds"); //for docker slow start
 	  //test allow cassandra
 	  try(CqlSession session=CqlSession.builder()
 			.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
