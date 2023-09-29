@@ -257,6 +257,13 @@
 	    	</exclusion>
 	    </exclusions>
     </dependency>
+    <!-- TestContainers-->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>cassandra</artifactId>
+      <version>1.19.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build><finalName>${project.groupId}.${project.artifactId}</finalName>
