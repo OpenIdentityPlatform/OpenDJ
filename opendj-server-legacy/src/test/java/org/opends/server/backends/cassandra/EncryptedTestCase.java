@@ -20,22 +20,35 @@ import static org.forgerock.opendj.config.ConfigurationMock.mockCfg;
 
 import org.forgerock.opendj.server.config.server.CASBackendCfg;
 import org.opends.server.backends.pluggable.PluggableBackendImplTestCase;
+import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.CassandraContainer;
 import org.testng.SkipException;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.datastax.oss.driver.api.core.AllNodesFailedException;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 
+import java.net.InetSocketAddress;
+
 //docker run --rm -it -p 9042:9042 --name cassandra cassandra
 
 @Test
-public class EncryptedTestCase extends PluggableBackendImplTestCase<CASBackendCfg>
-{
+public class EncryptedTestCase extends PluggableBackendImplTestCase<CASBackendCfg> {
+  CassandraContainer cassandraContainer;
   @Override
-  protected Backend createBackend()
-  {
+  protected Backend createBackend() {
+	  if(DockerClientFactory.instance().isDockerAvailable()) {
+		  cassandraContainer = new CassandraContainer<>("cassandra:latest").withExposedPorts(9042);
+		  cassandraContainer.start();
+		  InetSocketAddress contactPoint = cassandraContainer.getContactPoint();
+		  final String contactPointString = String.format("%s:%s", contactPoint.getHostName(), contactPoint.getPort());
+		  System.setProperty("datastax-java-driver.basic.contact-points.0", contactPointString);
+		  System.setProperty("datastax-java-driver.basic.load-balancing-policy.local-datacenter", cassandraContainer.getLocalDatacenter());
+	  }
 	  System.setProperty("datastax-java-driver.basic.request.timeout", "30 seconds"); //for docker slow start
+
 	  //test allow cassandra
 	  try(CqlSession session=CqlSession.builder()
 			.withConfigLoader(DriverConfigLoader.fromDefaults(Storage.class.getClassLoader()))
@@ -48,8 +61,7 @@ public class EncryptedTestCase extends PluggableBackendImplTestCase<CASBackendCf
   }
 
   @Override
-  protected CASBackendCfg createBackendCfg()
-  {
+  protected CASBackendCfg createBackendCfg() {
 	  CASBackendCfg backendCfg = mockCfg(CASBackendCfg.class);
 	  when(backendCfg.getBackendId()).thenReturn("EncCASTestCase"+System.currentTimeMillis());
 	  when(backendCfg.getDBDirectory()).thenReturn("EncCASTestCase");
@@ -59,4 +71,12 @@ public class EncryptedTestCase extends PluggableBackendImplTestCase<CASBackendCf
 	  when(backendCfg.getCipherTransformation()).thenReturn("AES/CBC/PKCS5Padding");
 	  return backendCfg;
   }
+	@AfterClass
+	@Override
+	public void cleanUp() throws Exception {
+		super.cleanUp();
+		if(cassandraContainer != null) {
+			cassandraContainer.close();
+		}
+	}
 }
