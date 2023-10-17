@@ -20,7 +20,6 @@ An open source, lightweight, embeddable directory that can easily share real-tim
 * Massive data scale and high availability providings developers with ultra-lightweight ways to access identity data
 * High Performance - ms response times & tens of thousands of w/r per sec
 * Multi Master replication for high availability
-* 
 
 As well as the expected LDAP access OpenDJ lets you access directory data as JSON resources over HTTP making it super convenient for web and phone apps.
 
