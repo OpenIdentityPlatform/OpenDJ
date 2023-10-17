@@ -14,12 +14,13 @@
 OpenDJ is an [LDAPv3](http://tools.ietf.org/html/rfc4510) compliant directory service, which has been developed 
 for the Java platform, providing a high performance, highly available, and secure store for the identities managed 
 by your organization. Its easy installation process, combined with the power of the Java platform makes OpenDJ
-the simplest, fastest directory to deploy and manage.
+the simplest, fastest directory to deploy and manage and allow [store LDAPv3 database in Cassandra/Scylla cluster](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/How-To#store-ldap-catalog-data-in-cassandra-nosql-cluster).
 
 An open source, lightweight, embeddable directory that can easily share real-time customer, device, and user identity data across enterprise, cloud, social, and mobile environments.
 * Massive data scale and high availability providings developers with ultra-lightweight ways to access identity data
 * High Performance - ms response times & tens of thousands of w/r per sec
 * Multi Master replication for high availability
+* 
 
 As well as the expected LDAP access OpenDJ lets you access directory data as JSON resources over HTTP making it super convenient for web and phone apps.
 
@@ -42,7 +43,6 @@ git config --system core.longpaths true
 
 ```bash
 git clone --recursive  https://github.com/OpenIdentityPlatform/OpenDJ.git
-#mvn clean install -f OpenDJ/commons
 mvn clean install -f OpenDJ
 ```
 
@@ -57,15 +57,14 @@ See the wiki for [Full Installation guide, Administration guide, and Developers 
 
 ## Support and Mailing List Information
 * OpenDJ Community Wiki: https://github.com/OpenIdentityPlatform/OpenDJ/wiki
-* OpenDJ Community Mailing List: open-identity-platform-opendj@googlegroups.com
-* OpenDJ Community Archive: https://groups.google.com/d/forum/open-identity-platform-opendj
-* OpenDJ Community on Gitter: https://gitter.im/OpenIdentityPlatform/OpenDJ
+* OpenDJ Community Discussions: https://github.com/OpenIdentityPlatform/OpenDJ/discussions
+* OpenDJ Community Issues: https://github.com/OpenIdentityPlatform/OpenDJ/issues
 * OpenDJ Commercial support RFP: support@3a-systems.ru (English, Russian)
 
 ## Contributing
 Please, make [Pull request](https://github.com/OpenIdentityPlatform/OpenDJ/pulls)
 
-## Thanks
+## Thanks 🥰
 * Sun OpenDS
 * Oracle OpenDS
 * Forgerock OpenDJ
