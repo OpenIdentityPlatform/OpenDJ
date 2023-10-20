@@ -133,7 +133,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-		          <shutdown>testset</shutdown>
+					<forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
+<!--		          <shutdown>testset</shutdown>-->
 		        </configuration>
             </plugin>
 
