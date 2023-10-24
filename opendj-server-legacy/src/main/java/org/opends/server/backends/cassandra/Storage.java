@@ -62,7 +62,6 @@ import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.Statement;
-import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -311,6 +310,8 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		public CursorImpl(TransactionImpl tx,TreeName treeName) {
 			this.treeName=treeName;
 			this.tx=tx;
+			rc=full();
+			iterator=rc.iterator();
 		}
 
 		ResultSet full(){
@@ -322,10 +323,6 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		
 		@Override
 		public boolean next() {
-			if (iterator==null) {
-				rc=full();
-				iterator=rc.iterator();
-			}
 			try {
 				current=iterator.next();
 				return true;
@@ -371,20 +368,17 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 			rc=null;
 		}
 
-		ResultSet full(ByteSequence key){
-			return execute(
-						prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId and key>=:key ORDER BY key").bind()
-							.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
-							.setByteBuffer("key", ByteBuffer.wrap(key.toByteArray()))
-						);
-		}
+
 		@Override
 		public boolean positionToKeyOrNext(ByteSequence key) {
-			rc=full(key); // start iterator from key key>=:key 
-			iterator=rc.iterator();
-			if (iterator.hasNext()) {
+			if (!isDefined() || key.compareTo(getKey())<0) { //restart iterator
+				iterator=rc.iterator();
+			}
+			while (iterator.hasNext()) {
 				current=iterator.next();
-				return true;
+				if (key.compareTo(getKey())<=0) {
+					return true;
+				}
 			}
 			current=null;
 			return false;
@@ -392,35 +386,37 @@ public class Storage implements org.opends.server.backends.pluggable.spi.Storage
 		
 		@Override
 		public boolean positionToKey(ByteSequence key) {
-			if (positionToKeyOrNext(key) && key.equals(getKey())){
+			if (!isDefined() || key.compareTo(getKey())<0) {  //restart iterator
+				iterator=rc.iterator();
+			}
+			if (isDefined() && key.compareTo(getKey())==0) {
 				return true;
+			}
+			while (iterator.hasNext()) {
+				current=iterator.next();
+				if (key.compareTo(getKey())==0) {
+					return true;
+				}
 			}
 			current=null;
 			return false;
 		}
 
-		ResultSet last(){
-			return execute(
-						prepared.getUnchecked("SELECT key,value FROM "+getTableName()+" WHERE baseDN=:baseDN and indexId=:indexId ORDER BY key DESC LIMIT 1").bind()
-							.setString("baseDN", treeName.getBaseDN()).setString("indexId", treeName.getIndexId()) 
-						);
-		}
 		
 		@Override
 		public boolean positionToLastKey() {
-			rc=last(); 
-			iterator=rc.iterator();
-			if (iterator.hasNext()) {
+			while (iterator.hasNext()) {
 				current=iterator.next();
+			}
+			if (current!=null) {
 				return true;
 			}
-			current=null;
 			return false;
 		}
 
 		@Override
 		public boolean positionToIndex(int index) {
-			iterator=rc.iterator(); //reset position
+			iterator=rc.iterator();  //restart iterator
 			int ct=0;
 			while(iterator.hasNext()){
 				current=iterator.next();
