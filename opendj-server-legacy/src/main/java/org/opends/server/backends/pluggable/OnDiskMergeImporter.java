@@ -462,8 +462,8 @@ final class OnDiskMergeImporter
 //        throw new InitializationException(ERR_IMPORT_LDIF_LACK_MEM.get(heapMemoryAvailable, minimumRequiredMemory));
 //      }
       logger.info(NOTE_IMPORT_LDIF_TOT_MEM_BUF, heapMemoryAvailable, nbBuffers);
-//      final long buffersMemory = heapMemoryAvailable - DB_CACHE_SIZE - REQUIRED_FREE_MEMORY;
-      final int bufferSize =1024*1024; //Math.min(((int) (buffersMemory / nbBuffers)), MAX_BUFFER_SIZE);
+      final long buffersMemory =  (long)(heapMemoryAvailable*0.3);//
+      final int bufferSize = Math.max(((int) (buffersMemory / nbBuffers)), MIN_BUFFER_SIZE);
       logger.info(NOTE_IMPORT_LDIF_DB_MEM_BUF_INFO, DB_CACHE_SIZE, bufferSize);
       return new BufferPool(nbBuffers, bufferSize, false);
     }
