@@ -25,6 +25,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode.Enum;
 import org.forgerock.opendj.ldap.LdapResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
@@ -220,7 +221,9 @@ public class ConnectionEntryReader implements EntryReader {
         if (result.isSuccess()) {
             return false;
         }
-
+		if (Enum.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(result.getResultCode().asEnum())) {
+        	return false;
+        }
         throw newLdapException(result);
     }
 
