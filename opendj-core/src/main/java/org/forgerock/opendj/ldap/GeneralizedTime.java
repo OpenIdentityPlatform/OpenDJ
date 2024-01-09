@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -24,6 +25,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.util.Reject;
+
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
@@ -790,7 +792,11 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
         // If we've gotten here, then it looks like a valid offset. We can
         // create a time zone by using "GMT" followed by the offset.
-        return TimeZone.getTimeZone("GMT" + offSetStr);
+        try {
+        	return TimeZone.getTimeZone(ZoneId.of("GMT"+offSetStr)); 
+        }catch (java.time.DateTimeException e) {
+        	return TimeZone.getTimeZone("GMT"+offSetStr); 
+		}
     }
 
     /** Lazily constructed internal representations. */
