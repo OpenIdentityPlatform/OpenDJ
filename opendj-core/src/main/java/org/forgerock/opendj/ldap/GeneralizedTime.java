@@ -16,7 +16,6 @@
 package org.forgerock.opendj.ldap;
 
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -27,8 +26,6 @@ import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.util.Reject;
 
-import sun.util.calendar.ZoneInfo;
-import sun.util.calendar.ZoneInfoFile;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
@@ -795,108 +792,13 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
         // If we've gotten here, then it looks like a valid offset. We can
         // create a time zone by using "GMT" followed by the offset.
-        final String ID="GMT"+offSetStr;
-        TimeZone tz = ZoneInfo.getTimeZone(ID);
-        if (tz == null) {
-            tz = parseCustomTimeZone(ID);
-            if (tz == null && true) {
-                tz = new ZoneInfo(GMT_ID, 0);
-            }
-        }
-        return tz;
+        try {
+        	return TimeZone.getTimeZone(ZoneId.of("GMT"+offSetStr)); 
+        }catch (java.time.DateTimeException e) {
+        	return TimeZone.getTimeZone("GMT"+offSetStr); 
+		}
     }
 
-    static final String         GMT_ID        = "GMT";
-    private static final int    GMT_ID_LENGTH = 3;
-    
-    private static final TimeZone parseCustomTimeZone(String id) {
-        int length;
-
-        // Error if the length of id isn't long enough or id doesn't
-        // start with "GMT".
-        if ((length = id.length()) < (GMT_ID_LENGTH + 2) ||
-            id.indexOf(GMT_ID) != 0) {
-            return null;
-        }
-
-        ZoneInfo zi;
-
-        // First, we try to find it in the cache with the given
-        // id. Even the id is not normalized, the returned ZoneInfo
-        // should have its normalized id.
-        zi = ZoneInfoFile.getZoneInfo(id);
-        if (zi != null) {
-            return zi;
-        }
-
-        int index = GMT_ID_LENGTH;
-        boolean negative = false;
-        char c = id.charAt(index++);
-        if (c == '-') {
-            negative = true;
-        } else if (c != '+') {
-            return null;
-        }
-
-        int hours = 0;
-        int num = 0;
-        int countDelim = 0;
-        int len = 0;
-        while (index < length) {
-            c = id.charAt(index++);
-            if (c == ':') {
-                if (countDelim > 0) {
-                    return null;
-                }
-                if (len > 2) {
-                    return null;
-                }
-                hours = num;
-                countDelim++;
-                num = 0;
-                len = 0;
-                continue;
-            }
-            if (c < '0' || c > '9') {
-                return null;
-            }
-            num = num * 10 + (c - '0');
-            len++;
-        }
-        if (index != length) {
-            return null;
-        }
-        if (countDelim == 0) {
-            if (len <= 2) {
-                hours = num;
-                num = 0;
-            } else {
-                hours = num / 100;
-                num %= 100;
-            }
-        } else {
-            if (len != 2) {
-                return null;
-            }
-        }
-        if (hours > 23 || num > 59) {
-            return null;
-        }
-        int gmtOffset =  (hours * 60 + num) * 60 * 1000;
-
-        if (gmtOffset == 0) {
-            zi = ZoneInfoFile.getZoneInfo(GMT_ID);
-            if (negative) {
-                zi.setID("GMT-00:00");
-            } else {
-                zi.setID("GMT+00:00");
-            }
-        } else {
-            zi = ZoneInfoFile.getCustomTimeZone(id, negative ? -gmtOffset : gmtOffset);
-        }
-        return zi;
-    }
-    
     /** Lazily constructed internal representations. */
     private volatile Calendar calendar;
     private volatile Date date;
