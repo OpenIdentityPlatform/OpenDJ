@@ -84,6 +84,7 @@ import com.forgerock.reactive.Completable;
 import com.forgerock.reactive.ReactiveHandler;
 import com.forgerock.reactive.Stream;
 
+import io.reactivex.exceptions.OnErrorNotImplementedException;
 import io.reactivex.internal.util.BackpressureHelper;
 
 /**
@@ -635,7 +636,7 @@ public final class LDAPServerFilter extends BaseFilter {
             return newCompletable(new Completable.Emitter() {
                 @Override
                 public void subscribe(final Completable.Subscriber s) throws Exception {
-                    promise.thenOnResult(new ResultHandler<Boolean>() {
+                	promise.thenOnResult(new ResultHandler<Boolean>() {
                         @Override
                         public void handleResult(Boolean result) {
                             s.onComplete();
@@ -643,7 +644,13 @@ public final class LDAPServerFilter extends BaseFilter {
                     }).thenOnException(new ExceptionHandler<Exception>() {
                         @Override
                         public void handleException(Exception exception) {
-                            s.onError(exception);
+                            try {
+                            	 s.onError(exception);
+                            } catch (Throwable t) {
+                                if (!(t instanceof OnErrorNotImplementedException)) {
+                                    throw t;
+                                }
+                            }
                         }
                     }).thenOnRuntimeException(new RuntimeExceptionHandler() {
                         @Override
@@ -653,6 +660,7 @@ public final class LDAPServerFilter extends BaseFilter {
                     });
                 }
             });
+            
         }
     }
 }
