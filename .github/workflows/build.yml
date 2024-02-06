@@ -59,7 +59,7 @@ jobs:
     - name: Test on Unix
       if: runner.os != 'Windows'
       run:   |
-        export OPENDJ_JAVA_ARGS="-server -Xmx1g"
+        export OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy/target/package/opendj/setup -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
         opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
@@ -69,7 +69,7 @@ jobs:
       if: runner.os == 'Linux'
       run:   |
         rm -rf opendj-server-legacy/target/package/opendj/config opendj-server-legacy/target/package/opendj/db opendj-server-legacy/target/package/opendj/changelogDb opendj-server-legacy/target/package/opendj/logs
-        export OPENDJ_JAVA_ARGS="-server -Xmx1g -Ddatastax-java-driver.basic.contact-points.0=localhost:9042 -Ddatastax-java-driver.basic.load-balancing-policy.local-datacenter=datacenter1"
+        export OPENDJ_JAVA_ARGS="-server -Xmx512m -Ddatastax-java-driver.basic.contact-points.0=localhost:9042 -Ddatastax-java-driver.basic.load-balancing-policy.local-datacenter=datacenter1"
         opendj-server-legacy/target/package/opendj/setup --backendType cas -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
         opendj-server-legacy/target/package/opendj/bin/status --bindDN "cn=Directory Manager" --bindPassword password
         opendj-server-legacy/target/package/opendj/bin/ldapsearch --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
@@ -78,7 +78,7 @@ jobs:
     - name: Test on Windows
       if: runner.os == 'Windows'
       run:   |
-        set OPENDJ_JAVA_ARGS="-server -Xmx1g"
+        set OPENDJ_JAVA_ARGS="-server -Xmx512m"
         opendj-server-legacy\target\package\opendj\setup.bat -h localhost -p 1389 --ldapsPort 1636 --adminConnectorPort 4444 --enableStartTLS --generateSelfSignedCertificate --rootUserDN "cn=Directory Manager" --rootUserPassword password --baseDN dc=example,dc=com --sampleData 5000 --cli --acceptLicense --no-prompt
         opendj-server-legacy\target\package\opendj\bat\status.bat --bindDN "cn=Directory Manager" --bindPassword password
         opendj-server-legacy\target\package\opendj\bat\ldapsearch.bat --hostname localhost --port 1636 --bindDN "cn=Directory Manager" --bindPassword password --useSsl --trustAll --baseDN "dc=example,dc=com" --searchScope base "(objectClass=*)" 1.1
@@ -146,7 +146,7 @@ jobs:
       - name: Docker test
         shell: bash
         run: |
-          docker run --rm -it -d --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
+          docker run --rm -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'
   build-docker-alpine:
     runs-on: 'ubuntu-latest'
@@ -195,5 +195,5 @@ jobs:
       - name: Docker test
         shell: bash
         run: |
-          docker run --rm -it -d --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
+          docker run --rm -it -d --memory="1g" --name=test localhost:5000/${GITHUB_REPOSITORY,,}:${{ env.release_version }}-alpine
           timeout 3m bash -c 'until docker inspect --format="{{json .State.Health.Status}}" test | grep -q \"healthy\"; do sleep 10; done'

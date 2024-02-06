@@ -188,7 +188,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase
    */
   protected SNMPConnectionHandler getSNMPConnectionHandler() throws Exception
   {
-    List<ConnectionHandler> handlers = DirectoryServer.getConnectionHandlers();
+    List<ConnectionHandler<?>> handlers = DirectoryServer.getConnectionHandlers();
     assertNotNull(handlers);
     SNMPConnectionHandler snmpConnectionHandler = null;
     for (ConnectionHandler handler : handlers)
