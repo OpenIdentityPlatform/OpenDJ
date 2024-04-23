@@ -35,7 +35,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
         <freemarker.version>2.3.31</freemarker.version>
-        <grizzly-framework.version>3.0.1</grizzly-framework.version>
+        <grizzly-framework.version>2.3.35</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -766,7 +766,7 @@
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <!--additionalparam>-Xdoclint:none</additionalparam-->
                         </configuration>
                     </plugin>
                 </plugins>
