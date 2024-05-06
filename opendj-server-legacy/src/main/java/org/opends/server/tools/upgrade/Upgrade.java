@@ -726,10 +726,13 @@ public final class Upgrade
   private static List<UpgradeTask> getUpgradeTasks(final BuildVersion fromVersion, final BuildVersion toVersion)
   {
     final List<UpgradeTask> tasks = new LinkedList<>();
-    for (final List<UpgradeTask> subList : TASKS.subMap(fromVersion, false,
-        toVersion, true).values())
-    {
-      tasks.addAll(subList);
+    try {
+        for (final List<UpgradeTask> subList : TASKS.subMap(fromVersion, false,
+                toVersion, true).values()) {
+            tasks.addAll(subList);
+        }
+    }catch (IllegalArgumentException e) {
+        logger.warn(LocalizableMessage.raw("Downgrade: "+e.getMessage()));
     }
     tasks.addAll(MANDATORY_TASKS);
     return tasks;
