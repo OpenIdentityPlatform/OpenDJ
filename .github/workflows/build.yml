@@ -32,7 +32,6 @@ jobs:
         submodules: recursive
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
       uses: actions/setup-java@v4
-      continue-on-error: true
       with:
         java-version: ${{ matrix.java }}
         distribution: 'zulu'
