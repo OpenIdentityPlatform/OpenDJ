@@ -147,7 +147,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         continue-on-error: true
         with:
           context: ./opendj-packages/opendj-docker
@@ -196,7 +196,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push image
         continue-on-error: true
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine

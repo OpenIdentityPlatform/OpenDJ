@@ -30,11 +30,18 @@ jobs:
       with:
         fetch-depth: 0
         submodules: recursive
-    - name: Java ${{ matrix.Java }} (${{ matrix.os }})
+    - name: Java ${{ matrix.Java }} (${{ matrix.os }}) (temurin)
       uses: actions/setup-java@v4
+      continue-on-error: true
       with:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
+    - name: Java ${{ matrix.Java }} (${{ matrix.os }}) (zulu)
+      if: ${{ failure() }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'zulu'
     - name: Cache Maven packages
       uses: actions/cache@v4
       with:
@@ -132,7 +139,7 @@ jobs:
         with:
           driver-opts: network=host
       - name: Build image (default)
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         continue-on-error: true
         with:
           context: ./opendj-packages/opendj-docker
@@ -182,7 +189,7 @@ jobs:
           driver-opts: network=host
       - name: Build image
         continue-on-error: true
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine
