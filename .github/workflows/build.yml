@@ -31,13 +31,14 @@ jobs:
         fetch-depth: 0
         submodules: recursive
     - name: Java ${{ matrix.Java }} (${{ matrix.os }}) (temurin)
+      id: temurin
       uses: actions/setup-java@v4
       continue-on-error: true
       with:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
     - name: Java ${{ matrix.Java }} (${{ matrix.os }}) (zulu)
-      if: failure()
+      if: success() && steps.temurin.conclusion == 'failure'
       uses: actions/setup-java@v4
       with:
         java-version: ${{ matrix.java }}
