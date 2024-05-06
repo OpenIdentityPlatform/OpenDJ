@@ -38,7 +38,7 @@ jobs:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
     - name: Java ${{ matrix.Java }} (${{ matrix.os }}) (zulu)
-      if: failure() || steps.temurin.conclusion == 'failure'
+      if: job.steps.temurin.status == failure()
       uses: actions/setup-java@v4
       with:
         java-version: ${{ matrix.java }}
