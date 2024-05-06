@@ -26,17 +26,17 @@ jobs:
         sudo apt install --install-recommends winehq-stable
         sudo mkdir -p /opt/wine/mono && sudo wget "https://dl.winehq.org/wine/wine-mono/8.0.0/wine-mono-8.0.0-x86.tar.xz" -P /opt/wine/mono && sudo tar -xf /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz -C /opt/wine/mono && sudo rm /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz
         wine --version
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: recursive
     - name: Java ${{ matrix.Java }} (${{ matrix.os }})
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: ${{ matrix.java }}
         distribution: 'temurin'
     - name: Cache Maven packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
          path: ~/.m2/repository
          key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -108,7 +108,7 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -119,20 +119,20 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             localhost:5000/${{ github.repository }}
           tags: |
             type=raw,value=${{ env.release_version }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
       - name: Build image (default)
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         continue-on-error: true
         with:
           context: ./opendj-packages/opendj-docker
@@ -156,7 +156,7 @@ jobs:
         ports:
           - 5000:5000
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -167,7 +167,7 @@ jobs:
           echo "release_version=$git_version_last" >> $GITHUB_ENV
       - name: Docker meta 
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: |
             localhost:5000/${{ github.repository }}
@@ -175,14 +175,14 @@ jobs:
             type=raw,value=alpine
             type=raw,value=${{ env.release_version }}-alpine
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
       - name: Build image
         continue-on-error: true
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: ./opendj-packages/opendj-docker
           file: ./opendj-packages/opendj-docker/Dockerfile-alpine
