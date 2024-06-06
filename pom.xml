@@ -270,6 +270,7 @@
         <module>opendj-embedded-server-examples</module>
         <module>opendj-openidm-account-change-notification-handler</module>
         <module>opendj-packages</module>
+        <module>opendj-embedded</module>
     </modules>
 
     <build>

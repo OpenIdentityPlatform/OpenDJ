@@ -1,0 +1,5 @@
+dn: dc=openidentityplatform,dc=org
+objectClass: top
+objectClass: domain
+dc: openidentityplatform
+
