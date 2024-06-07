@@ -16,7 +16,6 @@
 
 package org.openidentityplatform.opendj.embedded;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -28,6 +27,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
@@ -62,7 +62,7 @@ public class EmbeddedOpenDJTest {
         embeddedOpenDJ.importData(is);
 
         //export OpenDJ data
-        ByteOutputStream bos = new ByteOutputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         embeddedOpenDJ.getData("dc=openidentityplatform,dc=org", bos);
         String imported = bos.toString();
         assertTrue(imported.contains("dn: uid=jdoe,ou=people,dc=openidentityplatform,dc=org"));
