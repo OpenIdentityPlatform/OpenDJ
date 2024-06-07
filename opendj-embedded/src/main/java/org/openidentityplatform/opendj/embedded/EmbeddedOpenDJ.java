@@ -71,6 +71,8 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
 
     public EmbeddedOpenDJ(Config config) {
 
+        logger.info("Create embedded OpenDJ instance: {}", config);
+
         this.config = config;
         File tempDirectory = new File(System.getProperty("java.io.tmpdir"));
         File rootDirectory = new File(tempDirectory, "opendj");

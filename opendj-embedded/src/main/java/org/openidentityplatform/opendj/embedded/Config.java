@@ -23,63 +23,101 @@ import java.util.Set;
 public class Config {
 
     private final String CONFIG_PREFIX = Config.class.getPackage().getName();
-    private final int port = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".port", "1389"));
+    private int port = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".port", "1389"));
 
-    private final int adminPort = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".admin_port", "4444"));
+    private int adminPort = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".admin_port", "4444"));
 
-    private final String adminPassword = System.getProperty(CONFIG_PREFIX + ".password", "passw0rd");
+    private String adminPassword = System.getProperty(CONFIG_PREFIX + ".password", "passw0rd");
 
-    private final String baseDN = System.getProperty(CONFIG_PREFIX + ".root", "dc=openidentityplatform,dc=org");
+    private String baseDN = System.getProperty(CONFIG_PREFIX + ".root", "dc=openidentityplatform,dc=org");
 
-    private final String backendType = System.getProperty(CONFIG_PREFIX + ".backend", "je");
+    private String backendType = System.getProperty(CONFIG_PREFIX + ".backend", "je");
 
-    private final int jmxPort = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".jmx_port", "1689"));
+    private int jmxPort = Integer.parseInt(System.getProperty(CONFIG_PREFIX + ".jmx_port", "1689"));
 
-    private final String ldifSchema = System.getProperty(CONFIG_PREFIX + ".ldif.schema");
+    private String ldifSchema = System.getProperty(CONFIG_PREFIX + ".ldif.schema");
 
-    private final String file = System.getProperty(CONFIG_PREFIX + ".ldif.data", "/test.ldif");
+    private String file = System.getProperty(CONFIG_PREFIX + ".ldif.data", "/test.ldif");
 
-    private final Set<String> skipSet = new HashSet<>(Arrays.asList(System.getProperty(CONFIG_PREFIX + ".skip", ",ou=sample-skip-group,").toLowerCase().split(";")));
+    private Set<String> skipSet = new HashSet<>(Arrays.asList(System.getProperty(CONFIG_PREFIX + ".skip", ",ou=sample-skip-group,").toLowerCase().split(";")));
 
     public int getPort() {
         return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
     public int getAdminPort() {
         return adminPort;
     }
 
+    public void setAdminPort(int adminPort) {
+        this.adminPort = adminPort;
+    }
+
+
     public String getAdminPassword() {
         return adminPassword;
+    }
+
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
     }
 
     public String getBaseDN() {
         return baseDN;
     }
 
+    public void setBaseDN(String baseDN) {
+        this.baseDN = baseDN;
+    }
+
     public String getBackendType() {
         return backendType;
+    }
+
+    public void setBackendType(String backendType) {
+        this.backendType = backendType;
     }
 
     public int getJmxPort() {
         return jmxPort;
     }
 
+    public void setJmxPort(int jmxPort) {
+        this.jmxPort = jmxPort;
+    }
+
     public String getLdifSchema() {
         return ldifSchema;
+    }
+
+    public void setLdifSchema(String ldifSchema) {
+        this.ldifSchema = ldifSchema;
     }
 
     public String getFile() {
         return file;
     }
 
+    public void setFile(String file) {
+        this.file = file;
+    }
+
+
     public Set<String> getSkipSet() {
         return skipSet;
     }
 
+    public void setSkipSet(Set<String> skipSet) {
+        this.skipSet = skipSet;
+    }
+
     @Override
     public String toString() {
-        return "Config{" +
+        return "Config {" +
                 "port=" + port +
                 ", adminPort=" + adminPort +
                 ", adminPassword='" + adminPassword + '\'' +
