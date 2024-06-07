@@ -34,6 +34,7 @@ public class EmbeddedOpenDJTest {
             Thread.sleep(1000);
         }
         assertTrue(embeddedOpenDJ.isRunning());
+        Thread.sleep(1000);
 
         try(LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", 1389)) {
             Connection connection = factory.getConnection();
