@@ -16,30 +16,72 @@
 
 package org.openidentityplatform.opendj.embedded;
 
+import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.testng.annotations.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 public class EmbeddedOpenDJTest {
 
     @Test
     public void testOpenDJ() throws Exception {
-        EmbeddedOpenDJ embeddedOpenDJ = new EmbeddedOpenDJ();
-        Thread t = new Thread(embeddedOpenDJ);
-        t.start();
-        for(int i =  0; i < 10 && !embeddedOpenDJ.isRunning(); i++) {
-            Thread.sleep(1000);
-        }
-        assertTrue(embeddedOpenDJ.isRunning());
-        Thread.sleep(1000);
+        //set custom configuration
+        Config config = new Config();
 
-        try(LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", 1389)) {
-            Connection connection = factory.getConnection();
+        //load custom schema from resource
+        URI schemaUri = getClass().getClassLoader().getResource("opendj/99-users.ldif").toURI();
+        config.setLdifSchema(new File(schemaUri).toString());
+
+        //start embedded OpenDJ server
+        EmbeddedOpenDJ embeddedOpenDJ = new EmbeddedOpenDJ(config);
+        embeddedOpenDJ.run();
+        assertTrue(embeddedOpenDJ.isRunning());
+
+        //import ldif data from an input stream
+        URI resUri = getClass().getClassLoader().getResource("opendj/data.ldif").toURI();
+        byte[] bytes = Files.readAllBytes(Paths.get(resUri));
+        String newBytes = new String(bytes);
+        InputStream is = new ByteArrayInputStream(newBytes.getBytes(StandardCharsets.UTF_8));
+        embeddedOpenDJ.importData(is);
+
+        //export OpenDJ data
+        ByteOutputStream bos = new ByteOutputStream();
+        embeddedOpenDJ.getData("dc=openidentityplatform,dc=org", bos);
+        String imported = bos.toString();
+        assertTrue(imported.contains("dn: uid=jdoe,ou=people,dc=openidentityplatform,dc=org"));
+
+        //test search in the imported data
+        try(LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", 1389);
+            Connection connection = factory.getConnection()) {
             BindResult result = connection.bind("cn=Directory Manager", "passw0rd".toCharArray());
             assertTrue(result.isSuccess());
+
+            SearchRequest request = Requests.newSearchRequest("dc=openidentityplatform,dc=org",
+                    SearchScope.WHOLE_SUBTREE, "(uid=jdoe)", "uid");
+            ConnectionEntryReader reader = connection.search(request);
+            SearchResultEntry entry = reader.readEntry();
+            entry.getAllAttributes();
         }
+
+        //stop OpenDJ
+        embeddedOpenDJ.close();
+        assertFalse(embeddedOpenDJ.isRunning());
     }
 }

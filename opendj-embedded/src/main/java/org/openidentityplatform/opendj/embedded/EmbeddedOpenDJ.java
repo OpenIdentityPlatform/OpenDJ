@@ -16,7 +16,6 @@
 
 package org.openidentityplatform.opendj.embedded;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import org.apache.commons.io.FileUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.client.ManagementContext;
@@ -28,6 +27,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.EntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
+import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.forgerock.opendj.server.config.client.BackendCfgClient;
 import org.forgerock.opendj.server.embedded.ConfigParameters;
 import org.forgerock.opendj.server.embedded.ConnectionParameters;
@@ -36,26 +36,21 @@ import org.forgerock.opendj.server.embedded.EmbeddedDirectoryServerException;
 import org.forgerock.opendj.server.embedded.SetupParameters;
 import org.forgerock.opendj.server.embedded.UpgradeParameters;
 import org.opends.server.backends.MemoryBackend;
-import org.openidentityplatform.opendj.ldif.JSONEntryReader;
-import org.openidentityplatform.opendj.ldif.JSONEntryWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class EmbeddedOpenDJ implements Runnable, Closeable {
     private static final String JAR_SCHEMA_DIRECTORY = "opendj/config/schema/";
@@ -121,7 +116,6 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
-    static final ScheduledExecutorService cron = Executors.newScheduledThreadPool(1);
     @Override
     public void run() {
         try {
@@ -143,19 +137,6 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
             logger.info("Start OpenDJ ...");
             server.start();
 
-            String file = config.getFile();
-
-            importFile(file);
-
-            //set save
-            if (new File(file).exists())
-                cron.scheduleAtFixedRate(() -> {
-                    try {
-                        exportFile(baseDN.toString(), file);
-                    } catch (Throwable e) {
-                        logger.error("export LDIF", e);
-                    }
-                }, 30, 15, TimeUnit.SECONDS);
         } catch (Exception e) {
             logger.error("Error starting OpenDJ", e);
             throw new RuntimeException(e);
@@ -190,26 +171,19 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
         }
     }
 
-    public void importFile(String source) throws EmbeddedDirectoryServerException, IOException {
-        logger.info("start import ldif : {} ",source);
-        if(!new File(source).exists() && this.getClass().getResource(source) == null) {
-            logger.error("source file does not exist : {} ",source);
-            throw new RuntimeException("source file does not exist");
-        }
+    public void importData(InputStream inputStream) throws EmbeddedDirectoryServerException, IOException {
+        logger.info("start import ldif from stream");
+
         EntryReader reader;
         try {
-            Path path = Paths.get(source);
-            try {
-                reader = new JSONEntryReader(new File(source).exists()? Files.newInputStream(path) :this.getClass().getResourceAsStream(source));
-            }catch (JsonParseException e) {
-                reader = new LDIFEntryReader(new File(source).exists()? Files.newInputStream(path) :this.getClass().getResourceAsStream(source));
-            }
-        }catch (Exception e) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            reader = new LDIFEntryReader(bufferedReader);
+        } catch (Exception e) {
             logger.error("import ldif : {}", e, e);
             throw e;
         }
         org.forgerock.opendj.ldap.Entry  entryBefore;
-        final Connection connection =server.getInternalConnection();
+        final Connection connection = server.getInternalConnection();
         long recordCount = 0;
         while (reader.hasNext() && (entryBefore = reader.readEntry()) != null) {
             recordCount++;
@@ -221,58 +195,30 @@ public class EmbeddedOpenDJ implements Runnable, Closeable {
             }
         }
         if(recordCount == 0) {
-            logger.error("no records were imported, check file contents and permissions {}", source);
+            logger.error("no records were imported, check file contents and permissions");
             throw new RuntimeException("no records were imported");
         }
         reader.close();
         connection.close();
     }
 
-    public void exportFile(String baseDN,String destination) throws IOException, EmbeddedDirectoryServerException {
-        String tempFile= File.createTempFile("temp", Long.toString(System.nanoTime())).getPath();
-        //indexes
-        FileOutputStream fos=new FileOutputStream(tempFile, false);
-        JSONEntryWriter ldifWriter=new JSONEntryWriter(fos);
-        final Connection connection =server.getInternalConnection();
-        ConnectionEntryReader reader=connection.search("cn=Backends,cn=config", SearchScope.WHOLE_SUBTREE,"(objectClass=ds-cfg-backend-index)");
-        while(reader.hasNext())
+    public void getData(String baseDN, OutputStream out) throws IOException, EmbeddedDirectoryServerException {
+        LDIFEntryWriter ldifWriter = new LDIFEntryWriter(out);
+        final Connection connection = server.getInternalConnection();
+
+        ConnectionEntryReader reader = connection.search(baseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+        while(reader.hasNext()) {
             if (!reader.isReference()) {
-                SearchResultEntry se=reader.readEntry();
+                SearchResultEntry se = reader.readEntry();
                 if (!skipEntry(se)) {
                     ldifWriter.writeEntry(se);
-                    logger.trace("export {}",se.toString());
+                    logger.info("export {}", se.toString());
                 }
             }
-        reader.close();
-        //data
-        reader=connection.search(baseDN, SearchScope.WHOLE_SUBTREE,"(objectClass=*)");
-        while(reader.hasNext())
-            if (!reader.isReference()) {
-                SearchResultEntry se=reader.readEntry();
-                if (!skipEntry(se)) {
-                    ldifWriter.writeEntry(se);
-                    logger.trace("export {}",se.toString());
-                }
-            }
+        }
         reader.close();
         ldifWriter.close();
-        fos.close();
         connection.close();
-        if (!new File(destination).exists() || new File(tempFile).length() != new File(destination).length()) {
-            try {
-                Files.move(new File(tempFile).toPath(), new File(destination).toPath(), StandardCopyOption.ATOMIC_MOVE);
-            }catch (Exception e) {
-                logger.error("export ldif : {}",e.toString());
-                Files.move(new File(tempFile).toPath(), new File(destination).toPath(),StandardCopyOption.REPLACE_EXISTING);
-            }
-            if (logger.isTraceEnabled()) {
-                logger.trace("{}",new String(Files.readAllBytes(new File(destination).toPath())));
-            }
-            logger.info("export LDIF {}", destination);
-        } else {
-            Files.deleteIfExists(Paths.get(tempFile));
-            logger.debug("export LDIF {}: change not found",destination);
-        }
     }
 
     private boolean skipEntry(SearchResultEntry se) {

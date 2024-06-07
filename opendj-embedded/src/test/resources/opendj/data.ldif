@@ -1,0 +1,18 @@
+dn: dc=openidentityplatform,dc=org
+objectClass: top
+objectClass: domain
+dc: openidentityplatform
+
+dn: ou=people,dc=openidentityplatform,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: people
+
+dn: uid=jdoe,ou=people,dc=openidentityplatform,dc=org
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: John Doe
+sn: John
+uid: jdoe
