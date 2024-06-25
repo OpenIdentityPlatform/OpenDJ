@@ -34,6 +34,7 @@
         <product.locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</product.locales>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <localized.jars.classifier>i18n</localized.jars.classifier>
+        <commons.version>2.1.4</commons.version>
         <freemarker.version>2.3.31</freemarker.version>
         <grizzly-framework.version>2.3.35</grizzly-framework.version>
         <metrics-core.version>3.1.2</metrics-core.version>
@@ -145,7 +146,7 @@
         	<dependency>
         		<groupId>org.openidentityplatform.commons</groupId>
         		<artifactId>parent</artifactId>
-        		<version>2.1.4</version>
+        		<version>${commons.version}</version>
         		<type>pom</type>
         		<scope>import</scope>
         	</dependency>
@@ -562,11 +563,12 @@
                 <plugin>
                     <groupId>org.openidentityplatform.commons</groupId>
                     <artifactId>doc-maven-plugin</artifactId>
+                    <version>${commons.version}</version>
                     <configuration>
-                        <projectName>OpenDJ</projectName>
+                        <projectName>${product.name}</projectName>
                         <projectVersion>${project.version}</projectVersion>
                         <releaseVersion>${project.version}</releaseVersion>
-                        <googleAnalyticsId>UA-23412190-8</googleAnalyticsId>
+                        <googleAnalyticsId/>
                     </configuration>
                 </plugin>
 
