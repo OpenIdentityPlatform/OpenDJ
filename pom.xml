@@ -55,6 +55,7 @@
         <!--  ForgeRock build tools and Checkstyle versions (to avoid many checkstyle errors with ForgeRock Parent 2.0.10) -->
         <checkstylePluginVersion>2.9.1</checkstylePluginVersion>
         <checkstyleVersion>5.5</checkstyleVersion>
+        <ant.contrib.version>1.0b3</ant.contrib.version>
         <argLine>-Xmx512m</argLine>
     </properties>
 
