@@ -1,0 +1,701 @@
+/*
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
+ *
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
+ *
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions Copyright [year] [name of copyright owner]".
+ *
+ * Copyright 2008-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2014-2016 ForgeRock AS.
+ */
+package org.opends.guitools.uninstaller.ui;
+
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionWrapper;
+import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
+import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
+import org.opends.guitools.controlpanel.util.ConfigFromFile;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.Step;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.UserDataCertificateException;
+import org.opends.quicksetup.event.MinimumSizeComponentListener;
+import org.opends.quicksetup.ui.CertificateDialog;
+import org.opends.quicksetup.ui.UIFactory;
+import org.opends.quicksetup.ui.Utilities;
+import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.quicksetup.util.UIKeyStore;
+import org.opends.quicksetup.util.Utils;
+import org.opends.server.types.HostPort;
+
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+
+/**
+ * This class is a dialog that appears when the user must provide authentication
+ * to connect to the Directory Server in order to be able to display
+ * information.
+ */
+public class LoginDialog extends JDialog
+{
+  private static final long serialVersionUID = 9049409381101152000L;
+
+  private final JFrame parent;
+
+  private JLabel lHostName;
+  private JLabel lUid;
+  private JLabel lPwd;
+
+  private JTextField tfHostName;
+  private JTextField tfUid;
+  private JTextField tfPwd;
+
+  private JButton cancelButton;
+  private JButton okButton;
+
+  private boolean isCanceled = true;
+
+  private final ApplicationTrustManager trustManager;
+  private final int timeout;
+
+  private ConnectionWrapper connWrapper;
+  private HostPort usedHostPort;
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * Constructor of the LoginDialog.
+   * @param parent the parent frame for this dialog.
+   * @param trustManager the trust manager to be used for the secure
+   * connections.
+   * @param timeout the timeout to establish the connection in milliseconds.
+   * Use {@code 0} to express no timeout.
+   */
+  public LoginDialog(JFrame parent, ApplicationTrustManager trustManager,
+      int timeout)
+  {
+    super(parent);
+    setTitle(INFO_LOGIN_DIALOG_TITLE.get().toString());
+    this.parent = parent;
+    getContentPane().add(createPanel());
+    if (trustManager == null)
+    {
+      throw new IllegalArgumentException("The trustmanager cannot be null.");
+    }
+    this.trustManager = trustManager;
+    this.timeout = timeout;
+    /*
+     * TODO: find a way to calculate this dynamically.  This is done to avoid
+     * all the text in a single line.
+     */
+    setPreferredSize(new Dimension(500, 250));
+    addComponentListener(new MinimumSizeComponentListener(this, 500, 250));
+    getRootPane().setDefaultButton(okButton);
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the user clicked on cancel and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the user clicked on cancel and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isCanceled()
+  {
+    return isCanceled;
+  }
+
+  @Override
+  public void setVisible(boolean visible)
+  {
+    cancelButton.setEnabled(true);
+    okButton.setEnabled(true);
+    if (visible)
+    {
+      tfPwd.setText("");
+      tfPwd.requestFocusInWindow();
+      UIFactory.setTextStyle(lHostName,
+          UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+      UIFactory.setTextStyle(lUid,
+          UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+      UIFactory.setTextStyle(lPwd,
+          UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+      getRootPane().setDefaultButton(okButton);
+    }
+    super.setVisible(visible);
+  }
+
+  /**
+   * Returns the Host Name as is referenced in other servers.
+   * @return the Host Name as is referenced in other servers.
+   */
+  public String getHostName()
+  {
+    return tfHostName.getText();
+  }
+
+  /**
+   * Returns the Administrator UID provided by the user.
+   * @return the Administrator UID provided by the user.
+   */
+  public String getAdministratorUid()
+  {
+    return tfUid.getText();
+  }
+
+  /**
+   * Returns the Administrator password provided by the user.
+   * @return the Administrator password provided by the user.
+   */
+  public String getAdministratorPwd()
+  {
+    return tfPwd.getText();
+  }
+
+  /**
+   * Returns the connection we got with the provided authentication.
+   *
+   * @return the connection
+   */
+  public ConnectionWrapper getConnection()
+  {
+    return connWrapper;
+  }
+
+  /**
+   * Creates and returns the panel of the dialog.
+   * @return the panel of the dialog.
+   */
+  private JPanel createPanel()
+  {
+    JPanel p1 = new JPanel(new GridBagLayout());
+    p1.setBackground(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
+    p1.setBorder(UIFactory.DIALOG_PANEL_BORDER);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.anchor = GridBagConstraints.NORTHWEST;
+    gbc.insets = UIFactory.getCurrentStepPanelInsets();
+    p1.add(UIFactory.makeJLabel(UIFactory.IconType.INFORMATION_LARGE, null,
+        UIFactory.TextStyle.NO_STYLE), gbc);
+    gbc.weightx = 1.0;
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.insets.left = 0;
+    LocalizableMessage msg = INFO_UNINSTALL_LOGIN_DIALOG_MSG.get();
+
+    JTextComponent textPane =
+      UIFactory.makeHtmlPane(msg, UIFactory.INSTRUCTIONS_FONT);
+    textPane.setOpaque(false);
+    textPane.setEditable(false);
+    p1.add(textPane, gbc);
+
+    JPanel p2 = new JPanel(new GridBagLayout());
+    p2.setOpaque(false);
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    lHostName = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+        INFO_UNINSTALL_LOGIN_HOST_NAME_LABEL.get(),
+        UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+    p2.add(lHostName, gbc);
+    gbc.weightx = 1.0;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    tfHostName = UIFactory.makeJTextField(
+        LocalizableMessage.raw(UserData.getDefaultHostName()),
+        INFO_UNINSTALL_LOGIN_HOST_NAME_TOOLTIP.get(),
+        UIFactory.HOST_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
+    p2.add(tfHostName, gbc);
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    gbc.insets.left = 0;
+    gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
+    gbc.anchor = GridBagConstraints.WEST;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    lUid = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+        INFO_GLOBAL_ADMINISTRATOR_UID_LABEL.get(),
+        UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+    p2.add(lUid, gbc);
+    gbc.weightx = 1.0;
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    tfUid = UIFactory.makeJTextField(LocalizableMessage.raw(Constants.GLOBAL_ADMIN_UID),
+        INFO_UNINSTALL_LOGIN_UID_TOOLTIP.get(),
+        UIFactory.DN_FIELD_SIZE, UIFactory.TextStyle.TEXTFIELD);
+    p2.add(tfUid, gbc);
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    gbc.insets.left = 0;
+    lPwd = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+        INFO_GLOBAL_ADMINISTRATOR_PWD_LABEL.get(),
+        UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+    p2.add(lPwd, gbc);
+    gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    JPanel p3 = new JPanel(new GridBagLayout());
+    p3.setOpaque(false);
+    tfPwd = UIFactory.makeJPasswordField(null,
+        INFO_UNINSTALL_LOGIN_PWD_TOOLTIP.get(),
+        UIFactory.PASSWORD_FIELD_SIZE, UIFactory.TextStyle.PASSWORD_FIELD);
+    p2.add(p3, gbc);
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    p3.add(tfPwd, gbc);
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 1.0;
+    p3.add(Box.createHorizontalGlue(), gbc);
+
+
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.weightx = 0.0;
+    gbc.insets.top = 0;
+    p1.add(Box.createHorizontalGlue(), gbc);
+    gbc.weightx = 1.0;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.insets.right = UIFactory.getCurrentStepPanelInsets().right;
+    p1.add(p2, gbc);
+    gbc.weighty = 1.0;
+    gbc.fill = GridBagConstraints.VERTICAL;
+    gbc.insets.bottom = UIFactory.getCurrentStepPanelInsets().bottom;
+    p1.add(Box.createVerticalGlue(), gbc);
+
+
+    JPanel buttonPanel = new JPanel(new GridBagLayout());
+    buttonPanel.setOpaque(false);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.gridwidth = 3;
+    buttonPanel.add(Box.createHorizontalGlue(), gbc);
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0.0;
+    okButton =
+      UIFactory.makeJButton(INFO_OK_BUTTON_LABEL.get(),
+          INFO_UNINSTALL_LOGIN_OK_BUTTON_TOOLTIP.get());
+    buttonPanel.add(okButton, gbc);
+    okButton.addActionListener(new ActionListener()
+    {
+      @Override
+      public void actionPerformed(ActionEvent ev)
+      {
+        okClicked();
+      }
+    });
+
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
+    cancelButton =
+      UIFactory.makeJButton(INFO_CANCEL_BUTTON_LABEL.get(),
+          INFO_UNINSTALL_LOGIN_CANCEL_BUTTON_TOOLTIP.get());
+    buttonPanel.add(cancelButton, gbc);
+    cancelButton.addActionListener(new ActionListener()
+    {
+      @Override
+      public void actionPerformed(ActionEvent ev)
+      {
+        cancelClicked();
+      }
+    });
+
+    JPanel p = new JPanel(new GridBagLayout());
+    p.setBackground(UIFactory.DEFAULT_BACKGROUND);
+    gbc.insets = UIFactory.getEmptyInsets();
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.gridwidth = GridBagConstraints.REMAINDER;
+    gbc.weightx = 1.0;
+    gbc.weighty = 1.0;
+    p.add(p1, gbc);
+    gbc.weighty = 0.0;
+    gbc.insets = UIFactory.getButtonsPanelInsets();
+    p.add(buttonPanel, gbc);
+
+    return p;
+  }
+
+  /** Method called when user clicks on cancel. */
+  private void cancelClicked()
+  {
+    isCanceled = true;
+    dispose();
+  }
+
+  /** Method called when user clicks on OK. */
+  private void okClicked()
+  {
+    BackgroundTask<Boolean> worker = new BackgroundTask<Boolean>()
+    {
+      @Override
+      public Boolean processBackgroundTask() throws LdapException, ApplicationException
+      {
+        connWrapper = null;
+        try
+        {
+          ControlPanelInfo info = ControlPanelInfo.getInstance();
+          info.setTrustManager(getTrustManager());
+          info.setConnectTimeout(timeout);
+          info.regenerateDescriptor();
+          ConfigFromFile conf = new ConfigFromFile();
+          conf.readConfiguration();
+          DN dn = ADSContext.getAdministratorDN(tfUid.getText());
+          String pwd = tfPwd.getText();
+          info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+          usedHostPort = info.getAdminConnectorHostPort();
+          if (usedHostPort == null)
+          {
+            throw new ApplicationException(ReturnCode.APPLICATION_ERROR,
+                ERR_COULD_NOT_FIND_VALID_LDAPURL.get(), null);
+          }
+          connWrapper = org.opends.guitools.controlpanel.util.Utilities.getAdminConnection(info, dn, pwd);
+          return true; // server is running
+        }
+        catch (LdapException e)
+        {
+          if (isServerRunning())
+          {
+            throw e;
+          }
+          return false;
+        } catch (ApplicationException | IllegalStateException e)
+        {
+          throw e;
+        } catch (Throwable t)
+        {
+          throw new IllegalStateException("Unexpected throwable.", t);
+        }
+      }
+
+      @Override
+      public void backgroundTaskCompleted(Boolean returnValue,
+          Throwable throwable)
+      {
+        if (throwable != null)
+        {
+          logger.info(LocalizableMessage.raw("Error connecting: " + throwable, throwable));
+          if (isCertificateException(throwable))
+          {
+            ApplicationTrustManager.Cause cause =
+              trustManager.getLastRefusedCause();
+
+            logger.info(LocalizableMessage.raw("Certificate exception cause: "+cause));
+            UserDataCertificateException.Type excType = null;
+            if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+            {
+              excType = UserDataCertificateException.Type.NOT_TRUSTED;
+            }
+            else if (cause ==
+              ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+            {
+              excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+            }
+            else
+            {
+              LocalizableMessage msg = getThrowableMsg(
+                  INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
+              displayError(msg, INFO_ERROR_TITLE.get());
+            }
+
+            if (excType != null)
+            {
+              String h = usedHostPort.getHost();
+              int p = usedHostPort.getPort();
+              UserDataCertificateException udce =
+              new UserDataCertificateException(Step.REPLICATION_OPTIONS,
+                  INFO_CERTIFICATE_EXCEPTION.get(h, p),
+                  throwable, h, p,
+                  getTrustManager().getLastRefusedChain(),
+                  getTrustManager().getLastRefusedAuthType(), excType);
+
+              handleCertificateException(udce);
+            }
+          }
+          else if (throwable instanceof LdapException)
+          {
+            boolean uidInvalid = false;
+            boolean pwdInvalid = false;
+
+            String uid = tfUid.getText();
+            ArrayList<LocalizableMessage> possibleCauses = new ArrayList<>();
+            if ("".equals(uid.trim()))
+            {
+              uidInvalid = true;
+              possibleCauses.add(INFO_EMPTY_ADMINISTRATOR_UID.get());
+            }
+
+            if ("".equals(tfPwd.getText()))
+            {
+              pwdInvalid = true;
+              possibleCauses.add(INFO_EMPTY_PWD.get());
+            }
+            if (uidInvalid)
+            {
+              UIFactory.setTextStyle(lUid,
+                UIFactory.TextStyle.PRIMARY_FIELD_INVALID);
+            }
+            else
+            {
+              UIFactory.setTextStyle(lUid,
+                  UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+              pwdInvalid = true;
+            }
+            if (pwdInvalid)
+            {
+              UIFactory.setTextStyle(lPwd,
+                UIFactory.TextStyle.PRIMARY_FIELD_INVALID);
+            }
+            else
+            {
+              UIFactory.setTextStyle(lPwd,
+                  UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+            }
+            if (possibleCauses.size() > 0)
+            {
+              // LocalizableMessage with causes
+              displayError(
+                  ERR_CANNOT_CONNECT_TO_LOGIN_WITH_CAUSE.get(
+                          Utils.getMessageFromCollection(possibleCauses, "\n")),
+                  INFO_ERROR_TITLE.get());
+            }
+            else
+            {
+              // Generic message
+              displayError(
+                  Utils.getMessageForException((LdapException) throwable),
+                  INFO_ERROR_TITLE.get());
+            }
+          }
+          else if (throwable instanceof ApplicationException)
+          {
+            displayError(((ApplicationException)throwable).getMessageObject(),
+                    INFO_ERROR_TITLE.get());
+          }
+          else
+          {
+            // This is a bug
+            logger.error(LocalizableMessage.raw("Unexpected throwable: "+throwable,
+                throwable));
+            displayError(
+                getThrowableMsg(INFO_BUG_MSG.get(), throwable),
+                INFO_ERROR_TITLE.get());
+          }
+          cancelButton.setEnabled(true);
+          okButton.setEnabled(true);
+        } else
+        {
+          if (Boolean.FALSE.equals(returnValue))
+          {
+            displayInformationMessage(
+                INFO_LOGIN_DIALOG_SERVER_NOT_RUNNING_MSG.get(),
+                INFO_LOGIN_DIALOG_SERVER_NOT_RUNNING_TITLE.get());
+          }
+          else
+          {
+            String hostName = tfHostName.getText();
+            if (hostName == null || hostName.trim().length() == 0)
+            {
+              displayError(INFO_EMPTY_REMOTE_HOST.get(),
+                  INFO_ERROR_TITLE.get());
+              UIFactory.setTextStyle(lHostName,
+                  UIFactory.TextStyle.PRIMARY_FIELD_INVALID);
+            }
+            else
+            {
+              UIFactory.setTextStyle(lHostName,
+                UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+            }
+          }
+          UIFactory.setTextStyle(lUid,
+              UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+          UIFactory.setTextStyle(lPwd,
+              UIFactory.TextStyle.PRIMARY_FIELD_VALID);
+
+          isCanceled = false;
+          cancelButton.setEnabled(true);
+          okButton.setEnabled(true);
+          dispose();
+        }
+      }
+    };
+    cancelButton.setEnabled(false);
+    okButton.setEnabled(false);
+    worker.startBackgroundTask();
+  }
+
+  /**
+   * Displays an error message dialog.
+   *
+   * @param msg
+   *          the error message.
+   * @param title
+   *          the title for the dialog.
+   */
+  private void displayError(LocalizableMessage msg, LocalizableMessage title)
+  {
+    Utilities.displayError(parent, msg, title);
+    toFront();
+
+  }
+
+  /**
+   * Displays an information message dialog.
+   *
+   * @param msg
+   *          the information message.
+   * @param title
+   *          the title for the dialog.
+   */
+  private void displayInformationMessage(LocalizableMessage msg, LocalizableMessage title)
+  {
+    Utilities.displayInformationMessage(parent, msg, title);
+    toFront();
+  }
+
+  /**
+   * Returns whether the server is running or not.
+   * @return <CODE>true</CODE> if the server is running and <CODE>false</CODE>
+   * otherwise.
+   */
+  private boolean isServerRunning()
+  {
+    return Installation.getLocal().getStatus().isServerRunning();
+  }
+
+  /**
+   * Returns the trust manager that can be used to establish secure connections.
+   * @return the trust manager that can be used to establish secure connections.
+   */
+  private ApplicationTrustManager getTrustManager()
+  {
+    return trustManager;
+  }
+
+  /**
+   * Displays a dialog asking the user to accept a certificate if the user
+   * accepts it, we update the trust manager and simulate a click on "OK" to
+   * re-check the authentication.
+   * This method assumes that we are being called from the event thread.
+   */
+  private void handleCertificateException(UserDataCertificateException ce)
+  {
+    CertificateDialog dlg = new CertificateDialog(parent, ce);
+    dlg.pack();
+    dlg.setVisible(true);
+    if (dlg.getUserAnswer() != CertificateDialog.ReturnType.NOT_ACCEPTED)
+    {
+      X509Certificate[] chain = ce.getChain();
+      String authType = ce.getAuthType();
+      String host = ce.getHost();
+
+      if (chain != null && authType != null && host != null)
+      {
+        logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
+        getTrustManager().acceptCertificate(chain, authType, host);
+        /* Simulate a click on the OK by calling in the okClicked method. */
+        SwingUtilities.invokeLater(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            okClicked();
+          }
+        });
+      }
+      else
+      {
+        if (chain == null)
+        {
+          logger.warn(LocalizableMessage.raw(
+              "The chain is null for the UserDataCertificateException"));
+        }
+        if (authType == null)
+        {
+          logger.warn(LocalizableMessage.raw(
+              "The auth type is null for the UserDataCertificateException"));
+        }
+        if (host == null)
+        {
+          logger.warn(LocalizableMessage.raw(
+              "The host is null for the UserDataCertificateException"));
+        }
+      }
+    }
+    if (dlg.getUserAnswer() ==
+      CertificateDialog.ReturnType.ACCEPTED_PERMANENTLY)
+    {
+      X509Certificate[] chain = ce.getChain();
+      if (chain != null)
+      {
+        try
+        {
+          UIKeyStore.acceptCertificate(chain);
+        }
+        catch (Throwable t)
+        {
+          logger.warn(LocalizableMessage.raw("Error accepting certificate: "+t, t));
+        }
+      }
+    }
+  }
+
+  /**
+   * Method written for testing purposes.
+   * @param args the arguments to be passed to the test program.
+   */
+  public static void main(String[] args)
+  {
+    try
+    {
+      LoginDialog dlg = new LoginDialog(
+          org.opends.guitools.controlpanel.util.Utilities.createFrame(),
+          new ApplicationTrustManager(null),
+          5000);
+      dlg.pack();
+      dlg.setVisible(true);
+    } catch (Exception ex)
+    {
+      ex.printStackTrace();
+    }
+  }
+}

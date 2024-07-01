@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2015 ForgeRock AS.
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+  <properties>
+    <title>About OpenDJ LDAP Toolkit</title>
+    <author email="opendj-dev@forgerock.org">ForgeRock AS</author>
+  </properties>
+  <body>
+    <section name="About OpenDJ LDAP Toolkit">
+      <p>The OpenDJ LDAP Toolkit includes the following command-line tools.</p>
+      <dl>
+       <dt>authrate</dt><dd>measure bind throughput and response time</dd>
+       <dt>ldapcompare</dt><dd>perform LDAP compare operations</dd>
+       <dt>ldapmodify</dt><dd>perform LDAP modify, add, delete, mod DN operations</dd>
+       <dt>ldappasswordmodify</dt><dd>perform LDAP password modifications</dd>
+       <dt>ldapsearch</dt><dd>perform LDAP search operations</dd>
+       <dt>ldifmodify</dt><dd>perform LDAP modify, add, delete, mod DN operations against entries contained in an LDIF file</dd>
+       <dt>ldifsearch</dt><dd>perform search operations against entries contained in an LDIF file</dd>
+       <dt>ldifdiff</dt><dd>compare two LDIF files and report the differences in LDIF format</dd>
+       <dt>makeldif</dt><dd>generate LDIF content from and LDIF template</dd>
+       <dt>modrate</dt><dd>measure modification throughput and response time</dd>
+       <dt>searchrate</dt><dd>measure search throughput and response time</dd>
+      </dl>
+    </section>
+    <section name="Get ${project.name}">
+      <p>
+        You can get ${project.name} using any of the following methods:
+      </p>
+      <subsection name="Download">
+        <p>
+          Pre-built binaries can be downloaded directly from the ForgeRock Maven
+          repository:
+        </p>
+        <ul>
+          <li><a href="${mavenRepoReleases}/org/forgerock/opendj/${project.artifactId}">Stable releases</a></li>
+          <li><a href="${mavenRepoSnapshots}/org/forgerock/opendj/${project.artifactId}/${project.version}">Latest development snapshot</a></li>
+        </ul>
+      </subsection>
+      <subsection name="Build">
+        <p>
+          For the DIY enthusiasts you can build it yourself by checking out the
+          latest code using <a href="source-repository.html">Subversion</a> and
+          building it with Maven 3.
+        </p>
+      </subsection>
+    </section>
+  </body>
+</document>

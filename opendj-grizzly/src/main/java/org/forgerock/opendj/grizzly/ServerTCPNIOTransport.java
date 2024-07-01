@@ -1,0 +1,117 @@
+/*
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
+ *
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
+ *
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions Copyright [year] [name of copyright owner]".
+ *
+ * Copyright 2010 Sun Microsystems, Inc.
+ * Portions copyright 2011-2016 ForgeRock AS.
+ */
+package org.forgerock.opendj.grizzly;
+
+import java.io.IOException;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.glassfish.grizzly.memory.PooledMemoryManager;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
+
+import com.forgerock.opendj.util.ReferenceCountedObject;
+
+/**
+ * The default {@link TCPNIOTransport} which all {@code LDAPConnectionFactory}s
+ * and {@code LDAPListener}s will use unless otherwise specified in their
+ * options.
+ */
+final class ServerTCPNIOTransport extends ReferenceCountedObject<TCPNIOTransport> {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+    static final ServerTCPNIOTransport SERVER_TRANSPORT = new ServerTCPNIOTransport();
+
+    private ServerTCPNIOTransport() {
+        // Prevent instantiation.
+    }
+
+    @Override
+    protected void destroyInstance(final TCPNIOTransport instance) {
+        try {
+            instance.shutdownNow();
+        } catch (final IOException e) {
+            // TODO: I18N
+            logger.warn(LocalizableMessage.raw("An error occurred while shutting down the Grizzly transport", e));
+        }
+    }
+
+    @Override
+    protected TCPNIOTransport newInstance() {
+        final TCPNIOTransportBuilder builder = TCPNIOTransportBuilder.newInstance();
+
+        builder.setIOStrategy(SameThreadIOStrategy.getInstance());
+
+        // Calculate thread counts.
+        final int cpus = Runtime.getRuntime().availableProcessors();
+
+        // Calculate the number of selector threads.
+        final String selectorsStr = System.getProperty("org.forgerock.opendj.transport.selectors");
+        final int selectorThreadCount;
+
+        if (selectorsStr != null) {
+            selectorThreadCount = Integer.parseInt(selectorsStr);
+        } else {
+            selectorThreadCount = Math.max(5, (cpus / 2) - 1);
+        }
+
+        builder.setSelectorThreadPoolConfig(
+                ThreadPoolConfig.defaultConfig()
+                                .setCorePoolSize(selectorThreadCount)
+                                .setMaxPoolSize(selectorThreadCount)
+                                .setPoolName("OpenDJ LDAP SDK Grizzly selector thread"));
+
+        // Parse IO related options.
+        final String lingerStr = System.getProperty("org.forgerock.opendj.transport.linger");
+        if (lingerStr != null) {
+            // Disabled by default.
+            builder.setLinger(Integer.parseInt(lingerStr));
+        }
+
+        final String tcpNoDelayStr =
+                System.getProperty("org.forgerock.opendj.transport.tcpNoDelay");
+        if (tcpNoDelayStr != null) {
+            // Enabled by default.
+            builder.setTcpNoDelay(Boolean.parseBoolean(tcpNoDelayStr));
+        }
+
+        final String reuseAddressStr =
+                System.getProperty("org.forgerock.opendj.transport.reuseAddress");
+        if (reuseAddressStr != null) {
+            // Enabled by default.
+            builder.setReuseAddress(Boolean.parseBoolean(reuseAddressStr));
+        }
+        // Force usage of PooledMemoryManager which allows to use grizzly's buffers across threads.
+        builder.setMemoryManager(new PooledMemoryManager(true));
+
+        final TCPNIOTransport transport = builder.build();
+
+        // FIXME: raise bug in Grizzly. We should not need to do this, but
+        // failure to do so causes many deadlocks.
+        transport.setSelectorRunnersCount(selectorThreadCount);
+        try {
+            transport.start();
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return transport;
+    }
+
+}

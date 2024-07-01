@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2007-2008 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="anonymous-sasl-mechanism-handler"
+  plural-name="anonymous-sasl-mechanism-handlers"
+  package="org.forgerock.opendj.server.config" extends="sasl-mechanism-handler"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    The ANONYMOUS SASL mechanism provides the ability for clients to 
+    perform an anonymous bind using a SASL mechanism. 
+  </adm:synopsis>
+  <adm:description>
+    The only real 
+    benefit that this provides over a normal anonymous bind (that is, 
+    using simple authentication with no password) is that the ANONYMOUS 
+    SASL mechanism also allows the client to include a trace string in 
+    the request. This trace string can help identify the application that 
+    performed the bind (although since there is no authentication, 
+    there is no assurance that some other client did not spoof that 
+    trace string).
+  </adm:description>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-anonymous-sasl-mechanism-handler</ldap:name>
+      <ldap:superior>ds-cfg-sasl-mechanism-handler</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.AnonymousSASLMechanismHandler
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+</adm:managed-object>

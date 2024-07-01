@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<adm:package name="opendj"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>Microsoft Active Directory plugin.</adm:synopsis>
+</adm:package>

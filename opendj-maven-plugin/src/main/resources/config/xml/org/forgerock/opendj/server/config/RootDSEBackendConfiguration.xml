@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2007-2008 Sun Microsystems, Inc.
+  Portions Copyright 2011-2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="root-dse-backend"
+  plural-name="root-dse-backends" package="org.forgerock.opendj.server.config"
+  advanced="true" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    contains the directory server root DSE.
+  </adm:synopsis>
+  <adm:description>
+    This is a special meta-backend that dynamically generates the
+    root DSE entry for base-level searches and simply redirects to
+    other backends for operations in other scopes.
+  </adm:description>
+  <adm:tag name="core-server" />
+  <adm:tag name="database" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-root-dse-backend</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="show-all-attributes" mandatory="true">
+    <adm:synopsis>
+      Indicates whether all attributes in the root DSE are to be treated
+      like user attributes (and therefore returned to clients by
+      default) regardless of the directory server schema configuration.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-show-all-attributes</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="show-subordinate-naming-contexts" mandatory="true">
+    <adm:synopsis>
+      Indicates whether subordinate naming contexts should be visible in 
+      the namingContexts attribute of the RootDSE. 
+      By default only top level naming contexts are visible
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          false
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-show-subordinate-naming-contexts</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

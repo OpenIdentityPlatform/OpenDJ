@@ -1,0 +1,264 @@
+<?xml version="1.0"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+ -->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
+                              http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>man-pages</id>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <!--
+    Using <files> instead of <fileset> to avoid getting the full path.
+    The .jar to has this file at /man-pages/man-addrate.xml for example.
+  -->
+  <files>
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-addrate.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-authrate.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-base64.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapcompare.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapdelete.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapmodify.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldappasswordmodify.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldapsearch.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifdiff.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifmodify.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-ldifsearch.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-makeldif.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-modrate.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-searchrate.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/addrate-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/attributes.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/authrate-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/base64-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/description-makeldif.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/description-psearch-info.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/description-rate-tools.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/description-resource-path.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-1.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-5-6-other.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-80-89.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-89.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-gt0.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/exit-codes-0-ldap-89.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/files.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/filters.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldapcompare-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldapcompare-exit-codes.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldapdelete-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldapmodify-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldappasswordmodify-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldapsearch-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldifdiff-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldifdiff-exit-codes.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldifmodify-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/ldifsearch-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/makeldif-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/makeldif-see-also.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/man-makeldif-template.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/modrate-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/searchrate-examples.xml</source>
+    </file>
+
+    <file>
+      <outputDirectory>man-pages</outputDirectory>
+      <source>${project.build.directory}/docbkx-sources/man-pages/variablelist-ldap-controls.xml</source>
+    </file>
+  </files>
+
+  <formats>
+    <format>jar</format>
+  </formats>
+</assembly>

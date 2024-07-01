@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2014-2016 ForgeRock AS.
+ -->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
+                      http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>opendj-server-example-plugin</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <fileSets>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <outputDirectory></outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>README.example.plugin</include>
+        <include>LICENSE</include>
+        <include>NOTICE</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.parent.parent.basedir}/legal-notices</directory>
+      <outputDirectory>legal-notices</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0644</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>${project.parent.parent.basedir}</directory>
+      <outputDirectory></outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>*.png</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/assembly/config</directory>
+      <outputDirectory>config</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0755</fileMode>
+      <lineEnding>unix</lineEnding>
+    </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>lib/extensions</outputDirectory>
+      <includes>
+        <include>*.jar</include>
+      </includes>
+      <excludes>
+        <exclude>*-sources.jar</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib/extensions</outputDirectory>
+      <includes>
+        <include>org.apache.commons:commons-lang3</include>
+      </includes>
+      <useStrictFiltering>true</useStrictFiltering>
+      <useProjectArtifact>true</useProjectArtifact>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
+    </dependencySet>
+  </dependencySets>
+</assembly>

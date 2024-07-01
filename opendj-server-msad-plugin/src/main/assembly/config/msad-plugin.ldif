@@ -1,0 +1,10 @@
+dn: cn=MSAD Plugin,cn=Plugins,cn=config
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-msad-plugin
+cn: MSAD Plugin
+ds-cfg-enabled: true
+ds-cfg-java-class: opendj.MsadPlugin
+ds-cfg-plugin-type: preoperationbind
+ds-cfg-plugin-type: preoperationadd
+ds-cfg-plugin-type: preoperationmodify

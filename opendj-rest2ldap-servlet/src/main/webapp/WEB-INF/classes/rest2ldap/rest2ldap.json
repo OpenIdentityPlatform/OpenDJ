@@ -1,0 +1,8 @@
+{
+    // Options controlling how Rest2Ldap interacts with LDAP servers.
+    "useMvcc": true,
+    "mvccAttribute": "etag",
+    "readOnUpdatePolicy": "controls",
+    "useSubtreeDelete": true,
+    "usePermissiveModify": true
+}

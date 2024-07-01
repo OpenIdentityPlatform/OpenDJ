@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2014-2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="core-schema" plural-name="core-schemas"
+  extends="schema-provider"
+  package="org.forgerock.opendj.server.config"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-name />
+    define the core schema elements to load.
+  </adm:synopsis>
+  <adm:description>
+    Core schema provider configuration.
+  </adm:description>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-core-schema</ldap:name>
+      <ldap:superior>ds-cfg-schema-provider</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.schema.CoreSchemaProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="disabled-matching-rule" multi-valued="true">
+   <adm:synopsis>
+     The set of disabled matching rules.
+   </adm:synopsis>
+   <adm:description>
+      Matching rules must be specified using the syntax: OID,
+      or use the default value 'NONE' to specify no value.
+   </adm:description>
+   <adm:default-behavior>
+     <adm:defined>
+       <adm:value>NONE</adm:value>
+     </adm:defined>
+   </adm:default-behavior>
+   <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+          <adm:regex>^([0-9.]+\\d|NONE)$</adm:regex>
+          <adm:usage>OID</adm:usage>
+          <adm:synopsis>
+            The OID of the disabled matching rule.
+          </adm:synopsis>
+        </adm:pattern>
+       </adm:string>
+   </adm:syntax>
+   <adm:profile name="ldap">
+     <ldap:attribute>
+       <ldap:name>ds-cfg-disabled-matching-rule</ldap:name>
+     </ldap:attribute>
+   </adm:profile>
+ </adm:property>
+ <adm:property name="disabled-syntax" multi-valued="true">
+   <adm:synopsis>
+     The set of disabled syntaxes.
+   </adm:synopsis>
+   <adm:description>
+      Syntaxes must be specified using the syntax: OID,
+      or use the default value 'NONE' to specify no value.
+   </adm:description>
+   <adm:default-behavior>
+      <adm:defined>
+        <adm:value>NONE</adm:value>
+      </adm:defined>
+   </adm:default-behavior>
+   <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+          <adm:regex>^([0-9.]+\\d|NONE)$</adm:regex>
+          <adm:usage>OID</adm:usage>
+          <adm:synopsis>
+            The OID of the disabled syntax, or NONE
+          </adm:synopsis>
+        </adm:pattern>
+       </adm:string>
+   </adm:syntax>
+   <adm:profile name="ldap">
+     <ldap:attribute>
+       <ldap:name>ds-cfg-disabled-syntax</ldap:name>
+     </ldap:attribute>
+   </adm:profile>
+ </adm:property>
+ <adm:property name="strip-syntax-min-upper-bound-attribute-type-description" advanced="true">
+    <adm:synopsis>
+      Indicates whether the suggested minimum upper bound appended to an
+      attribute's syntax OID in it's schema definition Attribute Type
+      Description is stripped off.
+    </adm:synopsis>
+    <adm:description>
+      When retrieving the server's schema, some APIs (JNDI) fail in
+      their syntax lookup methods, because they do not parse this value
+      correctly. This configuration option allows the server to be
+      configured to provide schema definitions these APIs can parse
+      correctly.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strip-syntax-min-upper-bound-attribute-type-description</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="strict-format-country-string" advanced="true">
+    <adm:synopsis>
+      Indicates whether country code values are required to
+      strictly comply with the standard definition for this syntax.
+    </adm:synopsis>
+    <adm:description>
+      When set to false, country codes will not be validated and, as
+      a result any string containing 2 characters will be acceptable.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strict-format-country-string</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+    <adm:property name="allow-zero-length-values-directory-string" advanced="true">
+    <adm:synopsis>
+      Indicates whether zero-length (that is, an empty string) values are
+      allowed for directory string.
+    </adm:synopsis>
+    <adm:description>
+      This is technically not allowed by the revised LDAPv3
+      specification, but some environments may require it for backward
+      compatibility with servers that do allow it.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-allow-zero-length-values-directory-string</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+    <adm:property name="strict-format-jpeg-photos" advanced="true">
+    <adm:synopsis>
+      Indicates whether to require JPEG values to strictly
+      comply with the standard definition for this syntax.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strict-format-jpeg-photos</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+    <adm:property name="strict-format-certificates" advanced="true">
+    <adm:synopsis>
+      Indicates whether X.509 Certificate values are required to
+      strictly comply with the standard definition for this syntax.
+    </adm:synopsis>
+    <adm:description>
+      When set to false, certificates will not be validated and, as a result
+      any sequence of bytes will be acceptable.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strict-format-certificates</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+    <adm:property name="strict-format-telephone-numbers" advanced="true">
+    <adm:synopsis>
+      Indicates whether to require telephone number values to strictly
+      comply with the standard definition for this syntax.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-strict-format-telephone-numbers</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="allow-attribute-types-with-no-sup-or-syntax" advanced="true">
+    <adm:synopsis>
+      Indicates whether the schema should allow attribute type definitions
+      that do not declare a superior attribute type or syntax
+    </adm:synopsis>
+    <adm:description>
+      When set to true, invalid attribute type definitions will
+      use the default syntax.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-allow-attribute-types-with-no-sup-or-syntax</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="json-validation-policy" advanced="true">
+    <adm:synopsis>
+      Specifies the policy that will be used when validating JSON syntax values.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>strict</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="disabled">
+          <adm:synopsis>
+            JSON syntax values will not be validated and, as a result any
+            sequence of bytes will be acceptable.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="lenient">
+          <adm:synopsis>
+            JSON syntax values must comply with RFC 7159 except: 1) comments are
+            allowed, 2) single quotes may be used instead of double quotes,
+            and 3) unquoted control characters are allowed in strings.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="strict">
+          <adm:synopsis>
+            JSON syntax values must strictly conform to RFC 7159.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-json-validation-policy</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

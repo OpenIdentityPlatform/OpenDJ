@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="msad-plugin" plural-name="msad-plugins"
+  package="opendj" extends="plugin"
+  parent-package="org.forgerock.opendj.server.config"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>Microsoft Active Directory plugin.</adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-msad-plugin</ldap:name>
+      <ldap:superior>ds-cfg-plugin</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>opendj.MsadPlugin</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+</adm:managed-object>

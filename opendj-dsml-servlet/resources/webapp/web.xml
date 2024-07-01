@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
+
+  <context-param>
+    <description>The hostname or IP address of the OpenDJ server; e.g., localhost</description>
+    <param-name>ldap.host</param-name>
+    <param-value>localhost</param-value>
+  </context-param>
+
+  <context-param>
+    <description>The port number of the OpenDJ server; e.g., 389</description>
+    <param-name>ldap.port</param-name>
+    <param-value>389</param-value>
+  </context-param>
+
+<!-- Uncomment and fill if you want a default authentication between the DSML
+     gateway and the LDAP server when DSML request have no Basic HTTP authentication
+  <context-param>
+    <description>The user DN for authentication (optional)</description>
+    <param-name>ldap.userdn</param-name>
+    <param-value>cn=Directory Manager</param-value>
+  </context-param>
+
+  <context-param>
+    <description>The password for authentication (if ldap.userdn is set)</description>
+    <param-name>ldap.userpassword</param-name>
+    <param-value>secret12</param-value>
+  </context-param>
+-->
+
+  <context-param>
+    <description>A flag to specify if the HTTP Authorization header field's
+    Basic credentials is built with a plain ID (if false, it's a DN)</description>
+    <param-name>ldap.authzidtypeisid</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+  <context-param>
+    <description>A flag to specify if the ldap.port is the SSL secured port</description>
+    <param-name>ldap.usessl</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+  <context-param>
+    <description>A flag to specify if StartTLS should be use to secure connections to the ldap.port</description>
+    <param-name>ldap.usestarttls</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+  <context-param>
+    <description>A flag to specify if all certificates should be blindly trusted</description>
+    <param-name>ldap.trustall</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+
+<!-- Uncomment and fill if you enable SSL or StartTLS and want to verify
+     the LDAP server certificate
+  <context-param>
+    <description>The path to the truststore when ssl or starttls is enabled</description>
+    <param-name>ldap.truststore.path</param-name>
+    <param-value></param-value>
+  </context-param>
+
+  <context-param>
+    <description>The password of the truststore when ssl or starttls is enabled</description>
+    <param-name>ldap.truststore.password</param-name>
+    <param-value></param-value>
+  </context-param>
+-->
+
+<!-- Add an extra <context-param> like the one below for each extended operation
+     that is known to return a string in the LDAP response. -->
+  <context-param>
+  	<description>The Who Am I? [RFC 4532] extended operation returns a string.</description>
+    <param-name>ldap.exop.string.1.3.6.1.4.1.4203.1.11.3</param-name>
+    <param-value>true</param-value>
+  </context-param>
+ 
+  <servlet>
+    <servlet-name>DSMLServlet</servlet-name>
+    <servlet-class>org.opends.dsml.protocol.DSMLServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DSMLServlet</servlet-name>
+    <url-pattern>/DSMLServlet</url-pattern>
+  </servlet-mapping>
+
+</web-app>
+
+

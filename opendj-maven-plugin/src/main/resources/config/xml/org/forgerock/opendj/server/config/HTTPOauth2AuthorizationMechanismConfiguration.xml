@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2016 ForgeRock AS.
+  ! -->
+<adm:managed-object abstract="true" name="http-oauth2-authorization-mechanism" plural-name="http-oauth2-authorization-mechanisms"
+  extends="http-authorization-mechanism" package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is used to define HTTP OAuth2 authorization mechanism.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-http-oauth2-authorization-mechanism</ldap:name>
+      <ldap:superior>ds-cfg-http-authorization-mechanism</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+  <adm:property name="authzid-json-pointer" mandatory="true">
+    <adm:synopsis>
+      Specifies the JSON pointer to the value to use as Authorization ID. The JSON pointer
+      is applied to the resolved access token
+      JSON document.
+      (example: /uid)
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-oauth2-authzid-json-pointer</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="identity-mapper" mandatory="true">
+    <adm:synopsis>>
+      Specifies the name of the identity mapper to use in conjunction with the authzid-json-pointer
+      to get the
+      user corresponding to the acccess-token.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:aggregation relation-name="identity-mapper" parent-path="/">
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced identity mapper must be enabled when the
+            <adm:user-friendly-name />
+            is enabled.
+          </adm:synopsis>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-identity-mapper</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="required-scope" mandatory="true" multi-valued="true">
+    <adm:synopsis>
+      Scopes required to grant access to the service.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-oauth2-required-scope</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:constraint>
+    <adm:synopsis>
+      The access token cache expiration must be specified when the access token cache is enabled.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="access-token-cache-enabled" value="true" />
+        <adm:is-present property="access-token-cache-expiration" />
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
+
+  <adm:property name="access-token-cache-enabled" mandatory="true">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      is enabled for use.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-oauth2-access-token-cache-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="access-token-cache-expiration">
+    <adm:synopsis>
+      Token cache expiration
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" lower-limit="0" upper-limit="2147483647" allow-unlimited="false" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-oauth2-access-token-cache-expiration</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

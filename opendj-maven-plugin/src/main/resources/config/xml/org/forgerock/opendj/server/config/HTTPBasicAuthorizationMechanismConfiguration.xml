@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="http-basic-authorization-mechanism" plural-name="http-basic-authorization-mechanisms"
+  extends="http-authorization-mechanism" package="org.forgerock.opendj.server.config" xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    authenticates the end-user using credentials extracted from the HTTP Basic 'Authorization' header.
+  </adm:synopsis>
+
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-http-basic-authorization-mechanism</ldap:name>
+      <ldap:superior>ds-cfg-http-mapped-authorization-mechanism</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+
+    <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.protocols.http.authz.HttpBasicAuthorizationMechanism
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+
+  <adm:constraint>
+    <adm:synopsis>
+      Alternative user's name and password header must be specified when
+      alternative authentication is enabled.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="alt-authentication-enabled" value="true" />
+        <adm:implies>
+          <adm:is-present property="alt-username-header" />
+          <adm:is-present property="alt-password-header" />
+        </adm:implies>
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
+
+  <adm:property name="alt-authentication-enabled" mandatory="true">
+    <adm:synopsis>
+      Specifies whether user credentials may be provided using alternative headers to the standard
+      'Authorize' header.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-http-basic-alt-authentication-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="alt-username-header">
+    <adm:synopsis>
+      Alternate HTTP headers to get the user's name from.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-http-basic-alt-username-header</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="alt-password-header">
+    <adm:synopsis>
+      Alternate HTTP headers to get the user's password from.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-http-basic-alt-password-header</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="identity-mapper" mandatory="true">
+    <adm:synopsis>>
+      Specifies the name of the identity mapper used to get the user's entry corresponding to the user-id
+      provided in
+      the HTTP authentication header.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:aggregation relation-name="identity-mapper" parent-path="/">
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced identity mapper must be enabled when the
+            <adm:user-friendly-name />
+            is enabled.
+          </adm:synopsis>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-identity-mapper</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

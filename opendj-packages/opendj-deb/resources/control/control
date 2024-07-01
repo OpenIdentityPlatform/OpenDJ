@@ -1,0 +1,15 @@
+Package: [[deb.product.name.lowercase]]
+Version: [[parsedVersion.majorVersion]].[[parsedVersion.minorVersion]].[[parsedVersion.incrementalVersion]]
+Section: misc
+Priority: optional
+Architecture: all
+Depends: default-jre-headless | default-jre | java6-runtime | java7-runtime
+Homepage: [[deb.doc.homepage.url]]
+Maintainer: [[deb.maintainer]]
+Description: [[deb.product.name]]
+  OpenDJ is an LDAPv3 compliant directory service, developed for the Java
+  platform, providing a high performance, highly available and secure store
+  for the identities managed by enterprises. Its easy installation process,
+  combined with the power of the Java platform makes OpenDJ one of the
+  simplest and fastest directory servers to deploy and manage.
+  [[deb.product.summary]]

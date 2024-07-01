@@ -1,0 +1,119 @@
+//
+// Example configuration for JDBC handler.
+// Edit a copy of the file with your settings.
+// Strip comments before use with grep -v '^[ ]*//' < your-file.json
+//
+{
+  "class": "org.forgerock.audit.handlers.jdbc.JdbcAuditEventHandler",
+  "config": {
+    // buffering is optional; once enabled any other fields are optional
+    "buffering": {
+      "enabled": false,
+      "autoFlush": true,
+      "maxSize": 5000,
+      "interval": "disabled",
+      "writerThreads": 1,
+      "maxBatchedEvents": 100
+    },
+    "connectionPool": {
+      // Make sure the class is in your classpath
+      "dataSourceClassName": "com.mysql.jdbc.jdbc2.optional.MysqlDataSource",
+      // jdbcURL depends on the JDBC driver
+      "jdbcUrl": "jdbc:mysql://localhost:3306/audit?allowMultiQueries=true&characterEncoding=utf8",
+      "password": "auditAdminPassword",
+      "username": "auditAdmin",
+      // Following connectionPool fields are optional
+      "autoCommit": true,
+      "connectionTimeOut": 30000,
+      "idleTimeout": 600000,
+      "maxLifeTime": 1800000,
+      "minIdle": 10,
+      "maxPoolSize": 10,
+      "poolName": "audit",
+      "driverClassName": null
+    },
+    "databaseType": "mysql",
+    "enabled": false,
+    "name": "jdbc",
+    "tableMappings": [
+      {
+        "event": "ldap-access",
+        "fieldToColumn": {
+          "_id": "id",
+          "eventName": "eventname",
+          "runAs": "runAs",
+          "timestamp": "timestamp_",
+          "transactionId": "transactionid",
+          "userId": "userid",
+          "client/host": "client_host",
+          "client/ip": "client_ip",
+          "client/port": "client_port",
+          "server/ip": "server_ip",
+          "server/port": "server_port",
+          "request/attr": "request_attr",
+          "request/attrs": "request_attrs",
+          "request/authType": "request_authType",
+          "request/connId": "request_connId",
+          "request/controls": "request_controls",
+          "request/deleteOldRDN": "request_deleteOldRDN",
+          "request/dn": "request_dn",
+          "request/filter": "request_filter",
+          "request/idToAbandon": "request_idToAbandon",
+          "request/message": "request_message",
+          "request/msgId": "request_msgId",
+          "request/name": "request_name",
+          "request/newRDN": "request_newRDN",
+          "request/newSup": "request_newSup",
+          "request/oid": "request_oid",
+          "request/opType": "request_opType",
+          "request/operation": "request_operation",
+          "request/protocol": "request_protocol",
+          "request/scope": "request_scope",
+          "request/version": "request_version",
+          "response/additionalItems": "response_additionalItems",
+          "response/controls": "response_controls",
+          "response/failureReason": "response_failureReason",
+          "response/maskedMessage": "response_maskedMessage",
+          "response/maskedResult": "response_maskedResult",
+          "response/nentries": "response_nentries",
+          "response/reason": "response_reason"
+        },
+        "table": "ldapaccess"
+      },
+      {
+        "event": "http-access",
+        "fieldToColumn": {
+          "_id": "id",
+          "eventName": "eventname",
+          "timestamp": "timestamp_",
+          "transactionId": "transactionid",
+          "userId": "userid",
+          "client/host": "client_host",
+          "client/ip": "client_ip",
+          "client/port": "client_port",
+          "server/ip": "server_ip",
+          "server/port": "server_port",
+          "http/request/cookies": "request_cookies",
+          "http/request/headers": "request_headers",
+          "http/request/method": "request_method",
+          "http/request/path": "request_path",
+          "http/request/queryParameters": "request_queryparameters",
+          "http/request/secure": "request_secure",
+          "http/response/headers": "response_headers",
+          "request/operation": "request_operation",
+          "request/protocol": "request_protocol",
+          "response/elapsedTime": "response_elapsedtime",
+          "response/elapsedTimeUnits": "response_elapsedtimeunits",
+          "response/status": "response_status",
+          "response/statusCode": "response_statuscode"
+        },
+        "table": "httpaccess"
+      }
+    ],
+    "topics": [
+      "ldap-access",
+      "http-access"
+    ]
+  }
+}
+

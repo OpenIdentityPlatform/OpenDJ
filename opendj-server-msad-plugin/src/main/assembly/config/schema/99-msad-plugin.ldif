@@ -1,0 +1,7 @@
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+objectClasses: ( ds-cfg-msad-plugin-oid NAME 'ds-cfg-msad-plugin'
+  SUP ds-cfg-plugin STRUCTURAL
+  X-ORIGIN 'msad' )

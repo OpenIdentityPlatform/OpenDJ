@@ -1,0 +1,52 @@
+This folder contains source code for an example "Hello World" style
+plugin. It features a plugin which has a configurable message (the
+default being "Hello World") which is displayed as a notice message
+when OpenDJ directory server is started.
+
+In order to build and use this example plugin, perform the following
+steps while the server is stopped:
+
+# 1. ensure OpenDJ is stopped:
+
+     bin/stop-ds
+
+# 2. unzip the example-plugin.zip (in place):
+
+     unzip example-plugin.zip
+
+# 3. Go into the example-plugin source folder:
+
+     cd opendj-server-example-plugin
+
+# 4. Build the plugin (this requires Maven version 3):
+
+     mvn clean install
+
+# 5. Unzip the built example-plugin zip
+
+     unzip target/opendj-server-example-plugin-*.zip -d target
+
+# 6. Copy the example-plugin's content into the parent OpenDJ installation:
+
+     cp -r target/opendj-server-example-plugin-*/* ..
+
+# 7. This will copy the following files:
+
+#     lib/extensions/opendj-server-example-plugin-*.jar
+#     lib/extensions/commons-lang3-3.3.2.jar      (included to demonstrate how to include a 3rd party dependency)
+#     config/example-plugin.ldif
+#     config/schema/99-example-plugin.ldif
+#     README.example.plugin
+
+# 8. Add the plugin's config to the server configuration.
+
+     cd ..
+     bin/start-ds
+     bin/dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+      create-plugin --plugin-name "Example Plugin" --type example \
+      --set enabled:true --set plugin-type:startup -X -n
+
+# 9. Restart the server and look for the "HELLO WORLD" notice in the start up log:
+
+     bin/stop-ds --restart
+

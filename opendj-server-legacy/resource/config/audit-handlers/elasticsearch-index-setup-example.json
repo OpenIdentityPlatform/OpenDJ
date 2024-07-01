@@ -1,0 +1,277 @@
+{
+  "settings": {},
+  "mappings": {
+    "ldap-access": {
+      "_source": {
+        "enabled": true
+      },
+      "properties": {
+        "timestamp": {
+          "type": "date"
+        },
+        "eventName": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "transactionId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "userId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "server": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "client": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "request": {
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "operation": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "connId": {
+              "type": "integer",
+              "index": "not_analyzed"
+            },
+            "msgId": {
+              "type": "integer"
+            },
+            "dn": {
+              "type": "string"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "filter": {
+              "type": "string"
+            },
+            "attrs": {
+              "type": "string"
+            },
+            "authType": {
+              "type": "string"
+            },
+            "controls": {
+              "type": "string"
+            },
+            "attr": {
+              "type": "string"
+            },
+            "idToAbandon": {
+              "type": "integer"
+            },
+            "message": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "newRDN": {
+              "type": "string"
+            },
+            "newSup": {
+              "type": "string"
+            },
+            "deleteOldRDN": {
+              "type": "boolean"
+            },
+            "oid": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "opType": {
+              "type": "string"
+            }
+          }
+        },
+        "response": {
+          "properties": {
+            "status": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "statusCode": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "detail": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "elapsedTime": {
+              "type": "integer"
+            },
+            "elapsedTimeUnits": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "nentries": {
+              "type": "string"
+            },
+            "controls": {
+              "type": "string"
+            },
+            "additionalItems": {
+              "type": "string"
+            },
+            "failureReason": {
+              "type": "string"
+            },
+            "maskedResult": {
+              "type": "integer"
+            },
+            "maskedMessage": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "http-access": {
+      "_source": {
+        "enabled": true
+      },
+      "properties": {
+        "timestamp": {
+          "type": "date"
+        },
+        "eventName": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "transactionId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "userId": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "server": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "client": {
+          "properties": {
+            "ip": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "request": {
+          "properties": {
+            "protocol": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "operation": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "detail": {
+              "type": "nested"
+            }
+          }
+        },
+        "http": {
+          "properties": {
+            "request": {
+              "properties": {
+                "secure": {
+                  "type": "boolean"
+                },
+                "method": {
+                  "type": "string",
+                  "index": "not_analyzed"
+                },
+                "path": {
+                  "type": "string",
+                  "index": "not_analyzed"
+                },
+                "queryParameters": {
+                  "type": "nested"
+                },
+                "headers": {
+                  "type": "nested"
+                },
+                "cookies": {
+                  "type": "nested"
+                }
+              }
+            },
+            "response": {
+              "properties": {
+                "headers": {
+                  "type": "nested"
+                }
+              }
+            }
+          }
+        },
+        "response": {
+          "properties": {
+            "status": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "statusCode": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "detail": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "elapsedTime": {
+              "type": "integer"
+            },
+            "elapsedTimeUnits": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        }
+      }
+    }
+  }
+}

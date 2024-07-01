@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2013-2016 ForgeRock AS.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.openidentityplatform.opendj</groupId>
+    <artifactId>opendj-parent</artifactId>
+    <version>4.6.5-SNAPSHOT</version>
+  </parent>
+  <artifactId>opendj-config</artifactId>
+  <name>OpenDJ Configuration API</name>
+  <description>
+    This module includes Configuration APIs for implementing LDAP Directory
+    client and server applications.
+  </description>
+  <packaging>bundle</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+      <artifactId>core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+      <artifactId>slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.commons</groupId>
+      <artifactId>build-tools</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openidentityplatform.opendj</groupId>
+      <artifactId>opendj-cli</artifactId>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <opendj.osgi.import.additional>
+      org.forgerock.opendj.*;provide:=true
+    </opendj.osgi.import.additional>
+    <doclint>none</doclint>
+  </properties>
+
+  <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+    <resources>
+      <!-- Main resources -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+      <!-- Generated resources -->
+      <resource>
+        <directory>${project.build.directory}/generated-resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.properties</include>
+          <include>**/org.forgerock.opendj.config.AbstractManagedObjectDefinition</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <executions>
+          <!-- We do not need build timestamp for this module -->
+          <execution>
+            <id>generate-timestamp</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-test-jar</id>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <!-- Classes to have mocks with configuration defaults -->
+                <include>**/AdminTestCaseUtils.class</include>
+                <include>**/AdminTestCaseUtils$*.class</include>
+                <include>**/ConfigurationMock.class</include>
+                <include>**/ConfigurationMock$*.class</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+        <artifactId>maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-messages</goal>
+            </goals>
+            <configuration>
+              <messageFiles>
+                <messageFile>com/forgerock/opendj/ldap/config/config.properties</messageFile>
+                <messageFile>com/forgerock/opendj/dsconfig/dsconfig.properties</messageFile>
+              </messageFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>target/generated-sources/config</source>
+                <source>target/generated-sources/messages</source>
+              </sources>
+            </configuration>
+          </execution>
+         </executions>
+      </plugin>
+      <!-- Validate core components XML definition files and generate the components. -->
+      <plugin>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-config</id>
+            <goals>
+              <goal>generate-config</goal>
+            </goals>
+            <configuration>
+              <packageName>org.forgerock.opendj.server.config</packageName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <configuration>
+          <instructions>
+            <SCM-Revision>${buildRevision}</SCM-Revision>
+          </instructions>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+			<reuseForks>false</reuseForks>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <configuration>
+          <instrumentation>
+            <excludes>
+              <exclude>**/*Messages.class</exclude>
+              <exclude>**/config/client/*CfgClient*.class</exclude>
+              <exclude>**/config/server/*Cfg*.class</exclude>
+              <exclude>**/config/meta/*.class</exclude>
+            </excludes>
+          </instrumentation>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>mailing-list</report>
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>cim</report>
+              <report>distribution-management</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <links>
+            <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
+          </links>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>

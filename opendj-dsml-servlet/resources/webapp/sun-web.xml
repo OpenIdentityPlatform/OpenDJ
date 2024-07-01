@@ -1,0 +1,4 @@
+
+<sun-web-app>
+  <class-loader delegate="false"/>
+</sun-web-app>

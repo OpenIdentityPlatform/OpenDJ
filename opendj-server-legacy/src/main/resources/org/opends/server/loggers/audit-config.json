@@ -1,0 +1,389 @@
+{
+  "additionalTopics": {
+    "http-access": {
+      "schema": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "id": "/",
+        "type": "object",
+        "properties": {
+          "_id": {
+            "description": "org.forgerock.audit.events.access.id",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "org.forgerock.audit.events.access.timestamp",
+            "type": "string"
+          },
+          "eventName": {
+            "description": "org.forgerock.audit.events.access.eventName",
+            "type": "string"
+          },
+          "transactionId": {
+            "description": "org.forgerock.audit.events.access.transactionId",
+            "type": "string"
+          },
+          "userId": {
+            "description": "org.forgerock.audit.events.access.userId",
+            "type": "string"
+          },
+          "trackingIds": {
+            "description": "org.forgerock.audit.events.access.trackingIds",
+            "type": "array",
+            "items": {
+              "id": "0",
+              "type": "string"
+            }
+          },
+          "server": {
+            "type": "object",
+            "properties": {
+              "ip": {
+                "description": "org.forgerock.audit.events.access.server.ip",
+                "type": "string"
+              },
+              "port": {
+                "description": "org.forgerock.audit.events.access.server.port",
+                "type": "string"
+              }
+            }
+          },
+          "client": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "description": "org.forgerock.audit.events.access.client.host",
+                "type": "string"
+              },
+              "ip": {
+                "description": "org.forgerock.audit.events.access.client.ip",
+                "type": "string"
+              },
+              "port": {
+                "description": "org.forgerock.audit.events.access.client.port",
+                "type": "string"
+              }
+            }
+          },
+          "request": {
+            "type": "object",
+            "properties": {
+              "protocol": {
+                "description": "org.forgerock.audit.events.access.request.protocol",
+                "type": "string"
+              },
+              "operation": {
+                "description": "org.forgerock.audit.events.access.request.operation",
+                "type": "string"
+              },
+              "detail": {
+                "description": "org.forgerock.audit.events.access.request.detail",
+                "type": "object"
+              }
+            }
+          },
+          "http": {
+            "type": "object",
+            "properties": {
+              "request": {
+                "description": "org.forgerock.audit.events.access.http.request",
+                "type": "object",
+                "properties": {
+                  "secure": {
+                    "description": "org.forgerock.audit.events.access.http.secure",
+                    "type": "boolean"
+                  },
+                  "method": {
+                    "description": "org.forgerock.audit.events.access.http.method",
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "org.forgerock.audit.events.access.http.path",
+                    "type": "string"
+                  },
+                  "queryParameters": {
+                    "description": "org.forgerock.audit.events.access.http.queryParameters",
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "headers": {
+                    "description": "org.forgerock.audit.events.access.http.headers",
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "cookies": {
+                    "description": "org.forgerock.audit.events.access.http.cookies",
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "response": {
+                "description": "org.forgerock.audit.events.access.http.response",
+                "type": "object",
+                "properties": {
+                  "headers": {
+                    "description": "org.forgerock.audit.events.access.http.request.headers",
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "description": "org.forgerock.audit.events.access.response.status",
+                "type": "string"
+              },
+              "statusCode": {
+                "description": "org.forgerock.audit.events.access.response.statusCode",
+                "type": "string"
+              },
+              "detail": {
+                "description": "org.forgerock.audit.events.access.response.detail",
+                "type": "string"
+              },
+              "elapsedTime": {
+                "description": "org.forgerock.audit.events.access.response.elapsedTime",
+                "type": "integer"
+              },
+              "elapsedTimeUnits": {
+                "description": "org.forgerock.audit.events.access.response.elapsedTimeUnits",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "ldap-access": {
+      "schema": {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "id": "/",
+        "type": "object",
+        "properties": {
+          "_id": {
+            "description": "org.forgerock.audit.events.access.id",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "org.forgerock.audit.events.access.timestamp",
+            "type": "string"
+          },
+          "eventName": {
+            "description": "org.forgerock.audit.events.access.eventName",
+            "type": "string"
+          },
+          "transactionId": {
+            "description": "org.forgerock.audit.events.access.transactionId",
+            "type": "string"
+          },
+          "userId": {
+            "description": "org.forgerock.audit.events.access.userId",
+            "type": "string"
+          },
+          "runAs": {
+            "description": "org.forgerock.audit.events.activity.runAs",
+            "type": "string"
+          },
+          "server": {
+            "type": "object",
+            "properties": {
+              "ip": {
+                "description": "org.forgerock.audit.events.access.server.ip",
+                "type": "string"
+              },
+              "port": {
+                "description": "org.forgerock.audit.events.access.server.port",
+                "type": "string"
+              }
+            }
+          },
+          "client": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "description": "org.forgerock.audit.events.access.client.host",
+                "type": "string"
+              },
+              "ip": {
+                "description": "org.forgerock.audit.events.access.client.ip",
+                "type": "string"
+              },
+              "port": {
+                "description": "org.forgerock.audit.events.access.client.port",
+                "type": "string"
+              }
+            }
+          },
+          "request": {
+            "type": "object",
+            "properties": {
+              "protocol": {
+                "description": "org.forgerock.audit.events.access.request.protocol",
+                "type": "string"
+              },
+              "operation": {
+                "description": "org.forgerock.audit.events.access.request.operation",
+                "type": "string"
+              },
+              "connId": {
+                "id": "connId",
+                "type": "string"
+              },
+              "msgId": {
+                "id": "msgId",
+                "type": "string"
+              },
+              "dn": {
+                "id": "dn",
+                "type": "string"
+              },
+              "scope": {
+                "id": "scope",
+                "type": "string"
+              },
+              "filter": {
+                "id": "filter",
+                "type": "string"
+              },
+              "attrs": {
+                "id": "attrs",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "authType": {
+                "id": "authType",
+                "type": "string"
+              },
+              "controls": {
+                "id": "controls",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "attr": {
+                "id": "attr",
+                "type": "string"
+              },
+              "idToAbandon": {
+                "id": "idToAbandon",
+                "type": "integer"
+              },
+              "message": {
+                "id": "message",
+                "type": "string"
+              },
+              "name": {
+                "id": "name",
+                "type": "string"
+              },
+              "newRDN": {
+                "id": "newRDN",
+                "type": "string"
+              },
+              "newSup": {
+                "id": "newSup",
+                "type": "string"
+              },
+              "deleteOldRDN": {
+                "id": "deleteOldRDN",
+                "type": "boolean"
+              },
+              "oid": {
+                "id": "oid",
+                "type": "string"
+              },
+              "version": {
+                "id": "version",
+                "type": "string"
+              },
+              "opType": {
+                "id": "opType",
+                "type": "string"
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "description": "org.forgerock.audit.events.access.response.status",
+                "type": "string"
+              },
+              "statusCode": {
+                "description": "org.forgerock.audit.events.access.response.statusCode",
+                "type": "string"
+              },
+              "detail": {
+                "description": "org.forgerock.audit.events.access.response.detail",
+                "type": "string"
+              },
+              "elapsedTime": {
+                "description": "org.forgerock.audit.events.access.response.elapsedTime",
+                "type": "integer"
+              },
+              "elapsedTimeUnits": {
+                "description": "org.forgerock.audit.events.access.response.elapsedTimeUnits",
+                "type": "string"
+              },
+              "nentries": {
+                "id": "nentries",
+                "type": "string"
+              },
+              "controls": {
+                "id": "controls",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "additionalItems": {
+                "id": "additionalItems",
+                "type": "string"
+              },
+              "failureReason": {
+                "id": "failureReason",
+                "type": "string"
+              },
+              "maskedResult": {
+                "id": "maskedResult",
+                "type": "integer"
+              },
+              "maskedMessage": {
+                "id": "maskedMessage",
+                "type": "string"
+              },
+              "reason": {
+                "id": "reason",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

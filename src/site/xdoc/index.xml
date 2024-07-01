@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2015 ForgeRock AS.
+-->
+<document
+ xmlns="http://maven.apache.org/XDOC/2.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+ <properties>
+  <title>The open source LDAP directory services in Java</title>
+  <author email="opendj-dev@forgerock.org">ForgeRock AS</author>
+ </properties>
+ <body>
+  <section name="About the OpenDJ Project">
+   <p>The OpenDJ community actively develops open source directory services,
+   including a high performance, highly available, secure directory server,
+   built-in data replication, client tools, and an LDAP SDK. OpenDJ offers
+   extensive LDAPv3 support, as well as RESTful access to directory data over
+   HTTP. OpenDJ DSML gateway enables applications accessing directory data
+   through DSMLv2. All modules are 100% Java based and require at least
+   Java 6.<a href="https://java.net/attachments/wiki_images/adoptopenjdk/compat.svg.png">
+   <img src="https://java.net/attachments/wiki_images/adoptopenjdk/compat.svg.png"
+   alt="OpenJDK 8 Compatible" align="right" width="80" height="80" /></a></p>
+   <p>Coming soon on the <a
+   href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Roadmap"
+   >OpenDJ Roadmap</a>, you see that the community plans to develop directory
+   proxy services with virtual directory capabilities such as data mapping and
+   connectors for non-directory data sources.</p>
+  </section>
+  <section name="Welcome Users">
+   <p>The OpenDJ community shares an interest in improving and extending
+   OpenDJ software, and in adapting OpenDJ to best fit our needs.</p>
+   <p>You are welcome to join us. Here are some ways to get started.</p>
+   <ul>
+    <li>Download and install a build from the <a
+    href="http://www.forgerock.org/opendj.html">download page</a>.</li>
+    <li>Join the <a
+    href="https://lists.forgerock.org/mailman/listinfo/opendj">OpenDJ
+    mailing list</a> to ask questions, make suggestions, and tell us what
+    you think of OpenDJ.</li>
+    <li><a href="https://sso.forgerock.com/openam/UI/Login">Register
+    to join the community</a>.</li>
+    <li>Read and edit <a
+    href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home">OpenDJ Wiki
+    documentation</a>.</li>
+    <li>Chat on irc.freenode.net #opendj.</li>
+   </ul>
+   <p>Looking forward to hearing from you.</p>
+  </section>
+  <section name="Welcome Developers">
+   <p>If you are a Java developer interested in OpenDJ, there are plenty of
+   ways you can get actively involved in the community in addition to joining
+   as an OpenDJ user.</p>
+   <ul>
+    <li>Get the source. See instructions in the <a
+    href="https://wikis.forgerock.org/confluence/display/OPENDJ/Guide+to+OpenDJ+Subversion"
+    >Guide to OpenDJ Subversion</a>.</li>
+    <li>Make sure you <a
+    href="https://sso.forgerock.com/openam/UI/Login">register
+    to join the community</a>, thus also registering to <a
+    href="https://bugster.forgerock.org/jira/browse/OPENDJ">report issues, and
+    describe requests for enhancements</a>, as well as to edit <a
+    href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home">OpenDJ Wiki
+    documentation</a>.</li>
+    <li>Participate and discuss your work on the <a
+    href="https://lists.forgerock.org/mailman/listinfo/opendj-dev">OpenDJ
+    developer mailing list</a> in addition to the <a
+    href="https://lists.forgerock.org/mailman/listinfo/opendj">OpenDJ
+    mailing list</a>.</li>
+   </ul>
+  </section>
+  <section name="Welcome Partners">
+   <p>Want to partner with other OpenDJ community members to bring solutions
+   based on OpenDJ to your customers?</p>
+   <ul>
+    <li>Come show off your expertise on the <a
+    href="https://lists.forgerock.org/mailman/listinfo/opendj">mailing list</a>
+    and in the chat room at irc.freenode.net #opendj.</li>
+    <li>Post your success stories and white papers on the <a
+    href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home">OpenDJ
+    Wiki</a>.</li>
+   </ul>
+  </section>
+ </body>
+</document>

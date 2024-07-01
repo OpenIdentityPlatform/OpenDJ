@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2007-2008 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object
+  name="subject-attribute-to-user-attribute-certificate-mapper"
+  plural-name="subject-attribute-to-user-attribute-certificate-mappers"
+  package="org.forgerock.opendj.server.config" extends="certificate-mapper"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    maps client certificates to user entries by mapping the values of
+    attributes contained in the certificate subject to attributes
+    contained in user entries.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>
+        ds-cfg-subject-attribute-to-user-attribute-certificate-mapper
+      </ldap:name>
+      <ldap:superior>ds-cfg-certificate-mapper</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.SubjectAttributeToUserAttributeCertificateMapper
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="subject-attribute-mapping" mandatory="true"
+    multi-valued="true">
+    <adm:synopsis>
+      Specifies a mapping between certificate attributes and user
+      attributes.
+    </adm:synopsis>
+    <adm:description>
+      Each value should be in the form "certattr:userattr" where
+      certattr is the name of the attribute in the certificate subject
+      and userattr is the name of the corresponding attribute in user
+      entries. There may be multiple mappings defined, and when
+      performing the mapping values for all attributes present in the
+      certificate subject that have mappings defined must be present in
+      the corresponding user entries.
+    </adm:description>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-subject-attribute-mapping</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="user-base-dn" multi-valued="true">
+    <adm:synopsis>
+      Specifies the base DNs that should be used when performing
+      searches to map the client certificate to a user entry.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The server will perform the search in all public naming
+          contexts.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-user-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

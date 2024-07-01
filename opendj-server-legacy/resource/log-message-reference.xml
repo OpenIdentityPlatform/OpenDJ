@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2012-2015 ForgeRock AS.
+-->
+<appendix xml:id='appendix-log-messages'
+          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Log Message Reference</title>
+ <indexterm>
+  <primary>Logs</primary>
+  <secondary>Log Message Reference</secondary>
+ </indexterm>
+
+ <para>
+  <olink targetdoc="admin-guide" targetptr="logging"/> describes logs.
+  Access and audit logs concern client operations
+  rather than OpenDJ directory server and tools, and so are not listed here.
+  Instead, this appendix covers severe and fatal error messages
+  for the directory server and its tools,
+  such as those logged in <filename>/path/to/opendj/logs/errors</filename>,
+  and <filename>/path/to/opendj/logs/replication</filename>.
+ </para>
+
+ <!-- <xinclude:include href="log-ref-access-control.xml" /> -->
+ <!-- <xinclude:include href="log-ref-admin-tool.xml" /> -->
+ <xinclude:include href="log-ref-admin.xml" />
+ <xinclude:include href="log-ref-backend.xml" />
+ <xinclude:include href="log-ref-config.xml" />
+ <xinclude:include href="log-ref-core.xml" />
+ <xinclude:include href="log-ref-dsconfig.xml" />
+ <xinclude:include href="log-ref-extension.xml" />
+ <xinclude:include href="log-ref-jeb.xml" />
+ <xinclude:include href="log-ref-logger.xml" />
+ <xinclude:include href="log-ref-plugin.xml" />
+ <xinclude:include href="log-ref-protocol.xml" />
+ <!-- <xinclude:include href="log-ref-quicksetup.xml" /> -->
+ <xinclude:include href="log-ref-replication.xml" />
+ <!-- <xinclude:include href="log-ref-runtime-information.xml" /> -->
+ <xinclude:include href="log-ref-schema.xml" />
+ <xinclude:include href="log-ref-task.xml" />
+ <xinclude:include href="log-ref-tool.xml" />
+ <xinclude:include href="log-ref-utility.xml" />
+ <!-- <xinclude:include href="log-ref-version.xml" /> -->
+</appendix>

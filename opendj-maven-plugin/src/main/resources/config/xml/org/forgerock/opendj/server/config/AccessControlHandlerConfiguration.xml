@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2007-2008 Sun Microsystems, Inc.
+  Portions Copyright 2011 ForgeRock AS.
+  ! -->
+<adm:managed-object name="access-control-handler"
+  plural-name="access-control-handlers"
+  package="org.forgerock.opendj.server.config"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
+  xmlns:cli="http://opendj.forgerock.org/admin-cli">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+      manage the application-wide access control. The <adm:product-name /> access control 
+      handler is defined through an extensible interface, so that alternate 
+      implementations can be created. Only one access control handler may be 
+      active in the server at any given time.  
+  </adm:synopsis>
+  <adm:description>
+     Note that <adm:product-name /> also has a privilege subsystem, which may have an impact 
+     on what clients may be allowed to do in the server. For example, any user 
+     with the bypass-acl privilege is not subject to access control 
+     checking regardless of whether the access control implementation is 
+     enabled.
+  </adm:description>
+  <adm:tag name="security" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-access-control-handler</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:profile name="cli">
+    <cli:managed-object custom="true" />
+  </adm:profile>
+  <adm:property name="enabled" mandatory="true">
+    <adm:synopsis>
+      Indicates whether the
+      <adm:user-friendly-name />
+      is enabled. If set to FALSE, then no access control is enforced, and any 
+      client (including unauthenticated or anonymous clients) could be allowed to perform any 
+      operation if not subject to other restrictions, such as those enforced by the privilege 
+      subsystem.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="java-class" mandatory="true">
+    <adm:synopsis>
+      Specifies the fully-qualified name of the Java class that provides the
+      <adm:user-friendly-name />
+      implementation.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:syntax>
+      <adm:java-class>
+        <adm:instance-of>
+          org.opends.server.api.AccessControlHandler
+        </adm:instance-of>
+      </adm:java-class>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-java-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
