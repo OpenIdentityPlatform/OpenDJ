@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='ldifsearch-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>ldifsearch</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>ldifsearch</refname>
+  <refpurpose>search LDIF with LDAP filters</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>ldifsearch</command>
+   <arg choice="req">options</arg>
+   <arg choice="opt">filter</arg>
+   <arg choice="opt" rep="repeat">attribute</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to perform search operations against data in
+  an LDIF file.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-b, --baseDN {baseDN}</option></term>
+    <listitem>
+     <para>The base DN for the search.  Multiple base DNs may be specified by
+     providing the option multiple times.  If no base DN is provided, then the
+     root DSE will be used.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-f, --filterFile {filterFile}</option></term>
+    <listitem>
+     <para>The path to the file containing the search filter(s) to use.  If
+     this is not provided, then the filter must be provided on the command line
+     after all configuration options.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-l, --ldifFile {ldifFile}</option></term>
+    <listitem>
+     <para>LDIF file containing the data to search.  Multiple files may be
+     specified by providing the option multiple times. If no files are provided,
+     the data will be read from standard input.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-o, --outputFile {outputFile}</option></term>
+    <listitem>
+     <para>The path to the output file to which the matching entries should be
+     written.  If this is not provided, then the data will be written to
+     standard output.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-O, --overwriteExisting</option></term>
+    <listitem>
+     <para>Any existing output file should be overwritten rather than appending
+     to it.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-s, --searchScope {scope}</option></term>
+    <listitem>
+     <para>The scope for the search.  It must be one of 'base', 'one', 'sub',
+     or 'subordinate'.  If it is not provided, then 'sub' will be used.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-t, --timeLimit {timeLimit}</option></term>
+    <listitem>
+     <para>Maximum length of time (in seconds) to spend processing.</para>
+     <para>Default value: 0</para>
+    </listitem>
+   </varlistentry>
+    <varlistentry>
+    <term><option>-T, --dontWrap</option></term>
+    <listitem>
+     <para>Long lines should not be wrapped.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-V, --version</option></term>
+    <listitem>
+     <para>Display version information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-z, --sizeLimit {sizeLimit}</option></term>
+    <listitem>
+     <para>Maximum number of matching entries to return.</para>
+     <para>Default value: 0</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-?, -H, --help</option></term>
+    <listitem>
+     <para>Display usage information.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Filter</title>
+  <para>The filter argument is a string representation of an LDAP search filter
+  as in <literal>(cn=Babs Jensen)</literal>, <literal
+  >(&amp;(objectClass=Person)(|(sn=Jensen)(cn=Babs J*)))</literal>, or
+  <literal>(cn:caseExactMatch:=Fred Flintstone)</literal>.</para>
+ </refsect1>
+ <refsect1>
+  <title>Attribute</title>
+  <para>The optional attribute list specifies the attributes to return in the
+  entries found by the search. In addition to identifying attributes by name
+  such as <literal>cn sn mail</literal> and so forth, you can use the following
+  notations, too.</para>
+  <variablelist>
+   <varlistentry>
+    <term><literal>*</literal></term>
+    <listitem>
+     <para>Return all user attributes such as <literal>cn</literal>,
+     <literal>sn</literal>, and <literal>mail</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>+</literal></term>
+    <listitem>
+     <para>Return all operational attributes such as <literal>etag</literal>
+     and <literal>pwdPolicySubentry</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>@<replaceable>objectclass</replaceable></literal></term>
+    <listitem>
+     <para>Return all attributes of the specified object class, where
+     <replaceable>objectclass</replaceable> is one of the object classes
+     on the entries returned by the search.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+  <variablelist>
+   <varlistentry>
+    <term>0</term>
+    <listitem>
+     <para>The command completed successfully.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>&gt; 0</term>
+    <listitem>
+     <para>An error occurred.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example demonstrates use of the command.</para>
+  <screen>$ ldifsearch -l /path/to/Example.ldif -b dc=example,dc=com uid=bjensen
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Barbara
+cn: Barbara Jensen
+cn: Babs Jensen
+telephonenumber: +1 408 555 1862
+sn: Jensen
+roomnumber: 0209
+homeDirectory: /home/bjensen
+mail: bjensen@example.com
+l: Cupertino
+ou: Product Development
+ou: People
+uidNumber: 1076
+gidNumber: 1000
+</screen>
+
+  <para>You can also use <literal>@<replaceable
+  >objectclass</replaceable></literal> notation in the attribute list to return
+  the attributes of a particular object class. The following example shows
+  how to return attributes of the <literal>posixAccount</literal> object
+  class.</para>
+
+  <screen>$ ldifsearch --ldifFile /path/to/Example.ldif
+ --baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+cn: Barbara Jensen
+cn: Babs Jensen
+homeDirectory: /home/bjensen
+uidNumber: 1076
+gidNumber: 1000</screen>
+ </refsect1>
+</refentry>

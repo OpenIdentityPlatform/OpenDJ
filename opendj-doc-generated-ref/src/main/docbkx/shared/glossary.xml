@@ -1,0 +1,883 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2012 ForgeRock AS
+  !    
+-->
+<glossary xml:id='glossary'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>OpenDJ Glossary</title>
+
+ <glossentry>
+  <glossterm>Abandon operation</glossterm>
+  <glossdef>
+   <para>LDAP operation to stop processing of a request in progress, after
+   which the directory server drops the connection without a reply to the
+   client application.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Access control</glossterm>
+  <glossdef>
+   <para>Control to grant or to deny access to a resource.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="access-control-instruction">
+  <glossterm>Access control instruction (ACI)</glossterm>
+  <glossdef>
+   <para>Instruction added as a directory entry attribute for fine-grained
+   control over what a given user or group member is authorized to do in terms
+   of LDAP operations and access to user data.</para>
+   <para>ACIs are implemented independently from privileges, which apply to
+   administrative operations.</para>
+   <glossseealso otherterm="privilege" />
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Access control list (ACL)</glossterm>
+  <glossdef>
+   <para>An access control list connects a user or group of users to one or
+   more security entitlements. For example, users in group "sales" are granted
+   the entitlement "read-only" to some financial data.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm><filename>access</filename> log</glossterm>
+  <glossdef>
+   <para>Directory server log tracing the operations the server processes
+   including timestamps, connection information, and information about the
+   operation itself.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Account lockout</glossterm>
+  <glossdef>
+   <para>The act of making an account temporarily or permanently inactive
+   after successive authentication failures.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Active user</glossterm>
+  <glossdef>
+   <para>A user that has the ability to authenticate and use the services,
+   having valid credentials.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Add operation</glossterm>
+  <glossdef>
+   <para>LDAP operation to add a new entry or entries to the directory.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Anonymous</glossterm>
+  <glossdef>
+   <para>A user that does not need to authenticate, and is unknown to the
+   system.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Anonymous bind</glossterm>
+  <glossdef>
+   <para>A bind operation using simple authentication with an empty DN and an
+   empty password, allowing "anonymous" access such as reading public
+   information.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="approximate-index">
+  <glossterm>Approximate index</glossterm>
+  <glossdef>
+   <para>Index is used to match values that "sound like" those provided in the
+   filter.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Attribute</glossterm>
+  <glossdef>
+   <para>Properties of a directory entry, stored as one or more key-value pairs.
+   Typical examples include the common name (<literal>cn</literal>) to store
+   the user's full name and variations of the name, user ID
+   (<literal>uid</literal>) to store a unique identifier for the entry, and
+   <literal>mail</literal> to store email addresses.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm><filename>audit</filename> log</glossterm>
+  <glossdef>
+   <para>Type of access log that dumps changes in LDIF.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Authentication</glossterm>
+  <glossdef>
+   <para>The process of verifying who is requesting access to a resource; the
+   act of confirming the identity of a principal.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Authorization</glossterm>
+  <glossdef>
+   <para>The process of determining whether access should be granted to an
+   individual based on information about that individual; the act of
+   determining whether to grant or to deny a principal access to a
+   resource.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Backend</glossterm>
+  <glossdef>
+   <para>Repository that a directory server can access to store data. Different
+   implementations with different capabilities exist.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Binary copy</glossterm>
+  <glossdef>
+   <para>Binary backup archive of one directory server that can be restored on
+   another directory server.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Bind operation</glossterm>
+  <glossdef>
+   <para>LDAP authentication operation to determine the client's identity in
+   LDAP terms, the identity which is later used by the server to authorize (or
+   not) access to directory data that the client wants to lookup or
+   change.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Collective attribute</glossterm>
+  <glossdef>
+   <para>A standard mechanism for defining attributes that appear on all the
+   entries in a particular subtree.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Compare operation</glossterm>
+  <glossdef>
+   <para>LDAP operation to compare a specified attribute value with the value
+   stored on an entry in the directory.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Control</glossterm>
+  <glossdef>
+   <para>Information added to an LDAP message to further specify how an LDAP
+   operation should be processed. OpenDJ supports many LDAP controls.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Database cache</glossterm>
+  <glossdef>
+   <para>Memory space set aside to hold database content.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm><filename>debug</filename> log</glossterm>
+  <glossdef>
+   <para>Directory server log tracing details needed to troubleshoot a problem
+   in the server.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Delete operation</glossterm>
+  <glossdef>
+   <para>LDAP operation to remove an existing entry or entries from the
+   directory.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="directory">
+  <glossterm>Directory</glossterm>
+  <glossdef>
+   <para>A directory is a network service which lists participants in the
+   network such as users, computers, printers, and groups. The directory
+   provides a convenient, centralized, and robust mechanism for publishing and
+   consuming information about network participants.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Directory hierarchy</glossterm>
+  <glossdef>
+   <para>A directory can be organized into a hierarchy in order to make it
+   easier to browse or manage. Directory hierarchies normally represent
+   something in the physical world, such as organizational hierarchies or
+   physical locations. For example, the top level of a directory may represent
+   a company, the next level down divisions, the next level down departments,
+   and so on. Alternately, the top level may represent the world, the next
+   level down countries, next states or provinces, next cities, and so
+   on.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="directory-manager">
+  <glossterm>Directory manager</glossterm>
+  <glossdef>
+   <para>Default Root DN who has privileges to do full administration of the
+   OpenDJ server, including bypassing access control evaluation, changing
+   access controls, and changing administrative privileges.</para>
+   <glossseealso otherterm="root-dn" />
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Directory object</glossterm>
+  <glossdef>
+   <para>A directory object is an item in a directory. Example objects include
+   users, user groups, computers and more. Objects may be organized into a
+   hierarchy and contain identifying attributes.</para>
+   <glossseealso otherterm="entry" />
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Directory server</glossterm>
+  <glossdef>
+   <para>Server application for centralizing information about network participants.
+   A highly available directory service consists of multiple directory servers
+   configured to replicate directory data.</para>
+   <glossseealso otherterm="directory" />
+   <glossseealso otherterm="replication" />
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Directory Services Markup Language (DSML)</glossterm>
+  <glossdef>
+   <para>Standard language to access directory services using XML. DMSL v1
+   defined an XML mapping of LDAP objects, while DSMLv2 maps the LDAP Protocol
+   and data model to XML.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Distinguished name (DN)</glossterm>
+  <glossdef>
+   <para>Fully qualified name for a directory entry, such as
+   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>, built by
+   concatenating the entry RDN (<literal>uid=bjensen</literal>) with the DN of
+   the parent entry (<literal>ou=People,dc=example,dc=com</literal>).</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Dynamic group</glossterm>
+  <glossdef>
+   <para>Group that specifies members using LDAP URLs.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="entry">
+  <glossterm>Entry</glossterm>
+  <glossdef>
+   <para>As generic and hierarchical data stores, directories always contain
+   different kinds of entries, either nodes (or containers) or leaf entries. An
+   entry is an object in the directory, defined by one of more object classes
+   and their related attributes. At startup, OpenDJ reports the number of entries
+   contained in each suffix.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Entry cache</glossterm>
+  <glossdef>
+   <para>Memory space set aside to hold frequently-accessed, large entries,
+   such as static groups.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="equality-index">
+  <glossterm>Equality index</glossterm>
+  <glossdef>
+   <para>Index used to match values that correspond exactly (though generally
+   without case sensitivity) to the value provided in the search filter.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm><filename>errors</filename> log</glossterm>
+  <glossdef>
+   <para>Directory server log tracing server events, error conditions, and
+   warnings, categorized and identified by severity.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Export</glossterm>
+  <glossdef>
+   <para>Save directory data in an LDIF file.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Extended operation</glossterm>
+  <glossdef>
+   <para>Additional LDAP operation not included in the original standards.
+   OpenDJ supports several standard LDAP extended operations.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="extensible-match-index">
+  <glossterm>Extensible match index</glossterm>
+  <glossdef>
+   <para>Index for a matching rule other than approximate, equality, ordering,
+   presence, substring or VLV, such as an index for generalized time.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>External user</glossterm>
+  <glossdef>
+   <para>An individual that accesses company resources or services but is not
+   working for the company. Typically a customer or partner.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="filter">
+  <glossterm>Filter</glossterm>
+  <glossdef>
+   <para>An LDAP search filter is an expression that the server uses to find
+   entries that match a search request, such as
+   <literal>(mail=*@example.com)</literal> to match all entries having an
+   email address in the example.com domain.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Group</glossterm>
+  <glossdef>
+   <para>Entry identifying a set of members whose entries are also in the
+   directory.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Idle time limit</glossterm>
+  <glossdef>
+   <para>Defines how long OpenDJ allows idle connections to remain open.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Import</glossterm>
+  <glossdef>
+   <para>Read in and index directory data from an LDIF file.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Inactive user</glossterm>
+  <glossdef>
+   <para>An entry in the directory that once represented a user but which is
+   now no longer able to be authenticated.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Index</glossterm>
+  <glossdef>
+   <para>Directory server backend feature to allow quick lookup of entries
+   based on their attribute values.</para>
+   <glossseealso otherterm="approximate-index" />
+   <glossseealso otherterm="equality-index" />
+   <glossseealso otherterm="extensible-match-index" />
+   <glossseealso otherterm="ordering-index" />
+   <glossseealso otherterm="presence-index" />
+   <glossseealso otherterm="substring-index" />
+   <glossseealso otherterm="vlv-index" />
+   <glossseealso otherterm="index-entry-limit" />
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="index-entry-limit">
+  <glossterm>Index entry limit</glossterm>
+  <glossdef>
+   <para>When the number of entries that an index key points to exceeds the
+   index entry limit, OpenDJ stops maintaining the list of entries for that
+   index key.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Internal user</glossterm>
+  <glossdef>
+   <para>An individual who works within the company either as an employee or as
+   a contractor.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>LDAP Data Interchange Format (LDIF)</glossterm>
+  <glossdef>
+   <para>Standard, portable, text-based representation of directory content.
+   See <link xlink:href="http://tools.ietf.org/html/rfc2849"
+   xlink:show="new">RFC 2849</link>.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>LDAP URL</glossterm>
+  <glossdef>
+   <para>LDAP Uniform Resource Locator such as <literal
+   >ldap://directory.example.com:389/dc=example,dc=com??sub?(uid=bjensen)</literal>.
+   See <link xlink:href="http://tools.ietf.org/html/rfc2255"
+   xlink:show="new">RFC 2255</link>.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>LDAPS</glossterm>
+  <glossdef>
+   <para>LDAP over SSL.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Lightweight Directory Access Protocol (LDAP)</glossterm>
+  <glossdef>
+   <para>A simple and standardized network protocol used by applications to
+   connect to a directory, search for objects and add, edit or remove
+   objects. See <link xlink:href="http://tools.ietf.org/html/rfc4510"
+   xlink:show="new">RFC 4510</link>.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Lookthrough limit</glossterm>
+  <glossdef>
+   <para>Defines the maximum number of candidate entries OpenDJ considers when
+   processing a search.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Matching rule</glossterm>
+  <glossdef>
+   <para>Defines rules for performing matching operations against assertion
+   values. Matching rules are frequently associated with an attribute syntax
+   and are used to compare values according to that syntax. For example, the
+   <literal>distinguishedNameEqualityMatch</literal> matching rule can be used
+   to determine whether two DNs are equal and can ignore unnecessary spaces
+   around commas and equal signs, differences in capitalization in attribute
+   names, and so on.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Modify DN operation</glossterm>
+  <glossdef>
+   <para>LDAP modification operation to request that the server change the
+   distinguished name of an entry.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Modify operation</glossterm>
+  <glossdef>
+   <para>LDAP modification operation to request that the server change one or
+   more attributes of an entry.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Naming context</glossterm>
+  <glossdef>
+   <para>Base DN under which client applications can look for user data.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Object class</glossterm>
+  <glossdef>
+   <para>Identifies entries that share certain characteristics. Most commonly,
+   an entry's object classes define the attributes that must and may be present
+   on the entry. Object classes are stored on entries as values of the
+   <literal>objectClass</literal> attribute. Object classes are defined in the
+   directory schema, and can be abstract (defining characteristics for other
+   object classes to inherit), structural (defining the basic structure of an
+   entry, one structural inheritance per entry), or auxiliary (for decorating
+   entries already having a structural object class with other required and
+   optional attributes).</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Object identifier (OID)</glossterm>
+  <glossdef>
+   <para>String that uniquely identifies an object, such as
+   <literal>0.9.2342.19200300.100.1.1</literal> for the user ID attribute or
+   <literal>1.3.6.1.4.1.1466.115.121.1.15</literal> for
+   <literal>DirectoryString</literal> syntax. </para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Operational attribute</glossterm>
+  <glossdef>
+   <para>An attribute that has a special (operational) meaning for the
+   directory server, such as <literal>pwdPolicySubentry</literal> or
+   <literal>modifyTimestamp</literal>.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="ordering-index">
+  <glossterm>Ordering index</glossterm>
+  <glossdef>
+   <para>Index used to match values for a filter that specifies a range.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Password policy</glossterm>
+  <glossdef>
+   <para>A set of rules regarding what sequence of characters constitutes an 
+   acceptable password. Acceptable passwords are generally those that would be
+   too difficult for another user or an automated program to guess and thereby
+   defeat the password mechanism. Password policies may require a minimum
+   length, a mixture of different types of characters (lowercase, uppercase,
+   digits, punctuation marks, and so forth), avoiding dictionary words or
+   passwords based on the user's name, and so forth. Password policies may
+   also require that users not reuse old passwords and that users change their
+   passwords regularly.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Password reset</glossterm>
+  <glossdef>
+   <para>Password change performed by a user other than the user who owns the
+   entry.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Password storage scheme</glossterm>
+  <glossdef>
+   <para>Mechanism for encoding user passwords stored on directory entries.
+   OpenDJ implements a number of password storage schemes.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Password validator</glossterm>
+  <glossdef>
+   <para>Mechanism for determining whether a proposed password is acceptable
+   for use. OpenDJ implements a number of password validators.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="presence-index">
+  <glossterm>Presence index</glossterm>
+  <glossdef>
+   <para>Index used to match the fact that an attribute is present on the entry,
+   regardless of the value.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Principal</glossterm>
+  <glossdef>
+   <para>Entity that can be authenticated, such as a user, a device, or an
+   application.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="privilege">
+  <glossterm>Privilege</glossterm>
+  <glossdef>
+   <para>Server configuration settings controlling access to administrative
+   operations such as exporting and importing data, restarting the server,
+   performing password reset, and changing the server configuration.</para>
+   <para>Privileges are implemented independently from access control
+   instructions (ACI), which apply to LDAP operations and user data.</para>
+   <glossseealso otherterm="access-control-instruction" />
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Referential integrity</glossterm>
+  <glossdef>
+   <para>Ensuring that group membership remains consistent following changes
+   to member entries.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm><filename>referint</filename> log</glossterm>
+  <glossdef>
+   <para>Directory server log tracing referential integrity events, with
+   entries similar to the errors log.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Referral</glossterm>
+  <glossdef>
+   <para>Reference to another directory location, which can be another
+   directory server running elsewhere or another container on the same server,
+   where the current operation can be processed.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Relative distinguished name (RDN)</glossterm>
+  <glossdef>
+   <para>Initial portion of a DN that distinguishes the entry from all other
+   entries at the same level, such as <literal>uid=bjensen</literal> in
+   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="replication">
+  <glossterm>Replication</glossterm>
+  <glossdef>
+   <para>Data synchronization that ensures all directory servers participating
+   eventually share a consistent set of directory data.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm><filename>replication</filename> log</glossterm>
+  <glossdef>
+   <para>Directory server log tracing replication events, with entries similar
+   to the errors log.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="root-dn">
+  <glossterm>Root DN</glossterm>
+  <glossdef>
+   <para>A directory superuser, whose account is specific to a directory server
+   under <literal>cn=Root DNs,cn=config</literal>.</para>
+   <para>The default Root DN is Directory Manager. You can create additional
+   Root DN accounts, each with different administrative privileges.</para>
+   <glossseealso otherterm="directory-manager" />
+   <glossseealso otherterm="privilege" />
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Root DSE</glossterm>
+  <glossdef>
+   <para>The directory entry with distinguished name "" (empty string), where
+   DSE stands for DSA-Specific Entry. DSA stands for Directory Server Agent,
+   a single directory server. The root DSE serves to expose information over
+   LDAP about what the directory server supports in terms of LDAP controls,
+   auth password schemes, SASL mechanisms, LDAP protocol versions, naming
+   contexts, features, LDAP extended operations, and so forth.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Schema</glossterm>
+  <glossdef>
+   <para>LDAP schema defines the object classes, attributes types, attribute
+   value syntaxes, matching rules and so on that constrain entries held by the
+   directory server.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Search filter</glossterm>
+  <glossdef>
+   <para>See <xref linkend="filter"/>.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Search operation</glossterm>
+  <glossdef>
+   <para>LDAP lookup operation where a client requests that the server return
+   entries based on an LDAP filter and a base DN under which to search.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Simple authentication</glossterm>
+  <glossdef>
+   <para>Bind operation performed with a user's entry DN and user's password.
+   Use simple authentication only if the network connection is secure.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Size limit</glossterm>
+  <glossdef>
+   <para>Sets the maximum number of entries returned for a search.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Static group</glossterm>
+  <glossdef>
+   <para>Group that enumerates member entries.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Subentry</glossterm>
+  <glossdef>
+   <para>An entry, such as a password policy entry, that resides with the user
+   data but holds operational data, and is not visible in search results unless
+   explicitly requested.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="substring-index">
+  <glossterm>Substring index</glossterm>
+  <glossdef>
+   <para>Index used to match values specified with wildcards in the filter.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Task</glossterm>
+  <glossdef>
+   <para>Mechanism to provide remote access to directory server administrative
+   functions. OpenDJ supports tasks to backup and restore backends, to import
+   and export LDIF files, and to stop and restart the server. </para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Time limit</glossterm>
+  <glossdef>
+   <para>Defines the maximum processing time OpenDJ devotes to a search
+   operation.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Unbind operation</glossterm>
+  <glossdef>
+   <para>LDAP operation to release resources at the end of a session.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Unindexed search</glossterm>
+  <glossdef>
+   <para>Search operation for which no matching index is available. If no
+   indexes are applicable, then the directory server potentially has to go
+   through all entries to look for candidate matches. For this reason, the
+   <literal>unindexed-search</literal> privilege, allowing users to request
+   searches for which no applicable index exists, is reserved for the directory
+   manager by default.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>User</glossterm>
+  <glossdef>
+   <para>An entry that represents an individual that can be authenticated
+   through credentials contained or referenced by its attributes. A user may
+   represent an internal user or an external user, and may be an active user
+   or an inactive user.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>User attribute</glossterm>
+  <glossdef>
+   <para>An attribute for storing user data on a directory entry such as
+   <literal>mail</literal> or <literal>givenname</literal>.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Virtual attribute</glossterm>
+  <glossdef>
+   <para>An attribute with dynamically generated values that appear in entries
+   but are not persistently stored in the backend.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Virtual directory</glossterm>
+  <glossdef>
+   <para>An application that exposes a consolidated view of multiple physical
+   directories over an LDAP interface. Consumers of the directory information
+   connect to the virtual directory's LDAP service. Behind the scenes, requests
+   for information and updates to the directory are sent to one or more physical
+   directories where the actual information resides. Virtual directories enable
+   organizations to create a consolidated view of information that for legal or
+   technical reasons cannot be consolidated into a single physical copy.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="vlv-index">
+  <glossterm>Virtual list view (VLV) index</glossterm>
+  <glossdef>
+   <para>Browsing index designed to help the directory server respond to client
+   applications that need for example to browse through a long list of results
+   a page at a time in a GUI.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Virtual static group</glossterm>
+  <glossdef>
+   <para>OpenDJ group that lets applications see dynamic groups as what appear
+   to be static groups.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>X.500</glossterm>
+  <glossdef>
+   <para>A family of standardized protocols for accessing, browsing and
+   maintaining a directory. X.500 is functionally similar to LDAP, but is
+   generally considered to be more complex, and has consequently not been
+   widely adopted.</para>
+  </glossdef>
+ </glossentry>
+</glossary>

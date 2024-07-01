@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<appendix xml:id='appendix-extended-ops'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>LDAP Extended Operations</title>
+ 
+ <para>Extended operations allow additional operations to be defined for
+ services not already available in the protocol</para>
+
+ <para>OpenDJ software supports the following LDAP extended operations.</para>
+ 
+ <variablelist>
+  <varlistentry xml:id="cancel-extended-request">
+   <term>Cancel Extended Request</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Cancel</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.1.8</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3909'>RFC 3909
+    - Lightweight Directory Access Protocol (LDAP) Cancel Operation</link>
+    </para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="get-connection-id-extended-request">
+   <term>Get Connection ID Extended Request</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Get Connection ID</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.6.2</para>
+    <para>OpenDJ extended operation to return the connection ID of the
+    associated client connection. This extended operation is intended for OpenDJ
+    internal use.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="password-modify-extended-request">
+   <term>Password Modify Extended Request</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Password modify</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.4203.1.11.1</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3909'>RFC 3062
+    - LDAP Password Modify Extended Operation</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="password-policy-state-extended-operation">
+   <term>Password Policy State Extended Operation</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Password policy state</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.6.1</para>
+    <para>OpenDJ extended operation to query and update password policy state
+    for a given user entry. This extended operation is intended for OpenDJ
+    internal use.</para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="start-transport-layer-security-extended-request">
+   <term>Start Transport Layer Security Extended Request</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>StartTLS</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.1466.20037</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4511'>RFC 4511
+    - Lightweight Directory Access Protocol (LDAP): The Protocol</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="who-am-i-extended-request">
+   <term>Who am I? Extended Request</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>What am I?</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.4203.1.11.3</para>
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4532'>RFC 4532
+    - Lightweight Directory Access Protocol (LDAP) "Who am I?" Operation</link>
+    </para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+</appendix>

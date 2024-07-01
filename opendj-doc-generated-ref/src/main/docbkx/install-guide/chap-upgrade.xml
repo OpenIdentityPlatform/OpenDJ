@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-upgrade'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Upgrading to OpenDJ <?eval ${docTargetVersion}?></title>
+ <indexterm><primary>Upgrading</primary></indexterm>
+ 
+ <para>This chapter covers upgrade from OpenDJ 2.4.5 and later versions.</para>
+
+ <para>For upgrades from earlier versions, upgrade first to at least OpenDJ
+ 2.4.5, and then follow the procedures in this chapter. See <link xlink:show="new"
+ xlink:href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Installation+Guide#OpenDJInstallationGuide-UpgradingOpenDJDirectoryServer"
+ >Upgrading OpenDJ Directory Server</link> in the OpenDJ Wiki for details on
+ upgrading to OpenDJ 2.4.5 from earlier versions.</para>
+
+ <procedure xml:id="before-you-upgrade">
+  <title>Before You Upgrade</title>
+
+  <step>
+   <para>Prepare to perform the upgrade procedure as the user who owns the
+   OpenDJ server files. </para>
+
+   <para>Make sure you have the credentials to run commands as the user who
+   owns the server.</para>
+  </step>
+
+  <step>
+   <xinclude:include href="../shared/itemizedlist-download.xml" />
+  </step>
+
+  <step>
+   <para>In order to revert if the upgrade fails, make sure you perform a
+   full backup of your current OpenDJ installation.</para>
+
+   <para>It might be most expedient to back up the file system directory where
+   the current OpenDJ server is installed as part of the upgrade process.</para>
+
+   <para>Alternatively, see <link xlink:href="admin-guide#chap-backup-restore"
+   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>Backing Up &amp; Restoring Data</citetitle></link> for
+   instructions.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="upgrade-zip">
+  <title>To Upgrade an OpenDJ Directory Server</title>
+
+  <para>To upgrade OpenDJ directory server installed from native packages (.deb,
+  .rpm), use the command-line package management tools provided by the system.</para>
+
+  <para>The following steps describe how to upgrade OpenDJ directory server
+  installed from the cross-platform (.zip) delivery.</para>
+
+  <step>
+   <para>Login as the user who owns the current OpenDJ server.</para>
+  </step>
+
+  <step>
+   <para>Stop the current OpenDJ server.</para>
+  </step>
+
+  <step performance="optional">
+   <para>If you have not already backed up the current OpenDJ server, make a
+   back up copy of the directory where OpenDJ is installed.</para>
+  </step>
+
+  <step performance="optional">
+   <para>If OpenDJ is currently installed in a directory such as
+   <filename>OpenDJ-2.4.5</filename>, you can change the directory name to
+   <filename>opendj</filename> to make it easier to unpack subsequent .zip
+   deliveries for future upgrades.</para>
+  </step>
+
+  <step>
+   <para>Unpack the new files from the .zip delivery over the current server
+   files.</para>
+
+   <para>If your directory is not named <filename>opendj</filename>, then
+   you can first unpack the files, then copy everything in the
+   <filename>opendj</filename> over the current server files.</para>
+  </step>
+
+  <step>
+   <para>Run the <command>upgrade</command> command to bring OpenDJ
+   configuration and application data up to date with the new binary and
+   script files that you copied over the current server files.</para>
+
+   <para>By default, the <command>upgrade</command> command requests
+   confirmation before making important configuration changes. You can use
+   the <option>--no-prompt</option> option to run the command
+   non-interactively, with the <option>--acceptLicense</option> option to
+   accept the license terms non-interactively.</para>
+
+   <para>When using the <option>--no-prompt</option> option, if the
+   <command>upgrade</command> command cannot complete because it requires
+   confirmation for a potentially very long or critical task, then it exits
+   with an error and a message about how to finish making the changes. You can
+   add the <option>--force</option> option to force a non-interactive upgrade
+   to continue in this case, also performing long running and critical
+   tasks.</para>
+  </step>
+
+  <step>
+   <para>When you upgrade from OpenDJ 2.5.0-Xpress1, you must rebuild the
+   <literal>ds-sync-hist</literal> ordering index before you restart the
+   server, as indicated in the message from the upgrade tool.</para>
+
+   <programlisting language="none"
+>  OpenDJ 2.5.0-Xpress1 introduced a regression in the ds-sync-hist ordering
+  index. This index must be rebuilt after the upgrade has completed and before
+  restarting OpenDJ. Do you wish to continue? (yes/no) [no]: yes</programlisting>
+
+   <para>To rebuild the index, use the <command>rebuild-index</command>
+   command after upgrade but before starting the server as in the following
+   example.</para>
+
+   <screen>$ ./opendj/bin/rebuild-index --baseDN dc=example,dc=com --index ds-sync-hist
+... msg=Rebuild of index(es) ds-sync-hist started ...
+... msg=Rebuild complete. Processed XXX entries in YYY seconds...</screen>
+  </step>
+
+  <step>
+   <para>Start the upgraded OpenDJ server.</para>
+
+   <para>At this point the upgrade process is complete. See the resulting
+   <filename>upgrade.log</filename> file for a full list of operations
+   performed.</para>
+  </step>
+ </procedure>
+
+ <example xml:id="upgrade-zip-example"><?dbfo keep-together="auto"?>
+  <title>Upgrading From OpenDJ 2.4.5</title>
+
+  <para>The following example upgrades an OpenDJ 2.4.5 directory server
+  installed in <filename>/path/to/OpenDJ-2.4.5</filename>, backing up the
+  current server directory in case the upgrade process fails, and changing
+  the directory name to <filename>/path/to/opendj</filename> to simplify
+  future upgrades.</para>
+
+  <xinclude:include href="../shared/screen-upgrade.xml" />
+ </example>
+
+ <procedure xml:id="upgrade-repl">
+  <title>To Upgrade Replicated Servers</title>
+  <step>
+   <para>Upgrade each server sequentially, as described above.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="upgrade-dsml">
+  <title>To Upgrade OpenDJ DSML Gateway</title>
+  <step>
+   <para>Replace the gateway web application with the newer version,
+   as for a fresh installation.</para>
+  </step>
+ </procedure>
+
+</chapter>

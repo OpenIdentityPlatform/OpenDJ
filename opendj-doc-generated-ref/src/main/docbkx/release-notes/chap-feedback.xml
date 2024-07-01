@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2014 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-feedback'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <title>How to Report Problems &amp; Provide Feedback</title>
+
+ <para>If you have questions regarding OpenDJ which are not answered by the
+ documentation, there is a mailing list which can be found at
+ <link xlink:href="https://lists.forgerock.org/mailman/listinfo/opendj"
+ xlink:show="new" /> where you are likely to find an answer.</para>
+
+ <note xml:id="feedback-not-changed">
+  <para>
+   The content of this chapter has not changed in this release.
+  </para>
+ </note>
+
+ <para>If you have found issues or reproducible bugs within OpenDJ
+ <?eval ${docTargetVersion}?>, report them in the <link xlink:show="new"
+ xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ">OpenDJ issue
+ tracker</link>.</para>
+
+ <para>When requesting help with a problem, please include the following
+ information:</para>
+
+ <itemizedlist>
+  <listitem>
+   <para>Description of the problem, including when the problem occurs and
+   its impact on your operation</para>
+  </listitem>
+  <listitem>
+   <para>Description of the environment, including the following information:</para>
+   <itemizedlist>
+    <listitem>
+     <para>Machine type</para>
+    </listitem>
+    <listitem>
+     <para>Operating system &amp; version</para>
+    </listitem>
+    <listitem>
+     <para>Storage type &amp; version</para>
+    </listitem>
+    <listitem>
+     <para>Java version</para>
+    </listitem>
+    <listitem>
+     <para>Web container &amp; version (if applicable)</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ release version</para>
+    </listitem>
+    <listitem>
+     <para>Any patches or other software that might be affecting the problem</para>
+    </listitem>
+   </itemizedlist>
+  </listitem>
+  <listitem>
+   <para>Steps to reproduce the problem</para>
+  </listitem>
+  <listitem>
+   <para>Any relevant access and error logs, stack traces, or core dumps</para>
+  </listitem>
+ </itemizedlist>
+</chapter>

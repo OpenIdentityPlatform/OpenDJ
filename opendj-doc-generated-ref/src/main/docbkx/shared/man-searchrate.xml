@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='searchrate-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>searchrate</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${currentSDKversion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>searchrate</refname>
+  <refpurpose>measure search throughput and response time</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>searchrate</command>
+   <arg choice="req">options</arg>
+   <arg choice="opt">filter format string</arg>
+   <arg choice="opt" rep="repeat">attributes</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to measure search throughput and response time
+  of a directory service using user-defined searches.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-a, --dereferencePolicy {dereferencePolicy}</option></term>
+    <listitem>
+     <para>Alias dereference policy ('never', 'always', 'search', or 'find')</para>
+     <para>Default value: never</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-A, --asynchronous</option></term>
+    <listitem>
+     <para>Use asynchronous mode and don't wait for results before sending the
+     next request</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-b, --baseDN {baseDN}</option></term>
+    <listitem>
+     <para>Base DN format string</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-c, --numConnections {numConnections}</option></term>
+    <listitem>
+     <para>Number of connections</para>
+     <para>Default value: 1</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-e, --percentile {percentile}</option></term>
+    <listitem>
+     <para>Calculate max response time for a percentile of operations</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-f, --keepConnectionsOpen</option></term>
+    <listitem>
+     <para>Keep connections open</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-F, --noRebind</option></term>
+    <listitem>
+     <para>Keep connections open and don't rebind</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-g, --argument {generator function or static string}</option></term>
+    <listitem>
+     <para>Argument used to evaluate the Java style format strings in program
+     parameters (Base DN, Search Filter). The set of all arguments provided
+     form the the argument list in order. Besides static string arguments, they
+     can be generated per iteration with the following functions:</para>
+    <variablelist>
+     <varlistentry>
+      <term>"inc({filename})"</term>
+      <listitem><para>Consecutive, incremental line from file</para></listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>"inc({min},{max})"</term>
+      <listitem><para>Consecutive, incremental number</para></listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>"rand({filename})"</term>
+      <listitem><para>Random line from file</para></listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>"rand({min},{max})"</term>
+      <listitem><para>Random number</para></listitem>
+     </varlistentry>
+     <varlistentry>
+      <term>"randstr({length},<replaceable>charSet</replaceable>)"</term>
+      <listitem><para>Random string of specified length and optionally from
+      characters in the charSet string. A range of character can be specified
+      with [start-end] charSet notation. If no charSet is specified,
+      the default charSet of [A-Z][a-z][0-9] will be used.</para></listitem>
+     </varlistentry>
+    </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-i, --statInterval {statInterval}</option></term>
+    <listitem>
+     <para>Display results each specified number of seconds</para>
+     <para>Default value: 5</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-m, --maxIterations {maxIterations}</option></term>
+    <listitem>
+     <para>Max iterations, 0 for unlimited</para>
+     <para>Default value: 0</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-M, --targetThroughput {targetThroughput}</option></term>
+    <listitem>
+     <para>Target average throughput to achieve</para>
+     <para>Default value: 0</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-s, --searchScope {searchScope}</option></term>
+    <listitem>
+     <para>Search scope ('base', 'one', 'sub', or 'subordinate')</para>
+     <para>Default value: sub</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-S, --scriptFriendly</option></term>
+    <listitem>
+     <para>Use script-friendly mode</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-t, --numConcurrentTasks {numConcurrentTasks}</option></term>
+    <listitem>
+     <para>Number of concurrent tasks per connection</para>
+     <para>Default value: 1</para>
+    </listitem>
+   </varlistentry>   
+  </variablelist>
+  <refsect2>
+   <title>LDAP Connection Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-D, --bindDN {bindDN}</option></term>
+     <listitem>
+      <para>DN to use to bind to the server</para>
+      <para>Default value: cn=Directory Manager</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-E, --reportAuthzID</option></term>
+     <listitem>
+      <para>Use the authorization identity control</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-h, --hostname {host}</option></term>
+     <listitem>
+      <para>Directory server hostname or IP address</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-j, --bindPasswordFile {bindPasswordFile}</option></term>
+     <listitem>
+      <para>Bind password file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-K, --keyStorePath {keyStorePath}</option></term>
+     <listitem>
+      <para> Certificate key store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-N, --certNickname {nickname}</option></term>
+     <listitem>
+      <para>Nickname of certificate for SSL client authentication</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-o, --saslOption {name=value}</option></term>
+     <listitem>
+      <para>SASL bind options</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-p, --port {port}</option></term>
+     <listitem>
+      <para>Directory server port number</para>
+      <para>Default value: 389</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-P, --trustStorePath {trustStorePath}</option></term>
+     <listitem>
+      <para>Certificate trust store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-q, --useStartTLS</option></term>
+     <listitem>
+      <para>Use StartTLS to secure communication with the server</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-T, --trustStorePassword {trustStorePassword}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-u, --keyStorePasswordFile {keyStorePasswordFile}</option></term>
+     <listitem>
+      <para>Certificate key store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-U, --trustStorePasswordFile {path}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--usePasswordPolicyControl</option></term>
+     <listitem>
+      <para>Use the password policy request control</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-w, --bindPassword {bindPassword}</option></term>
+     <listitem>
+      <para>Password to use to bind to the server</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-W, --keyStorePassword {keyStorePassword}</option></term>
+     <listitem>
+      <para>Certificate key store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-X, --trustAll</option></term>
+     <listitem>
+      <para>Trust all server SSL certificates</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-Z, --useSSL</option></term>
+     <listitem>
+      <para>Use SSL for secure communication with the server</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>Utility Input/Output Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--noPropertiesFile</option></term>
+     <listitem>
+      <para>No properties file will be used to get default command line
+      argument values</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--propertiesFilePath {propertiesFilePath}</option></term>
+     <listitem>
+      <para>Path to the file containing default property values used for
+      command line arguments</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-v, --verbose</option></term>
+     <listitem>
+      <para>Use verbose mode</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-V, --version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>89</term>
+     <listitem>
+      <para>An error occurred while parsing the command-line arguments.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example demonstrates measuring search performance.</para>
+  <screen>$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" &gt; names.txt
+$ searchrate -p 1389 -b dc=example,dc=com -A -F -c 4 -t 4
+ -g "rand(names.txt)" "(uid=%s)"
+-------------------------------------------------------------------------------
+     Throughput                            Response Time                       
+   (ops/second)                           (milliseconds)                       
+recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Entries/Srch
+-------------------------------------------------------------------------------
+1475.9   1475.9   0.423    0.423  6.938  126.236 126.236      0.0           1.0
+2596.5   2038.4   0.254    0.315  6.866  12.980  126.236      0.0           1.0
+3210.7   2428.2   0.205    0.267  5.733  11.710  126.236      0.0           1.0
+3080.5   2591.0   0.215    0.252  5.733  10.541  126.236      0.0           1.0
+3236.9   2720.1   0.203    0.240  5.258  10.514  126.236      0.0           1.0
+3181.1   2796.8   0.207    0.234  5.258  10.384  126.236      0.0           1.0
+3202.5   2854.8   0.206    0.229  4.825  10.384  126.236      0.0           1.0
+^C</screen>
+ </refsect1>
+</refentry>

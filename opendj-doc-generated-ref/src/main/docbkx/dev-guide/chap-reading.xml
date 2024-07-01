@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-reading'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Searching &amp; Comparing Directory Data</title>
+
+ <para>Traditionally directories excel at serving read requests. This chapter
+ covers the read (search and compare) capabilities that OpenDJ LDAP Java SDK
+ provides. The data used in examples here is <link xlink:show="new"
+ xlink:href="http://opendj.forgerock.org/Example.ldif">available
+ online</link>.</para>
+
+ <section xml:id="about-searching">
+  <title>About Searching</title>
+  <indexterm>
+   <primary>Searches</primary>
+  </indexterm>
+
+  <itemizedlist>
+   <para>An LDAP search looks up entries based on the following
+   parameters.</para>
+   <listitem>
+    <para>A <firstterm>filter</firstterm> that indicates which attribute values
+    to match</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>base DN</firstterm> that specifies where in the
+    directory information tree to look for matches</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>scope</firstterm> that defines how far to go under
+    the base DN</para>
+   </listitem>
+   <listitem>
+    <para>A list of attributes to fetch for an entry when a match is
+    found</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>For example, imagine you must write an application where users login
+  using their email address and a password. After the user logs in, your
+  application displays the user's full name so it is obvious who is logged in.
+  Your application is supposed to go to the user directory both for
+  authentication, and also to read user profile information. You are told the
+  user directory stores user profile entries under base DN
+  <literal>ou=People,dc=example,dc=com</literal>, that email addresses are
+  stored on the standard <literal>mail</literal> attribute, and full names are
+  store on the standard <literal>cn</literal> attribute.</para>
+  
+  <para>You figure out how to authenticate from the chapter on <link
+  xlink:href="dev-guide#chap-authenticating"
+  xlink:role="http://docbook.org/xlink/role/olink">authentication</link>,
+  in which you learn you need a bind DN and a password to do simple
+  authentication. But how do you find the bind DN given the email? How do you
+  get the full name?</para>
+  
+  <para>The answer to both questions is that you do an LDAP search for the
+  user's entry, which has the DN that you use to bind, and you have the server
+  fetch the <literal>cn</literal> attribute in the results. Your search uses
+  the following parameters.</para>
+  <itemizedlist>
+   <listitem>
+    <para>The filter is
+    <literal>(mail=<replaceable>emailAddress</replaceable>)</literal>, where
+    <replaceable>emailAddress</replaceable> is the email address the user
+    provided.</para>
+   </listitem>
+   <listitem>
+    <para>The base DN is the one given to you,
+    <literal>ou=People,dc=example,dc=com</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>For the scope, you figure the user entry is somewhere under the base
+    DN, so you opt to search the whole subtree.</para>
+   </listitem>
+   <listitem>
+    <para>The attribute to fetch is <literal>cn</literal>.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>The following code excerpt demonstrates how this might be done in a
+  minimal command-line program.</para>
+
+  <programlisting language="java">// Prompt for mail and password.
+Console c = System.console();
+if (c == null) {
+    System.err.println("No console.");
+    System.exit(1);
+}
+
+String mail = c.readLine("Email address: ");
+char[] password = c.readPassword("Password: ");
+
+// Search using mail address, and then bind with the DN and password.
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host,
+        port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+
+    // No explicit bind yet so we remain anonymous for now.
+    SearchResultEntry entry = connection.searchSingleEntry(baseDN,
+            SearchScope.WHOLE_SUBTREE, "(mail=" + mail + ")", "cn");
+    DN bindDN = entry.getName();
+    connection.bind(bindDN.toString(), password);
+
+    String cn = entry.getAttribute("cn").firstValueAsString();
+    System.out.println("Hello, " + cn + "!");
+} catch (final ErrorResultException e) {
+    System.err.println("Failed to bind.");
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchBind.html"
+  xlink:show="new">SearchBind.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+
+ <section xml:id="basedn-and-scope">
+  <title>Setting Search Base &amp; Scope</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Base</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Scope</secondary>
+  </indexterm>
+
+  <para>Directory servers organize entries somewhat like a file system.
+  Directory data is often depicted as an upside-down tree.</para>
+
+  <mediaobject xml:id="figure-ldap-tree">
+   <alt>Directory data is often depicted as an upside-down tree.</alt>
+   <imageobject>
+    <imagedata fileref="images/ldap-tree.png" format="PNG" />
+   </imageobject>
+   <textobject>
+    <para>This figure shows three levels, the base DN for the suffix, a couple
+    of organizational units, and three user entries.</para>
+   </textobject>
+  </mediaobject>
+
+  <para>In the figure shown above, entries are represented by the relevant
+  parts of their DNs. The entry with DN <literal>dc=example,dc=com</literal>
+  is the base entry for a suffix. Under the base entry, you see two
+  organizational units, one for people, <literal>ou=People</literal>, the other
+  for groups, <literal>ou=Groups</literal>. The entries for people include
+  those of Babs Jensen, Kirsten Vaughan, and Sam Carter.</para>
+
+  <para>When you are searching for a person's entry somewhere under
+  <literal>dc=example,dc=com</literal>, you can start from
+  <literal>dc=example,dc=com</literal>, from
+  <literal>ou=People,dc=example,dc=com</literal>, or if you have enough
+  information to pinpoint the user entry and only want to look up another
+  attribute value for example, then directly from the entry such as
+  <literal>cn=Babs Jensen,ou=People,dc=example,dc=com</literal>. The DN of
+  the entry where you choose to start the search is the base DN for the
+  search.</para>
+
+  <itemizedlist>
+   <para>When searching, you also define the scope. Scope defines what entries
+   the server considers when checking for entries that match your search.</para>
+   <listitem>
+    <para>For <literal>SearchScope.BASE_OBJECT</literal> the server considers
+    only the base entry.</para>
+    <para>This is the scope you use if you know the full DN of the object
+    that interests you. For example, if your base DN points to Babs Jensen's
+    entry, <literal>cn=Babs Jensen,ou=People,dc=example,dc=com</literal>, and
+    you want to read some of Babs's attributes, you would set scope to
+    <literal>SearchScope.BASE_OBJECT</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>For <literal>SearchScope.SINGLE_LEVEL</literal> the server considers
+    all entries directly below the base entry.</para>
+    <para>You use this scope if for example you want to discover organizational
+    units under <literal>dc=example,dc=com</literal>, or if you want to find
+    people's entries and you know they are immediately under
+    <literal>ou=People,dc=example,dc=com</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>For <literal>SearchScope.SUBORDINATES</literal> the server considers
+    all entries below the base entry.</para>
+    <para>This scope can be useful if you know that the base DN for your search
+    is an entry that you do not want to match.</para>
+   </listitem>
+   <listitem>
+    <para>For <literal>SearchScope.WHOLE_SUBTREE</literal> (default) the server
+    considers the base entry and all entries below.</para>
+   </listitem>
+  </itemizedlist>
+
+  <para>In addition to a base DN and scope, a search request also calls for a
+  search filter.</para>
+ </section>
+
+ <section xml:id="about-filters">
+  <title>Working With Search Filters</title>
+  <indexterm>
+   <primary>Filters</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Filters</secondary>
+  </indexterm>
+
+  <para>When you look someone up in the telephone directory, you use the value
+  of one attribute of a person's entry (last name), to recover the person's
+  directory entry, which has other attributes (phone number, address). LDAP
+  works the same way. In LDAP, search requests identify both the scope of the
+  directory entries to consider (for example, all people or all organizations),
+  and also the entries to retrieve based on some attribute value (for example,
+  surname, mail address, phone number, or something else). The way you express
+  the attribute value(s) to match is by using a search filter.</para>
+
+  <para>LDAP search filters define what entries actually match your request.
+  For example, the following simple equality filter says, "Match all entries
+  that have a surname attribute (sn) value equivalent to Jensen."</para>
+
+  <literallayout class="monospaced">(sn=Jensen)</literallayout>
+
+  <para>When you pass the directory server this filter as part of your search
+  request, the directory server checks the entries in scope for your search to
+  see whether they match.<footnote><para>In fact, the directory server probably
+  checks an index first, and might not even accept search requests unless it
+  can use indexes to match your filter rather than checking all entries in
+  scope.</para></footnote> If the directory server finds entries that match,
+  it returns those entries as it finds them.</para>
+
+  <para>The example, <literal>(sn=Jensen)</literal>, shows a string
+  representation of the search filter. The OpenDJ LDAP SDK lets you express
+  your filters as strings, or as <literal>Filter</literal> objects. In both
+  cases, the SDK translates the strings and objects into the binary
+  representation sent to the server over the network.</para>
+
+  <para>Equality is just one of the types of comparisons available in LDAP
+  filters. Comparison operators include the following.</para>
+
+  <xinclude:include href="../shared/table-filter-operators.xml" />
+
+  <para>When taking user input, take care to protect against users providing
+  input that has unintended consequences. OpenDJ SDK offers several Filter
+  methods to help you. First, you can use strongly typed construction methods
+  such as <literal>Filter.equality()</literal>.</para>
+
+  <programlisting language="java">String userInput = getUserInput();
+Filter filter = Filter.equality("cn", userInput);
+
+// Invoking filter.toString() with input of "*" results in a filter
+// string "(cn=\2A)".</programlisting>
+
+  <para>You can also let the SDK escape user input by using a template with
+  <literal>Filter.format()</literal> as in the following example.</para>
+
+  <programlisting language="java">String template = "(|(cn=%s)(uid=user.%s))";
+String[] userInput = getUserInput();
+Filter filter = Filter.format(template, userInput[0], userInput[1]);</programlisting>
+
+  <para>Finally, you can explicitly escape user input with
+  <literal>Filter.escapeAssertionValue()</literal>.</para>
+
+  <programlisting language="java">String baseDN = "ou=people,dc=example,dc=com";
+String userInput = getUserInput();
+
+// Filter.escapeAssertionValue() transforms user input of "*" to "\2A".
+SearchRequest request = Requests.newSearchRequest(
+        baseDN, SearchScope.WHOLE_SUBTREE,
+        "(cn=" + Filter.escapeAssertionValue(userInput) + "*)", "cn", "mail");</programlisting>
+ </section>
+
+ <section xml:id="send-search-request">
+  <title>Sending a Search Request</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Synchronous</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+  </indexterm>
+
+  <para>As shown in the following excerpt with a synchronous connection, you
+  get a <literal>Connection</literal> to the directory server from an
+  <literal>LDAPConnectionFactory</literal>.</para>
+
+  <programlisting language="java"
+>final LDAPConnectionFactory factory = new LDAPConnectionFactory(host,
+        port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+
+    // Do something with the connection...
+} catch (Exception e) {
+    // Handle exceptions...
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+  <para>The <literal>Connection</literal> gives you <literal>search()</literal>
+  methods that either take parameters in the style of the
+  <command>ldapsearch</command> command, or that take a
+  <literal>SearchRequest</literal> object. If you are sure that the search only
+  returns a single entry, you can read the entry with the
+  <literal>searchSingleEntry()</literal> methods. If you have the distinguished
+  name, you can use <literal>readEntry()</literal> directly.</para>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
+  xlink:show="new">Search.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+
+ <section xml:id="get-search-results">
+  <title>Getting Search Results</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+
+  <para>Depending on the method you use to search, you handle results in
+  different ways.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>You can get a <literal>ConnectionEntryReader</literal>, and iterate
+    over the reader to access individual search results.</para>
+
+    <programlisting language="java">Connection connection = ...;
+ConnectionEntryReader reader = connection.search("dc=example,dc=com",
+    SearchScope.WHOLE_SUBTREE, "(objectClass=person)");
+try
+{
+  while (reader.hasNext())
+  {
+    if (reader.isEntry())
+    {
+      SearchResultEntry entry = reader.readEntry();
+
+      // Handle entry...
+    }
+    else
+    {
+      SearchResultReference ref = reader.readReference();
+
+      // Handle continuation reference...
+    }
+  }
+}
+catch (IOException e)
+{
+  // Handle exceptions...
+}
+finally
+{
+  reader.close();
+}</programlisting>
+
+    <para>For a complete example in context, see <link
+    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
+    xlink:show="new">Search.java</link>, one of the <link
+    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+    xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+   </listitem>
+
+   <listitem>
+    <para>You can pass in a collection of <literal>SearchResultEntry</literal>s
+    (and optionally a collection of <literal>SearchResultReference</literal>s)
+    to which the SDK adds the results. For this to work, you need enough
+    memory to hold everything the search returns.</para>
+   </listitem>
+
+   <listitem>
+    <para>You can pass in a <literal>SearchResultHandler</literal> to manage
+    results.</para>
+   </listitem>
+
+   <listitem>
+    <para>With <literal>searchSingleEntry()</literal> and
+    <literal>readEntry()</literal>, you can get a single
+    <literal>SearchResultEntry</literal> with methods to access the entry
+    content.</para>
+   </listitem>
+  </itemizedlist>
+ </section>
+
+ <section xml:id="handle-entry-attributes">
+  <title>Working With Entry Attributes</title>
+  <indexterm>
+   <primary>Attributes</primary>
+  </indexterm>
+
+  <para>When you get an entry object, chances are you want to handle attribute
+  values as objects. The OpenDJ LDAP SDK provides the
+  <literal>Entry.parseAttribute()</literal> method and an
+  <literal>AttributeParser</literal> with methods for a variety of attribute
+  value types. You can use these methods to get attribute values as
+  objects.</para>
+
+  <programlisting language="java">
+// Use Kirsten Vaughan's credentials and her entry.
+String name = "uid=kvaughan,ou=People,dc=example,dc=com";
+char[] password = "bribery".toCharArray();
+connection.bind(name, password);
+
+// Make sure we have a timestamp to play with.
+updateEntry(connection, name, "description");
+
+// Read Kirsten's entry.
+final SearchResultEntry entry = connection.readEntry(name,
+        "cn", "objectClass", "hasSubordinates", "numSubordinates",
+        "isMemberOf", "modifyTimestamp");
+
+// Get the entry DN and some attribute values as objects.
+DN dn = entry.getName();
+
+Set&lt;String&gt; cn = entry.parseAttribute("cn").asSetOfString("");
+Set&lt;AttributeDescription&gt; objectClasses =
+        entry.parseAttribute("objectClass").asSetOfAttributeDescription();
+boolean hasChildren = entry.parseAttribute("hasSubordinates").asBoolean();
+int numChildren = entry.parseAttribute("numSubordinates").asInteger(0);
+Set&lt;DN&gt; groups = entry
+        .parseAttribute("isMemberOf")
+        .usingSchema(Schema.getDefaultSchema()).asSetOfDN();
+Calendar timestamp = entry
+        .parseAttribute("modifyTimestamp")
+        .asGeneralizedTime().toCalendar();
+
+// Do something with the objects.
+// ...
+</programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ParseAttributes.html"
+  xlink:show="new">ParseAttributes.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+ </section>
+
+ <section xml:id="handle-ldap-urls">
+  <title>Working With LDAP URLs</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>URLs</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
+
+  <para>LDAP URLs express search requests in URL form. In the directory data
+  you can find them used as <literal>memberURL</literal>
+  attribute values for dynamic groups, for example. The following URL from the
+  configuration for the administrative backend lets the directory server build
+  a dynamic group of administrator entries that are children of
+  <literal>cn=Administrators,cn=admin data</literal>.</para>
+
+  <literallayout class="monospaced"
+  >ldap:///cn=Administrators,cn=admin data??one?(objectclass=*)</literallayout>
+
+  <para>The static method <literal>LDAPUrl.valueOf()</literal> takes an LDAP
+  URL string and returns an <literal>LDAPUrl</literal> object. You can then use
+  the <literal>LDAPUrl.asSearchRequest()</literal> method to get the
+  <literal>SearchRequest</literal> that you pass to one of the search methods
+  for the connection.</para>
+ </section>
+
+ <section xml:id="sort-search-results">
+  <title>Sorting Search Results</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Sorting</primary>
+  </indexterm>
+
+  <para>If you want to sort search results in your client application, then
+  make sure you have enough memory in the JVM to hold the results of the search,
+  and use one of the search methods that lets you pass in a collection of
+  <literal>SearchResultEntry</literal>s. After the collection is populated with
+  the results, you can sort them.</para>
+
+  <para>If you are on good terms with your directory administrator, you can
+  perhaps use a server-side sort control. The server-side sort request control
+  asks the server to sort the results before returning them, and so is a
+  memory intensive operation on the directory server. You set up the control
+  using <literal>ServerSideSortRequestControl.newControl()</literal>. You get
+  the control into your search by building a search request to pass to the
+  search method, using <literal>SearchRequest.addControl()</literal> to attach
+  the control before passing in the request.</para>
+
+  <para>If your application needs to scroll through search results a page at
+  a time, work with your directory administrator to set up the virtual list
+  view indexes that facilitate scrolling through results.</para>
+ </section>
+
+ <section xml:id="about-comparisons">
+  <title>About Comparing</title>
+  <indexterm>
+   <primary>Comparisons</primary>
+  </indexterm>
+
+  <para>You use the LDAP compare operation to make an assertion about an
+  attribute value on an entry. Unlike the search operation, you must know
+  the distinguished name of the entry in advance to request a compare operation.
+  You also specify the attribute type name and the value to compare to the
+  values stored on the entry.</para>
+
+  <para><literal>Connection</literal> has a choice of compare methods,
+  depending on how you set up the operation.</para>
+
+  <para>Check the <literal>ResultCode</literal> from
+  <literal>CompareResult.getResultCode()</literal> for
+  <literal>ResultCode.COMPARE_TRUE</literal> or
+  <literal>ResultCode.COMPARE_FALSE</literal>.</para>
+ </section>
+</chapter>
