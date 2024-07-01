@@ -1364,8 +1364,7 @@ sn: Jensen
   a <literal>GenericControl.newControl()</literal> static method to add the
   request control to your search.</para>
 
-  <programlisting language="java"
-  >[jcp:org.forgerock.opendj.examples.GetADChangeNotifications:--- JCite ---]</programlisting>
+  <filename>org.forgerock.opendj.examples.GetADChangeNotifications.java</filename>
 
   <para>When you run the search against Active Directory and then create,
   update, and delete a new user, in this example

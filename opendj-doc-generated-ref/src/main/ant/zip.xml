@@ -6,6 +6,7 @@
                 <dirset dir="${basedir}/src/main/docbkx/" casesensitive="yes">
                     <include name="*/"/>
                     <exclude name="*/*/**"/>
+                    <exclude name="shared"/>
                 </dirset>
             </path>
             <mapper type="flatten"/>
