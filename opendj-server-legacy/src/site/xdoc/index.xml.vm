@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2016 ForgeRock AS.
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+  <properties>
+    <title>About OpenDJ Directory Server</title>
+    <author email="opendj-dev@forgerock.org">ForgeRock AS</author>
+  </properties>
+  <body>
+    <section name="About OpenDJ Directory Server">
+      <p>
+        OpenDJ is an LDAPv3 compliant directory service, developed for the Java
+        platform, providing a high performance, highly available, and secure
+        store for the identities managed by your organization. Its easy
+        installation process, combined with the power of the Java platform makes
+        OpenDJ the simplest, fastest directory to deploy and manage.
+      </p>
+    </section>
+    <section name="Get the OpenDJ Directory Server">
+      <p>
+        You can obtain the OpenDJ Directory Server using any of the following
+        methods:
+      </p>
+      <subsection name="Download">
+        <p>
+          By far the simplest method is to download a build from ForgeRock
+          <a href="https://backstage.forgerock.com/#!/">BackStage</a>,
+          or a nightly build from the ForgeRock
+          <a href="https://forgerock.org">community resource center</a>
+        </p>
+      </subsection>
+      <subsection name="Build">
+        <p>
+          For the DIY enthusiasts you can build it yourself by checking out the
+          <a href="source-repository.html">latest code</a>
+          and building it with Maven 3.
+        </p>
+      </subsection>
+    </section>
+    <section name="Getting started">
+      <p>
+        Once you have obtained a copy of the OpenDJ Directory Server, read the
+        <a href="../doc/bootstrap/install-guide/index.html">Installation Guide</a>
+        for further instructions.
+      </p>
+    </section>
+  </body>
+</document>

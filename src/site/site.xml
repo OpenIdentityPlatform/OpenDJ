@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2016 ForgeRock AS.
+-->
+<project name="${project.name}"
+ xmlns="http://maven.apache.org/DECORATION/1.0.1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1
+                     http://maven.apache.org/xsd/decoration-1.0.1.xsd">
+
+ <skin>
+  <groupId>org.openidentityplatform.commons</groupId>
+  <artifactId>forgerock-community-skin</artifactId>
+  <version>1.1.0-SNAPSHOT</version>
+ </skin>
+ <publishDate position="right" format="yyyy.MM.dd" />
+ <version position="right" />
+
+ <body>
+
+  <breadcrumbs>
+   <item name="OpenDJ" href="http://opendj.forgerock.org" />
+  </breadcrumbs>
+
+  <menu name="OpenDJ" inherit="top">
+   <item name="Welcome" href="index.html" />
+   <item name="News" href="news.html" />
+   <item name="FAQ" href="faq.html" />
+   <item name="Mailing Lists" href="mail-lists.html" />
+   <item name="Wiki" href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home" />
+   <item name="Join" href="https://sso.forgerock.com/openam/UI/Login" />
+   <item name="Support" href="http://forgerock.com/what-we-offer/subscriptions/" />
+   <item name="Partners" href="http://forgerock.com/partners/" />
+   <item name="Builds" href="http://forgerock.org/opendj.html" />
+   <item name="Archives" href="http://forgerock.org/opendj-archive.html" />
+   <item name="Enterprise Downloads" href="http://www.forgerock.com/download-stack/"/>
+  </menu>
+
+  <menu name="OpenDJ Directory Server" inherit="top">
+    <item name="About" href="opendj-server-legacy" />
+  </menu>
+
+  <menu name="OpenDJ LDAP SDK" inherit="top">
+    <item name="About" href="opendj-core" />
+    <item name="Grizzly Integration" href="opendj-grizzly" />
+    <item name="Examples" href="opendj-ldap-sdk-examples" />
+    <item name="Toolkit" href="opendj-ldap-toolkit" />
+    <item name="Rest2LDAP" href="opendj-rest2ldap" />
+    <item name="Rest2LDAP Servlet" href="opendj-rest2ldap-servlet" />
+    <item name="Server 2.x Adapter" href="opendj-server2x-adapter" />
+  </menu>
+
+  <menu name="OpenDJ Mobile Apps" inherit="top">
+    <item name="Contact Manager (Android)"
+          href="http://commons.forgerock.org/mobile/contact-manager/" />
+  </menu>
+
+  <menu name="Released Documentation" inherit="top">
+    <item name="OpenDJ 3" href="https://backstage.forgerock.com/#!/docs/opendj/3" />
+    <item name="OpenDJ 2.6.0" href="https://backstage.forgerock.com/#!/docs/opendj/2.6.0" />
+    <item name="OpenDJ 2.5.0-Xpress1 (EOSL)" href="https://backstage.forgerock.com/#!/docs/opendj/2.5.0-Xpress1" />
+  </menu>
+
+  <menu name="OpenDJ Server Docs" inherit="top">
+   <item name="All Formats" href="docs.html" />
+   <item name="Release Notes" href="./doc/bootstrap/release-notes/index.html" />
+   <item name="Release Notes (OEM)" href="./doc/bootstrap/oem-release-notes/index.html" />
+   <item name="Installation Guide" href="./doc/bootstrap/install-guide/index.html" />
+   <item name="Administration Guide" href="./doc/bootstrap/admin-guide/index.html" />
+   <item name="Server Dev Guide" href="./doc/bootstrap/server-dev-guide/index.html" />
+   <item name="Securing OpenDJ" href="./doc/bootstrap/security-guide/index.html" />
+   <item name="Reference" href="./doc/bootstrap/reference/index.html" />
+   <item name="Config Reference" href="./opendj-server-legacy/configref/index.html" />
+   <item name="Plugin Javadoc" href="./opendj-server-legacy/apidocs/index.html" />
+  </menu>
+
+  <menu name="OpenDJ LDAP SDK Docs" inherit="top">
+   <item name="All Formats" href="docs.html" />
+   <item name="SDK Release Notes" href="./doc/bootstrap/sdk-release-notes/index.html" />
+   <item name="SDK Developer Guide" href="./doc/bootstrap/dev-guide/index.html" />
+   <item name="SDK Javadoc" href="./opendj-core/apidocs/index.html" />
+  </menu>
+
+  <menu name="OpenDJ Development" inherit="top">
+    <item name="Source Repository" href="source-repository.html" />
+    <item name="Continuous Integration" href="integration.html" />
+    <item name="Maven Repository" href="distribution-management.html" />
+    <item name="Issue Tracking" href="issue-tracking.html" />
+    <item name="License" href="license.html" />
+  </menu>
+
+ </body>
+
+ <custom>
+  <googleAnalytics>UA-23412190-8</googleAnalytics>
+  <openproject>
+   <href>http://opendj.org/</href>
+   <src>./images/FR_plogo_org_FC_openDJ-302x86.png</src>
+   <alt>OpenDJ</alt>
+  </openproject>
+  <siteSearchFQDN>forgerock.org</siteSearchFQDN>
+ </custom>
+
+</project>

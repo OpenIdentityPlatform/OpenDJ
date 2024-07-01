@@ -1,0 +1,140 @@
+name: Package/Deploy
+
+on:
+  workflow_run:
+    branches: [ master ]
+    workflows: ["Build"]
+    types: [completed]
+jobs:
+  package-deploy-maven:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Print github context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Install wine+rpm for distribution
+        if: runner.os == 'Linux'
+        shell: bash
+        run:   |
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
+          sudo dpkg --add-architecture i386
+          sudo mkdir -pm755 /etc/apt/keyrings && sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+          sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources
+          sudo apt-get update
+          sudo apt install --install-recommends winehq-stable
+          sudo mkdir -p /opt/wine/mono && sudo wget "https://dl.winehq.org/wine/wine-mono/8.0.0/wine-mono-8.0.0-x86.tar.xz" -P /opt/wine/mono && sudo tar -xf /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz -C /opt/wine/mono && sudo rm /opt/wine/mono/wine-mono-8.0.0-x86.tar.xz
+          wine --version
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Set up Java for publishing to Maven Central Repository OSS
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+         path: ~/.m2/repository
+         key: ${{ runner.os }}-m2-repository-${{ hashFiles('**/pom.xml') }}
+         restore-keys: ${{ runner.os }}-m2-repository
+      - name: Install gpg secret key
+        env:
+           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        if: ${{ env.GPG_PRIVATE_KEY!=''}}
+        run: |
+           cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+           gpg --list-secret-keys --keyid-format LONG
+      - name: Build package local
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+        if: ${{ !(github.event.workflow_run.event=='push' && env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!='')}}
+        run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} package --file pom.xml
+      - name: Publish to the Maven Central Repository
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_OPTS: -Dhttps.protocols=TLSv1.2 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -Dmaven.wagon.http.retryHandler.count=10
+        if: ${{ github.event.workflow_run.event=='push' && env.MAVEN_USERNAME!='' && env.MAVEN_PASSWORD!=''}}
+        run: mvn --batch-mode --errors --update-snapshots -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} deploy --file pom.xml
+      - name: Upload artifacts OpenDJ Server
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ Server
+         path: opendj-server-legacy/target/package/*.zip
+      - name: Upload artifacts OpenDJ SDK Toolkit
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ SDK Toolkit
+         path: opendj-ldap-toolkit/target/*.zip
+      - name: Upload artifacts OpenDJ Debian Package
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ Debian Package
+         path: opendj-packages/opendj-deb/opendj-deb-standard/target/*.deb
+      - name: Upload artifacts OpenDJ RPM Package
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ RPM Package
+         path: opendj-packages/opendj-rpm/opendj-rpm-standard/target/rpm/opendj/RPMS/noarch/*.rpm
+      - name: Upload artifacts OpenDJ MSI Package
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ MSI Package
+         path: opendj-packages/opendj-msi/opendj-msi-standard/target/*.msi
+      - name: Upload artifacts OpenDJ Docker Packages
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ Docker Packages
+         path: opendj-packages/opendj-docker/target/Dockerfile.zip
+      - name: Upload artifacts OpenDJ Openshift template
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ Openshift template
+         path: opendj-packages/opendj-openshift-template/*.yaml
+      - name: Upload artifacts OpenDJ Doc Generated Reference
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ Doc Generated References
+         path: opendj-doc-generated-ref/target/*.zip
+      - name: Upload artifacts OpenDJ DSML Gateway
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ DSML Gateway
+         path: opendj-dsml-servlet/target/*.war
+      - name: Upload artifacts OpenDJ Commons REST LDAP Gateway
+        uses: actions/upload-artifact@v4
+        with:
+         name: OpenDJ Commons REST LDAP Gateway
+         path: opendj-rest2ldap-servlet/target/*.war
+      - name: Configure Git User
+        run: |
+          git config --global user.name "Open Identity Platform Community"
+          git config --global user.email "open-identity-platform-opendj@googlegroups.com"
+          cd ..
+      - uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: ${{ github.event.repository.name }}.wiki
+      - name: Publish docs in wiki
+        continue-on-error: true
+        shell: bash
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run:   |
+           cd ${{ github.event.repository.name }}.wiki
+           rm -rf docbkx
+           mv ../opendj-doc-generated-ref/target/docbkx ../${{ github.event.repository.name }}.wiki
+           git add -A
+           git commit -a -m "upload docs after deploy ${{ github.sha }}"
+           git push --quiet --force

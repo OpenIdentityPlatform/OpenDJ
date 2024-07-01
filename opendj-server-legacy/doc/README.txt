@@ -1,0 +1,1 @@
+OpenDJ server documentation sources are under src/main/docbkx.

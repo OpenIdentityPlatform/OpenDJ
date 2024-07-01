@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2007-2008 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="size-limit-log-retention-policy"
+  plural-name="size-limit-log-retention-policies"
+  package="org.forgerock.opendj.server.config" extends="log-retention-policy"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    Retention policy based on the amount of space taken by all the log 
+    files on disk.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-size-limit-log-retention-policy</ldap:name>
+      <ldap:superior>ds-cfg-log-retention-policy</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.loggers.SizeBasedRetentionPolicy
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="disk-space-used" mandatory="true">
+    <adm:synopsis>
+      Specifies the maximum total disk space used by the log files.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:size lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-disk-space-used</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

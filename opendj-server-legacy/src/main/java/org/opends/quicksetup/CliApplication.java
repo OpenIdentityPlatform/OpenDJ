@@ -1,0 +1,80 @@
+/*
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
+ *
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
+ *
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions Copyright [year] [name of copyright owner]".
+ *
+ * Copyright 2008 Sun Microsystems, Inc.
+ * Portions Copyright 2014 ForgeRock AS.
+ */
+
+package org.opends.quicksetup;
+
+import org.opends.quicksetup.event.ProgressNotifier;
+import org.opends.quicksetup.util.ProgressMessageFormatter;
+
+import com.forgerock.opendj.cli.ClientException;
+
+/**
+ * Represents a quick setup CLI application.
+ */
+public interface CliApplication extends ProgressNotifier, Runnable {
+
+  /**
+   * Creates a set of user data from command line arguments and installation
+   * status.
+   *
+   * @param launcher
+   *          that launched this application
+   * @return UserData object populated to reflect the input args and status
+   * @throws UserDataException
+   *           if something is wrong with the data provided by the user
+   * @throws ApplicationException
+   *           if there is an application specific problem
+   * @throws ClientException
+   *           If an error occurs when creating the data.
+   */
+  UserData createUserData(Launcher launcher)
+          throws UserDataException, ApplicationException, ClientException;
+
+  /**
+   * Gets the user data this application will use when running.
+   * @return UserData to use when running
+   */
+  UserData getUserData();
+
+
+  /**
+   * Sets the user data this application will use when running.
+   * @param userData UserData to use when running
+   */
+  void setUserData(UserData userData);
+
+  /**
+   * Sets the formatter that will be used to format messages.
+   * @param formatter ProgressMessageFormatter used to format messages
+   */
+  void setProgressMessageFormatter(ProgressMessageFormatter formatter);
+
+  /**
+   * Gets any exception that happened while this application was running.
+   * A null value returned from this method indicates that the execution
+   * of the CLI program is not complete or was successful.
+   * @return an exception that happened while the CLI was running
+   */
+  ApplicationException getRunError();
+
+  /**
+   * Gets the return code to return to the console.
+   * @return return code to return;  if null the return code indicated in the
+   *         error returned by <code>getRunError</code> will be used.
+   */
+  ReturnCode getReturnCode();
+}

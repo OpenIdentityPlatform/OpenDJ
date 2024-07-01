@@ -1,0 +1,121 @@
+/*
+ * The contents of this file are subject to the terms of the Common Development and
+ * Distribution License (the License). You may not use this file except in compliance with the
+ * License.
+ *
+ * You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+ * specific language governing permission and limitations under the License.
+ *
+ * When distributing Covered Software, include this CDDL Header Notice in each file and include
+ * the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+ * Header, with the fields enclosed by brackets [] replaced by your own identifying
+ * information: "Portions Copyright [year] [name of copyright owner]".
+ *
+ * Copyright 2008-2010 Sun Microsystems, Inc.
+ * Portions Copyright 2015-2016 ForgeRock AS.
+ */
+package org.opends.server.replication.plugin;
+
+import org.opends.server.TestCaseUtils;
+import org.opends.server.replication.ReplicationTestCase;
+import com.forgerock.opendj.ldap.tools.LDAPModify;
+import org.testng.annotations.Test;
+
+import static org.opends.server.types.NullOutputStream.nullPrintStream;
+import static org.testng.Assert.*;
+import static org.opends.server.TestCaseUtils.*;
+
+public class ReplicationRepairControlTest extends ReplicationTestCase
+{
+  @Test
+  public void testRepairControl()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    // Test that we can't add an entry with the entryuuid attribute
+    // without specifying the replication repair control.
+    String path = TestCaseUtils.createTempFile(
+        "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
+        "changetype: add\n" +
+        "objectClass: top\n" +
+        "objectClass: person\n" +
+        "objectClass: organizationalPerson\n" +
+        "objectClass: inetOrgPerson\n" +
+        "uid: test.repair\n" +
+        "givenName: Test\n" +
+        "sn: User\n" +
+        "cn: Test User\n" +
+        "userPassword: password\n" +
+        "entryuuid: d5b910d8-47cb-4ac0-9e5f-0f4a77de58d4\n");
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args), 53);
+
+    // Test that we can't add an entry with the ds-sync-hist attribute
+    // without specifying the replication repair control.
+    String path1 = TestCaseUtils.createTempFile(
+        "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
+        "changetype: add\n" +
+        "objectClass: top\n" +
+        "objectClass: person\n" +
+        "objectClass: organizationalPerson\n" +
+        "objectClass: inetOrgPerson\n" +
+        "uid: test.repair\n" +
+        "givenName: Test\n" +
+        "sn: User\n" +
+        "cn: Test User\n" +
+        "userPassword: password\n" +
+        "ds-sync-hist: description:00000108b3a6cbb800000001:del:deleted_value\n");
+
+    String[] args1 =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path1
+    };
+
+
+    assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args1), 53);
+
+    // Now Test specifying the replication repair control makes
+    // possible to add an entry with the entryuuid and ds-sync-hist attributes
+    // (notice the -J repairControlOid in the ldapmodify arguments)
+    String path2 = TestCaseUtils.createTempFile(
+        "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
+        "changetype: add\n" +
+        "objectClass: top\n" +
+        "objectClass: person" +
+        "objectClass: organizationalPerson\n" +
+        "objectClass: inetOrgPerson\n" +
+        "uid: test.repair\n" +
+        "givenName: Test\n" +
+        "sn: User\n" +
+        "cn: Test User\n" +
+        "userPassword: password\n" +
+        "ds-sync-hist: description:00000108b3a6cbb800000001:del:deleted_value\n" +
+        "entryuuid: d5b910d8-47cb-4ac0-9e5f-0f4a77de58d4\n");
+
+    String[] args2 =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", "1.3.6.1.4.1.26027.1.5.2",
+      "-f", path2
+    };
+
+    assertEquals(LDAPModify.run(nullPrintStream(), nullPrintStream(), args2), 0);
+  }
+}

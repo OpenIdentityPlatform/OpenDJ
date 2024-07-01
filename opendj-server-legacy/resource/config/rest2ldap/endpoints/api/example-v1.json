@@ -1,0 +1,260 @@
+{
+    // This file defines an example Rest2Ldap API mapping exposing users, POSIX users, and groups, as follows:
+    //
+    // /api/users/{uid} - users beneath ou=people,dc=example,dc=com, e.g. "/api/users/bjensen"
+    // /api/groups/{cn} - groups beneath ou=groups,dc=example,dc=com, e.g. "/api/groups/administrators"
+    //
+    "version": "1.0",
+
+    // This section defines all of the resources, their inheritance, and relationships.
+    "resourceTypes": {
+        // This resource represents the entry point into the user/group API. It only defines sub-resources and
+        // does not have any properties itself. Template variables are permitted within the URL and DN templates.
+        "example-v1": {
+            "subResources": {
+                "users": {
+                    "type": "collection",
+                    "dnTemplate": "ou=people,dc=example,dc=com",
+                    "resource": "frapi:opendj:rest2ldap:user:1.0",
+                    "namingStrategy": {
+                        "type": "clientDnNaming",
+                        "dnAttribute": "uid"
+                    }
+                },
+                // This resource is the same as "users", but read-only.
+                // Users cannot be created, modified, or deleted through this sub-resource.
+                "read-only-users": {
+                    "type": "collection",
+                    "dnTemplate": "ou=people,dc=example,dc=com",
+                    "resource": "frapi:opendj:rest2ldap:user:1.0",
+                    "namingStrategy": {
+                        "type": "clientDnNaming",
+                        "dnAttribute": "uid"
+                    },
+                    "isReadOnly": true
+                },
+                // This resource provides a read-only view of all users in the system, including
+                // users nested underneath entries like org units, organizations, etc., starting
+                // from "ou=people,dc=example,dc=com" and working down. It filters out any other
+                // structural elements, including organizations, org units, etc.
+                "all-users": {
+                    "type": "collection",
+                    "dnTemplate": "ou=people,dc=example,dc=com",
+                    "resource": "frapi:opendj:rest2ldap:user:1.0",
+                    "namingStrategy": {
+                        "type": "clientDnNaming",
+                        "dnAttribute": "uid"
+                    },
+                    "isReadOnly": true,
+                    "flattenSubtree": true,
+                    "baseSearchFilter": "(objectClass=person)"
+                },
+                "groups": {
+                    "type": "collection",
+                    "dnTemplate": "ou=groups,dc=example,dc=com",
+                    "resource": "frapi:opendj:rest2ldap:group:1.0",
+                    "namingStrategy": {
+                        "type": "clientDnNaming",
+                        "dnAttribute": "cn"
+                    }
+                }
+            }
+        },
+        // This resource will act as the common parent of all resources that have a JSON representation.
+        "frapi:opendj:rest2ldap:object:1.0": {
+            "isAbstract": true,
+            "objectClasses": [ "top" ],
+            // This property will store type information in a resource's JSON representation. It is the
+            // equivalent of the "objectClass" attribute, except that it is single valued and will contain
+            // the resource name, e.g. "frapi:opendj:rest2ldap:user:1.0" or "frapi:opendj:rest2ldap:group:1.0".
+            "resourceTypeProperty": "_schema",
+            "properties": {
+                // Resource type property mappers store the resource's type and don't have any configuration.
+                "_schema": {
+                    "type": "resourceType"
+                },
+                "_rev": {
+                    "type": "simple",
+                    "ldapAttribute": "etag",
+                    "writability": "readOnly"
+                },
+                "_meta": {
+                    "type": "object",
+                    "properties": {
+                        "created": {
+                            "type": "simple",
+                            "ldapAttribute": "createTimestamp",
+                            "writability": "readOnly"
+                        },
+                        "lastModified": {
+                            "type": "simple",
+                            "ldapAttribute": "modifyTimestamp",
+                            "writability": "readOnly"
+                        }
+                    }
+                }
+            }
+        },
+        // A "user" resource includes property mapping for the inetOrgPerson LDAP object class and is identified by
+        // the "uid" LDAP attribute. Users have a single sub-type representing users with POSIX account information.
+        "frapi:opendj:rest2ldap:user:1.0": {
+            "superType": "frapi:opendj:rest2ldap:object:1.0",
+            "objectClasses": [ "person", "organizationalPerson", "inetOrgPerson" ],
+            "supportedActions": [ "modifyPassword", "resetPassword" ],
+            "properties": {
+                "_id": {
+                    "type": "simple",
+                    "ldapAttribute": "uid",
+                    "isRequired": true,
+                    "writability": "createOnly"
+                },
+                "userName": {
+                    "type": "simple",
+                    "ldapAttribute": "mail"
+                },
+                "displayName": {
+                    "type": "simple",
+                    "ldapAttribute": "cn",
+                    "isMultiValued": true,
+                    "isRequired": true
+                },
+                "name": {
+                    "type": "object",
+                    "properties": {
+                        "givenName": {
+                            "type": "simple"
+                        },
+                        "familyName": {
+                            "type": "simple",
+                            "ldapAttribute": "sn",
+                            "isRequired": true
+                        }
+                    }
+                },
+                "description": {
+                    "type": "simple"
+                },
+                "manager": {
+                    "type": "reference",
+                    "ldapAttribute": "manager",
+                    "baseDn": "..",
+                    "primaryKey": "uid",
+                    "mapper": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "simple",
+                                "ldapAttribute": "uid",
+                                "isRequired": true
+                            },
+                            "displayName": {
+                                "type": "simple",
+                                "ldapAttribute": "cn",
+                                "writability": "readOnlyDiscardWrites"
+                            }
+                        }
+                    }
+                },
+                "groups": {
+                    "type": "reference",
+                    "ldapAttribute": "isMemberOf",
+                    "baseDn": "ou=groups,..,..",
+                    "isMultiValued": true,
+                    "writability": "readOnly",
+                    "primaryKey": "cn",
+                    "mapper": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "simple",
+                                "ldapAttribute": "cn"
+                            }
+                        }
+                    }
+                },
+                "contactInformation": {
+                    "type": "object",
+                    "properties": {
+                        "telephoneNumber": {
+                            "type": "simple"
+                        },
+                        "emailAddress": {
+                            "type": "simple",
+                            "ldapAttribute": "mail"
+                        }
+                    }
+                }
+            }
+        },
+        // A user with POSIX account information.
+        "frapi:opendj:rest2ldap:posixUser:1.0": {
+            "superType": "frapi:opendj:rest2ldap:user:1.0",
+            "objectClasses": [ "posixAccount" ],
+            "properties": {
+                "uidNumber": {
+                    "type": "simple",
+                    "isRequired": true
+                },
+                "gidNumber": {
+                    "type": "simple",
+                    "isRequired": true
+                },
+                "homeDirectory": {
+                    "type": "simple",
+                    "isRequired": true
+                },
+                "loginShell": {
+                    "type": "simple"
+                },
+                "gecos": {
+                    "type": "simple"
+                }
+            }
+        },
+        // A "group" resource includes property mapping for the inetOrgPerson LDAP object class and is identified by
+        // the "uid" LDAP attribute. Users have a single sub-type representing users with POSIX account information.
+        "frapi:opendj:rest2ldap:group:1.0": {
+            "superType": "frapi:opendj:rest2ldap:object:1.0",
+            "objectClasses": [ "groupOfUniqueNames" ],
+            "properties": {
+                "_id": {
+                    "type": "simple",
+                    "ldapAttribute": "cn",
+                    "isRequired": true,
+                    "writability": "createOnly"
+                },
+                "displayName": {
+                    "type": "simple",
+                    "ldapAttribute": "cn",
+                    "isRequired": true,
+                    "writability": "readOnly"
+                },
+                "description": {
+                    "type": "simple"
+                },
+                "members": {
+                    "type": "reference",
+                    "ldapAttribute": "uniqueMember",
+                    "baseDn": "ou=people,..,..",
+                    "primaryKey": "uid",
+                    "isMultiValued": true,
+                    "mapper": {
+                        "type": "object",
+                        "properties": {
+                            "_id": {
+                                "type": "simple",
+                                "ldapAttribute": "uid",
+                                "isRequired": true
+                            },
+                            "displayName": {
+                                "type": "simple",
+                                "ldapAttribute": "cn",
+                                "writability": "readOnlyDiscardWrites"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

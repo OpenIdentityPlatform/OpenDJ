@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2012 ForgeRock AS.
+  ! -->
+<bindings xmlns="https://jakarta.ee/xml/ns/jaxb" version="3.0" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema" schemaLocation="DSMLv2.xsd" >
+ <bindings 
+node="//xsd:complexType[@name='AttributeValueAssertion']/xsd:sequence/xsd:element[@name='value']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings 
+node="//xsd:complexType[@name='SubstringFilter']/xsd:sequence/xsd:element[@name='initial']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings 
+node="//xsd:complexType[@name='SubstringFilter']/xsd:sequence/xsd:element[@name='any']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings 
+node="//xsd:complexType[@name='SubstringFilter']/xsd:sequence/xsd:element[@name='final']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings 
+node="//xsd:complexType[@name='MatchingRuleAssertion']/xsd:sequence/xsd:element[@name='value']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings 
+node="//xsd:complexType[@name='DsmlAttr']/xsd:sequence/xsd:element[@name='value']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings 
+node="//xsd:complexType[@name='DsmlModification']/xsd:sequence/xsd:element[@name='value']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings node="//xsd:complexType[@name='ExtendedRequest']/xsd:complexContent/xsd:extension[@base='DsmlMessage']/xsd:sequence/xsd:element[@name='requestValue']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+ <bindings node="//xsd:complexType[@name='ExtendedResponse']/xsd:complexContent/xsd:extension[@base='LDAPResult']/xsd:sequence/xsd:element[@name='response']">
+  <property>
+   <baseType name="java.lang.Object"/>
+  </property>
+ </bindings>
+</bindings>

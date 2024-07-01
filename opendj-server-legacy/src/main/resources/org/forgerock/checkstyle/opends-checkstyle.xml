@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2012-2015 ForgeRock AS.
+-->
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+
+<module name="Checker">
+    <!-- Toggle Checkstyle on/off -->
+    <module name="SuppressionCommentFilter">
+      <property name="offCommentFormat" value="@Checkstyle:off" />
+      <property name="onCommentFormat" value="@Checkstyle:on" />
+    </module>
+	
+    <!--  Instruct Checkstyle to ignore a specific check for a whole file -->
+    <module name="SuppressWithNearbyCommentFilter">
+      <property name="commentFormat" value="@Checkstyle:ignore ([\w\|]+)"/>
+      <property name="checkFormat" value="$1"/>
+      <property name="influenceFormat" value="1000000" />
+    </module>
+	
+	<!--  Instruct Checkstyle to ignore next line -->
+    <module name="SuppressWithNearbyCommentFilter">
+      <property name="commentFormat" value="@Checkstyle:ignore" />
+      <property name="influenceFormat" value="1" />
+    </module>
+
+	<!--  Instruct Checkstyle to ignore next N lines (-ve means previous lines) -->
+    <module name="SuppressWithNearbyCommentFilter">
+      <property name="commentFormat" value="@Checkstyle:ignoreFor (\d+)" />
+      <property name="influenceFormat" value="$1" />
+    </module>
+
+    <!-- Ensure that each source file starts with the appropriate header -->
+    <module name="RegexpHeader">
+      <!--  Use header file template passed in from Maven -->
+      <property name="headerFile" value="${checkstyle.header.file}" />
+      <!-- Allow a file header to start with one of the 3 first lines of the headerFile -->
+      <property name="multiLines" value="1,2,3" />
+    </module>
+    
+    <!-- Ensure that no tab characters are used -->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <!-- Ensure that no line ends with whitespace -->
+    <module name="RegexpSingleline">
+      <!-- \s matches whitespace character, $ matches end of line. -->
+      <property name="format" value="\s+$"/>
+      <property name="message" value="Line ends with whitespace." />
+    </module>
+
+  <module name="TreeWalker">
+    <property name="cacheFile" value="${basedir}/.checkstyle-cache/opends-checkstyle.cache" />
+	
+	<module name="FileContentsHolder"/>
+	
+    <!-- Ensure that all classes and interfaces are documented -->
+    <module name="JavadocType">
+      <property name="scope" value="private" />
+    </module>
+
+
+    <!-- Ensure that all non-private methods are documented -->
+    <module name="JavadocMethod">
+      <property name="scope" value="protected" />
+      <property name="allowUndeclaredRTE" value="true" />
+      <property name="allowMissingParamTags" value="false" />
+      <property name="allowMissingJavadoc" value="false" />
+    </module>
+
+
+    <!-- Ensure that all public and protected fields are documented -->
+    <module name="JavadocVariable">
+      <property name="scope" value="protected" />
+    </module>
+
+
+    <!-- Ensure that all Javadoc comments are well-formed -->
+    <module name="JavadocStyle">
+      <property name="scope" value="protected" />
+      <property name="checkFirstSentence" value="true" />
+      <property name="checkEmptyJavadoc" value="true" />
+      <property name="checkHtml" value="true" />
+    </module>
+
+
+    <!-- Ensure that no line exceeds 120 characters in length -->
+    <module name="LineLength">
+      <property name="max" value="120" />
+    </module>
+
+    <!-- Check for string == rather than .equals checks -->
+    <module name="StringLiteralEquality" />
+
+
+    <!-- Check to ensure that anything implmenting .equals(Object) also
+         implements .hashCode() -->
+    <module name="EqualsHashCode" />
+
+
+    <!-- Make sure that all classes have a package statement -->
+    <module name="PackageDeclaration" />
+
+
+    <!-- Identify any switch statements with fall-through -->
+    <module name="FallThrough" />
+
+
+    <!-- Make sure that long constants are defined with an uppercase L -->
+    <module name="UpperEll" />
+
+
+    <!-- Perform basic validation on imports -->
+    <module name="RedundantImport" />
+    <module name="UnusedImports" />
+    <module name="IllegalImport">
+      <property name="illegalPkgs" value="sun" />
+    </module>
+
+
+    <!-- As per Sun conventions -->
+    <!-- Use braces for with all control flow statements -->
+    <module name="NeedBraces" />
+    <!-- Don't allow empty statements (those that contain just a semicolon) -->
+    <module name="EmptyStatement" />
+  </module>
+</module>
+

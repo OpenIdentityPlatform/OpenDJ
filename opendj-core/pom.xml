@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2016 ForgeRock AS.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>opendj-parent</artifactId>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <version>4.6.5-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>opendj-core</artifactId>
+    <name>OpenDJ Core APIs</name>
+    <description>
+        This module provides the core APIs required for implementing LDAP Directory
+        client and server applications. Unlike the SDK this module does not
+        include a default network transport which must be obtained separately.
+    </description>
+
+    <packaging>bundle</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>2.2.21</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>slf4j</artifactId>
+        </dependency>
+
+        <dependency>
+          <groupId>com.github.stephenc.jcip</groupId>
+          <artifactId>jcip-annotations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>build-tools</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <!--         java.xml.bind (JAXB) - REMOVED -->
+	    <dependency>
+		  <groupId>javax.xml.bind</groupId>
+		  <artifactId>jaxb-api</artifactId>
+		</dependency>
+		<dependency>
+		  <groupId>com.sun.xml.bind</groupId>
+		  <artifactId>jaxb-core</artifactId>
+		</dependency>
+		<dependency>
+		  <groupId>com.sun.xml.bind</groupId>
+		  <artifactId>jaxb-impl</artifactId>
+		</dependency>
+
+	    <!-- BC FIPS Provider libs -->
+	    <dependency>
+	      <groupId>org.bouncycastle</groupId>
+	      <artifactId>bc-fips</artifactId>
+	      <version>${bc.fips.version}</version>
+	    </dependency>
+	
+	    <dependency>
+	      <groupId>org.bouncycastle</groupId>
+	      <artifactId>bctls-fips</artifactId>
+	      <version>${bctls.fips.version}</version>
+	    </dependency>
+	    
+	     <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+    </dependencies>
+
+
+    <properties>
+        <bc.fips.version>1.0.2.5</bc.fips.version>
+        <bctls.fips.version>1.0.19</bctls.fips.version>
+
+        <opendj.osgi.import.additional>
+            com.sun.security.auth*;resolution:=optional
+        </opendj.osgi.import.additional>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
+        <doclint>none</doclint>
+    </properties>
+
+
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+                <artifactId>maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-messages</goal>
+                        </goals>
+                        <configuration>
+                            <messageFiles>
+                                <messageFile>com/forgerock/opendj/ldap/core.properties</messageFile>
+                                <messageFile>com/forgerock/opendj/security/keystore.properties</messageFile>
+                            </messageFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+		      <plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>build-helper-maven-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <phase>process-sources</phase>
+		            <goals>
+		              <goal>add-source</goal>
+		            </goals>
+		            <configuration>
+		              <sources>
+		                <source>target/generated-sources/messages</source>
+		              </sources>
+		            </configuration>
+		          </execution>
+		         </executions>
+		      </plugin>
+            <!-- Retrieve the SCM revision number and store it into the ${buildRevision} property -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Creates opendj-core bundle -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Export-Package>
+                            com.forgerock.opendj.util,
+                            com.forgerock.opendj.ldap*,
+                            org.forgerock.opendj.io,
+                            org.forgerock.opendj.ldap*,
+                            org.forgerock.opendj.ldif,
+                            com.forgerock.reactive
+                        </Export-Package>
+                        <Build-Maven>Apache Maven ${maven.version}</Build-Maven>
+                        <SCM-Revision>${buildRevision}</SCM-Revision>
+                        <SCM-Branch>${scmBranch}</SCM-Branch>
+                        <Build-Time>${maven.build.timestamp}</Build-Time>
+                        <Build-Java>${java.version}</Build-Java>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <profiles>
+        <profile>
+            <!-- This profile provides API/ABI compatiblity checks and reports via Clirr -->
+            <id>clirr</id>
+            <activation>
+                <file>
+                    <exists>clirr-ignored-api-changes.xml</exists>
+                    <!-- this file name is duplicated due to MNG-4471 -->
+                </file>
+            </activation>
+
+            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>clirr-maven-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <comparisonArtifacts>
+                                <comparisonArtifact>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>opendj-core</artifactId>
+                                    <version>3.0.0</version>
+                                </comparisonArtifact>
+                            </comparisonArtifacts>
+                            <excludes>
+                                <exclude>com/**</exclude>
+                            </excludes>
+                            <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <id>mvn clirr:check</id>
+                            </execution>
+
+                            <execution>
+                                <id>mvn verify</id>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>clirr-maven-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <comparisonArtifacts>
+                                <comparisonArtifact>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>opendj-ldap-sdk</artifactId>
+                                    <!-- former name of this jar -->
+                                    <version>2.6.0</version>
+                                </comparisonArtifact>
+                            </comparisonArtifacts>
+                            <excludes>
+                                <exclude>com/**</exclude>
+                            </excludes>
+                            <ignoredDifferencesFile>clirr-ignored-api-changes.xml</ignoredDifferencesFile>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
+
+        <!--
+          Generates consolidated Javadoc covering both LDAP SDK packages
+          and also dependency (and transitive dependency) ForgeRock packages.
+        -->
+        <profile>
+            <id>forgerock-release</id>
+
+            <properties>
+                <javadocTitle>OpenDJ LDAP SDK ${project.version} API</javadocTitle>
+                <timestamp>${maven.build.timestamp}</timestamp>
+                <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
+            </properties>
+
+            <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>javadoc-jar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <includeDependencySources>true</includeDependencySources>
+                            <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
+                            <dependencySourceIncludes>
+                                <dependencySourceInclude>org.openidentityplatform.*:*</dependencySourceInclude>
+                            </dependencySourceIncludes>
+                            <excludePackageNames>com.*:*.internal</excludePackageNames>
+                            <groups>
+                                <group>
+                                    <title>${project.name} Packages</title>
+                                    <packages>${project.groupId}*</packages>
+                                </group>
+
+                                <group>
+                                    <title>ForgeRock Common Packages</title>
+                                    <packages>*</packages>
+                                </group>
+                            </groups>
+                            <author>false</author>
+                            <doctitle>${javadocTitle}</doctitle>
+                            <windowtitle>${javadocTitle}</windowtitle>
+                            <header>${javadocTitle}</header>
+                            <footer>${javadocTitle}</footer>
+                            <bottom>Copyright 2011-${maven.build.timestamp} ForgeRock AS.</bottom>
+                            <links>
+                                <link>http://docs.oracle.com/javase/7/docs/api/</link>
+                                <link>http://www.slf4j.org/apidocs/</link>
+                            </links>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>dependencies</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <links>
+                        <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
+                    </links>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

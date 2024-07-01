@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   The contents of this file are subject to the terms of the Common Development and
+   Distribution License (the License). You may not use this file except in compliance with the
+   License.
+
+   You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+   specific language governing permission and limitations under the License.
+
+   When distributing Covered Software, include this CDDL Header Notice in each file and include
+   the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+   Header, with the fields enclosed by brackets [] replaced by your own identifying
+   information: "Portions Copyright [year] [name of copyright owner]".
+
+   Copyright 2012-2016 ForgeRock AS.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>opendj-parent</artifactId>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <version>4.6.5-SNAPSHOT</version>
+    </parent>
+	
+    <artifactId>opendj-rest2ldap</artifactId>
+    <name>OpenDJ Commons REST Adapter</name>
+    <description>This module includes APIs for accessing LDAP repositories using commons REST.</description>
+
+    <packaging>bundle</packaging>
+
+    <properties>
+        <opendj.osgi.import.additional>
+            org.forgerock.opendj.*;provide:=true,
+            org.forgerock.json.*;provide:=true
+        </opendj.osgi.import.additional>
+        <doclint>none</doclint>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openidentityplatform.opendj</groupId>
+            <artifactId>opendj-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>json-resource</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>json-resource-http</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>util</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+            <artifactId>core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons.http-framework</groupId>
+  			<artifactId>oauth2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons.http-framework</groupId>
+            <artifactId>client-apache-async</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>build-tools</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+        	<groupId>org.openidentityplatform.commons</groupId>
+            <artifactId>api-descriptor</artifactId>
+         </dependency>
+    </dependencies>
+
+
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.openidentityplatform.commons.i18n-framework</groupId>
+                <artifactId>maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-messages</goal>
+                        </goals>
+                        <configuration>
+                            <messageFiles>
+                                <messageFile>org/forgerock/opendj/rest2ldap/rest2ldap.properties</messageFile>
+                            </messageFiles>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>build-helper-maven-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <phase>process-sources</phase>
+		            <goals>
+		              <goal>add-source</goal>
+		            </goals>
+		            <configuration>
+		              <sources>
+		                <source>target/generated-sources/messages</source>
+		              </sources>
+		            </configuration>
+		          </execution>
+		         </executions>
+		      </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>org.forgerock.opendj.rest2ldap*</Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>dependencies</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

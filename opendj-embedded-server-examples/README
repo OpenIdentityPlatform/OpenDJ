@@ -1,0 +1,33 @@
+#! /bin/sh
+
+# To run the examples in this module, you can either type the following instructions
+# in a terminal or run this file
+
+# Build the whole opendj project and then start from the opendj-embedded-server-examples directory
+echo ">>> Building OpenDJ project"
+#cd ..
+#mvn clean install
+#cd opendj-embedded-server-examples
+
+# Define the class path to use
+export CLASSPATH=target/opendj-embedded-server-examples-4.0.0-SNAPSHOT.jar:../opendj-server-legacy/target/package/opendj/lib/opendj-slf4j-adapter.jar
+echo ">>> classpath set to: $CLASSPATH"
+
+# Choose a location for the root directory (where the directory server will be installed)
+export EXAMPLE_ROOT_DIR=`pwd`/target/examples/opendj
+echo ">>> root directory set to: $EXAMPLE_ROOT_DIR"
+
+# Setup a server from the OpenDJ archive resulting from the build
+echo ">>> Example 1: setup a server"
+java -cp $CLASSPATH org.forgerock.opendj.examples.SetupServer \
+ ../opendj-server-legacy/target/package/opendj-4.0.0-SNAPSHOT.zip $EXAMPLE_ROOT_DIR
+
+# Then you can run any of the example using the installed server
+
+# Start and stop the server
+echo ">>> Example 2: start and stop the server"
+java -cp $CLASSPATH org.forgerock.opendj.examples.StartStopServer $EXAMPLE_ROOT_DIR
+
+# Read and update the configuration of the server
+echo ">>> Example 3: read and update configuration of the server"
+java -cp $CLASSPATH org.forgerock.opendj.examples.ConfigureServer $EXAMPLE_ROOT_DIR "dc=example,dc=com"

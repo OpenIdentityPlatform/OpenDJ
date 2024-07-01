@@ -1,0 +1,28 @@
+//
+// Example configuration for Splunk handler.
+// Edit a copy of the file with your settings.
+// Strip comments before use with grep -v '^[ ]*//' < your-file.json
+//
+{
+  "class": "org.forgerock.audit.handlers.splunk.SplunkAuditEventHandler",
+  "config": {
+    "authzToken": "00000000-0000-0000-0000-000000000000",
+    "buffering": {
+      "maxBatchedEvents": 500,
+      "maxSize": 10000,
+      "writeInterval": "100 millis"
+    },
+    "connection": {
+      // Optional
+      "host": "localhost",
+      "port": 8088,
+      "useSSL": false
+    },
+    "enabled": false,
+    "name": "splunk",
+    "topics": [
+      "ldap-access",
+      "http-access"
+    ]
+  }
+}

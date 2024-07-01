@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+-->
+<!-- OpenDJ final archive content descriptor -->
+<component>
+  <!-- Put un-versioned dependencies (jars) into lib directory -->
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib</outputDirectory>
+      <unpack>false</unpack>
+      <scope>runtime</scope>
+      <outputFileNameMapping>${artifact.groupId}.${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+      <excludes>
+        <exclude>javax.activation:activation</exclude>
+        <exclude>org.forgerock.opendj:opendj-server-legacy</exclude>
+      </excludes>
+    </dependencySet>
+  </dependencySets>
+  <fileSets>
+    <!-- Creates bat/ directory with server binaries -->
+    <fileSet>
+      <directory>${basedir}/resource/bin</directory>
+      <outputDirectory>bat</outputDirectory>
+      <includes>
+        <include>*.bat</include>
+      </includes>
+      <excludes>
+        <exclude>_*.bat</exclude>
+        <exclude>setcp.bat</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <lineEnding>windows</lineEnding>
+    </fileSet>
+
+    <!-- Add opendj-ldap-toolkit binaries into bat/ directory -->
+    <fileSet>
+      <directory>${project.build.directory}/opendj-ldap-toolkit/bat</directory>
+      <outputDirectory>bat</outputDirectory>
+    </fileSet>
+
+    <!-- Creates bin/ directory with server and ldap toolkit binaries -->
+    <fileSet>
+      <directory>${basedir}/resource/bin</directory>
+      <outputDirectory>bin</outputDirectory>
+      <excludes>
+        <exclude>_*.sh</exclude>
+        <exclude>*.bat</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>
+    </fileSet>
+
+    <!-- Add opendj-ldap-toolkit binaries into bin/ directory -->
+    <fileSet>
+      <directory>${project.build.directory}/opendj-ldap-toolkit/bin</directory>
+      <outputDirectory>bin</outputDirectory>
+    </fileSet>
+
+    <!-- Add legal-notices/THIRDPARTYREADME.txt -->
+    <fileSet>
+      <directory>${basedir}/legal-notices</directory>
+      <outputDirectory>legal-notices</outputDirectory>
+      <includes>
+        <include>THIRDPARTYREADME.txt</include>
+      </includes>
+    </fileSet>
+
+    <!-- Add legal-notices/CDDLv1_0.txt -->
+    <fileSet>
+      <directory>${basedir}/../legal-notices</directory>
+      <outputDirectory>legal-notices</outputDirectory>
+      <includes>
+        <include>CDDLv1_0.txt</include>
+      </includes>
+    </fileSet>
+
+    <!-- Include the Forgerock binary license file if exists -->
+    <fileSet>
+       <directory>${project.build.directory}/legal-notices</directory>
+       <outputDirectory>legal-notices</outputDirectory>
+      <includes>
+        <include>*.txt</include>
+      </includes>
+    </fileSet>
+
+    <!-- Adds sh in lib/ directory -->
+    <fileSet>
+      <directory>${basedir}/resource/bin</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>_*.sh</include>
+      </includes>
+      <fileMode>755</fileMode>
+    </fileSet>
+
+    <!-- Adds bat in lib/ directory -->
+    <fileSet>
+      <directory>${basedir}/resource/bin</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>_*.bat</include>
+        <include>setcp.bat</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <lineEnding>windows</lineEnding>
+    </fileSet>
+
+    <!-- Adds windows exe in lib/ directory -->
+    <fileSet>
+      <directory>${basedir}/lib</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>*.exe</include>
+      </includes>
+      <fileMode>755</fileMode>
+    </fileSet>
+
+    <!-- Adds resources at the archive root -->
+    <fileSet>
+      <directory>${basedir}/resource</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>setup*</include>
+        <include>*install*</include>
+        <include>upgrade*</include>
+        <include>README</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>
+    </fileSet>
+
+    <!-- Adds Mac executables at the archive root -->
+    <fileSet>
+      <directory>${basedir}/resource/mac</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>QuickSetup.app/*/**</include>
+        <include>Uninstall.app/*/**</include>
+      </includes>
+      <excludes>
+        <exclude>*/**/Info.plist</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>
+    </fileSet>
+
+    <!-- Adds Mac Info.plist files at the archive root -->
+    <fileSet>
+      <directory>${project.build.outputDirectory}</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>QuickSetup.app/*/**</include>
+        <include>Uninstall.app/*/**</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>
+    </fileSet>
+
+    <!-- Adds Mac control-panel in the bin/ directory -->
+    <fileSet>
+      <directory>${basedir}/resource/mac</directory>
+      <outputDirectory>bin</outputDirectory>
+      <includes>
+        <include>ControlPanel.app/*/**</include>
+        <include>${project.build.outputDirectory}/ControlPanel.app/*/**</include>
+      </includes>
+      <excludes>
+        <exclude>*/**/Info.plist</exclude>
+      </excludes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>
+    </fileSet>
+
+    <!-- Adds Mac control-panel Info.plist in the bin/ directory -->
+    <fileSet>
+      <directory>${project.build.outputDirectory}</directory>
+      <outputDirectory>bin</outputDirectory>
+      <includes>
+        <include>ControlPanel.app/*/**</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>
+    </fileSet>
+
+    <!-- Adds messages template resources -->
+    <fileSet>
+      <directory>${basedir}/resource/messages</directory>
+      <outputDirectory>template/config/messages</outputDirectory>
+      <includes>
+        <include>*.template</include>
+      </includes>
+    </fileSet>
+
+    <!-- Adds schema template resources -->
+    <fileSet>
+      <directory>${basedir}/resource/schema</directory>
+      <outputDirectory>template/config/schema</outputDirectory>
+      <includes>
+        <include>*.ldif</include>
+      </includes>
+    </fileSet>
+
+    <!-- Adds configuration template resources -->
+    <fileSet>
+      <directory>${basedir}/resource/config</directory>
+      <outputDirectory>template/config</outputDirectory>
+      <excludes>
+        <exclude>config.ldif</exclude>
+      </excludes>
+    </fileSet>
+
+    <!-- Adds MakeLDIF configuration template resources -->
+    <fileSet>
+      <directory>${basedir}/../opendj-core/src/main/resources/org/forgerock/opendj/ldif</directory>
+      <outputDirectory>template/config/MakeLDIF</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+    </fileSet>
+
+    <!-- Creates template/ children directories -->
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/bak</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/changelogDb</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/classes</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/db</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/import-tmp</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/ldif</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/locks</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>template/logs</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>${jars.dir}</directory>
+      <outputDirectory>lib</outputDirectory>
+      <excludes>
+        <exclude>build-tools.jar</exclude>
+        <exclude>${snmp.jar.name}.jar</exclude>
+        <exclude>opendj-bootstrap.jar</exclude>
+        <exclude>opendj-bootstrap-client.jar</exclude>
+        <exclude>opendj-build-tools.jar</exclude>
+        <exclude>opendj-quicksetup.jar</exclude>
+<!--         <exclude>opendj-slf4j-adapter.jar</exclude> -->
+<!--         <exclude>opendj-je-backend.jar</exclude> -->
+        <exclude>opendj-i18n-ca_ES.jar</exclude>
+        <exclude>opendj-i18n-de.jar</exclude>
+        <exclude>opendj-i18n-es.jar</exclude>
+        <exclude>opendj-i18n-fr.jar</exclude>
+        <exclude>opendj-i18n-ja.jar</exclude>
+        <exclude>opendj-i18n-ko.jar</exclude>
+        <exclude>opendj-i18n-pl.jar</exclude>
+        <exclude>opendj-i18n-zh_CN.jar</exclude>
+        <exclude>opendj-i18n-zh_TW.jar</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>.</directory>
+      <outputDirectory>lib/extensions</outputDirectory>
+      <excludes>
+        <exclude>*/**</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+  <files>
+	<file>
+		<source>${jars.dir}/opendj-bootstrap.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>bootstrap.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-bootstrap-client.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>bootstrap-client.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-quicksetup.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>quicksetup.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-i18n-ca_ES.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_ca_ES.jar</destName>
+	</file>
+	<file>
+		<source>${jars.dir}/opendj-i18n-de.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_de.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-es.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_es.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-fr.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_fr.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-ja.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_ja.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-ko.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_ko.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-pl.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_pl.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-zh_CN.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_zh_CN.jar</destName>
+	</file>
+		<file>
+		<source>${jars.dir}/opendj-i18n-zh_TW.jar</source>
+		<outputDirectory>lib</outputDirectory>
+		<destName>opendj_zh_TW.jar</destName>
+	</file>
+    <!-- Adds Generated config.ldif file -->
+    <file>
+      <source>${basedir}/resource/config/config.ldif</source>
+      <outputDirectory>template/config</outputDirectory>
+    </file>
+
+    <!-- Adds logo png to root directory -->
+    <file>
+      <source>${basedir}/resource/images/opendj_logo.png</source>
+      <outputDirectory></outputDirectory>
+    </file>
+    <!-- Adds buildinfo to configuration template/config -->
+    <file>
+      <source>${project.build.outputDirectory}/META-INF/product/buildinfo</source>
+      <outputDirectory>template/config</outputDirectory>
+    </file>
+    <!-- Adds base schema that may be used during the upgrade process -->
+    <file>
+      <source>${project.build.directory}/upgrade/schema.ldif.${buildRevision}</source>
+      <outputDirectory>template/config/upgrade</outputDirectory>
+    </file>
+  </files>
+</component>

@@ -1,0 +1,40 @@
+In order to build and use this plugin, perform the following steps while the server is stopped:
+
+# 1. ensure OpenDJ is stopped:
+
+     bin/stop-ds
+
+# 2. Go into the msad-plugin source folder:
+
+     cd opendj-server-msad-plugin
+
+# 3. Build the plugin (this requires Maven version 3):
+
+     mvn clean install
+
+# 4. Unzip the built msad-plugin zip
+
+     unzip target/opendj-server-msad-plugin.zip -d target
+
+# 5. Copy the msad-plugin's content into the parent OpenDJ installation:
+
+     cp -r target/opendj-server-msad-plugin/* ..
+
+# 6. This will copy the following files:
+
+#     lib/extensions/opendj-server-msad-plugin.jar
+#     config/msad-plugin.ldif
+#     config/schema/99-msad-plugin.ldif
+
+# 7. Add the plugin's config to the server configuration.
+
+     cd ..
+     bin/start-ds
+     bin/dsconfig -h localhost -p 4444 -D "cn=Directory Manager" -w password \
+      create-plugin --plugin-name "MSAD Plugin" --type msad \
+      --set enabled:true --set plugin-type:preoperationbind \
+      --set plugin-type:preoperationadd --set plugin-type:preoperationmodify -X -n
+
+# 8. Restart the server:
+
+     bin/stop-ds --restart

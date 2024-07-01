@@ -1,0 +1,147 @@
+#!/bin/sh
+#
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions Copyright [year] [name of copyright owner]".
+#
+# Copyright 2006-2009 Sun Microsystems, Inc.
+# Portions Copyright 2011-2014 ForgeRock AS.
+
+
+# Capture the current working directory so that we can change to it later.
+# Then capture the location of this script and the Directory Server instance
+# root so that we can use them to create appropriate paths.
+WORKING_DIR=`pwd`
+
+cd "`dirname "${0}"`"
+SCRIPT_DIR=`pwd`
+
+cd ..
+INSTALL_ROOT=`pwd`
+export INSTALL_ROOT
+
+cd "${WORKING_DIR}"
+
+
+# Specify the script name so that it may be provided in command-line usage.
+SCRIPT_NAME="start-ds"
+export SCRIPT_NAME
+
+# check for presence of lib/_svc-opendj.sh file
+# If present, we should be on Solaris/OpenSolaris and use SMF to start
+# OpenDJ.
+# Check --exec. If not present, start OpenDJ from SMF
+
+if test -f "${INSTALL_ROOT}/lib/_svc-opendj.sh"
+then
+    if [ "$1" = "--exec" ]
+    then
+        shift
+    elif [ -z "$1" -o "$1" = "-L" -o "$1" = "-Q" -o "$1" = "-N" -o \
+     "$1" = "--nodetach" -o "$1" = "-useLastKnownGoodConfig" \
+     -o "$1" = "--quiet" ]
+    then
+# these options are only used when trying to start the server
+# In this case, start it through the service.
+        exec /usr/sbin/svcadm enable -t svc:/network/ldap/server:opendj
+    fi
+fi
+
+# Set environment variables
+SCRIPT_UTIL_CMD=set-full-server-environment-and-test-java
+export SCRIPT_UTIL_CMD
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
+RETURN_CODE=$?
+if test ${RETURN_CODE} -ne 0
+then
+	exit ${RETURN_CODE}
+fi
+
+# Specify the locations of important files that may be used when the server
+# is starting.
+CONFIG_FILE=${INSTANCE_ROOT}/config/config.ldif
+PID_FILE=${INSTANCE_ROOT}/logs/server.pid
+LOG_FILE=${INSTANCE_ROOT}/logs/server.out
+STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
+
+
+# See if the provided set of arguments were sufficient for us to be able to
+# start the server or perform the requested operation.  An exit code of 99
+# means that it should be possible to start the server.  An exit code of 98
+# means that the server is already running and we shouldn't try to start it.
+# An exit code of anything else means that we're not trying to start the server
+# and we can just exit with that exit code.
+"${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configFile "${CONFIG_FILE}" --checkStartability "${@}"
+EC=${?}
+if test ${EC} -eq 99 -o ${EC} -eq 103
+then
+  #
+  # run detach
+  #
+  touch "${STARTING_FILE}"
+  nohup "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+       org.opends.server.core.DirectoryServer \
+       --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
+  echo $! > "${PID_FILE}"
+  if test ${EC} -eq 99
+  then
+    "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+         --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}" "${@}"
+  else
+    "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+         --targetFile "${STARTING_FILE}" "${@}"
+  fi
+  EC=${?}
+  if test ${EC} -eq 0
+  then
+    # An exit code of 98 means that the server is already running.
+  	"${OPENDJ_JAVA_BIN}" -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+            --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
+    EC=${?}
+    if test ${EC} -eq 98
+    then
+    	exit 0
+    else
+      # Could not start the server
+      exit 1
+    fi
+  fi
+  exit ${EC}
+else
+  if test ${EC} -eq 100
+  then
+    #
+    # run no detach
+    #
+    echo $$ > "${PID_FILE}"
+    rm -f "${LOG_FILE}"
+    exec "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+      org.opends.server.core.DirectoryServer \
+      --configFile "${CONFIG_FILE}" "${@}"
+  elif test ${EC} -eq 104
+  then
+    #
+    # run no detach quiet
+    #
+    echo $$ > "${PID_FILE}"
+    rm -f "${LOG_FILE}"
+    exec "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+      org.opends.server.core.DirectoryServer \
+      --configFile "${CONFIG_FILE}" "${@}" > /dev/null
+  else
+    #
+    # an error or the server is already started.  Just return the code provided
+    # by checkstartability
+    #
+    exit ${EC}
+  fi
+fi

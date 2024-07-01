@@ -1,0 +1,17 @@
+dn: dc=example,dc=com
+changetype: modify
+delete: objectClass
+objectClass: domain
+-
+add: objectClass
+objectClass: organization
+objectClass: dcObject
+-
+add: description
+description: description 1
+description: description 2
+description: description 3
+-
+add: o
+o: Example Corp.
+-

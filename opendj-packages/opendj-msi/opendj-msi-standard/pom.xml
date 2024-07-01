@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015-2016 ForgeRock AS.
+  Portions Copyright 2018 Open Identity Platform Community
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-msi</artifactId>
+        <version>4.6.5-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>opendj-msi-standard</artifactId>
+    <packaging>pom</packaging>
+    <name>OpenDJ MSI Standard Package</name>
+
+    <description>
+        This module generates an OpenDJ MSI package.
+    </description>
+
+    <properties>
+        <msi.resources>${basedir}/resources/msi</msi.resources>
+        <package.dir>${project.build.directory}/${product.name.lowercase}</package.dir>
+    </properties>
+	
+	<dependencies>
+
+	</dependencies>
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+
+			<plugin>
+				<groupId>org.openidentityplatform.commons</groupId>
+				<artifactId>maven-external-dependency-plugin</artifactId>
+				<inherited>false</inherited>
+				<configuration>
+					<stagingDirectory>
+						${project.build.directory}/dependencies/
+                    </stagingDirectory>
+					<createChecksum>false</createChecksum>
+					<skipChecksumVerification>true</skipChecksumVerification>
+					<force>false</force>
+					<artifactItems>
+						<artifactItem>
+							<groupId>openidentityplatform.org</groupId>
+							<artifactId>wixtoolset</artifactId>
+							<version>3.11.1</version>
+							<packaging>zip</packaging>
+							<downloadUrl>
+									https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311-binaries.zip
+	                        </downloadUrl>
+	                        <deploy>false</deploy>
+						</artifactItem>
+						<artifactItem>
+							<groupId>openidentityplatform.org</groupId>
+							<artifactId>winetricks</artifactId>
+							<version>LAST</version>
+							<packaging>sh</packaging>
+							<downloadUrl>
+								https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks
+	                        </downloadUrl>
+	                        <deploy>false</deploy>
+						</artifactItem>
+					</artifactItems>
+				</configuration>
+				<executions>
+					<execution>
+						<id>clean-external-dependencies</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean-external</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>resolve-install-external-dependencies</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>resolve-external</goal>
+							<goal>install-external</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>deploy-external-dependencies</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>deploy-external</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-wix</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+			                 	<artifactItem>
+				                   	<groupId>openidentityplatform.org</groupId>
+								   	<artifactId>wixtoolset</artifactId>
+								    <version>3.11.1</version>
+									<type>zip</type>
+			                		 </artifactItem>
+			                </artifactItems>
+                            <outputDirectory>
+                                ${project.build.directory}/wix
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>unpack-winetricks</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+			                 	<artifactItem>
+				                   	<groupId>openidentityplatform.org</groupId>
+									<artifactId>winetricks</artifactId>
+									<version>LAST</version>
+									<type>sh</type>
+			                		 </artifactItem>
+			                </artifactItems>
+                            <outputDirectory>
+                                ${project.build.directory}/winetricks
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-msi-package-prepare</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                            	<delete dir="${user.home}/.msi" />
+                                <mkdir dir="${user.home}/.msi" />
+                                <copy toDir="${user.home}/.msi">
+                                    <fileset dir="${package.dir}">
+                                        <!-- Exclude Mac apps -->
+                                        <exclude name="QuickSetup.app/**" />
+                                        <exclude name="Uninstall.app/**" />
+
+                                        <!-- Exclude shell scripts -->
+                                        <exclude name="bin/**" />
+                                        <exclude name="setup" />
+                                        <exclude name="uninstall" />
+                                        <exclude name="upgrade" />
+                                        <exclude name="**/*.sh" />
+                                    </fileset>
+                                </copy>
+
+                                <copy file="${msi.resources}/package.wxs" toDir="${project.build.directory}" />
+                                <copy file="${msi.resources}/opendjbanner.bmp" toDir="${project.build.directory}" />
+                                <copy file="${msi.resources}/opendjdialog.bmp" toDir="${project.build.directory}" />
+
+								<exec osfamily="windows" executable="${project.build.directory}\wix\heat.exe" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
+								   <arg value="dir" /> <arg value="${user.home}\.msi" />
+                                    <arg value="-nologo" />
+                                    <arg value="-cg" /><arg value="all" />
+                                    <arg value="-gg" />
+                                    <arg value="-sfrag" />
+                                    <arg value="-srd" />
+                                    <arg value="-ke" />
+                                    <arg value="-dr" /><arg value="OPENDJ" />
+                                    <arg value="-var" /><arg value="var.src" />
+                                    <arg value="-template" /><arg value="fragment" />
+                                    <arg value="-o" /><arg value="payload.wxs" />
+                                    <arg value="-v" />
+                                </exec>
+                                <exec osfamily="windows" executable="${project.build.directory}\wix\candle.exe" dir="${project.build.directory}" resultproperty="candleStatusCode">
+                                	<arg value="-nologo" />
+                                    <arg value="-dsrc=${user.home}\.msi" />
+                                    <arg value="-dname=${product.name}" />
+                                    <arg value="-dmajor=${parsedVersion.majorVersion}" />
+                                    <arg value="-dminor=${parsedVersion.minorVersion}" />
+                                    <arg value="-dpoint=${parsedVersion.incrementalVersion}" />
+                                    <arg value="package.wxs" />
+                                    <arg value="payload.wxs" />
+                                    <arg value="-v" />
+                                </exec>
+                                <exec osfamily="windows" executable="${project.build.directory}\wix\light.exe" dir="${project.build.directory}" resultproperty="lightStatusCode">
+                                    <arg value="-nologo" />
+                                    <arg value="-ext" /> <arg value="WixUIExtension" />
+                                    <arg value="-out" /> <arg value="${product.name.lowercase}-${project.version}.msi" />
+                                    <arg value="-sval" />
+                                    <arg value="-v" />
+                                    <arg value="package.wixobj" />
+                                    <arg value="payload.wixobj" />
+                                </exec>
+
+
+								<exec osfamily="unix" executable="wine" resultproperty="WineExitStatusCode" failifexecutionfails="false">
+									<arg value="wineboot" />
+									<arg value="--init" />
+								</exec>
+								
+								<exec osfamily="unix" executable="sh" resultproperty="WineTricksExitStatusCode" failifexecutionfails="false">
+									<arg value="${project.build.directory}/winetricks/winetricks-LAST.sh" />
+									<arg value="--unattended" />
+									<arg value="dotnet40" />
+									<arg value="dotnet_verifier" />
+								</exec>
+								
+								<property name="exec.heat" value="wine" /><property name="param.heat" value="${project.build.directory}/wix/heat.exe" />
+								<property name="exec.candle" value="wine" /><property name="param.candle" value="${project.build.directory}/wix/candle.exe" />
+								<property name="exec.light" value="wine" /><property name="param.light" value="${project.build.directory}/wix/light.exe" />
+							    <echo>------------------- ${exec.heat} ${param.heat} -------------------</echo>
+								<exec osfamily="unix" executable="${exec.heat}" dir="${project.build.directory}" failifexecutionfails="false" resultproperty="heatStatusCode">
+								   <arg value="${param.heat}" />
+                                    <arg value="dir" /> <arg value="${user.home}/.msi" />
+                                    <arg value="-nologo" />
+                                    <arg value="-cg" /><arg value="all" />
+                                    <arg value="-gg" />
+                                    <arg value="-sfrag" />
+                                    <arg value="-srd" />
+                                    <arg value="-ke" />
+                                    <arg value="-dr" /><arg value="OPENDJ" />
+                                    <arg value="-var" /><arg value="var.src" />
+                                    <arg value="-template" /><arg value="fragment" />
+                                    <arg value="-o" /><arg value="payload.wxs" />
+                                    <arg value="-v" />
+                                </exec>
+                                <echo>------------------- ${exec.candle} ${param.candle} -------------------</echo>
+                                <exec osfamily="unix" executable="${exec.candle}" dir="${project.build.directory}" resultproperty="candleStatusCode">
+                                	<arg value="${param.candle}" />
+                                    <arg value="-nologo" />
+                                    <arg value="-dsrc=${user.home}/.msi" />
+                                    <arg value="-dname=${product.name}" />
+                                    <arg value="-dmajor=${parsedVersion.majorVersion}" />
+                                    <arg value="-dminor=${parsedVersion.minorVersion}" />
+                                    <arg value="-dpoint=${parsedVersion.incrementalVersion}" />
+                                    <arg value="package.wxs" />
+                                    <arg value="payload.wxs" />
+                                    <arg value="-v" />
+                                </exec>
+                                <echo>------------------- ${exec.light} ${param.light} -------------------</echo>
+                                <exec osfamily="unix" executable="${exec.light}" dir="${project.build.directory}" resultproperty="lightStatusCode">
+                                	<arg value="${param.light}" />
+                                    <arg value="-nologo" />
+                                    <arg value="-ext" /> <arg value="WixUIExtension" />
+                                    <arg value="-out" /> <arg value="${product.name.lowercase}-${project.version}.msi" />
+                                    <arg value="-sval" />
+                                    <arg value="-v" />
+                                    <arg value="package.wixobj" />
+                                    <arg value="payload.wixobj" />
+                                </exec>
+                                <chmod file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" perm="ugo+r" verbose="true" />
+								<exec osfamily="unix" executable="ls" dir="${project.build.directory}">
+                                	<arg value="-laht" />
+                                </exec>
+
+                                <delete dir="${user.home}/.msi" />
+                                <attachartifact file="${project.build.directory}/${product.name.lowercase}-${project.version}.msi" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

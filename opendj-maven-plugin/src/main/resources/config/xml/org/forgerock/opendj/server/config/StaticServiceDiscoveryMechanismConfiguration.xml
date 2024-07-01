@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="static-service-discovery-mechanism" plural-name="static-service-discovery-mechanisms"
+                    extends="service-discovery-mechanism"
+                    package="org.forgerock.opendj.server.config"
+                    xmlns:adm="http://opendj.forgerock.org/admin"
+                    xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
+                    xmlns:cli="http://opendj.forgerock.org/admin-cli">
+  <adm:synopsis>
+    A <adm:user-friendly-name/> returns a fixed list of LDAP directory servers.
+  </adm:synopsis>
+  <adm:description>
+    A change in configuration to any of the specified directory servers must be manually applied on all
+    <adm:user-friendly-plural-name/> that reference it.
+  </adm:description>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.backends.proxy.StaticServiceDiscoveryMechanism
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-static-server-discovery-mechanism</ldap:name>
+      <ldap:superior>ds-cfg-service-discovery-mechanism</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="primary-server" multi-valued="true">
+    <adm:synopsis>
+      Specifies a list of servers that will be used in preference to secondary servers when available.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>^.+:[0-9]+$</adm:regex>
+          <adm:usage>HOST:PORT</adm:usage>
+          <adm:synopsis>
+            A host name followed by a ":" and a port number.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-primary-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="secondary-server" multi-valued="true">
+    <adm:synopsis>
+      Specifies a list of servers that will be used in place of primary servers when all primary servers
+      are unavailable.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:string>
+      <adm:pattern>
+        <adm:regex>^.+:[0-9]+$</adm:regex>
+          <adm:usage>HOST:PORT</adm:usage>
+          <adm:synopsis>
+            A host name followed by a ":" and a port number.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-secondary-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+  </adm:property>
+  <adm:property name="discovery-interval">
+    <adm:synopsis>
+      Interval between two server configuration discovery executions.
+    </adm:synopsis>
+    <adm:description>
+      Specifies how frequently to read the configuration of the servers
+      in order to discover their new information.
+    </adm:description>
+    <adm:syntax>
+      <adm:duration base-unit="s" lower-limit="1s"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-discovery-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>60s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property>
+  <!-- Unused for the time being, space holder for future reference.
+
+  Comment from PR:
+
+  Should you enumerate which operations in the description?
+  (For example, is bind considered to be a write operation? Or a read operation,
+   with a write operation as a possible side effect?)
+
+  <adm:property name="read-only-server" multi-valued="true" hidden="true">
+    <adm:synopsis>The list of servers for read operations only</adm:synopsis>
+    <adm:syntax>
+      <adm:string/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-read-only-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+  </adm:property>
+
+  -->
+</adm:managed-object>

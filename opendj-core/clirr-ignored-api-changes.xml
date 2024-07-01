@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2014-2016 ForgeRock AS.
+-->
+<differences>
+<!--
+For specifying ignored differences, see:
+  http://mojo.codehaus.org/clirr-maven-plugin/examples/ignored-differences.html
+
+path/methods/to/from matching can either use:
+- regex when surrounded with '%regex[]'
+- ant style path matching when surrounded with '%ant[]'
+- ant style path matching when not surrounded by anything
+
+For path/methods matching in maven-clirr-plugin see (change version numbers accordingly):
+  http://svn.codehaus.org/mojo/tags/clirr-maven-plugin-2.6.1/src/main/java/org/codehaus/mojo/clirr/Difference.java
+  http://grepcode.com/file/repo1.maven.org/maven2/org.codehaus.plexus/plexus-utils/3.0.7/org/codehaus/plexus/util/SelectorUtils.java
+For a description of ant style path expressions see:
+  http://ant.apache.org/manual/dirtasks.html#patterns
+
+Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to avoid the need to use \s* in the '<to>' tags.
+-->
+  <difference>
+    <className>org/forgerock/opendj/ldap/Connections</className>
+    <differenceType>7002</differenceType>
+    <method>org.forgerock.opendj.ldap.ConnectionFactory newLoadBalancer(org.forgerock.opendj.ldap.LoadBalancingAlgorithm)</method>
+    <justification>OPENDJ-2878 Implement sharded request load-balancer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LoadBalancingAlgorithm</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-2878 Implement sharded request load-balancer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LdapPromise</className>
+    <differenceType>7012</differenceType>
+    <method>org.forgerock.opendj.ldap.LdapPromise thenFinally(java.lang.Runnable)</method>
+    <justification>Consequence of COMMONs-5 Promise API improvements</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/RootDSE</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.LdapPromise readRootDSEAsync(org.forgerock.opendj.ldap.Connection, org.forgerock.opendj.ldap.LdapResultHandler)</method>
+    <justification>Code cleanup: remove unused LdapResultHandler parameter</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/LdapPromises</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl newBindLdapPromise(int, org.forgerock.opendj.ldap.requests.BindRequest, org.forgerock.opendj.ldap.requests.BindClient, org.forgerock.opendj.ldap.IntermediateResponseHandler, org.forgerock.opendj.ldap.Connection)</method>
+    <justification>Code cleanup: remove unused Connection parameter</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/LdapPromises</className>
+    <differenceType>7002</differenceType>
+    <method>org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl newBindLdapPromise(int, org.forgerock.opendj.ldap.requests.BindRequest, org.forgerock.opendj.ldap.requests.BindClient, org.forgerock.opendj.ldap.IntermediateResponseHandler, org.forgerock.opendj.ldap.spi.LDAPConnectionImpl)</method>
+    <justification>Code cleanup: remove overloaded method with unused parameter</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/schema/(AttributeType|DITContentRule|DITStructureRule|MatchingRule|MatchingRuleUse|NameForm|ObjectClass|Syntax)\$Builder]</className>
+    <differenceType>7006</differenceType>
+    <method>%regex[org\.forgerock\.opendj\.ldap\.schema\.SchemaElement\$SchemaElementBuilder (description|extraProperties|removeAllExtraProperties|removeExtraProperty)\([^)]*\)]</method>   
+    <to>org.forgerock.opendj.ldap.schema.AbstractSchemaElement$SchemaElementBuilder</to>
+    <justification>Renamed class SchemaElement to AbstractSchemaElement</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/schema/(AttributeType|DITContentRule|DITStructureRule|MatchingRule|MatchingRuleUse|NameForm|ObjectClass|Syntax)]</className>
+    <differenceType>5001</differenceType>
+    <to>org/forgerock/opendj/ldap/schema/**SchemaElement</to>
+    <justification>Renamed class SchemaElement to AbstractSchemaElement</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/schema/(AttributeType|DITContentRule|DITStructureRule|MatchingRule|MatchingRuleUse|NameForm|ObjectClass|Syntax)\$Builder]</className>
+    <differenceType>5001</differenceType>
+    <to>org/forgerock/opendj/ldap/schema/**SchemaElement$SchemaElementBuilder</to>
+    <justification>Renamed class SchemaElement to AbstractSchemaElement</justification>
+  </difference>
+   <difference>
+    <className>org/forgerock/opendj/ldap/DN</className>
+    <differenceType>7002</differenceType>
+    <method>org.forgerock.opendj.ldap.DN$CompactDn compact()</method>
+    <justification>CompactDN has been migrated to server</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/DN$CompactDn</className>
+    <differenceType>8001</differenceType>
+    <justification>CompactDN has been migrated to server</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.List getAttributeTypesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getDITContentRulesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getDITStructureRulesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getMatchingRuleUsesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getMatchingRulesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getNameFormsWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Collection getObjectClassesWithName(java.lang.String)</method>
+    <justification>No duplicate names allowed</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7002</differenceType>
+    <method>void enableConnectionSecurityLayer(org.forgerock.opendj.ldap.ConnectionSecurityLayer)</method>
+    <justification>Security layer now handled with enableTLS() and enableSASL()</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7012</differenceType>
+    <method>boolean enableSASL(javax.security.sasl.SaslServer)</method>
+    <justification>Simplify management of security layer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7012</differenceType>
+    <method>javax.security.sasl.SaslServer getSASLServer()</method>
+    <justification>Simplify management of security layer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7004</differenceType>
+    <method>void enableTLS(javax.net.ssl.SSLContext, java.lang.String[], java.lang.String[], boolean, boolean)</method>
+    <justification>Simplify management of security layer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7006</differenceType>
+    <method>%regex[void\s*enableTLS\(javax\.net\.ssl\.SSLContext,\s*java\.lang\.String\[\],\s*java\.lang\.String\[\],\s*boolean,\s*boolean\)]</method>
+    <to>boolean</to>
+    <justification>Simplify management of security layer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7012</differenceType>
+    <method>void addListener(org.forgerock.opendj.ldap.LDAPClientContextEventListener)</method>
+    <justification>Allows to register connection state listener</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7005</differenceType>
+     <method>%regex[LDAPListener\((((java\.lang\.String, +)?int,)|(java\.net\.InetSocketAddress,))\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(, +org\.forgerock\.util\.Options)?\)]</method>
+    <to>%regex[LDAPListener\((((java\.lang\.String, +)?int,)|(java\.util\.Set,)) +org\.forgerock\.util\.Function(, +org\.forgerock\.util\.Options)?\)]</to>
+    <justification>Allow multiple bind addressses. Use function rather than specific interface</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7002</differenceType>
+    <method>java.net.InetSocketAddress getSocketAddress()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7002</differenceType>
+    <method>java.net.InetAddress getAddress()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7002</differenceType>
+    <method>java.lang.String getHostName()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7002</differenceType>
+    <method>int getPort()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/LDAPListenerImpl</className>
+    <differenceType>7002</differenceType>
+    <method>java.net.InetSocketAddress getSocketAddress()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/LDAPListenerImpl</className>
+    <differenceType>7012</differenceType>
+    <method>java.util.Set getSocketAddresses()</method>
+    <justification>Accept multiple SocketAddress to bind to</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/spi/TransportProvider</className>
+    <differenceType>7005</differenceType>
+    <method>org.forgerock.opendj.ldap.spi.LDAPListenerImpl getLDAPListener(java.net.InetSocketAddress, org.forgerock.opendj.ldap.ServerConnectionFactory, org.forgerock.util.Options)</method>
+    <to>%regex[org\.forgerock\.opendj\.ldap\.spi\.LDAPListenerImpl +getLDAPListener\(java\.util\.Set, +org\.forgerock\.util\.Function, +org\.forgerock\.util\.Options\)]</to>
+    <justification>Accept multiple SocketAddress to bind to. Use Function rather than specific interface</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/io/LDAP</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.io.LDAPWriter getWriter(org.forgerock.opendj.io.ASN1Writer)</method>
+    <justification>Add support for LdapV2 encoding</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPClientContext</className>
+    <differenceType>7006</differenceType>
+    <method>void sendUnsolicitedNotification(org.forgerock.opendj.ldap.responses.ExtendedResult)</method>
+    <to>com.forgerock.reactive.Completable</to>
+    <justification>Return a completable so that operation can be chained (i.e: closing connection)</justification>
+  </difference>
+</differences>

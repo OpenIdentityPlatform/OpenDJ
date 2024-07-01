@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2011-2016 ForgeRock AS.
+-->
+<document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+  <properties>
+    <title>About ${project.name}</title>
+    <author email="opendj-dev@forgerock.org">${project.organization.name}</author>
+  </properties>
+  <body>
+    <section name="About ${project.name}">
+
+      <p>
+        The following LDAP example applications use the OpenDJ LDAP SDK synchronous APIs:
+      </p>
+
+      <ul>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/Search.html">LDAP search</a>
+          - illustrates how to perform an LDAP search operation using the
+          synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/Modify.html">LDAP modify</a>
+          - illustrates how to perform an LDAP modify operation using the
+          synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/Server.html">LDAP server</a>
+          - illustrates how to implement a very simple LDAP server
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/SimpleAuth.html">LDAP bind</a>
+          - illustrates how to bind to an LDAP server using the synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/SASLAuth.html">LDAP SASL bind</a>
+          - illustrates how to implement a SASL PLAIN bind to an LDAP server
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ParseAttributes.html">Parse
+          attributes</a> - illustrates how to get an entry's attribute values as objects
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ReadSchema.html">Read LDAP schema</a>
+          - illustrates how to read and verify an LDAP server's schema
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/GetInfo.html">Read Root DSE</a>
+          - illustrates how to read an LDAP server's capabilities and schema
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/SearchBind.html">Search &amp; bind</a>
+          - illustrates how to authenticate given a mail address and a password
+          using the synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ShortLife.html">Short life</a>
+          - illustrates how to create, update, rename, and delete an entry
+          using the synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/UseSchema.html">Use LDAP Schema</a>
+          - illustrates how to validate an entry using the directory server LDAP schema
+          using the synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/Controls.html">Use LDAP Controls</a>
+          - illustrates how to use supported LDAP controls
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ExtendedOperations.html">Use
+          LDAP Extended Operations</a> - illustrates how to use supported LDAP extended
+          operations
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/UpdateGroup.html">Update group</a>
+          - illustrates how to add or remove a member from a static group
+          using the synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/UseGenericControl.html">Use <code>GenericControl</code></a>
+          - illustrates how to use <code>GenericControl</code> to add a pre-read request control
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/GetADChangeNotifications.html">Get AD Change Notifications</a>
+          - illustrates how to use <code>GetADChangeNotifications</code> to get change notifications from Active Directory
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/PasswordResetForAD.html">Reset AD user password</a>
+          - illustrates how to reset a user password in Active Directory as Administrator,
+            or change the password as the user
+        </li>
+      </ul>
+
+      <p>
+        The following LDAP example applications use the OpenDJ LDAP SDK asynchronous APIs:
+      </p>
+
+      <ul>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/SearchAsync.html">LDAP search (async)</a>
+          - illustrates how to perform an LDAP search operation using the
+          asynchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ModifyAsync.html">LDAP modify (async)</a>
+          - illustrates how to perform an LDAP modify operation using the
+          asynchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/Proxy.html">LDAP proxy</a>
+          - illustrates how to implement a very simple LDAP proxy
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/SimpleAuthAsync.html">LDAP bind (async)</a>
+          - illustrates how to bind to an LDAP server using the asynchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/SearchBindAsync.html">Search &amp; bind (async)</a>
+          - illustrates how to authenticate given a mail address and a password
+          using the asynchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ShortLifeAsync.html">Short life (async)</a>
+          - illustrates how to create, update, rename, and delete an entry
+          using the asynchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/UseSchemaAsync.html">Use LDAP Schema (async)</a>
+          - illustrates how to validate an entry using the directory server LDAP schema
+          using the asynchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/RewriterProxy.html">Rewrite proxy</a>
+          - illustrates how to rewrite DNs and attribute names in a proxy layer
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/UpdateGroupAsync.html">Update group (async)</a>
+          - illustrates how to add or remove a member from a static group
+          using the asynchronous APIs
+        </li>
+      </ul>
+    </section>
+<!--
+    <section name="Documentation for ${project.name}">
+      <p>
+        Javadoc for this module can be found <a href="apidocs/index.html">here</a>.
+      </p>
+    </section>
+    <section name="Get ${project.name}">
+      <p>
+        You can get ${project.name} using any of the following methods:
+      </p>
+      <subsection name="Download">
+        <p>
+          Pre-built binaries can be downloaded directly from the ForgeRock Maven
+          repository:
+        </p>
+        <ul>
+          <li><a href="${mavenRepoReleases}/org/forgerock/opendj/${project.artifactId}">Stable releases</a></li>
+          <li><a href="${mavenRepoSnapshots}/org/forgerock/opendj/${project.artifactId}/${project.version}">Latest development snapshot</a></li>
+        </ul>
+      </subsection>
+      <subsection name="Build">
+        <p>
+          For the DIY enthusiasts you can build it yourself by checking out the
+          latest code using <a href="source-repository.html">Subversion</a> and
+          building it with Maven 3.
+        </p>
+      </subsection>
+    </section>
+-->
+  </body>
+</document>

@@ -1,0 +1,3 @@
+changetype: modify
+delete: objectClass
+objectClass: domain

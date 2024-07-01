@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2007-2010 Sun Microsystems, Inc.
+  Portions copyright 2011-2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="replication-server"
+  plural-name="replication-servers"
+  package="org.forgerock.opendj.server.config"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    <adm:user-friendly-plural-name />
+    publish updates to Directory Servers within a
+    Replication Domain.
+  </adm:synopsis>
+  <adm:tag name="replication" />
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-replication-server</ldap:name>
+      <ldap:superior>top</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property name="replication-server" multi-valued="true">
+    <adm:synopsis>
+      Specifies the addresses of other
+      <adm:user-friendly-plural-name />
+      to which this
+      <adm:user-friendly-name />
+      tries to connect at startup time.
+    </adm:synopsis>
+    <adm:description>
+      Addresses must be specified using the syntax: "hostname:port". If IPv6
+      addresses are used as the hostname, they must be specified using the
+      syntax "[IPv6Address]:port".
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>^.+:[0-9]+$</adm:regex>
+          <adm:usage>HOST:PORT</adm:usage>
+          <adm:synopsis>
+            A host name followed by a ":" and a port number.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="source-address" multi-valued="false" mandatory="false">
+    <adm:synopsis>
+      If specified, the server will bind to the address before connecting to the
+      remote server.
+    </adm:synopsis>
+    <adm:description>
+      The address must be one assigned to an existing network interface.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+        <adm:ip-address />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-source-address</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-server-id" mandatory="true"
+    read-only="true">
+    <adm:synopsis>
+      Specifies a unique identifier for the
+      <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:description>
+      Each
+      <adm:user-friendly-name />
+      must have a different server ID.
+    </adm:description>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-server-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="window-size" advanced="true">
+    <adm:synopsis>
+      Specifies the window size that the
+      <adm:user-friendly-name />
+      uses when communicating with other
+      <adm:user-friendly-plural-name />.
+    </adm:synopsis>
+    <adm:description>
+      This option may be deprecated and removed in future releases.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>100000</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-window-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="queue-size" advanced="true">
+    <adm:synopsis>
+      Specifies the number of changes that are kept in memory for
+      each directory server in the Replication Domain.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>10000</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-queue-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-db-directory" mandatory="true"
+    read-only="true">
+    <adm:synopsis>
+      The path where the
+      <adm:user-friendly-name />
+      stores all persistent information.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>changelogDb</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string></adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-db-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-purge-delay">
+    <adm:synopsis>
+      The time (in seconds) after which the
+      <adm:user-friendly-name />
+      erases all persistent information.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>3 days</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" allow-unlimited="false" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-purge-delay</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-port" mandatory="true">
+    <adm:synopsis>
+      The port on which this
+      <adm:user-friendly-name />
+      waits for connections from other
+      <adm:user-friendly-plural-name />
+      or Directory Servers.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="65535" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-port</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="group-id" mandatory="false">
+    <adm:synopsis>
+      The group id for the replication server.
+    </adm:synopsis>
+    <adm:description>
+      This value defines the group id of the replication server. The replication
+      system of a LDAP server uses the group id of the replicated domain and
+      tries to connect, if possible, to a replication with the same group id.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="127"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-group-id</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="assured-timeout" mandatory="false">
+    <adm:synopsis>
+      The timeout value when waiting for assured mode acknowledgments.
+    </adm:synopsis>
+    <adm:description>
+      Defines the number of milliseconds that the replication server will wait
+      for assured acknowledgments (in either Safe Data or Safe Read assured sub
+      modes) before forgetting them and answer to the entity that sent an update
+      and is waiting for acknowledgment.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1000ms</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-assured-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="degraded-status-threshold" mandatory="false">
+    <adm:synopsis>
+      The number of pending changes as threshold value for putting a directory
+      server in degraded status.
+    </adm:synopsis>
+    <adm:description>
+      This value represents a number of pending changes a replication server has
+      in queue for sending to a directory server. Once this value is crossed,
+      the matching directory server goes in degraded status. When number of
+      pending changes goes back under this value, the directory server is put
+      back in normal status. 0 means status analyzer is disabled and directory
+      servers are never put in degraded status.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>5000</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-degraded-status-threshold</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="weight" mandatory="false">
+    <adm:synopsis>
+      The weight of the replication server.
+    </adm:synopsis>
+    <adm:description>
+      The weight affected to the replication server.
+      Each replication server of the topology has a weight. When combined
+      together, the weights of the replication servers of a same group can be
+      translated to a percentage that determines the quantity of directory
+      servers of the topology that should be connected to a replication server.
+      For instance imagine a topology with 3 replication servers (with the same
+      group id) with the following weights: RS1=1, RS2=1, RS3=2. This means that
+      RS1 should have 25% of the directory servers connected in the topology,
+      RS2 25%, and RS3 50%. This may be useful if the replication servers of the
+      topology have a different power and one wants to spread the load between
+      the replication servers according to their power.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-weight</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="monitoring-period" mandatory="false">
+    <adm:synopsis>
+      The period between sending of monitoring messages.
+    </adm:synopsis>
+    <adm:description>
+      Defines the duration that the replication server will wait
+      before sending new monitoring messages to its peers (replication servers
+      and directory servers). Larger values increase the length of time it
+      takes for a directory server to detect and switch to a more suitable
+      replication server, whereas smaller values increase the amount of
+      background network traffic.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>60s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-monitoring-period</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="compute-change-number" mandatory="false">
+    <adm:synopsis>
+      Whether the replication server will compute change numbers.
+    </adm:synopsis>
+    <adm:description>
+      This boolean tells the replication server to compute change numbers for
+      each replicated change by maintaining a change number index database.
+      Changenumbers are computed according to
+      http://tools.ietf.org/html/draft-good-ldap-changelog-04.
+      Note this functionality has an impact on CPU, disk accesses and storage.
+      If changenumbers are not required, it is advisable to set this value to
+      false.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-compute-change-number</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="cipher-transformation">
+    <adm:synopsis>
+      Specifies the cipher for the directory server.
+      The syntax is "algorithm/mode/padding".
+    </adm:synopsis>
+    <adm:description>
+      The full transformation is required: specifying only an algorithm
+      and allowing the cipher provider to supply the default mode and
+      padding is not supported, because there is no guarantee these
+      default values are the same among different implementations.
+      Some cipher algorithms, including RC4 and ARCFOUR, do not have a
+      mode or padding, and hence must be specified using NONE for the
+      mode field and NoPadding for the padding field. For example,
+      RC4/NONE/NoPadding.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect cryptographic operations performed after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>AES/CBC/PKCS5Padding</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cipher-transformation</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="cipher-key-length">
+    <adm:synopsis>
+      Specifies the key length in bits for the preferred cipher.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect cryptographic operations performed after the
+          change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>128</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cipher-key-length</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="confidentiality-enabled">
+    <adm:synopsis>
+      Indicates whether the replication change-log should make records readable only by Directory Server.
+      Throughput and disk space are affected by the more expensive operations taking place.
+    </adm:synopsis>
+    <adm:description>
+      Confidentiality is achieved by encrypting records on all domains managed by this replication server.
+      Encrypting the records prevents unauthorized parties from accessing contents of LDAP operations.
+      For complete protection, consider enabling secure communications between servers.
+      Change number indexing is not affected by the setting.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property take effect immediately but
+          only affect operations performed after the change.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-confidentiality-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>

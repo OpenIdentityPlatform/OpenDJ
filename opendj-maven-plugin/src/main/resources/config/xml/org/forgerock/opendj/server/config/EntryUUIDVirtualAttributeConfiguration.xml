@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2007-2008 Sun Microsystems, Inc.
+  Portions Copyright 2011 ForgeRock AS.
+  ! -->
+<adm:managed-object name="entry-uuid-virtual-attribute"
+  plural-name="entry-uuid-virtual-attributes"
+  package="org.forgerock.opendj.server.config" extends="virtual-attribute"
+  xmlns:adm="http://opendj.forgerock.org/admin"
+  xmlns:ldap="http://opendj.forgerock.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    ensures that all entries contained in private backends
+    have values for the entryUUID operational attribute.
+  </adm:synopsis>
+  <adm:description>
+    The entryUUID values are generated based on a normalized
+    representation of the entry's DN, which does not cause a
+    consistency problem because <adm:product-name /> does not allow modify DN 
+    operations to be performed in private backends.
+  </adm:description>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-entry-uuid-virtual-attribute</ldap:name>
+      <ldap:superior>ds-cfg-virtual-attribute</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.EntryUUIDVirtualAttributeProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property-override name="conflict-behavior" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>real-overrides-virtual</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property-override name="attribute-type">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>entryUUID</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+</adm:managed-object>

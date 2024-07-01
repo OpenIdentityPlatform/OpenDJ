@@ -1,0 +1,29 @@
+//
+// Example configuration for syslog handler.
+// Edit a copy of the file with your settings.
+// Strip comments before use with grep -v '^[ ]*//' < your-file.json
+//
+{
+  "class": "org.forgerock.audit.handlers.syslog.SyslogAuditEventHandler",
+  "config": {
+    // Optional
+    "buffering": {
+      "enabled": false,
+      "maxSize": 5000
+    },
+    "enabled": false,
+    "facility": "LOCAL0",
+    "host": "localhost",
+    "name": "syslog",
+    "port": 514,
+    // Permitted values: UDP, TCP
+    "transportProtocol": "TCP",
+    // Only applies to transportProtocol TCP, in which case it is mandatory
+    "connectionTimeout": "30",
+    "topics": [
+      "ldap-acces",
+      "http-access"
+    ]
+  }
+}
+

@@ -1,0 +1,235 @@
+#!/bin/sh
+#
+# The contents of this file are subject to the terms of the Common Development and
+# Distribution License (the License). You may not use this file except in compliance with the
+# License.
+#
+# You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+# specific language governing permission and limitations under the License.
+#
+# When distributing Covered Software, include this CDDL Header Notice in each file and include
+# the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+# Header, with the fields enclosed by brackets [] replaced by your own identifying
+# information: "Portions Copyright [year] [name of copyright owner]".
+#
+# Copyright 2006-2009 Sun Microsystems, Inc.
+# Portions Copyright 2011-2014 ForgeRock AS.
+
+
+# This script may be used to request that the Directory Server shut down.
+# It operates in two different ways, depending on how it is invoked.  If it
+# is invoked without any arguments and a local PID file is available, then it
+# will stop the server by sending a TERM signal to the process, and this
+# script will wait until the server has stopped before exiting.  If any
+# arguments were provided or there is no local PID file, then it will attempt
+# to stop the server using an LDAP request.
+
+
+# Capture the current working directory so that we can change to it later.
+# Then capture the location of this script and the Directory Server instance
+# root so that we can use them to create appropriate paths.
+WORKING_DIR=`pwd`
+
+cd "`dirname "${0}"`"
+SCRIPT_DIR=`pwd`
+
+cd ..
+INSTALL_ROOT=`pwd`
+export INSTALL_ROOT
+
+cd "${WORKING_DIR}"
+
+# We keep this values to reset the environment before calling start-ds.
+ORIGINAL_JAVA_ARGS=${OPENDJ_JAVA_ARGS}
+ORIGINAL_JAVA_HOME=${OPENDJ_JAVA_HOME}
+ORIGINAL_JAVA_BIN=${OPENDJ_JAVA_BIN}
+
+
+# Specify the script name so that we can use the specified java properties.
+SCRIPT_NAME="stop-ds"
+export SCRIPT_NAME
+
+# check for presence of lib/_svc-opendj.sh file
+# If present, we should be on Solaris/OpenSolaris and use SMF to start
+# OpenDJ.
+# Check --exec. If not present, start OpenDJ from SMF
+if test -f "${INSTALL_ROOT}/lib/_svc-opendj.sh"
+then
+    if [ "$1" = "--exec" ]
+    then
+        shift
+    elif [ "$1" != "-V" -a "$1" != "--version" -a "$1" != "-?" -a \
+        "$1" != "-H" -a "$1" != "--help" ]
+#These options are not stopping the server, but checking version and help
+    then
+        if [ "$1" = "-R" -o "$1" = "--restart" ]
+        then
+            /usr/sbin/svcadm disable -t svc:/network/ldap/server:opendj
+            RETURN_CODE=$?
+            if test ${RETURN_CODE} -ne 0
+            then
+                exit ${RETURN_CODE}
+            fi
+            exec /usr/sbin/svcadm enable -t svc:/network/ldap/server:opendj
+        else
+            exec /usr/sbin/svcadm disable -t svc:/network/ldap/server:opendj
+        fi
+    fi
+fi
+
+QUIET_OPTION=0
+for a in "$@"
+do
+  if [ "$a" = "--quiet" ]
+  then
+    QUIET_OPTION=1
+  fi
+done
+
+# Set environment variables
+SCRIPT_UTIL_CMD=set-full-server-environment-and-test-java
+export SCRIPT_UTIL_CMD
+.  "${INSTALL_ROOT}/lib/_script-util.sh"
+RETURN_CODE=$?
+if test ${RETURN_CODE} -ne 0
+then
+  exit ${RETURN_CODE}
+fi
+
+
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+  org.opends.server.tools.StopDS --checkStoppability "${@}"
+EC=${?}
+
+STOPPED=1
+EXIT_CODE=1
+MUST_START_USING_SYSTEM_CALL=1
+MUST_STOP_USING_SYSTEM_CALL=1
+QUIET_MODE=1
+
+if test ${EC} -eq 98
+#
+# Already stopped and nothing else to do.
+#
+then
+  STOPPED=0
+else
+  if test ${EC} -eq 99 -o ${EC} -eq 105
+  #
+  # Already stopped and must start locally.
+  #
+  then
+    STOPPED=0
+    MUST_START_USING_SYSTEM_CALL=0
+    if test ${EC} -eq 105
+    then
+      QUIET_MODE=0
+    fi
+  else
+    if test ${EC} -eq 100
+    then
+      #
+      # Stop using system call
+      #
+      MUST_STOP_USING_SYSTEM_CALL=0
+    else
+      if test ${EC} -eq 101 -o ${EC} -eq 106
+      then
+        #
+        # Restart using system call
+        #
+        MUST_STOP_USING_SYSTEM_CALL=0
+        MUST_START_USING_SYSTEM_CALL=0
+        if test ${EC} -eq 106
+        then
+          QUIET_MODE=0
+        fi
+      else
+        if test ${EC} -ne 102
+        then
+          exit ${EC}
+        fi
+      fi
+    fi
+  fi
+fi
+
+if test ${MUST_STOP_USING_SYSTEM_CALL} -eq 0
+then
+  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  then
+    read PID < "${INSTANCE_ROOT}/logs/server.pid"
+    kill ${PID}
+    EXIT_CODE=${?}
+    if test ${EXIT_CODE} -eq 0
+    then
+      if test ${QUIET_OPTION} -eq 0
+      then
+        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
+            --logFile "${INSTANCE_ROOT}/logs/errors"
+      else
+        "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+            --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
+            --logFile "${INSTANCE_ROOT}/logs/errors"  --quiet
+      fi
+      EXIT_CODE=${?}
+      if test ${EXIT_CODE} -eq 0
+      then
+        STOPPED=0
+      fi
+    fi
+  else
+    echo "ERROR:  Unable to find the server.pid file to determine the process"
+    echo "        ID of the OpenDJ process to terminate."
+    exit 1
+  fi
+fi
+
+# Delete the pid file if the server is stopped (this can occur if the process
+# has been killed using kill -9).
+if test ${STOPPED} -eq 0
+then
+  if test -f "${INSTANCE_ROOT}/logs/server.pid"
+  then
+    rm "${INSTANCE_ROOT}/logs/server.pid"
+  fi
+fi
+
+# Now if the user wants to restart the server, try to restart it if the server
+# is stopped.
+if test ${MUST_START_USING_SYSTEM_CALL} -eq 0
+then
+  if test ${STOPPED} -eq 0
+  then
+# Set the original values that the user had on the environment in order to be
+# sure that the start-ds script works with the proper arguments (in particular
+# if the user specified not to overwrite the environment).
+    OPENDJ_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
+    OPENDJ_JAVA_HOME=${ORIGINAL_JAVA_HOME}
+    OPENDJ_JAVA_BIN=${ORIGINAL_JAVA_BIN}
+    if test ${QUIET_MODE} -eq 0
+    then
+      "${INSTALL_ROOT}/bin/start-ds" --quiet
+      EXIT_CODE=${?}
+      exit ${EXIT_CODE}
+    else
+      "${INSTALL_ROOT}/bin/start-ds"
+      EXIT_CODE=${?}
+      exit ${EXIT_CODE}
+    fi
+  fi
+#
+# The user does not want to start the server locally and it is already stopped.
+# Just exit.
+#
+else
+  if test ${STOPPED} -eq 0
+  then
+    exit 0
+  fi
+fi
+
+# If we've gotten here, then we should try to stop the server over LDAP.
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+  org.opends.server.tools.StopDS "${@}"

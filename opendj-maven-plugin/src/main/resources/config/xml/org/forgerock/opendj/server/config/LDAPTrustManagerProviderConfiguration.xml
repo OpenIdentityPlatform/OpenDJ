@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2016 ForgeRock AS.
+  ! -->
+<adm:managed-object name="ldap-trust-manager-provider"
+                    plural-name="ldap-trust-manager-providers"
+                    package="org.forgerock.opendj.server.config" extends="trust-manager-provider"
+                    xmlns:adm="http://opendj.forgerock.org/admin"
+                    xmlns:ldap="http://opendj.forgerock.org/admin-ldap"
+                    advanced="true">
+  <adm:synopsis>
+    The LDAP trust manager provider determines whether to trust a presented certificate based on whether that
+    certificate exists in an LDAP key store managed by the server.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>ds-cfg-ldap-trust-manager-provider</ldap:name>
+      <ldap:superior>ds-cfg-trust-manager-provider</ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.LDAPTrustManagerProvider
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="base-dn" mandatory="true">
+    <adm:synopsis>
+      The base DN beneath which LDAP key store entries are located.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property-reference name="trust-store-pin" />
+  <adm:property-reference name="trust-store-pin-property" />
+  <adm:property-reference name="trust-store-pin-environment-variable" />
+  <adm:property-reference name="trust-store-pin-file" />
+</adm:managed-object>

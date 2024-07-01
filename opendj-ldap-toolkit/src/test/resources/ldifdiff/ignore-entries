@@ -1,0 +1,4 @@
+OU=PEOpLE,Dc=exaMPLE,DC=COM
+uid=test.user,ou=People,dc=example,dc=com
+a b c
+ou=Groups, dc=example, dc=com

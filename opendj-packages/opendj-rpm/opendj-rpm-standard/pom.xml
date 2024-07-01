@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyright [year] [name of copyright owner]".
+
+  Copyright 2015 ForgeRock AS.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.openidentityplatform.opendj</groupId>
+        <artifactId>opendj-rpm</artifactId>
+        <version>4.6.5-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>opendj-rpm-standard</artifactId>
+    <packaging>pom</packaging>
+    <name>OpenDJ RPM Standard Package</name>
+
+    <description>
+        This module generates an OpenDJ standard edition rpm package.
+    </description>
+
+    <properties>
+        <sysv.file.location>${project.parent.parent.basedir}/resources/sysv/opendj</sysv.file.location>
+        <rpm.product.name>${product.name}</rpm.product.name>
+        <rpm.product.name.lowercase>${product.name.lowercase}</rpm.product.name.lowercase>
+        <rpm.resources.path>${project.parent.basedir}/resources</rpm.resources.path>
+        <rpm.description.header>${product.name} LDAP Server</rpm.description.header>
+        <rpm.product.summary />
+        <rpm.license>CDDL</rpm.license>
+    </properties>
+
+    <build><finalName>${project.groupId}.${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

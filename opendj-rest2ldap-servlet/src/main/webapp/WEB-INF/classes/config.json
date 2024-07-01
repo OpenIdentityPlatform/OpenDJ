@@ -1,0 +1,305 @@
+{
+    "security": {
+        // Specifies the policy for trusting server certificates exchanged
+        // during SSL/StartTLS negotiation. This setting and the following
+        // trust policy settings will be ignored if there is no connection
+        // security. Acceptable values are:
+        //
+        // "trustAll" - blindly trust all server certificates
+        // "jvm"      - only certificates signed by the authorities
+        //              associated with the host JVM will be accepted (default)
+        // "file"     - use a file-based trust store for validating
+        //              certificates. This option requires the following
+        //              "fileBasedTrustManager*" settings to be configured.
+        //
+        "trustManager": "jvm",
+
+        // File based trust manager configuration (see above).
+        "fileBasedTrustManagerType": "JKS",
+        "fileBasedTrustManagerFile": "/path/to/truststore",
+        "fileBasedTrustManagerPasswordFile": "/path/to/pinfile",
+
+        // Specifies the key-manager for authenticating the http client performing
+        // the request against the access-token resolver endpoint. Acceptable values are:
+        //
+        // "jvm"      - use the JVM's default keystore for retrieving certificates. (default)
+        // "file"     - use a file-based key store for retrieving certificates.
+        // "pkcs11"   - use a PKCS#11 token for retrieving certificates.
+        "keyManager": "jvm",
+
+        // Keystore based key manager configuration (see above).
+        "fileBasedKeyManagerType": "JKS",
+        "fileBasedKeyManagerFile": "/path/to/keystore",
+        "fileBasedKeyManagerPasswordFile": "/path/to/pinfile",
+
+        // PKCS11 based key manager configuration
+        "pkcs11KeyManagerPasswordFile": "/path/to/pinfile"
+    },
+
+    // The array of connection factories which will be used by the Rest2LDAP
+    // Servlet and authentication filter.
+    "ldapConnectionFactories": {
+        // Unauthenticated connections used for performing bind requests.
+        "bind": {
+            // Indicates whether LDAP connections should be secured using
+            // SSL or StartTLS. Acceptable values are:
+            //
+            // "none"     - use plain LDAP connections (default)
+            // "ssl"      - secure connection using LDAPS
+            // "startTLS" - secure connection using LDAP+StartTLS
+            //
+            "connectionSecurity": "none",
+
+            // This alias points at an existing certificate that is used for SSL authentication for secure
+            // communication between this gateway and the remote LDAP server.
+            "sslCertAlias": "client-cert",
+
+            // Re-usable pool of 24 connections per server.
+            "connectionPoolSize": 24,
+
+            // Check pooled connections are alive every 30 seconds with a 500ms
+            // heart beat timeout.
+            "heartBeatIntervalSeconds": 30,
+            "heartBeatTimeoutMilliSeconds": 500,
+
+            // The preferred load-balancing pool.
+            "primaryLdapServers": [{
+                "hostname": "localhost",
+                "port": 1389
+            }],
+            // The fail-over load-balancing pool (optional).
+            "secondaryLdapServers": [
+                // Empty.
+            ]
+        },
+
+        // Authenticated connections which will be used for searches during
+        // authentication and proxied operations (if enabled). This factory
+        // will re-use the server "bind" configuration.
+        "root": {
+            "inheritFrom": "bind",
+
+            // Defines how authentication should be performed. Only "simple"
+            // authentication is supported at the moment.
+            // If the OAuth 2.0 authorization policy is configured below,
+            // then the directory service must be configured
+            // to allow the user configured here to perform proxied authorization.
+            "authentication": {
+                "simple": {
+                    "bindDn": "cn=directory manager",
+                    "bindPassword": "password"
+                }
+            }
+        }
+    },
+
+    "authorization": {
+        // The authorization policies to use. Supported policies are "anonymous", "basic" and "oauth2".
+        "policies": [ "basic" ],
+
+        // Perform all operations using a pre-authorized connection.
+        "anonymous": {
+            // Specify the connection factory to use to perform LDAP operations.
+            // If missing, the "root" factory will be used.
+            "ldapConnectionFactory": "root"
+        },
+
+        // Use HTTP Basic authentication's information to bind to the LDAP server.
+        "basic": {
+            // Indicates whether the filter should allow alternative authentication
+            // and, if so, which HTTP headers it should obtain the username and
+            // password from.
+            "supportAltAuthentication": true,
+            "altAuthenticationUsernameHeader": "X-OpenIDM-Username",
+            "altAuthenticationPasswordHeader": "X-OpenIDM-Password",
+
+            // Define which LDAP bind mechanism to use
+            // Supported mechanisms are "simple", "sasl-plain", "search"
+            "bind": "search",
+
+            // Bind to the LDAP server using the DN built from the HTTP Basic's username
+            "simple": {
+                // Connection factory used to perform the bind operation.
+                // If missing, "bind" factory will be used.
+                "ldapConnectionFactory": "bind",
+
+                // The Bind DN Template containing a single {username} which will be replaced by the authenticating
+                // user's name. (i.e: uid={username},ou=People,dc=example,dc=com)
+                // If missing, "{username}" is used.
+                "bindDnTemplate": "uid={username},ou=People,dc=example,dc=com"
+            },
+
+            // Bind to the LDAP server using a SASL Plain request
+            "sasl-plain": {
+                // Connection factory used to perform the bind operation.
+                // If missing, "bind" factory will be used.
+                "ldapConnectionFactory": "bind",
+
+                // Authentication identity template containing a single {username} which will be replaced by the authenticating
+                // user's name. (i.e: u:{username})
+                "authzIdTemplate": "u:{username}"
+            },
+
+            // Bind to the LDAP server using the resulting DN of a search request.
+            "search": {
+                // Connection factory used to perform the search operation.
+                // If missing, "root" factory will be used.
+                "searchLdapConnectionFactory": "root",
+
+                // Connection factory used to perform the bind operation.
+                // If missing, "bind" factory will be used.
+                "bindLdapConnectionFactory": "bind",
+
+                // The {username} filter format parameters will be substituted with the client-provided username,
+                // using LDAP filter string character escaping.
+                "baseDn": "ou=people,dc=example,dc=com",
+                "scope": "sub", // Or "one".
+                "filterTemplate": "(&(uid={username})(objectClass=inetOrgPerson))"
+            }
+            // TODO: support for HTTP sessions?
+        },
+
+        // Use OAuth2 authorization method. If used, LDAP requests will be performed with proxied authorization control.
+        // This field is optional.
+        "oauth2": {
+            // Access tokens associated realm.
+            // This attribute is optional and has a string syntax.
+            "realm": "myrealm",
+
+            // Defines the list of required scopes required to access the service.
+            // This field is required and cannot be empty.
+            "requiredScopes": [ "read", "write", "uid" ],
+
+            // Specify the resolver to use to resolve OAuth2 access token.
+            // This attribute is required and its value must be one of "openam", "rfc7662", "cts".
+            // Note that the JSON object corresponding to this attribute value must be present
+            // and well formed in the "oauth2" JSON attribute.
+            "resolver": "openam",
+
+            // Configures caching of access token introspection results.
+            // This attribute is optional, if it is not present, no token caching will be performed.
+            "accessTokenCache": {
+                // Indicates whether the access token caching should be used.
+                // This attribute is optional (default value is false) and must have a boolean syntax.
+                "enabled": false,
+
+                // Specifies the maximal caching duration for an access token.
+                // Once this delay is over, token will be refreshed from an access token resolver (see "oauth2/resolver")
+                // This attribute is optional, its default value is "5 minutes".
+                // The duration syntax supports all human readable notations from day ("days", "day", "d")
+                // to nanosecond ("nanoseconds", "nanosecond", "nanosec", "nanos", "nano", "ns")
+                // Any negative or zero values are incorrect.
+                "cacheExpiration": "5 minutes"
+            },
+
+            // The OpenAM access token resolver configuration.
+            // This attribute must be present if the "oauth2/resolver" is equal to "openam".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+            "openam": {
+                // Defines the OpenAM endpoint URL where the request should be sent.
+                // This attribute is required and must have a string syntax.
+                "endpointUrl": "http://openam.example.com:8080/openam/oauth2/tokeninfo",
+
+                // This alias points at an existing certificate that is used for SSL authentication for secure
+                // communication between this gateway and the OpenAM access-token resolver.
+                "sslCertAlias": "client-cert",
+
+                // The default authzIdTemplate demonstrates how an authorization DN may be constructed
+                // from the "uid" field in the following example OpenAM tokeninfo response:
+                // {
+                //     "scope":["uid"],
+                //     "realm":"/",
+                //     "expires_in":45,
+                //     "uid" : "bjensen",
+                // }
+                // This attribute is required and has a string syntax.
+                // It must start with either 'dn:' or 'u:'.
+                "authzIdTemplate": "dn:uid={uid},ou=People,dc=example,dc=com"
+            },
+
+            // The RFC-7662 (see https://tools.ietf.org/html/rfc7662) access token resolver configuration.
+            // This attribute must be present if the "oauth2/resolver" is equal to "rfc7662".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+            "rfc7662": {
+                // Defines the token introspection endpoint URL where the request should be sent.
+                // This attribute is required and must have a string syntax.
+                "endpointUrl": "http://openam.example.com:8080/openam/oauth2/myrealm/introspect",
+
+                // This alias points at an existing certificate that is used for SSL authentication for secure
+                // communication between this gateway and the introspection access-token resolver.
+                "sslCertAlias": "client-cert",
+
+                // Token introspect endpoint requires authentication.
+                // It should support HTTP basic authorization (a base64-encoded string of clientId:clientSecret)
+                // These attributes are mandatory.
+                "clientId": "client_id",
+                "clientSecret": "client_secret",
+
+                // The default authzIdTemplate demonstrates how an authorization DN may be constructed
+                // from the "username" field in the following example introspect response:
+                // {
+                //     "active": true,
+                //     "token_type": "access_token",
+                //     "exp": 3524,
+                //     "username" : "bjensen",
+                // }
+                // This attribute is required and has a string syntax.
+                // It must start with either 'dn:' or 'u:'.
+                "authzIdTemplate": "dn:uid={username},ou=People,dc=example,dc=com"
+            },
+
+            // The CTS access token resolver.
+            // This attribute must be present if the "oauth2/resolver" is equal to "cts".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+            // Note: You can use {userName/0} in authzIdTemplate configuration to access
+            // user id from the default CTS access token content config.
+            "cts": {
+                // The connection factory to use to access CTS.
+                // This value is only used in gateway mode.
+                // This attribute must reference a connection factory defined in the "ldapConnectionFactories" section.
+                // Default value: "root" (i.e the root connection factory will be used to access the CTS).
+                "ldapConnectionFactory": "root",
+
+                // The access token base DN.
+                // This attribute is required and must have a string syntax.
+                "baseDn": "ou=famrecords,ou=openam-session,ou=tokens,dc=example,dc=com",
+
+                // The default authzIdTemplate demonstrates how an authorization DN may be constructed
+                // from the "userName" field in the following example CTS access token entry:
+                // {
+                //     "active": true,
+                //     "tokenName": ["access_token"],
+                //     "exp": [3524],
+                //     "userName" : ["bjensen"],
+                // }
+                // This attribute is required and has a string syntax.
+                // It must start with either 'dn:' or 'u:'.
+                "authzIdTemplate": "dn:uid={userName/0},ou=People,dc=example,dc=com"
+            },
+
+            // ONLY FOR TEST PURPOSE: A File based access token resolver
+            // This attribute must be present if the "oauth2/resolver" is equal to "file".
+            // If "oauth2/resolver" is set to another resolver, this attribute will be ignored.
+            "file": {
+                // Directory containing token files.
+                // You can test the rest2ldap OAuth2 authorization support by providing some json token files under
+                // the directory set in the configuration below.
+                // File names must be equal to the token strings.
+                // The file content must a JSON object with the following attributes:
+                // 'scope', 'expireTime' and all the field(s) needed to resolve the authzIdTemplate.
+                "folderPath": "/path/to/test/folder",
+
+                // The default authzIdTemplate demonstrates how an authorization DN may be constructed
+                // from the "uid" field extracted from a fake token file:
+                // {
+                //     "scope": ["read", "uid", "write"],
+                //     "expireTime": 1961336698000,
+                //     "uid": "bjensen"
+                // }
+                // This attribute is required and has a string syntax.
+                // It must start with either 'dn:' or 'u:'.
+                "authzIdTemplate": "dn:uid={uid},ou=People,dc=example,dc=com"
+            }
+        }
+    }
+}

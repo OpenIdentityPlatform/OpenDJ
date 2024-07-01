@@ -1,0 +1,25 @@
+RMON2-MIB DEFINITIONS ::= BEGIN
+
+-- Textual Conventions
+
+ZeroBasedCounter32 ::= TEXTUAL-CONVENTION
+    STATUS current
+    DESCRIPTION
+        "This TC describes an object which counts events with the
+        following semantics: objects of this type will be set to
+        zero(0) on creation and will thereafter count appropriate
+        events, wrapping back to zero(0) when the value 2^32 is
+        reached.
+
+        Provided that an application discovers the new object within
+        the minimum time to wrap it can use the initial value as a
+        delta since it last polled the table of which this object is
+        part.  It is important for a management station to be aware of
+        this minimum time and the actual time between polls, and to
+        discard data if the actual time is too long or there is no
+        defined minimum time.
+
+        Typically this TC is used in tables where the INDEX space is
+        constantly changing and/or the TimeFilter mechanism is in use."
+    SYNTAX Gauge32
+END
