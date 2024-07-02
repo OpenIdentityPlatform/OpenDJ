@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='ldapsearch-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>ldapsearch</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>ldapsearch</refname>
+  <refpurpose>perform LDAP search operations</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>ldapsearch</command>
+   <arg choice="req">options</arg>
+   <arg choice="opt">filter</arg>
+   <arg choice="opt" rep="repeat">attributes</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to perform LDAP search operations in the
+  directory.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-a, --dereferencePolicy {dereferencePolicy}</option></term>
+    <listitem>
+     <para>Alias dereference policy ('never', 'always', 'search', or 'find')</para>
+     <para>Default value: never</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-A, --typesOnly</option></term>
+    <listitem>
+     <para>Only retrieve attribute names but not their values</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--assertionFilter {filter}</option></term>
+    <listitem>
+     <para>Use the LDAP assertion control with the provided filter</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-b, --baseDN {baseDN}</option></term>
+    <listitem>
+     <para>Base DN format string</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-c, --continueOnError</option></term>
+    <listitem>
+     <para>Continue processing even if there are errors</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-C, --persistentSearch ps[:changetype[:changesonly[:entrychgcontrols]]]</option></term>
+    <listitem>
+     <para>Use the persistent search control</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--countEntries</option></term>
+    <listitem>
+     <para>Count the number of entries returned by the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-e, --getEffectiveRightsAttribute {attribute}</option></term>
+    <listitem>
+     <para>Specifies geteffectiverights control specific attribute list</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-f, --filename {file}</option></term>
+    <listitem>
+     <para>LDIF file containing the changes to apply</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-g, --getEffectiveRightsAuthzid {authzID}</option></term>
+    <listitem>
+     <para>Use geteffectiverights control with the provided authzid</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-G, --virtualListView {before:after:index:count | before:after:value}</option></term>
+    <listitem>
+     <para>Use the virtual list view control to retrieve the specified results page</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-J, --control {controloid[:criticality[:value|::b64value|:&lt;filePath]]}</option></term>
+    <listitem>
+     <para>Use a request control with the provided information</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-l, --timeLimit {timeLimit}</option></term>
+    <listitem>
+     <para>Maximum length of time in seconds to allow for the search</para>
+     <para>Default value: 0</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--matchedValuesFilter {filter}</option></term>
+    <listitem>
+     <para>Use the LDAP matched values control with the provided filter</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-n, --dry-run</option></term>
+    <listitem>
+     <para>Show what would be done but do not perform any operation</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-s, --searchScope {searchScope}</option></term>
+    <listitem>
+     <para>Search scope ('base', 'one', 'sub', or 'subordinate')</para>
+     <para>Default value: sub</para>
+     <para><literal>subordinate</literal> is an LDAP extension that might
+     not work with all LDAP servers.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-S, --sortOrder {sortOrder}</option></term>
+    <listitem>
+     <para>Sort the results using the provided sort order</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--simplePageSize {numEntries}</option></term>
+    <listitem>
+     <para>Use the simple paged results control with the given page size</para>
+     <para>Default value: 1000</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--subEntries</option></term>
+    <listitem>
+     <para>Use subentries control to specify that subentries are visible and
+     normal entries are not</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-Y, --proxyAs {authzID}</option></term>
+    <listitem>
+     <para>Use the proxied authorization control with the given authorization
+     ID</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-z, --sizeLimit {sizeLimit}</option></term>
+    <listitem>
+     <para>Maximum number of entries to return from the search</para>
+     <para>Default value: 0</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  <refsect2>
+   <title>LDAP Connection Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--connectTimeout {timeout}</option></term>
+     <listitem>
+      <para>Maximum length of time (in milliseconds) that can be taken to
+      establish a connection.  Use '0' to specify no time out.</para>
+      <para>Default value: 30000</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-D, --bindDN {bindDN}</option></term>
+     <listitem>
+      <para>DN to use to bind to the server</para>
+      <para>Default value: cn=Directory Manager</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-E, --reportAuthzID</option></term>
+     <listitem>
+      <para>Use the authorization identity control</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-h, --hostname {host}</option></term>
+     <listitem>
+      <para>Directory server hostname or IP address</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-j, --bindPasswordFile {bindPasswordFile}</option></term>
+     <listitem>
+      <para>Bind password file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-K, --keyStorePath {keyStorePath}</option></term>
+     <listitem>
+      <para> Certificate key store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-N, --certNickname {nickname}</option></term>
+     <listitem>
+      <para>Nickname of certificate for SSL client authentication</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-o, --saslOption {name=value}</option></term>
+     <listitem>
+      <para>SASL bind options</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-p, --port {port}</option></term>
+     <listitem>
+      <para>Directory server port number</para>
+      <para>Default value: 389</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-P, --trustStorePath {trustStorePath}</option></term>
+     <listitem>
+      <para>Certificate trust store path</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-q, --useStartTLS</option></term>
+     <listitem>
+      <para>Use StartTLS to secure communication with the server</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-r, --useSASLExternal</option></term>
+     <listitem>
+      <para>Use the SASL EXTERNAL authentication mechanism</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--trustStorePassword {trustStorePassword}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-u, --keyStorePasswordFile {keyStorePasswordFile}</option></term>
+     <listitem>
+      <para>Certificate key store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-U, --trustStorePasswordFile {path}</option></term>
+     <listitem>
+      <para>Certificate trust store PIN file</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--usePasswordPolicyControl</option></term>
+     <listitem>
+      <para>Use the password policy request control</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-V, --ldapVersion {version}</option></term>
+     <listitem>
+      <para>LDAP protocol version number</para>
+      <para>Default value: 3</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-w, --bindPassword {bindPassword}</option></term>
+     <listitem>
+      <para>Password to use to bind to the server</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-W, --keyStorePassword {keyStorePassword}</option></term>
+     <listitem>
+      <para>Certificate key store PIN</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-X, --trustAll</option></term>
+     <listitem>
+      <para>Trust all server SSL certificates</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-Z, --useSSL</option></term>
+     <listitem>
+      <para>Use SSL for secure communication with the server</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>Utility Input/Output Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>-i, --encoding {encoding}</option></term>
+     <listitem>
+      <para>Use the specified character set for command-line input</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--noPropertiesFile</option></term>
+     <listitem>
+      <para>No properties file will be used to get default command line
+      argument values</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>--propertiesFilePath {propertiesFilePath}</option></term>
+     <listitem>
+      <para>Path to the file containing default property values used for
+      command line arguments</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-T, --dontWrap</option></term>
+     <listitem><para>Do not wrap long lines</para></listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-v, --verbose</option></term>
+     <listitem>
+      <para>Use verbose mode</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+  <refsect2>
+   <title>General Options</title>
+   <variablelist>
+    <varlistentry>
+     <term><option>--version</option></term>
+     <listitem>
+      <para>Display version information</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><option>-?, -H, --help</option></term>
+     <listitem>
+      <para>Display usage information</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </refsect2>
+ </refsect1>
+ <refsect1>
+  <title>Filter</title>
+  <para>The filter argument is a string representation of an LDAP search filter
+  as in <literal>(cn=Babs Jensen)</literal>, <literal
+  >(&amp;(objectClass=Person)(|(sn=Jensen)(cn=Babs J*)))</literal>, or
+  <literal>(cn:caseExactMatch:=Fred Flintstone)</literal>.</para>
+ </refsect1>
+ <refsect1>
+  <title>Attribute</title>
+  <para>The optional attribute list specifies the attributes to return in the
+  entries found by the search. In addition to identifying attributes by name
+  such as <literal>cn sn mail</literal> and so forth, you can use the following
+  notations, too.</para>
+  <variablelist>
+   <varlistentry>
+    <term><literal>*</literal></term>
+    <listitem>
+     <para>Return all user attributes such as <literal>cn</literal>,
+     <literal>sn</literal>, and <literal>mail</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>+</literal></term>
+    <listitem>
+     <para>Return all operational attributes such as <literal>etag</literal>
+     and <literal>pwdPolicySubentry</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>@<replaceable>objectclass</replaceable></literal></term>
+    <listitem>
+     <para>Return all attributes of the specified object class, where
+     <replaceable>objectclass</replaceable> is one of the object classes
+     on the entries returned by the search.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><replaceable>ldap-error</replaceable></term>
+     <listitem>
+      <para>An LDAP error occurred while processing the operation.</para>
+      <para>LDAP result codes are described in <link
+      xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A">RFC
+      4511</link>. Also see the additional information for details.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>89</term>
+     <listitem>
+      <para>An error occurred while parsing the command-line arguments.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Files</title>
+  <para>You can use <filename>~/.opendj/tools.properties</filename> to set
+  the defaults for bind DN, host name, and port number as in the following
+  example.</para>
+  <programlisting language="ini">hostname=directory.example.com
+port=1389
+bindDN=uid=kvaughan,ou=People,dc=example,dc=com
+
+ldapcompare.port=1389
+ldapdelete.port=1389
+ldapmodify.port=1389
+ldappasswordmodify.port=1389
+ldapsearch.port=1389</programlisting>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example searches for entries with UID containing
+  <literal>jensen</literal>, returning only DNs and uid values.</para>
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
+dn: uid=ajensen,ou=People,dc=example,dc=com
+uid: ajensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+uid: gjensen
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+uid: jjensen
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+uid: kjensen
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+uid: rjensen
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+uid: tjensen
+
+
+Result Code:  0 (Success)</screen>
+
+  <para>You can also use <literal>@<replaceable
+  >objectclass</replaceable></literal> notation in the attribute list to return
+  the attributes of a particular object class. The following example shows
+  how to return attributes of the <literal>inetOrgPerson</literal> object
+  class.</para>
+
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" @inetorgperson
+dn: uid=bjensen,ou=People,dc=example,dc=com
+givenName: Barbara
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+cn: Barbara Jensen
+cn: Babs Jensen
+telephoneNumber: +1 408 555 1862
+sn: Jensen
+roomNumber: 0209
+mail: bjensen@example.com
+l: Cupertino
+ou: Product Development
+ou: People
+facsimileTelephoneNumber: +1 408 555 1992</screen>
+
+  <para>You can use <literal>+</literal> in the attribute list to return
+  all operational attributes, as in the following example.</para>
+
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" +
+dn: uid=bjensen,ou=People,dc=example,dc=com
+numSubordinates: 0
+structuralObjectClass: inetOrgPerson
+etag: 0000000073c29972
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: uid=bjensen,ou=people,dc=example,dc=com
+entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c</screen>
+ </refsect1>
+</refentry>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='start-ds-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>start-ds</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>start-ds</refname>
+  <refpurpose>start OpenDJ directory server</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>start-ds</command>
+   <arg choice="opt">options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to start the directory server, as well as to
+  obtain the server version and other forms of general server
+  information.</para>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-L, --useLastKnownGoodConfig</option></term>
+    <listitem>
+     <para>Attempt to start using the configuration that was in place at the
+     last successful startup (if it is available) rather than using the current
+     active configuration.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-N, --nodetach</option></term>
+    <listitem>
+     <para>Do not detach from the terminal and continue running in the
+     foreground. This option cannot be used with the -t, --timeout
+     option.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-Q, --quiet</option></term>
+    <listitem>
+     <para>Use quiet mode.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-s, --systemInfo</option></term>
+    <listitem>
+     <para>Display general system information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-t, --timeout {seconds}</option></term>
+    <listitem>
+     <para>Maximum time (in seconds) to wait before the command returns (the
+     server continues the startup process, regardless). A value of '0'
+     indicates an infinite timeout, which means that the command returns only
+     when the server startup is completed. The default value is 60 seconds.
+     This option cannot be used with the -N, --nodetach option.</para>
+     <para>Default value: 200</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-V, --version</option></term>
+    <listitem>
+     <para>Display version information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-?, -H, --help</option></term>
+    <listitem>
+     <para>Display usage information.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+  <variablelist>
+   <varlistentry>
+    <term>0</term>
+    <listitem>
+     <para>The command completed successfully.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>&gt; 0</term>
+    <listitem>
+     <para>An error occurred.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following command starts the server without displaying
+  information about the startup process.</para>
+  <screen>$ start-ds -Q</screen>
+ </refsect1>
+</refentry>

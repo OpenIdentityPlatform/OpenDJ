@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<refentry xml:id='dbtest-1'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ <refmeta>
+  <refentrytitle>dbtest</refentrytitle><manvolnum>1</manvolnum>
+  <refmiscinfo class="software">OpenDJ</refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
+ </refmeta>
+ <refnamediv>
+  <refname>dbtest</refname>
+  <refpurpose>gather OpenDJ JE database debugging information</refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <cmdsynopsis>
+   <command>dbtest</command>
+   <command>subcommand</command>
+   <arg>options</arg>
+  </cmdsynopsis>
+ </refsynopsisdiv>
+ <refsect1>
+  <title>Description</title>
+  <para>This utility can be used to debug the JE database.</para>
+ </refsect1>
+ <refsect1>
+  <title>Subcommands</title>
+  <para>The following subcommands are supported.</para>
+   <variablelist>
+    <varlistentry>
+     <term><command>dbtest dump-database-container</command></term>
+     <listitem>
+      <para>Dump records from a database container</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><command>dbtest list-database-containers</command></term>
+     <listitem>
+      <para>List the database containers for an entry container</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><command>dbtest list-entry-containers</command></term>
+     <listitem>
+      <para>List the entry containers for a root container</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><command>dbtest list-index-status</command></term>
+     <listitem>
+      <para>List the status of indexes in an entry container</para>
+     </listitem>
+    </varlistentry>
+     <varlistentry>
+     <term><command>dbtest list-root-containers</command></term>
+     <listitem>
+      <para>List the root containers used by all JE backends</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Options</title>
+  <para>The following global options are supported.</para>
+  <para>For other options, see <command>dbtest
+  <replaceable>subcommand</replaceable> --help</command>.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>--version</option></term>
+    <listitem>
+     <para>Display version information</para>
+    </listitem>
+   </varlistentry>
+    <varlistentry>
+    <term><option>-?, -H, --help</option></term>
+    <listitem>
+     <para>Display usage information</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Exit Codes</title>
+   <variablelist>
+    <varlistentry>
+     <term>0</term>
+     <listitem>
+      <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term>&gt; 0</term>
+     <listitem>
+      <para>An error occurred.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Examples</title>
+  <para>The following example displays debugging information about the
+  equality index for <literal>sudoUser</literal>.</para>
+  <screen>$ dbtest dump-database-container -n userRoot -b dc=example,dc=com
+ -d sudoUser.equality
+Indexed Value (6 bytes): %admin
+Entry ID List (8 bytes): 165 
+
+Indexed Value (5 bytes): %sudo
+Entry ID List (8 bytes): 164 
+
+Indexed Value (4 bytes): root
+Entry ID List (8 bytes): 163 
+
+
+Total Records: 3
+Total / Average Key Size: 13 bytes / 4 bytes
+Total / Average Data Size: 24 bytes / 8 bytes</screen>
+ </refsect1>
+</refentry>

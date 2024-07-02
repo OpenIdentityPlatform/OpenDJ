@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-writing'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Updating Directory Data</title>
+
+ <para>Modern directory servers like OpenDJ can handle a high load of write
+ requests, replicating changes quickly both on the LAN and over the WAN.</para>
+
+ <para>For a complete example corresponding to the excerpts shown below, see
+ <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ShortLife.html"
+ xlink:show="new">ShortLife.java</link>, one of the <link
+ xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+ xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+ <section xml:id="about-writes">
+  <title>About Add, Modify, Rename, &amp; Delete</title>
+
+  <para>The four basic CRUD operations &#8212; create, read, update, and delete
+  &#8212; correspond to the LDAP operations add, search, modify (or modify DN),
+  and delete.<footnote><para>The LDAP bind operation can potentially result in
+  an update. Some directory servers can be configured to write time stamps in
+  order to track successful or failed binds for password policy reasons.</para>
+  </footnote></para>
+
+  <indexterm>
+   <primary>Adds</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Renames</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Deletes</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
+
+  <itemizedlist>
+   <listitem>
+    <para>An add request is used to create a new entry in an LDAP directory.
+    The entry must have a unique distinguished name that belongs under a base
+    DN served by the directory. The entry must have a list of attributes that
+    are valid according to the directory schema.</para>
+   </listitem>
+
+   <listitem>
+    <para>Search requests are described in the chapter on <link
+    xlink:href="dev-guide#chap-reading"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Searching &amp;
+    Comparing Directory Data</citetitle></link>.</para>
+   </listitem>
+
+   <listitem>
+    <para>A modify request is used to add, delete, or replace attribute values
+    on an entry in an LDAP directory. The resulting entry must be valid
+    according to the directory schema.</para>
+
+    <para>A modify DN request is used to rename or move a directory entry.
+    In both cases the distinguished name changes. Renaming involves changing
+    the relative distinguished name, for example from
+    <literal>cn=Bob,ou=People,dc=example,dc=com</literal> to
+    <literal>cn=Ted,ou=People,dc=example,dc=com</literal>. Moving
+    involves changing the container where the entry is found, for example from
+    <literal>cn=Barbara Jensen,ou=People,dc=Old Company,dc=com</literal> to
+    <literal>cn=Barbara Jensen,ou=People,dc=New Company,dc=com</literal>.</para>
+
+    <para>Although they are both considered modify DN operations, renaming a
+    leaf entry is generally much simpler than moving a container entry that has
+    child entries. Not all modify DN operations mobilize equivalent resources
+    on the directory server.</para>
+   </listitem>
+
+   <listitem>
+    <para>A delete request is used to remove an entry from an LDAP
+    directory.</para>
+
+    <para>Directory servers can restrict deletes to leaf entries, so that you
+    cannot remove an entry that has other child entries. For example, you have
+    to delete <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> and
+    other peer entries before you delete
+    <literal>ou=People,dc=example,dc=com</literal> unless you send a subtree
+    delete request control.</para>
+   </listitem>
+  </itemizedlist>
+
+  <para>As a rule, your client application must be authorized to create,
+  update, and delete directory data. Therefore to prepare to change directory
+  data, you first get a connection, and then bind on that connection as a
+  user who is authorized to make the changes you plan to request.</para>
+ </section>
+
+ <section xml:id="adding-entries">
+  <title>Adding Directory Entries</title>
+  <indexterm>
+   <primary>Adds</primary>
+  </indexterm>
+
+  <para>The <literal>Connection.add()</literal> methods let you provide the
+  entry to add as an <literal>AddRequest</literal>, an <literal>Entry</literal>,
+  or as LDIF. If the changes to make are already expressed in LDIF, then
+  you can also use <literal>ChangeRecordReader</literal>s,
+  <literal>ChangeRecord</literal>s, and <literal>ChangeRecordWriter</literal>s
+  to handle the changes.</para>
+
+  <para>The following excerpt demonstrates how to add a simple user entry under
+  <literal>ou=People,dc=example,dc=com</literal>.</para>
+
+  <programlisting language="java">// An entry to add to the directory
+Entry entry = new LinkedHashMapEntry("cn=Bob,ou=People,dc=example,dc=com")
+    .addAttribute("cn", "Bob")
+    .addAttribute("objectclass", "top")
+    .addAttribute("objectclass", "person")
+    .addAttribute("objectclass", "organizationalPerson")
+    .addAttribute("objectclass", "inetOrgPerson")
+    .addAttribute("mail", "subgenius@example.com")
+    .addAttribute("sn", "Dobbs");
+
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to add entries.
+    connection.bind(adminDN, adminPwd);
+
+    connection.add(entry);
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+ </section>
+
+ <section xml:id="modifying-attr-values">
+  <title>Modifying Directory Entry Attribute Values</title>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
+
+  <para>The <literal>Connection.modify()</literal> methods let you add, replace,
+  and delete attributes values on an entry. Either the modifications are
+  expressed in LDIF, or you build a <literal>ModifyRequest</literal> to
+  express the changes.</para>
+
+  <para>The following excerpt demonstrates how to replace one attribute value
+  and to add another.</para>
+
+  <programlisting language="java"
+  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to modify entries.
+    connection.bind(adminDN, adminPwd);
+
+    // Here, entry is a user entry with DN cn=Bob,ou=People,dc=example,dc=com.
+    Entry old = TreeMapEntry.deepCopyOfEntry(entry);
+    entry = entry.replaceAttribute("mail", "spammer@example.com")
+            .addAttribute("description", "I see the fnords.");
+    ModifyRequest request = Entries.diffEntries(old, entry);
+
+    connection.modify(request);
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+ </section>
+ 
+ <section xml:id="renaming-entries">
+  <title>Renaming Directory Entries</title>
+  <indexterm>
+   <primary>Renames</primary>
+  </indexterm>
+
+  <para>The <literal>Connection.modifyDN()</literal> methods serve to rename
+  entries and to move them around.</para>
+
+  <para>The following excerpt demonstrates how to rename an entry.</para>
+
+  <programlisting language="java"
+  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to rename entries.
+    connection.bind(adminDN, adminPwd);
+
+    // Here, entryDN contains cn=Bob,ou=People,dc=example,dc=com.
+    // The second argument is the new relative distinguished name.
+    connection.modifyDN(entryDN, "cn=Ted");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+  <para>If you must move rather than rename entries, have a look at the methods
+  for <literal>ModifyDNRequest</literal>. You can get a new request by using
+  <literal>Requests</literal> static methods.</para>
+ </section>
+
+ <section xml:id="deleting-entries">
+  <title>Deleting Directory Entries</title>
+  <indexterm>
+   <primary>Deletes</primary>
+  </indexterm>
+
+  <para>The following excerpt demonstrates how to delete an entry with DN
+  <literal>cn=Ted,ou=People,dc=example,dc=com</literal>.</para>
+
+  <programlisting language="java"
+  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+    // Bind as a user who has the right to delete entries.
+    connection.bind(adminDN, adminPwd);
+
+    connection.delete("cn=Ted,ou=People,dc=example,dc=com");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+  <para>If you must delete an entire branch of entries instead of a single
+  leaf entry, build a <literal>DeleteRequest</literal> that includes the
+  <literal>SubtreeDeleteRequestControl</literal>, as described in the
+  section, <link xlink:href="dev-guide#use-subtree-delete-control"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Subtree Delete
+  Request Control</citetitle></link>.</para>
+ </section>
+
+ <section xml:id="updating-static-groups">
+  <title>Updating Static Groups</title>
+  <indexterm>
+   <primary>Modifications</primary>
+   <secondary>Static groups</secondary>
+  </indexterm>
+
+  <para>Static groups enumerate user entries. Static groups can grow large.
+  For an example, see the group entry at the end of <link xlink:show="new"
+  xlink:href="http://opendj.forgerock.org/big-group.ldif">big-group.ldif</link>:</para>
+
+  <programlisting language="ldif">dn: cn=Static,ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: groupofnames
+cn: Static
+member: uid=user.0,ou=People,dc=example,dc=com
+member: uid=user.1,ou=People,dc=example,dc=com
+member: uid=user.2,ou=People,dc=example,dc=com
+...
+member: uid=user.10000,ou=People,dc=example,dc=com</programlisting>
+
+  <para>To update a static group, you either add members or remove members.
+  For sample code, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/UpdateGroup.html"
+  xlink:show="new">UpdateGroup.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+  <para>The <literal>UpdateGroup</literal> example checks that the directory
+  server supports the Permissive Modify control. With directory servers such
+  as OpenDJ that support the LDAP Permissive Modify control, you can use the
+  control to avoid having to determine whether a given member is already in the
+  group before performing the operation. Instead you can simply request an
+  add or a delete modification for the member.</para>
+
+  <example xml:id="update-group-with-permissive-modify"><?dbfo keep-together="auto"?>
+   <title>Updating a Group With Permissive Modify</title>
+   <programlisting language="java"
+   >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+
+    Collection&lt;String&gt; controls =
+            RootDSE.readRootDSE(connection).getSupportedControls();
+
+    final String user = "cn=Directory Manager";
+    final char[] password = "password".toCharArray();
+    connection.bind(user, password);
+
+    if (controls.contains(PermissiveModifyRequestControl.OID)) {
+
+        final ModifyRequest request = Requests.newModifyRequest(groupDN)
+                .addControl(PermissiveModifyRequestControl.newControl(true))
+                .addModification(modType, "member", memberDN);
+        connection.modify(request);
+
+    } else {
+
+        /* ... */
+
+    }
+
+    String op = (modType == ModificationType.ADD) ? "added to" : "deleted from";
+    System.out.println("The entry with DN " + memberDN + " has been "
+            + op + " the group with DN " + groupDN + ".");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+  </example>
+
+  <para>If the directory server does not support the Permissive Modify control,
+  then the example checks whether the member is present in the group by using
+  an LDAP compare operation. If a member to be added does not yet belong to the
+  group, the example requests an add modification. If a member to be deleted
+  does belong to the group, the example requests a delete modification.</para>
+
+  <example xml:id="update-group-with-compare-and-modify"><?dbfo keep-together="auto"?>
+   <title>Updating a Group With Compare &amp; Modify</title>
+   <programlisting language="java"
+   >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+try {
+    connection = factory.getConnection();
+
+    Collection&lt;String&gt; controls =
+            RootDSE.readRootDSE(connection).getSupportedControls();
+
+    final String user = "cn=Directory Manager";
+    final char[] password = "password".toCharArray();
+    connection.bind(user, password);
+
+    if (controls.contains(PermissiveModifyRequestControl.OID)) {
+
+        /* ... */
+
+    } else {
+
+        System.out.println("Checking whether the entry with DN "
+                + memberDN + " belongs to the group with DN " + groupDN
+                + "...");
+        final CompareRequest request =
+                Requests.newCompareRequest(groupDN, "member", memberDN);
+        CompareResult result = connection.compare(request);
+
+        if (modType == ModificationType.ADD) {
+            if (result.getResultCode() == ResultCode.COMPARE_FALSE) {
+                System.out.println("Member does not yet belong to group."
+                        + " Adding it...");
+                final ModifyRequest addMember =
+                        Requests.newModifyRequest(groupDN)
+                            .addModification(modType, "member", memberDN);
+                connection.modify(addMember);
+            }
+        }
+
+        if (modType == ModificationType.DELETE) {
+            if (result.getResultCode() == ResultCode.COMPARE_TRUE) {
+                System.out.println("Member belongs to group."
+                        + " Removing it...");
+                final ModifyRequest delMember =
+                        Requests.newModifyRequest(groupDN)
+                            .addModification(modType, "member", memberDN);
+                connection.modify(delMember);
+            }
+        }
+
+    }
+
+    String op = (modType == ModificationType.ADD) ? "added to" : "deleted from";
+    System.out.println("The entry with DN " + memberDN + " has been "
+            + op + " the group with DN " + groupDN + ".");
+
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+
+   <para>You can change multiple member values with a single modification. The
+   final argument of this form of the
+   <literal>ModifyRequest.addModification()</literal> method takes a series
+   of one or more values. So if you have multiple group members to add or
+   delete, you can loop over your list to perform compare individual compare
+   requests, then construct a single modify request to add or delete the
+   group members. In other words, if you have three members to add, you can
+   list the three member DNs as arguments of
+   <literal>addModification</literal>.</para>
+
+   <programlisting language="java"
+   >String member1 = "uid=user1,ou=people,dc=example,dc=com";
+String member2 = "uid=user1,ou=people,dc=example,dc=com";
+String member3 = "uid=user1,ou=people,dc=example,dc=com";
+final ModifyRequest addMember =
+    Requests.newModifyRequest(groupDN)
+        .addModification(modType, "member", member1, member2, member3);
+connection.modify(addMember);</programlisting>
+  </example>
+
+  <para>To try the example, download and import
+  <filename>big-group.ldif</filename> into your directory server, and then
+  run the sample. For example, if OpenDJ is set up to with directory manager
+  as <literal>cn=Directory Manager</literal>, password
+  <literal>password</literal> listening on <literal>localhost</literal> port
+  <literal>1389</literal>, and you run the example with arguments
+  <literal>localhost 1389 cn=Static,ou=Groups,dc=example,dc=com
+  uid=user.5150,ou=People,dc=example,dc=com del</literal>, the resulting output
+  is <literal>The entry with DN uid=user.5150,ou=People,dc=example,dc=com has
+  been deleted from the group with DN
+  cn=Static,ou=Groups,dc=example,dc=com.</literal>.</para>
+ </section>
+</chapter>

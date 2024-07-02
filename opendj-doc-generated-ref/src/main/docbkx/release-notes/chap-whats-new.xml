@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2015 ForgeRock AS.
+  !    
+-->
+<chapter xml:id='chap-whats-new'
+  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+  xsi:schemaLocation='http://docbook.org/ns/docbook
+                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
+  xmlns:xlink='http://www.w3.org/1999/xlink'>
+  <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
+
+  <para>
+   OpenDJ ${docTargetVersion} is a maintenance release
+   that resolves a number of issues,
+   including security issues in OpenDJ directory server.
+   It is strongly recommended that you update
+   to this release to make your deployment more secure,
+   and to take advantage of important functional fixes.
+   ForgeRock customers can contact support for help and further information.
+  </para>
+
+  <para>
+   Before you install OpenDJ or update your existing OpenDJ installation,
+   read these release notes. Then update or install OpenDJ.
+  </para>
+
+  <section xml:id="security-advisory">
+   <title>Security Advisory</title>
+
+   <para>
+    A security vulnerability has been discovered in OpenDJ.
+    This issue is present in all versions of OpenDJ
+    including 2.6.x, 2.5.0-Xpress1, 2.4.x, and possibly previous versions.
+   </para>
+
+   <para>
+    A security advisory has been issued to provide guidance on
+    how to ensure your deployments can be secured.
+    Workarounds or patches are available for the issue,
+    with fixes included in OpenDJ 2.6.3.
+   </para>
+
+   <para>
+    The severity of the issue in the advisory is High.
+    Deployers should take immediate steps as outlined in the advisory
+    and apply the relevant update at the earliest opportunity.
+   </para>
+
+   <para>
+    The recommendation is to deploy the relevant patch
+    or to upgrade to OpenDJ 2.6.3.
+   </para>
+
+   <para>
+    Customers without existing patches can obtain the relevant patch from
+    <link xlink:href="https://backstage.forgerock.com" xlink:show="new"
+    >BackStage</link>.
+    Customers with deployed patches should contact the support organization
+    to obtain a combo patch.
+    The fix is also present in the community "trunk" nightly builds.
+   </para>
+
+   <itemizedlist>
+    <para>
+     The following security fix has been included in this release:
+    </para>
+
+    <listitem>
+     <para>
+      <emphasis role="strong">Issue #201504-01:
+       Proxied Authorization may allow unexpected escalation
+       of privileges and access.</emphasis>
+      When someone has been granted the privileges to Proxy requests
+      and use the Proxied Authorization control,
+      it is not possible to control who that user can impersonate.
+      It is thus possible to impersonate "cn=Directory Manager"
+      and bypass all access controls.
+     </para>
+
+     <para>
+      Severity: <emphasis role="strong">High</emphasis>
+     </para>
+
+     <para>
+      For more information, see
+      <link
+       xlink:href="https://forgerock.org/2015/06/opendj-security-advisory-201504/"
+       xlink:show="new"
+      >OpenDJ Security Advisory #201504</link>.
+     </para>
+    </listitem>
+   </itemizedlist>
+  </section>
+
+  <section xml:id="product-enhancements">
+   <title>Product Enhancements</title>
+
+   <para>
+    Compared to the OpenDJ ${stableServerVersion} release,
+    OpenDJ ${docTargetVersion} provides these important enhancements.
+   </para>
+
+   <para>
+    OpenDJ ${docTargetVersion} includes no new enhancements
+    beyond those included in OpenDJ 2.6.2.
+   </para>
+
+   <itemizedlist>
+    <para>
+     The following improvement is new in OpenDJ 2.6.2.
+    </para>
+
+    <listitem>
+     <para>
+      OpenDJ server can now bind to a local address
+      when making outgoing connections
+      (<link
+       xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1565"
+       xlink:show="new"
+      >OPENDJ-1565</link>).
+     </para>
+
+     <para>
+      This improvement introduces a new configuration attribute,
+      <literal>source-address</literal>,
+      that you can set for Replication Domains, Replication Servers,
+      and LDAP Pass Through Authentication Policies.
+      If the <literal>source-address</literal> property is set to an IP address,
+      OpenDJ binds to the address before connecting to the remote server.
+      The address must be one assigned to an existing network interface.
+     </para>
+    </listitem>
+   </itemizedlist>
+
+   <itemizedlist>
+    <para>
+     The following improvements are new in OpenDJ 2.6.1.
+    </para>
+
+    <listitem>
+     <para>
+      OpenDJ directory server ships with updated Commons REST,
+      OpenDJ LDAP SDK, and Berkeley DB Java Edition components
+      (<link xlink:show="new"
+             xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1323"
+             >OPENDJ-1323</link>).
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      OpenDJ directory server now makes it possible
+      to specify password validators in subentry based password policies
+      (<link xlink:show="new"
+             xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1295"
+             >OPENDJ-1295</link>).
+     </para>
+
+     <para>
+      To configure password validators for a subentry password policy,
+      add the auxiliary object class <literal>pwdValidatorPolicy</literal>
+      and setting the multi-valued attribute,
+      <literal>ds-cfg-password-validator</literal>,
+      to the DNs of the password validator configuration entries.
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      OpenDJ directory server now orders attributes
+      according to search request attribute list order
+      (<link xlink:show="new"
+             xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1082"
+             >OPENDJ-1082</link>).
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      OpenDJ directory server logs information to help you more effectively
+      determine why a directory server replica switches its connection
+      to a different replication server
+      (<link xlink:show="new"
+             xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1053"
+             >OPENDJ-1053</link>).
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      The REST LDAP Gateway now supports LDAPS connections and StartTLS
+      (<link xlink:show="new"
+             xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033"
+             >OPENDJ-1033</link>).
+     </para>
+
+     <para>
+      For information on configuring the gateway to use LDAPS or StartTLS,
+      see the comments in the configuration file,
+      <filename>opendj-rest2ldap-servlet.json</filename>.
+      Find the settings to change in the configuration for
+      <literal>"ldapConnectionFactories"</literal>.
+     </para>
+    </listitem>
+   </itemizedlist>
+  </section>
+
+  <section xml:id="product-documentation">
+   <title>OpenDJ Documentation</title>
+
+   <para>
+    You can read the following additional product documentation
+    for OpenDJ 2.6 online at ForgeRock
+    <link xlink:show="new" xlink:href="${coreDocBase}">BackStage</link>.
+   </para>
+
+   <itemizedlist>
+    <listitem>
+     <para>
+      <link xlink:show="new"
+            xlink:href="${coreDocBase}/install-guide/"><citetitle
+              >OpenDJ ${stableServerVersion} Installation Guide</citetitle></link>
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      <link xlink:show="new"
+            xlink:href="${coreDocBase}/admin-guide/"><citetitle
+              >OpenDJ ${stableServerVersion} Administration Guide</citetitle></link>
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      <link xlink:show="new"
+            xlink:href="${configRefBase}"><citetitle
+              >OpenDJ ${stableServerVersion} Configuration Reference</citetitle></link>
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      <link xlink:show="new"
+            xlink:href="${coreDocBase}/dev-guide/"><citetitle
+              >OpenDJ ${stableServerVersion} Developer's Guide</citetitle></link>
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      <link xlink:show="new"
+            xlink:href="${sdkJavadocBase}"><citetitle
+              >OpenDJ ${stableServerVersion} LDAP SDK API Specification</citetitle></link>
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      <link xlink:show="new"
+            xlink:href="${serverJavadocBase}"><citetitle
+              >OpenDJ ${stableServerVersion} Server Plugin API Specification</citetitle></link>
+     </para>
+    </listitem>
+   </itemizedlist>
+
+  </section>
+
+</chapter>
