@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2012 ForgeRock AS
+  !    
+-->
+<table xml:id='filter-operators'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'
+ pgwide="1" rules="none">
+ <title>LDAP Filter Operators</title>
+
+ <tgroup cols="3">
+  <colspec colnum="1" colwidth="1*"/>
+  <colspec colnum="2" colwidth="3*" />
+  <colspec colnum="3" colwidth="3*" />
+  <thead>
+   <row>
+    <entry>Operator</entry>
+    <entry>Definition</entry>
+    <entry>Example</entry>
+   </row>
+  </thead>
+  <tbody>
+   <row valign="top">
+    <entry><literal>=</literal></entry>
+    <entry>
+     <para>Equality comparison, as in <literal>(sn=Jensen)</literal>.</para>
+     <para>This can also be used with substring matches. For example, to match
+     last names starting with <literal>Jen</literal>, use the filter
+     <literal>(sn=Jen*)</literal>. Substrings are more expensive for the
+     directory server to index. Substring searches therefore might not be
+     permitted for many attributes.</para>
+    </entry>
+    <entry>
+     <para><literal>"(cn=My App)"</literal> matches entries with common name
+     <literal>My App</literal>.</para>
+     <para><literal>"(sn=Jen*)"</literal> matches entries with surname starting
+     with <literal>Jen</literal>.</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>&lt;=</literal></entry>
+    <entry>
+     <para>Less than or equal to comparison, which works
+     alphanumerically.</para>
+    </entry>
+    <entry>
+     <para><literal>"(cn&lt;=App)"</literal> matches entries with
+     <literal>commonName</literal> up to those starting with App
+     (case-insensitive) in alphabetical order.</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>&gt;=</literal></entry>
+    <entry>
+     <para>Greater than or equal to comparison, which works
+     alphanumerically.</para>
+    </entry>
+    <entry>
+     <para><literal>"(uidNumber&gt;=1151)"</literal> matches entries with
+     <literal>uidNumber</literal> greater than 1151.</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>=*</literal></entry>
+    <entry>
+     <para>Presence comparison. For example, to match all entries having a
+     <literal>userPassword</literal>, use the filter
+     <literal>(userPassword=*)</literal>.</para>
+    </entry>
+    <entry>
+     <para><literal>"(member=*)"</literal> matches entries with a
+     <literal>member</literal> attribute.</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>~=</literal></entry>
+    <entry>
+     <para>Approximate comparison, matching attribute values similar to the
+     value you specify.</para>
+    </entry>
+    <entry>
+     <para><literal>"(sn~=jansen)"</literal> matches entries with a surname
+     that sounds similar to <literal>Jansen</literal> (Johnson, Jensen, and
+     so forth).</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>[:dn][:<replaceable>oid</replaceable>]:=</literal></entry>
+    <entry>
+     <para>Extensible match comparison.</para>
+     <itemizedlist>
+      <para>At the end of the OID or language subtype, you further specify the
+      matching rule as follows:</para>
+      <listitem>
+       <para>Add <literal>.1</literal> for less than</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.2</literal> for less than or equal to</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.3</literal> for equal to (default)</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.4</literal> for greater than or equal to</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.5</literal> for greater than</para>
+      </listitem>
+      <listitem>
+       <para>Add <literal>.6</literal> for substring</para>
+      </listitem>
+     </itemizedlist>
+    </entry>
+    <entry>
+     <para><literal>(uid:dn:=bjensen)</literal> matches entries where
+     <literal>uid</literal> having the value <literal>bjensen</literal> is
+     a component of the entry DN.</para>
+     <para><literal>(lastLoginTime: 1.3.6.1.4.1.26027.1.4.5:=-13w)</literal>
+     matches entries with a last login time more recent than 13 weeks.</para>
+     <para>You also use extensible match filters with localized values.
+     Directory servers like OpenDJ support a variety of internationalized
+     locales, each of which has an OID for collation order, such as
+     <literal>1.3.6.1.4.1.42.2.27.9.4.76.1</literal> for French. OpenDJ also
+     lets you use the language subtype, such as <literal>fr</literal>, instead
+     of the OID.</para>
+     <para><literal>"(cn:dn:=My App)"</literal> matches entries who have
+     <literal>My App</literal> as the common name and also as the value of a
+     DN component.</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>!</literal></entry>
+    <entry>
+     <para>NOT operator, to find entries that do not match the specified filter
+     component.</para>
+     <para>Take care to limit your search when using <literal>!</literal> to
+     avoid matching so many entries that the server treats your search as
+     unindexed.</para>
+    </entry>
+    <entry>
+     <para><literal>'!(objectclass=person)'</literal> matches non-person
+     entries.</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>&amp;</literal></entry>
+    <entry>
+     <para>AND operator, to find entries that match all specified filter
+     components.</para>
+    </entry>
+    <entry>
+     <para><literal>'(&amp;(l=Cupertino)(!(uid=bjensen)))'</literal> matches
+     entries for users in Cupertino other than the user with ID
+     <literal>bjensen</literal>.</para>
+    </entry>
+   </row>
+   <row valign="top">
+    <entry><literal>|</literal></entry>
+    <entry>
+     <para>OR operator, to find entries that match one of the specified filter
+     components.</para>
+    </entry>
+    <entry>
+     <para><literal>"|(sn=Jensen)(sn=Johnson)"</literal> matches entries with
+     surname Jensen or surname Johnson.</para>
+    </entry>
+   </row>
+  </tbody>
+ </tgroup>
+</table>

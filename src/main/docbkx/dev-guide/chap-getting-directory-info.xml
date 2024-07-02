@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-getting-directory-info'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Getting Information About the Directory Service</title>
+
+ <para>LDAP directories expose what their capabilities through the root
+ DSE. They also expose their schema definitions, which define the sort of
+ entries and attributes can be stored in a directory, over protocol. OpenDJ
+ SDK allows you to look up that information in your client application.</para>
+
+ <section xml:id="read-root-dse">
+  <title>Reading Root DSEs</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Root DSE</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
+
+  <para>The directory entry with distinguished name <literal>""</literal> (empty
+  string) is called the <firstterm>root DSE</firstterm>. DSE stands for
+  DSA-Specific Entry. DSA stands for Directory Server Agent, a single
+  directory server.</para>
+
+  <para>The root DSE serves to expose information over LDAP about what the
+  directory server supports in terms of LDAP controls, auth password schemes,
+  SASL mechanisms, LDAP protocol versions, naming contexts, features, LDAP
+  extended operations, and so forth. The root DSE holds all the information
+  as values of LDAP attributes. OpenDJ defines these attributes as operational.
+  In other words, OpenDJ only returns the attributes if you either request
+  them specifically, or request all operational attributes.</para>
+
+  <para>To access the list of what an OpenDJ server supports, for example,
+  get all operational attributes from the root DSE entry as in the following
+  excerpt.</para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+  host, port);
+Connection connection = null;
+
+try
+{
+  connection = factory.getConnection();
+
+  // Perform an anonymous search on the root DSE.
+  final SearchResultEntry entry = connection.searchSingleEntry(
+      "",                         // DN is "" for root DSE.
+      SearchScope.BASE_OBJECT,    // Read only the root DSE.
+      "objectclass=*",            // Every object matches this filter.
+      "+");                       // Return all operational attributes.
+
+  final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+  writer.writeComment("Root DSE for LDAP server at " + host + ":" + port);
+  if (entry != null) writer.writeEntry(entry);
+  writer.flush();
+}</programlisting>
+
+  <para>For a complete example in context, see <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/GetInfo.html"
+  xlink:show="new">GetInfo.java</link>, one of the <link
+  xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+  xlink:show="new">OpenDJ LDAP SDK examples</link>.</para>
+
+  <para>Notice that by default you can access the root DSE after authenticating
+  anonymously. When you look at the entry in LDIF, you see that supported
+  capabilities are generally identified by object identifier (OID).</para>
+
+  <screen># Root DSE for LDAP server at localhost:1389
+dn: 
+supportedControl: 1.2.826.0.1.3344810.2.3
+supportedControl: 1.2.840.113556.1.4.1413
+supportedControl: 1.2.840.113556.1.4.319
+supportedControl: 1.2.840.113556.1.4.473
+supportedControl: 1.2.840.113556.1.4.805
+supportedControl: 1.3.6.1.1.12
+supportedControl: 1.3.6.1.1.13.1
+supportedControl: 1.3.6.1.1.13.2
+supportedControl: 1.3.6.1.4.1.26027.1.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.8.5.1
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.8
+supportedControl: 1.3.6.1.4.1.4203.1.10.1
+supportedControl: 1.3.6.1.4.1.4203.1.10.2
+supportedControl: 1.3.6.1.4.1.7628.5.101.1
+supportedControl: 2.16.840.1.113730.3.4.12
+supportedControl: 2.16.840.1.113730.3.4.16
+supportedControl: 2.16.840.1.113730.3.4.17
+supportedControl: 2.16.840.1.113730.3.4.18
+supportedControl: 2.16.840.1.113730.3.4.19
+supportedControl: 2.16.840.1.113730.3.4.2
+supportedControl: 2.16.840.1.113730.3.4.3
+supportedControl: 2.16.840.1.113730.3.4.4
+supportedControl: 2.16.840.1.113730.3.4.5
+supportedControl: 2.16.840.1.113730.3.4.9
+supportedAuthPasswordSchemes: MD5
+supportedAuthPasswordSchemes: SHA1
+supportedAuthPasswordSchemes: SHA256
+supportedAuthPasswordSchemes: SHA512
+supportedAuthPasswordSchemes: SHA384
+supportedSASLMechanisms: PLAIN
+supportedSASLMechanisms: EXTERNAL
+supportedSASLMechanisms: DIGEST-MD5
+supportedSASLMechanisms: CRAM-MD5
+supportedLDAPVersion: 2
+supportedLDAPVersion: 3
+etag: 00000000e9155ba0
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+supportedFeatures: 1.3.6.1.1.14
+supportedFeatures: 1.3.6.1.4.1.4203.1.5.1
+supportedFeatures: 1.3.6.1.4.1.4203.1.5.2
+supportedFeatures: 1.3.6.1.4.1.4203.1.5.3
+subschemaSubentry: cn=schema
+changelog: cn=changelog
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_DHE_DSS_WITH_AES_128_CBC_SHA256
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_DHE_DSS_WITH_AES_128_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: SSL_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_RC4_128_SHA
+supportedTLSCiphers: TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA
+supportedTLSCiphers: SSL_RSA_WITH_RC4_128_MD5
+supportedTLSCiphers: TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+ds-private-naming-contexts: cn=admin data
+ds-private-naming-contexts: cn=ads-truststore
+ds-private-naming-contexts: cn=backups
+ds-private-naming-contexts: cn=config
+ds-private-naming-contexts: cn=monitor
+ds-private-naming-contexts: cn=schema
+ds-private-naming-contexts: cn=tasks
+ds-private-naming-contexts: dc=replicationChanges
+supportedTLSProtocols: SSLv2Hello
+supportedTLSProtocols: SSLv3
+supportedTLSProtocols: TLSv1
+supportedTLSProtocols: TLSv1.1
+supportedTLSProtocols: TLSv1.2
+numSubordinates: 1
+namingContexts: dc=example,dc=com
+structuralObjectClass: ds-root-dse
+lastExternalChangelogCookie: 
+lastChangeNumber: 0
+firstChangeNumber: 0
+supportedExtension: 1.3.6.1.1.8
+supportedExtension: 1.3.6.1.4.1.26027.1.6.1
+supportedExtension: 1.3.6.1.4.1.26027.1.6.2
+supportedExtension: 1.3.6.1.4.1.26027.1.6.3
+supportedExtension: 1.3.6.1.4.1.4203.1.11.1
+supportedExtension: 1.3.6.1.4.1.1466.20037
+supportedExtension: 1.3.6.1.4.1.4203.1.11.3
+vendorName: ForgeRock AS.
+vendorVersion: OpenDJ 2.5.0
+hasSubordinates: true
+entryDN: 
+entryUUID: d41d8cd9-8f00-3204-a980-0998ecf8427e
+</screen>
+
+  <para>Three key pieces of information in the entry shown above are attribute
+  values for <literal>namingContexts</literal> (showing the base DNs under
+  which your application can look for user data),
+  <literal>subschemaSubentry</literal> (indicating where the LDAP schema are
+  stored), and <literal>supportedLDAPVersion</literal> (with OpenDJ seen to
+  support both LDAPv2 and LDAPv3).</para>
+ </section>
+ 
+ <section xml:id="check-ldapv3-support">
+  <title>Checking For LDAPv3 Support</title>
+
+  <para>As shown in the previous section, you can check that the root DSE
+  attribute <literal>supportedLDAPVersion</literal> has a value of 3.</para>
+
+  <para>LDAPv3 has been available since 1997. Client applications built with
+  OpenDJ SDK use LDAPv3.</para>
+ </section>
+ 
+ <section xml:id="get-schema-information">
+  <title>Getting Schema Information</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Schema</secondary>
+  </indexterm>
+
+  <para>The root DSE attribute <literal>subschemaSubentry</literal> shows
+  the DN of the entry holding LDAP schema definitions. LDAP schema defines the
+  object classes, attributes types, attribute value syntaxes, matching rules
+  and so on that constrain entries held by the LDAP server.</para>
+
+  <para>The <literal>org.forgerock.opendj.ldap.schema</literal> package
+  is devoted to constructing and querying LDAP schemas. The
+  <literal>Schema</literal> class for example lets you
+  <literal>readSchemaForEntry()</literal> to get the relevant schema from the
+  subschema subentry, and then <literal>validateEntry()</literal> to check
+  an entry your application has constructed before sending the entry to the
+  server.</para>
+ </section>
+</chapter>

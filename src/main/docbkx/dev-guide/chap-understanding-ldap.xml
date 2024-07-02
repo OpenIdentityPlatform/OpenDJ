@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-understanding-ldap'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Understanding LDAP</title>
+ <indexterm>
+  <primary>LDAP</primary>
+  <secondary>About</secondary>
+ </indexterm>
+
+ <para>A directory resembles a dictionary or a phone book. If you know a
+ word, you can look it up its entry in the dictionary to learn its definition
+ or its pronunciation. If you know a name, you can look it up its entry in the
+ phone book to find the telephone number and street address associated with the
+ name. If you are bored, curious, or have lots of time, you can also read
+ through the dictionary, phone book, or directory, entry after entry.</para>
+ 
+ <para>Where a directory differs from a paper dictionary or phone book is
+ in how entries are indexed. Dictionaries typically have one index: words
+ in alphabetical order. Phone books, too: names in alphabetical order.
+ Directories entries on the other hand are often indexed for multiple
+ attributes, names, user identifiers, email addresses, telephone numbers.
+ This means you can look up a directory entry by the name of the user the
+ entry belongs to, but also by her user identifier, her email address, or
+ her telephone number, for example.</para>
+
+ <section xml:id="ldap-directory-history">
+  <title>How Directories &amp; LDAP Evolved</title>
+  
+  <para>Phone companies have been managing directories for many decades. The
+  Internet itself has relied on distributed directory services like DNS since
+  the mid 1980s.</para>
+  
+  <para>It was not until the late 1980s, however, that experts from what is now
+  the International Telecommunications Union brought forth the X.500 set of
+  international standards, including Directory Access Protocol. The X.500
+  standards specify Open Systems Interconnect (OSI) protocols and
+  data definitions for general-purpose directory services. The X.500 standards
+  were designed to meet the needs of systems built according to the X.400
+  standards, covering electronic mail services.</para>
+  
+  <para>Lightweight Directory Access Protocol has been around since the early
+  1990s. LDAP was originally developed as an alternative protocol that would
+  allow directory access over Internet protocols rather than OSI protocols,
+  and be lightweight enough for desktop implementations. By the mid 1990s, LDAP
+  directory servers became generally available and widely used.</para>
+  
+  <para>Until the late 1990s, LDAP directory servers were designed primarily
+  with quick lookups and high availability for lookups in mind. LDAP directory
+  servers replicate data, so when an update is made, that update gets pushed
+  out to other peer directory servers. Thus if one directory server goes down
+  lookups can continue on other servers. Furthermore, if a directory service
+  needs to support more lookups, the administrator can simply add another
+  directory server to replicate with its peers.</para>
+  
+  <para>As organizations rolled out larger and larger directories serving more
+  and more applications, they discovered that they needed high availability
+  not only for lookups, but also for updates. Around 2000 directories began
+  to support multi-master replication, that is replication with multiple
+  read-write servers. Soon thereafter the organizations with the very largest
+  directories started to need higher update performance as well as
+  availability.</para>
+  
+  <para>The OpenDJ code base began in the mid 2000s, when engineers solving the
+  update performance issue decided the cost of adapting the existing C-based
+  directory technology for high performance updates would be higher than the
+  cost of building a next generation, high performance directory using Java
+  technology.</para>
+ </section>
+
+ <section xml:id="directory-data">
+  <title>Data In LDAP Directories</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Data</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Attributes</primary>
+  </indexterm>
+
+  <para>LDAP directory data is organized into entries, similar to the entries
+  for words in the dictionary, or for subscriber names in the phone book.
+  A sample entry follows.</para>
+
+  <programlisting language="LDIF">dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+cn: Babs Jensen
+cn: Barbara Jensen
+facsimileTelephoneNumber: +1 408 555 1992
+gidNumber: 1000
+givenName: Barbara
+homeDirectory: /home/bjensen
+l: Cupertino
+mail: bjensen@example.com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: posixAccount
+objectClass: top
+ou: People
+ou: Product Development
+roomNumber: 0209
+sn: Jensen
+telephoneNumber: +1 408 555 1862
+uidNumber: 1076
+</programlisting>
+
+  <para>Barbara Jensen's entry has a number of attributes, such as
+  <literal>uid: bjensen</literal>,
+  <literal>telephoneNumber: +1 408 555 1862</literal>, and
+  <literal>objectClass: posixAccount</literal><footnote><para>The
+  <literal>objectClass</literal> attribute type indicates which types of
+  attributes are allowed and optional for the entry. As the entries object
+  classes can be updated online, and even the definitions of object classes
+  and attributes are expressed as entries that can be updated online, directory
+  data is extensible on the fly.</para></footnote>. When you look up her entry
+  in the directory, you specify one or more attributes and values to match
+  in the entries that come back as the result of your search. Typically the
+  attributes you search for are indexed in the directory, so the directory
+  server can retrieve them more quickly.<footnote><para>Attribute values
+  do not have to be strings. The directory can use base64 encoding, however,
+  to make binary attribute values, such as passwords, certificates, or photos,
+  portable in text format.</para></footnote></para>
+  
+  <para>The entry also has a unique identifier, shown at the top of the entry, 
+  <literal>dn: uid=bjensen,ou=People,dc=example,dc=com</literal>. DN stands
+  for distinguished name. No two entries in the directory have the same
+  distinguished name.<footnote><para>Sometimes your distinguished names include
+  characters that you must escape. The following example shows an entry that
+  includes escaped characters in the DN.</para>
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=escape)"
+dn: cn=\" # \+ \, \; \&lt; = \&gt; \\ DN Escape Characters,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: " # + , ; &lt; = &gt; \
+uid: escape
+cn: " # + , ; &lt; = &gt; \ DN Escape Characters
+sn: DN Escape Characters
+mail: escape@example.com</screen></footnote></para>
+  
+  <para>LDAP entries are arranged hierarchically in the directory. The
+  hierarchical organization resembles a file system on a PC or a web server,
+  often imagined as an upside-down tree structure, looking similar to a
+  pyramid.<footnote><para>Hence pyramid icons are associated with directory
+  servers.</para></footnote>The distinguished name consists of components
+  separated by commas,
+  <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>. Those components
+  reflect the hierarchy of directory entries.</para>
+  
+  <mediaobject xml:id="figure-data-organization">
+   <alt>Directory data hierarchy as seen in OpenDJ Control Panel.</alt>
+   <imageobject>
+    <imagedata fileref="images/data-organization.png" format="PNG" />
+   </imageobject>
+   <textobject>
+    <para>You can see the hierarchy of directory data in the left pane of
+    the Manage Entries browser.</para>
+   </textobject>
+  </mediaobject>
+  
+  <para>Barbara Jensen's entry is located under an entry with DN
+  <literal>ou=People,dc=example,dc=com</literal>, an organization unit and
+  parent entry for the people at Example.com. The
+  <literal>ou=People</literal> entry is located under the entry with DN
+  <literal>dc=example,dc=com</literal>, the root entry for Example.com.
+  DC stands for domain component. The directory has other root entries, such
+  as <literal>cn=config</literal>, under which the configuration is accessible
+  through LDAP, and potentially others such as
+  <literal>dc=mycompany,dc=com</literal> or <literal>o=myOrganization</literal>.
+  Thus when you look up entries, you specify the parent entry to look under
+  in the same way you need to know whether to look in the New York, Paris,
+  or Tokyo phone book to find a telephone number.<footnote>
+  <para>The root entry for the directory, technically the entry with DN
+  <literal>""</literal> (the empty string), is called the root DSE, and
+  contains information about what the server supports, including the other
+  root entries it serves.</para></footnote></para>
+ </section>
+ 
+ <section xml:id="ldap-client-server-communication">
+  <title>LDAP Client &amp; Server Communication</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Connected protocol</secondary>
+  </indexterm>
+
+  <para>You may be used to web service client server communication, where
+  each time the web client has something to request of the web server, a
+  connection is set up and then torn down. LDAP has a different model. In
+  LDAP the client application connects to the server and authenticates, then
+  requests any number of operations perhaps processing results in between
+  requests, and finally disconnects when done.</para>
+
+  <mediaobject xml:id="figure-ldap-lifecycle">
+   <alt>Schematic of LDAP client-server session</alt>
+   <imageobject>
+    <imagedata fileref="images/ldap-lifecycle.png" format="PNG" />
+   </imageobject>
+   <textobject>
+    <para>An LDAP client binds, performs operations, and then unbinds.</para>
+   </textobject>
+  </mediaobject>
+  
+  <indexterm>
+   <primary>Authentications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Comparisons</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Adds</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Deletes</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Renames</primary>
+  </indexterm>
+  <itemizedlist xml:id="standard-ldap-operations">
+   <para>The standard operations are as follows.</para>
+   <listitem>
+    <para>Bind (authenticate). The first operation in an LDAP session involves
+    the client binding to the LDAP server, with the server authenticating the
+    client. Authentication identifies the client's identity in LDAP terms, the
+    identity which is later used by the server to authorize (or not) access
+    to directory data that the client wants to lookup or change.</para>
+   </listitem>
+   <listitem>
+    <para>Search (lookup). After binding, the client can request that the server
+    return entries based on an LDAP filter, which is an expression that the
+    server uses to find entries that match the request, and a base DN under
+    which to search. For example, to lookup all entries for people with email
+    address <literal>bjensen@example.com</literal> in data for Example.com,
+    you would specify a base DN such as
+    <literal>ou=People,dc=example,dc=com</literal> and the filter
+    <literal>(mail=bjensen@example.com)</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>Compare. After binding, the client can request that the server
+    compare an attribute value the client specifies with the value stored
+    on an entry in the directory.</para>
+   </listitem>
+   <listitem>
+    <para>Modify. After binding, the client can request that the server
+    change one or more attribute values stored on one or more entries. Often
+    administrators do not allow clients to change directory data, so request
+    that your administrator set appropriate access rights for your client
+    application if you want to update data.</para>
+   </listitem>
+   <listitem>
+    <para>Add. After binding, the client can request to add one or more
+    new LDAP entries to the server. </para>
+   </listitem>
+   <listitem>
+    <para>Delete. After binding, the client can request that the server
+    delete one or more entries. To delete and entry with other entries
+    underneath, first delete the children, then the parent.</para>
+   </listitem>
+   <listitem>
+    <para>Modify DN. After binding, the client can request that the server
+    change the distinguished name of the entry. For example, if Barbara
+    changes her unique identifier from <literal>bjensen</literal> to something
+    else, her DN would have to change. For another example, if you decide
+    to consolidate <literal>ou=Customers</literal> and
+    <literal>ou=Employees</literal> under <literal>ou=People</literal>
+    instead, all the entries underneath much change distinguished names.
+    <footnote><para>Renaming entire branches of entries can be a major
+    operation for the directory, so avoid moving entire branches if you
+    can.</para></footnote></para>
+   </listitem>
+   <listitem>
+    <para>Unbind. When done making requests, the client should request an
+    unbind operation to release resources right away for other clients.</para>
+   </listitem>
+   <listitem>
+    <para>Abandon. When a request seems to be taking too long to complete,
+    or when a search request returns many more matches than desired, the client
+    can send an abandon request to the server to drop the operation in
+    progress. The server then drops the connection without a reply to the
+    client.</para>
+   </listitem>
+  </itemizedlist>
+ </section>
+ 
+ <section xml:id="standard-ldapv3-extensions">
+  <title>Standard LDAPv3 &amp; Extensions</title>
+  <para>LDAP has standardized two mechanisms for extending the kinds of
+  operations that directory servers can perform. One mechanism involves using
+  LDAP controls. The other mechanism involves using LDAP extended
+  operations.</para>
+
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>About</secondary>
+  </indexterm>
+  <para>LDAP controls are information added to an LDAP message to further
+  specify how an LDAP operation should be processed. For example, the
+  Server Side Sort Request Control modifies a search to request that the
+  directory server return entries to the client in sorted order. The Subtree
+  Delete Request Control modifies a delete to request that the server
+  also remove child entries of the entry targeted for deletion.</para>
+
+  <indexterm>
+   <primary>Extended operations</primary>
+   <secondary>About</secondary>
+  </indexterm>
+  <para>LDAP extended operations are additional LDAP operations not included
+  in the original standard list. For example, the Cancel Extended Operation
+  works like an abandon operation, but finishes with a response from the
+  server after the cancel is complete. The StartTLS Extended Operation allows
+  a client to connect to a server on an unsecure port, but then start
+  Transport Layer Security negotiations to protect communications.</para>
+  
+  <para>Both LDAP controls and extended operations are demonstrated later in
+  this guide. OpenDJ directory server supports many LDAP controls and a few
+  LDAP extended operations, controls and extended operations matching those
+  demonstrated in this guide.</para>
+ </section>
+</chapter>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-ldif'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With LDIF</title>
+
+ <para>OpenDJ LDAP SDK provides capabilities for working with <link
+ xlink:show="new" xlink:href="http://tools.ietf.org/html/rfc2849">LDAP Data
+ Interchange Format</link> (LDIF) content. This chapter demonstrates how to use
+ those capabilities.</para>
+
+ <section xml:id="about-ldif">
+  <title>About LDIF</title>
+  <indexterm>
+   <primary>LDIF</primary>
+  </indexterm>
+
+  <para>LDAP Data Interchange Format provides a mechanism to represent
+  directory data in text format. LDIF data is typically used to initialize
+  directory databases, but also may be used to move data between different
+  directories that cannot replicate directly, or even as an alternative
+  backup format. When you read OpenDJ's external change log, you get changes
+  expressed in LDIF.</para>
+
+  <para>LDIF uses base64 encoding to store values that are not safe for use in
+  a text file, including values that represent binary objects like JPEG photos
+  and X509 certificates, but also values that hold bits of LDIF, and values that
+  end in white space. The description in the following LDIF holds, "Space at
+  the end of the line " for example. Notice that continuation lines shown in
+  the excerpt of the JPEG photo value start with spaces.</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+description:: U3BhY2UgYXQgdGhlIGVuZCBvZiB0aGUgbGluZSA=
+uid: bjensen
+jpegPhoto:: /9j/4AAQSkZJRgABAQEASABIAAD/4gxYSUNDX1BST0ZJTEUAAQEAAAxITGlubwIQAABt
+ bnRyUkdCIFhZWiAHzgACAAkABgAxAABhY3NwTVNGVAAAAABJRUMgc1JHQgAAAAAAAAAAAAAAAAAA9tY
+ AAQAAAADTLUhQICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB
+ ...
+ Pxv8A8lh8J/8AXUfzr1qP/WSfWlzPlsZSi3VHqMA/WinUVB0n/9k=
+facsimileTelephoneNumber: +1 408 555 1992
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+givenName: Barbara
+cn: Barbara Jensen
+cn: Babs Jensen
+telephoneNumber: +1 408 555 1862
+sn: Jensen
+roomNumber: 0209
+homeDirectory: /home/bjensen
+ou: Product Development
+ou: People
+l: Cupertino
+mail: bjensen@example.com
+uidNumber: 1076
+gidNumber: 1000
+</programlisting>
+
+  <para>LDIF can serve to describe not only entries with their attributes but
+  also changes to entries. For example, you can express adding a JPEG photo
+  to Babs Jensen's entry as follows.</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=people,dc=example,dc=com
+changetype: modify
+add: jpegPhoto
+jpegPhoto:&lt; file:///tmp/opendj-logo.jpg
+</programlisting>
+
+  <para>You can also replace and delete attribute values. Notice the dash,
+  <literal>-</literal>, used to separate changes.</para>
+
+  <programlisting language="ldif">dn: uid=bjensen,ou=people,dc=example,dc=com
+changetype: modify
+replace: roomNumber
+roomNumber: 1234
+-
+delete: description
+-
+delete: jpegPhoto
+</programlisting>
+
+  <para>LDIF also allows <literal>changetype</literal>s of
+  <literal>add</literal> to create entries, <literal>delete</literal> to
+  remove entries, and <literal>modrdn</literal> to rename entries.</para>
+
+  <para>For more examples, see the LDIF specification, <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/rfc2849">RFC 2849</link>.</para>
+ </section>
+
+ <section xml:id="reading-ldif">
+  <title>Reading LDIF</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>Reading</secondary>
+  </indexterm>
+
+  <para>OpenDJ LDAP SDK provides <literal>ChangeRecordReader</literal>s to
+  read requests to modify directory data, and <literal>EntryReader</literal>s
+  to read entries from a data source such as a file or other source. Both of
+  these are interfaces.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>The <literal>ConnectionEntryReader</literal> class offers methods
+    to iterate through entries and references returned by a search.</para>
+   </listitem>
+
+   <listitem>
+    <para>The <literal>LDIFChangeRecordReader</literal> and
+    <literal>LDIFEntryReader</literal> classes offer methods to handle LDIF as
+    strings or from an input stream.</para>
+
+    <para>Both classes give you some methods to filter content. You can also
+    use the <literal>LDIF</literal> static methods to filter content.</para>
+   </listitem>
+  </itemizedlist>
+
+  <para>The following short excerpt shows a reader that takes LDIF change
+  records from standard input.</para>
+
+  <programlisting language="java">InputStream ldif = System.in;
+final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);</programlisting>
+ </section>
+
+ <section xml:id="writing-ldif">
+  <title>Writing LDIF</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>Writing</secondary>
+  </indexterm>
+
+  <para><literal>ChangeRecordWriter</literal>s let you write requests to modify
+  directory data, whereas <literal>EntryWriter</literal>s let you write entries
+  to a file or an output stream. Both of these are interfaces.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>The <literal>ConnectionChangeRecordWriter</literal> and
+    <literal>ConnectionEntryWriter</literal> classes let you write directly
+    to a connection to the directory.</para>
+   </listitem>
+
+   <listitem>
+    <para>The <literal>LDIFChangeRecordWriter</literal> and
+    <literal>LDIFEntryWriter</literal> classes let you write to a file or other
+    output stream. Both classes offer methods to filter content.</para>
+   </listitem>
+  </itemizedlist>
+
+  <para>The following excerpt shows a writer pushing LDIF changes to a
+  directory server.</para>
+
+  <programlisting language="java"
+  >final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+Connection connection = null;
+
+try {
+    connection = factory.getConnection();
+    connection.bind(userDN, password.toCharArray());
+
+    final ConnectionChangeRecordWriter writer =
+            new ConnectionChangeRecordWriter(connection);
+    while (reader.hasNext()) {
+        ChangeRecord changeRecord = reader.readChangeRecord();
+        writer.writeChangeRecord(changeRecord);
+    }
+} catch (final ErrorResultException e) {
+    System.err.println(e.getMessage());
+    System.exit(e.getResult().getResultCode().intValue());
+    return;
+} catch (final IOException e) {
+    System.err.println(e.getMessage());
+    System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
+    return;
+} finally {
+    if (connection != null) {
+        connection.close();
+    }
+}</programlisting>
+ </section>
+</chapter>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2014 ForgeRock AS
+  !
+-->
+<book xml:id='admin-guide'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info>
+  <xinclude:include href="../shared/mediaobject-fr-logo.xml" />
+  <title>OpenDJ Administration Guide</title>
+  <subtitle>Version ${docTargetVersion}</subtitle>
+  <abstract>
+   <para>Hands-on guide to configuring and using OpenDJ features. The OpenDJ
+   project offers open source LDAP directory services in Java.</para>
+  </abstract>
+  <copyright>
+   <year>2011-2014</year>
+   <holder>ForgeRock AS</holder>
+  </copyright>
+  <authorgroup>
+   <author>
+    <personname><firstname>Mark </firstname><surname>Craig</surname></personname>
+   </author>
+   <author>
+    <personname><firstname>Nemanja </firstname><surname>Lukić</surname></personname>
+   </author>
+   <author>
+    <personname><firstname>Ludovic </firstname><surname>Poitou</surname></personname>
+   </author>
+   <author>
+    <personname><firstname>Chris </firstname><surname>Ridd</surname></personname>
+    <xinclude:include href="../shared/affiliation-fr.xml"/>
+   </author>
+  </authorgroup>
+  <xinclude:include href='../legal.xml' />
+  <date>${publicationDate}</date>
+  <pubdate>${publicationDate}</pubdate>
+  <releaseinfo>${softwareReleaseDate}</releaseinfo>
+ </info>
+
+ <toc />
+
+ <xinclude:include href="preface.xml" />
+
+ <xinclude:include href='chap-admin-tools.xml' />
+ <xinclude:include href='chap-server-process.xml' />
+ <xinclude:include href='chap-import-export.xml' />
+ <xinclude:include href='chap-connection-handlers.xml' />
+ <xinclude:include href='chap-privileges-acis.xml' />
+ <xinclude:include href='chap-ldap-operations.xml' />
+ <xinclude:include href='chap-rest-operations.xml' />
+ <xinclude:include href='chap-indexing.xml' />
+ <xinclude:include href='chap-replication.xml' />
+ <xinclude:include href='chap-backup-restore.xml' />
+ <xinclude:include href='chap-pwd-policy.xml' />
+ <xinclude:include href='chap-account-lockout.xml' />
+ <xinclude:include href='chap-resource-limits.xml' />
+ <xinclude:include href='chap-groups.xml' />
+ <xinclude:include href='chap-attribute-uniqueness.xml' />
+ <xinclude:include href='chap-schema.xml' />
+ <xinclude:include href='chap-referrals.xml' />
+ <xinclude:include href='chap-virtual-attrs-collective-attrs.xml' />
+ <xinclude:include href='chap-pta.xml' />
+ <xinclude:include href='chap-samba.xml' />
+<!--  <xinclude:include href='chap-load-balancing.xml' /> -->
+<!--  <xinclude:include href='chap-failover.xml' /> -->
+<!--  <xinclude:include href='chap-chaining.xml' /> -->
+ <xinclude:include href='chap-monitoring.xml' />
+ <xinclude:include href='chap-tuning.xml' />
+ <xinclude:include href='chap-change-certs.xml' />
+ <xinclude:include href='chap-mv-servers.xml' />
+ <xinclude:include href='chap-troubleshooting.xml' />
+
+ <reference xml:id="admin-tools-ref">
+  <title>Tools Reference</title>
+
+  <partintro>
+   <para>You can find the tools under the <filename>bin/</filename> or
+   <filename>bat\</filename> folder where you installed OpenDJ directory
+   server. For example, <filename>/path/to/opendj/bin</filename>.</para>
+  </partintro>
+
+   <xinclude:include href='../shared/man-backup.xml' />
+   <xinclude:include href='../shared/man-base64.xml' />
+   <xinclude:include href='../shared/man-control-panel.xml' />
+   <xinclude:include href='../shared/man-create-rc-script.xml' />
+   <xinclude:include href='../shared/man-dbtest.xml' />
+   <xinclude:include href='../shared/man-dsconfig.xml' />
+   <xinclude:include href='../shared/man-dsframework.xml' />
+   <xinclude:include href='../shared/man-dsjavaproperties.xml' />
+   <xinclude:include href='../shared/man-dsreplication.xml' />
+   <xinclude:include href='../shared/man-encode-password.xml' />
+   <xinclude:include href='../shared/man-export-ldif.xml' />
+   <xinclude:include href='../shared/man-import-ldif.xml' />
+   <xinclude:include href='man-ldapcompare.xml' />
+   <xinclude:include href='../shared/man-ldapdelete.xml' />
+   <xinclude:include href='man-ldapmodify.xml' />
+   <xinclude:include href='man-ldappasswordmodify.xml' />
+   <xinclude:include href='man-ldapsearch.xml' />
+   <xinclude:include href='../shared/man-ldif-diff.xml' />
+   <xinclude:include href='man-ldifmodify.xml' />
+   <xinclude:include href='man-ldifsearch.xml' />
+   <xinclude:include href='../shared/man-list-backends.xml' />
+   <xinclude:include href='../shared/man-make-ldif.xml' />
+   <xinclude:include href='../shared/man-make-ldif-template.xml' />
+   <xinclude:include href='../shared/man-manage-account.xml' />
+   <xinclude:include href='../shared/man-manage-tasks.xml' />
+   <xinclude:include href='../shared/man-rebuild-index.xml' />
+   <xinclude:include href='../shared/man-restore.xml' />
+   <xinclude:include href='../shared/man-setup.xml' />
+   <xinclude:include href='../shared/man-start-ds.xml' />
+   <xinclude:include href='../shared/man-status.xml' />
+   <xinclude:include href='../shared/man-stop-ds.xml' />
+   <xinclude:include href='../shared/man-uninstall.xml' />
+   <xinclude:include href='../shared/man-upgrade.xml' />
+   <xinclude:include href='../shared/man-verify-index.xml' />
+ </reference>
+
+ <xinclude:include href="../shared/glossary.xml" />
+
+ <xinclude:include href="appendix-rest2ldap.xml" />
+ <xinclude:include href='appendix-file-layout.xml' />
+ <xinclude:include href='appendix-ports-used.xml' />
+ <xinclude:include href='appendix-standards.xml' />
+ <xinclude:include href='appendix-controls.xml' />
+ <xinclude:include href='appendix-extended-ops.xml' />
+ <xinclude:include href='appendix-l10n.xml' />
+ <xinclude:include href='appendix-interface-stability.xml' />
+<!-- For 2.6.x, we deliver only release notes, so leave out the log reference.
+ <xinclude:include href='../../../target/logref/log-message-reference.xml'>
+  <xinclude:fallback>
+   <appendix>
+    <title>Log Message Reference Missing</title>
+    <para>The log message reference is missing. It should be in
+    <filename>../../../target/logref/log-message-reference.xml</filename>.</para>
+   </appendix>
+  </xinclude:fallback>
+ </xinclude:include>
+-->
+
+ <index />
+</book>

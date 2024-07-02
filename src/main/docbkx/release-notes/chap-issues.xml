@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2015 ForgeRock AS.
+  !    
+-->
+<chapter xml:id='chap-issues'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <title>OpenDJ Fixes, Limitations, &amp; Known Issues</title>
+
+ <para>
+  This chapter covers the status of key issues and limitations
+  for OpenDJ ${docTargetVersion} and OpenDJ SDK ${sdkDocTargetVersion}.
+  For details and information on other issues,
+  see the <link xlink:show="new"
+  xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ"
+  >OpenDJ issue tracker</link>.
+ </para>
+
+ <section xml:id="fixes">
+  <title>Key Fixes</title>
+
+  <note>
+   <!-- TODO: reconsider when 2.4.x is no longer supported. -->
+   <para>
+    OpenDJ 2.6.0 and later maintenance releases
+    include important improvements to replication.
+    Replication remains fully compatible with earlier versions.
+    However, some operations that work fine with the current OpenDJ release,
+    such as replicating large groups
+    and replicating high volumes of adds and deletes,
+    can cause issues for earlier versions.
+    Make sure you upgrade all servers to this version
+    before allowing clients to take advantage of write operations
+    that could cause trouble for older servers.
+   </para>
+  </note>
+
+  <para>The following important bugs were fixed in this release.</para>
+
+  <!-- List generated at 10:40:00 20150721 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+fixVersion+%3D+%222.6.3%22+AND+component+not+in+%28Documentation%2C+QA%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
+  <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-2157" xlink:show="new">OPENDJ-2157</link>: Backport OPENDJ-2152: ldapsearch ignores ldapsearch.useSSL=true in a tools.properties</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1951" xlink:show="new">OPENDJ-1951</link>: Backport OPENDJ-1915 DSMLServlet is not thread-safe</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1947" xlink:show="new">OPENDJ-1947</link>: Backport OPENDJ-1605: Schema is incorrect for ds-base-dn-entry-count attribute used in monitor backend</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1892" xlink:show="new">OPENDJ-1892</link>: Backport OPENDJ-1842: Using SSL with JMX doesn't work</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1890" xlink:show="new">OPENDJ-1890</link>: Backport OPENDJ-1882: currentConnections from cn=monitor is not decremented when JMX connections close</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1764" xlink:show="new">OPENDJ-1764</link>: admin-backend.ldif can end up empty</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1665" xlink:show="new">OPENDJ-1665</link>: performBackendInitializationProcessing takes a very long time when backup.info contains lots of entries</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1610" xlink:show="new">OPENDJ-1610</link>: original password is not put into the password history when reset the password without specify the new password</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1375" xlink:show="new">OPENDJ-1375</link>: Subtree delete control can wait forever for an id2subtree lock</para></listitem>
+  </itemizedlist>
+  <!-- Issue count: 9 -->
+ </section>
+
+ <section xml:id="limitations">
+  <title>Limitations</title>
+
+  <para>Release <?eval ${docTargetVersion}?> has the following limitations,
+  none of which are new since <?eval ${stableServerVersion}?>.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>OpenDJ directory server provides full LDAP v3 support, except for
+    alias dereferencing, and limited support for LDAPv2.</para>
+   </listitem>
+   <listitem>
+    <para>When you configure account lockout as part of password policy,
+    OpenDJ locks an account after the specified number of consecutive
+    authentication failures. Account lockout is not transactional across a
+    replication topology, however. Global account lockout occurs as soon as
+    the authentication failure times have been replicated.</para>
+   </listitem>
+   <listitem>
+    <para>OpenDJ is not fully integrated with Microsoft Windows, yet OpenDJ
+    directory server can be run as a service, and thus displayed in the
+    Windows Services Control Panel.</para>
+   </listitem>
+   <listitem>
+    <para>OpenDJ replication is designed to permit an unlimited number
+    of replication servers in your topology. Project testing has, however,
+    focused only on topologies of up to eight replication servers.</para>
+   </listitem>
+
+   <listitem>
+    <para>OpenDJ plugin extensions must follow the guidelines set forth in
+    the <filename>README</filename> file delivered in
+    <filename>opendj/example-plugin.zip</filename>. When developing your
+    extension, aim to remain loosely coupled with any particular version of
+    OpenDJ. Libraries used must be installed in
+    <filename>opendj/lib/extensions/</filename> (or bundle them in your
+    .jar). Keep your configuration separate from the server configuration.
+    Also, unless you are reusing standard schema definitions, keep your
+    schema definitions separate as well.</para>
+
+    <para>This can affect how your extension works after upgrade. In
+    particular <literal>opendj-accountchange-handler-1.0.0</literal> does
+    not work with OpenDJ 2.6.0 after upgrade (<link xlink:show="new"
+    xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-991"
+    >OPENDJ-991</link>). See that issue for notes on how make that version
+    of the extension work with OpenDJ 2.6.0.</para>
+   </listitem>
+
+   <!-- This hardware is EOL.
+   <listitem>
+    <para>On Niagara systems such as T2000, hardware SSL crypto acceleration
+    runs more slowly than software crypto acceleration. To work around this
+    issue take the following actions.</para>
+    <orderedlist>
+     <listitem>
+      <para>Add more request handlers to LDAP (for TLS) and LDAPS (for SSL)
+      connection handlers.</para>
+     </listitem>
+     <listitem>
+      <para>Disable hardware acceleration for server's JVM by removing the
+      SunPKCS11 security provider from
+      <filename>jre/lib/security/java.security</filename>.</para>
+     </listitem>
+    </orderedlist>
+   </listitem>
+   -->
+  </itemizedlist>
+ </section>
+
+ <section xml:id="known-issues">
+  <title>Known Issues</title>
+
+  <tip>
+   <para>When deploying for production, make sure that you follow the
+   installation instructions on allowing OpenDJ to use at least 64K (65536)
+   file descriptors, and on tuning the JVM appropriately.</para>
+  </tip>
+
+  <para>The following important issues remained open at the time this release
+  became available.</para>
+
+  <!-- List generated at 10:49:54 20150619 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+%28resolution+%3D+unresolved+or+%28fixVersion+not+in+%28%222.6.0%22%2C+%222.6.1%22%2C+%222.6.2%22%2C+%222.6.3%22%29+AND+fixVersion+in+%28%222.8.0%22%2C+%223.0.0%22%29%29%29+AND+component+not+in+%28Documentation%2C+QA%2C+%22opendj+sdk%22%2C+%22next+gen+backend%22%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
+  <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1969" xlink:show="new">OPENDJ-1969</link>: IdleTimeLimitThread fails with null ConnectionHandlers or null ClientConnections</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1968" xlink:show="new">OPENDJ-1968</link>: NPE in GoverningStructureRuleVirtualAttributeProvider if entry has no structural object classes</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1829" xlink:show="new">OPENDJ-1829</link>: JMX connector listens on a random port number</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1586" xlink:show="new">OPENDJ-1586</link>: Nested Groups fail to return indirect members with db's larger than 10 entries</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1431" xlink:show="new">OPENDJ-1431</link>: Trimming of draftcndb gets stuck, changelog keeps growing in size</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1366" xlink:show="new">OPENDJ-1366</link>: Arguments logged in wrong order for ERROR_REPLAYING_OPERATION</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1325" xlink:show="new">OPENDJ-1325</link>: An error occurred while attempting to perform index rebuild:  The database environment could not be opened: (JE 5.0.73)</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1309" xlink:show="new">OPENDJ-1309</link>: First dsreplication enable could warn before replicating schema</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1294" xlink:show="new">OPENDJ-1294</link>: ldappasswordmodify -D &lt;DN&gt; -w - fails without prompting password from stdin</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1290" xlink:show="new">OPENDJ-1290</link>: Nested backends handles hasSubordinates attribute incorrectly</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1239" xlink:show="new">OPENDJ-1239</link>: dsreplication logs warnings for each replication server under cn=monitor</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1213" xlink:show="new">OPENDJ-1213</link>: LDIFReader should reject LDIF that contains trailing space</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1189" xlink:show="new">OPENDJ-1189</link>: Integer overflow while sizing scratch files building indexes</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1172" xlink:show="new">OPENDJ-1172</link>: Deadlock between replication threads during shutdown.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1169" xlink:show="new">OPENDJ-1169</link>: Exception/error lost when logging ERR_LOOP_REPLAYING_OPERATION</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1158" xlink:show="new">OPENDJ-1158</link>: rebuild-index leaves backend offline if a backup is running</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1151" xlink:show="new">OPENDJ-1151</link>: OpenDJ unable to initialize the SSL context an doesn't start</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1138" xlink:show="new">OPENDJ-1138</link>: searchrate throws java.lang.IndexOutOfBoundsException</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1131" xlink:show="new">OPENDJ-1131</link>: Rest2LDAP fails to start with GlassFish3.1</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1094" xlink:show="new">OPENDJ-1094</link>: ECL virtual lastChangeNumber attribute can decrement</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1087" xlink:show="new">OPENDJ-1087</link>: OpenDJ Console: Validation checks missing</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1056" xlink:show="new">OPENDJ-1056</link>: secure listener should not be created if proper keying material is not available for some reason</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1051" xlink:show="new">OPENDJ-1051</link>: Upgrade: add task to update lastChangeNumber/firstChangeNumber attributes definition when upgrading from 2.4.x</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1043" xlink:show="new">OPENDJ-1043</link>: Worker Thread was interrupted while waiting for new work while shutting down </para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1016" xlink:show="new">OPENDJ-1016</link>: Control panel does not follow static group recommendation from documentation</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1007" xlink:show="new">OPENDJ-1007</link>: InstallHelper: endless loop, etc.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-948" xlink:show="new">OPENDJ-948</link>: unauthorized disclosure of directory contents</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-934" xlink:show="new">OPENDJ-934</link>: Changes to RS window-size property require a server restart</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-862" xlink:show="new">OPENDJ-862</link>: Strange ds-privilege-name behavior</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-810" xlink:show="new">OPENDJ-810</link>: Non-atomic password state updates</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-737" xlink:show="new">OPENDJ-737</link>: OpenDJ Administration Connector KeyStore Pin File must be defined and non empty</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-640" xlink:show="new">OPENDJ-640</link>: Text Query Against indexed telephoneNumber Attribute Very Slow</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-573" xlink:show="new">OPENDJ-573</link>: mustChangePassword function makes-up password change state</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-557" xlink:show="new">OPENDJ-557</link>: Identical changes recorded in duplicate changelog records</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-527" xlink:show="new">OPENDJ-527</link>: rebuild-index --rebuildAll corrupts the indexes for certain data sets </para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-518" xlink:show="new">OPENDJ-518</link>: Cannot log into the administrative control panel with FIPS-140 enabled  in certain cases</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-505" xlink:show="new">OPENDJ-505</link>: dsreplication enable fails when hostname contains an underscore</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-431" xlink:show="new">OPENDJ-431</link>: Server side sort control only works on result sets of less than 100000 entries</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-412" xlink:show="new">OPENDJ-412</link>: Blocked persistent searches may block all worker threads</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-365" xlink:show="new">OPENDJ-365</link>: Potential deadlock in JE backend while performing a mix of update operations</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-270" xlink:show="new">OPENDJ-270</link>: dsreplication disable takes a long time</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-49" xlink:show="new">OPENDJ-49</link>: Replication replay does not take into consideration the server/backend's writability mode.</para></listitem>
+  </itemizedlist>
+  <!-- Issue count: 42 -->
+ </section>
+</chapter>

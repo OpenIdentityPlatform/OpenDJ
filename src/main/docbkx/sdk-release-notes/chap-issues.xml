@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2014-2015 ForgeRock AS.
+  !    
+-->
+<chapter xml:id='chap-issues'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <title>OpenDJ LDAP SDK Fixes, Limitations, &amp; Known Issues</title>
+
+ <para>
+  This chapter covers the status of key issues and limitations
+  for this version of OpenDJ LDAP SDK.
+  For detailed information regarding a particular issue, see the
+  <link
+   xlink:show="new"
+   xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ"
+   >OpenDJ issue tracker</link>.
+ </para>
+
+ <section xml:id="fixes">
+  <title>Key Fixes</title>
+
+  <para>
+   The following bugs were fixed in this release.
+  </para>
+
+  <!-- List generated at 16:10:54 20150914 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+%28fixVersion+in+%28%222.6.10-sdk%22%2C+%222.6.11-sdk%22%29%29+AND+component+not+in+%28Documentation%2C+QA%29+AND+labels+%3D+release-notes+AND+NOT+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ%22%2C+%22is+backported+by%22%29%29+OR+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ+AND+fixVersion+in+%28%272.6.10-sdk%27%2C+%272.6.11-sdk%27%29+AND+resolution+%3D+Fixed+AND+type+%3D+Bug%22%2C+%27is+a+backport+of%27%29%29&startAt=0&maxResults=500&fields=summary-->
+  <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-2240" xlink:show="new">OPENDJ-2240</link>: AttributeTypes parser mishandles characters after usage field</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1909" xlink:show="new">OPENDJ-1909</link>: diffEntries implements an add+delete but should be delete+add</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1597" xlink:show="new">OPENDJ-1597</link>: newOffsetControl passes 'offset' and 'contentCount' to the constructor in the incorrect order</para></listitem>
+  </itemizedlist>
+  <!-- Issue count: 3 -->
+ </section>
+
+ <section xml:id="limitations">
+  <title>Limitations</title>
+
+  <para>
+   No limitations are noted for this release.
+  </para>
+ </section>
+
+ <section xml:id="known-issues">
+  <title>Known Issues</title>
+
+  <para>
+   The following important issues remained open
+   at the time this release became available.
+  </para>
+
+  <!-- List generated at 16:02:23 20150914 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+%28resolution+%3D+unresolved+or+%28fixVersion+not+in+%28%222.6.1-sdk%22%2C+%222.6.2-sdk%22%2C+%222.6.3-sdk%22%2C+%222.6.4-sdk%22%2C+%222.6.5-sdk%22%2C+%222.6.6-sdk%22%2C+%222.6.7-sdk%22%2C+%222.6.8-sdk%22%2C+%222.6.9-sdk%22%2C+%222.6.10-sdk%22%2C+%222.6.11-sdk%22%29%29%29+AND+component+%3D+%22opendj+sdk%22+AND+labels+%3D+release-notes+AND+NOT+%28issueFunction+in+linkedIssuesOf%28%22project+%3D+OPENDJ+AND+fixVersion+in+%28%272.6.10-sdk%27%2C+%272.6.11-sdk%27%29+AND+resolution+%3D+Fixed%22%2C+%22is+a+backport+of%22%29%29&startAt=0&maxResults=500&fields=summary-->
+  <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1276" xlink:show="new">OPENDJ-1276</link>: ModifyDNRequest javadoc should describe deleteOldRDN default value</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1131" xlink:show="new">OPENDJ-1131</link>: Rest2LDAP fails to start with GlassFish3.1</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-627" xlink:show="new">OPENDJ-627</link>: ConnectionPool internal state becomes invalid when stale connections are discarded</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-590" xlink:show="new">OPENDJ-590</link>: ConnectionPool may return already closed/disconnected connections</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-553" xlink:show="new">OPENDJ-553</link>: FailoverLoadBalancingAlgorithm does not appear to fail over</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-514" xlink:show="new">OPENDJ-514</link>: OpenDJ SDK SASL integrity/confidentiality violates protocol</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-464" xlink:show="new">OPENDJ-464</link>: NPE in PasswordPolicyStateExtendedResult results in eternal waiting</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-427" xlink:show="new">OPENDJ-427</link>: AuthenticatedConnectionFactory hides exception with NPE</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-271" xlink:show="new">OPENDJ-271</link>: ExternalSASLBindRequestImpl throws java.lang.IllegalStateException</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-159" xlink:show="new">OPENDJ-159</link>: LDAP connections use stale default schema if it is changed after factory creation.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-156" xlink:show="new">OPENDJ-156</link>: Errors when parsing collective attribute definitions </para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-155" xlink:show="new">OPENDJ-155</link>: Add support for OpenDJ extended matching rules and syntaxes</para></listitem>
+  </itemizedlist>
+  <!-- Issue count: 12 -->
+ </section>
+</chapter>
