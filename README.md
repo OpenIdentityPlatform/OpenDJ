@@ -7,7 +7,6 @@
 [![License](https://img.shields.io/badge/license-CDDL-blue.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/blob/master/LICENSE.md)
 [![Downloads](https://img.shields.io/github/downloads/OpenIdentityPlatform/OpenDJ/total.svg)](https://github.com/OpenIdentityPlatform/OpenDJ/releases)
 [![Docker](https://img.shields.io/docker/pulls/openidentityplatform/opendj.svg)](https://hub.docker.com/r/openidentityplatform/opendj)
-[![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/OpenIdentityPlatform/OpenDJ)
 [![Top language](https://img.shields.io/github/languages/top/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 [![Code size in bytes](https://img.shields.io/github/languages/code-size/OpenIdentityPlatform/OpenDJ.svg)](https://github.com/OpenIdentityPlatform/OpenDJ)
 
@@ -52,7 +51,6 @@ cd OpenDJ/opendj-server-legacy/target/package/opendj
 bin/start-ds
 bin/stop-ds
 ```
-See the wiki for [Full Installation guide, Administration guide, and Developers guide](https://github.com/OpenIdentityPlatform/OpenDJ/wiki)
 
 ## Support 
 * OpenDJ community [documentation](https://github.com/OpenIdentityPlatform/OpenDJ/wiki)
