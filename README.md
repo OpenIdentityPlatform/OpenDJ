@@ -53,9 +53,9 @@ bin/stop-ds
 ```
 
 ## Support 
-* OpenDJ community [documentation](https://github.com/OpenIdentityPlatform/OpenDJ/wiki)
-* OpenDJ community [discussions](https://github.com/OpenIdentityPlatform/OpenDJ/discussions)
-* OpenDJ community [issues](https://github.com/OpenIdentityPlatform/OpenDJ/issues)
+* OpenDJ Community [documentation](https://github.com/OpenIdentityPlatform/OpenDJ/wiki)
+* OpenDJ Community [discussions](https://github.com/OpenIdentityPlatform/OpenDJ/discussions)
+* OpenDJ Community [issues](https://github.com/OpenIdentityPlatform/OpenDJ/issues)
 * OpenDJ [commercial support](https://github.com/OpenIdentityPlatform/.github/wiki/Approved-Vendor-List)
 
 ## Contributing
