@@ -17,7 +17,7 @@ by your organization. Its easy installation process, combined with the power of 
 the simplest, fastest directory to deploy and manage and allow [store LDAPv3 database in Cassandra/Scylla cluster](https://github.com/OpenIdentityPlatform/OpenDJ/wiki/How-To#store-ldap-catalog-data-in-cassandra-nosql-cluster).
 
 An open source, lightweight, embeddable directory that can easily share real-time customer, device, and user identity data across enterprise, cloud, social, and mobile environments.
-* Massive data scale and high availability providing developers with ultra-lightweight ways to access identity data
+* Massive data scale and high availability provide developers with ultra-lightweight ways to access identity data
 * High Performance - ms response times & tens of thousands of w/r per sec
 * Multi Master replication for high availability
 
