@@ -160,4 +160,12 @@ public abstract class ResultLdapPromiseImpl<R extends Request, S extends Result>
     public boolean checkForTimeout() {
         return true;
     }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+        if (timestamp==0L) {
+            return super.cancel(mayInterruptIfRunning);
+        }
+        return false;
+    }
 }
