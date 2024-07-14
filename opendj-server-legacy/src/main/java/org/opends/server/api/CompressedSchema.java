@@ -162,10 +162,8 @@ public class CompressedSchema
    */
   private void reloadAttributeTypeMaps(Mappings mappings, Mappings newMappings)
   {
-    for (Entry<AttributeDescription, Integer> entry : mappings.adEncodeMap.entrySet())
-    {
-      AttributeDescription ad = entry.getKey();
-      Integer id = entry.getValue();
+    for(int id=0;id<mappings.adDecodeMap.size();id++){
+      final AttributeDescription ad = mappings.adDecodeMap.get(id);
       loadAttributeToMaps(id, ad.getAttributeType().getNameOrOID(), ad.getOptions(), newMappings);
     }
   }
@@ -176,11 +174,8 @@ public class CompressedSchema
    */
   private void reloadObjectClassesMap(Mappings mappings, Mappings newMappings)
   {
-    for (Entry<Map<ObjectClass, String>, Integer> entry : mappings.ocEncodeMap.entrySet())
-    {
-      Map<ObjectClass, String> ocMap = entry.getKey();
-      Integer id = entry.getValue();
-      loadObjectClassesToMaps(id, ocMap.values(), newMappings, false);
+    for(int id=0;id<mappings.ocDecodeMap.size();id++){
+      loadObjectClassesToMaps(id, mappings.ocDecodeMap.get(id).values(), newMappings, false);
     }
   }
 
